@@ -43,10 +43,11 @@ type subscriberAccount struct {
 
 // PCRFDiamServer wraps an PCRF storing subscribers and their rules
 type PCRFDiamServer struct {
-	diameterSettings *diameter.DiameterClientConfig
-	pcrfConfig       *PCRFConfig
-	serviceConfig    *protos.PCRFConfigs
-	subscribers      map[string]*subscriberAccount // map of imsi to to rules
+	diameterSettings    *diameter.DiameterClientConfig
+	pcrfConfig          *PCRFConfig
+	serviceConfig       *protos.PCRFConfigs
+	subscribers         map[string]*subscriberAccount // map of imsi to to rules
+	LastMessageReceived *ccrMessage
 }
 
 // NewPCRFDiamServer initializes an PCRF with an empty rule map

@@ -74,6 +74,7 @@ func main() {
 	pcrfDiamCfg := gx.GetPCRFConfiguration()
 
 	gyGlobalConfig := gy.GetGyGlobalConfig()
+	gxGlobalConfig := gx.GetGxGlobalConfig()
 
 	var gxClnt *gx.GxClient
 	var gyClnt *gy.GyClient
@@ -100,7 +101,9 @@ func main() {
 		gxClnt = gx.NewConnectedGxClient(
 			diamClient,
 			ocsDiamCfg,
-			gx.GetGxReAuthHandler(cloudReg, policyDBClient), cloudReg)
+			gx.GetGxReAuthHandler(cloudReg, policyDBClient),
+			cloudReg,
+			gxGlobalConfig)
 	} else {
 		glog.Infof("Using distinct Gy: %+v & Gx: %+v connection",
 			ocsDiamCfg.DiameterServerConnConfig, pcrfDiamCfg.DiameterServerConnConfig)
@@ -112,7 +115,7 @@ func main() {
 		gxClnt = gx.NewGxClient(
 			gx.GetGxClientConfiguration(),
 			pcrfDiamCfg,
-			gx.GetGxReAuthHandler(cloudReg, policyDBClient), cloudReg)
+			gx.GetGxReAuthHandler(cloudReg, policyDBClient), cloudReg, gxGlobalConfig)
 	}
 	// Add servicers to the service
 	sessionManager := servicers.NewCentralSessionController(gyClnt, gxClnt, policyDBClient, controllerCfg)

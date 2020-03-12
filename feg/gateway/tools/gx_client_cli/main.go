@@ -96,9 +96,11 @@ func main() {
 	clientCfg := gx.GetGxClientConfiguration()
 	fmt.Printf("Client config: %+v\n", clientCfg)
 
+	globalCfg := gx.GetGxGlobalConfig()
+
 	config := &cliConfig{
 		serverCfg: serverCfg,
-		gxClient:  gx.NewGxClient(clientCfg, serverCfg, handleReAuth, nil),
+		gxClient:  gx.NewGxClient(clientCfg, serverCfg, handleReAuth, nil, globalCfg),
 		imsi:      imsi,
 		sessionID: fmt.Sprintf("%s-%s", imsi, sid),
 		ueIP:      ueIP,

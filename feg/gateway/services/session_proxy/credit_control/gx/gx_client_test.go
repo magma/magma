@@ -35,6 +35,7 @@ const (
 )
 
 var (
+	pcrf           *mock_pcrf.PCRFDiamServer
 	imsi1Rules     = []string{"rule1", "rule2"}
 	imsi1BaseRules = []string{"rule1", "rule2"}
 	imsi2Rules     = []string{"rule1", "rule3"}
@@ -51,6 +52,7 @@ func TestGxClient(t *testing.T) {
 	serverConfig1 := serverConfig
 	serverConfig2 := serverConfig
 	clientConfig := getClientConfig()
+	globalConfig := getGxGlobalConfig("")
 	startServer(clientConfig, &serverConfig1)
 
 	gxClient := gx.NewGxClient(
@@ -58,6 +60,7 @@ func TestGxClient(t *testing.T) {
 		&serverConfig2,
 		getMockReAuthHandler(),
 		nil,
+		globalConfig,
 	)
 
 	// send init
@@ -76,6 +79,9 @@ func TestGxClient(t *testing.T) {
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, 5, len(answer.RuleInstallAVP))
+	calledStationID, err := mock_pcrf.GetAVP(pcrf.LastMessageReceived, "Called-Station-Id")
+	assert.NoError(t, err)
+	assert.Equal(t, "", calledStationID)
 
 	var ruleNames []string
 	var ruleBaseNames []string
@@ -179,6 +185,48 @@ func TestGxClient(t *testing.T) {
 
 }
 
+// TestGxClient tests CCR init and terminate messages using a fake PCRF and a specific GxGlobalConfig
+func TestGxClientWithGyGlobalConf(t *testing.T) {
+	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+		Addr:     "127.0.0.1:4000",
+		Protocol: "tcp"},
+	}
+	serverConfig1 := serverConfig
+	serverConfig2 := serverConfig
+	clientConfig := getClientConfig()
+	overWriteApn := "gx.Apn.magma.com"
+	globalConfig := getGxGlobalConfig(overWriteApn)
+	startServer(clientConfig, &serverConfig1)
+
+	gxClient := gx.NewGxClient(
+		clientConfig,
+		&serverConfig2,
+		getMockReAuthHandler(),
+		nil,
+		globalConfig,
+	)
+
+	// send init
+	ccrInit := &gx.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI1,
+		RequestNumber: 0,
+		IPAddr:        "192.168.1.1",
+		SpgwIPV4:      "10.10.10.10",
+	}
+	done := make(chan interface{}, 1000)
+
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	answer := gx.GetAnswer(done)
+	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
+	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
+	assert.Equal(t, 5, len(answer.RuleInstallAVP))
+	calledStationID, err := mock_pcrf.GetAVP(pcrf.LastMessageReceived, "Called-Station-Id")
+	assert.NoError(t, err)
+	assert.Equal(t, overWriteApn, calledStationID)
+}
+
 func TestGxClientUsageMonitoring(t *testing.T) {
 	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 		Addr:     "127.0.0.1:3899",
@@ -187,12 +235,14 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 	serverConfig1 := serverConfig
 	serverConfig2 := serverConfig
 	clientConfig := getClientConfig()
+	globalConfig := getGxGlobalConfig("")
 	startServer(clientConfig, &serverConfig1)
 	gxClient := gx.NewGxClient(
 		clientConfig,
 		&serverConfig2,
 		getMockReAuthHandler(),
 		nil,
+		globalConfig,
 	)
 	done := make(chan interface{}, 1000)
 
@@ -273,6 +323,12 @@ func getClientConfig() *diameter.DiameterClientConfig {
 	}
 }
 
+func getGxGlobalConfig(pcrfOverwriteApn string) *gx.GxGlobalConfig {
+	return &gx.GxGlobalConfig{
+		PCFROverwriteApn: pcrfOverwriteApn,
+	}
+}
+
 func startServer(
 	client *diameter.DiameterClientConfig,
 	server *diameter.DiameterServerConfig,
@@ -280,7 +336,7 @@ func startServer(
 	serverStarted := make(chan struct{})
 	go func() {
 		log.Printf("Starting server")
-		pcrf := mock_pcrf.NewPCRFDiamServer(
+		pcrf = mock_pcrf.NewPCRFDiamServer(
 			client,
 			&mock_pcrf.PCRFConfig{ServerConfig: server},
 		)
