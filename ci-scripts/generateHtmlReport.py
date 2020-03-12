@@ -50,6 +50,7 @@ class HtmlReport():
 		self.vmWakeUpRow()
 		self.makeRunRow()
 		self.statusCheckRow()
+		self.vmStopCheckRow()
 		self.buildSummaryFooter()
 
 		self.testSummaryHeader()
@@ -167,6 +168,48 @@ class HtmlReport():
 		self.analyze_vagrant_up_log('magma')
 		self.analyze_vagrant_up_log('magma_test')
 		self.analyze_vagrant_up_log('magma_trfserver')
+		self.file.write('    </tr>\n')
+
+	def vmStopCheckRow(self):
+		self.file.write('    <tr>\n')
+		self.file.write('      <td bgcolor="lightcyan" >Stopping gracefully Vagrant VMs</td>\n')
+		cwd = os.getcwd()
+		logFileName = 'magma_vagrant_global_status.log'
+		if os.path.isfile(cwd + '/archives/' + logFileName):
+			magma_dev_status = ''
+			magma_test_status = ''
+			magma_trf_status = ''
+			with open(cwd + '/archives/' + logFileName, 'r') as logfile:
+				for line in logfile:
+					result = re.search('magma_test', line)
+					if result is not None:
+						result = re.search('poweroff', line)
+						if result is not None:
+							magma_test_status = 'powered-off'
+						else:
+							magma_test_status = 'unknown'
+					else:
+						result = re.search('magma_trfserver', line)
+						if result is not None:
+							result = re.search('poweroff', line)
+							if result is not None:
+								magma_trf_status = 'powered-off'
+							else:
+								magma_trf_status = 'unknown'
+						else:
+							result = re.search('magma', line)
+							if result is not None:
+								result = re.search('poweroff', line)
+								if result is not None:
+									magma_dev_status = 'powered-off'
+								else:
+									magma_dev_status = 'unknown'
+				logfile.close()
+			self.file.write('      <td bgcolor="LightGray"><b>' + magma_dev_status + '</b></td>\n')
+			self.file.write('      <td bgcolor="LightGray"><b>' + magma_test_status + '</b></td>\n')
+			self.file.write('      <td bgcolor="LightGray"><b>' + magma_trf_status + '</b></td>\n')
+		else:
+			self.file.write('      <td bgcolor="Red" colspan = 3 align = "center"><b><font color="white">Could not read logfile ' + logFileName + '</font></b></td>\n')
 		self.file.write('    </tr>\n')
 
 	def analyze_vagrant_up_log(self, vmType):
@@ -356,6 +399,7 @@ class HtmlReport():
 		if os.path.isfile(cwd + '/archives/magma_run_s1ap_tester.log'):
 			pattern = 'echo "Running test: '
 			status = True
+			global_test_duration = 0.0
 			with open(cwd + '/archives/magma_run_s1ap_tester.log', 'r') as logfile:
 				for line in logfile:
 					result = re.search(pattern + '(.+)$', line)
@@ -364,6 +408,7 @@ class HtmlReport():
 					result = re.search('Ran 1 test in (.+)$', line)
 					if result is not None:
 						test_duration = result.group(1)
+						global_test_duration += float(test_duration.replace('s',''))
 					result = re.search('^OK$|^FAILED', line)
 					if result is not None:
 						listTests = '    <tr>\n'
@@ -381,9 +426,11 @@ class HtmlReport():
 			self.file.write('     <tr>\n')
 			self.file.write('       <td bgcolor = "LightBlue" ><b>FINAL STATUS</b></td>\n')
 			if status:
-				self.file.write('       <td align = "right" colspan = 2 bgcolor = "Green"><b><font color = "white">OK</font></b></td>\n')
+				self.file.write('       <td align = "left" bgcolor = "Green"><b><font color = "white">OK</font></b></td>\n')
+				self.file.write('       <td align = "left" bgcolor = "Green"><b><font color = "white">' + str(global_test_duration) + 's</font></b></td>\n')
 			else:
-				self.file.write('       <td align = "right" colspan = 2 bgcolor = "Red"><b><font color = "white">FAIL</font></b></td>\n')
+				self.file.write('       <td align = "left" bgcolor = "Red"><b><font color = "white">FAIL</font></b></td>\n')
+				self.file.write('       <td align = "left" bgcolor = "Red"><b><font color = "white">' + str(global_test_duration) + 's</font></b></td>\n')
 			self.file.write('     </tr>\n')
 		else:
 			self.file.write('     <tr bgcolor="Tomato" >\n')
