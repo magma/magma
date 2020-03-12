@@ -9,13 +9,11 @@
 package mock_driver
 
 import (
-	"fmt"
-
 	"magma/feg/cloud/go/protos"
 )
 
 type Expectation interface {
-	DoesMatch(interface{}) bool
+	DoesMatch(interface{}) error
 	GetAnswer() interface{}
 }
 
@@ -60,10 +58,10 @@ func (e *MockDriver) GetAnswerFromExpectations(message interface{}) interface{} 
 		return e.getAnswerForUnexpectedMessage()
 	}
 	expectation := e.expectations[e.expectationIndex]
-	doesMatch := expectation.DoesMatch(message)
-	if !doesMatch {
-		err := &protos.ErrorByIndex{Index: int32(e.expectationIndex), Error: fmt.Sprintf("Expected: %v, Received: %v", expectation, message)}
-		e.errorMessages = append(e.errorMessages, err)
+	err := expectation.DoesMatch(message)
+	if err != nil {
+		errByIndex := &protos.ErrorByIndex{Index: int32(e.expectationIndex), Error: err.Error()}
+		e.errorMessages = append(e.errorMessages, errByIndex)
 		return e.getAnswerForUnexpectedMessage()
 	}
 

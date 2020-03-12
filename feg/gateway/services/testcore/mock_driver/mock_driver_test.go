@@ -9,6 +9,7 @@
 package mock_driver_test
 
 import (
+	"fmt"
 	"testing"
 
 	"magma/feg/cloud/go/protos"
@@ -22,12 +23,15 @@ type TestExpectation struct {
 	answer  string
 }
 
-func (t TestExpectation) DoesMatch(iReq interface{}) bool {
+func (t TestExpectation) DoesMatch(iReq interface{}) error {
 	request, ok := iReq.(string)
 	if !ok {
-		return false
+		return fmt.Errorf("request is not of type string")
 	}
-	return request == t.request
+	if request != t.request {
+		return fmt.Errorf("Expected: %v, Received: %v", t.request, request)
+	}
+	return nil
 }
 
 func (t TestExpectation) GetAnswer() interface{} {
@@ -103,8 +107,8 @@ func TestSomeExpectationsNotMet(t *testing.T) {
 	}
 	assert.ElementsMatch(t, expectedResult, result)
 	expectedErrors := []*protos.ErrorByIndex{
-		{Index: 1, Error: "Expected: {req2 ans2}, Received: bad-req2-1"},
-		{Index: 1, Error: "Expected: {req2 ans2}, Received: bad-req2-2"},
+		{Index: 1, Error: "Expected: req2, Received: bad-req2-1"},
+		{Index: 1, Error: "Expected: req2, Received: bad-req2-2"},
 	}
 	assert.ElementsMatch(t, expectedErrors, errs)
 }
