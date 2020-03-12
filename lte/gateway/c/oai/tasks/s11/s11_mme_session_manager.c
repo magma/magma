@@ -81,7 +81,7 @@ s11_mme_create_session_request (
    */
   rc = nwGtpv2cMsgNew (*stack_p, true, NW_GTP_CREATE_SESSION_REQ, req_p->teid, 0, &(ulp_req.hMsg));
   /** Will stay in stack until its copied into trx and sent to UE. */
-  ulp_req.u_api_info.initialReqInfo.edns_peer_ip = &req_p->edns_peer_ip;
+  ulp_req.u_api_info.initialReqInfo.edns_peer_ip = (struct sockaddr*)&req_p->edns_peer_ip;
   ulp_req.u_api_info.initialReqInfo.teidLocal  = req_p->sender_fteid_for_cp.teid;
   ulp_req.u_api_info.initialReqInfo.hUlpTunnel = 0;
   ulp_req.u_api_info.initialReqInfo.hTunnel    = 0;
@@ -317,7 +317,7 @@ s11_mme_delete_session_request (
    * Prepare a new Delete Session Request msg
    */
   rc = nwGtpv2cMsgNew (*stack_p, true, NW_GTP_DELETE_SESSION_REQ, req_p->teid, 0, &(ulp_req.hMsg));
-  ulp_req.u_api_info.initialReqInfo.edns_peer_ip = &req_p->edns_peer_ip;
+  ulp_req.u_api_info.initialReqInfo.edns_peer_ip = (struct sockaddr*)&req_p->edns_peer_ip;
   ulp_req.u_api_info.initialReqInfo.teidLocal = req_p->local_teid;
   ulp_req.u_api_info.initialReqInfo.noDelete  = req_p->noDelete;
 

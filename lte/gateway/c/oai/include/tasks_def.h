@@ -35,6 +35,8 @@ TASK_DEF(TASK_MAIN)
 TASK_DEF(TASK_FW_IP)
 /// MME Applicative task
 TASK_DEF(TASK_MME_APP)
+/// S10 task
+TASK_DEF(TASK_S10)
 /// S11 task
 TASK_DEF(TASK_S11)
 /// S1AP task

@@ -181,6 +181,8 @@ typedef uint8_t
 #define ARD_HO_TO_NON_3GPP_NOT_ALLOWED (1U << 5)
 #define ARD_MAX (1U << 6)
 
+
+
 typedef union {
   uint8_t imei[IMEI_DIGITS_MAX - 1]; // -1 =  remove CD/SD digit
   uint8_t imeisv[IMEISV_DIGITS_MAX];

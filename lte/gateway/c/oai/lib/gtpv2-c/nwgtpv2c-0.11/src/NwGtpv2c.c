@@ -1596,7 +1596,7 @@ static nw_rc_t                            nwGtpv2cHandleUlpFindLocalTunnel (
   NW_IN uint32_t udpDataLen,
   NW_IN uint16_t localPort,
   NW_IN uint16_t peerPort,
-  NW_IN union sock_addr_t * sock_addr) 
+  NW_IN struct sockaddr *peerIp) 
   {
     nw_rc_t                                   rc = NW_FAILURE;
     nw_gtpv2c_stack_t                         *thiz = NULL;
