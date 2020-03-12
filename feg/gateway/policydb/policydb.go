@@ -12,7 +12,7 @@ import (
 	"fmt"
 
 	"magma/feg/gateway/object_store"
-	"magma/feg/gateway/registry"
+	"magma/gateway/service_registry"
 	"magma/gateway/streamer"
 	"magma/lte/cloud/go/protos"
 
@@ -59,7 +59,7 @@ func CreateChargingKey(rule *protos.PolicyRule) ChargingKey {
 }
 
 // NewRedisPolicyDBClient creates a new RedisPolicyDBClient
-func NewRedisPolicyDBClient(reg registry.CloudRegistry) (*RedisPolicyDBClient, error) {
+func NewRedisPolicyDBClient(reg service_registry.GatewayRegistry) (*RedisPolicyDBClient, error) {
 	redisClient, err := object_store.NewRedisClient()
 	if err != nil {
 		return nil, err

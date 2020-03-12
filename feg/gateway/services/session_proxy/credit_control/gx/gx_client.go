@@ -20,8 +20,8 @@ import (
 	"github.com/golang/glog"
 
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/credit_control"
+	"magma/gateway/service_registry"
 	"magma/orc8r/cloud/go/util"
 )
 
@@ -59,7 +59,7 @@ func NewConnectedGxClient(
 	diamClient *diameter.Client,
 	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
-	cloudRegistry registry.CloudRegistry,
+	cloudRegistry service_registry.GatewayRegistry,
 ) *GxClient {
 	diamClient.RegisterAnswerHandlerForAppID(diam.CreditControl, diam.GX_CHARGING_CONTROL_APP_ID, ccaHandler)
 	registerReAuthHandler(reAuthHandler, diamClient)
@@ -85,7 +85,7 @@ func NewGxClient(
 	clientCfg *diameter.DiameterClientConfig,
 	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
-	cloudRegistry registry.CloudRegistry,
+	cloudRegistry service_registry.GatewayRegistry,
 ) *GxClient {
 	diamClient := diameter.NewClient(clientCfg)
 	diamClient.BeginConnection(serverCfg)

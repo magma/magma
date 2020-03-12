@@ -198,15 +198,3 @@ func GetClientConnection(ctx context.Context, addr string, opts ...grpc.DialOpti
 	}
 	return conn, nil
 }
-
-// GetCloudConnection Creates and returns a new GRPC service connection to the service.
-// GetCloudConnection always creates a new connection & it's responsibility of the caller to close it.
-func (registry *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
-	addr, err := registry.GetServiceAddress(service)
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
-	defer cancel()
-	return GetClientConnection(ctx, addr, grpc.WithBackoffMaxDelay(GrpcMaxDelaySec*time.Second), grpc.WithBlock())
-}

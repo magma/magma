@@ -12,11 +12,11 @@ import (
 	"fmt"
 	"strings"
 
-	"magma/feg/cloud/go/services/feg_relay"
-	"magma/feg/gateway/registry"
-	"magma/lte/cloud/go/protos"
-
 	"google.golang.org/grpc"
+
+	"magma/feg/cloud/go/services/feg_relay"
+	"magma/gateway/service_registry"
+	"magma/lte/cloud/go/protos"
 )
 
 type CloseableSessionProxyResponderClient struct {
@@ -31,7 +31,7 @@ func (client *CloseableSessionProxyResponderClient) Close() {
 // Get a client to the local session manager client. To avoid leaking
 // connections, defer Close() on the returned client.
 func GetSessionProxyResponderClient(
-	cloudRegistry registry.CloudRegistry) (*CloseableSessionProxyResponderClient, error) {
+	cloudRegistry service_registry.GatewayRegistry) (*CloseableSessionProxyResponderClient, error) {
 
 	conn, err := cloudRegistry.GetCloudConnection(feg_relay.ServiceName)
 	if err != nil {
@@ -55,7 +55,7 @@ func (client *CloseableAbortSessionResponderClient) Close() {
 // GetAbortSessionResponderClient returns a client to the local abort session client. To avoid leaking
 // connections, defer Close() on the returned client.
 func GetAbortSessionResponderClient(
-	cloudRegistry registry.CloudRegistry) (*CloseableAbortSessionResponderClient, error) {
+	cloudRegistry service_registry.GatewayRegistry) (*CloseableAbortSessionResponderClient, error) {
 
 	conn, err := cloudRegistry.GetCloudConnection(feg_relay.ServiceName)
 	if err != nil {

@@ -64,7 +64,7 @@ func main() {
 		InitMethod:       initMethod,
 		UseGyForAuthOnly: util.IsTruthyEnv(gy.UseGyForAuthOnlyEnv),
 	}
-	cloudReg := registry.NewCloudRegistry()
+	cloudReg := registry.Get()
 	policyDBClient, err := policydb.NewRedisPolicyDBClient(cloudReg)
 	if err != nil {
 		glog.Fatalf("Error connecting to redis store: %s", err)
