@@ -90,9 +90,9 @@ class SpgwServiceImpl final : public SpgwService::Service {
     * Fill up the packet filter contents such as flags and flow tuple fields
     * @param pf_content: packet filter content to be filled
     * @param flow_match_rule: pf_content is filled based on flow match rule
-    * @return void
+    * @return bool: Return true if sueccessful, false if not
     */
-  void fillUpPacketFilterContents(
+  bool fillUpPacketFilterContents(
     packet_filter_contents_t* pf_content,
     const FlowMatch* flow_match_rule);
 
@@ -100,9 +100,9 @@ class SpgwServiceImpl final : public SpgwService::Service {
     * Fill up the ipv4 remote address field in packet filter
     * @param pf_content: packet filter object to be filled
     * @param ipv4addr: IPv4 address in string form (e.g, "172.12.0.1")
-    * @return void
+    * @return bool: Return true if successful, false if not
     */
-  void fillIpv4(
+  bool fillIpv4(
     packet_filter_contents_t* pf_content,
     const std::string ipv4addr);
 };
