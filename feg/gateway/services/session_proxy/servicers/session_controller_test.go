@@ -34,6 +34,8 @@ import (
 const (
 	IMSI1 = "IMSI00101"
 	IMSI2 = "IMSI00102"
+	IMSI1_NOPREFIX = "00101"
+	IMSI2_NOPREFIX = "00102"
 )
 
 type MockPolicyClient struct {
@@ -340,7 +342,7 @@ func standardUsageTest(
 			"SendCreditControlRequest",
 			mock.Anything,
 			mock.Anything,
-			mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+			mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 		).Return(nil).Run(returnDefaultGyResponse).Once()
 		multiReqType = credit_control.CRTUpdate // on per session init, credits are received through CCR-Updates
 	}
@@ -349,7 +351,7 @@ func standardUsageTest(
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(multiReqType)),
+		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, multiReqType)),
 	).Return(nil).Run(returnDefaultGyResponse).Once()
 	createResponse, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
@@ -573,7 +575,7 @@ func TestSessionTermination(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTTerminate)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTTerminate)),
 	).Return(nil).Run(func(args mock.Arguments) {
 		done := args.Get(1).(chan interface{})
 		request := args.Get(2).(*gx.CreditControlRequest)
@@ -588,7 +590,7 @@ func TestSessionTermination(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTTerminate)),
+		mock.MatchedBy(getGyCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTTerminate)),
 	).Return(nil).Run(func(args mock.Arguments) {
 		done := args.Get(1).(chan interface{})
 		request := args.Get(2).(*gy.CreditControlRequest)
@@ -633,13 +635,13 @@ func TestGxUsageMonitoring(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(returnDefaultGyResponse).Times(2)
 	mocks.gx.On(
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(2)
 
 	updateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
@@ -680,7 +682,7 @@ func TestGxUsageMonitoring(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(returnEmptyGxUpdateResponse).Times(1)
 
 	emptyUpdateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
@@ -702,7 +704,7 @@ func TestGxUsageMonitoring(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(getRuleInstallGxUpdateResponse([]string{"static1", "static2"}, []string{})).Times(1)
 
 	ruleInstallUpdateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
@@ -724,7 +726,7 @@ func TestGxUsageMonitoring(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(getRuleInstallGxUpdateResponse([]string{}, []string{"base_10"})).Times(1)
 	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
 
@@ -747,7 +749,7 @@ func TestGxUsageMonitoring(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(returnDynamicRuleInstallGxUpdateResponse).Times(1)
 
 	ruleInstallUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
@@ -768,7 +770,7 @@ func TestGxUsageMonitoring(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{"rule1", "rule2"}, []string{})).Times(1)
 
 	ruleDisableUpdateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
@@ -789,7 +791,7 @@ func TestGxUsageMonitoring(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{}, []string{"base_10"})).Times(1)
 	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
 
@@ -829,13 +831,13 @@ func TestGetHealthStatus(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(returnDefaultGyResponse).Times(2)
 	mocks.gx.On(
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(2)
 
 	_, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
@@ -860,13 +862,13 @@ func TestGetHealthStatus(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(fmt.Errorf("Failed to establish new diameter connection; will retry upon first request.")).Run(returnDefaultGyResponse).Times(2)
 	mocks.gx.On(
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(fmt.Errorf("Failed to establish new diameter connection; will retry upon first request.")).Run(returnDefaultGxUpdateResponse).Times(2)
 
 	_, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
@@ -1143,15 +1145,15 @@ func getRuleDisableGxUpdateResponse(ruleNames []string, ruleBaseNames []string) 
 	}
 }
 
-func getGyCCRMatcher(ccrType credit_control.CreditRequestType) interface{} {
+func getGyCCRMatcher(imsi string, ccrType credit_control.CreditRequestType) interface{} {
 	return func(request *gy.CreditControlRequest) bool {
-		return request.Type == ccrType
+		return request.Type == ccrType && request.IMSI == imsi
 	}
 }
 
-func getGxCCRMatcher(ccrType credit_control.CreditRequestType) interface{} {
+func getGxCCRMatcher(imsi string, ccrType credit_control.CreditRequestType) interface{} {
 	return func(request *gx.CreditControlRequest) bool {
-		return request.Type == ccrType
+		return request.Type == ccrType && request.IMSI == imsi
 	}
 }
 
@@ -1193,7 +1195,7 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessNoRatingGroup).Once()
 
 	cfg := getTestConfig(gy.PerKeyInit)
@@ -1258,7 +1260,7 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessNoRatingGroup).Once()
 
 	cfg := getTestConfig(gy.PerKeyInit)
@@ -1329,7 +1331,7 @@ func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessCreditLimitReached).Once()
 
 	cfg := getTestConfig(gy.PerKeyInit)
@@ -1405,7 +1407,7 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGySuccessSubscriberBarred).Once()
 
 	cfg := getTestConfig(gy.PerKeyInit)
@@ -1485,7 +1487,7 @@ func revalidationTimerTest(
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
-		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTInit)),
+		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGxSuccessRevalidationTimer).Once()
 
 	mocks.policydb.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
@@ -1497,7 +1499,7 @@ func revalidationTimerTest(
 			"SendCreditControlRequest",
 			mock.Anything,
 			mock.Anything,
-			mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+			mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 		).Return(nil).Run(returnGySuccessNoRatingGroup).Once()
 	}
 
