@@ -174,7 +174,7 @@ func TestAuthenticateUplinkTrafficWithQosEnforcement(t *testing.T) {
 	time.Sleep(10 * time.Second)
 }
 
-func TestAuthenticateDownlinkTrafficWithQosEnforcement(t *testing.T) {
+func testAuthenticateDownlinkTrafficWithQosEnforcement(t *testing.T) {
 	fmt.Printf("Running TestAuthenticateDownlinkTrafficWithQosEnforcement...\n")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
