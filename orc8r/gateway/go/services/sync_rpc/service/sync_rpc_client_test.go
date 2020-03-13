@@ -39,9 +39,6 @@ func (svc *testSyncRpcService) EstablishSyncRPCStream(stream protos.SyncRPCServi
 func (svc *testSyncRpcService) SyncRPC(stream protos.SyncRPCService_SyncRPCServer) error {
 	return nil
 }
-func (svc *testSyncRpcService) GetHostnameForHwid(ctx context.Context, hwid *protos.HardwareID) (*protos.Hostname, error) {
-	return &protos.Hostname{}, nil
-}
 
 // run instance of the test grpc service
 func runTestSyncRpcService(server *testSyncRpcService, grpcPortCh chan string) {
