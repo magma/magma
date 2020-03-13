@@ -11,9 +11,15 @@ package storage
 // DirectorydStorage is the persistence service interface for location records.
 // All Directoryd data accesses from directoryd service must go through this interface.
 type DirectorydStorage interface {
-	// GetHostname gets the hostname mapped to by hwid.
-	GetHostname(hwid string) (string, error)
+	// GetHostnameForHWID returns the hostname mapped to by hardware ID.
+	GetHostnameForHWID(hwid string) (string, error)
 
-	// PutHostname maps hwid to hostname.
-	PutHostname(hwid, hostname string) error
+	// MapHWIDsToHostnames maps {hwid -> hostname}.
+	MapHWIDsToHostnames(hwidToHostname map[string]string) error
+
+	// GetIMSIForSessionID returns the IMSI mapped to by session ID.
+	GetIMSIForSessionID(networkID, sessionID string) (string, error)
+
+	// MapSessionIDsToIMSIs maps {session ID -> IMSI}.
+	MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) error
 }

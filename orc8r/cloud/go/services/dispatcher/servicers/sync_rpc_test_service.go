@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/services/dispatcher/broker"
 	"magma/orc8r/lib/go/protos"
 )
@@ -30,8 +29,6 @@ func (srv *testSyncRPCServer) EstablishSyncRPCStream(stream protos.SyncRPCServic
 	return srv.SyncRPCService.EstablishSyncRPCStream(stream)
 }
 
-func NewTestSyncRPCServer(
-	hostName string, broker broker.GatewayRPCBroker, store dstorage.DirectorydStorage,
-) (*testSyncRPCServer, error) {
-	return &testSyncRPCServer{SyncRPCService{hostName, broker, store}}, nil
+func NewTestSyncRPCServer(hostName string, broker broker.GatewayRPCBroker) (*testSyncRPCServer, error) {
+	return &testSyncRPCServer{SyncRPCService{hostName, broker}}, nil
 }
