@@ -8,19 +8,36 @@
 
 package indexer
 
-import "strings"
+import (
+	"strings"
+
+	"magma/orc8r/cloud/go/services/state"
+)
+
+// Subscription denotes a set of primary keys.
+type Subscription struct {
+	Type       string
+	KeyMatcher KeyMatcher
+}
 
 // KeyMatcher indicates whether a particular key matches some pattern.
 type KeyMatcher interface {
 	Match(s string) bool
 }
 
+func (s *Subscription) Match(st state.State) bool {
+	if typeMatch := s.Type == st.Type; !typeMatch {
+		return false
+	}
+	return s.KeyMatcher.Match(st.ReporterID)
+}
+
 type matchAll struct{}
 type matchExact struct{ exact string }
 type matchPrefix struct{ prefix string }
 
-// NewMatchAll returns a new KeyMatcher that matches all keys.
-func NewMatchAll() KeyMatcher { return &matchAll{} }
+// MatchAll is a singleton key matcher for matching all keys.
+var MatchAll KeyMatcher = &matchAll{}
 
 // NewMatchExact returns a new KeyMatcher that matches keys exactly matching exact.
 func NewMatchExact(exact string) KeyMatcher { return &matchExact{exact: exact} }
