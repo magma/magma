@@ -23,7 +23,6 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import usePropertyFilters from '../comparison_view/hooks/propertiesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
-import {EntityTypeMap} from '../comparison_view/ComparisonViewTypes';
 import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {ServiceSearchConfig} from './ServiceSearchConfig';
 import {
@@ -133,7 +132,7 @@ const ServiceComparisonView = () => {
                         : `1 to ${count}`
                       : null
                   }
-                  entity={EntityTypeMap.service}
+                  entity={'SERVICE'}
                 />
               </div>
             </div>
