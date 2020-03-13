@@ -8,13 +8,13 @@ apt-get -y install automake
 apt-get -y install gcc
 apt-get -y install libtool
 apt-get -y libcap-ng-dev
-apt-get -y install linux-headers-"$(uname -r)"
+apt-get -y install linux-headers-generic
 apt-get -y update
 git clone https://github.com/openvswitch/ovs.git
 cd ovs/ || exit
 git checkout v2.12.0
 git apply /tmp/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch
 ./boot.sh
-./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc --with-linux=/lib/modules/"$(uname -r)"/build
+./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc --with-linux="$(ls -d /lib/modules/* | tail -1)/build"
 make
 make install
