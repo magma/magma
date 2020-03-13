@@ -28,31 +28,31 @@ class TestMaximumBearersPerUe(unittest.TestCase):
         Request + add 9 dedicated bearers + detach"""
         num_ues = 1
 
-        # Configure APN before configuring UE device
-        # APN of the secondary PDN
-        ims = [
-            "ims",  # APN-name
-            5,  # qci
-            15,  # priority
-            0,  # preemption-capability
-            0,  # preemption-vulnerability
-            200000000,  # MBR UL
-            100000000,  # MBR DL
-        ]
-
-        # APN details to be configured in APN DB
-        apn_list = [ims]
-        self._s1ap_wrapper.configAPN(apn_list)
-
-        # List of APN names supported by the UE
-        apn_supported = ["ims"]
-        self._s1ap_wrapper.configUEDevice(num_ues, apn_supported)
+        self._s1ap_wrapper.configUEDevice(num_ues)
         req = self._s1ap_wrapper.ue_req
 
         # 1 oai PDN + 1 dedicated bearer, 1 ims pdn + 8 dedicated bearers
         loop = 8
 
         for i in range(num_ues):
+            # APN of the secondary PDN
+            ims = {
+                "apn_name": "ims",  # APN-name
+                "qci": 5,  # qci
+                "priority": 15,  # priority
+                "pre_cap": 0,  # preemption-capability
+                "pre_vul": 0,  # preemption-vulnerability
+                "mbr_ul": 200000000,  # MBR UL
+                "mbr_dl": 100000000,  # MBR DL
+            }
+
+            # APN list to be configured
+            apn_list = [ims]
+
+            self._s1ap_wrapper.configAPN(
+                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            )
+
             ue_id = req.ue_id
             print(
                 "********************* Running End to End attach for UE id ",

@@ -116,40 +116,6 @@ class BaseStore(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    @abc.abstractmethod
-    def add_apn_config(self, apn_config):
-        """
-        Method that should add the APN configuration.
-
-        Args:
-            apn_config - APNConfiguration protobuf message
-        Raises:
-            DuplicateApnError if the APN is already present
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def edit_apn_config(self, apn_config):
-        """
-        Method to update the APN configuration.
-
-        Args:
-            apn_config - APNConfiguration protobuf message
-        Raises:
-             ApnNotFoundError if the APN is not present
-        """
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def delete_apn_config(self, apn_config):
-        """
-        Method that should delete an APN, if present.
-
-        Args:
-            apn_config - APNConfiguration protobuf message
-        """
-        raise NotImplementedError()
-
 
 class SubscriberNotFoundError(Exception):
     """
@@ -165,22 +131,4 @@ class DuplicateSubscriberError(Exception):
     and the subscriber is already present. The application can choose
     to delete the old subscriber and add, or declare an error.
     """
-    pass
-
-
-class DuplicateApnError(Exception):
-    """
-    Exception thrown when APN is requested to be added to the store,
-    and the APN is already present.
-    """
-
-    pass
-
-
-class ApnNotFoundError(Exception):
-    """
-    Exception thrown when APN is not present in the store
-    when a query is requested for that APN
-    """
-
     pass

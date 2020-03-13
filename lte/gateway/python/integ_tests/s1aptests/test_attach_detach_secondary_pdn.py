@@ -8,7 +8,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import unittest
-import time
 
 import s1ap_types
 import s1ap_wrapper
@@ -26,33 +25,31 @@ class TestSecondaryPdnConnReq(unittest.TestCase):
         Request """
         num_ue = 1
 
-        # Configure APN before configuring UE device
-        # APN of the secondary PDN
-        ims = [
-            "ims",  # APN-name
-            5,  # qci
-            15,  # priority
-            0,  # preemption-capability
-            0,  # preemption-vulnerability
-            200000000,  # MBR UL
-            100000000,  # MBR DL
-        ]
-
-        # APN details to be configured in APN DB
-        apn_list = [ims]
-        self._s1ap_wrapper.configAPN(apn_list)
-
-        # List of APN names supported by the UE
-        apn_supported = ["ims"]
-        self._s1ap_wrapper.configUEDevice(num_ue, apn_supported)
+        self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
 
+        # APN of the secondary PDN
+        ims = {
+            "apn_name": "ims",  # APN-name
+            "qci": 5,  # qci
+            "priority": 15,  # priority
+            "pre_cap": 0,  # preemption-capability
+            "pre_vul": 0,  # preemption-vulnerability
+            "mbr_ul": 200000000,  # MBR UL
+            "mbr_dl": 100000000,  # MBR DL
+        }
+
+        # APN list to be configured
+        apn_list = [ims]
+
+        self._s1ap_wrapper.configAPN(
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+        )
         print(
             "************************* Running End to End attach for UE id ",
             ue_id,
         )
-
         # Attach
         self._s1ap_wrapper.s1_util.attach(
             ue_id,
@@ -80,7 +77,6 @@ class TestSecondaryPdnConnReq(unittest.TestCase):
             ue_id,
         )
 
-        time.sleep(5)
         # Send PDN Disconnect
         pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
         pdn_disconnect_req.ue_Id = ue_id

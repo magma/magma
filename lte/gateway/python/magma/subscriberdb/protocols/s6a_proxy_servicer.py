@@ -17,6 +17,7 @@ from magma.subscriberdb.store.base import (
 
 from feg.protos import s6a_proxy_pb2, s6a_proxy_pb2_grpc
 
+
 class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
     """
     gRPC based server for the S6aProxy.
@@ -117,32 +118,26 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         apn.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
 
         # Seconday PDN
-        num_sec_apn = len(sub_data.non_3gpp.apn_config)
-        apn_found = 0
-        for idx in range(num_sec_apn):
-            apn_found += 1
-            apn_data = sub_data.non_3gpp.apn_config[idx]
+        context_id = 0
+        for apn in sub_data.non_3gpp.apn_config:
             sec_apn = ula.apn.add()
             # Context id 0 is assigned to oai.ipv4 apn. So start from 1
-            sec_apn.context_id = idx + 1
-            sec_apn.service_selection = apn_data.service_selection
-            sec_apn.qos_profile.class_id = apn_data.qos_profile.class_id
-            sec_apn.qos_profile.priority_level = (
-                apn_data.qos_profile.priority_level
-            )
+            sec_apn.context_id = context_id + 1
+            context_id += 1
+            sec_apn.service_selection = apn.service_selection
+            sec_apn.qos_profile.class_id = apn.qos_profile.class_id
+            sec_apn.qos_profile.priority_level = apn.qos_profile.priority_level
             sec_apn.qos_profile.preemption_capability = (
-                apn_data.qos_profile.preemption_capability
+                apn.qos_profile.preemption_capability
             )
             sec_apn.qos_profile.preemption_vulnerability = (
-                apn_data.qos_profile.preemption_vulnerability
+                apn.qos_profile.preemption_vulnerability
             )
 
-            sec_apn.ambr.max_bandwidth_ul = apn_data.ambr.max_bandwidth_ul
-            sec_apn.ambr.max_bandwidth_dl = apn_data.ambr.max_bandwidth_dl
+            sec_apn.ambr.max_bandwidth_ul = apn.ambr.max_bandwidth_ul
+            sec_apn.ambr.max_bandwidth_dl = apn.ambr.max_bandwidth_dl
             sec_apn.pdn = (
                 s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
             )
 
-        if num_sec_apn and (apn_found == 0):
-            ula.error_code = s6a_proxy_pb2.UNKNOWN_EPS_SUBSCRIPTION
         return ula

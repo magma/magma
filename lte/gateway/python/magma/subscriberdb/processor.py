@@ -13,8 +13,6 @@ from lte.protos.subscriberdb_pb2 import (
     GSMSubscription,
     LTESubscription,
     SubscriberID,
-    SubscriberData,
-    Non3GPPUserProfile,
 )
 
 from magma.subscriberdb.sid import SIDUtils

@@ -25,7 +25,6 @@ class TestDisconnectDefaultPdn(unittest.TestCase):
         """ Attach a single UE and send PDN disconnect request
         for the default bearer """
         num_ue = 1
-        # Configure APN before configuring UE device
 
         self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req

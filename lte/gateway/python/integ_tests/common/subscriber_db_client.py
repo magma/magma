@@ -19,8 +19,7 @@ from lte.protos.subscriberdb_pb2 import (
     SubscriberData,
     SubscriberState,
     SubscriberID,
-    Non3GPPUserProfile,
-    APNConfiguration,
+    SubscriberUpdate,
 )
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
@@ -118,7 +117,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
                 raise
 
     @staticmethod
-    def _get_subscriberdb_data(sid, apn_list=None):
+    def _get_subscriberdb_data(sid):
         """
         Get subscriber data in protobuf format.
 
@@ -134,61 +133,32 @@ class SubscriberDbGrpc(SubscriberDbClient):
         lte.auth_key = bytes.fromhex(KEY)
         state = SubscriberState()
         state.lte_auth_next_seq = 1
-        if apn_list:
-            usr_prof = Non3GPPUserProfile()
-            for apn in apn_list:
-                apn_config = usr_prof.apn_config.add()
-                apn_config.service_selection = apn
-            return SubscriberData(
-                sid=sub_db_sid, lte=lte, state=state, non_3gpp=usr_prof
-            )
-        else:
-            return SubscriberData(sid=sub_db_sid, lte=lte, state=state)
+        return SubscriberData(sid=sub_db_sid, lte=lte, state=state)
 
     @staticmethod
-    def _get_apn_data(apn):
+    def _get_apn_data(sid, apn_list):
         """
         Get APN data in protobuf format.
 
         Args:
-            apn : APN/s names
+            apn_list : lis of APN configuration
         Returns:
-            subscriber_data (protos.subscriberdb_pb2.SubscriberData)
+            update (protos.subscriberdb_pb2.SubscriberUpdate)
         """
         # APN
-        apn_config = APNConfiguration()
-        apn_idx = 0
-        apn_config.service_selection = apn[apn_idx]
-        apn_idx += 1
-        apn_config.qos_profile.class_id = apn[apn_idx]
-        apn_idx += 1
-        apn_config.qos_profile.priority_level = apn[apn_idx]
-        apn_idx += 1
-        apn_config.qos_profile.preemption_capability = apn[apn_idx]
-        apn_idx += 1
-        apn_config.qos_profile.preemption_vulnerability = apn[apn_idx]
-        apn_idx += 1
-        apn_config.ambr.max_bandwidth_ul = apn[apn_idx]
-        apn_idx += 1
-        apn_config.ambr.max_bandwidth_dl = apn[apn_idx]
-        logging.debug("Configuring APN : %s", apn_config.service_selection)
-        logging.debug("Configuring QCI : %d", apn_config.qos_profile.class_id)
-        logging.debug(
-            "Configuring priority: %d", apn_config.qos_profile.priority_level,
-        )
-        logging.debug(
-            "Configuring precap : %d",
-            apn_config.qos_profile.preemption_capability,
-        )
-        logging.debug(
-            "Configuring prevul : %d",
-            apn_config.qos_profile.preemption_vulnerability,
-        )
-        logging.debug(
-            "Configuring ambr.max_bandwidth_dl : %d",
-            apn_config.ambr.max_bandwidth_dl,
-        )
-        return apn_config
+        update = SubscriberUpdate()
+        update.data.sid.CopyFrom(sid)
+        non_3gpp = update.data.non_3gpp
+        for apn in apn_list:
+            apn_config = non_3gpp.apn_config.add()
+            apn_config.service_selection = apn["apn_name"]
+            apn_config.qos_profile.class_id = apn["qci"]
+            apn_config.qos_profile.priority_level = apn["priority"]
+            apn_config.qos_profile.preemption_capability = apn["pre_cap"]
+            apn_config.qos_profile.preemption_vulnerability = apn["pre_vul"]
+            apn_config.ambr.max_bandwidth_ul = apn["mbr_ul"]
+            apn_config.ambr.max_bandwidth_dl = apn["mbr_dl"]
+        return update
 
     def _check_invariants(self):
         """
@@ -200,10 +170,10 @@ class SubscriberDbGrpc(SubscriberDbClient):
         sids_eq_len = len(self._added_sids) == len(self.list_subscriber_sids())
         assert sids_eq_len
 
-    def add_subscriber(self, sid, apn_list=None):
+    def add_subscriber(self, sid):
         logging.info("Adding subscriber : %s", sid)
         self._added_sids.add(sid)
-        sub_data = self._get_subscriberdb_data(sid, apn_list=apn_list)
+        sub_data = self._get_subscriberdb_data(sid)
         SubscriberDbGrpc._try_to_call(
             lambda: self._subscriber_stub.AddSubscriber(sub_data)
         )
@@ -222,27 +192,12 @@ class SubscriberDbGrpc(SubscriberDbClient):
         sids = ['IMSI' + sid.id for sid in sids_pb]
         return sids
 
-    def add_apn_details(self, apn_data):
-        for apn in apn_data:
-            apn_config = self._get_apn_data(apn)
-            SubscriberDbGrpc._try_to_call(
-                lambda: self._subscriber_stub.AddApn(apn_config)
-            )
-
-    def list_apn_data(self):
-        apns = SubscriberDbGrpc._try_to_call(
-            lambda: self._subscriber_stub.ListApns(Void()).apn_name
+    def config_apn_details(self, imsi, apn_list):
+        sid = SIDUtils.to_pb(imsi)
+        update_sub = self._get_apn_data(sid, apn_list)
+        SubscriberDbGrpc._try_to_call(
+            lambda: self._subscriber_stub.UpdateSubscriber(update_sub)
         )
-        return apns
-
-    def clean_apn_config(self):
-        for apn in self.list_apn_data():
-            apn_config = APNConfiguration()
-            apn_config.service_selection = apn
-
-            SubscriberDbGrpc._try_to_call(
-                lambda: self._subscriber_stub.DeleteApn(apn_config)
-            )
 
     def clean_up(self):
         # Remove all sids
@@ -250,7 +205,6 @@ class SubscriberDbGrpc(SubscriberDbClient):
             self.delete_subscriber(sid)
         assert not self.list_subscriber_sids()
         assert not self._added_sids
-        self.clean_apn_config()
 
     def wait_for_changes(self):
         # On gateway, changes propagate immediately

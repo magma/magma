@@ -21,44 +21,43 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_multiple_seconday_pdn_conn_req(self):
+    def test_multiple_secondary_pdn_conn_req(self):
         """ Attach a single UE + add 2 PDN Connections + disconnect """
         num_pdns = 2
         bearer_ids = []
         num_ue = 1
 
-        # Configure APN before configuring UE device
-        # ims apn
-        ims = [
-            "ims",  # APN-name
-            5,  # qci
-            15,  # priority
-            0,  # preemption-capability
-            0,  # preemption-vulnerability
-            200000000,  # MBR UL
-            100000000,  # MBR DL
-        ]
-
-        # internet APN
-        internet = [
-            "internet",  # APN-name
-            9,  # qci
-            15,  # priority
-            0,  # preemption-capability
-            0,  # preemption-vulnerability
-            250000000,  # MBR UL
-            150000000,  # MBR DL
-        ]
-
-        # APN details to be configured in APN DB
-        apn_list = [ims, internet]
-        self._s1ap_wrapper.configAPN(apn_list)
-
-        # List of APN names supported by the UE
-        apn_supported = ["ims", "internet"]
-        self._s1ap_wrapper.configUEDevice(num_ue, apn_supported)
+        self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
+
+        # internet APN
+        internet = {
+            "apn_name": "internet",  # APN-name
+            "qci": 9,  # qci
+            "priority": 15,  # priority
+            "pre_cap": 0,  # preemption-capability
+            "pre_vul": 0,  # preemption-vulnerability
+            "mbr_ul": 250000000,  # MBR UL
+            "mbr_dl": 150000000,  # MBR DL
+        }
+        # ims APN
+        ims = {
+            "apn_name": "ims",  # APN-name
+            "qci": 5,  # qci
+            "priority": 15,  # priority
+            "pre_cap": 0,  # preemption-capability
+            "pre_vul": 0,  # preemption-vulnerability
+            "mbr_ul": 200000000,  # MBR UL
+            "mbr_dl": 100000000,  # MBR DL
+        }
+
+        # APN list to be configured
+        apn_list = [ims, internet]
+
+        self._s1ap_wrapper.configAPN(
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+        )
         print(
             "*********************** Running End to End attach for UE id ",
             ue_id,

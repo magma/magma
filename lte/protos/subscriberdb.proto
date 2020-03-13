@@ -215,46 +215,10 @@ service SubscriberDB {
   // Updates an existing apn for the subscriber.
   // Throws NOT_FOUND if the subscriber/APN is missing.
   //
-  rpc UpdateSubscriberApn (SubscriberData) returns (magma.orc8r.Void) {}
-
-  // Deletes an existing apn from the subscriber.
-  // Throws NOT_FOUND if the subscriber/APN is missing.
-  //
-  rpc DeleteSubscriberApn (SubscriberData) returns (magma.orc8r.Void) {}
-
-  // Returns the SubscriberData for a subscriber.
-  // Throws NOT_FOUND if the subscriber is missing.
-  //
   rpc GetSubscriberData (SubscriberID) returns (SubscriberData) {}
 
   // List the subscribers in the store.
   //
   rpc ListSubscribers (magma.orc8r.Void) returns (SubscriberIDSet) {}
 
-  // Adds an APN to the existing subscriber.
-  // Throws NOT_FOUND if the subscriber is missing.
-  //
-  rpc AddApn (APNConfiguration) returns (magma.orc8r.Void) {}
-
-  // Returns the APN Data for a subscriber.
-  // Throws NOT_FOUND if the subscriber is missing.
-  //
-  rpc GetApnData (APNConfiguration) returns (APNConfiguration) {}
-
-  // Deletes an existing apn.
-  // Throws NOT_FOUND if the APN or subscriber is missing.
-  rpc DeleteApn (APNConfiguration) returns (magma.orc8r.Void) {}
-
-  // Updates an existing APN.
-  // Throws NOT_FOUND if the subscriber/APN is missing.
-  //
-  rpc UpdateApn (APNConfiguration) returns (magma.orc8r.Void) {}
-
-  // List the APNs in the store.
-  //
-  rpc ListApns (magma.orc8r.Void) returns (ApnSet) {}
-
-  // List the sids for the given APN in the store.
-  //
-  rpc ListSidsForApn (APNConfiguration) returns (SubscriberIDSet) {}
 }
