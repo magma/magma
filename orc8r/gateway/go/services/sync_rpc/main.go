@@ -10,18 +10,10 @@ package main
 
 import (
 	"magma/gateway/services/sync_rpc/service"
-	"time"
 )
 
 func main() {
-	// hardcode initial values similar to what we have currently in
-	// sync_rpc_client.py. Replace it later with yaml config file
-	cfg := service.Config{
-		SyncRpcHeartbeatInterval: 30 * time.Second,
-		GatewayKeepaliveInterval: 10 * time.Second,
-		GatewayResponseTimeout:   120 * time.Second,
-	}
-
-	syncRpcService := service.NewSyncRpcClient(&cfg)
+	// start sync RPC client with default configuration
+	syncRpcService := service.NewClient(nil)
 	syncRpcService.Run()
 }

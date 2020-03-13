@@ -29,8 +29,8 @@ func NewUserService(provider UserProvider) UserService {
 	return UserService{provider}
 }
 
-// Create a user by authID and tenantID.
-func (s UserService) Create(ctx context.Context, input *UserInput) (*User, error) {
+// Create a user by authID, tenantID and required role.
+func (s UserService) Create(ctx context.Context, input *AddUserInput) (*User, error) {
 	if input.Tenant == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing tenant")
 	}
@@ -43,13 +43,18 @@ func (s UserService) Create(ctx context.Context, input *UserInput) (*User, error
 		return nil, status.FromContextError(err).Err()
 	}
 
+	role := user.RoleUSER
+	if input.IsOwner {
+		role = user.RoleOWNER
+	}
+
 	u, err := client.User.Query().Where(user.AuthID(input.Id)).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			u, err = client.User.Create().SetAuthID(input.Id).Save(ctx)
+			u, err = client.User.Create().SetAuthID(input.Id).SetEmail(input.Id).SetRole(role).Save(ctx)
 		}
 	} else {
-		_, err = client.User.UpdateOne(u).SetStatus(user.StatusActive).Save(ctx)
+		_, err = client.User.UpdateOne(u).SetStatus(user.StatusACTIVE).SetRole(role).Save(ctx)
 	}
 	if err != nil {
 		return nil, status.FromContextError(err).Err()
@@ -74,7 +79,7 @@ func (s UserService) Delete(ctx context.Context, input *UserInput) (*empty.Empty
 
 	err = client.User.Update().
 		Where(user.AuthID(input.Id)).
-		SetStatus(user.StatusDeactivated).
+		SetStatus(user.StatusDEACTIVATED).
 		Exec(ctx)
 	if err != nil {
 		return nil, status.FromContextError(err).Err()

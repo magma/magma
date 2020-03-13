@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/identity"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/accessd/storage"
@@ -31,13 +30,6 @@ func TestAccessdStorageBlobstore_Integation(t *testing.T) {
 	err = fact.InitializeFactory()
 	assert.NoError(t, err)
 	store := storage.NewAccessdBlobstore(fact)
-	testAccessdStorageImpl(t, store)
-}
-
-func TestAccessdStorageDatastore_Integation(t *testing.T) {
-	ds, err := datastore.NewSqlDb("sqlite3", ":memory:", sqorc.GetSqlBuilder())
-	assert.NoError(t, err)
-	store := storage.NewAccessdDatastore(ds)
 	testAccessdStorageImpl(t, store)
 }
 
@@ -104,6 +96,7 @@ func testAccessdStorageImpl(t *testing.T, store storage.AccessdStorage) {
 	err = store.DeleteACL(ids[0])
 	assert.NoError(t, err)
 	_, err = store.GetACL(ids[0])
+	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "NotFound")
 	aclsRecvd, err = store.GetManyACL(ids[0:2])
 	assert.NoError(t, err)

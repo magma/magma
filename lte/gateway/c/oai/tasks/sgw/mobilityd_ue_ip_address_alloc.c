@@ -22,7 +22,7 @@
 #include "pgw_ue_ip_address_alloc.h"
 
 #include "log.h"
-#include "rpc_client.h"
+#include "RpcClient.h"
 #include "service303.h"
 
 struct in_addr;

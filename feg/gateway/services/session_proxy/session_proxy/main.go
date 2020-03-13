@@ -64,7 +64,7 @@ func main() {
 		InitMethod:       initMethod,
 		UseGyForAuthOnly: util.IsTruthyEnv(gy.UseGyForAuthOnlyEnv),
 	}
-	cloudReg := registry.NewCloudRegistry()
+	cloudReg := registry.Get()
 	policyDBClient, err := policydb.NewRedisPolicyDBClient(cloudReg)
 	if err != nil {
 		glog.Fatalf("Error connecting to redis store: %s", err)
@@ -72,6 +72,9 @@ func main() {
 
 	ocsDiamCfg := gy.GetOCSConfiguration()
 	pcrfDiamCfg := gx.GetPCRFConfiguration()
+
+	gyGlobalConfig := gy.GetGyGlobalConfig()
+	gxGlobalConfig := gx.GetGxGlobalConfig()
 
 	var gxClnt *gx.GxClient
 	var gyClnt *gy.GyClient
@@ -93,11 +96,14 @@ func main() {
 			diamClient,
 			ocsDiamCfg,
 			gy.GetGyReAuthHandler(cloudReg),
-			cloudReg)
+			cloudReg,
+			gyGlobalConfig)
 		gxClnt = gx.NewConnectedGxClient(
 			diamClient,
 			ocsDiamCfg,
-			gx.GetGxReAuthHandler(cloudReg, policyDBClient), cloudReg)
+			gx.GetGxReAuthHandler(cloudReg, policyDBClient),
+			cloudReg,
+			gxGlobalConfig)
 	} else {
 		glog.Infof("Using distinct Gy: %+v & Gx: %+v connection",
 			ocsDiamCfg.DiameterServerConnConfig, pcrfDiamCfg.DiameterServerConnConfig)
@@ -105,11 +111,11 @@ func main() {
 		gyClnt = gy.NewGyClient(
 			gy.GetGyClientConfiguration(),
 			ocsDiamCfg,
-			gy.GetGyReAuthHandler(cloudReg), cloudReg)
+			gy.GetGyReAuthHandler(cloudReg), cloudReg, gyGlobalConfig)
 		gxClnt = gx.NewGxClient(
 			gx.GetGxClientConfiguration(),
 			pcrfDiamCfg,
-			gx.GetGxReAuthHandler(cloudReg, policyDBClient), cloudReg)
+			gx.GetGxReAuthHandler(cloudReg, policyDBClient), cloudReg, gxGlobalConfig)
 	}
 	// Add servicers to the service
 	sessionManager := servicers.NewCentralSessionController(gyClnt, gxClnt, policyDBClient, controllerCfg)

@@ -676,7 +676,7 @@ paths:
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
         - in: query
-          name: match
+          name: match[]
           type: array
           items:
             type: string

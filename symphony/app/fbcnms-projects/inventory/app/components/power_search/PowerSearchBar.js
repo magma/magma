@@ -10,11 +10,12 @@
 
 import type {
   EntityConfig,
-  EntityType,
   FilterConfig,
   FilterValue,
   FiltersQuery,
 } from '../comparison_view/ComparisonViewTypes';
+
+import type {FilterEntity} from '../../mutations/__generated__/AddReportFilterMutation.graphql';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -92,7 +93,7 @@ type Props = {
   onFilterBlurred?: (filter: FilterValue) => void,
   // used when a filter is selected from filter typeahead
   getSelectedFilter: (filterConfig: FilterConfig) => FilterValue,
-  entity?: EntityType,
+  entity?: FilterEntity,
 };
 
 const PowerSearchBar = (props: Props) => {
@@ -113,8 +114,10 @@ const PowerSearchBar = (props: Props) => {
 
   const [editingFilterIndex, setEditingFilterIndex] = useState((null: ?number));
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isBookmark, setIsBookmark] = useState(false);
 
   const onFilterValueChanged = (index: number, filterValue: FilterValue) => {
+    setIsBookmark(false);
     setFilterValues([
       ...filterValues.slice(0, index),
       filterValue,
@@ -127,6 +130,7 @@ const PowerSearchBar = (props: Props) => {
     const newFilterValues = update(filterValues, {
       $splice: [[index, 1]],
     });
+    setIsBookmark(false);
     setFilterValues(newFilterValues);
     onFiltersChanged(newFilterValues);
     setEditingFilterIndex(null);
@@ -145,6 +149,7 @@ const PowerSearchBar = (props: Props) => {
     const newFilterValues = update(filterValues, {
       [index]: {$set: filterValue},
     });
+    setIsBookmark(false);
     setFilterValues(newFilterValues);
     onFiltersChanged(newFilterValues);
   };
@@ -218,7 +223,7 @@ const PowerSearchBar = (props: Props) => {
         )}
         {savedSearch && entity && (
           <FilterBookmark
-            isBookmark={false}
+            isBookmark={isBookmark}
             filters={filterValues}
             entity={entity}
           />

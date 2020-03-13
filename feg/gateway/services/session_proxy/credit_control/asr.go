@@ -9,8 +9,6 @@ LICENSE file in the root directory of this source tree.
 package credit_control
 
 import (
-	"magma/lte/cloud/go/protos"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
@@ -18,16 +16,17 @@ import (
 	"golang.org/x/net/context"
 
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/relay"
+	"magma/gateway/service_registry"
+	"magma/lte/cloud/go/protos"
 )
 
 type asrHandler struct {
 	diamClient *diameter.Client
-	registry   registry.CloudRegistry
+	registry   service_registry.GatewayRegistry
 }
 
-func NewASRHandler(diamClient *diameter.Client, cloudRegistry registry.CloudRegistry) diam.Handler {
+func NewASRHandler(diamClient *diameter.Client, cloudRegistry service_registry.GatewayRegistry) diam.Handler {
 	return &asrHandler{diamClient: diamClient, registry: cloudRegistry}
 }
 

@@ -9,7 +9,11 @@
 package blobstore
 
 import (
+	"sort"
+
 	"magma/orc8r/cloud/go/storage"
+
+	"github.com/thoas/go-funk"
 )
 
 // Blob encapsulates a blob for storage
@@ -20,8 +24,60 @@ type Blob struct {
 	Version uint64
 }
 
+// CreateSearchFilter creates a search filter for the given criteria. If you
+// prefer to instantiate string sets manually, you can also create a
+// SearchFilter directly.
+func CreateSearchFilter(networkID *string, types []string, keys []string) SearchFilter {
+	return SearchFilter{
+		NetworkID: networkID,
+		Types:     stringListToSet(types),
+		Keys:      stringListToSet(keys),
+	}
+}
+
+// SearchFilter specifies search parameters. All fields are ANDed together in
+// the final search that is performed.
 type SearchFilter struct {
+	// Optional network ID to search within
 	NetworkID *string
+
+	// Limit search to an OR matching any of the specified types
+	Types map[string]bool
+	// Limit search to an OR matching any of the specified keys
+	Keys map[string]bool
+}
+
+// DoesTKMatch returns true if the given TK matches the search filter, false
+// otherwise.
+func (sf SearchFilter) DoesTKMatch(tk storage.TypeAndKey) bool {
+	isTypesEmpty, isKeysEmpty := funk.IsEmpty(sf.Types), funk.IsEmpty(sf.Keys)
+
+	// Empty search filter matches everything
+	if isTypesEmpty && isKeysEmpty {
+		return true
+	}
+
+	if typeMatch := sf.Types[tk.Type]; !isTypesEmpty && !typeMatch {
+		return false
+	}
+	if keyMatch := sf.Keys[tk.Key]; !isKeysEmpty && !keyMatch {
+		return false
+	}
+	return true
+}
+
+// GetTypes returns the types for this search filter sorted
+func (sf SearchFilter) GetTypes() []string {
+	ret := funk.Keys(sf.Types).([]string)
+	sort.Strings(ret)
+	return ret
+}
+
+// GetKeys returns the keys for this search filter sorted
+func (sf SearchFilter) GetKeys() []string {
+	ret := funk.Keys(sf.Keys).([]string)
+	sort.Strings(ret)
+	return ret
 }
 
 // BlobStorageFactory is an API to create a storage API bound to a transaction.
@@ -55,10 +111,15 @@ type TransactionalBlobStorage interface {
 	// magma/orc8r/lib/go/errors will be returned.
 	Get(networkID string, id storage.TypeAndKey) (Blob, error)
 
-	// Get loads and returns a collection of blobs matching the specified IDs.
+	// GetMany loads and returns a collection of blobs matching the specified
+	// IDs.
 	// If there is no blob corresponding to a TypeAndKey, the returned list
 	// will not have a corresponding Blob.
 	GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error)
+
+	// Search returns a collection of blobs matching the specified search
+	// filter, keyed by the network ID they belong in.
+	Search(filter SearchFilter) (map[string][]Blob, error)
 
 	// CreateOrUpdate writes blobs to the storage. Blobs are either updated
 	// in-place or created. The Version field of Blobs passed here will be used
@@ -69,6 +130,7 @@ type TransactionalBlobStorage interface {
 	// GetExistingKeys takes in a list of keys and returns a list of keys
 	// that exist from the input. The filter specifies whether to look at the
 	// entire storage or just in a network.
+	// TODO: roll this into Search by adding a load criteria
 	GetExistingKeys(keys []string, filter SearchFilter) ([]string, error)
 
 	// Delete deletes specified blobs from storage.
@@ -95,6 +157,14 @@ func GetBlobsByTypeAndKey(blobs []Blob) map[storage.TypeAndKey]Blob {
 	ret := make(map[storage.TypeAndKey]Blob, len(blobs))
 	for _, blob := range blobs {
 		ret[storage.TypeAndKey{Type: blob.Type, Key: blob.Key}] = blob
+	}
+	return ret
+}
+
+func stringListToSet(v []string) map[string]bool {
+	ret := map[string]bool{}
+	for _, s := range v {
+		ret[s] = true
 	}
 	return ret
 }

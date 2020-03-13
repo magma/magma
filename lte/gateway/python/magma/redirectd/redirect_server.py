@@ -32,10 +32,6 @@ def flask_redirect(**kwargs):
     response = kwargs['get_redirect_response'](request.remote_addr)
     redirect_info = RedirectInfo(request.remote_addr, response)
 
-    scribe_client = kwargs['scribe_client']
-    if scribe_client is not None:
-        scribe_client.log_to_scribe(redirect_info)
-
     logging.info(
         "Request from {}: sent http code {} - redirected to {}".format(
             redirect_info.subscriber_ip, response.http_code,
@@ -52,7 +48,7 @@ def flask_redirect(**kwargs):
     return redirect(response.redirect_address, code=response.http_code)
 
 
-def setup_flask_server(scribe_client):
+def setup_flask_server():
     app = Flask(__name__)
     url_dict = RedirectDict()
 
@@ -73,24 +69,26 @@ def setup_flask_server(scribe_client):
         return ServerResponse(redirect_addr, HTTP_REDIRECT)
 
     app.add_url_rule(
-        '/', 'index', flask_redirect,
-        defaults={'get_redirect_response': get_redirect_response,
-                  'scribe_client': scribe_client}
+        '/',
+        'index',
+        flask_redirect,
+        defaults={'get_redirect_response': get_redirect_response},
     )
     app.add_url_rule(
-        '/<path:path>', 'index', flask_redirect,
-        defaults={'get_redirect_response': get_redirect_response,
-                  'scribe_client': scribe_client}
+        '/<path:path>',
+        'index',
+        flask_redirect,
+        defaults={'get_redirect_response': get_redirect_response}
     )
     return app
 
 
-def run_flask(ip, port, scribe_logger, exit_callback):
+def run_flask(ip, port, exit_callback):
     """
     Runs the flask server, this is a daemon, so it exits when redirectd exits
     """
 
-    app = setup_flask_server(scribe_logger)
+    app = setup_flask_server()
 
     server = wsgiserver.WSGIServer(app, host=ip, port=port)
     try:

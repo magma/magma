@@ -104,6 +104,42 @@ def get_or_create_equipment_type(
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
+    """This function checks equipment type existence, 
+        in case it is not found, creates one.
+
+        Args:
+            name (str): equipment name
+            category (str): category name
+            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]): 
+            - str - type name
+            - str - enum["string", "int", "bool", "float", "date", "enum", "range", 
+            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
+            - PropertyValue - default property value
+            - bool - fixed value flag
+
+            ports_dict (Dict[str, str]): dict of property name to property value
+            - str - port name
+            - str - port type name
+            
+            position_list (List[str]): list of positions names
+
+        Returns:
+            pyinventory.consts.EquipmentType object
+        
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            e_type = client.get_or_create_equipment_type(
+                name="Tp-Link T1600G",
+                category="Router",
+                properties=[("IP", "string", None, True)],
+                ports_dict={"Port 1": "eth port", "port 2": "eth port"},
+                position_list=[],
+            )
+            ```
+    """
     if name in client.equipmentTypes:
         return client.equipmentTypes[name]
     return add_equipment_type(
@@ -158,7 +194,41 @@ def add_equipment_type(
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
+    """This function creates new equipment type.
 
+        Args:
+            name (str): equipment type name
+            category (str): category name
+            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]): 
+            - str - type name
+            - str - enum["string", "int", "bool", "float", "date", "enum", "range", 
+            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
+            - PropertyValue - default property value
+            - bool - fixed value flag
+
+            ports_dict (Dict[str, str]): dict of property name to property value
+            - str - port name
+            - str - port type name
+            
+            position_list (List[str]): list of positions names
+
+        Returns:
+            pyinventory.consts.EquipmentType object
+        
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            e_type = client.add_equipment_type(
+                name="Tp-Link T1600G",
+                category="Router",
+                properties=[("IP", "string", None, True)],
+                ports_dict={"Port 1": "eth port", "port 2": "eth port"},
+                position_list=[],
+            )
+            ```
+    """
     new_property_types = format_properties(properties)
 
     port_definitions = [{"name": name} for name, _ in ports_dict.items()]
@@ -285,6 +355,26 @@ def edit_equipment_type(
 def copy_equipment_type(
     client: SymphonyClient, curr_equipment_type_name: str, new_equipment_type_name: str
 ) -> EquipmentType:
+    """Copy existing equipment type.
+
+        Args:
+            curr_equipment_type_name (str): existing equipment type name
+            new_equipment_type_name (str): new equipment type name
+
+        Returns:
+            pyinventory.consts.EquipmentType object
+        
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            e_type = client.copy_equipment_type(
+                curr_equipment_type_name="Card",
+                new_equipment_type_name="External_Card",
+            )
+            ```
+    """
     if curr_equipment_type_name not in client.equipmentTypes:
         raise Exception(
             "Equipment type " + curr_equipment_type_name + " does not exist"
@@ -342,6 +432,13 @@ def delete_equipment_type_with_equipments(
             entity=Entity.EquipmentType, entity_id=equipment_type.id
         )
     for equipment in equipment_type_with_equipments.equipments:
-        delete_equipment(client, Equipment(id=equipment.id, name=equipment.name))
+        delete_equipment(
+            client,
+            Equipment(
+                id=equipment.id,
+                name=equipment.name,
+                equipment_type_name=equipment.equipmentType.name,
+            ),
+        )
 
     RemoveEquipmentTypeMutation.execute(client, id=equipment_type.id)

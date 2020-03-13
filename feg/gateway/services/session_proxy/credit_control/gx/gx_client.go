@@ -20,8 +20,8 @@ import (
 	"github.com/golang/glog"
 
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/credit_control"
+	"magma/gateway/service_registry"
 	"magma/orc8r/cloud/go/util"
 )
 
@@ -52,6 +52,11 @@ type GxClient struct {
 	pcrf91Compliant        bool // to support PCRF which is 29.212 release 9.1 compliant
 	dontUseEUIIpIfEmpty    bool // Disable using MAC derived EUI-64 IPv6 address for CCR if IP is not provided
 	framedIpv4AddrRequired bool // PCRF requires FramedIpv4Addr to be included
+	globalConfig           *GxGlobalConfig
+}
+
+type GxGlobalConfig struct {
+	PCFROverwriteApn string
 }
 
 // NewConnectedGxClient contructs a new GxClient with the magma diameter settings
@@ -59,7 +64,8 @@ func NewConnectedGxClient(
 	diamClient *diameter.Client,
 	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
-	cloudRegistry registry.CloudRegistry,
+	cloudRegistry service_registry.GatewayRegistry,
+	gxGlobalConfig *GxGlobalConfig,
 ) *GxClient {
 	diamClient.RegisterAnswerHandlerForAppID(diam.CreditControl, diam.GX_CHARGING_CONTROL_APP_ID, ccaHandler)
 	registerReAuthHandler(reAuthHandler, diamClient)
@@ -76,6 +82,7 @@ func NewConnectedGxClient(
 		pcrf91Compliant:        *pcrf91Compliant || util.IsTruthyEnv(PCRF91CompliantEnv),
 		dontUseEUIIpIfEmpty:    *disableEUIIpIfEmpty || util.IsTruthyEnv(DisableEUIIPv6IfNoIPEnv),
 		framedIpv4AddrRequired: util.IsTruthyEnv(FramedIPv4AddrRequiredEnv),
+		globalConfig:           gxGlobalConfig,
 	}
 
 }
@@ -85,11 +92,12 @@ func NewGxClient(
 	clientCfg *diameter.DiameterClientConfig,
 	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
-	cloudRegistry registry.CloudRegistry,
+	cloudRegistry service_registry.GatewayRegistry,
+	globalConfig *GxGlobalConfig,
 ) *GxClient {
 	diamClient := diameter.NewClient(clientCfg)
 	diamClient.BeginConnection(serverCfg)
-	return NewConnectedGxClient(diamClient, serverCfg, reAuthHandler, cloudRegistry)
+	return NewConnectedGxClient(diamClient, serverCfg, reAuthHandler, cloudRegistry, globalConfig)
 }
 
 // SendCreditControlRequest sends a Gx Credit Control Requests to the
@@ -109,7 +117,7 @@ func (gxClient *GxClient) SendCreditControlRequest(
 		return err
 	}
 
-	message, err := gxClient.createCreditControlMessage(request, additionalAVPs...)
+	message, err := gxClient.createCreditControlMessage(request, gxClient.globalConfig, additionalAVPs...)
 	if err != nil {
 		return err
 	}
@@ -190,6 +198,7 @@ func createReAuthAnswerMessage(
 // Output: *diam.Message with all AVPs filled in, error if there was an issue
 func (gxClient *GxClient) createCreditControlMessage(
 	request *CreditControlRequest,
+	globalConfig *GxGlobalConfig,
 	additionalAVPs ...*diam.AVP,
 ) (*diam.Message, error) {
 	m := diameter.NewProxiableRequest(diam.CreditControl, diam.GX_CHARGING_CONTROL_APP_ID, nil)
@@ -232,6 +241,14 @@ func (gxClient *GxClient) createCreditControlMessage(
 
 	if len(request.Apn) > 0 {
 		m.NewAVP(avp.CalledStationID, avp.Mbit, 0, datatype.UTF8String(request.Apn))
+	}
+
+	apn := datatype.UTF8String(request.Apn)
+	if globalConfig != nil && len(globalConfig.PCFROverwriteApn) > 0 {
+		apn = datatype.UTF8String(globalConfig.PCFROverwriteApn)
+	}
+	if len(apn) > 0 {
+		m.NewAVP(avp.CalledStationID, avp.Mbit, 0, apn)
 	}
 
 	if request.Type == credit_control.CRTInit {

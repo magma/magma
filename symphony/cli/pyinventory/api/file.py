@@ -60,22 +60,24 @@ def add_file(
     """This function adds file to an entity of a given type.
 
         Args:
-            client (object):
-                Client object
-            local_file_path (str):
-                local system path to the file
-            entity_type (str):
-                one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
-            entity_id (string):
-                valid entity ID
+            local_file_path (str): local system path to the file
+            entity_type (str): one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
+            entity_id (string): valid entity ID
             category (Optional[string]): file category name 
 
-        Returns: None
+        Raises:
+            FailedOperationException: on operation failure 
 
         Example:
-        ```
-        client.add_file(client, './document.pdf', 'LOCATION', location.id, 'category_name')
-        ```
+            ```
+            location = client.get_location({("Country", "LS_IND_Prod_Copy")})
+            client.add_file(
+                local_file_path='./document.pdf', 
+                entity_type='LOCATION', 
+                entity_id=location.id, 
+                category='category_name'
+            )
+            ```
     """
     entity = {
         "LOCATION": ImageEntity.LOCATION,
@@ -96,22 +98,20 @@ def add_files(
     """This function adds all files located in folder to an entity of a given type.
 
         Args:
-            client (object):
-                Client object
-            local_file_path (str):
-                local system path to the file
-            entity_type (str):
-                one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
-            entity_id (string):
-                valid entity ID
+            local_file_path (str): local system path to the file
+            entity_type (str): one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
+            entity_id (string): valid entity ID
             category (Optional[string]): file category name
 
-        Returns: None
-
         Example:
-        ```
-        client.add_files(client, './documents_folder/', 'LOCATION', location.id, 'category_name')
-        ```
+            ```
+            location = client.get_location({("Country", "LS_IND_Prod_Copy")})
+            client.add_files(
+                local_directory_path='./documents_folder/', 
+                entity_type='LOCATION', 
+                entity_id=location.id, 
+                category='category_name')
+            ```
     """
     for file in list_dir(local_directory_path):
         add_file(client, file, entity_type, entity_id, category)
@@ -120,12 +120,47 @@ def add_files(
 def add_location_image(
     client: SymphonyClient, local_file_path: str, location: Location
 ) -> None:
+    """This function adds image to existing location.
+
+        Args:
+            local_file_path (str): existing port name
+            location (pyinventory.consts.Location): existing location object
+
+        Raises:
+            FailedOperationException: on operation failure 
+
+        Example:
+            ```
+            location = client.get_location({("Country", "LS_IND_Prod_Copy")})
+            client.add_location_image(
+                local_file_path='./document.pdf',
+                location=location
+            )
+            ```
+    """
     _add_image(client, local_file_path, ImageEntity.LOCATION, location.id)
 
 
 def add_site_survey_image(
     client: SymphonyClient, local_file_path: str, id: str
 ) -> None:
+    """This function adds image to existing site survey.
+
+        Args:
+            local_file_path (str): existing port name
+            id (str): site survey ID
+
+        Raises:
+            FailedOperationException: on operation failure 
+
+        Example:
+            ```
+            client.add_site_survey_image(
+                local_file_path='./document.pdf',
+                id="123456"
+            )
+            ```
+    """
     _add_image(client, local_file_path, ImageEntity.SITE_SURVEY, id)
 
 
@@ -138,6 +173,19 @@ def _delete_image(
 
 
 def delete_site_survey_image(client: SymphonyClient, survey: SiteSurvey) -> None:
+    """This function deletes image from existing site survey.
+
+        Args:
+            survey (pyinventory.consts.SiteSurvey): site survey object
+
+        Raises:
+            FailedOperationException: on operation failure 
+
+        Example:
+            ```
+            client.delete_site_survey_image(survey=survey)
+            ```
+    """
     source_file_key = survey.sourceFileKey
     source_file_id = survey.sourceFileId
     if source_file_key is not None:
@@ -147,4 +195,17 @@ def delete_site_survey_image(client: SymphonyClient, survey: SiteSurvey) -> None
 
 
 def delete_document(client: SymphonyClient, document: Document) -> None:
+    """This function deletes existing document.
+
+        Args:
+            document (pyinventory.consts.Document): document object
+
+        Raises:
+            FailedOperationException: on operation failure 
+
+        Example:
+            ```
+            client.delete_document(document=document)
+            ```
+    """
     _delete_image(client, document.parentEntity, document.parentId, document.id)

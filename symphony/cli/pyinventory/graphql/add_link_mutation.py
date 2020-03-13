@@ -20,7 +20,12 @@ class AddLinkMutation(DataClassJsonMixin):
     class AddLinkMutationData(DataClassJsonMixin):
         @dataclass
         class Link(DataClassJsonMixin):
+            @dataclass
+            class Service(DataClassJsonMixin):
+                id: str
+
             id: str
+            services: List[Service]
 
         addLink: Link
 
@@ -30,6 +35,9 @@ class AddLinkMutation(DataClassJsonMixin):
     mutation AddLinkMutation($input: AddLinkInput!) {
   addLink(input: $input) {
     id
+    services {
+      id
+    }
   }
 }
 

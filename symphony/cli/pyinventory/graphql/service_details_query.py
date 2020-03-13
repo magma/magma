@@ -67,7 +67,12 @@ class ServiceDetailsQuery(DataClassJsonMixin):
 
                     @dataclass
                     class Link(DataClassJsonMixin):
+                        @dataclass
+                        class Service(DataClassJsonMixin):
+                            id: str
+
                         id: str
+                        services: List[Service]
 
                     id: str
                     properties: List[Property]
@@ -80,7 +85,12 @@ class ServiceDetailsQuery(DataClassJsonMixin):
 
             @dataclass
             class Link(DataClassJsonMixin):
+                @dataclass
+                class Service(DataClassJsonMixin):
+                    id: str
+
                 id: str
+                services: List[Service]
 
             id: str
             name: str
@@ -140,12 +150,18 @@ class ServiceDetailsQuery(DataClassJsonMixin):
           }
           link {
             id
+            services {
+              id
+            }
           }
         }
         role
       }
       links {
         id
+        services {
+          id
+        }
       }
     }
   }

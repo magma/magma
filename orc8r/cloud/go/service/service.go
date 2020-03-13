@@ -27,7 +27,7 @@ import (
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
-	grpc_proto "google.golang.org/grpc/encoding/proto"
+	grpcProto "google.golang.org/grpc/encoding/proto"
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -122,7 +122,7 @@ func newServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 
 	// Check if service was started with print-grpc-payload flag or MAGMA_PRINT_GRPC_PAYLOAD env is set
 	if printGrpcPayload || util.IsTruthyEnv(PrintGrpcPayloadEnv) {
-		ls := logCodec{encoding.GetCodec(grpc_proto.Name)}
+		ls := logCodec{encoding.GetCodec(grpcProto.Name)}
 		if ls.protoCodec != nil {
 			glog.Errorf("Adding Debug Codec for service %s", serviceName)
 			encoding.RegisterCodec(ls)
@@ -157,13 +157,13 @@ func newServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 func (service *Service) Run() error {
 	port, err := registry.GetServicePort(service.Type)
 	if err != nil {
-		return fmt.Errorf("Failed to get service port: %s", err)
+		return fmt.Errorf("failed to get service port: %s", err)
 	}
 
 	// Create the server socket for gRPC
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		return fmt.Errorf("Failed to listen on port %d: %s", port, err)
+		return fmt.Errorf("failed to listen on port %d: %s", port, err)
 	}
 	service.State = protos.ServiceInfo_ALIVE
 	service.Health = protos.ServiceInfo_APP_HEALTHY
@@ -172,10 +172,13 @@ func (service *Service) Run() error {
 
 // Run the test service on a given Listener. This function blocks
 // by a signal or until the gRPC server is stopped.
-func (service *Service) RunTest(lis net.Listener) error {
+func (service *Service) RunTest(lis net.Listener) {
 	service.State = protos.ServiceInfo_ALIVE
 	service.Health = protos.ServiceInfo_APP_HEALTHY
-	return service.GrpcServer.Serve(lis)
+	err := service.GrpcServer.Serve(lis)
+	if err != nil {
+		glog.Fatal("Failed to run test service")
+	}
 }
 
 // GetDefaultKeepaliveParameters returns the default keepalive server parameters.

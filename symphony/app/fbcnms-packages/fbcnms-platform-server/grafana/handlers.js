@@ -461,7 +461,7 @@ function makeDatasourceConfig(params: DatasourceParams): PostDatasource {
   return {
     name: ORC8R_DATASOURCE_NAME + '_' + params.grafanaOrgID,
     orgId: params.grafanaOrgID,
-    type: 'orchestrator-grafana-datasource',
+    type: 'prometheus',
     access: 'proxy',
     url: makeAPIUrl(params.apiHost, params.nmsOrgID),
     jsonData: {
@@ -479,7 +479,7 @@ function makeDatasourceConfig(params: DatasourceParams): PostDatasource {
 }
 
 function makeAPIUrl(apiHost: string, nmsOrgID: number): string {
-  return `https://${apiHost}/magma/v1/tenants/${nmsOrgID}`;
+  return `https://${apiHost}/magma/v1/tenants/${nmsOrgID}/metrics`;
 }
 
 function organizationsEqual(

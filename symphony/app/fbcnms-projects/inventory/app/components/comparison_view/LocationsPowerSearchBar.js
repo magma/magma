@@ -18,7 +18,6 @@ import PowerSearchBar from '../power_search/PowerSearchBar';
 import React from 'react';
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
-import {EntityTypeMap} from './ComparisonViewTypes';
 import {LocationCriteriaConfig} from './LocationSearchConfig';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
@@ -57,7 +56,7 @@ const LocationsPowerSearchBar = (props: Props) => {
       filterConfigs={filterConfigs}
       footer={footer}
       exportPath={'/locations'}
-      entity={EntityTypeMap.location}
+      entity="LOCATION"
     />
   );
 };

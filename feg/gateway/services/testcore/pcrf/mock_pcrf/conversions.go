@@ -18,18 +18,18 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 )
 
-func toStaticRuleNameInstallAVP(ruleName string) *diam.AVP {
-	return diam.NewAVP(avp.ChargingRuleInstall, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+func toStaticRuleNameAVP(ruleName string, action uint32) *diam.AVP {
+	return diam.NewAVP(action, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.ChargingRuleName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ruleName)),
 		},
 	})
 }
 
-func toStaticBaseNameInstallAVP(baseName string) *diam.AVP {
-	return diam.NewAVP(avp.ChargingRuleInstall, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+func toStaticBaseNameAVP(ruleName string, action uint32) *diam.AVP {
+	return diam.NewAVP(action, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
-			diam.NewAVP(avp.ChargingRuleBaseName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(baseName)),
+			diam.NewAVP(avp.ChargingRuleBaseName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ruleName)),
 		},
 	})
 }
@@ -99,15 +99,15 @@ func toRedirectionAVP(redirection *lteprotos.RedirectInformation) []*diam.AVP {
 	}
 }
 
-func toUsageMonitoringInfoAVP(monitoringKey string, quotaGrant protos.Octets, level protos.UsageMonitorCredit_MonitoringLevel) *diam.AVP {
+func toUsageMonitoringInfoAVP(monitoringKey string, quotaGrant *protos.Octets, level protos.MonitoringLevel) *diam.AVP {
 	return diam.NewAVP(avp.UsageMonitoringInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.MonitoringKey, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(monitoringKey)),
 			diam.NewAVP(avp.GrantedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
-					diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.TotalOctets)),
-					diam.NewAVP(avp.CCInputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.InputOctets)),
-					diam.NewAVP(avp.CCOutputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.OutputOctets)),
+					diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetTotalOctets())),
+					diam.NewAVP(avp.CCInputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetInputOctets())),
+					diam.NewAVP(avp.CCOutputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetOutputOctets())),
 				},
 			}),
 			diam.NewAVP(avp.UsageMonitoringLevel, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(level)),
@@ -122,11 +122,11 @@ func toRuleInstallAVPs(
 ) []*diam.AVP {
 	avps := make([]*diam.AVP, 0, len(ruleNames)+len(ruleBaseNames)+len(ruleDefs))
 	for _, ruleName := range ruleNames {
-		avps = append(avps, toStaticRuleNameInstallAVP(ruleName))
+		avps = append(avps, toStaticRuleNameAVP(ruleName, avp.ChargingRuleInstall))
 	}
 
 	for _, baseName := range ruleBaseNames {
-		avps = append(avps, toStaticBaseNameInstallAVP(baseName))
+		avps = append(avps, toStaticBaseNameAVP(baseName, avp.ChargingRuleInstall))
 	}
 
 	for _, rule := range ruleDefs {
@@ -135,10 +135,31 @@ func toRuleInstallAVPs(
 	return avps
 }
 
-func toUsageMonitoringInfoAVPs(monitors map[string]*protos.UsageMonitorCredit) []*diam.AVP {
+func toUsageMonitorAVPs(monitors map[string]*protos.UsageMonitor) []*diam.AVP {
 	avps := make([]*diam.AVP, 0, len(monitors))
 	for key, monitor := range monitors {
-		avps = append(avps, toUsageMonitoringInfoAVP(key, getQuotaGrant(monitor), monitor.MonitoringLevel))
+		avps = append(avps,
+			toUsageMonitoringInfoAVP(key, getQuotaGrant(monitor), monitor.GetMonitorInfoPerRequest().GetMonitoringLevel()))
 	}
 	return avps
+}
+
+func toRuleRemovalAVPs(ruleNames, ruleBaseNames []string) []*diam.AVP {
+	avps := make([]*diam.AVP, 0, len(ruleNames)+len(ruleBaseNames))
+	for _, ruleName := range ruleNames {
+		avps = append(avps, toStaticRuleNameAVP(ruleName, avp.ChargingRuleRemove))
+	}
+
+	for _, baseName := range ruleBaseNames {
+		avps = append(avps, toStaticBaseNameAVP(baseName, avp.ChargingRuleRemove))
+	}
+	return avps
+}
+
+func toUsageMonitorByMkey(monitors []*usageMonitorRequestAVP) map[string]*usageMonitorRequestAVP {
+	monitorByKey := map[string]*usageMonitorRequestAVP{}
+	for _, monitor := range monitors {
+		monitorByKey[monitor.MonitoringKey] = monitor
+	}
+	return monitorByKey
 }

@@ -20,8 +20,14 @@ class EquipmentTypeEquipmentQuery(DataClassJsonMixin):
         class Node(DataClassJsonMixin):
             @dataclass
             class Equipment(DataClassJsonMixin):
+                @dataclass
+                class EquipmentType(DataClassJsonMixin):
+                    id: str
+                    name: str
+
                 id: str
                 name: str
+                equipmentType: EquipmentType
 
             equipments: List[Equipment]
 
@@ -36,6 +42,10 @@ class EquipmentTypeEquipmentQuery(DataClassJsonMixin):
       equipments {
         id
         name
+        equipmentType {
+          id
+          name
+        }
       }
     }
   }

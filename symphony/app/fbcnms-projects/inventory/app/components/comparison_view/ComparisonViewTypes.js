@@ -30,6 +30,7 @@ export const OperatorMap = Object.freeze({
   is: 'is',
   contains: 'contains',
   is_one_of: 'is_one_of',
+  is_not_one_of: 'is_not_one_of',
   date_greater_than: 'date_greater_than',
   date_less_than: 'date_less_than',
 });

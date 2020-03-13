@@ -36,8 +36,14 @@ class EquipmentPositionsQuery(DataClassJsonMixin):
 
                 @dataclass
                 class Equipment(DataClassJsonMixin):
+                    @dataclass
+                    class EquipmentType(DataClassJsonMixin):
+                        id: str
+                        name: str
+
                     id: str
                     name: str
+                    equipmentType: EquipmentType
 
                 definition: EquipmentPositionDefinition
                 attachedEquipment: Optional[Equipment] = None
@@ -67,6 +73,10 @@ class EquipmentPositionsQuery(DataClassJsonMixin):
         attachedEquipment {
           id
           name
+          equipmentType {
+            id
+            name
+          }
         }
       }
     }

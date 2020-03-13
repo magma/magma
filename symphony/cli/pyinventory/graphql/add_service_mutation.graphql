@@ -47,12 +47,18 @@ mutation AddServiceMutation($data: ServiceCreateData!) {
         }
         link {
           id
+          services {
+            id
+          }
         }
       }
       role
     }
     links {
       id
+      services {
+        id
+      }
     }
   }
 }

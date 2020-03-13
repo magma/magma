@@ -9,6 +9,4 @@
 
 log_level: INFO
 
-scribe_logging_enabled: False
-
 http_port: 8080

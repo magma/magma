@@ -422,7 +422,7 @@ class SpgwUtil(object):
                     flow_list=[
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42",
+                                ipv4_dst="0.0.0.0/0",
                                 tcp_dst=5001,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -431,7 +431,7 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42",
+                                ipv4_dst="192.168.129.42/24",
                                 tcp_dst=5002,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -476,7 +476,7 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42",
+                                ipv4_src="",
                                 tcp_src=5002,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -485,7 +485,7 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42",
+                                ipv4_src="192.168.129.64/26",
                                 tcp_src=5003,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -494,7 +494,7 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42",
+                                ipv4_src="192.168.129.42/16",
                                 tcp_src=5004,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,

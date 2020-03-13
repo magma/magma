@@ -21,7 +21,7 @@ import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
 import SecuritySettings from '@fbcnms/magmalte/app/components/SecuritySettings';
 import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
-import UsersSettings from '@fbcnms/magmalte/app/components/UsersSettings';
+import UsersSettings from './userManagement/UsersSettings';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';

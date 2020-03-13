@@ -441,7 +441,7 @@ const WorkOrderDetails = ({
                                 setProperties(prevProperties => [
                                   ...prevProperties.slice(0, index),
                                   property,
-                                  prevProperties.slice(index + 1),
+                                  ...prevProperties.slice(index + 1),
                                 ])
                               }
                               headlineVariant="form"

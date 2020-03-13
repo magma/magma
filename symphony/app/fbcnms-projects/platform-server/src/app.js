@@ -64,6 +64,7 @@ User.beforeCreate((user: UserModel) => {
   createGraphUser(
     user.getDataValue('organization'),
     user.getDataValue('email'),
+    user.getDataValue('role') === SUPERUSER,
   );
 });
 

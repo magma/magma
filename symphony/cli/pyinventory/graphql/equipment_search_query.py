@@ -22,8 +22,14 @@ class EquipmentSearchQuery(DataClassJsonMixin):
         class EquipmentSearchResult(DataClassJsonMixin):
             @dataclass
             class Equipment(DataClassJsonMixin):
+                @dataclass
+                class EquipmentType(DataClassJsonMixin):
+                    id: str
+                    name: str
+
                 id: str
                 name: str
+                equipmentType: EquipmentType
 
             equipment: List[Equipment]
             count: int
@@ -38,6 +44,10 @@ class EquipmentSearchQuery(DataClassJsonMixin):
     equipment {
       id
       name
+      equipmentType {
+        id
+        name
+      }
     }
     count
   }

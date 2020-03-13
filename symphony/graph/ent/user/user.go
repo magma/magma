@@ -108,13 +108,13 @@ var (
 // Status defines the type for the status enum field.
 type Status string
 
-// StatusActive is the default Status.
-const DefaultStatus = StatusActive
+// StatusACTIVE is the default Status.
+const DefaultStatus = StatusACTIVE
 
 // Status values.
 const (
-	StatusActive      Status = "active"
-	StatusDeactivated Status = "deactivated"
+	StatusACTIVE      Status = "ACTIVE"
+	StatusDEACTIVATED Status = "DEACTIVATED"
 )
 
 func (s Status) String() string {
@@ -124,7 +124,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "s" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusActive, StatusDeactivated:
+	case StatusACTIVE, StatusDEACTIVATED:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)
@@ -134,14 +134,14 @@ func StatusValidator(s Status) error {
 // Role defines the type for the role enum field.
 type Role string
 
-// RoleUser is the default Role.
-const DefaultRole = RoleUser
+// RoleUSER is the default Role.
+const DefaultRole = RoleUSER
 
 // Role values.
 const (
-	RoleUser  Role = "user"
-	RoleAdmin Role = "admin"
-	RoleOwner Role = "owner"
+	RoleUSER  Role = "USER"
+	RoleADMIN Role = "ADMIN"
+	RoleOWNER Role = "OWNER"
 )
 
 func (s Role) String() string {
@@ -151,7 +151,7 @@ func (s Role) String() string {
 // RoleValidator is a validator for the "r" field enum values. It is called by the builders before save.
 func RoleValidator(r Role) error {
 	switch r {
-	case RoleUser, RoleAdmin, RoleOwner:
+	case RoleUSER, RoleADMIN, RoleOWNER:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for role field: %q", r)

@@ -85,8 +85,8 @@ metrics:
 
   userGrafana:
     image:
-      repository: ${docker_registry}/user-grafana
-      tag: "${docker_tag}"
+      repository: docker.io/grafana/grafana
+      tag: 6.6.2
     create: ${create_usergrafana}
     volumes:
       datasources:

@@ -32,7 +32,7 @@ type PCRFConfig struct {
 	ServerConfig *diameter.DiameterServerConfig
 }
 
-type creditByMkey map[string]*protos.UsageMonitorCredit
+type creditByMkey map[string]*protos.UsageMonitor
 
 type subscriberAccount struct {
 	RuleNames       []string
@@ -43,9 +43,11 @@ type subscriberAccount struct {
 
 // PCRFDiamServer wraps an PCRF storing subscribers and their rules
 type PCRFDiamServer struct {
-	diameterSettings *diameter.DiameterClientConfig
-	pcrfConfig       *PCRFConfig
-	subscribers      map[string]*subscriberAccount // map of imsi to to rules
+	diameterSettings    *diameter.DiameterClientConfig
+	pcrfConfig          *PCRFConfig
+	serviceConfig       *protos.PCRFConfigs
+	subscribers         map[string]*subscriberAccount // map of imsi to to rules
+	LastMessageReceived *ccrMessage
 }
 
 // NewPCRFDiamServer initializes an PCRF with an empty rule map
@@ -134,6 +136,14 @@ func logErrors(ec <-chan *diam.ErrorReport) {
 	}
 }
 
+func (srv *PCRFDiamServer) SetPCRFConfigs(
+	ctx context.Context,
+	configs *protos.PCRFConfigs,
+) (*orcprotos.Void, error) {
+	srv.serviceConfig = configs
+	return &orcprotos.Void{}, nil
+}
+
 // NewSubscriber adds a subscriber to the PCRF to be tracked
 // Input: string containing the subscriber IMSI (can be in any form)
 func (srv *PCRFDiamServer) CreateAccount(
@@ -170,7 +180,7 @@ func (srv *PCRFDiamServer) SetRules(
 
 func (srv *PCRFDiamServer) SetUsageMonitors(
 	ctx context.Context,
-	usageMonitorInfo *protos.UsageMonitorInfo,
+	usageMonitorInfo *protos.UsageMonitorConfiguration,
 ) (*orcprotos.Void, error) {
 	account, ok := srv.subscribers[usageMonitorInfo.Imsi]
 	if !ok {
@@ -178,7 +188,7 @@ func (srv *PCRFDiamServer) SetUsageMonitors(
 	}
 	account.UsageMonitors = make(creditByMkey)
 	for _, monitor := range usageMonitorInfo.UsageMonitorCredits {
-		account.UsageMonitors[monitor.MonitoringKey] = monitor
+		account.UsageMonitors[string(monitor.MonitorInfoPerRequest.MonitoringKey)] = monitor
 	}
 	return &orcprotos.Void{}, nil
 }
@@ -226,4 +236,12 @@ func (srv *PCRFDiamServer) ClearSubscribers(ctx context.Context, void *orcprotos
 	srv.subscribers = map[string]*subscriberAccount{}
 	glog.V(2).Info("All accounts deleted.")
 	return &orcprotos.Void{}, nil
+}
+
+func (srv *PCRFDiamServer) SetExpectations(ctx context.Context, expectations *protos.GxCreditControlExpectations) (*orcprotos.Void, error) {
+	return &orcprotos.Void{}, nil
+}
+
+func (srv *PCRFDiamServer) AssertExpectations(ctx context.Context, void *orcprotos.Void) (*protos.GxCreditControlResult, error) {
+	return &protos.GxCreditControlResult{}, nil
 }

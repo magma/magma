@@ -11,6 +11,7 @@ package mock_pcrf
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/session_proxy/credit_control"
@@ -33,6 +34,7 @@ type ccrMessage struct {
 	SubscriptionIDs  []*subscriptionIDDiam     `avp:"Subscription-Id"`
 	IPAddr           datatype.OctetString      `avp:"Framed-IP-Address"`
 	UsageMonitors    []*usageMonitorRequestAVP `avp:"Usage-Monitoring-Information"`
+	CalledStationId  string                    `avp:"Called-Station-Id"`
 }
 
 type subscriptionIDDiam struct {
@@ -61,6 +63,7 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			glog.Errorf("Failed to unmarshal CCR %s", err)
 			return
 		}
+		srv.LastMessageReceived = &ccr
 		imsi, err := ccr.GetIMSI()
 		if err != nil {
 			glog.Errorf("Could not parse CCR: %s", err.Error())
@@ -79,7 +82,7 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			// Install all rules attached to the subscriber for the initial answer
 			ruleInstalls := toRuleInstallAVPs(account.RuleNames, account.RuleBaseNames, account.RuleDefinitions)
 			// Install all monitors attached to the subscriber for the initial answer
-			usageMonitors := toUsageMonitoringInfoAVPs(account.UsageMonitors)
+			usageMonitors := toUsageMonitorAVPs(account.UsageMonitors)
 			avps = append(ruleInstalls, usageMonitors...)
 		} else {
 			// Update the subscriber state with the usage updates in CCR-U/T
@@ -87,7 +90,7 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			if err != nil {
 				glog.Errorf("Failed to update quota: %v", err)
 			}
-			avps = toUsageMonitoringInfoAVPs(creditByMkey)
+			avps = toUsageMonitorAVPs(creditByMkey)
 		}
 		sendAnswer(ccr, c, m, diam.Success, avps...)
 	}
@@ -132,6 +135,46 @@ func (m *ccrMessage) GetIMSI() (string, error) {
 	return "", errors.New("Could not obtain IMSI from CCR message")
 }
 
+// Searches on ccr message for an specific AVP message based on the avp tag on ccr type (ie "Session-Id")
+// It returns on the first match it finds.
+func GetAVP(message *ccrMessage, AVPToFind string) (interface{}, error) {
+	elem := reflect.ValueOf(message)
+	calledStationID, err := findAVP(elem, "avp", AVPToFind)
+	if err != nil {
+		glog.Errorf("Failed to find %s: %s\n", AVPToFind, err)
+		return "", err
+	}
+	return calledStationID, nil
+}
+
+// Depth Search First of a specific tag:value on a element (accepts structs, pointers, slices)
+func findAVP(elem reflect.Value, tag, AVPtoFind string) (interface{}, error) {
+	switch elem.Kind() {
+	case reflect.Ptr:
+		return findAVP(elem.Elem(), tag, AVPtoFind)
+	case reflect.Struct:
+		for i := 0; i < elem.NumField(); i += 1 {
+			fieldT := elem.Type().Field(i)
+			if fieldT.Tag.Get(tag) == AVPtoFind {
+				fieldV := elem.Field(i)
+				return fieldV.Interface(), nil
+			}
+			result, err := findAVP(elem.Field(i), tag, AVPtoFind)
+			if err == nil {
+				return result, err
+			}
+		}
+	case reflect.Slice:
+		for i := 0; i < elem.Len(); i += 1 {
+			result, err := findAVP(elem.Index(i), tag, AVPtoFind)
+			if err == nil {
+				return result, err
+			}
+		}
+	}
+	return "", fmt.Errorf("Could not find AVP %s:%s", tag, AVPtoFind)
+}
+
 func updateSubscriberAccountWithUsageUpdates(account *subscriberAccount, monitorUpdates []*usageMonitorRequestAVP) (creditByMkey, error) {
 	credits := make(creditByMkey, len(monitorUpdates))
 	for _, update := range monitorUpdates {
@@ -144,22 +187,22 @@ func updateSubscriberAccountWithUsageUpdates(account *subscriberAccount, monitor
 	return credits, nil
 }
 
-func updateSubscriberQuota(credit *protos.UsageMonitorCredit, usedServiceUnit *usageMonitorRequestAVP) *protos.UsageMonitorCredit {
-	total := credit.TotalQuota
+func updateSubscriberQuota(credit *protos.UsageMonitor, usedServiceUnit *usageMonitorRequestAVP) *protos.UsageMonitor {
+	total := credit.GetTotalQuota()
 	update := usedServiceUnit.UsedServiceUnit
-	credit.TotalQuota.TotalOctets = decrementOrZero(total.TotalOctets, update.TotalOctets)
-	credit.TotalQuota.InputOctets = decrementOrZero(total.InputOctets, update.InputOctets)
-	credit.TotalQuota.OutputOctets = decrementOrZero(total.OutputOctets, update.OutputOctets)
+	credit.TotalQuota.TotalOctets = decrementOrZero(total.GetTotalOctets(), update.TotalOctets)
+	credit.TotalQuota.InputOctets = decrementOrZero(total.GetInputOctets(), update.InputOctets)
+	credit.TotalQuota.OutputOctets = decrementOrZero(total.GetOutputOctets(), update.OutputOctets)
 	return credit
 }
 
-func getQuotaGrant(monitorCredit *protos.UsageMonitorCredit) protos.Octets {
-	total := monitorCredit.TotalQuota
-	perRequest := monitorCredit.QuotaGrantPerRequest
-	return protos.Octets{
-		TotalOctets:  getMin(total.TotalOctets, perRequest.TotalOctets),
-		InputOctets:  getMin(total.InputOctets, perRequest.InputOctets),
-		OutputOctets: getMin(total.OutputOctets, perRequest.OutputOctets),
+func getQuotaGrant(monitorCredit *protos.UsageMonitor) *protos.Octets {
+	total := monitorCredit.GetTotalQuota()
+	perRequest := monitorCredit.GetMonitorInfoPerRequest().GetOctets()
+	return &protos.Octets{
+		TotalOctets:  getMin(total.GetTotalOctets(), perRequest.TotalOctets),
+		InputOctets:  getMin(total.GetInputOctets(), perRequest.InputOctets),
+		OutputOctets: getMin(total.GetOutputOctets(), perRequest.OutputOctets),
 	}
 }
 

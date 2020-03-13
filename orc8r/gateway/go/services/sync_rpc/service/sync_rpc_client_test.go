@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"magma/gateway/service_registry"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
+
 	"net"
 	"strings"
 	"testing"
@@ -37,9 +39,6 @@ func (svc *testSyncRpcService) EstablishSyncRPCStream(stream protos.SyncRPCServi
 func (svc *testSyncRpcService) SyncRPC(stream protos.SyncRPCService_SyncRPCServer) error {
 	return nil
 }
-func (svc *testSyncRpcService) GetHostnameForHwid(ctx context.Context, hwid *protos.HardwareID) (*protos.Hostname, error) {
-	return &protos.Hostname{}, nil
-}
 
 // run instance of the test grpc service
 func runTestSyncRpcService(server *testSyncRpcService, grpcPortCh chan string) {
@@ -67,8 +66,10 @@ func (t *testBrokerImpl) send(_ context.Context, _ string, _ *protos.SyncRPCRequ
 func TestSyncRpcClient(t *testing.T) {
 	BrokerRespCh := make(chan *protos.SyncRPCResponse)
 	testBrokerImpl := &testBrokerImpl{testRespCh: BrokerRespCh}
-	cfg := &Config{SyncRpcHeartbeatInterval: 100 * time.Second}
+	reg := service_registry.Get()
+	cfg := Config{SyncRpcHeartbeatInterval: 100 * time.Second}
 	client := SyncRpcClient{
+		serviceRegistry: reg,
 		respCh:          make(chan *protos.SyncRPCResponse),
 		terminatedReqs:  make(map[uint32]bool),
 		outstandingReqs: make(map[uint32]context.CancelFunc),
@@ -98,25 +99,30 @@ func TestSyncRpcClient(t *testing.T) {
 		grpcClient := protos.NewSyncRPCServiceClient(conn)
 		client.runSyncRpcClient(ctx, grpcClient)
 	}()
-
 	// send a syncRpcRequest and verify if we receive a proper syncRpcResponse
-	registry.AddService(registry.ServiceLocation{
+	reg.AddService(registry.ServiceLocation{
 		Name: "testService",
 		Host: "localhost",
 		Port: 9999,
 	})
 	svcSyncRpcReqCh <- &protos.SyncRPCRequest{ReqId: 1, ReqBody: &protos.GatewayRequest{Authority: "testService"}}
 	BrokerRespCh <- &protos.SyncRPCResponse{ReqId: 1}
-	resp := <-svcSyncRpcRespCh
-	assert.Equal(t, resp.ReqId, uint32(1))
+
+	select {
+	case resp := <-svcSyncRpcRespCh:
+		assert.Equal(t, resp.ReqId, uint32(1))
+	case <-time.After(3 * time.Second):
+		t.Fatal("Timeout 1")
+	}
 
 	// send a SyncRpcRequest terminating a request
 	svcSyncRpcReqCh <- &protos.SyncRPCRequest{ReqId: 2, ReqBody: &protos.GatewayRequest{Authority: "testService"}}
 	svcSyncRpcReqCh <- &protos.SyncRPCRequest{ReqId: 2, ConnClosed: true}
 	BrokerRespCh <- &protos.SyncRPCResponse{ReqId: 2}
 	timer := time.NewTimer(time.Second)
+
 	select {
-	case resp = <-svcSyncRpcRespCh:
+	case resp := <-svcSyncRpcRespCh:
 		t.Fatalf("no response was expected. recd %v", resp)
 	case <-timer.C:
 		break
@@ -125,13 +131,18 @@ func TestSyncRpcClient(t *testing.T) {
 	// send a syncRpcRequest which is already being handled
 	svcSyncRpcReqCh <- &protos.SyncRPCRequest{ReqId: 3, ReqBody: &protos.GatewayRequest{Authority: "testService"}}
 	svcSyncRpcReqCh <- &protos.SyncRPCRequest{ReqId: 3, ReqBody: &protos.GatewayRequest{Authority: "testService"}}
-	resp = <-svcSyncRpcRespCh
-	assert.Contains(t, resp.RespBody.Err, "already being handled")
+
+	select {
+	case resp := <-svcSyncRpcRespCh:
+		assert.Contains(t, resp.RespBody.Err, "already being handled")
+	case <-time.After(3 * time.Second):
+		t.Fatal("Timeout 2")
+	}
 
 	// finally check if we receive periodic heartbeats
 	// run new client with short heartbeat interval
 	cfg.SyncRpcHeartbeatInterval = 1 * time.Second
-	client2 := SyncRpcClient{cfg: cfg}
+	client2 := SyncRpcClient{serviceRegistry: reg, cfg: cfg}
 	go func() {
 		conn, err := grpc.Dial(fmt.Sprintf("localhost:%s", grpcPort),
 			grpc.WithInsecure())
@@ -144,6 +155,10 @@ func TestSyncRpcClient(t *testing.T) {
 		grpcClient := protos.NewSyncRPCServiceClient(conn)
 		client2.runSyncRpcClient(ctx, grpcClient)
 	}()
-	resp = <-svcSyncRpcRespCh
-	assert.Equal(t, resp.HeartBeat, true)
+	select {
+	case resp := <-svcSyncRpcRespCh:
+		assert.Equal(t, resp.HeartBeat, true)
+	case <-time.After(3 * time.Second):
+		t.Fatal("Timeout 3")
+	}
 }

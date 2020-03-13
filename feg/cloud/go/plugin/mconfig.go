@@ -71,12 +71,16 @@ func (*Builder) Build(
 			MinimumRequestThreshold: healthc.MinimumRequestThreshold,
 		}
 		if gxc != nil {
-			mc.Gx = &mconfig.GxConfig{Server: gxc.Server.ToMconfig()}
+			mc.Gx = &mconfig.GxConfig{
+				OverwriteApn: gxc.OverwriteApn,
+				Server:       gxc.Server.ToMconfig(),
+			}
 		}
 		if gyc != nil {
 			mc.Gy = &mconfig.GyConfig{
-				Server:     gyc.Server.ToMconfig(),
-				InitMethod: getGyInitMethod(gyc.InitMethod),
+				InitMethod:   getGyInitMethod(gyc.InitMethod),
+				OverwriteApn: gyc.OverwriteApn,
+				Server:       gyc.Server.ToMconfig(),
 			}
 		}
 		mconfigOut["session_proxy"] = mc

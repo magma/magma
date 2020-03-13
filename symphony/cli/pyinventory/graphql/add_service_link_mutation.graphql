@@ -47,12 +47,18 @@ mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
         }
         link {
           id
+          services {
+            id
+          }
         }
       }
       role
     }
     links {
       id
+      services {
+        id
+      }
     }
   }
 }

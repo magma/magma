@@ -19,7 +19,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"magma/gateway/cloud_registry"
+	"magma/gateway/service_registry"
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 )
@@ -34,18 +34,18 @@ type listener struct {
 }
 
 type streamerClient struct {
-	listeners       map[string]*listener
 	listenersMu     sync.Mutex
-	serviceRegistry cloud_registry.CloudRegistry
+	listeners       map[string]*listener
+	serviceRegistry service_registry.GatewayRegistry
 }
 
-// NewStreamerClient creates new streamer client with an empty listeners list and provided cloud registry
+// NewStreamerClient creates new streamer client with an empty listeners list
 // The created streamer is ready to serve new listeners after they are added via AddListener() call
-func NewStreamerClient(cr cloud_registry.CloudRegistry) Client {
-	if cr == nil {
-		cr = cloud_registry.New()
+func NewStreamerClient(reg service_registry.GatewayRegistry) Client {
+	if reg == nil {
+		reg = service_registry.Get()
 	}
-	return &streamerClient{listeners: map[string]*listener{}, serviceRegistry: cr}
+	return &streamerClient{listeners: map[string]*listener{}, serviceRegistry: reg}
 }
 
 // AddListener registers a new streaming updates listener for the

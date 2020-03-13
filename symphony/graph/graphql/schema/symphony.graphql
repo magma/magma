@@ -121,7 +121,6 @@ input EditUserInput {
   id: ID!
   firstName: String
   lastName: String
-  email: String
   status: UserStatus
   role: UserRole
 }

@@ -21,6 +21,7 @@
 #include <string>
 
 #include "lte/protos/spgw_service.pb.h"
+#include <folly/IPAddress.h>
 
 extern "C" {
 #include "spgw_service_handler.h"
@@ -58,8 +59,8 @@ Status SpgwServiceImpl::CreateBearer(
   // If north bound is sessiond itself, IMSI prefix is used;
   // in S1AP tests, IMSI prefix is not used
   // Strip off any IMSI prefix
-  if (imsi.compare(0,4,"IMSI") == 0) {
-    imsi = imsi.substr(4,std::string::npos);
+  if (imsi.compare(0, 4, "IMSI") == 0) {
+    imsi = imsi.substr(4, std::string::npos);
   }
   itti_msg.imsi_length = imsi.size();
   strcpy(itti_msg.imsi, imsi.c_str());
@@ -131,10 +132,16 @@ Status SpgwServiceImpl::CreateBearer(
           .direction = TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
         ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
           .eval_precedence = policy_rule.priority();
-        fillUpPacketFilterContents(
-          &ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
-             .packetfiltercontents,
-          &flow.match());
+        if (!fillUpPacketFilterContents(
+              &ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
+                 .packetfiltercontents,
+              &flow.match())) {
+          OAILOG_ERROR(
+            LOG_UTIL,
+            "The uplink packet filter contents are not formatted correctly."
+            "Cancelling dedicated bearer request. \n");
+          return Status::CANCELLED;
+        }
         ++ul_count_packetfilters;
       } else if (
         (flow.match().direction() == FlowMatch::DOWNLINK) &&
@@ -144,10 +151,16 @@ Status SpgwServiceImpl::CreateBearer(
           .direction = TRAFFIC_FLOW_TEMPLATE_DOWNLINK_ONLY;
         dl_tft->packetfilterlist.createnewtft[dl_count_packetfilters]
           .eval_precedence = policy_rule.priority();
-        fillUpPacketFilterContents(
-          &dl_tft->packetfilterlist.createnewtft[dl_count_packetfilters]
-             .packetfiltercontents,
-          &flow.match());
+        if (!fillUpPacketFilterContents(
+              &dl_tft->packetfilterlist.createnewtft[dl_count_packetfilters]
+                 .packetfiltercontents,
+              &flow.match())) {
+          OAILOG_ERROR(
+            LOG_UTIL,
+            "The downlink packet filter contents are not formatted correctly."
+            "Cancelling dedicated bearer request. \n");
+          return Status::CANCELLED;
+        }
         ++dl_count_packetfilters;
       }
 
@@ -197,7 +210,7 @@ Status SpgwServiceImpl::DeleteBearer(
   return Status::OK;
 }
 
-void SpgwServiceImpl::fillUpPacketFilterContents(
+bool SpgwServiceImpl::fillUpPacketFilterContents(
   packet_filter_contents_t* pf_content,
   const FlowMatch* flow_match_rule)
 {
@@ -212,7 +225,9 @@ void SpgwServiceImpl::fillUpPacketFilterContents(
   if (flow_match_rule->direction() == FlowMatch::UPLINK) {
     if (!flow_match_rule->ipv4_dst().empty()) {
       flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-      fillIpv4(pf_content, flow_match_rule->ipv4_dst());
+      if (!fillIpv4(pf_content, flow_match_rule->ipv4_dst())) {
+        return false;
+      }
     }
     if (flow_match_rule->tcp_src() != 0) {
       flags |= TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
@@ -231,7 +246,9 @@ void SpgwServiceImpl::fillUpPacketFilterContents(
   } else if (flow_match_rule->direction() == FlowMatch::DOWNLINK) {
     if (!flow_match_rule->ipv4_src().empty()) {
       flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-      fillIpv4(pf_content, flow_match_rule->ipv4_src());
+      if (!fillIpv4(pf_content, flow_match_rule->ipv4_src())) {
+        return false;
+      }
     }
     if (flow_match_rule->tcp_dst() != 0) {
       flags |= TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
@@ -250,24 +267,53 @@ void SpgwServiceImpl::fillUpPacketFilterContents(
   }
 
   pf_content->flags = flags;
+  return true;
 }
 
-void SpgwServiceImpl::fillIpv4(
+// IPv4 address format ex.: 192.176.128.10/24
+// FEG can provide an empty string which indicates
+// ANY and it is equivalent to 0.0.0.0/0
+// But this function is called only for non-empty ipv4 string
+bool SpgwServiceImpl::fillIpv4(
   packet_filter_contents_t* pf_content,
   const std::string ipv4addr)
 {
-  const char delim = '.';
-  size_t start = 0;
-  size_t end = 0;
-  for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; ++i) {
-    end = ipv4addr.find(delim, start);
-    pf_content->ipv4remoteaddr[i].addr =
-      std::stoi(ipv4addr.substr(start, end - start), nullptr, 10);
-    pf_content->ipv4remoteaddr[i].mask = 255;
-    start = end + 1;
+  const auto cidrNetworkExpect = folly::IPAddress::tryCreateNetwork(ipv4addr);
+  if (cidrNetworkExpect.hasError()) {
+    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n", ipv4addr.c_str());
+    return false;
+  }
+  // Host Byte Order
+  uint32_t ipv4addrHBO = cidrNetworkExpect.value().first.asV4().toLongHBO();
+  for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
+    pf_content->ipv4remoteaddr[i].addr = (unsigned char) ipv4addrHBO & 0xFF;
+    ipv4addrHBO = ipv4addrHBO >> 8;
   }
 
-  return;
+  // Get the mask length:
+  // folly takes care of absence of mask_len by defaulting to 32
+  // i.e., 255.255.255.255.
+  int mask_len = cidrNetworkExpect.value().second;
+  uint32_t mask = UINT32_MAX;       // all ones
+  mask = (mask << (32 - mask_len)); // first mask_len bits are 1s, rest 0s
+  for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
+    pf_content->ipv4remoteaddr[i].mask = (unsigned char) mask & 0xFF;
+    mask = mask >> 8;
+  }
+
+  OAILOG_DEBUG(
+    LOG_UTIL,
+    "Network Address: %d.%d.%d.%d "
+    "Network Mask: %d.%d.%d.%d \n",
+    pf_content->ipv4remoteaddr[0].addr,
+    pf_content->ipv4remoteaddr[1].addr,
+    pf_content->ipv4remoteaddr[2].addr,
+    pf_content->ipv4remoteaddr[3].addr,
+    pf_content->ipv4remoteaddr[0].mask,
+    pf_content->ipv4remoteaddr[1].mask,
+    pf_content->ipv4remoteaddr[2].mask,
+    pf_content->ipv4remoteaddr[3].mask);
+  return true;
 }
 
 } // namespace magma

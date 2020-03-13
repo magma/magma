@@ -4,6 +4,10 @@ query EquipmentTypeEquipmentQuery($id: ID!) {
       equipments {
         id
         name
+        equipmentType {
+          id
+          name
+        }
       }
     }
   }

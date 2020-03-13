@@ -100,6 +100,7 @@ func TestBuilder_Build(t *testing.T) {
 					Realm:            "magma.com",
 					Host:             "magma-fedgw.magma.com",
 				},
+				OverwriteApn: "apnGx.magma-fedgw.magma.com",
 			},
 			Gy: &mconfig.GyConfig{
 				Server: &mconfig.DiamClientConfig{
@@ -112,7 +113,8 @@ func TestBuilder_Build(t *testing.T) {
 					Realm:            "magma.com",
 					Host:             "magma-fedgw.magma.com",
 				},
-				InitMethod: mconfig.GyInitMethod_PER_SESSION,
+				InitMethod:   mconfig.GyInitMethod_PER_SESSION,
+				OverwriteApn: "apnGy.magma-fedgw.magma.com",
 			},
 			RequestFailureThreshold: 0.50,
 			MinimumRequestThreshold: 1,
@@ -198,6 +200,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			Host:             "magma-fedgw.magma.com",
 			Realm:            "magma.com",
 		},
+		OverwriteApn: "apnGx.magma-fedgw.magma.com",
 	},
 	Gy: &models.Gy{
 		Server: &models.DiameterClientConfigs{
@@ -209,7 +212,8 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			Host:             "magma-fedgw.magma.com",
 			Realm:            "magma.com",
 		},
-		InitMethod: uint32Ptr(1),
+		InitMethod:   uint32Ptr(1),
+		OverwriteApn: "apnGy.magma-fedgw.magma.com",
 	},
 	Hss: &models.Hss{
 		Server: &models.DiameterServerConfigs{

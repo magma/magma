@@ -34,6 +34,7 @@ const (
 	queryRangePart = "query_range"
 	seriesPart     = "series"
 	paramMatch     = "match"
+	paramPromMatch = "match[]"
 
 	PrometheusV1Root = handlers.ManageNetworkPath + obsidian.UrlSep + "prometheus"
 
@@ -213,7 +214,7 @@ func GetPrometheusSeriesHandler(api v1.API) func(c echo.Context) error {
 		if nerr != nil {
 			return obsidian.HttpError(nerr, http.StatusBadRequest)
 		}
-		seriesMatches, err := getSeriesMatches(c, networkQueryRestrictorProvider(nID))
+		seriesMatches, err := getSeriesMatches(c, paramMatch, networkQueryRestrictorProvider(nID))
 		if err != nil {
 			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
 		}
@@ -235,7 +236,7 @@ func TenantSeriesHandlerProvider(api v1.API) func(c echo.Context) error {
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
-		seriesMatches, err := getSeriesMatches(c, queryRestrictor)
+		seriesMatches, err := getSeriesMatches(c, paramMatch, queryRestrictor)
 		if err != nil {
 			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
 		}
@@ -257,7 +258,7 @@ func GetTenantPromSeriesHandler(api v1.API) func(c echo.Context) error {
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
-		seriesMatches, err := getSeriesMatches(c, queryRestrictor)
+		seriesMatches, err := getSeriesMatches(c, paramPromMatch, queryRestrictor)
 		if err != nil {
 			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
 		}
@@ -290,9 +291,9 @@ func prometheusSeries(c echo.Context, seriesMatches []string, apiClient v1.API) 
 	return res, nil
 }
 
-func getSeriesMatches(c echo.Context, queryRestrictor restrictor.QueryRestrictor) ([]string, error) {
+func getSeriesMatches(c echo.Context, matchParam string, queryRestrictor restrictor.QueryRestrictor) ([]string, error) {
 	// Split array of matches by space delimiter
-	matches := strings.Split(c.QueryParam(paramMatch), " ")
+	matches := strings.Split(c.QueryParam(matchParam), " ")
 	seriesMatchers := make([]string, 0, len(matches))
 	for _, match := range matches {
 		if match == "" {

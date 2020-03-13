@@ -15,21 +15,21 @@ import (
 	"context"
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/registry"
-	"magma/orc8r/lib/go/errors"
-
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
+
+	"magma/feg/cloud/go/protos"
+	"magma/gateway/service_registry"
+	"magma/orc8r/lib/go/errors"
 )
 
 // getHealthClient is a utility function to get an RPC connection to the
 // cloud Health service from the feg
-func getHealthClient(cloudRegistry registry.CloudRegistry) (protos.HealthClient, *grpc.ClientConn, error) {
+func getHealthClient(cloudRegistry service_registry.GatewayRegistry) (protos.HealthClient, *grpc.ClientConn, error) {
 	if cloudRegistry == nil {
 		return nil, nil, fmt.Errorf("Nil cloud registry provided")
 	}
-	conn, err := cloudRegistry.GetCloudConnection("HEALTH")
+	conn, err := cloudRegistry.GetConnection("HEALTH")
 	if err != nil {
 		initErr := errors.NewInitError(err, "HEALTH")
 		glog.Error(initErr)
@@ -40,7 +40,7 @@ func getHealthClient(cloudRegistry registry.CloudRegistry) (protos.HealthClient,
 
 // UpdateHealth sends a health update using a HealthRequest to the cloud and returns
 // back a health response and any potential error that occurred
-func UpdateHealth(cloudReg registry.CloudRegistry, req *protos.HealthRequest) (*protos.HealthResponse, error) {
+func UpdateHealth(cloudReg service_registry.GatewayRegistry, req *protos.HealthRequest) (*protos.HealthResponse, error) {
 	if req == nil {
 		return nil, fmt.Errorf("Nil HealthRequest")
 	}

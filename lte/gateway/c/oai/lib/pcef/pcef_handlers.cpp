@@ -26,7 +26,7 @@
 
 #include "pcef_handlers.h"
 #include "PCEFClient.h"
-#include "rpc_client.h"
+#include "RpcClient.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
@@ -52,9 +52,7 @@ static void create_session_response(
   s5_response.failure_cause = S5_OK;
 
   if (!status.ok()) {
-    struct in_addr addr;
     //BUFFER_TO_IN_ADDR (sgi_response.paa.ipv4_address, addr);
-    // TODO make asynchronous, or make part of create session call
     release_ipv4_address(imsi.c_str(), apn.c_str(),
                          &sgi_response.paa.ipv4_address);
     s5_response.failure_cause = PCEF_FAILURE;
