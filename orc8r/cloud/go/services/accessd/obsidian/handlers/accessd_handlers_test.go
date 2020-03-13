@@ -21,13 +21,13 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/obsidian/access"
-	access_tests "magma/orc8r/cloud/go/obsidian/access/tests"
+	accessTests "magma/orc8r/cloud/go/obsidian/access/tests"
 	"magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/accessd/obsidian/models"
 	"magma/orc8r/cloud/go/services/accessd/test_init"
 	"magma/orc8r/cloud/go/test_utils"
-	security_cert "magma/orc8r/lib/go/security/cert"
-	certifier_test_utils "magma/orc8r/lib/go/security/csr"
+	securityCert "magma/orc8r/lib/go/security/cert"
+	certifierTestUtils "magma/orc8r/lib/go/security/csr"
 )
 
 const (
@@ -42,7 +42,7 @@ const (
 
 func testInit(t *testing.T) (string, map[models.OperatorID]models.Certificate, map[models.OperatorID]models.ACLType) {
 	test_init.StartTestService(t)
-	testOperatorSerialNumber := access_tests.StartMockAccessControl(t, testAdminOperatorID)
+	testOperatorSerialNumber := accessTests.StartMockAccessControl(t, testAdminOperatorID)
 	certificates := make(map[models.OperatorID]models.Certificate)
 	acls := make(map[models.OperatorID]models.ACLType)
 	initializeOperators(t, certificates, acls)
@@ -50,10 +50,8 @@ func testInit(t *testing.T) (string, map[models.OperatorID]models.Certificate, m
 }
 
 func cleanup(t *testing.T) {
-	err := test_utils.GetMockDatastoreInstance().DeleteTable("access_control")
-	assert.NoError(t, err)
-	err = test_utils.GetMockDatastoreInstance().DeleteTable("certificate_info_db")
-	assert.NoError(t, err)
+	test_utils.DropTableFromSharedTestDB(t, "access_control_blobstore")
+	test_utils.DropTableFromSharedTestDB(t, "certificate_info_blobstore")
 }
 
 func TestListOperators(t *testing.T) {
@@ -96,7 +94,7 @@ func TestGetOperatorsDetail(t *testing.T) {
 	}
 	e := echo.New()
 	req := httptest.NewRequest(echo.GET, "/", nil)
-	req.Header.Set(access.CLIENT_CERT_SN_KEY, string(testOperatorSN))
+	req.Header.Set(access.CLIENT_CERT_SN_KEY, testOperatorSN)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetParamNames("operator_id")
@@ -153,7 +151,7 @@ func TestDeleteOperators(t *testing.T) {
 	testOperatorSN, _, _ := testInit(t)
 	e := echo.New()
 	req := httptest.NewRequest(echo.DELETE, "/", nil)
-	req.Header.Set(access.CLIENT_CERT_SN_KEY, string(testOperatorSN))
+	req.Header.Set(access.CLIENT_CERT_SN_KEY, testOperatorSN)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetParamNames("operator_id")
@@ -163,7 +161,7 @@ func TestDeleteOperators(t *testing.T) {
 	assert.Equal(t, http.StatusNoContent, rec.Code)
 
 	req = httptest.NewRequest(echo.GET, "/", nil)
-	req.Header.Set(access.CLIENT_CERT_SN_KEY, string(testOperatorSN))
+	req.Header.Set(access.CLIENT_CERT_SN_KEY, testOperatorSN)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("operator_id")
@@ -278,7 +276,7 @@ func TestPutPermissions(t *testing.T) {
 	assert.NoError(t, err)
 	e := echo.New()
 	req := httptest.NewRequest(echo.PUT, "/", strings.NewReader(string(newPermissionsBytes)))
-	req.Header.Set(access.CLIENT_CERT_SN_KEY, string(testOperatorSN))
+	req.Header.Set(access.CLIENT_CERT_SN_KEY, testOperatorSN)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
@@ -290,7 +288,7 @@ func TestPutPermissions(t *testing.T) {
 
 	// Check that permissions were updated properly
 	req = httptest.NewRequest(echo.GET, "/", nil)
-	req.Header.Set(access.CLIENT_CERT_SN_KEY, string(testOperatorSN))
+	req.Header.Set(access.CLIENT_CERT_SN_KEY, testOperatorSN)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetParamNames("operator_id", "network_id")
@@ -329,7 +327,7 @@ func TestGetCertificate(t *testing.T) {
 func TestPostDeleteCertificate(t *testing.T) {
 	defer cleanup(t)
 	testOperatorSN, certificates, _ := testInit(t)
-	csr, err := certifier_test_utils.CreateCSR(
+	csr, err := certifierTestUtils.CreateCSR(
 		time.Duration(int64(time.Hour*24*365)),
 		string(operator1ID),
 		string(operator1ID),
@@ -402,9 +400,9 @@ func assertOperatorRecordResponse(t *testing.T, expectedRecord *models.OperatorR
 }
 
 func certToSerialNumber(t *testing.T, certificate models.Certificate) models.CertificateSn {
-	cert, err := x509.ParseCertificate([]byte(certificate))
+	cert, err := x509.ParseCertificate(certificate)
 	assert.NoError(t, err)
-	return models.CertificateSn(security_cert.SerialToString(cert.SerialNumber))
+	return models.CertificateSn(securityCert.SerialToString(cert.SerialNumber))
 }
 
 func getOperatorSetFromJSON(jsonstr []byte) (map[string]bool, error) {
@@ -429,7 +427,7 @@ func initializeOperators(t *testing.T, certificates map[models.OperatorID]models
 }
 
 func initializeOperator1(t *testing.T, certificates map[models.OperatorID]models.Certificate, acls map[models.OperatorID]models.ACLType) {
-	operator1CSR, err := certifier_test_utils.CreateCSR(
+	operator1CSR, err := certifierTestUtils.CreateCSR(
 		time.Duration(int64(time.Hour*24*365)),
 		string(operator1ID),
 		string(operator1ID),
@@ -463,7 +461,7 @@ func initializeOperator1(t *testing.T, certificates map[models.OperatorID]models
 }
 
 func initializeOperator2(t *testing.T, certificates map[models.OperatorID]models.Certificate, acls map[models.OperatorID]models.ACLType) {
-	operator2CSR, err := certifier_test_utils.CreateCSR(
+	operator2CSR, err := certifierTestUtils.CreateCSR(
 		time.Duration(int64(time.Hour*24*365)),
 		string(operator2ID),
 		string(operator2ID),
@@ -505,7 +503,7 @@ func initializeOperator2(t *testing.T, certificates map[models.OperatorID]models
 }
 
 func initializeAdminOperator(t *testing.T, certificates map[models.OperatorID]models.Certificate, acls map[models.OperatorID]models.ACLType) {
-	adminCSR, err := certifier_test_utils.CreateCSR(
+	adminCSR, err := certifierTestUtils.CreateCSR(
 		time.Duration(int64(time.Hour*24*365)),
 		string(adminID),
 		string(adminID),
@@ -548,5 +546,5 @@ func createOperator(t *testing.T, createRecord models.CreateOperatorRecord) mode
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, rec.Code)
 	response := rec.Body.String()
-	return models.Certificate([]byte(response))
+	return []byte(response)
 }

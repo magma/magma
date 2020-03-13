@@ -9,6 +9,9 @@
 package mock_ocs
 
 import (
+	"fmt"
+	"reflect"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 
@@ -19,15 +22,24 @@ import (
 )
 
 type ccrMessage struct {
-	SessionID        datatype.UTF8String       `avp:"Session-Id"`
-	OriginHost       datatype.DiameterIdentity `avp:"Origin-Host"`
-	OriginRealm      datatype.DiameterIdentity `avp:"Origin-Realm"`
-	DestinationRealm datatype.DiameterIdentity `avp:"Destination-Realm"`
-	DestinationHost  datatype.DiameterIdentity `avp:"Destination-Host"`
-	RequestType      datatype.Enumerated       `avp:"CC-Request-Type"`
-	RequestNumber    datatype.Unsigned32       `avp:"CC-Request-Number"`
-	MSCC             []*ccrCredit              `avp:"Multiple-Services-Credit-Control"`
-	SubscriptionIDs  []*subscriptionID         `avp:"Subscription-Id"`
+	SessionID          datatype.UTF8String       `avp:"Session-Id"`
+	OriginHost         datatype.DiameterIdentity `avp:"Origin-Host"`
+	OriginRealm        datatype.DiameterIdentity `avp:"Origin-Realm"`
+	DestinationRealm   datatype.DiameterIdentity `avp:"Destination-Realm"`
+	DestinationHost    datatype.DiameterIdentity `avp:"Destination-Host"`
+	RequestType        datatype.Enumerated       `avp:"CC-Request-Type"`
+	RequestNumber      datatype.Unsigned32       `avp:"CC-Request-Number"`
+	MSCC               []*ccrCredit              `avp:"Multiple-Services-Credit-Control"`
+	SubscriptionIDs    []*subscriptionID         `avp:"Subscription-Id"`
+	ServiceInformation []*serviceInformation     `avp:"Service-Information"`
+}
+
+type serviceInformation struct {
+	PsInformation []*psInformation `avp:"PS-Information"`
+}
+
+type psInformation struct {
+	CalledStationId string `avp:"Called-Station-Id"`
 }
 
 type subscriptionID struct {
@@ -55,6 +67,7 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 			glog.Errorf("Failed to unmarshal CCR %s", err)
 			return
 		}
+		srv.LastMessageReceived = &ccr
 		imsi := getIMSI(ccr)
 		if len(imsi) == 0 {
 			glog.Errorf("Could not find IMSI in CCR")
@@ -154,6 +167,46 @@ func getIMSI(message ccrMessage) string {
 		}
 	}
 	return ""
+}
+
+// Searches on ccr message for an specific AVP message based on the avp tag on ccr type (ie "Session-Id")
+// It returns on the first match it finds.
+func GetAVP(message *ccrMessage, AVPToFind string) (interface{}, error) {
+	elem := reflect.ValueOf(message)
+	calledStationID, err := findAVP(elem, "avp", AVPToFind)
+	if err != nil {
+		glog.Errorf("Failed to find  %s: %s\n", AVPToFind, err)
+		return "", err
+	}
+	return calledStationID, nil
+}
+
+// Depth Search First of a specific tag:value on a element (accepts structs, pointers, slices)
+func findAVP(elem reflect.Value, tag, AVPtoFind string) (interface{}, error) {
+	switch elem.Kind() {
+	case reflect.Ptr:
+		return findAVP(elem.Elem(), tag, AVPtoFind)
+	case reflect.Struct:
+		for i := 0; i < elem.NumField(); i += 1 {
+			fieldT := elem.Type().Field(i)
+			if fieldT.Tag.Get(tag) == AVPtoFind {
+				fieldV := elem.Field(i)
+				return fieldV.Interface(), nil
+			}
+			result, err := findAVP(elem.Field(i), tag, AVPtoFind)
+			if err == nil {
+				return result, err
+			}
+		}
+	case reflect.Slice:
+		for i := 0; i < elem.Len(); i += 1 {
+			result, err := findAVP(elem.Index(i), tag, AVPtoFind)
+			if err == nil {
+				return result, err
+			}
+		}
+	}
+	return "", fmt.Errorf("Could not find AVP %s:%s", tag, AVPtoFind)
 }
 
 // getQuotaGrant gets how much credit to return in a CCA-update, which is the

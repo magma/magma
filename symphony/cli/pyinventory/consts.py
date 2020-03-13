@@ -103,14 +103,23 @@ class Equipment(NamedTuple):
     Attributes:
         name (str): equipment name
         id (str): equipment ID
+        equipment_type_name (str): equipment type name
     """
 
     name: str
     id: str
+    equipment_type_name: str
 
 
 class Link(NamedTuple):
+    """
+    Attributes:
+        id (str): link ID
+        service_ids (List[str]): service IDs 
+    """
+
     id: str
+    service_ids: List[str]
 
 
 class EquipmentPortDefinition(NamedTuple):

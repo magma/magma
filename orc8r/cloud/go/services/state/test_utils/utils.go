@@ -44,6 +44,23 @@ func ReportGatewayStatus(t *testing.T, ctx context.Context, req *models.GatewayS
 	assert.NoError(t, err)
 }
 
+func ReportState(t *testing.T, ctx context.Context, stateType string, stateKey string, req interface{}) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+	serializedState, err := serde.Serialize(state.SerdeDomain, stateType, req)
+	assert.NoError(t, err)
+	states := []*protos.State{
+		{
+			Type:     stateType,
+			DeviceID: stateKey,
+			Value:    serializedState,
+		},
+	}
+	res, err := client.ReportStates(ctx, &protos.ReportStatesRequest{States: states})
+	assert.NoError(t, err)
+	assert.Empty(t, res.UnreportedStates)
+}
+
 func GetContextWithCertificate(t *testing.T, hwID string) context.Context {
 	csn := test_utils.StartMockGwAccessControl(t, []string{hwID})
 	return metadata.NewOutgoingContext(

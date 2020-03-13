@@ -59,10 +59,11 @@ type OCSConfig struct {
 
 // OCSDiamServer wraps an OCS storing subscriber accounts and their credit
 type OCSDiamServer struct {
-	diameterSettings *diameter.DiameterClientConfig
-	ocsConfig        *OCSConfig
-	accounts         map[string]*SubscriberAccount // map of IMSI to subscriber account
-	mux              *sm.StateMachine
+	diameterSettings    *diameter.DiameterClientConfig
+	ocsConfig           *OCSConfig
+	accounts            map[string]*SubscriberAccount // map of IMSI to subscriber account
+	mux                 *sm.StateMachine
+	LastMessageReceived *ccrMessage
 }
 
 // NewOCSDiamServer initializes an OCS with an empty account map

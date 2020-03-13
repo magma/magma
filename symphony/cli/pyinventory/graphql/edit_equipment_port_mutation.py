@@ -64,7 +64,12 @@ class EditEquipmentPortMutation(DataClassJsonMixin):
 
             @dataclass
             class Link(DataClassJsonMixin):
+                @dataclass
+                class Service(DataClassJsonMixin):
+                    id: str
+
                 id: str
+                services: List[Service]
 
             id: str
             properties: List[Property]
@@ -114,6 +119,9 @@ class EditEquipmentPortMutation(DataClassJsonMixin):
     }
     link {
       id
+      services {
+        id
+      }
     }
   }
 }

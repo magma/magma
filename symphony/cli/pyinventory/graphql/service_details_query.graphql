@@ -44,12 +44,18 @@ query ServiceDetailsQuery($id: ID!) {
           }
           link {
             id
+            services {
+              id
+            }
           }
         }
         role
       }
       links {
         id
+        services {
+          id
+        }
       }
     }
   }

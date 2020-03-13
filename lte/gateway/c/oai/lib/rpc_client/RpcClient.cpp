@@ -19,15 +19,16 @@
  *      contact@openairinterface.org
  */
 
+#include "RpcClient.h"
+
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 #include <string>
 #include <memory>
 
-#include "MobilityClient.h"
-#include "rpc_client.h"
+#include "MobilityServiceClient.h"
 
 namespace grpc {
 class Channel;
@@ -40,66 +41,68 @@ using grpc::Channel;
 using grpc::ChannelCredentials;
 using grpc::CreateChannel;
 using grpc::InsecureChannelCredentials;
-using magma::MobilityServiceClient;
+using magma::lte::MobilityServiceClient;
 
 int get_assigned_ipv4_block(
   int index,
-  struct in_addr *netaddr,
-  uint32_t *netmask)
+  struct in_addr* netaddr,
+  uint32_t* netmask)
 {
   const std::shared_ptr<ChannelCredentials> cred = InsecureChannelCredentials();
   const std::shared_ptr<Channel> channel =
     CreateChannel(MOBILITYD_ENDPOINT, cred);
-  MobilityServiceClient client(channel);
-  int status = client.GetAssignedIPv4Block(index, netaddr, netmask);
+  int status = MobilityServiceClient::getInstance().GetAssignedIPv4Block(
+    index, netaddr, netmask);
   return status;
 }
 
-int allocate_ipv4_address(const char *subscriber_id, const char *apn,
-                          struct in_addr *addr)
+int allocate_ipv4_address(
+  const char* subscriber_id,
+  const char* apn,
+  struct in_addr* addr)
 {
   const std::shared_ptr<ChannelCredentials> cred = InsecureChannelCredentials();
   const std::shared_ptr<Channel> channel =
     CreateChannel(MOBILITYD_ENDPOINT, cred);
-  MobilityServiceClient client(channel);
-  int status = client.AllocateIPv4Address(subscriber_id, apn, addr);
+  int status = MobilityServiceClient::getInstance().AllocateIPv4Address(
+    subscriber_id, apn, addr);
   return status;
 }
 
 int release_ipv4_address(const char *subscriber_id, const char *apn,
-                         const struct in_addr *addr)
+                         const struct in_addr* addr)
 {
   const std::shared_ptr<ChannelCredentials> cred = InsecureChannelCredentials();
   const std::shared_ptr<Channel> channel =
     CreateChannel(MOBILITYD_ENDPOINT, cred);
-  MobilityServiceClient client(channel);
-  int status = client.ReleaseIPv4Address(subscriber_id, apn, *addr);
+  int status = MobilityServiceClient::getInstance().ReleaseIPv4Address(
+    subscriber_id, apn, *addr);
   return status;
 }
 
 int get_ipv4_address_for_subscriber(
-  const char *subscriber_id,
-  const char *apn,
-  struct in_addr *addr)
+  const char* subscriber_id,
+  const char* apn,
+  struct in_addr* addr)
 {
   const std::shared_ptr<ChannelCredentials> cred = InsecureChannelCredentials();
   const std::shared_ptr<Channel> channel =
     CreateChannel(MOBILITYD_ENDPOINT, cred);
-  MobilityServiceClient client(channel);
-  int status = client.GetIPv4AddressForSubscriber(subscriber_id, apn, addr);
+  int status = MobilityServiceClient::getInstance().GetIPv4AddressForSubscriber(
+    subscriber_id, apn, addr);
   return status;
 }
 
 int get_subscriber_id_from_ipv4(
-  const struct in_addr *addr,
-  char **subscriber_id)
+  const struct in_addr* addr,
+  char** subscriber_id)
 {
   const std::shared_ptr<ChannelCredentials> cred = InsecureChannelCredentials();
   const std::shared_ptr<Channel> channel =
     CreateChannel(MOBILITYD_ENDPOINT, cred);
-  MobilityServiceClient client(channel);
   std::string subscriber_id_str;
-  int status = client.GetSubscriberIDFromIPv4(*addr, &subscriber_id_str);
+  int status = MobilityServiceClient::getInstance().GetSubscriberIDFromIPv4(
+    *addr, &subscriber_id_str);
   if (!subscriber_id_str.empty()) {
     *subscriber_id = strdup(subscriber_id_str.c_str());
   }

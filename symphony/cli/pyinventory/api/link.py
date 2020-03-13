@@ -28,16 +28,48 @@ ADD_LINK_MUTATION_NAME = "addLink"
 def get_all_links_and_port_names_of_equipment(
     client: SymphonyClient, equipment: Equipment
 ) -> List[Tuple[Link, str]]:
-    equipment_with_ports = EquipmentPortsQuery.execute(
-        client, id=equipment.id
-    ).equipment
-    if not equipment_with_ports:
+    """Returns all links and port names in equipment.
+
+        Args:
+            equipment (pyinventory.consts.Equipment object): could be retrieved from 
+            - `pyinventory.api.equipment.get_equipment`
+            - `pyinventory.api.equipment.get_equipment_in_position`
+            - `pyinventory.api.equipment.add_equipment`
+            - `pyinventory.api.equipment.add_equipment_to_position`
+
+        Returns:
+            List[Tuple[ `pyinventory.consts.Link` , str]]: 
+
+            - `pyinventory.consts.Link` - link object
+            - str - port definition name
+            
+        Raises:
+            LinkNotFoundException: if link not found
+            FailedOperationException: for internal inventory error
+
+        Example:
+            ```
+            location = client.get_location({("Country", "LS_IND_Prod_Copy")})
+            equipment = client.get_equipment("indProdCpy1_AIO", location1) 
+            client.get_all_links_and_port_names_of_equipment(equipment=equipment)
+            ```
+    """
+
+    equipment_data = EquipmentPortsQuery.execute(client, id=equipment.id).equipment
+    if equipment_data is None:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
+    ports = equipment_data.ports
     result = []
-    for port in equipment_with_ports.ports:
-        link = port.link
-        if link is not None:
-            result.append((Link(link.id), port.definition.name))
+    for port in ports:
+        port_link = port.link
+        if port_link is not None:
+            link = Link(
+                id=port_link.id,
+                service_ids=[s.id for s in port_link.services if port_link.services]
+                if port_link.services is not None
+                else [],
+            )
+            result.append((link, port.definition.name))
     return result
 
 
@@ -51,39 +83,42 @@ def add_link(
     """Connects a link between two ports of two equipments.
 
         Args:
-            equipment_a (pyinventory.consts.Equipment object): could be retrieved from the following apis:
-
-                * `pyinventory.api.equipment.get_equipment`
-
-                * `pyinventory.api.equipment.get_equipment_in_position`
-
-                * `pyinventory.api.equipment.add_equipment`
-
-                * `pyinventory.api.equipment.add_equipment_to_position`
+            equipment_a (pyinventory.consts.Equipment object): could be retrieved from 
+            - `pyinventory.api.equipment.get_equipment`
+            - `pyinventory.api.equipment.get_equipment_in_position`
+            - `pyinventory.api.equipment.add_equipment`
+            - `pyinventory.api.equipment.add_equipment_to_position`
 
             port_name_a (str): The name of port in equipment type
             equipment_b (pyinventory.consts.Equipment object): could be retrieved from the following apis:
-
-                * `pyinventory.api.equipment.get_equipment`
-
-                * `pyinventory.api.equipment.get_equipment_in_position`
-
-                * `pyinventory.api.equipment.add_equipment`
-
-                * `pyinventory.api.equipment.add_equipment_to_position`
+            - `pyinventory.api.equipment.get_equipment`
+            - `pyinventory.api.equipment.get_equipment_in_position`
+            - `pyinventory.api.equipment.add_equipment`
+            - `pyinventory.api.equipment.add_equipment_to_position`
             
             port_name_b (str): The name of port in equipment type
 
-        Returns: pyinventory.consts.Link object with id field
-
-        Raises: AssertionError if portName in any of the equipment does not exist, match more than one port
+        Returns:
+            pyinventory.consts.Link object    
+            
+        Raises:
+            AssertionError: if portName in any of the equipment does not exist, match more than one port
                                     or is already occupied by link
-                FailedOperationException for internal inventory error
+            FailedOperationException: for internal inventory error
 
         Example:
-        ```
-        client.addLink(VSATEquipment, "Port A", MWEquipment, "Port B")
-        ```
+            ```
+            location1 = client.get_location({("Country", "LS_IND_Prod_Copy")})
+            equipment1 = client.get_equipment("indProdCpy1_AIO", location1) 
+            location2 = client.get_location({("Country", "LS_IND_Prod")})
+            equipment2 = client.get_equipment("indProd1_AIO", location2) 
+            client.add_link(
+                equipment_a=equipment1, 
+                port_name_a="Port A", 
+                equipment_b=equipment2, 
+                port_name_b="Port B"
+            )
+            ```
     """
 
     port_a = get_port(client, equipment_a, port_name_a)
@@ -117,14 +152,42 @@ def add_link(
             add_link_input.__dict__,
         )
 
-    return Link(id=link.id)
+    return Link(id=link.id, service_ids=[s.id for s in link.services])
 
 
 def get_link_in_port_of_equipment(
     client: SymphonyClient, equipment: Equipment, port_name: str
 ) -> Link:
+    """Returns link in specific port by name in equipment.
+
+        Args:
+            equipment (pyinventory.consts.Equipment object): could be retrieved from 
+            - `pyinventory.api.equipment.get_equipment`
+            - `pyinventory.api.equipment.get_equipment_in_position`
+            - `pyinventory.api.equipment.add_equipment`
+            - `pyinventory.api.equipment.add_equipment_to_position`
+
+            port_name (str): The name of port in equipment type
+
+        Returns:
+            pyinventory.consts.Link object    
+            
+        Raises:
+            LinkNotFoundException: if link not found
+            FailedOperationException: for internal inventory error
+
+        Example:
+            ```
+            location = client.get_location({("Country", "LS_IND_Prod_Copy")})
+            equipment = client.get_equipment("indProdCpy1_AIO", location1) 
+            client.get_link_in_port_of_equipment(
+                equipment=equipment, 
+                port_name="Port A"
+            )
+            ```
+    """
     port = get_port(client, equipment, port_name)
     link = port.link
     if link is not None:
-        return Link(id=link.id)
+        return Link(id=link.id, service_ids=link.service_ids)
     raise LinkNotFoundException(equipment.name, port_name)

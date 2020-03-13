@@ -218,7 +218,7 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 func TestUserHandler(t *testing.T) {
 	client := newTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
-	_, err := client.User.Create().SetAuthID("user1").Save(ctx)
+	u, err := client.User.Create().SetAuthID("user1").Save(ctx)
 	require.NoError(t, err)
 
 	t.Run("WithUserEntExists", func(t *testing.T) {
@@ -284,6 +284,25 @@ func TestUserHandler(t *testing.T) {
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+	})
+	t.Run("WithDeactivatedUserEntExists", func(t *testing.T) {
+		h := UserHandler(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+			log.NewNopLogger(),
+		)
+		v := &Viewer{
+			Tenant: "test",
+			User:   "user1",
+			Role:   "",
+		}
+		ctx = NewContext(ctx, v)
+		err = client.User.UpdateOne(u).SetStatus(user.StatusDEACTIVATED).Exec(ctx)
+		require.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req = req.WithContext(ctx)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusForbidden, rec.Code)
 	})
 }
 

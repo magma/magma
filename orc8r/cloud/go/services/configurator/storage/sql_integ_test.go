@@ -43,7 +43,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	err = factory.InitializeServiceStorage()
 	assert.NoError(t, err)
 
-	// Check the contract for an empty datastore
+	// Check the contract for an empty data store
 	store, err := factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 
@@ -184,7 +184,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, store.Commit())
 
 	// ========================================================================
-	// Empty datastore entity load tests
+	// Empty data store entity load tests
 	// ========================================================================
 
 	store, err = factory.StartTransaction(context.Background(), nil)

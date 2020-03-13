@@ -23,7 +23,7 @@
 #include <arpa/inet.h>
 #include "OpenflowController.h"
 #include "PagingApplication.h"
-#include "rpc_client.h"
+#include "RpcClient.h"
 
 extern "C" {
 #include "log.h"

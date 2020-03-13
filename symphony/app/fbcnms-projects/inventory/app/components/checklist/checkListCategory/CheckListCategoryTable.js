@@ -8,25 +8,17 @@
  * @format
  */
 
-// import type {CheckListCategoryInput} from '../../../mutations/__generated__/AddWorkOrderMutation.graphql';
-import type {CheckListCategoryTable_list} from './__generated__/CheckListCategoryTable_list.graphql';
+import type {ChecklistCategoriesStateType} from '../ChecklistCategoriesMutateState';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
-import CheckListCategoryContext from './CheckListCategoryContext';
 import CheckListCategoryItemsDialog from './CheckListCategoryItemsDialog';
+import ChecklistCategoriesMutateDispatchContext from '../ChecklistCategoriesMutateDispatchContext';
 import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
-import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -50,17 +42,25 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type CheckListCategoryTableProps = {
-  list: CheckListCategoryTable_list,
-  onListChanged?: (updatedList: CheckListCategoryTable_list) => void,
-};
+type CheckListCategoryTableProps = $ReadOnly<{
+  categories: ChecklistCategoriesStateType,
+}>;
 
-const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
+const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
   const classes = useStyles();
-  const {list: propsList, onListChanged} = props;
   const formValidationContext = useContext(FormValidationContext);
+  const dispatch = useContext(ChecklistCategoriesMutateDispatchContext);
+  const [
+    browsedCheckListCategoryId,
+    setBrowsedCheckListCategoryId,
+  ] = useState<?string>(null);
+
+  const browsedCategory = useMemo(
+    () => categories.find(c => c.id === browsedCheckListCategoryId) ?? null,
+    [categories, browsedCheckListCategoryId],
+  );
   const list = useMemo(() => {
-    return propsList.map((item, index) => ({
+    return categories.map((item, index) => ({
       index,
       key: item.id || `@key${index}`,
       value: item,
@@ -70,67 +70,9 @@ const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
         0,
       ),
     }));
-  }, [propsList]);
-  const [
-    browsedCheckListCategory,
-    setBrowsedCheckListCategory,
-  ] = useState<?number>(null);
-  const [nextNewItemTempId, setNextNewItemTempId] = useState(list.length + 1);
-  const defaultCategoryName = `${fbt(
-    'New Category',
-    'Default name for checklist category',
-  )}`;
-  const _updateList = useCallback(
-    (updatedList: CheckListCategoryTable_list) => {
-      if (!onListChanged) {
-        return;
-      }
-      onListChanged(updatedList);
-    },
-    [onListChanged],
-  );
-  // eslint-disable-next-line flowtype/no-weak-types
-  const _createNewItem: () => any = useCallback(() => {
-    const newId = nextNewItemTempId;
-    setNextNewItemTempId(newId + 1);
-    return {
-      title: defaultCategoryName,
-      description: '',
-      checkList: [],
-    };
-  }, [defaultCategoryName, nextNewItemTempId]);
-  const _updateCheckListCategory = useCallback(
-    // eslint-disable-next-line flowtype/no-weak-types
-    (updatedItem: any, index) =>
-      _updateList([
-        ...propsList.slice(0, index),
-        updatedItem,
-        ...propsList.slice(index + 1, propsList.length),
-      ]),
-    [_updateList, propsList],
-  );
+  }, [categories]);
 
-  const _removeCheckListCategory = useCallback(
-    index =>
-      (propsList &&
-        _updateList([
-          ...propsList.slice(0, index),
-          ...propsList.slice(index + 1, propsList.length),
-        ])) ??
-      undefined,
-    [_updateList, propsList],
-  );
-
-  const _addCheckListCategory = useCallback(
-    () =>
-      (propsList && _updateList([...propsList, _createNewItem()])) ?? undefined,
-    [_createNewItem, _updateList, propsList],
-  );
-  const context = useContext(CheckListCategoryContext);
-  useEffect(() => {
-    context.override.addNewCategory(_addCheckListCategory);
-  }, [_addCheckListCategory, context.override]);
-  return list.length === 0 ? null : (
+  return categories.length === 0 ? null : (
     <>
       <Table
         variant="embedded"
@@ -157,22 +99,11 @@ const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
                   'hint text for checklist category name field',
                 )}`}
                 onChange={e => {
-                  _updateCheckListCategory(
-                    Object.assign({}, row.value, {
-                      title: e.target.value,
-                    }),
-                    row.index,
-                  );
-                }}
-                onBlur={() => {
-                  if (!row.value.title) {
-                    _updateCheckListCategory(
-                      Object.assign({}, row.value, {
-                        title: defaultCategoryName,
-                      }),
-                      row.index,
-                    );
-                  }
+                  dispatch({
+                    type: 'UPDATE_CATEGORY_TITLE',
+                    categoryId: row.value.id,
+                    value: e.target.value,
+                  });
                 }}
               />
             ),
@@ -195,23 +126,18 @@ const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
                   'hint text for optional checklist category description field',
                 )}`}
                 onChange={e => {
-                  _updateCheckListCategory(
-                    Object.assign({}, row.value, {
-                      description: e.target.value,
-                    }),
-                    row.index,
-                  );
+                  dispatch({
+                    type: 'UPDATE_CATEGORY_DESCRIPTION',
+                    categoryId: row.value.id,
+                    value: e.target.value,
+                  });
                 }}
               />
             ),
           },
           {
             key: '2',
-            title: !!list.find(row => row.value.checkList.length > 0) ? (
-              <fbt desc="Completed Items (number of filled questions in category) column header @ Checklist categories table">
-                Completed Items
-              </fbt>
-            ) : (
+            title: (
               <fbt desc="Items (number of questions in category) column header @ Checklist categories table">
                 Items
               </fbt>
@@ -221,7 +147,7 @@ const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
                 skin="gray"
                 disabled={formValidationContext.editLock.detected}
                 className={classes.addItemsButton}
-                onClick={() => setBrowsedCheckListCategory(row.index)}>
+                onClick={() => setBrowsedCheckListCategoryId(row.value.id)}>
                 {row.value.checkList.length > 0 ? (
                   `${row.responsesCount}/${row.value.checkList.length}`
                 ) : (
@@ -238,44 +164,35 @@ const CheckListCategoryTable = (props: CheckListCategoryTableProps) => {
                 <Button
                   variant="text"
                   className={classes.deleteButton}
-                  onClick={() => _removeCheckListCategory(row.index)}>
+                  onClick={() =>
+                    dispatch({
+                      type: 'REMOVE_CATEGORY',
+                      categoryId: row.value.id,
+                    })
+                  }>
                   <DeleteIcon color="gray" />
                 </Button>
               ),
           },
         ]}
       />
-
-      {browsedCheckListCategory != null && (
+      {browsedCheckListCategoryId != null && (
         <CheckListCategoryItemsDialog
-          items={list[browsedCheckListCategory]?.value.checkList}
-          categoryTitle={list[browsedCheckListCategory]?.value.title}
-          onChecklistChanged={updatedList =>
-            _updateCheckListCategory(
-              Object.assign({}, list[browsedCheckListCategory].value, {
-                checkList: updatedList,
-              }),
-              browsedCheckListCategory,
-            )
-          }
-          onClose={() => setBrowsedCheckListCategory(null)}
+          initialItems={browsedCategory?.checkList ?? []}
+          categoryTitle={browsedCategory?.title ?? ''}
+          onCancel={() => setBrowsedCheckListCategoryId(null)}
+          onSave={items => {
+            setBrowsedCheckListCategoryId(null);
+            dispatch({
+              type: 'UPDATE_CATEGORY_CHECKLIST',
+              categoryId: browsedCheckListCategoryId,
+              value: items,
+            });
+          }}
         />
       )}
     </>
   );
 };
 
-export default createFragmentContainer(CheckListCategoryTable, {
-  list: graphql`
-    fragment CheckListCategoryTable_list on CheckListCategory
-      @relay(plural: true) {
-      id
-      title
-      description
-      checkList {
-        ...CheckListCategoryItemsDialog_items
-        checked
-      }
-    }
-  `,
-});
+export default CheckListCategoryTable;

@@ -39,21 +39,21 @@ type PropertyType struct {
 	// Category holds the value of the "category" field.
 	Category string `json:"category,omitempty"`
 	// IntVal holds the value of the "int_val" field.
-	IntVal int `json:"int_val,omitempty" gqlgen:"intValue"`
+	IntVal int `json:"intValue" gqlgen:"intValue"`
 	// BoolVal holds the value of the "bool_val" field.
-	BoolVal bool `json:"bool_val,omitempty" gqlgen:"booleanValue"`
+	BoolVal bool `json:"booleanValue" gqlgen:"booleanValue"`
 	// FloatVal holds the value of the "float_val" field.
-	FloatVal float64 `json:"float_val,omitempty" gqlgen:"floatValue"`
+	FloatVal float64 `json:"floatValue" gqlgen:"floatValue"`
 	// LatitudeVal holds the value of the "latitude_val" field.
-	LatitudeVal float64 `json:"latitude_val,omitempty" gqlgen:"latitudeValue"`
+	LatitudeVal float64 `json:"latitudeValue" gqlgen:"latitudeValue"`
 	// LongitudeVal holds the value of the "longitude_val" field.
-	LongitudeVal float64 `json:"longitude_val,omitempty" gqlgen:"longitudeValue"`
+	LongitudeVal float64 `json:"longitudeValue" gqlgen:"longitudeValue"`
 	// StringVal holds the value of the "string_val" field.
-	StringVal string `json:"string_val,omitempty" gqlgen:"stringValue"`
+	StringVal string `json:"stringValue" gqlgen:"stringValue"`
 	// RangeFromVal holds the value of the "range_from_val" field.
-	RangeFromVal float64 `json:"range_from_val,omitempty" gqlgen:"rangeFromValue"`
+	RangeFromVal float64 `json:"rangeFromValue" gqlgen:"rangeFromValue"`
 	// RangeToVal holds the value of the "range_to_val" field.
-	RangeToVal float64 `json:"range_to_val,omitempty" gqlgen:"rangeToValue"`
+	RangeToVal float64 `json:"rangeToValue" gqlgen:"rangeToValue"`
 	// IsInstanceProperty holds the value of the "is_instance_property" field.
 	IsInstanceProperty bool `json:"is_instance_property,omitempty" gqlgen:"isInstanceProperty"`
 	// Editable holds the value of the "editable" field.

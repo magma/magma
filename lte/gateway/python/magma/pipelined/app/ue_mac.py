@@ -73,7 +73,7 @@ class UEMacAddressController(MagmaController):
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.handle_restart(ue_requests)
 
-        return SetupFlowsResult.SUCCESS
+        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)

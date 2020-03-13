@@ -510,6 +510,12 @@ graphql`
       }
       ...EquipmentBreadcrumbs_equipment
     }
+    serviceEndpoints {
+      role
+      service {
+        name
+      }
+    }
   }
 `;
 

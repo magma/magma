@@ -23,6 +23,12 @@ variable "deploy_elasticsearch" {
   default     = false
 }
 
+variable "deploy_elasticsearch_service_linked_role" {
+  description = "Flag to deploy AWS Elasticsearch service linked role with cluster. If you've already created an ES service linked role for another cluster, you should set this to false."
+  type        = bool
+  default     = true
+}
+
 variable "global_tags" {
   default = {}
 }
@@ -72,7 +78,7 @@ variable "eks_worker_groups" {
   default = [
     {
       name                 = "wg-1"
-      instance_type        = "t3.small"
+      instance_type        = "t3.large"
       asg_desired_capacity = 3
       asg_min_size         = 1
       asg_max_size         = 3
@@ -90,6 +96,16 @@ variable "eks_map_roles" {
       groups   = list(string),
     })
   )
+  default = []
+}
+
+variable "eks_map_users" {
+  description = "Additional IAM users to add to the aws-auth configmap."
+  type = list(object({
+    userarn  = string
+    username = string
+    groups   = list(string)
+  }))
   default = []
 }
 
@@ -238,23 +254,8 @@ variable "nms_db_engine_version" {
 # Secretmanager configuration
 ##############################################################################
 
-variable "secretsmanager_artifactory_secret" {
-  description = "AWS Secretmanager secret to store Artifactory credentials."
-  type        = string
-}
-
-##############################################################################
-# S3 secrets configuration
-##############################################################################
-
-variable "use_existing_s3_bucket" {
-  description = "Set to true to re-use an existing S3 bucket for Orchestrator deployment secrets."
-  type        = bool
-  default     = false
-}
-
-variable "deployment_secrets_bucket" {
-  description = "Name of the S3 bucket where Orchestrator deployment secrets will be stored."
+variable "secretsmanager_orc8r_secret" {
+  description = "AWS Secretmanager secret to store Orchestrator secrets."
   type        = string
 }
 
@@ -301,6 +302,12 @@ variable "elasticsearch_dedicated_master_count" {
   description = "Number of dedicated ES master nodes."
   type        = number
   default     = null
+}
+
+variable "elasticsearch_az_count" {
+  description = "AZ count for ES."
+  type        = number
+  default     = 2
 }
 
 variable "elasticsearch_ebs_enabled" {

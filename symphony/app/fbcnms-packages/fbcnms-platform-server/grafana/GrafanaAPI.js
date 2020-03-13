@@ -12,10 +12,11 @@ import axios from 'axios';
 
 import type {
   AddOrgUserResponse,
+  CreateDashboardResponse,
   CreateDatasourceResponse,
   CreateOrgResponse,
   CreateUserResponse,
-  Datasource,
+  Dashboard,
   DeleteOrgResponse,
   GetDatasourcesResponse,
   GetHealthResponse,
@@ -23,6 +24,7 @@ import type {
   GetUserResponse,
   OrgUser,
   Organization,
+  PostDatasource,
   User,
 } from './GrafanaAPIType';
 
@@ -47,10 +49,20 @@ export type GrafanaClient = {
   getUsersInOrg: (orgID: number) => GrafanaPromise<GetOrgUsersResponse>,
 
   createDatasource: (
-    ds: Datasource,
+    ds: PostDatasource,
     orgID: number,
   ) => GrafanaPromise<CreateDatasourceResponse>,
+  updateDatasource: (
+    dsID: number,
+    orgID: number,
+    ds: PostDatasource,
+  ) => GrafanaPromise<CreateDatasourceResponse>,
   getDatasources: (orgID: number) => GrafanaPromise<GetDatasourcesResponse>,
+
+  createDashboard: (
+    db: Dashboard,
+    orgID: number,
+  ) => GrafanaPromise<CreateDashboardResponse>,
 
   getHealth: () => GrafanaPromise<GetHealthResponse>,
 };
@@ -140,14 +152,31 @@ const client = (
   },
 
   async createDatasource(
-    ds: Datasource,
+    ds: PostDatasource,
     orgId: number,
   ): GrafanaPromise<CreateDatasourceResponse> {
     return request({
       url: apiURL + `/api/datasources`,
       method: 'POST',
       data: ds,
-      headers: {...constHeaders, 'X-Grafana-Org-Id': orgId.toString()},
+      headers: {
+        ...constHeaders,
+        'X-Grafana-Org-Id': orgId.toString(),
+        'Content-Type': 'application/json',
+      },
+    });
+  },
+
+  async updateDatasource(
+    dsID: number,
+    orgID: number,
+    ds: PostDatasource,
+  ): GrafanaPromise<CreateDatasourceResponse> {
+    return request({
+      url: apiURL + `/api/datasources/${dsID}`,
+      method: 'PUT',
+      data: ds,
+      headers: {...constHeaders, 'X-Grafana-Org-Id': orgID.toString()},
     });
   },
 
@@ -155,6 +184,18 @@ const client = (
     return request({
       url: apiURL + `/api/datasources`,
       method: 'GET',
+      headers: {...constHeaders, 'X-Grafana-Org-Id': orgID.toString()},
+    });
+  },
+
+  async createDashboard(
+    db: Dashboard,
+    orgID: number,
+  ): GrafanaPromise<CreateDashboardResponse> {
+    return request({
+      url: apiURL + `/api/dashboards/db/`,
+      method: 'POST',
+      data: db,
       headers: {...constHeaders, 'X-Grafana-Org-Id': orgID.toString()},
     });
   },

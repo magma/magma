@@ -73,7 +73,12 @@ class AddServiceLinkMutation(DataClassJsonMixin):
 
                     @dataclass
                     class Link(DataClassJsonMixin):
+                        @dataclass
+                        class Service(DataClassJsonMixin):
+                            id: str
+
                         id: str
+                        services: List[Service]
 
                     id: str
                     properties: List[Property]
@@ -86,7 +91,12 @@ class AddServiceLinkMutation(DataClassJsonMixin):
 
             @dataclass
             class Link(DataClassJsonMixin):
+                @dataclass
+                class Service(DataClassJsonMixin):
+                    id: str
+
                 id: str
+                services: List[Service]
 
             id: str
             name: str
@@ -149,12 +159,18 @@ class AddServiceLinkMutation(DataClassJsonMixin):
         }
         link {
           id
+          services {
+            id
+          }
         }
       }
       role
     }
     links {
       id
+      services {
+        id
+      }
     }
   }
 }

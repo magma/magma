@@ -114,7 +114,9 @@ def add_service(
                     definition=EquipmentPortDefinition(
                         id=e.port.definition.id, name=e.port.definition.name
                     ),
-                    link=Link(link.id) if link else None,
+                    link=Link(link.id, service_ids=[s.id for s in link.services])
+                    if link
+                    else None,
                 ),
                 role=e.role.value,
             )
@@ -131,7 +133,9 @@ def add_service(
         if returned_customer
         else None,
         endpoints=endpoints,
-        links=[Link(id=l.id) for l in result.links],
+        links=[
+            Link(id=l.id, service_ids=[s.id for s in l.services]) for l in result.links
+        ],
     )
 
 
@@ -163,7 +167,9 @@ def get_service(client: SymphonyClient, id: str) -> Service:
                     definition=EquipmentPortDefinition(
                         id=e.port.definition.id, name=e.port.definition.name
                     ),
-                    link=Link(id=link.id) if link else None,
+                    link=Link(id=link.id, service_ids=[s.id for s in link.services])
+                    if link
+                    else None,
                 ),
                 role=e.role.value,
             )
@@ -178,7 +184,9 @@ def get_service(client: SymphonyClient, id: str) -> Service:
         if customer is not None
         else None,
         endpoints=endpoints,
-        links=[Link(id=l.id) for l in result.links],
+        links=[
+            Link(id=l.id, service_ids=[s.id for s in l.services]) for l in result.links
+        ],
     )
 
 

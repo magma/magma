@@ -18,7 +18,6 @@ import PowerSearchBar from '../power_search/PowerSearchBar';
 import React from 'react';
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
-import {EntityTypeMap} from './ComparisonViewTypes';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {PortCriteriaConfig} from './PortSearchConfig';
 import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
@@ -58,7 +57,7 @@ const PortsPowerSearchBar = (props: Props) => {
       filterConfigs={filterConfigs}
       footer={footer}
       exportPath={'/ports'}
-      entity={EntityTypeMap.port}
+      entity="PORT"
     />
   );
 };
