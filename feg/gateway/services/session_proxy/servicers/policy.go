@@ -58,7 +58,7 @@ func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.S
 	request := &gx.CreditControlRequest{
 		SessionID:     pRequest.SessionId,
 		Type:          credit_control.CRTTerminate,
-		IMSI:          credit_control.AddIMSIPrefix(pRequest.Sid),
+		IMSI:          credit_control.RemoveIMSIPrefix(pRequest.Sid),
 		RequestNumber: pRequest.RequestNumber,
 		IPAddr:        pRequest.UeIpv4,
 		UsageReports:  reports,
