@@ -8,6 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import unittest
+import time
 
 import s1ap_types
 import s1ap_wrapper
@@ -77,6 +78,7 @@ class TestSecondaryPdnConnReq(unittest.TestCase):
             ue_id,
         )
 
+        time.sleep(5)
         # Send PDN Disconnect
         pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
         pdn_disconnect_req.ue_Id = ue_id
