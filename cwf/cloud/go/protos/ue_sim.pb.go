@@ -372,9 +372,7 @@ func init() {
 	proto.RegisterType((*GenTrafficResponse)(nil), "magma.cwf.GenTrafficResponse")
 }
 
-func init() {
-	proto.RegisterFile("cwf/protos/ue_sim.proto", fileDescriptor_01bc05ea16f96cbc)
-}
+func init() { proto.RegisterFile("cwf/protos/ue_sim.proto", fileDescriptor_01bc05ea16f96cbc) }
 
 var fileDescriptor_01bc05ea16f96cbc = []byte{
 	// 481 bytes of a gzipped FileDescriptorProto

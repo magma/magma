@@ -1,4 +1,3 @@
-from typing import List
 """
 Copyright (c) 2018-present, Facebook, Inc.
 All rights reserved.
@@ -10,7 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from collections import defaultdict
 from collections import deque
-from typing import Dict  # noqa
+from typing import Dict, List  # noqa
 import os
 import shlex
 import subprocess
