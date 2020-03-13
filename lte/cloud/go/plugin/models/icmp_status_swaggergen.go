@@ -18,8 +18,7 @@ import (
 type IcmpStatus struct {
 
 	// last reported time
-	// Required: true
-	LastReportedTime *int64 `json:"last_reported_time"`
+	LastReportedTime int64 `json:"last_reported_time,omitempty"`
 
 	// latency ms
 	// Required: true
@@ -30,10 +29,6 @@ type IcmpStatus struct {
 func (m *IcmpStatus) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateLastReportedTime(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateLatencyMs(formats); err != nil {
 		res = append(res, err)
 	}
@@ -41,15 +36,6 @@ func (m *IcmpStatus) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *IcmpStatus) validateLastReportedTime(formats strfmt.Registry) error {
-
-	if err := validate.Required("last_reported_time", "body", m.LastReportedTime); err != nil {
-		return err
-	}
-
 	return nil
 }
 

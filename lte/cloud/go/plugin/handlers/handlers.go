@@ -448,6 +448,8 @@ func addConnectedEnodeb(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+var subscriberStateTypes = []string{lte.ICMPStateType}
+
 func listSubscribers(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
@@ -459,9 +461,24 @@ func listSubscribers(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
+	allIMSIs := funk.Map(ents, func(e configurator.NetworkEntity) string { return e.Key }).([]string)
+	subStates, err := state.SearchStates(networkID, subscriberStateTypes, allIMSIs)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	statesByTypeBySid := map[string]map[string]state.State{}
+	for stateID, st := range subStates {
+		byType, ok := statesByTypeBySid[stateID.DeviceID]
+		if !ok {
+			byType = map[string]state.State{}
+		}
+		byType[stateID.Type] = st
+		statesByTypeBySid[stateID.DeviceID] = byType
+	}
+
 	ret := make(map[string]*ltemodels.Subscriber, len(ents))
 	for _, ent := range ents {
-		ret[ent.Key] = (&ltemodels.Subscriber{}).FromBackendModels(ent)
+		ret[ent.Key] = (&ltemodels.Subscriber{}).FromBackendModels(ent, statesByTypeBySid[ent.Key])
 	}
 	return c.JSON(http.StatusOK, ret)
 }
@@ -511,7 +528,16 @@ func getSubscriber(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := (&ltemodels.Subscriber{}).FromBackendModels(ent)
+	states, err := state.SearchStates(networkID, subscriberStateTypes, []string{subscriberID})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	statesByType := map[string]state.State{}
+	for stateID, st := range states {
+		statesByType[stateID.Type] = st
+	}
+
+	ret := (&ltemodels.Subscriber{}).FromBackendModels(ent, statesByType)
 	return c.JSON(http.StatusOK, ret)
 }
 

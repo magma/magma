@@ -2420,7 +2420,6 @@ definitions:
     description: ICMP status of a subscriber device
     required:
       - latency_ms
-      - last_reported_time
     properties:
       latency_ms:
         type: number

@@ -345,3 +345,10 @@ func (m *Apn) ValidateModel() error {
 	}
 	return nil
 }
+
+func (m *IcmpStatus) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}

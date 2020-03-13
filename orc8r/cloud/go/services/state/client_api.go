@@ -11,7 +11,6 @@ package state
 import (
 	"context"
 	"encoding/json"
-	"sync"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
@@ -22,7 +21,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
-	"google.golang.org/grpc"
 )
 
 // State includes reported operational state and additional info about the reporter
@@ -52,27 +50,14 @@ type StateID struct {
 	DeviceID string
 }
 
-// Global clientconn that can be reused for this service
-var connSingleton = (*grpc.ClientConn)(nil)
-var connGuard = sync.Mutex{}
-
 func GetStateClient() (protos.StateServiceClient, error) {
-	if connSingleton == nil {
-		// Reading the conn optimistically to avoid unnecessary overhead
-		connGuard.Lock()
-		if connSingleton == nil {
-			conn, err := registry.GetConnection(ServiceName)
-			if err != nil {
-				initErr := errors.NewInitError(err, ServiceName)
-				glog.Error(initErr)
-				connGuard.Unlock()
-				return nil, initErr
-			}
-			connSingleton = conn
-		}
-		connGuard.Unlock()
+	conn, err := registry.GetConnection(ServiceName)
+	if err != nil {
+		initErr := errors.NewInitError(err, ServiceName)
+		glog.Error(initErr)
+		return nil, initErr
 	}
-	return protos.NewStateServiceClient(connSingleton), nil
+	return protos.NewStateServiceClient(conn), nil
 }
 
 // GetState returns the state specified by the networkID, typeVal, and hwID
@@ -123,6 +108,31 @@ func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) 
 	if err != nil {
 		return nil, err
 	}
+	return makeStatesByID(res)
+}
+
+// SearchStates returns all states matching the filter arguments.
+// typeFilter and keyFilter are both OR clauses, and the final predicate
+// applied to the search will be the AND of both filters.
+// e.g.: ["t1", "t2"], ["k1", "k2"] => (t1 OR t2) AND (k1 OR k2)
+func SearchStates(networkID string, typeFilter []string, keyFilter []string) (map[StateID]State, error) {
+	client, err := GetStateClient()
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := client.GetStates(context.Background(), &protos.GetStatesRequest{
+		NetworkID:  networkID,
+		TypeFilter: typeFilter,
+		IdFilter:   keyFilter,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return makeStatesByID(res)
+}
+
+func makeStatesByID(res *protos.GetStatesResponse) (map[StateID]State, error) {
 	idToValue := map[StateID]State{}
 	for _, pState := range res.States {
 		stateID := StateID{Type: pState.Type, DeviceID: pState.DeviceID}
