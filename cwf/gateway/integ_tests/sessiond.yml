@@ -31,3 +31,11 @@ session_force_termination_timeout_ms: 5000
 
 # Set to true to enable sessiond support of carrier wifi
 support_carrier_wifi: true
+
+# For Testing
+# Set to use a locally running session proxy instance. If
+# use_local_session_proxy is set to true sessiond will use 127.0.0.1:<port> as
+# the address for the session proxy service.
+# Note: these flags are only relevant when relay is turned on
+use_local_session_proxy: true
+local_session_proxy_port: 9097

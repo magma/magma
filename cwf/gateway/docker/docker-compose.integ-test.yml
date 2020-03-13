@@ -61,9 +61,6 @@ services:
   sessiond:
     volumes:
       - ../integ_tests/sessiond.yml:/etc/magma/sessiond.yml
-    extra_hosts:
-      - controller.magma.test:127.0.0.1
-      - bootstrapper-controller.magma.test:127.0.0.1
 
   swx_proxy:
     <<: *feggoservice
@@ -106,38 +103,8 @@ services:
       /bin/bash -c "/usr/bin/redis-server /var/opt/magma/redis.conf --daemonize no &&
              /usr/bin/redis-cli shutdown"
 
-  control_proxy:
-    extra_hosts:
-      - controller.magma.test:127.0.0.1
-      - bootstrapper-controller.magma.test:127.0.0.1
-    command: >
-      sh -c "mkdir -p /usr/share/ca-certificates/extra/ &&
-             cp -f /var/opt/magma/certs/rootCA.pem /usr/share/ca-certificates/extra/ &&
-             echo \"extra/rootCA.pem\" >> /etc/ca-certificates.conf && update-ca-certificates &&
-             /usr/local/bin/generate_nghttpx_config.py &&
-            /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
-
-  magmad:
-    extra_hosts:
-      - controller.magma.test:127.0.0.1
-      - bootstrapper-controller.magma.test:127.0.0.1
-
   uesim:
     <<: *service
     container_name: uesim
     image: ${DOCKER_REGISTRY}uesim:${IMAGE_VERSION}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/uesim -logtostderr=true -v=0
-
-  ingress:
-    <<: *service
-    container_name: ingress
-    image: nginx:latest
-    extra_hosts:
-      - controller.magma.test:127.0.0.1
-      - bootstrapper-controller.magma.test:127.0.0.1
-      - session-proxy.magma.test:127.0.0.1
-      - sessiond.magma.test:127.0.0.1
-    volumes:
-      - ../integ_tests/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ${CERTS_PATH}/:/etc/nginx/certs/
-    command: /usr/sbin/nginx -g "daemon off;"
