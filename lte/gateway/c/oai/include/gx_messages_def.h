@@ -28,13 +28,13 @@
  */
 
 MESSAGE_DEF(
-  PGW_NW_INITIATED_ACTIVATE_BEARER_REQ,
+  GX_NW_INITIATED_ACTIVATE_BEARER_REQ,
   MESSAGE_PRIORITY_MED,
-  itti_pgw_nw_init_actv_bearer_request_t,
-  pgw_nw_init_actv_bearer_request)
+  itti_gx_nw_init_actv_bearer_request_t,
+  gx_nw_init_actv_bearer_request)
 
 MESSAGE_DEF(
-  PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ,
+  GX_NW_INITIATED_DEACTIVATE_BEARER_REQ,
   MESSAGE_PRIORITY_MED,
-  itti_pgw_nw_init_deactv_bearer_request_t,
-  pgw_nw_init_deactv_bearer_request)
+  itti_gx_nw_init_deactv_bearer_request_t,
+  gx_nw_init_deactv_bearer_request)

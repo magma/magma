@@ -26,25 +26,39 @@
  * of the authors and should not be interpreted as representing official policies,
  * either expressed or implied, of the FreeBSD Project.
  */
-//WARNING: Do not include this header directly. Use intertask_interface.h instead.
 
-MESSAGE_DEF(
-  S5_NW_INITIATED_ACTIVATE_BEARER_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_s5_nw_init_actv_bearer_request_t,
-  s5_nw_init_actv_bearer_request)
-MESSAGE_DEF(
-  S5_NW_INITIATED_ACTIVATE_BEARER_RESP,
-  MESSAGE_PRIORITY_MED,
-  itti_s5_nw_init_actv_bearer_rsp_t,
-  s5_nw_init_actv_bearer_response)
-MESSAGE_DEF(
-  S5_NW_INITIATED_DEACTIVATE_BEARER_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_s5_nw_init_deactv_bearer_request_t,
-  s5_nw_init_deactv_bearer_request)
-MESSAGE_DEF(
-  S5_NW_INITIATED_DEACTIVATE_BEARER_RESP,
-  MESSAGE_PRIORITY_MED,
-  itti_s5_nw_init_deactv_bearer_rsp_t,
-  s5_nw_init_deactv_bearer_response)
+/*! \file gx_messages_types.h
+ * \brief S11 definitions for interaction between MME and S11
+ * 3GPP TS 29.274.
+ * Messages are the same as for GTPv2-C but here we abstract the UDP layer
+ * \author Sebastien ROUX <sebastien.roux@eurecom.fr>
+ * \date 2013
+ * \version 0.1
+ */
+
+#ifndef FILE_GX_MESSAGES_TYPES_SEEN
+#define FILE_GX_MESSAGES_TYPES_SEEN
+
+#define GX_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                            \
+  (mSGpTR)->ittiMsg.gx_nw_init_actv_bearer_request
+#define GX_NW_INITIATED_DEACTIVATE_BEARER_REQ(mSGpTR)                          \
+  (mSGpTR)->ittiMsg.gx_nw_init_deactv_bearer_request
+
+typedef struct itti_gx_nw_init_actv_bearer_request_s {
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  uint8_t imsi_length;
+  ebi_t lbi;
+  traffic_flow_template_t ul_tft;
+  traffic_flow_template_t dl_tft;
+  bearer_qos_t eps_bearer_qos;
+} itti_gx_nw_init_actv_bearer_request_t;
+
+typedef struct itti_gx_nw_init_deactv_bearer_request_s {
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  uint8_t imsi_length;
+  uint32_t no_of_bearers;
+  ebi_t lbi;
+  ebi_t ebi[BEARERS_PER_UE];
+} itti_gx_nw_init_deactv_bearer_request_t;
+
+#endif /* FILE_GX_MESSAGES_TYPES_SEEN */
