@@ -30,8 +30,6 @@ const (
 
 // NewDirectorydBlobstore returns a directoryd storage implementation
 // backed by the provided blobstore factory.
-// NOTE: the datastore impl uses tableID as the table name, while here the
-// blobstore impl uses tableID as the type field within a single table.
 func NewDirectorydBlobstore(factory blobstore.BlobStorageFactory) DirectorydStorage {
 	return &directorydBlobstore{factory: factory}
 }

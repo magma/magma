@@ -8,19 +8,9 @@
 
 package blobstore
 
-import (
-	"os"
-)
-
-func GetEnvWithDefault(variable string, defaultValue string) string {
-	value := os.Getenv(variable)
-	if len(value) == 0 {
-		value = defaultValue
-	}
-	return value
-}
+import "magma/orc8r/lib/go/definitions"
 
 var (
-	SQLDriver      = GetEnvWithDefault("SQL_DRIVER", "sqlite3")
-	DatabaseSource = GetEnvWithDefault("DATABASE_SOURCE", ":memory:")
+	SQLDriver      = definitions.GetEnvWithDefault("SQL_DRIVER", "sqlite3")
+	DatabaseSource = definitions.GetEnvWithDefault("DATABASE_SOURCE", ":memory:")
 )

@@ -21,7 +21,7 @@ import (
 )
 
 func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
-	// Check the contract for an empty datastore
+	// Check the contract for an empty data store
 	err := fact.InitializeFactory()
 	store, err := fact.StartTransaction(nil)
 	assert.NoError(t, err)

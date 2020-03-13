@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/sqorc"
@@ -31,13 +30,6 @@ func TestCertifierStorageBlobstore_Integation(t *testing.T) {
 	err = fact.InitializeFactory()
 	assert.NoError(t, err)
 	store := storage.NewCertifierBlobstore(fact)
-	testCertifierStorageImpl(t, store)
-}
-
-func TestCertifierStorageDatastore_Integation(t *testing.T) {
-	ds, err := datastore.NewSqlDb("sqlite3", ":memory:", sqorc.GetSqlBuilder())
-	assert.NoError(t, err)
-	store := storage.NewCertifierDatastore(ds)
 	testCertifierStorageImpl(t, store)
 }
 
