@@ -97,9 +97,9 @@ def update_subscriber(client, args):
         num_apn_params = len(args.apn_config)
         for idx in range(num_apn_params):
             apn_val = apn_data[idx].split(",")
-            if len(apn_val) < 7:
+            if len(apn_val) != 7:
                 print(
-                    "APN parameters missing."
+                    "Incorrect APN parameters."
                     "Please check: subscriber_cli.py update -h"
                 )
                 return

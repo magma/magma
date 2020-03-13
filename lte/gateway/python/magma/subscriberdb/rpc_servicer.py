@@ -57,11 +57,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         sid = SIDUtils.to_str(request)
         logging.debug("Delete subscriber rpc for sid: %s", sid)
-        try:
-            self._store.delete_subscriber(sid)
-        except SubscriberNotFoundError:
-            context.set_details("Subscriber not found: %s" % sid)
-            context.set_code(grpc.StatusCode.NOT_FOUND)
+        self._store.delete_subscriber(sid)
 
     @return_void
     def UpdateSubscriber(self, request, context):

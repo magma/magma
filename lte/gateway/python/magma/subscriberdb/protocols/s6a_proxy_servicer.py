@@ -11,9 +11,7 @@ import logging
 
 from magma.subscriberdb import metrics
 from magma.subscriberdb.crypto.utils import CryptoError
-from magma.subscriberdb.store.base import (
-    SubscriberNotFoundError
-)
+from magma.subscriberdb.store.base import SubscriberNotFoundError
 
 from feg.protos import s6a_proxy_pb2, s6a_proxy_pb2_grpc
 

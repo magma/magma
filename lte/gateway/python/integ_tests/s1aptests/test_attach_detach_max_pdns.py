@@ -29,12 +29,12 @@ class TestMaximumBearersPerUe(unittest.TestCase):
         num_ues = 1
 
         self._s1ap_wrapper.configUEDevice(num_ues)
-        req = self._s1ap_wrapper.ue_req
 
         # 1 oai PDN + 1 dedicated bearer, 1 ims pdn + 8 dedicated bearers
         loop = 8
 
         for i in range(num_ues):
+            req = self._s1ap_wrapper.ue_req
             # APN of the secondary PDN
             ims = {
                 "apn_name": "ims",  # APN-name

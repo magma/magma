@@ -29,9 +29,6 @@ message SubscriberIDSet {
   repeated SubscriberID sids = 1;
 }
 
-message ApnSet {
-  repeated string apn_name  = 1;
-}
 // --------------------------------------------------------------------------
 // GSM/LTE subscription info
 // --------------------------------------------------------------------------
@@ -212,8 +209,8 @@ service SubscriberDB {
   //
   rpc UpdateSubscriber (SubscriberUpdate) returns (magma.orc8r.Void) {}
 
-  // Updates an existing apn for the subscriber.
-  // Throws NOT_FOUND if the subscriber/APN is missing.
+  // Returns the SubscriberData for a subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
   //
   rpc GetSubscriberData (SubscriberID) returns (SubscriberData) {}
 

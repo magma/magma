@@ -53,7 +53,6 @@ class SqliteStore(BaseStore):
             self.conn.execute("CREATE TABLE IF NOT EXISTS subscriberdb"
                               "(subscriber_id text PRIMARY KEY, data text)")
 
-
     def add_subscriber(self, subscriber_data):
         """
         Method that adds the subscriber.
@@ -62,12 +61,12 @@ class SqliteStore(BaseStore):
         data_str = subscriber_data.SerializeToString()
         with self.conn:
             res = self.conn.execute("SELECT data FROM subscriberdb WHERE "
-                "subscriber_id = ?", (sid, ))
+                                    "subscriber_id = ?", (sid, ))
             if res.fetchone():
                 raise DuplicateSubscriberError(sid)
 
             self.conn.execute("INSERT INTO subscriberdb(subscriber_id, data) "
-                "VALUES (?, ?)", (sid, data_str))
+                              "VALUES (?, ?)", (sid, data_str))
         self._on_ready.add_subscriber(subscriber_data)
 
     @contextmanager
@@ -88,7 +87,7 @@ class SqliteStore(BaseStore):
             # Manually update APN config as MergeMessage() does not work on
             # repeated field
             if request and request.data.non_3gpp.apn_config:
-                # Delete all existing APN config/s in the subscriberdb and add
+                # Delete the existing APN config/s in the subscriberdb and add
                 # new APN config received
                 del subscriber_data.non_3gpp.apn_config[:]
                 for apn in request.data.non_3gpp.apn_config:
@@ -106,11 +105,6 @@ class SqliteStore(BaseStore):
         Method that deletes a subscriber, if present.
         """
         with self.conn:
-            # Delete the subscriber id from the apndb
-            try:
-                sub_data = self.get_subscriber_data(subscriber_id)
-            except SubscriberNotFoundError:
-                raise SubscriberNotFoundError()
             self.conn.execute(
                 "DELETE FROM subscriberdb WHERE " "subscriber_id = ?",
                 (subscriber_id,),
