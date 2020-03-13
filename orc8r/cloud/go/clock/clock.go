@@ -32,25 +32,13 @@ func SetAndFreezeClock(t *testing.T, ti time.Time) {
 
 // UnfreezeClock will revert clock.Now()'s behavior to delegating to time.Now()
 func UnfreezeClock(t *testing.T) {
+	r := recover()
 	if t == nil {
 		panic("nice try")
 	}
 	c = &DefaultClock{}
-}
-
-// GetUnfreezeClockDeferFunc returns a function which is expected to be
-// deferred in the same context as a call to SetAndFreezeClock.
-// The returned function will, when deferred, always unfreeze the clock, even
-// in the case of a panic in the outer scope.
-// Don't forget to call the returned function!
-// defer GetUnfreezeClockDeferFunc(t)()
-func GetUnfreezeClockDeferFunc(t *testing.T) func() {
-	return func() {
-		r := recover()
-		UnfreezeClock(t)
-		if r != nil {
-			panic(r)
-		}
+	if r != nil {
+		panic(r)
 	}
 }
 

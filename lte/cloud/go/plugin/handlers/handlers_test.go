@@ -1211,7 +1211,7 @@ func TestListAndGetGateways(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 
 	test_init.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1407,7 +1407,7 @@ func TestUpdateGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -1551,7 +1551,7 @@ func TestDeleteGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2498,7 +2498,7 @@ func TestGetEnodebState(t *testing.T) {
 
 	// report state
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 
 	// encode the appropriate certificate into context
 	ctx := test_utils.GetContextWithCertificate(t, "hwid1")
