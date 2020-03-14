@@ -2776,7 +2776,7 @@ func TestListSubscribers(t *testing.T) {
 	assert.NoError(t, err)
 	frozenClock := int64(1000000)
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 	icmpStatus := &lteModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
@@ -2905,7 +2905,7 @@ func TestGetSubscriber(t *testing.T) {
 	assert.NoError(t, err)
 	frozenClock := int64(1000000)
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 	icmpStatus := &lteModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)

@@ -10,14 +10,45 @@ package indexer_test
 
 import (
 	"github.com/stretchr/testify/assert"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"testing"
 )
 
+const (
+	imsi0 = "some_imsi_0"
+	imsi1 = "some_imsi_1"
+	type0 = "some_type_0"
+	type1 = "some_type_1"
+)
+
 var emptyMatch []string
 
+func TestSubscription_Match(t *testing.T) {
+	sub := indexer.Subscription{Type: type0}
+
+	state00 := state.State{ReporterID: imsi0, Type: type0}
+	state10 := state.State{ReporterID: imsi1, Type: type0}
+	state01 := state.State{ReporterID: imsi0, Type: type1}
+	state11 := state.State{ReporterID: imsi1, Type: type1}
+
+	// Match all
+	sub.KeyMatcher = indexer.MatchAll
+	assert.True(t, sub.Match(state00))
+	assert.True(t, sub.Match(state10))
+	assert.False(t, sub.Match(state01))
+	assert.False(t, sub.Match(state11))
+
+	// Match exact
+	sub.KeyMatcher = indexer.NewMatchExact(imsi0)
+	assert.True(t, sub.Match(state00))
+	assert.False(t, sub.Match(state10))
+	assert.False(t, sub.Match(state01))
+	assert.False(t, sub.Match(state11))
+}
+
 func TestMatchAll_Match(t *testing.T) {
-	m := indexer.NewMatchAll()
+	m := indexer.MatchAll
 	yesMatch := []string{"", "f", "fo", "foo", "foobar", "foobarbaz", "foobar !@#$%^&*()_+"}
 	testMatchImpl(t, m, yesMatch, emptyMatch)
 }

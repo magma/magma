@@ -11,11 +11,6 @@
 import {isEqual, sortBy} from 'lodash';
 
 import MagmaV1API from '@fbcnms/platform-server/magma/index';
-import {
-  GatewaysDashboard,
-  InternalDashboard,
-  NetworksDashboard,
-} from './dashboards/Dashboards';
 import {Organization} from '@fbcnms/sequelize-models';
 import {apiCredentials} from '../config';
 
@@ -416,76 +411,6 @@ export async function syncTenants(): Promise<{
           name: 'Update Magma Tenants',
           status: error.response.status,
           message: error.response.data,
-        },
-      };
-    }
-  }
-  return {completedTasks};
-}
-
-export async function syncDashboards(
-  client: GrafanaClient,
-  req: FBCNMSRequest,
-): Promise<{
-  completedTasks: Array<Task>,
-  errorTask?: Task,
-}> {
-  const completedTasks: Array<Task> = [];
-  const grafanaOrgID = await getUserGrafanaOrgID(client, req.user);
-
-  const org = await Organization.findOne({
-    where: {
-      name: req.user.organization || '',
-    },
-  });
-  let networks: Array<string> = [];
-  if (org) {
-    networks = org.networkIDs;
-  }
-  if (networks.length === 0) {
-    return {
-      completedTasks,
-      errorTask: {
-        name: `Finding Organization's networks`,
-        status: 500,
-        message: 'Unable to get the networks of an organization',
-      },
-    };
-  }
-
-  const networksDB = NetworksDashboard().generate();
-  const gatewaysDB = GatewaysDashboard().generate();
-  const internalDB = InternalDashboard().generate();
-  const posts = [
-    {
-      dashboard: networksDB,
-      folderId: 0,
-      overwrite: true,
-      message: '',
-    },
-    {
-      dashboard: gatewaysDB,
-      folderId: 0,
-      overwrite: true,
-      message: '',
-    },
-    {
-      dashboard: internalDB,
-      folderId: 0,
-      overwrite: true,
-      message: '',
-    },
-  ];
-
-  for (const post of posts) {
-    const createDBResp = await client.createDashboard(post, grafanaOrgID);
-    if (createDBResp.status !== 200) {
-      return {
-        completedTasks,
-        errorTask: {
-          name: 'Create Networks Dashboard',
-          status: createDBResp.status,
-          message: createDBResp.data,
         },
       };
     }

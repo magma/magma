@@ -10,6 +10,7 @@ package integ_tests
 
 import (
 	"fmt"
+	cwfprotos "magma/cwf/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
 	"reflect"
 	"testing"
@@ -20,6 +21,7 @@ import (
 	"magma/lte/cloud/go/plugin/models"
 
 	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -76,7 +78,8 @@ func TestAuthenticateOcsCreditExhaustedWithoutCRRU(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// we need to generate over 100% of the quota to trigger a session termination
-	err = tr.GenULTraffic(ue.GetImsi(), swag.String("5M"))
+	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("5M")}}
+	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
 	// Wait for traffic to go through

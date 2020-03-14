@@ -55,11 +55,26 @@ static magma::mconfig::SessionD load_mconfig()
   return mconfig;
 }
 
+static const std::shared_ptr<grpc::Channel> get_local_controller(
+  const YAML::Node &config)
+{
+ auto port = config["local_session_proxy_port"].as<std::string>();
+ auto addr = "127.0.0.1:" + port;
+ MLOG(MINFO) << "Using local address " << addr << " for controller";
+ return grpc::CreateCustomChannel(
+   addr, grpc::InsecureChannelCredentials(), grpc::ChannelArguments {});
+}
+
 static const std::shared_ptr<grpc::Channel> get_controller_channel(
   const YAML::Node &config, const bool relay_enabled)
 {
   if (relay_enabled) {
     MLOG(MINFO) << "Using proxied sessiond controller";
+    if (config["use_local_session_proxy"].IsDefined() &&
+      config["use_local_session_proxy"].as<bool>()) {
+      // Use a locally running SessionProxy. (Used for testing)
+      return get_local_controller(config);
+    }
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
   } else {

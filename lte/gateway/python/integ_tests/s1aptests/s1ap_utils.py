@@ -298,6 +298,10 @@ class SubscriberUtil(object):
         self._subscriber_client.wait_for_changes()
         return subscribers
 
+    def config_apn_data(self, imsi, apn_list):
+        """ Add APN details """
+        self._subscriber_client.config_apn_details(imsi, apn_list)
+
     def cleanup(self):
         """ Cleanup added subscriber from subscriberdb """
         self._subscriber_client.clean_up()

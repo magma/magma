@@ -24,12 +24,256 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-// --------------------------------------------------------------------------
-// Directory Service
-//
-//
-//
-// --------------------------------------------------------------------------
+type GetHostnameForHWIDRequest struct {
+	Hwid                 string   `protobuf:"bytes,1,opt,name=hwid,proto3" json:"hwid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetHostnameForHWIDRequest) Reset()         { *m = GetHostnameForHWIDRequest{} }
+func (m *GetHostnameForHWIDRequest) String() string { return proto.CompactTextString(m) }
+func (*GetHostnameForHWIDRequest) ProtoMessage()    {}
+func (*GetHostnameForHWIDRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f02336ef077163fd, []int{0}
+}
+
+func (m *GetHostnameForHWIDRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetHostnameForHWIDRequest.Unmarshal(m, b)
+}
+func (m *GetHostnameForHWIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetHostnameForHWIDRequest.Marshal(b, m, deterministic)
+}
+func (m *GetHostnameForHWIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetHostnameForHWIDRequest.Merge(m, src)
+}
+func (m *GetHostnameForHWIDRequest) XXX_Size() int {
+	return xxx_messageInfo_GetHostnameForHWIDRequest.Size(m)
+}
+func (m *GetHostnameForHWIDRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetHostnameForHWIDRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetHostnameForHWIDRequest proto.InternalMessageInfo
+
+func (m *GetHostnameForHWIDRequest) GetHwid() string {
+	if m != nil {
+		return m.Hwid
+	}
+	return ""
+}
+
+type GetHostnameForHWIDResponse struct {
+	Hostname             string   `protobuf:"bytes,1,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetHostnameForHWIDResponse) Reset()         { *m = GetHostnameForHWIDResponse{} }
+func (m *GetHostnameForHWIDResponse) String() string { return proto.CompactTextString(m) }
+func (*GetHostnameForHWIDResponse) ProtoMessage()    {}
+func (*GetHostnameForHWIDResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f02336ef077163fd, []int{1}
+}
+
+func (m *GetHostnameForHWIDResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetHostnameForHWIDResponse.Unmarshal(m, b)
+}
+func (m *GetHostnameForHWIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetHostnameForHWIDResponse.Marshal(b, m, deterministic)
+}
+func (m *GetHostnameForHWIDResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetHostnameForHWIDResponse.Merge(m, src)
+}
+func (m *GetHostnameForHWIDResponse) XXX_Size() int {
+	return xxx_messageInfo_GetHostnameForHWIDResponse.Size(m)
+}
+func (m *GetHostnameForHWIDResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetHostnameForHWIDResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetHostnameForHWIDResponse proto.InternalMessageInfo
+
+func (m *GetHostnameForHWIDResponse) GetHostname() string {
+	if m != nil {
+		return m.Hostname
+	}
+	return ""
+}
+
+type MapHWIDToHostnameRequest struct {
+	HwidToHostname       map[string]string `protobuf:"bytes,1,rep,name=hwidToHostname,proto3" json:"hwidToHostname,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *MapHWIDToHostnameRequest) Reset()         { *m = MapHWIDToHostnameRequest{} }
+func (m *MapHWIDToHostnameRequest) String() string { return proto.CompactTextString(m) }
+func (*MapHWIDToHostnameRequest) ProtoMessage()    {}
+func (*MapHWIDToHostnameRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f02336ef077163fd, []int{2}
+}
+
+func (m *MapHWIDToHostnameRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MapHWIDToHostnameRequest.Unmarshal(m, b)
+}
+func (m *MapHWIDToHostnameRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MapHWIDToHostnameRequest.Marshal(b, m, deterministic)
+}
+func (m *MapHWIDToHostnameRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MapHWIDToHostnameRequest.Merge(m, src)
+}
+func (m *MapHWIDToHostnameRequest) XXX_Size() int {
+	return xxx_messageInfo_MapHWIDToHostnameRequest.Size(m)
+}
+func (m *MapHWIDToHostnameRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_MapHWIDToHostnameRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MapHWIDToHostnameRequest proto.InternalMessageInfo
+
+func (m *MapHWIDToHostnameRequest) GetHwidToHostname() map[string]string {
+	if m != nil {
+		return m.HwidToHostname
+	}
+	return nil
+}
+
+type GetIMSIForSessionIDRequest struct {
+	NetworkID            string   `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
+	SessionID            string   `protobuf:"bytes,2,opt,name=sessionID,proto3" json:"sessionID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetIMSIForSessionIDRequest) Reset()         { *m = GetIMSIForSessionIDRequest{} }
+func (m *GetIMSIForSessionIDRequest) String() string { return proto.CompactTextString(m) }
+func (*GetIMSIForSessionIDRequest) ProtoMessage()    {}
+func (*GetIMSIForSessionIDRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f02336ef077163fd, []int{3}
+}
+
+func (m *GetIMSIForSessionIDRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetIMSIForSessionIDRequest.Unmarshal(m, b)
+}
+func (m *GetIMSIForSessionIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetIMSIForSessionIDRequest.Marshal(b, m, deterministic)
+}
+func (m *GetIMSIForSessionIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetIMSIForSessionIDRequest.Merge(m, src)
+}
+func (m *GetIMSIForSessionIDRequest) XXX_Size() int {
+	return xxx_messageInfo_GetIMSIForSessionIDRequest.Size(m)
+}
+func (m *GetIMSIForSessionIDRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetIMSIForSessionIDRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetIMSIForSessionIDRequest proto.InternalMessageInfo
+
+func (m *GetIMSIForSessionIDRequest) GetNetworkID() string {
+	if m != nil {
+		return m.NetworkID
+	}
+	return ""
+}
+
+func (m *GetIMSIForSessionIDRequest) GetSessionID() string {
+	if m != nil {
+		return m.SessionID
+	}
+	return ""
+}
+
+type GetIMSIForSessionIDResponse struct {
+	Imsi                 string   `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetIMSIForSessionIDResponse) Reset()         { *m = GetIMSIForSessionIDResponse{} }
+func (m *GetIMSIForSessionIDResponse) String() string { return proto.CompactTextString(m) }
+func (*GetIMSIForSessionIDResponse) ProtoMessage()    {}
+func (*GetIMSIForSessionIDResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f02336ef077163fd, []int{4}
+}
+
+func (m *GetIMSIForSessionIDResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetIMSIForSessionIDResponse.Unmarshal(m, b)
+}
+func (m *GetIMSIForSessionIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetIMSIForSessionIDResponse.Marshal(b, m, deterministic)
+}
+func (m *GetIMSIForSessionIDResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetIMSIForSessionIDResponse.Merge(m, src)
+}
+func (m *GetIMSIForSessionIDResponse) XXX_Size() int {
+	return xxx_messageInfo_GetIMSIForSessionIDResponse.Size(m)
+}
+func (m *GetIMSIForSessionIDResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetIMSIForSessionIDResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetIMSIForSessionIDResponse proto.InternalMessageInfo
+
+func (m *GetIMSIForSessionIDResponse) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
+type MapSessionIDToIMSIRequest struct {
+	NetworkID            string            `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
+	SessionIDToIMSI      map[string]string `protobuf:"bytes,2,rep,name=sessionIDToIMSI,proto3" json:"sessionIDToIMSI,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *MapSessionIDToIMSIRequest) Reset()         { *m = MapSessionIDToIMSIRequest{} }
+func (m *MapSessionIDToIMSIRequest) String() string { return proto.CompactTextString(m) }
+func (*MapSessionIDToIMSIRequest) ProtoMessage()    {}
+func (*MapSessionIDToIMSIRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f02336ef077163fd, []int{5}
+}
+
+func (m *MapSessionIDToIMSIRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MapSessionIDToIMSIRequest.Unmarshal(m, b)
+}
+func (m *MapSessionIDToIMSIRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MapSessionIDToIMSIRequest.Marshal(b, m, deterministic)
+}
+func (m *MapSessionIDToIMSIRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MapSessionIDToIMSIRequest.Merge(m, src)
+}
+func (m *MapSessionIDToIMSIRequest) XXX_Size() int {
+	return xxx_messageInfo_MapSessionIDToIMSIRequest.Size(m)
+}
+func (m *MapSessionIDToIMSIRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_MapSessionIDToIMSIRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MapSessionIDToIMSIRequest proto.InternalMessageInfo
+
+func (m *MapSessionIDToIMSIRequest) GetNetworkID() string {
+	if m != nil {
+		return m.NetworkID
+	}
+	return ""
+}
+
+func (m *MapSessionIDToIMSIRequest) GetSessionIDToIMSI() map[string]string {
+	if m != nil {
+		return m.SessionIDToIMSI
+	}
+	return nil
+}
+
 type UpdateRecordRequest struct {
 	Id                   string            `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Location             string            `protobuf:"bytes,2,opt,name=location,proto3" json:"location,omitempty"`
@@ -43,7 +287,7 @@ func (m *UpdateRecordRequest) Reset()         { *m = UpdateRecordRequest{} }
 func (m *UpdateRecordRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateRecordRequest) ProtoMessage()    {}
 func (*UpdateRecordRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{0}
+	return fileDescriptor_f02336ef077163fd, []int{6}
 }
 
 func (m *UpdateRecordRequest) XXX_Unmarshal(b []byte) error {
@@ -97,7 +341,7 @@ func (m *DirectoryField) Reset()         { *m = DirectoryField{} }
 func (m *DirectoryField) String() string { return proto.CompactTextString(m) }
 func (*DirectoryField) ProtoMessage()    {}
 func (*DirectoryField) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{1}
+	return fileDescriptor_f02336ef077163fd, []int{7}
 }
 
 func (m *DirectoryField) XXX_Unmarshal(b []byte) error {
@@ -143,7 +387,7 @@ func (m *DeleteRecordRequest) Reset()         { *m = DeleteRecordRequest{} }
 func (m *DeleteRecordRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteRecordRequest) ProtoMessage()    {}
 func (*DeleteRecordRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{2}
+	return fileDescriptor_f02336ef077163fd, []int{8}
 }
 
 func (m *DeleteRecordRequest) XXX_Unmarshal(b []byte) error {
@@ -183,7 +427,7 @@ func (m *GetDirectoryFieldRequest) Reset()         { *m = GetDirectoryFieldReque
 func (m *GetDirectoryFieldRequest) String() string { return proto.CompactTextString(m) }
 func (*GetDirectoryFieldRequest) ProtoMessage()    {}
 func (*GetDirectoryFieldRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{3}
+	return fileDescriptor_f02336ef077163fd, []int{9}
 }
 
 func (m *GetDirectoryFieldRequest) XXX_Unmarshal(b []byte) error {
@@ -231,7 +475,7 @@ func (m *DirectoryRecord) Reset()         { *m = DirectoryRecord{} }
 func (m *DirectoryRecord) String() string { return proto.CompactTextString(m) }
 func (*DirectoryRecord) ProtoMessage()    {}
 func (*DirectoryRecord) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{4}
+	return fileDescriptor_f02336ef077163fd, []int{10}
 }
 
 func (m *DirectoryRecord) XXX_Unmarshal(b []byte) error {
@@ -284,7 +528,7 @@ func (m *AllDirectoryRecords) Reset()         { *m = AllDirectoryRecords{} }
 func (m *AllDirectoryRecords) String() string { return proto.CompactTextString(m) }
 func (*AllDirectoryRecords) ProtoMessage()    {}
 func (*AllDirectoryRecords) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f02336ef077163fd, []int{5}
+	return fileDescriptor_f02336ef077163fd, []int{11}
 }
 
 func (m *AllDirectoryRecords) XXX_Unmarshal(b []byte) error {
@@ -313,6 +557,14 @@ func (m *AllDirectoryRecords) GetRecords() []*DirectoryRecord {
 }
 
 func init() {
+	proto.RegisterType((*GetHostnameForHWIDRequest)(nil), "magma.orc8r.GetHostnameForHWIDRequest")
+	proto.RegisterType((*GetHostnameForHWIDResponse)(nil), "magma.orc8r.GetHostnameForHWIDResponse")
+	proto.RegisterType((*MapHWIDToHostnameRequest)(nil), "magma.orc8r.MapHWIDToHostnameRequest")
+	proto.RegisterMapType((map[string]string)(nil), "magma.orc8r.MapHWIDToHostnameRequest.HwidToHostnameEntry")
+	proto.RegisterType((*GetIMSIForSessionIDRequest)(nil), "magma.orc8r.GetIMSIForSessionIDRequest")
+	proto.RegisterType((*GetIMSIForSessionIDResponse)(nil), "magma.orc8r.GetIMSIForSessionIDResponse")
+	proto.RegisterType((*MapSessionIDToIMSIRequest)(nil), "magma.orc8r.MapSessionIDToIMSIRequest")
+	proto.RegisterMapType((map[string]string)(nil), "magma.orc8r.MapSessionIDToIMSIRequest.SessionIDToIMSIEntry")
 	proto.RegisterType((*UpdateRecordRequest)(nil), "magma.orc8r.UpdateRecordRequest")
 	proto.RegisterMapType((map[string]string)(nil), "magma.orc8r.UpdateRecordRequest.FieldsEntry")
 	proto.RegisterType((*DirectoryField)(nil), "magma.orc8r.DirectoryField")
@@ -326,34 +578,51 @@ func init() {
 func init() { proto.RegisterFile("orc8r/protos/directoryd.proto", fileDescriptor_f02336ef077163fd) }
 
 var fileDescriptor_f02336ef077163fd = []byte{
-	// 432 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcf, 0x8b, 0xd3, 0x40,
-	0x18, 0x6d, 0x12, 0x5c, 0xed, 0x57, 0xd9, 0x1f, 0x53, 0xd1, 0x6c, 0xaa, 0x10, 0x06, 0x16, 0x22,
-	0x48, 0x02, 0x2b, 0x48, 0xf5, 0xa4, 0xd2, 0x35, 0x82, 0x88, 0x10, 0x51, 0xd0, 0xcb, 0x92, 0xcd,
-	0x7c, 0xae, 0x83, 0x49, 0x67, 0x9d, 0xcc, 0x56, 0xf2, 0xef, 0x79, 0xf3, 0xec, 0x3f, 0x24, 0x99,
-	0x24, 0x25, 0x49, 0x53, 0xeb, 0xc1, 0x53, 0x66, 0x1e, 0x6f, 0xde, 0x7b, 0xf3, 0xf2, 0x31, 0xf0,
-	0x40, 0xc8, 0x64, 0x2e, 0x83, 0x2b, 0x29, 0x94, 0xc8, 0x03, 0xc6, 0x25, 0x26, 0x4a, 0xc8, 0x82,
-	0xf9, 0x1a, 0x21, 0x93, 0x2c, 0xbe, 0xcc, 0x62, 0x5f, 0x93, 0x9c, 0xe3, 0x0e, 0x37, 0x11, 0x59,
-	0x26, 0x96, 0x15, 0x8f, 0xfe, 0x34, 0x60, 0xfa, 0xe1, 0x8a, 0xc5, 0x0a, 0x23, 0x4c, 0x84, 0x64,
-	0x11, 0x7e, 0xbf, 0xc6, 0x5c, 0x91, 0x7d, 0x30, 0x39, 0xb3, 0x0d, 0xd7, 0xf0, 0xc6, 0x91, 0xc9,
-	0x19, 0x71, 0xe0, 0x56, 0x2a, 0x92, 0x58, 0x71, 0xb1, 0xb4, 0x4d, 0x8d, 0xae, 0xf7, 0x64, 0x01,
-	0x7b, 0x5f, 0x38, 0xa6, 0x2c, 0xb7, 0x2d, 0xd7, 0xf2, 0x26, 0xa7, 0x8f, 0xfc, 0x96, 0xb9, 0x3f,
-	0xa0, 0xee, 0xbf, 0xd2, 0xf4, 0xb3, 0xa5, 0x92, 0x45, 0x54, 0x9f, 0x75, 0x9e, 0xc2, 0xa4, 0x05,
-	0x93, 0x43, 0xb0, 0xbe, 0x61, 0x51, 0x27, 0x28, 0x97, 0xe4, 0x0e, 0xdc, 0x58, 0xc5, 0xe9, 0x35,
-	0xd6, 0xfe, 0xd5, 0xe6, 0x99, 0x39, 0x37, 0xe8, 0x1c, 0xf6, 0x17, 0x4d, 0x01, 0x5a, 0xe3, 0x5f,
-	0x4f, 0xd3, 0x13, 0x98, 0x2e, 0x30, 0xc5, 0x1d, 0xb7, 0xa7, 0x21, 0xd8, 0x21, 0xaa, 0xae, 0xc7,
-	0xb6, 0xa6, 0x66, 0x30, 0xd6, 0x37, 0x3a, 0x2f, 0x03, 0xd4, 0x55, 0x69, 0xe0, 0x0d, 0x16, 0xf4,
-	0x97, 0x01, 0x07, 0x6b, 0x99, 0xca, 0x73, 0x43, 0xe0, 0x21, 0x1c, 0x36, 0xd5, 0x9e, 0x7f, 0xe5,
-	0x79, 0xc9, 0xb4, 0x4d, 0xd7, 0xf2, 0xc6, 0xd1, 0x41, 0x83, 0xbf, 0xae, 0x60, 0xf2, 0xbc, 0xd7,
-	0xbc, 0xd7, 0x69, 0xbe, 0x67, 0xf4, 0xbf, 0x5b, 0x7f, 0x0b, 0xd3, 0x17, 0x69, 0xda, 0x33, 0xc9,
-	0xc9, 0x13, 0xb8, 0x29, 0xab, 0xa5, 0x6d, 0xe8, 0x50, 0xf7, 0xff, 0x16, 0x2a, 0x6a, 0xc8, 0xa7,
-	0xbf, 0x4d, 0xb8, 0x17, 0xc6, 0x0a, 0x7f, 0xc4, 0xc5, 0x9a, 0xf3, 0x1e, 0xe5, 0x8a, 0x27, 0x48,
-	0xce, 0xe0, 0x76, 0x7b, 0x8c, 0x88, 0xbb, 0x6b, 0xc2, 0x9c, 0xa3, 0x0e, 0xe3, 0xa3, 0xe0, 0x8c,
-	0x8e, 0x4a, 0x99, 0xf6, 0xdf, 0xee, 0xc9, 0x0c, 0x0c, 0xc2, 0xb0, 0xcc, 0x27, 0x38, 0xda, 0x98,
-	0x06, 0x72, 0xd2, 0x61, 0x6e, 0x9b, 0x16, 0x67, 0x36, 0x5c, 0x86, 0xe6, 0xd0, 0x11, 0x79, 0x07,
-	0x77, 0x43, 0x54, 0x43, 0xb5, 0x6e, 0x26, 0x71, 0xba, 0xf1, 0x07, 0x0e, 0xd1, 0xd1, 0xcb, 0xd9,
-	0xe7, 0x63, 0x4d, 0x0a, 0xaa, 0x27, 0x20, 0xe5, 0x17, 0xc1, 0xa5, 0xa8, 0x5f, 0x82, 0x8b, 0x3d,
-	0xfd, 0x7d, 0xfc, 0x27, 0x00, 0x00, 0xff, 0xff, 0xf9, 0xc6, 0x90, 0xb8, 0x4c, 0x04, 0x00, 0x00,
+	// 703 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0xdd, 0x6e, 0xd3, 0x30,
+	0x14, 0x6e, 0xda, 0x31, 0xe8, 0xd9, 0xb4, 0x1f, 0x77, 0x82, 0x34, 0x1d, 0xd2, 0x64, 0x69, 0x50,
+	0x24, 0x94, 0x8a, 0x21, 0xa1, 0x0e, 0x6e, 0xd8, 0xd4, 0xad, 0xad, 0xa0, 0x42, 0xb4, 0xe3, 0xf7,
+	0x66, 0xca, 0x1a, 0xb3, 0x85, 0xa5, 0x71, 0xb1, 0xbd, 0x4d, 0x7d, 0x09, 0x9e, 0x09, 0x71, 0xc7,
+	0x35, 0xaf, 0xc0, 0x83, 0xa0, 0x38, 0x4e, 0xda, 0xa4, 0x2e, 0xdd, 0x24, 0xae, 0xea, 0x1c, 0x7f,
+	0xe7, 0xf3, 0x39, 0x9f, 0x7d, 0x3e, 0x15, 0xee, 0x53, 0xd6, 0xaf, 0xb3, 0xda, 0x90, 0x51, 0x41,
+	0x79, 0xcd, 0xf5, 0x18, 0xe9, 0x0b, 0xca, 0x46, 0xae, 0x2d, 0x23, 0x68, 0x69, 0xe0, 0x9c, 0x0e,
+	0x1c, 0x5b, 0x82, 0xac, 0x72, 0x0a, 0xdb, 0xa7, 0x83, 0x01, 0x0d, 0x22, 0x1c, 0xae, 0x41, 0xb9,
+	0x49, 0x44, 0x8b, 0x72, 0x11, 0x38, 0x03, 0x72, 0x48, 0x59, 0xeb, 0x43, 0xbb, 0xd1, 0x25, 0xdf,
+	0x2e, 0x08, 0x17, 0x08, 0xc1, 0xc2, 0xd9, 0x95, 0xe7, 0x9a, 0xc6, 0x96, 0x51, 0x2d, 0x76, 0xe5,
+	0x1a, 0xd7, 0xc1, 0xd2, 0x25, 0xf0, 0x21, 0x0d, 0x38, 0x41, 0x16, 0xdc, 0x39, 0x53, 0x5b, 0x2a,
+	0x2b, 0xf9, 0xc6, 0x3f, 0x0c, 0x30, 0x3b, 0xce, 0x30, 0xc4, 0x1f, 0xd1, 0x98, 0x20, 0x3e, 0xca,
+	0x81, 0x95, 0x90, 0x7e, 0xbc, 0x61, 0x1a, 0x5b, 0x85, 0xea, 0xd2, 0xce, 0xae, 0x3d, 0xd1, 0x88,
+	0x3d, 0x2b, 0xdd, 0x6e, 0xa5, 0x72, 0x0f, 0x02, 0xc1, 0x46, 0xdd, 0x0c, 0xa1, 0xb5, 0x07, 0x25,
+	0x0d, 0x0c, 0xad, 0x41, 0xe1, 0x9c, 0x8c, 0x54, 0xb5, 0xe1, 0x12, 0x6d, 0xc0, 0xad, 0x4b, 0xc7,
+	0xbf, 0x20, 0x66, 0x5e, 0xc6, 0xa2, 0x8f, 0xe7, 0xf9, 0xba, 0x81, 0x3f, 0xca, 0xe6, 0xdb, 0x9d,
+	0x5e, 0xfb, 0x90, 0xb2, 0x1e, 0xe1, 0xdc, 0xa3, 0xc1, 0x58, 0xae, 0x4d, 0x28, 0x06, 0x44, 0x5c,
+	0x51, 0x76, 0xde, 0x6e, 0x28, 0xbe, 0x71, 0x20, 0xdc, 0xe5, 0x71, 0x86, 0x62, 0x1e, 0x07, 0xf0,
+	0x13, 0xa8, 0x68, 0x99, 0x95, 0xae, 0x08, 0x16, 0xbc, 0x01, 0xf7, 0xe2, 0x9b, 0x08, 0xd7, 0xf8,
+	0x8f, 0x01, 0xe5, 0x8e, 0x33, 0x4c, 0xc0, 0x47, 0x34, 0x4c, 0xbf, 0x5e, 0x31, 0x04, 0x56, 0x79,
+	0x3a, 0xcf, 0xcc, 0x4b, 0xbd, 0x5f, 0x64, 0xf5, 0xd6, 0xd3, 0xdb, 0x99, 0x70, 0xa4, 0x78, 0x96,
+	0xd3, 0xda, 0x87, 0x0d, 0x1d, 0xf0, 0x46, 0x9a, 0xff, 0x34, 0xa0, 0xf4, 0x6e, 0xe8, 0x3a, 0x82,
+	0x74, 0x49, 0x9f, 0x32, 0x37, 0x6e, 0x70, 0x05, 0xf2, 0xc9, 0xd3, 0xcc, 0x7b, 0x6e, 0xf8, 0xf4,
+	0x7c, 0xda, 0x77, 0x84, 0x47, 0x03, 0x45, 0x92, 0x7c, 0xa3, 0x06, 0x2c, 0x7e, 0xf1, 0x88, 0xef,
+	0x72, 0xb3, 0x20, 0xbb, 0x7c, 0x9c, 0xea, 0x52, 0xc3, 0x6e, 0x1f, 0x4a, 0x78, 0xd4, 0x96, 0xca,
+	0xb5, 0x76, 0x61, 0x69, 0x22, 0x7c, 0xa3, 0x26, 0xea, 0xb0, 0xd2, 0x88, 0x47, 0x54, 0x72, 0x5c,
+	0x37, 0x1b, 0x6f, 0x43, 0xa9, 0x41, 0x7c, 0x32, 0xa7, 0x7b, 0xdc, 0x04, 0xb3, 0x49, 0x44, 0xfa,
+	0x8c, 0x59, 0x4a, 0x55, 0xa0, 0x28, 0x3b, 0x3a, 0x0e, 0x0b, 0x50, 0x52, 0xc9, 0xc0, 0x2b, 0x32,
+	0xc2, 0xbf, 0x0c, 0x58, 0x4d, 0x68, 0xa2, 0x33, 0xa7, 0x08, 0x1e, 0xc1, 0x5a, 0x2c, 0xed, 0xf1,
+	0x99, 0xc7, 0x43, 0xa4, 0x7c, 0x3e, 0xc5, 0xee, 0x6a, 0x1c, 0x6f, 0x45, 0x61, 0xf4, 0x32, 0xa3,
+	0x7c, 0x35, 0xa5, 0x7c, 0xe6, 0xa0, 0xff, 0xad, 0x7a, 0x07, 0x4a, 0x7b, 0xbe, 0x9f, 0x39, 0x84,
+	0xa3, 0x67, 0x70, 0x9b, 0x45, 0x4b, 0x65, 0x32, 0x9b, 0xff, 0x2a, 0xaa, 0x1b, 0x83, 0x77, 0xbe,
+	0x17, 0x26, 0xa4, 0x79, 0x4d, 0xe9, 0xf9, 0xc5, 0x10, 0x9d, 0x02, 0x9a, 0xb6, 0x43, 0xf4, 0x20,
+	0x45, 0x38, 0xd3, 0x60, 0xad, 0x87, 0x73, 0x71, 0xd1, 0xfc, 0xe3, 0x1c, 0x7a, 0x0b, 0x25, 0xe5,
+	0x7e, 0x7c, 0xec, 0x60, 0x1c, 0x6d, 0x5f, 0xcb, 0x1f, 0xad, 0xf5, 0x14, 0xec, 0x3d, 0xf5, 0x5c,
+	0x9c, 0x43, 0x5f, 0xa1, 0xa4, 0xf1, 0x1c, 0x34, 0x55, 0xd4, 0x0c, 0xbf, 0xb3, 0xaa, 0xf3, 0x81,
+	0x49, 0xf9, 0x3d, 0xd8, 0x98, 0x34, 0x13, 0x1e, 0xb9, 0x01, 0xcf, 0x28, 0x35, 0xd3, 0x6f, 0xb4,
+	0x0d, 0xec, 0xfc, 0xce, 0xc3, 0xbd, 0xa6, 0x23, 0xc8, 0x95, 0x33, 0x4a, 0xee, 0xa5, 0x47, 0xd8,
+	0xa5, 0xd7, 0x27, 0xe8, 0x00, 0x96, 0x27, 0xe7, 0x1a, 0x6d, 0xcd, 0x1b, 0x79, 0xbd, 0x46, 0x07,
+	0xb0, 0x3c, 0x39, 0x7e, 0x19, 0x1a, 0xcd, 0x64, 0xea, 0x69, 0x3e, 0xc1, 0xfa, 0xd4, 0x78, 0x66,
+	0xee, 0x6e, 0xd6, 0xf8, 0x5a, 0x15, 0xfd, 0xeb, 0x94, 0x18, 0x9c, 0x43, 0x6f, 0xe0, 0x6e, 0x93,
+	0x08, 0xdd, 0x3b, 0x9f, 0xae, 0xc4, 0x4a, 0x97, 0xaf, 0x49, 0xc2, 0xb9, 0xfd, 0xca, 0xe7, 0xb2,
+	0x04, 0xd5, 0xa2, 0x7f, 0x0d, 0xbe, 0x77, 0x52, 0x3b, 0xa5, 0xea, 0xcf, 0xc3, 0xc9, 0xa2, 0xfc,
+	0x7d, 0xfa, 0x37, 0x00, 0x00, 0xff, 0xff, 0xae, 0x2c, 0x21, 0x8c, 0x7f, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -363,6 +632,194 @@ var _ grpc.ClientConnInterface
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion6
+
+// DirectoryLookupClient is the client API for DirectoryLookup service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type DirectoryLookupClient interface {
+	// GetHostnameForHWID returns the hostname mapped to by hardware ID.
+	GetHostnameForHWID(ctx context.Context, in *GetHostnameForHWIDRequest, opts ...grpc.CallOption) (*GetHostnameForHWIDResponse, error)
+	// MapHWIDsToHostnames maps {hwid -> hostname}.
+	MapHWIDsToHostnames(ctx context.Context, in *MapHWIDToHostnameRequest, opts ...grpc.CallOption) (*Void, error)
+	// GetIMSIForSessionID returns the IMSI mapped to by session ID.
+	GetIMSIForSessionID(ctx context.Context, in *GetIMSIForSessionIDRequest, opts ...grpc.CallOption) (*GetIMSIForSessionIDResponse, error)
+	// MapSessionIDsToIMSIs maps {session ID -> IMSI}.
+	MapSessionIDsToIMSIs(ctx context.Context, in *MapSessionIDToIMSIRequest, opts ...grpc.CallOption) (*Void, error)
+}
+
+type directoryLookupClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewDirectoryLookupClient(cc grpc.ClientConnInterface) DirectoryLookupClient {
+	return &directoryLookupClient{cc}
+}
+
+func (c *directoryLookupClient) GetHostnameForHWID(ctx context.Context, in *GetHostnameForHWIDRequest, opts ...grpc.CallOption) (*GetHostnameForHWIDResponse, error) {
+	out := new(GetHostnameForHWIDResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryLookup/GetHostnameForHWID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *directoryLookupClient) MapHWIDsToHostnames(ctx context.Context, in *MapHWIDToHostnameRequest, opts ...grpc.CallOption) (*Void, error) {
+	out := new(Void)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryLookup/MapHWIDsToHostnames", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *directoryLookupClient) GetIMSIForSessionID(ctx context.Context, in *GetIMSIForSessionIDRequest, opts ...grpc.CallOption) (*GetIMSIForSessionIDResponse, error) {
+	out := new(GetIMSIForSessionIDResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryLookup/GetIMSIForSessionID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *directoryLookupClient) MapSessionIDsToIMSIs(ctx context.Context, in *MapSessionIDToIMSIRequest, opts ...grpc.CallOption) (*Void, error) {
+	out := new(Void)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.DirectoryLookup/MapSessionIDsToIMSIs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// DirectoryLookupServer is the server API for DirectoryLookup service.
+type DirectoryLookupServer interface {
+	// GetHostnameForHWID returns the hostname mapped to by hardware ID.
+	GetHostnameForHWID(context.Context, *GetHostnameForHWIDRequest) (*GetHostnameForHWIDResponse, error)
+	// MapHWIDsToHostnames maps {hwid -> hostname}.
+	MapHWIDsToHostnames(context.Context, *MapHWIDToHostnameRequest) (*Void, error)
+	// GetIMSIForSessionID returns the IMSI mapped to by session ID.
+	GetIMSIForSessionID(context.Context, *GetIMSIForSessionIDRequest) (*GetIMSIForSessionIDResponse, error)
+	// MapSessionIDsToIMSIs maps {session ID -> IMSI}.
+	MapSessionIDsToIMSIs(context.Context, *MapSessionIDToIMSIRequest) (*Void, error)
+}
+
+// UnimplementedDirectoryLookupServer can be embedded to have forward compatible implementations.
+type UnimplementedDirectoryLookupServer struct {
+}
+
+func (*UnimplementedDirectoryLookupServer) GetHostnameForHWID(ctx context.Context, req *GetHostnameForHWIDRequest) (*GetHostnameForHWIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetHostnameForHWID not implemented")
+}
+func (*UnimplementedDirectoryLookupServer) MapHWIDsToHostnames(ctx context.Context, req *MapHWIDToHostnameRequest) (*Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MapHWIDsToHostnames not implemented")
+}
+func (*UnimplementedDirectoryLookupServer) GetIMSIForSessionID(ctx context.Context, req *GetIMSIForSessionIDRequest) (*GetIMSIForSessionIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIMSIForSessionID not implemented")
+}
+func (*UnimplementedDirectoryLookupServer) MapSessionIDsToIMSIs(ctx context.Context, req *MapSessionIDToIMSIRequest) (*Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MapSessionIDsToIMSIs not implemented")
+}
+
+func RegisterDirectoryLookupServer(s *grpc.Server, srv DirectoryLookupServer) {
+	s.RegisterService(&_DirectoryLookup_serviceDesc, srv)
+}
+
+func _DirectoryLookup_GetHostnameForHWID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHostnameForHWIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DirectoryLookupServer).GetHostnameForHWID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.DirectoryLookup/GetHostnameForHWID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DirectoryLookupServer).GetHostnameForHWID(ctx, req.(*GetHostnameForHWIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DirectoryLookup_MapHWIDsToHostnames_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MapHWIDToHostnameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DirectoryLookupServer).MapHWIDsToHostnames(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.DirectoryLookup/MapHWIDsToHostnames",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DirectoryLookupServer).MapHWIDsToHostnames(ctx, req.(*MapHWIDToHostnameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DirectoryLookup_GetIMSIForSessionID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIMSIForSessionIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DirectoryLookupServer).GetIMSIForSessionID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.DirectoryLookup/GetIMSIForSessionID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DirectoryLookupServer).GetIMSIForSessionID(ctx, req.(*GetIMSIForSessionIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DirectoryLookup_MapSessionIDsToIMSIs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MapSessionIDToIMSIRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DirectoryLookupServer).MapSessionIDsToIMSIs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.DirectoryLookup/MapSessionIDsToIMSIs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DirectoryLookupServer).MapSessionIDsToIMSIs(ctx, req.(*MapSessionIDToIMSIRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _DirectoryLookup_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.orc8r.DirectoryLookup",
+	HandlerType: (*DirectoryLookupServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetHostnameForHWID",
+			Handler:    _DirectoryLookup_GetHostnameForHWID_Handler,
+		},
+		{
+			MethodName: "MapHWIDsToHostnames",
+			Handler:    _DirectoryLookup_MapHWIDsToHostnames_Handler,
+		},
+		{
+			MethodName: "GetIMSIForSessionID",
+			Handler:    _DirectoryLookup_GetIMSIForSessionID_Handler,
+		},
+		{
+			MethodName: "MapSessionIDsToIMSIs",
+			Handler:    _DirectoryLookup_MapSessionIDsToIMSIs_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "orc8r/protos/directoryd.proto",
+}
 
 // GatewayDirectoryServiceClient is the client API for GatewayDirectoryService service.
 //

@@ -14,7 +14,11 @@ from contextlib import contextmanager
 from lte.protos.subscriberdb_pb2 import SubscriberData
 
 from magma.subscriberdb.sid import SIDUtils
-from .base import BaseStore, DuplicateSubscriberError, SubscriberNotFoundError
+from .base import (
+    BaseStore,
+    DuplicateSubscriberError,
+    SubscriberNotFoundError,
+)
 from .onready import OnDataReady
 
 
@@ -66,31 +70,45 @@ class SqliteStore(BaseStore):
         self._on_ready.add_subscriber(subscriber_data)
 
     @contextmanager
-    def edit_subscriber(self, subscriber_id):
+    def edit_subscriber(self, subscriber_id, request=None):
         """
         Context manager to modify the subscriber data.
         """
         with self.conn:
-            res = self.conn.execute("SELECT data FROM subscriberdb WHERE "
-                                    "subscriber_id = ?", (subscriber_id, ))
+            res = self.conn.execute(
+                "SELECT data FROM subscriberdb WHERE " "subscriber_id = ?",
+                (subscriber_id,),
+            )
             row = res.fetchone()
             if not row:
                 raise SubscriberNotFoundError(subscriber_id)
             subscriber_data = SubscriberData()
             subscriber_data.ParseFromString(row[0])
+            # Manually update APN config as MergeMessage() does not work on
+            # repeated field
+            if request and request.data.non_3gpp.apn_config:
+                # Delete the existing APN config/s in the subscriberdb and add
+                # new APN config received
+                del subscriber_data.non_3gpp.apn_config[:]
+                for apn in request.data.non_3gpp.apn_config:
+                    apn_config = subscriber_data.non_3gpp.apn_config.add()
+                    self._update_apn(apn_config, apn)
             yield subscriber_data
             data_str = subscriber_data.SerializeToString()
-            self.conn.execute("UPDATE subscriberdb SET data = ? "
-                              "WHERE subscriber_id = ?",
-                              (data_str, subscriber_id))
+            self.conn.execute(
+                "UPDATE subscriberdb SET data = ? " "WHERE subscriber_id = ?",
+                (data_str, subscriber_id),
+            )
 
     def delete_subscriber(self, subscriber_id):
         """
         Method that deletes a subscriber, if present.
         """
         with self.conn:
-            self.conn.execute("DELETE FROM subscriberdb WHERE "
-                              "subscriber_id = ?", (subscriber_id, ))
+            self.conn.execute(
+                "DELETE FROM subscriberdb WHERE " "subscriber_id = ?",
+                (subscriber_id,),
+            )
 
     def delete_all_subscribers(self):
         """
@@ -175,3 +193,21 @@ class SqliteStore(BaseStore):
 
     def on_ready(self):
         return self._on_ready.event.wait()
+
+    def _update_apn(self, apn_config, apn_data):
+        """
+        Method that populates apn data.
+        """
+        apn_config.service_selection = apn_data.service_selection
+        apn_config.qos_profile.class_id = apn_data.qos_profile.class_id
+        apn_config.qos_profile.priority_level = (
+            apn_data.qos_profile.priority_level
+        )
+        apn_config.qos_profile.preemption_capability = (
+            apn_data.qos_profile.preemption_capability
+        )
+        apn_config.qos_profile.preemption_vulnerability = (
+            apn_data.qos_profile.preemption_vulnerability
+        )
+        apn_config.ambr.max_bandwidth_ul = apn_data.ambr.max_bandwidth_ul
+        apn_config.ambr.max_bandwidth_dl = apn_data.ambr.max_bandwidth_dl
