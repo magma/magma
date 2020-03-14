@@ -75,6 +75,7 @@
 #include "service303.h"
 #include "sgs_messages_types.h"
 #include "secu_defs.h"
+#include "esm_proc.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
@@ -1616,6 +1617,8 @@ void mme_app_handle_e_rab_setup_rsp(
           "Bearer creation failed in eNB, but successfully created in "
           "MME/SGW for bearer Id: %u\n",
           e_rab_id);
+        esm_proc_dedicated_eps_bearer_context_reject(
+          &ue_context_p->emm_context, e_rab_id, NULL);
         OAILOG_FUNC_OUT(LOG_MME_APP);
       }
       bc->bearer_state &= (~BEARER_STATE_ENB_CREATED);

@@ -382,7 +382,9 @@ int esm_proc_dedicated_eps_bearer_context_reject(
       /*
        * Failed to release the dedicated EPS bearer context
        */
-      *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
+      if (esm_cause) {
+        *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
+      }
     }
     mme_app_handle_create_dedicated_bearer_rej(ue_context_p, ebi);
   }
