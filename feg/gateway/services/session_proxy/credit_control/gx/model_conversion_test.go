@@ -31,7 +31,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 	bearerID := "bearer1"
 	var ratingGroup uint32 = 42
 	var totalOctets uint64 = 2048
-	var qci uint32 = 1
+	var qci int32 = 1
 	var monitoringLevel gx.MonitoringLevel = gx.SessionLevel
 	currentTime := time.Now()
 	protoTimestamp, err := ptypes.TimestampProto(currentTime)

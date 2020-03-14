@@ -122,7 +122,7 @@ type QosInformation struct {
 	MaxReqBwDL       *uint32 `avp:"Max-Requested-Bandwidth-DL"`
 	GbrDL            *uint32 `avp:"Guaranteed-Bitrate-DL"`
 	GbrUL            *uint32 `avp:"Guaranteed-Bitrate-UL"`
-	Qci              *uint32 `avp:"QoS-Class-Identifier"`
+	Qci              *int32  `avp:"QoS-Class-Identifier"`
 }
 
 // RuleInstallAVP represents a policy rule to install. It can hold one of

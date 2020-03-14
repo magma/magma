@@ -71,7 +71,7 @@ func (q *QosInformation) ToProto() *protos.FlowQos {
 			MaxReqBwDl: swag.Uint32Value(q.MaxReqBwDL),
 			GbrUl:      swag.Uint32Value(q.GbrUL),
 			GbrDl:      swag.Uint32Value(q.GbrDL),
-			Qci:        protos.FlowQos_Qci(swag.Uint32Value(q.Qci)),
+			Qci:        protos.FlowQos_Qci(swag.Int32Value(q.Qci)),
 		}
 	}
 	return qos
