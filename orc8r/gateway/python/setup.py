@@ -30,7 +30,6 @@ setup(
         "magma.magmad.check.kernel_check",
         "magma.magmad.check.machine_check",
         "magma.magmad.check.network_check",
-        "magma.magmad.logging",
         "magma.magmad.upgrade",
         "magma.state",
     ],
