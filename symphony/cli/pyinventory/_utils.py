@@ -63,7 +63,7 @@ def get_graphql_input_field(
 
 
 def get_graphql_property_type_inputs(
-    property_types: List[Dict[str, PropertyTypeInput]],
+    property_types: List[Dict[str, PropertyValue]],
     properties_dict: Dict[str, PropertyValue],
 ) -> List[PropertyTypeInput]:
     """This function gets existing property types and dictionary, where key - are type names, and keys - new values
@@ -115,7 +115,7 @@ def get_graphql_property_type_inputs(
 
 
 def get_graphql_property_inputs(
-    property_types: List[Dict[str, PropertyTypeInput]],
+    property_types: List[Dict[str, PropertyValue]],
     properties_dict: Dict[str, PropertyValue],
 ) -> List[PropertyInput]:
     """This function gets existing property types and dictionary, where key - are type names, and keys - new values
@@ -240,7 +240,7 @@ def format_property_definitions(
                 **_get_property_default_value(
                     prop.property_name, prop.property_kind.value, prop.default_value
                 ),
-                "isInstanceProperty": prop.is_fixed,
+                "isInstanceProperty": not prop.is_fixed,
             },
             config=Config(strict=True),
         )

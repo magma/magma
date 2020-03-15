@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.2" />
-<title>pyinventory.graphql.equipment_ports_query API documentation</title>
+<title>pyinventory.graphql.edit_link_mutation API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pyinventory.graphql.equipment_ports_query</code></h1>
+<h1 class="title">Module <code>pyinventory.graphql.edit_link_mutation</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -33,57 +33,17 @@
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery"><code class="flex name class">
-<span>class <span class="ident">EquipmentPortsQuery</span></span>
-<span>(</span><span>data: <a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData">EquipmentPortsQuery.EquipmentPortsQueryData</a>)</span>
+<dt id="pyinventory.graphql.edit_link_mutation.EditLinkMutation"><code class="flex name class">
+<span>class <span class="ident">EditLinkMutation</span></span>
+<span>(</span><span>data: <a title="pyinventory.graphql.edit_link_mutation.EditLinkMutation.EditLinkMutationData" href="#pyinventory.graphql.edit_link_mutation.EditLinkMutation.EditLinkMutationData">EditLinkMutation.EditLinkMutationData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentPortsQuery(data: pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData, <strong>QUERY</strong>: str = '\n
-query EquipmentPortsQuery($id: ID!) {\n
-equipment: node(id: $id) {\n
-&hellip; on Equipment {\n
-ports {\n
-id\n
-properties {\n
-id\n
-propertyType {\n
-id\n
-name\n
-type\n
-index\n
-stringValue\n
-intValue\n
-booleanValue\n
-floatValue\n
-latitudeValue\n
-longitudeValue\n
-isEditable\n
-isInstanceProperty\n
-}\n
-stringValue\n
-intValue\n
-floatValue\n
-booleanValue\n
-latitudeValue\n
-longitudeValue\n
-rangeFromValue\n
-rangeToValue\n
-}\n
-definition {\n
-id\n
-name\n
-portType {\n
-id\n
-name\n
-}\n
-}\n
-link {\n
+<section class="desc"><p>EditLinkMutation(data: pyinventory.graphql.edit_link_mutation.EditLinkMutation.EditLinkMutationData, <strong>QUERY</strong>: str = '\n
+mutation EditLinkMutation($input: EditLinkInput!) {\n
+editLink(input: $input) {\n
 id\n
 services {\n
 id\n
-}\n
-}\n
-}\n
 }\n
 }\n}\n\n
 ')</p></section>
@@ -94,15 +54,15 @@ id\n
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData"><code class="name">var <span class="ident">EquipmentPortsQueryData</span></code></dt>
+<dt id="pyinventory.graphql.edit_link_mutation.EditLinkMutation.EditLinkMutationData"><code class="name">var <span class="ident">EditLinkMutationData</span></code></dt>
 <dd>
-<section class="desc"><p>EquipmentPortsQueryData(equipment: Union[pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData.Node, NoneType] = None)</p></section>
+<section class="desc"><p>EditLinkMutationData(editLink: pyinventory.graphql.edit_link_mutation.EditLinkMutation.EditLinkMutationData.Link)</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
-<dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, id: str) -> <a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData">EquipmentPortsQuery.EquipmentPortsQueryData</a></span>
+<dt id="pyinventory.graphql.edit_link_mutation.EditLinkMutation.execute"><code class="name flex">
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, input: <a title="pyinventory.graphql.edit_link_input.EditLinkInput" href="edit_link_input.html#pyinventory.graphql.edit_link_input.EditLinkInput">EditLinkInput</a>) -> <a title="pyinventory.graphql.edit_link_mutation.EditLinkMutation.EditLinkMutationData" href="#pyinventory.graphql.edit_link_mutation.EditLinkMutation.EditLinkMutationData">EditLinkMutation.EditLinkMutationData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -126,10 +86,10 @@ id\n
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery">EquipmentPortsQuery</a></code></h4>
+<h4><code><a title="pyinventory.graphql.edit_link_mutation.EditLinkMutation" href="#pyinventory.graphql.edit_link_mutation.EditLinkMutation">EditLinkMutation</a></code></h4>
 <ul class="">
-<li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData">EquipmentPortsQueryData</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.execute" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.execute">execute</a></code></li>
+<li><code><a title="pyinventory.graphql.edit_link_mutation.EditLinkMutation.EditLinkMutationData" href="#pyinventory.graphql.edit_link_mutation.EditLinkMutation.EditLinkMutationData">EditLinkMutationData</a></code></li>
+<li><code><a title="pyinventory.graphql.edit_link_mutation.EditLinkMutation.execute" href="#pyinventory.graphql.edit_link_mutation.EditLinkMutation.execute">execute</a></code></li>
 </ul>
 </li>
 </ul>

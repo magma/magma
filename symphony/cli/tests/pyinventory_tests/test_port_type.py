@@ -27,7 +27,7 @@ class TestEquipmentPortType(BaseTest):
                     property_name="port property",
                     property_kind=PropertyKind.string,
                     default_value="port property value",
-                    is_fixed=True,
+                    is_fixed=False,
                 )
             ],
             link_properties=[
@@ -35,7 +35,7 @@ class TestEquipmentPortType(BaseTest):
                     property_name="link port property",
                     property_kind=PropertyKind.string,
                     default_value="link port property value",
-                    is_fixed=True,
+                    is_fixed=False,
                 )
             ],
         )

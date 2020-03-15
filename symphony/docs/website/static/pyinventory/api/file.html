@@ -38,21 +38,28 @@
 <section class="desc"><p>This function adds file to an entity of a given type.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt>client (object):</dt>
-<dt>Client object</dt>
-<dt>local_file_path (str):</dt>
-<dt>local system path to the file</dt>
-<dt>entity_type (str):</dt>
-<dt>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dt>
-<dt>entity_id (string):</dt>
-<dt>valid entity ID</dt>
+<dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>local system path to the file</dd>
+<dt><strong><code>entity_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dd>
+<dt><strong><code>entity_id</code></strong> :&ensp;<code>string</code></dt>
+<dd>valid entity ID</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>Optional</code>[<code>string</code>]</dt>
 <dd>file category name </dd>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>None</code></dt>
-<dd>&nbsp;</dd>
 </dl>
-<p>Example:</p>
-<pre><code>client.add_file(client, './document.pdf', 'LOCATION', location.id, 'category_name')
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>on operation failure </dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
+client.add_file(
+    local_file_path='./document.pdf', 
+    entity_type='LOCATION', 
+    entity_id=location.id, 
+    category='category_name'
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.file.add_files"><code class="name flex">
@@ -62,61 +69,113 @@
 <section class="desc"><p>This function adds all files located in folder to an entity of a given type.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt>client (object):</dt>
-<dt>Client object</dt>
-<dt>local_file_path (str):</dt>
-<dt>local system path to the file</dt>
-<dt>entity_type (str):</dt>
-<dt>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dt>
-<dt>entity_id (string):</dt>
-<dt>valid entity ID</dt>
+<dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>local system path to the file</dd>
+<dt><strong><code>entity_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dd>
+<dt><strong><code>entity_id</code></strong> :&ensp;<code>string</code></dt>
+<dd>valid entity ID</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>Optional</code>[<code>string</code>]</dt>
 <dd>file category name</dd>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>None</code></dt>
-<dd>&nbsp;</dd>
 </dl>
-<p>Example:</p>
-<pre><code>client.add_files(client, './documents_folder/', 'LOCATION', location.id, 'category_name')
+<h2 id="example">Example</h2>
+<pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
+client.add_files(
+    local_directory_path='./documents_folder/', 
+    entity_type='LOCATION', 
+    entity_id=location.id, 
+    category='category_name')
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.file.add_location_image"><code class="name flex">
 <span>def <span class="ident">add_location_image</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, local_file_path: str, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function adds image to existing location.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing port name</dd>
+<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a></dt>
+<dd>existing location object</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>on operation failure </dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
+client.add_location_image(
+    local_file_path='./document.pdf',
+    location=location
+)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.file.add_site_survey_image"><code class="name flex">
 <span>def <span class="ident">add_site_survey_image</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, local_file_path: str, id: str) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function adds image to existing site survey.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing port name</dd>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>site survey ID</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>on operation failure </dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>client.add_site_survey_image(
+    local_file_path='./document.pdf',
+    id=&quot;123456&quot;
+)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.file.delete_document"><code class="name flex">
 <span>def <span class="ident">delete_document</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, document: <a title="pyinventory.consts.Document" href="../consts.html#pyinventory.consts.Document">Document</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.api.file.delete_file"><code class="name flex">
-<span>def <span class="ident">delete_file</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, key: str, is_global: bool) -> NoneType</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
+<section class="desc"><p>This function deletes existing document.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>document</code></strong> :&ensp;<a title="pyinventory.consts.Document" href="../consts.html#pyinventory.consts.Document"><code>Document</code></a></dt>
+<dd>document object</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>on operation failure </dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>client.delete_document(document=document)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.file.delete_site_survey_image"><code class="name flex">
 <span>def <span class="ident">delete_site_survey_image</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, survey: <a title="pyinventory.consts.SiteSurvey" href="../consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function deletes image from existing site survey.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>survey</code></strong> :&ensp;<a title="pyinventory.consts.SiteSurvey" href="../consts.html#pyinventory.consts.SiteSurvey"><code>SiteSurvey</code></a></dt>
+<dd>site survey object</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>on operation failure </dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>client.delete_site_survey_image(survey=survey)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.file.list_dir"><code class="name flex">
 <span>def <span class="ident">list_dir</span></span>(<span>directory_path: str) -> Generator[str, NoneType, NoneType]</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.api.file.store_file"><code class="name flex">
-<span>def <span class="ident">store_file</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, file_path: str, file_type: str, is_global: bool) -> str</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -144,10 +203,8 @@
 <li><code><a title="pyinventory.api.file.add_location_image" href="#pyinventory.api.file.add_location_image">add_location_image</a></code></li>
 <li><code><a title="pyinventory.api.file.add_site_survey_image" href="#pyinventory.api.file.add_site_survey_image">add_site_survey_image</a></code></li>
 <li><code><a title="pyinventory.api.file.delete_document" href="#pyinventory.api.file.delete_document">delete_document</a></code></li>
-<li><code><a title="pyinventory.api.file.delete_file" href="#pyinventory.api.file.delete_file">delete_file</a></code></li>
 <li><code><a title="pyinventory.api.file.delete_site_survey_image" href="#pyinventory.api.file.delete_site_survey_image">delete_site_survey_image</a></code></li>
 <li><code><a title="pyinventory.api.file.list_dir" href="#pyinventory.api.file.list_dir">list_dir</a></code></li>
-<li><code><a title="pyinventory.api.file.store_file" href="#pyinventory.api.file.store_file">store_file</a></code></li>
 </ul>
 </li>
 </ul>

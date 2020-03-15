@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from dataclasses import asdict
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, cast
 
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
@@ -510,7 +510,7 @@ def _get_equipment_type_and_properties_dict(
         property_types_with_id = [
             property_type
             for property_type in property_types
-            if property_type["id"] == property_type_id
+            if cast(str, property_type["id"]) == property_type_id
         ]
         assert (
             len(property_types_with_id) == 1
@@ -518,8 +518,10 @@ def _get_equipment_type_and_properties_dict(
             equipment_type, property_type_id
         )
         property_type = property_types_with_id[0]
-        property_value = _get_property_value(property_type["type"], asdict(property))
-        if property_type["type"] == "gps_location":
+        property_value = _get_property_value(
+            cast(str, property_type["type"]), asdict(property)
+        )
+        if cast(str, property_type["type"]) == "gps_location":
             properties_dict[property_type["name"]] = (
                 property_value[0],
                 property_value[1],
