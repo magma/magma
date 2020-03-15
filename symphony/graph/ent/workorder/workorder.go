@@ -40,6 +40,8 @@ const (
 	FieldAssignee = "assignee"
 	// FieldIndex holds the string denoting the index vertex property in the database.
 	FieldIndex = "index"
+	// FieldCloseDate holds the string denoting the close_date vertex property in the database.
+	FieldCloseDate = "close_date"
 
 	// Table holds the table name of the workorder in the database.
 	Table = "work_orders"
@@ -143,6 +145,7 @@ var Columns = []string{
 	FieldCreationDate,
 	FieldAssignee,
 	FieldIndex,
+	FieldCloseDate,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the WorkOrder type.

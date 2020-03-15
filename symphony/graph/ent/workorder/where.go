@@ -174,6 +174,13 @@ func Index(v int) predicate.WorkOrder {
 	})
 }
 
+// CloseDate applies equality check predicate on the "close_date" field. It's identical to CloseDateEQ.
+func CloseDate(v time.Time) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCloseDate), v))
+	})
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
@@ -1273,6 +1280,96 @@ func IndexIsNil() predicate.WorkOrder {
 func IndexNotNil() predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldIndex)))
+	})
+}
+
+// CloseDateEQ applies the EQ predicate on the "close_date" field.
+func CloseDateEQ(v time.Time) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCloseDate), v))
+	})
+}
+
+// CloseDateNEQ applies the NEQ predicate on the "close_date" field.
+func CloseDateNEQ(v time.Time) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCloseDate), v))
+	})
+}
+
+// CloseDateIn applies the In predicate on the "close_date" field.
+func CloseDateIn(vs ...time.Time) predicate.WorkOrder {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCloseDate), v...))
+	})
+}
+
+// CloseDateNotIn applies the NotIn predicate on the "close_date" field.
+func CloseDateNotIn(vs ...time.Time) predicate.WorkOrder {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCloseDate), v...))
+	})
+}
+
+// CloseDateGT applies the GT predicate on the "close_date" field.
+func CloseDateGT(v time.Time) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCloseDate), v))
+	})
+}
+
+// CloseDateGTE applies the GTE predicate on the "close_date" field.
+func CloseDateGTE(v time.Time) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCloseDate), v))
+	})
+}
+
+// CloseDateLT applies the LT predicate on the "close_date" field.
+func CloseDateLT(v time.Time) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCloseDate), v))
+	})
+}
+
+// CloseDateLTE applies the LTE predicate on the "close_date" field.
+func CloseDateLTE(v time.Time) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCloseDate), v))
+	})
+}
+
+// CloseDateIsNil applies the IsNil predicate on the "close_date" field.
+func CloseDateIsNil() predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldCloseDate)))
+	})
+}
+
+// CloseDateNotNil applies the NotNil predicate on the "close_date" field.
+func CloseDateNotNil() predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldCloseDate)))
 	})
 }
 

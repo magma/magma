@@ -43,6 +43,7 @@ type WorkOrderCreate struct {
 	creation_date         *time.Time
 	assignee              *string
 	index                 *int
+	close_date            *time.Time
 	_type                 map[int]struct{}
 	equipment             map[int]struct{}
 	links                 map[int]struct{}
@@ -183,6 +184,20 @@ func (woc *WorkOrderCreate) SetIndex(i int) *WorkOrderCreate {
 func (woc *WorkOrderCreate) SetNillableIndex(i *int) *WorkOrderCreate {
 	if i != nil {
 		woc.SetIndex(*i)
+	}
+	return woc
+}
+
+// SetCloseDate sets the close_date field.
+func (woc *WorkOrderCreate) SetCloseDate(t time.Time) *WorkOrderCreate {
+	woc.close_date = &t
+	return woc
+}
+
+// SetNillableCloseDate sets the close_date field if the given value is not nil.
+func (woc *WorkOrderCreate) SetNillableCloseDate(t *time.Time) *WorkOrderCreate {
+	if t != nil {
+		woc.SetCloseDate(*t)
 	}
 	return woc
 }
@@ -587,6 +602,14 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Column: workorder.FieldIndex,
 		})
 		wo.Index = *value
+	}
+	if value := woc.close_date; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workorder.FieldCloseDate,
+		})
+		wo.CloseDate = *value
 	}
 	if nodes := woc._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

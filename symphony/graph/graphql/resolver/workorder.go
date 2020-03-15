@@ -157,6 +157,9 @@ func (r mutationResolver) internalAddWorkOrder(
 		SetNillableIndex(input.Index)
 	if input.Status != nil {
 		mutation.SetStatus(input.Status.String())
+		if *input.Status == models.WorkOrderStatusDone {
+			mutation.SetCloseDate(time.Now())
+		}
 	}
 	if input.Priority != nil {
 		mutation.SetPriority(input.Priority.String())
@@ -221,6 +224,11 @@ func (r mutationResolver) EditWorkOrder(
 		SetNillableIndex(input.Index)
 	if input.OwnerName != nil {
 		mutation.SetOwnerName(*input.OwnerName)
+	}
+	if input.Status == models.WorkOrderStatusDone {
+		mutation.SetCloseDate(time.Now())
+	} else {
+		mutation.ClearCloseDate()
 	}
 	if input.InstallDate != nil {
 		mutation.SetInstallDate(*input.InstallDate)

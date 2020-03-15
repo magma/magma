@@ -46,6 +46,8 @@ type WorkOrder struct {
 	Assignee string `json:"assignee,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
+	// CloseDate holds the value of the "close_date" field.
+	CloseDate time.Time `json:"close_date,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderQuery when eager-loading is set.
 	Edges                 WorkOrderEdges `json:"edges"`
@@ -229,6 +231,7 @@ func (*WorkOrder) scanValues() []interface{} {
 		&sql.NullTime{},   // creation_date
 		&sql.NullString{}, // assignee
 		&sql.NullInt64{},  // index
+		&sql.NullTime{},   // close_date
 	}
 }
 
@@ -309,7 +312,12 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		wo.Index = int(value.Int64)
 	}
-	values = values[11:]
+	if value, ok := values[11].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field close_date", values[11])
+	} else if value.Valid {
+		wo.CloseDate = value.Time
+	}
+	values = values[12:]
 	if len(values) == len(workorder.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_work_orders", value)
@@ -444,6 +452,8 @@ func (wo *WorkOrder) String() string {
 	builder.WriteString(wo.Assignee)
 	builder.WriteString(", index=")
 	builder.WriteString(fmt.Sprintf("%v", wo.Index))
+	builder.WriteString(", close_date=")
+	builder.WriteString(wo.CloseDate.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

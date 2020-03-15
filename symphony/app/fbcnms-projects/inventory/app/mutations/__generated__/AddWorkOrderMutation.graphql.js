@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 7c90caee5746f98b2ad1b65ea1ca2203
+ * @relayHash b8190eb5434870b9e9be2ed4cd83cc0f
  */
 
 /* eslint-disable */
@@ -91,6 +91,7 @@ export type AddWorkOrderMutationResponse = {|
       +id: string,
       +name: string,
     |},
+    +closeDate: ?any,
   |}
 |};
 export type AddWorkOrderMutation = {|
@@ -125,6 +126,7 @@ mutation AddWorkOrderMutation(
       id
       name
     }
+    closeDate
   }
 }
 */
@@ -245,6 +247,13 @@ v4 = [
         "concreteType": "Project",
         "plural": false,
         "selections": (v3/*: any*/)
+      },
+      {
+        "kind": "ScalarField",
+        "alias": null,
+        "name": "closeDate",
+        "args": null,
+        "storageKey": null
       }
     ]
   }
@@ -269,7 +278,7 @@ return {
     "operationKind": "mutation",
     "name": "AddWorkOrderMutation",
     "id": null,
-    "text": "mutation AddWorkOrderMutation(\n  $input: AddWorkOrderInput!\n) {\n  addWorkOrder(input: $input) {\n    id\n    name\n    description\n    ownerName\n    creationDate\n    installDate\n    status\n    assignee\n    location {\n      id\n      name\n    }\n    workOrderType {\n      id\n      name\n    }\n    project {\n      id\n      name\n    }\n  }\n}\n",
+    "text": "mutation AddWorkOrderMutation(\n  $input: AddWorkOrderInput!\n) {\n  addWorkOrder(input: $input) {\n    id\n    name\n    description\n    ownerName\n    creationDate\n    installDate\n    status\n    assignee\n    location {\n      id\n      name\n    }\n    workOrderType {\n      id\n      name\n    }\n    project {\n      id\n      name\n    }\n    closeDate\n  }\n}\n",
     "metadata": {}
   }
 };
