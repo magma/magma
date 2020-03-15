@@ -35,6 +35,7 @@ import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '../../../../fbcnms-packages/fbcnms-ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {usePowerSearch} from './power_search/PowerSearchContext';
 import {withSnackbar} from 'notistack';
 
 const useStyles = makeStyles(() => ({
@@ -44,14 +45,14 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    margin: '0px 4px',
+    margin: '0px 4px 0px 8px',
     '&:hover:not($disabled)': {
       color: symphony.palette.B700,
     },
   },
   bookmarkButton: {
     color: symphony.palette.D500,
-    margin: '0px 4px',
+    margin: '0px 4px 0px 8px',
     '&:hover:not($disabled)': {
       color: symphony.palette.D900,
     },
@@ -69,18 +70,17 @@ const useStyles = makeStyles(() => ({
   },
 }));
 type Props = WithSnackbarProps & {
-  isBookmark: boolean,
   filters: FiltersQuery,
   entity: FilterEntity,
 };
 
 const FilterBookmark = (props: Props) => {
-  const {isBookmark} = props;
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [name, setName] = React.useState('');
   const [saving, setSaving] = React.useState(false);
-  const [bookmarked, setBookmarked] = React.useState(isBookmark);
+
+  const powerSearchContext = usePowerSearch();
 
   const handleClick = event => {
     setAnchorEl(event.currentTarget);
@@ -94,6 +94,7 @@ const FilterBookmark = (props: Props) => {
 
   const saveFilter = () => {
     saveFilterReport();
+    powerSearchContext.setBookmark(name);
     handleClose();
   };
 
@@ -126,6 +127,7 @@ const FilterBookmark = (props: Props) => {
       }
       return {
         filterType: f.name.toUpperCase(),
+        key: f.key,
         operator: toOperator(f.operator),
         stringValue: f.stringValue,
         idSet: f.idSet,
@@ -150,7 +152,6 @@ const FilterBookmark = (props: Props) => {
     const callbacks: MutationCallbacks<AddReportFilterMutationResponse> = {
       onCompleted: (response, errors) => {
         setSaving(false);
-        setBookmarked(true);
         if (errors && errors[0]) {
           props.enqueueSnackbar(errors[0].message, {
             children: key => (
@@ -178,7 +179,7 @@ const FilterBookmark = (props: Props) => {
   return (
     <>
       <Button variant="text" skin="gray">
-        {bookmarked ? (
+        {powerSearchContext.bookmarkName != null ? (
           <BookmarksIcon
             className={classes.filledBookmarkButton}
             color="inherit"

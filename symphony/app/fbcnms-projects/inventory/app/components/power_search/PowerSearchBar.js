@@ -13,6 +13,7 @@ import type {
   FilterConfig,
   FilterValue,
   FiltersQuery,
+  SavedSearchConfig,
 } from '../comparison_view/ComparisonViewTypes';
 
 import type {FilterEntity} from '../../mutations/__generated__/AddReportFilterMutation.graphql';
@@ -22,13 +23,16 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import CSVFileExport from '../CSVFileExport';
 import FilterBookmark from '../FilterBookmark';
 import FiltersTypeahead from '../comparison_view/FiltersTypeahead';
+import PowerSearchContext from './PowerSearchContext';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
-
 import update from 'immutability-helper';
-import {doesFilterHasValue} from '../comparison_view/FilterUtils';
+import {
+  configToFilterQuery,
+  doesFilterHasValue,
+} from '../comparison_view/FilterUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -83,6 +87,7 @@ type Props = {
   filterValues?: FiltersQuery,
   placeholder?: string,
   filterConfigs: Array<FilterConfig>,
+  savedSearches?: Array<SavedSearchConfig>,
   searchConfig: Array<EntityConfig>,
   header?: React.Node,
   footer?: ?string,
@@ -105,6 +110,7 @@ const PowerSearchBar = (props: Props) => {
     placeholder,
     searchConfig,
     filterConfigs,
+    savedSearches,
     onFiltersChanged,
     header,
     footer,
@@ -112,12 +118,16 @@ const PowerSearchBar = (props: Props) => {
   } = props;
   const [filterValues, setFilterValues] = useState(props.filterValues ?? []);
 
+  useEffect(() => {
+    setFilterValues(props.filterValues ?? []);
+  }, [props.filterValues]);
+
   const [editingFilterIndex, setEditingFilterIndex] = useState((null: ?number));
   const [isInputFocused, setIsInputFocused] = useState(false);
-  const [isBookmark, setIsBookmark] = useState(false);
+  const [bookmarkName, setBookmarkName] = useState<?string>(null);
 
   const onFilterValueChanged = (index: number, filterValue: FilterValue) => {
-    setIsBookmark(false);
+    setBookmarkName(null);
     setFilterValues([
       ...filterValues.slice(0, index),
       filterValue,
@@ -130,7 +140,7 @@ const PowerSearchBar = (props: Props) => {
     const newFilterValues = update(filterValues, {
       $splice: [[index, 1]],
     });
-    setIsBookmark(false);
+    setBookmarkName(null);
     setFilterValues(newFilterValues);
     onFiltersChanged(newFilterValues);
     setEditingFilterIndex(null);
@@ -149,7 +159,7 @@ const PowerSearchBar = (props: Props) => {
     const newFilterValues = update(filterValues, {
       [index]: {$set: filterValue},
     });
-    setIsBookmark(false);
+    setBookmarkName(null);
     setFilterValues(newFilterValues);
     onFiltersChanged(newFilterValues);
   };
@@ -158,85 +168,98 @@ const PowerSearchBar = (props: Props) => {
     'saved_searches',
   );
   return (
-    <div className={classNames(classes.root, props.className)}>
-      <div className={classes.headerContainer}>{header != null && header}</div>
-      <div className={classes.searchBarContainer}>
-        <div className={classes.searchTypeahead}>
-          {filterValues.length > 0 || isInputFocused ? null : (
-            <Text variant="body2" className={classes.placeholder}>
-              {placeholder}
-            </Text>
-          )}
-          {filterValues.map((filterValue, i) => {
-            const filterConfig = filterConfigs.find(
-              filter => filter.key === filterValue.key,
-            );
-            if (filterConfig == null) {
-              return null;
-            }
-            const FilterComponent = filterConfig.component;
-            return (
-              <div className={classes.filter} key={filterValue.id}>
-                <FilterComponent
-                  config={filterConfig}
-                  editMode={editingFilterIndex === i}
-                  value={filterValue}
-                  onInputBlurred={() => {
-                    return onFilterBlurred(i, filterValue);
-                  }}
-                  onNewInputBlurred={value => onFilterBlurred(i, value)}
-                  onValueChanged={value => onFilterValueChanged(i, value)}
-                  onRemoveFilter={() => removeFilter(i)}
-                />
-              </div>
-            );
-          })}
+    <PowerSearchContext.Provider
+      value={{bookmarkName: bookmarkName, setBookmark: setBookmarkName}}>
+      <div className={classNames(classes.root, props.className)}>
+        <div className={classes.headerContainer}>
+          {header != null && header}
         </div>
-        <div className={classes.typeahead}>
-          <FiltersTypeahead
-            ref={filtersTypeaheadRef}
-            options={filterConfigs}
-            searchConfig={searchConfig}
-            selectedFilters={filterValues.map(filter => filter.name)}
-            onFilterSelected={filterOption => {
+        <div className={classes.searchBarContainer}>
+          <div className={classes.searchTypeahead}>
+            {filterValues.length > 0 || isInputFocused ? null : (
+              <Text variant="body2" className={classes.placeholder}>
+                {placeholder}
+              </Text>
+            )}
+            {filterValues.map((filterValue, i) => {
               const filterConfig = filterConfigs.find(
-                filter => filter.key === filterOption.key,
+                filter => filter.key === filterValue.key,
               );
-              if (filterConfig == null) {
+              if (filterConfig == null || filterConfig.component == null) {
                 return null;
               }
-              setIsInputFocused(false);
-              setEditingFilterIndex(filterValues.length);
-              setFilterValues([
-                ...filterValues,
-                props.getSelectedFilter(filterConfig),
-              ]);
-            }}
-            onInputFocused={() => setIsInputFocused(true)}
-            onInputBlurred={() => setIsInputFocused(false)}
-          />
+              const FilterComponent = filterConfig.component;
+              return (
+                <div className={classes.filter} key={filterValue.id}>
+                  <FilterComponent
+                    config={filterConfig}
+                    editMode={editingFilterIndex === i}
+                    value={filterValue}
+                    onInputBlurred={() => {
+                      return onFilterBlurred(i, filterValue);
+                    }}
+                    onNewInputBlurred={value => onFilterBlurred(i, value)}
+                    onValueChanged={value => onFilterValueChanged(i, value)}
+                    onRemoveFilter={() => removeFilter(i)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <div className={classes.typeahead}>
+            <FiltersTypeahead
+              ref={filtersTypeaheadRef}
+              options={filterConfigs}
+              searchConfig={searchConfig}
+              savedSearches={savedSearches ?? []}
+              selectedFilters={filterValues.map(filter => filter.name)}
+              onFilterSelected={({option, optionType}) => {
+                if (optionType == 'SAVED_SEARCH') {
+                  const searchConfig = savedSearches?.find(
+                    filter => filter.key === option.key,
+                  );
+                  if (searchConfig == null) {
+                    return null;
+                  }
+                  setBookmarkName(searchConfig.label);
+                  onFiltersChanged(configToFilterQuery(searchConfig));
+                } else {
+                  const filterConfig = filterConfigs.find(
+                    filter => filter.key === option.key,
+                  );
+                  if (filterConfig == null) {
+                    return null;
+                  }
+                  setEditingFilterIndex(filterValues.length);
+                  setFilterValues([
+                    ...filterValues,
+                    props.getSelectedFilter(filterConfig),
+                  ]);
+                }
+                setIsInputFocused(false);
+              }}
+              onInputFocused={() => setIsInputFocused(true)}
+              onInputBlurred={() => setIsInputFocused(false)}
+            />
+          </div>
+          {footer != null && (
+            <Text variant="body2" className={classes.footer}>
+              {footer}
+            </Text>
+          )}
+          {savedSearch && entity && (
+            <FilterBookmark filters={filterValues} entity={entity} />
+          )}
+          {exportPath && (
+            <CSVFileExport
+              title="Export"
+              exportPath={exportPath}
+              filters={filterValues}
+            />
+          )}
         </div>
-        {footer != null && (
-          <Text variant="body2" className={classes.footer}>
-            {footer}
-          </Text>
-        )}
-        {savedSearch && entity && (
-          <FilterBookmark
-            isBookmark={isBookmark}
-            filters={filterValues}
-            entity={entity}
-          />
-        )}
-        {exportPath && (
-          <CSVFileExport
-            title="Export"
-            exportPath={exportPath}
-            filters={filterValues}
-          />
-        )}
       </div>
-    </div>
+    </PowerSearchContext.Provider>
   );
 };
 

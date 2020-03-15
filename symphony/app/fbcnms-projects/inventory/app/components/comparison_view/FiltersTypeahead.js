@@ -8,23 +8,28 @@
  * @format
  */
 
-import type {EntityConfig, FilterConfig} from './ComparisonViewTypes';
+import type {
+  EntityConfig,
+  FilterConfig,
+  SavedSearchConfig,
+} from './ComparisonViewTypes';
 
+import * as React from 'react';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import React, {
+import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
+import nullthrows from '@fbcnms/util/nullthrows';
+import {makeStyles} from '@material-ui/styles';
+import {
   useCallback,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import classNames from 'classnames';
-import {groupBy} from 'lodash';
-import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -122,12 +127,23 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+type SelectableOption =
+  | {
+      option: FilterConfig,
+      optionType: 'FILTER',
+    }
+  | {
+      option: SavedSearchConfig,
+      optionType: 'SAVED_SEARCH',
+    };
+
 type Props = {|
   options: Array<FilterConfig>,
   searchConfig: Array<EntityConfig>,
+  savedSearches: Array<SavedSearchConfig>,
   onInputBlurred: () => void,
   onInputFocused: () => void,
-  onFilterSelected: (option: FilterConfig) => void,
+  onFilterSelected: SelectableOption => void,
 |};
 
 const KEYBOARD_ENTER_KEY_CODE = 13;
@@ -144,6 +160,7 @@ const FiltersTyepahead = React.forwardRef((props: Props, ref) => {
     onInputBlurred,
     options,
     searchConfig,
+    savedSearches,
   } = props;
   const inputRef = useRef();
   const menuRef = useRef();
@@ -174,23 +191,20 @@ const FiltersTyepahead = React.forwardRef((props: Props, ref) => {
     [entityResultExists, searchConfig],
   );
 
-  const filteredOptions: Array<FilterConfig> = useMemo(
-    () =>
-      Object.values(groupBy(options, option => option.entityType))
-        .flat()
-        // $FlowFixMe groupBy -> flat will yield the same type
-        .filter(filterMatchesInput),
-    [options, filterMatchesInput],
+  const optionKeys = useMemo(
+    () => [...options.map(f => f.key), ...savedSearches.map(s => s.key)],
+    [options, savedSearches],
   );
+
   const hoveredFilterKey =
-    !filteredOptions || filteredOptions.length === 0
+    !optionKeys || optionKeys.length === 0
       ? null
-      : filteredOptions[hoveredFilterIndex].key;
+      : optionKeys[hoveredFilterIndex];
 
   const selectFilter = useCallback(
-    filter => {
+    optionObj => {
       setInputValue('');
-      onFilterSelected(filter);
+      onFilterSelected(optionObj);
       toggleMenu(false);
     },
     [onFilterSelected],
@@ -198,11 +212,110 @@ const FiltersTyepahead = React.forwardRef((props: Props, ref) => {
 
   const onFilterHovered = useCallback(
     filter =>
-      setHoveredFilterIndex(
-        filteredOptions.findIndex(f => filter.key === f.key),
-      ),
-    [filteredOptions],
+      setHoveredFilterIndex(optionKeys.findIndex(k => filter.key === k)),
+    [optionKeys],
   );
+
+  const findOptionConfigByKey = (key: string): SelectableOption => {
+    let conf = savedSearches.find(f => f.key == key);
+    if (conf != null) {
+      return {
+        option: nullthrows(conf),
+        optionType: 'SAVED_SEARCH',
+      };
+    }
+    conf = options.find(f => f.key == key);
+    if (conf != null) {
+      return {
+        option: nullthrows(conf),
+        optionType: 'FILTER',
+      };
+    }
+    throw new Error(`key not found`);
+  };
+
+  const expansionRowForSavedSearch = (
+    savedSearches: Array<SavedSearchConfig>,
+  ): React.Node => {
+    if (savedSearches.length === 0) {
+      return null;
+    }
+    return (
+      <ExpansionPanelDetails classes={{root: classes.expansionDetails}}>
+        <div className={classes.entityFiltersList}>
+          {savedSearches.map(savedSearch => (
+            <div
+              key={`${savedSearch.id}`}
+              className={classNames({
+                [classes.filterMenuItem]: true,
+                [classes.selectedFilterItem]:
+                  hoveredFilterKey === savedSearch.key,
+              })}
+              onMouseDown={e => e.preventDefault()}
+              onMouseOver={() => onFilterHovered(savedSearch)}
+              onClick={() =>
+                selectFilter({option: savedSearch, optionType: 'SAVED_SEARCH'})
+              }>
+              <Text className={classes.filterMenuItemText}>
+                {savedSearch.label}
+              </Text>
+            </div>
+          ))}
+        </div>
+      </ExpansionPanelDetails>
+    );
+  };
+  const expansionRowForFilterConfig = (entity: EntityConfig): React.Node => {
+    if (!entityResultExists(entity.type)) {
+      return null;
+    }
+    const entityOptions = options.filter(
+      filter => filter.entityType === entity.type,
+    );
+    return (
+      <ExpansionPanelDetails classes={{root: classes.expansionDetails}}>
+        <div className={classes.entityFiltersList}>
+          {entityOptions.map(filter =>
+            filterMatchesInput(filter) ? (
+              <div
+                key={`${filter.key}-${filter.name}`}
+                className={classNames({
+                  [classes.filterMenuItem]: true,
+                  [classes.selectedFilterItem]: hoveredFilterKey === filter.key,
+                })}
+                onMouseDown={e => e.preventDefault()}
+                onMouseOver={() => onFilterHovered(filter)}
+                onClick={() =>
+                  selectFilter({option: filter, optionType: 'FILTER'})
+                }>
+                <Text className={classes.filterMenuItemText}>
+                  {filter.label}
+                </Text>
+              </div>
+            ) : null,
+          )}
+        </div>
+      </ExpansionPanelDetails>
+    );
+  };
+
+  const searchConfigExpansionPanels = searchConfig.map(entity => {
+    return {
+      label: entity.label,
+      options: expansionRowForFilterConfig(entity),
+    };
+  });
+
+  const labelToExpansionPanelDetails: Array<{
+    label: string,
+    options: React.Node,
+  }> = [
+    {
+      label: 'Saved Searches',
+      options: expansionRowForSavedSearch(savedSearches),
+    },
+    ...searchConfigExpansionPanels,
+  ];
 
   return (
     <div
@@ -226,17 +339,19 @@ const FiltersTyepahead = React.forwardRef((props: Props, ref) => {
             case KEYBOARD_UP_KEY_CODE:
               setHoveredFilterIndex(
                 hoveredFilterIndex === 0
-                  ? filteredOptions.length - 1
+                  ? optionKeys.length - 1
                   : hoveredFilterIndex - 1,
               );
               break;
             case KEYBOARD_DOWN_KEY_CODE:
               setHoveredFilterIndex(
-                (hoveredFilterIndex + 1) % filteredOptions.length,
+                (hoveredFilterIndex + 1) % optionKeys.length,
               );
               break;
             case KEYBOARD_ENTER_KEY_CODE:
-              selectFilter(filteredOptions[hoveredFilterIndex]);
+              selectFilter(
+                findOptionConfigByKey(optionKeys[hoveredFilterIndex]),
+              );
               break;
             default:
               return;
@@ -270,17 +385,13 @@ const FiltersTyepahead = React.forwardRef((props: Props, ref) => {
           {!anyResultExists ? (
             <Text className={classes.noMatchesText}>No matches</Text>
           ) : null}
-          {searchConfig.map(entity => {
-            if (!entityResultExists(entity.type)) {
+          {labelToExpansionPanelDetails.map(entity => {
+            if (entity.options == null) {
               return null;
             }
-
-            const entityOptions = options.filter(
-              filter => filter.entityType === entity.type,
-            );
             return (
               <ExpansionPanel
-                key={`${entity.type}-${entity.label}`}
+                key={entity.label}
                 classes={{
                   root: classes.expansionPanelRoot,
                   expanded: classes.expansionPanel,
@@ -298,29 +409,7 @@ const FiltersTyepahead = React.forwardRef((props: Props, ref) => {
                     <ChevronRightIcon className={classes.arrowRightIcon} />
                   </div>
                 </ExpansionPanelSummary>
-                <ExpansionPanelDetails
-                  classes={{root: classes.expansionDetails}}>
-                  <div className={classes.entityFiltersList}>
-                    {entityOptions.map(filter =>
-                      filterMatchesInput(filter) ? (
-                        <div
-                          key={`${filter.key}-${filter.name}`}
-                          className={classNames({
-                            [classes.filterMenuItem]: true,
-                            [classes.selectedFilterItem]:
-                              hoveredFilterKey === filter.key,
-                          })}
-                          onMouseDown={e => e.preventDefault()}
-                          onMouseOver={() => onFilterHovered(filter)}
-                          onClick={() => selectFilter(filter)}>
-                          <Text className={classes.filterMenuItemText}>
-                            {filter.label}
-                          </Text>
-                        </div>
-                      ) : null,
-                    )}
-                  </div>
-                </ExpansionPanelDetails>
+                {entity.options}
               </ExpansionPanel>
             );
           })}

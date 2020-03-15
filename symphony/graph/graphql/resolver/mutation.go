@@ -2901,6 +2901,7 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 
 func validateFilterTypeEntity(input models.ReportFilterInput) error {
 	var validator interface{ IsValid() bool }
+	var msg error
 	for _, f := range input.Filters {
 		switch input.Entity {
 		case models.FilterEntityEquipment:
@@ -2917,7 +2918,13 @@ func validateFilterTypeEntity(input models.ReportFilterInput) error {
 			validator = models.WorkOrderFilterType(f.FilterType)
 		}
 		if validator == nil || !validator.IsValid() {
-			return fmt.Errorf("entity %q and filter type %q does not match", input.Entity, f.FilterType)
+			msg = fmt.Errorf("entity %q and filter type %q does not match", input.Entity, f.FilterType)
+		}
+		if f.Key == "" {
+			msg = fmt.Errorf("filter key was not provided for %s", input.Entity)
+		}
+		if msg != nil {
+			return msg
 		}
 	}
 	return nil

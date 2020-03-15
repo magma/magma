@@ -399,6 +399,7 @@ type FileInput struct {
 
 type GeneralFilter struct {
 	FilterType    string            `json:"filterType"`
+	Key           string            `json:"key"`
 	Operator      FilterOperator    `json:"operator"`
 	StringValue   *string           `json:"stringValue"`
 	IDSet         []int             `json:"idSet"`
@@ -409,6 +410,7 @@ type GeneralFilter struct {
 
 type GeneralFilterInput struct {
 	FilterType    string             `json:"filterType"`
+	Key           string             `json:"key"`
 	Operator      FilterOperator     `json:"operator"`
 	StringValue   *string            `json:"stringValue"`
 	IDSet         []int              `json:"idSet"`
