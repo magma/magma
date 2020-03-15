@@ -10,28 +10,21 @@
 
 import type {AddImageMutationResponse} from '../../mutations/__generated__/AddImageMutation.graphql';
 import type {AddImageMutationVariables} from '../../mutations/__generated__/AddImageMutation.graphql';
-import type {AppContextType} from '@fbcnms/ui/context/AppContext';
-import type {
-  CheckListCategoryExpandingPanel_list,
-  CheckListTable_list,
-  WorkOrderDetails_workOrder,
-} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
+import type {ChecklistCategoriesMutateStateActionType} from '../checklist/ChecklistCategoriesMutateAction';
+import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
 import type {ContextRouter} from 'react-router-dom';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
-import type {Property} from '../../common/Property';
-import type {Theme, WithStyles} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithSnackbarProps} from 'notistack';
+import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 
 import AddHyperlinkButton from '../AddHyperlinkButton';
 import AddImageMutation from '../../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
-import CheckListTable from '../checklist/CheckListTable';
+import ChecklistCategoriesMutateDispatchContext from '../checklist/ChecklistCategoriesMutateDispatchContext';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import CommentsBox from '../comments/CommentsBox';
-import EditToggleButton from '@fbcnms/ui/components/design-system/toggles/EditToggleButton/EditToggleButton';
 import EntityDocumentsTable from '../EntityDocumentsTable';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FileUpload from '../FileUpload';
@@ -47,9 +40,8 @@ import LocationTypeahead from '../typeahead/LocationTypeahead';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import ProjectTypeahead from '../typeahead/ProjectTypeahead';
 import PropertyValueInput from '../form/PropertyValueInput';
-import React from 'react';
+import React, {useContext, useReducer, useState} from 'react';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
-import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Strings from '../../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
@@ -57,43 +49,33 @@ import UserTypeahead from '../typeahead/UserTypeahead';
 import WorkOrderDetailsPane from './WorkOrderDetailsPane';
 import WorkOrderHeader from './WorkOrderHeader';
 import fbt from 'fbt';
-import update from 'immutability-helper';
+import symphony from '@fbcnms/ui/theme/symphony';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {doneStatus, priorityValues, statusValues} from '../../common/WorkOrder';
 import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
+import {
+  getInitialState,
+  reducer,
+} from '../checklist/ChecklistCategoriesMutateReducer';
+import {makeStyles} from '@material-ui/styles';
 import {sortPropertiesByIndex} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
-import {withSnackbar} from 'notistack';
-import {withStyles} from '@material-ui/core/styles';
-
-type State = {
-  workOrder: WorkOrderDetails_workOrder,
-  checklist: CheckListTable_list,
-  checkListCategories: CheckListCategoryExpandingPanel_list,
-  properties: Array<Property>,
-  locationId: ?string,
-  isLoadingDocument: boolean,
-  showChecklistDesignMode: boolean,
-};
 
 type Props = {
   workOrder: WorkOrderDetails_workOrder,
-  onWorkOrderExecuted: () => void,
-  onDocumentUploaded: () => void,
   onWorkOrderRemoved: () => void,
   onCancelClicked: () => void,
-} & WithAlert &
-  WithStyles<typeof styles> &
-  WithSnackbarProps &
-  ContextRouter;
+  ...WithAlert,
+  ...ContextRouter,
+};
 
 const FileTypeEnum = {
   IMAGE: 'IMAGE',
   FILE: 'FILE',
 };
 
-const styles = (theme: Theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -116,7 +98,7 @@ const styles = (theme: Theme) => ({
     flexDirection: 'column',
   },
   separator: {
-    borderBottom: `1px solid ${theme.palette.grey[100]}`,
+    borderBottom: `1px solid ${symphony.palette.D50}`,
     margin: '0 0 16px -24px',
     paddingBottom: '24px',
     width: 'calc(100% + 48px)',
@@ -128,7 +110,7 @@ const styles = (theme: Theme) => ({
   },
   uploadButton: {
     cursor: 'pointer',
-    fill: theme.palette.primary.main,
+    fill: symphony.palette.primary,
   },
   minimizedButton: {
     minWidth: 'unset',
@@ -157,412 +139,32 @@ const styles = (theme: Theme) => ({
   map: {
     minHeight: '232px',
   },
-});
+}));
 
-class WorkOrderDetails extends React.Component<Props, State> {
-  state = {
-    workOrder: this.props.workOrder,
-    properties: this.getEditingProperties(),
-    checklist: this.props.workOrder.checkList,
-    checkListCategories: this.props.workOrder.checkListCategories,
-    locationId: this.props.workOrder.location?.id,
-    isLoadingDocument: false,
-    showChecklistDesignMode: false,
-  };
-
-  getEditingProperties(): Array<Property> {
+const WorkOrderDetails = ({
+  workOrder: propsWorkOrder,
+  onWorkOrderRemoved,
+  onCancelClicked,
+  confirm,
+}: Props) => {
+  const classes = useStyles();
+  const [workOrder, setWorkOrder] = useState(propsWorkOrder);
+  const [properties, setProperties] = useState(
     // eslint-disable-next-line flowtype/no-weak-types
-    return ([...this.props.workOrder.properties]: any).sort(
-      sortPropertiesByIndex,
-    );
-  }
+    ([...propsWorkOrder.properties]: any).sort(sortPropertiesByIndex),
+  );
+  const [locationId, setLocationId] = useState(propsWorkOrder.location?.id);
+  const [isLoadingDocument, setIsLoadingDocument] = useState(false);
+  const {user, isFeatureEnabled} = useContext(AppContext);
 
-  static contextType = AppContext;
-  context: AppContextType;
+  const [editingCategories, dispatch] = useReducer<
+    ChecklistCategoriesStateType,
+    ChecklistCategoriesMutateStateActionType,
+    $ElementType<WorkOrderDetails_workOrder, 'checkListCategories'>,
+  >(reducer, propsWorkOrder.checkListCategories, getInitialState);
 
-  render() {
-    const {classes, onWorkOrderRemoved, onCancelClicked} = this.props;
-    const {
-      workOrder,
-      properties,
-      checklist,
-      checkListCategories,
-      locationId,
-      showChecklistDesignMode,
-    } = this.state;
-    const {location} = workOrder;
-    const actionsEnabled = this.context.isFeatureEnabled('planned_equipment');
-    return (
-      <div className={classes.root}>
-        <FormValidationContextProvider>
-          <WorkOrderHeader
-            workOrderName={this.props.workOrder.name}
-            workOrder={workOrder}
-            properties={properties}
-            checklist={checklist}
-            checkListCategories={checkListCategories}
-            locationId={locationId}
-            onWorkOrderRemoved={onWorkOrderRemoved}
-            onCancelClicked={onCancelClicked}
-          />
-          <AppContext.Consumer>
-            {({user}) => (
-              <FormValidationContext.Consumer>
-                {validationContext => {
-                  const noOwnerError = validationContext.error.check({
-                    fieldId: 'Owner',
-                    fieldDisplayName: 'Owner',
-                    value: workOrder.ownerName,
-                    required: true,
-                  });
-                  validationContext.editLock.check({
-                    fieldId: 'status',
-                    fieldDisplayName: 'Status',
-                    value: this.props.workOrder.status,
-                    checkCallback: value =>
-                      value === doneStatus.value
-                        ? `Work order is on '${doneStatus.label}' state`
-                        : '',
-                  });
-                  validationContext.editLock.check({
-                    fieldId: 'OwnerRule',
-                    fieldDisplayName: 'Owner rule',
-                    value: {user, workOrder: this.props.workOrder},
-                    checkCallback: checkData =>
-                      checkData?.user.isSuperUser ||
-                      checkData?.user.email ===
-                        checkData?.workOrder.ownerName ||
-                      checkData?.user.email === checkData?.workOrder.assignee
-                        ? ''
-                        : 'User is not allowed to edit this work order',
-                  });
-                  const nonOwnerAssignee = validationContext.editLock.check({
-                    fieldId: 'NonOwnerAssigneeRule',
-                    fieldDisplayName: 'Non Owner assignee rule',
-                    value: {user, workOrder: this.props.workOrder},
-                    checkCallback: checkData =>
-                      checkData?.user.email !==
-                        checkData?.workOrder.ownerName &&
-                      checkData?.user.email === checkData?.workOrder.assignee
-                        ? 'Assignee is not allowed to change owner'
-                        : '',
-                    notAggregated: true,
-                  });
-                  return (
-                    <div className={classes.cards}>
-                      <Grid container spacing={2}>
-                        <Grid item xs={8} sm={8} lg={8} xl={8}>
-                          <ExpandingPanel title="Details">
-                            <NameDescriptionSection
-                              name={workOrder.name}
-                              description={workOrder.description}
-                              onNameChange={value =>
-                                this._setWorkOrderDetail('name', value)
-                              }
-                              onDescriptionChange={value =>
-                                this._setWorkOrderDetail('description', value)
-                              }
-                            />
-                            <Grid
-                              container
-                              spacing={2}
-                              className={classes.propertiesGrid}>
-                              <Grid item xs={12} sm={6} lg={4} xl={4}>
-                                <FormField label="Project">
-                                  <ProjectTypeahead
-                                    className={classes.gridInput}
-                                    selectedProject={
-                                      workOrder.project
-                                        ? {
-                                            id: workOrder.project.id,
-                                            name: workOrder.project.name,
-                                          }
-                                        : null
-                                    }
-                                    margin="dense"
-                                    onProjectSelection={project =>
-                                      this._setWorkOrderDetail(
-                                        'project',
-                                        project,
-                                      )
-                                    }
-                                  />
-                                </FormField>
-                              </Grid>
-                              <Grid item xs={12} sm={6} lg={4} xl={4}>
-                                <FormField label="Priority">
-                                  <Select
-                                    options={priorityValues}
-                                    selectedValue={workOrder.priority}
-                                    onChange={value =>
-                                      this._setWorkOrderDetail(
-                                        'priority',
-                                        value,
-                                      )
-                                    }
-                                  />
-                                </FormField>
-                              </Grid>
-                              <Grid item xs={12} sm={6} lg={4} xl={4}>
-                                <FormField
-                                  label="Status"
-                                  disabled={validationContext.error.detected}>
-                                  <Select
-                                    options={statusValues}
-                                    selectedValue={workOrder.status}
-                                    onChange={value =>
-                                      this.setWorkOrderStatus(value)
-                                    }
-                                  />
-                                </FormField>
-                              </Grid>
-                              <Grid item xs={12} sm={6} lg={4} xl={4}>
-                                <FormField label="Created On">
-                                  <TextInput
-                                    type="date"
-                                    className={classes.gridInput}
-                                    value={formatDateForTextInput(
-                                      workOrder.creationDate,
-                                    )}
-                                  />
-                                </FormField>
-                              </Grid>
-                              <Grid item xs={12} sm={6} lg={4} xl={4}>
-                                <FormField label="Due Date">
-                                  <TextInput
-                                    type="date"
-                                    className={classes.gridInput}
-                                    value={formatDateForTextInput(
-                                      workOrder.installDate,
-                                    )}
-                                    onChange={event => {
-                                      const value =
-                                        event.target.value != ''
-                                          ? new Date(
-                                              event.target.value,
-                                            ).toISOString()
-                                          : '';
-                                      this._setWorkOrderDetail(
-                                        'installDate',
-                                        value,
-                                      );
-                                    }}
-                                  />
-                                </FormField>
-                              </Grid>
-                              <Grid item xs={12} sm={6} lg={4} xl={4}>
-                                <FormField label="Location">
-                                  <LocationTypeahead
-                                    headline={null}
-                                    className={classes.gridInput}
-                                    margin="dense"
-                                    selectedLocation={
-                                      location
-                                        ? {
-                                            id: location.id,
-                                            name: location.name,
-                                          }
-                                        : null
-                                    }
-                                    onLocationSelection={location =>
-                                      this._locationChangedHandler(
-                                        location?.id ?? null,
-                                      )
-                                    }
-                                  />
-                                </FormField>
-                              </Grid>
-                              {properties.map((property, index) => (
-                                <Grid
-                                  key={property.id}
-                                  item
-                                  xs={12}
-                                  sm={6}
-                                  lg={4}
-                                  xl={4}>
-                                  <PropertyValueInput
-                                    required={
-                                      !!property.propertyType.isMandatory
-                                    }
-                                    disabled={
-                                      !property.propertyType.isInstanceProperty
-                                    }
-                                    label={property.propertyType.name}
-                                    className={classes.gridInput}
-                                    margin="dense"
-                                    inputType="Property"
-                                    property={property}
-                                    onChange={this._propertyChangedHandler(
-                                      index,
-                                    )}
-                                    headlineVariant="form"
-                                    fullWidth={true}
-                                  />
-                                </Grid>
-                              ))}
-                            </Grid>
-                            <>
-                              {location && (
-                                <>
-                                  <div className={classes.separator} />
-                                  <Text weight="regular" variant="subtitle2">
-                                    Location
-                                  </Text>
-                                  <LocationBreadcrumbsTitle
-                                    locationDetails={location}
-                                    size="small"
-                                  />
-                                  <Grid container spacing={2}>
-                                    <Grid item xs={12} md={12}>
-                                      <LocationMapSnippet
-                                        className={classes.map}
-                                        location={{
-                                          id: location.id,
-                                          name: location.name,
-                                          latitude: location.latitude,
-                                          longitude: location.longitude,
-                                          locationType: {
-                                            mapType:
-                                              location.locationType.mapType,
-                                            mapZoomLevel: (
-                                              location.locationType
-                                                .mapZoomLevel || 8
-                                            ).toString(),
-                                          },
-                                        }}
-                                      />
-                                    </Grid>
-                                  </Grid>
-                                </>
-                              )}
-                            </>
-                          </ExpandingPanel>
-                          {actionsEnabled && (
-                            <ExpandingPanel title="Actions">
-                              <WorkOrderDetailsPane workOrder={workOrder} />
-                            </ExpandingPanel>
-                          )}
-                          <ExpandingPanel
-                            title="Attachments"
-                            rightContent={
-                              <div className={classes.uploadButtonContainer}>
-                                <AddHyperlinkButton
-                                  className={classes.minimizedButton}
-                                  skin="regular"
-                                  entityType="WORK_ORDER"
-                                  allowCategories={false}
-                                  entityId={workOrder.id}>
-                                  <InsertLinkIcon color="primary" />
-                                </AddHyperlinkButton>
-                                {this.state.isLoadingDocument ? (
-                                  <CircularProgress size={24} />
-                                ) : (
-                                  <FileUpload
-                                    className={classes.minimizedButton}
-                                    button={
-                                      <CloudUploadOutlinedIcon
-                                        className={classes.uploadButton}
-                                      />
-                                    }
-                                    onFileUploaded={this.onDocumentUploaded}
-                                    onProgress={() =>
-                                      this.setState({isLoadingDocument: true})
-                                    }
-                                  />
-                                )}
-                              </div>
-                            }>
-                            <EntityDocumentsTable
-                              entityType="WORK_ORDER"
-                              entityId={workOrder.id}
-                              files={[
-                                ...this.props.workOrder.files,
-                                ...this.props.workOrder.images,
-                              ]}
-                              hyperlinks={this.props.workOrder.hyperlinks}
-                            />
-                          </ExpandingPanel>
-                          <ExpandingPanel
-                            title={fbt('Checklist', 'Checklist section header')}
-                            rightContent={
-                              <EditToggleButton
-                                isOnEdit={showChecklistDesignMode}
-                                onChange={newToggleValue =>
-                                  this.setState({
-                                    showChecklistDesignMode: newToggleValue,
-                                  })
-                                }
-                              />
-                            }>
-                            <CheckListTable
-                              list={checklist}
-                              onChecklistChanged={this._checklistChangedHandler}
-                              onDesignMode={this.state.showChecklistDesignMode}
-                            />
-                          </ExpandingPanel>
-                          <CheckListCategoryExpandingPanel
-                            list={checkListCategories}
-                            onListChanged={
-                              this._checkListCategoryChangedHandler
-                            }
-                          />
-                        </Grid>
-                        <Grid item xs={4} sm={4} lg={4} xl={4}>
-                          <ExpandingPanel title="Team" className={classes.card}>
-                            <FormField
-                              className={classes.input}
-                              label="Owner"
-                              required={true}
-                              hasError={!!noOwnerError}
-                              errorText={noOwnerError}
-                              disabled={!!nonOwnerAssignee}>
-                              <UserTypeahead
-                                selectedUser={workOrder.ownerName}
-                                onUserSelection={user =>
-                                  this._setWorkOrderDetail('ownerName', user)
-                                }
-                                margin="dense"
-                              />
-                            </FormField>
-                            <FormField
-                              label="Assignee"
-                              className={classes.input}>
-                              <UserTypeahead
-                                selectedUser={workOrder.assignee}
-                                onUserSelection={user =>
-                                  this._setWorkOrderDetail('assignee', user)
-                                }
-                                margin="dense"
-                              />
-                            </FormField>
-                          </ExpandingPanel>
-                          <ExpandingPanel
-                            title="Comments"
-                            detailsPaneClass={classes.commentsBoxContainer}
-                            className={classes.card}>
-                            <CommentsBox
-                              boxElementsClass={classes.inExpandingPanelFix}
-                              commentsLogClass={classes.commentsLog}
-                              relatedEntityId={this.props.workOrder.id}
-                              relatedEntityType="WORK_ORDER"
-                              comments={this.props.workOrder.comments}
-                            />
-                          </ExpandingPanel>
-                        </Grid>
-                      </Grid>
-                    </div>
-                  );
-                }}
-              </FormValidationContext.Consumer>
-            )}
-          </AppContext.Consumer>
-        </FormValidationContextProvider>
-      </div>
-    );
-  }
-
-  onDocumentUploaded = (file, key) => {
-    const workOrderId = this.props.workOrder.id;
+  const onDocumentUploaded = (file, key) => {
+    const workOrderId = propsWorkOrder.id;
     const variables: AddImageMutationVariables = {
       input: {
         entityType: 'WORK_ORDER',
@@ -576,24 +178,28 @@ class WorkOrderDetails extends React.Component<Props, State> {
     };
 
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addImage');
       const fileType = newNode.getValue('fileType');
 
+      // $FlowFixMe (T62907961) Relay flow types
       const workOrderProxy = store.get(workOrderId);
       if (fileType === FileTypeEnum.IMAGE) {
+        // $FlowFixMe (T62907961) Relay flow types
         const imageNodes = workOrderProxy.getLinkedRecords('images') || [];
+        // $FlowFixMe (T62907961) Relay flow types
         workOrderProxy.setLinkedRecords([...imageNodes, newNode], 'images');
       } else {
+        // $FlowFixMe (T62907961) Relay flow types
         const fileNodes = workOrderProxy.getLinkedRecords('files') || [];
+        // $FlowFixMe (T62907961) Relay flow types
         workOrderProxy.setLinkedRecords([...fileNodes, newNode], 'files');
       }
     };
 
     const callbacks: MutationCallbacks<AddImageMutationResponse> = {
       onCompleted: () => {
-        this.setState({
-          isLoadingDocument: false,
-        });
+        setIsLoadingDocument(false);
       },
       onError: () => {},
     };
@@ -601,8 +207,8 @@ class WorkOrderDetails extends React.Component<Props, State> {
     AddImageMutation(variables, callbacks, updater);
   };
 
-  setWorkOrderStatus = value => {
-    if (!value || value == this.state.workOrder.status) {
+  const setWorkOrderStatus = value => {
+    if (!value || value == workOrder.status) {
       return;
     }
 
@@ -610,52 +216,34 @@ class WorkOrderDetails extends React.Component<Props, State> {
       if (value != doneStatus.value) {
         resolve();
       } else {
-        this.props
-          .confirm({
-            title: fbt(
-              // eslint-disable-next-line prettier/prettier
-              "Are you sure you want to mark this work order as 'Done'?",
-              'Verification message title',
-            ),
-            message: fbt(
-              // eslint-disable-next-line prettier/prettier
-              "Once saved with 'Done' status, the work order will be locked for editing.",
-              'Verification message details',
-            ),
-            confirmLabel: Strings.common.okButton,
-          })
-          .then(confirmed => {
-            if (confirmed) {
-              resolve();
-            } else {
-              reject();
-            }
-          });
+        confirm({
+          title: fbt(
+            // eslint-disable-next-line prettier/prettier
+            "Are you sure you want to mark this work order as 'Done'?",
+            'Verification message title',
+          ),
+          message: fbt(
+            // eslint-disable-next-line prettier/prettier
+            "Once saved with 'Done' status, the work order will be locked for editing.",
+            'Verification message details',
+          ),
+          confirmLabel: Strings.common.okButton,
+        }).then(confirmed => {
+          if (confirmed) {
+            resolve();
+          } else {
+            reject();
+          }
+        });
       }
     });
 
     verification.then(() => {
-      this.setState({
-        workOrder: update(this.state.workOrder, {status: {$set: value}}),
-      });
+      setWorkOrder({...workOrder, status: value});
     });
   };
 
-  _checkListCategoryChangedHandler = updatedCheckListCategories => {
-    this.setState(() => {
-      return {
-        checkListCategories: updatedCheckListCategories,
-      };
-    });
-  };
-
-  _checklistChangedHandler = updatedChecklist => {
-    this.setState(() => ({
-      checklist: updatedChecklist,
-    }));
-  };
-
-  _setWorkOrderDetail = (
+  const _setWorkOrderDetail = (
     key:
       | 'name'
       | 'description'
@@ -666,98 +254,406 @@ class WorkOrderDetails extends React.Component<Props, State> {
       | 'project',
     value,
   ) => {
-    this.setState(prevState => {
-      return {
-        // $FlowFixMe Set state for each field
-        workOrder: update(prevState.workOrder, {[key]: {$set: value}}),
-      };
-    });
+    setWorkOrder(prevWorkOrder => ({...prevWorkOrder, [`${key}`]: value}));
   };
 
-  _locationChangedHandler = (locationId: ?string) =>
-    this.setState({locationId});
-
-  _propertyChangedHandler = index => property => {
-    this.setState(prevState => {
-      return {
-        properties: update(prevState.properties, {[index]: {$set: property}}),
-      };
-    });
-  };
-  _enqueueError = (message: string) => {
-    this.props.enqueueSnackbar(message, {
-      children: key => (
-        <SnackbarItem id={key} message={message} variant="error" />
-      ),
-    });
-  };
-}
+  const {location} = workOrder;
+  const actionsEnabled = isFeatureEnabled('planned_equipment');
+  return (
+    <div className={classes.root}>
+      <FormValidationContextProvider>
+        <WorkOrderHeader
+          workOrderName={propsWorkOrder.name}
+          workOrder={workOrder}
+          properties={properties}
+          checkListCategories={editingCategories}
+          locationId={locationId}
+          onWorkOrderRemoved={onWorkOrderRemoved}
+          onCancelClicked={onCancelClicked}
+        />
+        <FormValidationContext.Consumer>
+          {validationContext => {
+            const noOwnerError = validationContext.error.check({
+              fieldId: 'Owner',
+              fieldDisplayName: 'Owner',
+              value: workOrder.ownerName,
+              required: true,
+            });
+            validationContext.editLock.check({
+              fieldId: 'status',
+              fieldDisplayName: 'Status',
+              value: propsWorkOrder.status,
+              checkCallback: value =>
+                value === doneStatus.value
+                  ? `Work order is on '${doneStatus.label}' state`
+                  : '',
+            });
+            validationContext.editLock.check({
+              fieldId: 'OwnerRule',
+              fieldDisplayName: 'Owner rule',
+              value: {user, workOrder: propsWorkOrder},
+              checkCallback: checkData =>
+                checkData?.user.isSuperUser ||
+                checkData?.user.email === checkData?.workOrder.ownerName ||
+                checkData?.user.email === checkData?.workOrder.assignee
+                  ? ''
+                  : 'User is not allowed to edit this work order',
+            });
+            const nonOwnerAssignee = validationContext.editLock.check({
+              fieldId: 'NonOwnerAssigneeRule',
+              fieldDisplayName: 'Non Owner assignee rule',
+              value: {user, workOrder: propsWorkOrder},
+              checkCallback: checkData =>
+                checkData?.user.email !== checkData?.workOrder.ownerName &&
+                checkData?.user.email === checkData?.workOrder.assignee
+                  ? 'Assignee is not allowed to change owner'
+                  : '',
+              notAggregated: true,
+            });
+            return (
+              <div className={classes.cards}>
+                <Grid container spacing={2}>
+                  <Grid item xs={8} sm={8} lg={8} xl={8}>
+                    <ExpandingPanel title="Details">
+                      <NameDescriptionSection
+                        name={workOrder.name}
+                        description={workOrder.description}
+                        onNameChange={value =>
+                          _setWorkOrderDetail('name', value)
+                        }
+                        onDescriptionChange={value =>
+                          _setWorkOrderDetail('description', value)
+                        }
+                      />
+                      <Grid
+                        container
+                        spacing={2}
+                        className={classes.propertiesGrid}>
+                        <Grid item xs={12} sm={6} lg={4} xl={4}>
+                          <FormField label="Project">
+                            <ProjectTypeahead
+                              className={classes.gridInput}
+                              selectedProject={
+                                workOrder.project
+                                  ? {
+                                      id: workOrder.project.id,
+                                      name: workOrder.project.name,
+                                    }
+                                  : null
+                              }
+                              margin="dense"
+                              onProjectSelection={project =>
+                                _setWorkOrderDetail('project', project)
+                              }
+                            />
+                          </FormField>
+                        </Grid>
+                        <Grid item xs={12} sm={6} lg={4} xl={4}>
+                          <FormField label="Priority">
+                            <Select
+                              options={priorityValues}
+                              selectedValue={workOrder.priority}
+                              onChange={value =>
+                                _setWorkOrderDetail('priority', value)
+                              }
+                            />
+                          </FormField>
+                        </Grid>
+                        <Grid item xs={12} sm={6} lg={4} xl={4}>
+                          <FormField
+                            label="Status"
+                            disabled={validationContext.error.detected}>
+                            <Select
+                              options={statusValues}
+                              selectedValue={workOrder.status}
+                              onChange={value => setWorkOrderStatus(value)}
+                            />
+                          </FormField>
+                        </Grid>
+                        <Grid item xs={12} sm={6} lg={4} xl={4}>
+                          <FormField label="Created On">
+                            <TextInput
+                              type="date"
+                              className={classes.gridInput}
+                              value={formatDateForTextInput(
+                                workOrder.creationDate,
+                              )}
+                            />
+                          </FormField>
+                        </Grid>
+                        <Grid item xs={12} sm={6} lg={4} xl={4}>
+                          <FormField label="Due Date">
+                            <TextInput
+                              type="date"
+                              className={classes.gridInput}
+                              value={formatDateForTextInput(
+                                workOrder.installDate,
+                              )}
+                              onChange={event => {
+                                const value =
+                                  event.target.value != ''
+                                    ? new Date(event.target.value).toISOString()
+                                    : '';
+                                _setWorkOrderDetail('installDate', value);
+                              }}
+                            />
+                          </FormField>
+                        </Grid>
+                        <Grid item xs={12} sm={6} lg={4} xl={4}>
+                          <FormField label="Location">
+                            <LocationTypeahead
+                              headline={null}
+                              className={classes.gridInput}
+                              margin="dense"
+                              selectedLocation={
+                                location
+                                  ? {
+                                      id: location.id,
+                                      name: location.name,
+                                    }
+                                  : null
+                              }
+                              onLocationSelection={location =>
+                                setLocationId(location?.id ?? null)
+                              }
+                            />
+                          </FormField>
+                        </Grid>
+                        {properties.map((property, index) => (
+                          <Grid
+                            key={property.id}
+                            item
+                            xs={12}
+                            sm={6}
+                            lg={4}
+                            xl={4}>
+                            <PropertyValueInput
+                              required={!!property.propertyType.isMandatory}
+                              disabled={
+                                !property.propertyType.isInstanceProperty
+                              }
+                              label={property.propertyType.name}
+                              className={classes.gridInput}
+                              margin="dense"
+                              inputType="Property"
+                              property={property}
+                              onChange={property =>
+                                setProperties(prevProperties => [
+                                  ...prevProperties.slice(0, index),
+                                  property,
+                                  ...prevProperties.slice(index + 1),
+                                ])
+                              }
+                              headlineVariant="form"
+                              fullWidth={true}
+                            />
+                          </Grid>
+                        ))}
+                      </Grid>
+                      <>
+                        {location && (
+                          <>
+                            <div className={classes.separator} />
+                            <Text weight="regular" variant="subtitle2">
+                              Location
+                            </Text>
+                            <LocationBreadcrumbsTitle
+                              locationDetails={location}
+                              size="small"
+                            />
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} md={12}>
+                                <LocationMapSnippet
+                                  className={classes.map}
+                                  location={{
+                                    id: location.id,
+                                    name: location.name,
+                                    latitude: location.latitude,
+                                    longitude: location.longitude,
+                                    locationType: {
+                                      mapType: location.locationType.mapType,
+                                      mapZoomLevel: (
+                                        location.locationType.mapZoomLevel || 8
+                                      ).toString(),
+                                    },
+                                  }}
+                                />
+                              </Grid>
+                            </Grid>
+                          </>
+                        )}
+                      </>
+                    </ExpandingPanel>
+                    {actionsEnabled && (
+                      <ExpandingPanel title="Actions">
+                        <WorkOrderDetailsPane workOrder={workOrder} />
+                      </ExpandingPanel>
+                    )}
+                    <ExpandingPanel
+                      title="Attachments"
+                      rightContent={
+                        <div className={classes.uploadButtonContainer}>
+                          <AddHyperlinkButton
+                            className={classes.minimizedButton}
+                            skin="regular"
+                            entityType="WORK_ORDER"
+                            allowCategories={false}
+                            entityId={workOrder.id}>
+                            <InsertLinkIcon color="primary" />
+                          </AddHyperlinkButton>
+                          {isLoadingDocument ? (
+                            <CircularProgress size={24} />
+                          ) : (
+                            <FileUpload
+                              className={classes.minimizedButton}
+                              button={
+                                <CloudUploadOutlinedIcon
+                                  className={classes.uploadButton}
+                                />
+                              }
+                              onFileUploaded={onDocumentUploaded}
+                              onProgress={() => setIsLoadingDocument(true)}
+                            />
+                          )}
+                        </div>
+                      }>
+                      <EntityDocumentsTable
+                        entityType="WORK_ORDER"
+                        entityId={workOrder.id}
+                        files={[
+                          ...propsWorkOrder.files,
+                          ...propsWorkOrder.images,
+                        ]}
+                        hyperlinks={propsWorkOrder.hyperlinks}
+                      />
+                    </ExpandingPanel>
+                    <ChecklistCategoriesMutateDispatchContext.Provider
+                      value={dispatch}>
+                      <CheckListCategoryExpandingPanel
+                        categories={editingCategories}
+                      />
+                    </ChecklistCategoriesMutateDispatchContext.Provider>
+                  </Grid>
+                  <Grid item xs={4} sm={4} lg={4} xl={4}>
+                    <ExpandingPanel title="Team" className={classes.card}>
+                      <FormField
+                        className={classes.input}
+                        label="Owner"
+                        required={true}
+                        hasError={!!noOwnerError}
+                        errorText={noOwnerError}
+                        disabled={!!nonOwnerAssignee}>
+                        <UserTypeahead
+                          selectedUser={workOrder.ownerName}
+                          onUserSelection={user =>
+                            _setWorkOrderDetail('ownerName', user)
+                          }
+                          margin="dense"
+                        />
+                      </FormField>
+                      <FormField label="Assignee" className={classes.input}>
+                        <UserTypeahead
+                          selectedUser={workOrder.assignee}
+                          onUserSelection={user =>
+                            _setWorkOrderDetail('assignee', user)
+                          }
+                          margin="dense"
+                        />
+                      </FormField>
+                    </ExpandingPanel>
+                    <ExpandingPanel
+                      title="Comments"
+                      detailsPaneClass={classes.commentsBoxContainer}
+                      className={classes.card}>
+                      <CommentsBox
+                        boxElementsClass={classes.inExpandingPanelFix}
+                        commentsLogClass={classes.commentsLog}
+                        relatedEntityId={propsWorkOrder.id}
+                        relatedEntityType="WORK_ORDER"
+                        comments={propsWorkOrder.comments}
+                      />
+                    </ExpandingPanel>
+                  </Grid>
+                </Grid>
+              </div>
+            );
+          }}
+        </FormValidationContext.Consumer>
+      </FormValidationContextProvider>
+    </div>
+  );
+};
 
 export default withRouter(
-  withSnackbar(
-    withStyles(styles)(
-      withAlert(
-        createFragmentContainer(WorkOrderDetails, {
-          workOrder: graphql`
-            fragment WorkOrderDetails_workOrder on WorkOrder {
+  withAlert(
+    createFragmentContainer(WorkOrderDetails, {
+      workOrder: graphql`
+        fragment WorkOrderDetails_workOrder on WorkOrder {
+          id
+          name
+          description
+          workOrderType {
+            name
+            id
+          }
+          location {
+            name
+            id
+            latitude
+            longitude
+            locationType {
+              mapType
+              mapZoomLevel
+            }
+            ...LocationBreadcrumbsTitle_locationDetails
+          }
+          ownerName
+          assignee
+          creationDate
+          installDate
+          status
+          priority
+          ...WorkOrderDetailsPane_workOrder
+          properties {
+            ...PropertyFormField_property @relay(mask: false)
+          }
+          images {
+            ...EntityDocumentsTable_files
+          }
+          files {
+            ...EntityDocumentsTable_files
+          }
+          hyperlinks {
+            ...EntityDocumentsTable_hyperlinks
+          }
+          comments {
+            ...CommentsBox_comments
+          }
+          project {
+            name
+            id
+            type {
               id
               name
-              description
-              workOrderType {
-                name
-                id
-              }
-              location {
-                name
-                id
-                latitude
-                longitude
-                locationType {
-                  mapType
-                  mapZoomLevel
-                }
-                ...LocationBreadcrumbsTitle_locationDetails
-              }
-              ownerName
-              assignee
-              creationDate
-              installDate
-              status
-              priority
-              ...WorkOrderDetailsPane_workOrder
-              properties {
-                ...PropertyFormField_property @relay(mask: false)
-              }
-              images {
-                ...EntityDocumentsTable_files
-              }
-              files {
-                ...EntityDocumentsTable_files
-              }
-              hyperlinks {
-                ...EntityDocumentsTable_hyperlinks
-              }
-              comments {
-                ...CommentsBox_comments
-              }
-              project {
-                name
-                id
-                type {
-                  id
-                  name
-                }
-              }
-              checkList {
-                ...CheckListTable_list @relay(mask: false)
-              }
-              checkListCategories {
-                ...CheckListCategoryExpandingPanel_list
-              }
             }
-          `,
-        }),
-      ),
-    ),
+          }
+          checkListCategories {
+            id
+            title
+            description
+            checkList {
+              id
+              index
+              type
+              title
+              helpText
+              checked
+              enumValues
+              stringValue
+            }
+          }
+        }
+      `,
+    }),
   ),
 );

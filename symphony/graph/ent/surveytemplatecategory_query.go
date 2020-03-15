@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -95,8 +94,8 @@ func (stcq *SurveyTemplateCategoryQuery) FirstX(ctx context.Context) *SurveyTemp
 }
 
 // FirstID returns the first SurveyTemplateCategory id in the query. Returns *NotFoundError when no id was found.
-func (stcq *SurveyTemplateCategoryQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (stcq *SurveyTemplateCategoryQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = stcq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -108,7 +107,7 @@ func (stcq *SurveyTemplateCategoryQuery) FirstID(ctx context.Context) (id string
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (stcq *SurveyTemplateCategoryQuery) FirstXID(ctx context.Context) string {
+func (stcq *SurveyTemplateCategoryQuery) FirstXID(ctx context.Context) int {
 	id, err := stcq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -142,8 +141,8 @@ func (stcq *SurveyTemplateCategoryQuery) OnlyX(ctx context.Context) *SurveyTempl
 }
 
 // OnlyID returns the only SurveyTemplateCategory id in the query, returns an error if not exactly one id was returned.
-func (stcq *SurveyTemplateCategoryQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (stcq *SurveyTemplateCategoryQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = stcq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -159,7 +158,7 @@ func (stcq *SurveyTemplateCategoryQuery) OnlyID(ctx context.Context) (id string,
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (stcq *SurveyTemplateCategoryQuery) OnlyXID(ctx context.Context) string {
+func (stcq *SurveyTemplateCategoryQuery) OnlyXID(ctx context.Context) int {
 	id, err := stcq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -182,8 +181,8 @@ func (stcq *SurveyTemplateCategoryQuery) AllX(ctx context.Context) []*SurveyTemp
 }
 
 // IDs executes the query and returns a list of SurveyTemplateCategory ids.
-func (stcq *SurveyTemplateCategoryQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (stcq *SurveyTemplateCategoryQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := stcq.Select(surveytemplatecategory.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -191,7 +190,7 @@ func (stcq *SurveyTemplateCategoryQuery) IDs(ctx context.Context) ([]string, err
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (stcq *SurveyTemplateCategoryQuery) IDsX(ctx context.Context) []string {
+func (stcq *SurveyTemplateCategoryQuery) IDsX(ctx context.Context) []int {
 	ids, err := stcq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -332,13 +331,9 @@ func (stcq *SurveyTemplateCategoryQuery) sqlAll(ctx context.Context) ([]*SurveyT
 
 	if query := stcq.withSurveyTemplateQuestions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*SurveyTemplateCategory)
+		nodeids := make(map[int]*SurveyTemplateCategory)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -384,7 +379,7 @@ func (stcq *SurveyTemplateCategoryQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   surveytemplatecategory.Table,
 			Columns: surveytemplatecategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveytemplatecategory.FieldID,
 			},
 		},

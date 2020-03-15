@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from zipfile import ZipFile, ZIP_DEFLATED
+from zipfile import ZIP_DEFLATED, ZipFile
 
 
 def extract_zip(input_zip_filepath):
@@ -9,6 +9,6 @@ def extract_zip(input_zip_filepath):
 
 
 def archive_zip(output_zip_filepath, zip_contents):
-    with ZipFile(output_zip_filepath, 'w', ZIP_DEFLATED) as output_zip:
+    with ZipFile(output_zip_filepath, "w", ZIP_DEFLATED) as output_zip:
         for name, content in zip_contents.items():
             output_zip.writestr(name, content)

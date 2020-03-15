@@ -1,6 +1,6 @@
 # Magma
 
-[![Build Status](https://travis-ci.com/facebookincubator/magma.svg?branch=master)](https://travis-ci.com/facebookincubator/magma)
+[![facebookincubator](https://circleci.com/gh/facebookincubator/magma.svg?style=shield)](https://circleci.com/gh/facebookincubator/magma)
 
 Magma is an open-source software platform that gives network operators an open, flexible and extendable mobile core network solution. Magma enables better connectivity by:
 

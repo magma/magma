@@ -44,10 +44,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     gRPC based server for Pipelined.
     """
 
-    def __init__(self, loop, metering_stats, enforcer_app, enforcement_stats,
-                 dpi_app, ue_mac_app, check_quota_app, ipfix_app, service_manager):
+    def __init__(self, loop, enforcer_app, enforcement_stats, dpi_app,
+                 ue_mac_app, check_quota_app, ipfix_app, service_manager):
         self._loop = loop
-        self._metering_stats = metering_stats
         self._enforcer_app = enforcer_app
         self._enforcement_stats = enforcement_stats
         self._dpi_app = dpi_app
@@ -230,9 +229,23 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
         resp = FlowResponse()
-        self._loop.call_soon_threadsafe(
-            self._dpi_app.classify_flow,
-            request.match, request.app_name)
+        self._loop.call_soon_threadsafe(self._dpi_app.add_classify_flow,
+                                        request.match, request.app_name,
+                                        request.service_type)
+        return resp
+
+    def RemoveFlow(self, request, context):
+        """
+        Add dpi flow
+        """
+        if not self._service_manager.is_app_enabled(
+                DPIController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+        resp = FlowResponse()
+        self._loop.call_soon_threadsafe(self._dpi_app.remove_classify_flow,
+                                        request.match)
         return resp
 
     def UpdateFlowStats(self, request, context):
@@ -332,6 +345,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._ue_mac_app.delete_ue_mac_flow,
             request.sid.id, request.mac_addr)
 
+        if self._service_manager.is_app_enabled(CheckQuotaController.APP_NAME):
+            self._loop.call_soon_threadsafe(
+                self._check_quota_app.remove_subscriber_flow, request.sid.id)
+
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
             # Delete trace flow
             self._loop.call_soon_threadsafe(
@@ -357,6 +374,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         ret = self._check_quota_app.is_ready_for_restart_recovery(request.epoch)
         if ret != SetupFlowsResult.SUCCESS:
             return SetupFlowsResult(result=ret)
+
+        fut = Future()
+        self._loop.call_soon_threadsafe(self._setup_quota,
+                                        request, fut)
+        return fut.result()
 
     def _setup_quota(self, request: SetupQuotaRequest,
                      fut: 'Future(SetupFlowsResult)'

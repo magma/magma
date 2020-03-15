@@ -128,6 +128,7 @@ router.post(
             dns: DEFAULT_DNS_CONFIG,
             federation: {
               aaa_server: {},
+              csfb: {},
               eap_aka: {},
               gx: {},
               gy: {},

@@ -15,7 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const ArrowDownIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" fillRule="evenodd" />
+    <path d="M7.41 8L12 12.58 16.59 8 18 9.41l-6 6-6-6z" />
   </SvgIcon>
 );
 

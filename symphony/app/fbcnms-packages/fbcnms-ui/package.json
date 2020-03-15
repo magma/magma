@@ -14,7 +14,7 @@
     "react-dom": "^16.8.6",
     "react-perfect-scrollbar": "^1.4.4",
     "react-router-dom": "5.1.2",
-    "relay-runtime": "^8.0.0"
+    "relay-runtime": "0.0.0-master-86f5456a"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",

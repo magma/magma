@@ -38,9 +38,11 @@ func ExecInTx(
 		}
 	}()
 
-	err = initFn(tx)
-	if err != nil {
-		return
+	if initFn != nil {
+		err = initFn(tx)
+		if err != nil {
+			return
+		}
 	}
 
 	ret, err = txFn(tx)

@@ -208,7 +208,7 @@ func TestAddWorkOrderInvalidType(t *testing.T) {
 	_, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name,
 		Description:     &description,
-		WorkOrderTypeID: "123",
+		WorkOrderTypeID: 123,
 		LocationID:      nil,
 	})
 	require.Error(t, err)
@@ -219,7 +219,7 @@ func TestEditInvalidWorkOrder(t *testing.T) {
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	_, err := r.Mutation().EditWorkOrderType(ctx, models.EditWorkOrderTypeInput{
-		ID:   "234",
+		ID:   234,
 		Name: "foo",
 	})
 	require.Error(t, err)
@@ -1276,9 +1276,7 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(propInputs), len(fetchedProps))
 
-	failProp := models.PropertyInput{
-		PropertyTypeID: "someFakeTypeID",
-	}
+	failProp := models.PropertyInput{PropertyTypeID: -1}
 	failEditInput := models.EditWorkOrderInput{
 		ID:         wo.ID,
 		Name:       "test",

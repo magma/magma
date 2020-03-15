@@ -16,10 +16,10 @@ import (
 	"strings"
 	"testing"
 
-	"magma/gateway/services/bootstrapper/service"
-	"magma/orc8r/lib/go/service/config"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/gateway/config"
+	platform_config "magma/orc8r/lib/go/service/config"
 )
 
 const testConfigYaml = `
@@ -60,9 +60,7 @@ allow_http_proxy: True
 
 func TestConfig(t *testing.T) {
 	tmpfile, err := ioutil.TempFile("", "test_control_proxy*.yml")
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	defer os.Remove(tmpfile.Name()) // clean up
 
 	if _, err := tmpfile.Write([]byte(testConfigYaml)); err != nil {
@@ -73,14 +71,17 @@ func TestConfig(t *testing.T) {
 	if err := tmpfile.Close(); err != nil {
 		t.Fatal(err)
 	}
-	b := service.NewDefaultBootsrapper()
-	if err := config.GetStructuredServiceConfigExt(
-		"", serviceName, dir, "", "", &(b.CpConfig)); err != nil {
+	cfg := config.NewDefaultControlProxyCfg()
+	file1, file2, err := platform_config.GetStructuredServiceConfigExt(
+		"", serviceName, dir, "", "", cfg)
+	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "/var/opt/magma/secrets/certs/gateway.crt", b.CpConfig.GwCertFile)
-	assert.Equal(t, "/var/opt/magma/certs/rootCA.pem", b.CpConfig.RootCaFile)
-	assert.Equal(t, "controller.magma.foobar.com", b.CpConfig.CloudAddr)
-	assert.Equal(t, 9999, b.CpConfig.CloudPort)
-	assert.Equal(t, false, b.CpConfig.ProxyCloudConnection)
+	assert.Equal(t, tmpfile.Name(), file1)
+	assert.Equal(t, "", file2)
+	assert.Equal(t, "/var/opt/magma/secrets/certs/gateway.crt", cfg.GwCertFile)
+	assert.Equal(t, "/var/opt/magma/certs/rootCA.pem", cfg.RootCaFile)
+	assert.Equal(t, "controller.magma.foobar.com", cfg.CloudAddr)
+	assert.Equal(t, 9999, cfg.CloudPort)
+	assert.Equal(t, false, cfg.ProxyCloudConnection)
 }

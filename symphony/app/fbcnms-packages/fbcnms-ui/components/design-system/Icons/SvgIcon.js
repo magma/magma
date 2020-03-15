@@ -20,20 +20,17 @@ const useStyles = makeStyles(() => ({
     width: '24px',
     height: '24px',
   },
-  regularColor: {
-    fill: symphony.palette.secondary,
-  },
   lightColor: {
     fill: symphony.palette.white,
   },
   regularColor: {
-    fill: symphony.palette.D900,
+    fill: symphony.palette.secondary,
   },
   primaryColor: {
     fill: symphony.palette.primary,
   },
   grayColor: {
-    fill: symphony.palette.D400,
+    fill: symphony.palette.D500,
   },
   errorColor: {
     fill: symphony.palette.R600,

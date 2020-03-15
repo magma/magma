@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -64,7 +65,7 @@ func (er locationsRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 	locationsList := locations.Locations
 	allRows := make([][]string, len(locationsList)+1)
 
-	locationIDs := make([]string, len(locationsList))
+	locationIDs := make([]int, len(locationsList))
 	for i, l := range locationsList {
 		locationIDs[i] = l.ID
 	}
@@ -80,7 +81,7 @@ func (er locationsRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 		return nil
 	})
 	cg.Go(func(ctx context.Context) (err error) {
-		locationIDs := make([]string, len(locationsList))
+		locationIDs := make([]int, len(locationsList))
 		for i, l := range locationsList {
 			locationIDs[i] = l.ID
 		}
@@ -140,7 +141,7 @@ func locationToSlice(ctx context.Context, location *ent.Location, orderedLocType
 
 	fixedData := []string{location.ExternalID, lat, long}
 
-	row := []string{location.ID}
+	row := []string{strconv.Itoa(location.ID)}
 	row = append(row, lParents...)
 	row = append(row, fixedData...)
 	row = append(row, properties...)
@@ -164,12 +165,16 @@ func paramToLocationFilterInput(params string) ([]*models.LocationFilterInput, e
 		if f.MaxDepth != nil {
 			maxDepth = *f.MaxDepth
 		}
+		intIDSet, err := toIntSlice(f.IDSet)
+		if err != nil {
+			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+		}
 		inp := models.LocationFilterInput{
 			FilterType:    models.LocationFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
 			StringValue:   pointer.ToString(f.StringValue),
 			PropertyValue: &propertyValue,
-			IDSet:         f.IDSet,
+			IDSet:         intIDSet,
 			StringSet:     f.StringSet,
 			MaxDepth:      &maxDepth,
 			BoolValue:     f.BoolValue,

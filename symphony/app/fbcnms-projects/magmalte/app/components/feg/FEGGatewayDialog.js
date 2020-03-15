@@ -9,6 +9,7 @@
  */
 
 import type {
+  csfb,
   diameter_client_configs,
   federation_gateway,
   gateway_federation_configs,
@@ -61,6 +62,24 @@ type Props = {|
   onSave: federation_gateway => void,
   editingGateway?: federation_gateway,
 |};
+
+type SCTPValues = {
+  server_address: string,
+  local_address: string,
+};
+
+function getSCTPConfigs(cfg: SCTPValues): csfb {
+  return {
+    client: {...cfg},
+  };
+}
+
+function getInitialSCTPConfigs(cfg: ?csfb): SCTPValues {
+  return {
+    server_address: cfg?.client?.server_address || '',
+    local_address: cfg?.client?.local_address || '',
+  };
+}
 
 type DiameterValues = {
   address: string,
@@ -115,6 +134,10 @@ export default function FEGGatewayDialog(props: Props) {
     getInitialDiameterConfigs(editingGateway?.federation?.s6a),
   );
 
+  const [csfb, setCSFB] = useState<SCTPValues>(
+    getInitialSCTPConfigs(editingGateway?.federation?.csfb),
+  );
+
   const networkID = nullthrows(match.params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdTiers,
@@ -127,6 +150,7 @@ export default function FEGGatewayDialog(props: Props) {
 
   const getFederationConfigs = (): gateway_federation_configs => ({
     aaa_server: {},
+    csfb: {},
     eap_aka: {},
     gx: getDiameterConfigs(gx),
     gy: {server: getDiameterConfigs(gy).server, init_method: 2},
@@ -135,6 +159,7 @@ export default function FEGGatewayDialog(props: Props) {
     s6a: getDiameterConfigs(s6a),
     served_network_ids: [],
     swx: {...getDiameterConfigs(swx)},
+    csfb: {...getSCTPConfigs(csfb)},
   });
 
   const onSave = async () => {
@@ -225,6 +250,9 @@ export default function FEGGatewayDialog(props: Props) {
         />
       );
       break;
+    case 'csfb':
+      content = <SCTPFields onChange={setCSFB} values={csfb} />;
+      break;
   }
 
   return (
@@ -240,6 +268,7 @@ export default function FEGGatewayDialog(props: Props) {
           <Tab label="Gy" value="gy" />
           <Tab label="SWx" value="swx" />
           <Tab label="S6A" value="s6a" />
+          <Tab label="CSFB" value="csfb" />
         </Tabs>
       </AppBar>
       <DialogContent>{content}</DialogContent>
@@ -252,6 +281,33 @@ export default function FEGGatewayDialog(props: Props) {
         </Button>
       </DialogActions>
     </Dialog>
+  );
+}
+
+function SCTPFields(props: {values: SCTPValues, onChange: SCTPValues => void}) {
+  const classes = useStyles();
+  const {values} = props;
+  const onChange = field => event =>
+    // $FlowFixMe Set state for each field
+    props.onChange({...values, [field]: event.target.value});
+
+  return (
+    <>
+      <TextField
+        label="Server Address"
+        className={classes.input}
+        value={values.server_address}
+        onChange={onChange('server_address')}
+        placeholder="example.magma.com:5555"
+      />
+      <TextField
+        label="Local Address"
+        className={classes.input}
+        value={values.local_address}
+        onChange={onChange('local_address')}
+        placeholder="example.magma.com:5555"
+      />
+    </>
   );
 }
 

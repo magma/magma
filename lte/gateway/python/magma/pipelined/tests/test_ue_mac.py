@@ -51,7 +51,7 @@ class UEMacAddressTest(unittest.TestCase):
         """
         super(UEMacAddressTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([], include_ue_mac=True)
+        cls.service_manager = create_service_manager([], ['ue_mac'])
         cls._tbl_num = cls.service_manager.get_table_num(
             UEMacAddressController.APP_NAME)
         ue_mac_controller_reference = Future()

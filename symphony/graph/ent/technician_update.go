@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -27,8 +26,8 @@ type TechnicianUpdate struct {
 	update_time       *time.Time
 	name              *string
 	email             *string
-	work_orders       map[string]struct{}
-	removedWorkOrders map[string]struct{}
+	work_orders       map[int]struct{}
+	removedWorkOrders map[int]struct{}
 	predicates        []predicate.Technician
 }
 
@@ -51,9 +50,9 @@ func (tu *TechnicianUpdate) SetEmail(s string) *TechnicianUpdate {
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (tu *TechnicianUpdate) AddWorkOrderIDs(ids ...string) *TechnicianUpdate {
+func (tu *TechnicianUpdate) AddWorkOrderIDs(ids ...int) *TechnicianUpdate {
 	if tu.work_orders == nil {
-		tu.work_orders = make(map[string]struct{})
+		tu.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		tu.work_orders[ids[i]] = struct{}{}
@@ -63,7 +62,7 @@ func (tu *TechnicianUpdate) AddWorkOrderIDs(ids ...string) *TechnicianUpdate {
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (tu *TechnicianUpdate) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -71,9 +70,9 @@ func (tu *TechnicianUpdate) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdate {
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
-func (tu *TechnicianUpdate) RemoveWorkOrderIDs(ids ...string) *TechnicianUpdate {
+func (tu *TechnicianUpdate) RemoveWorkOrderIDs(ids ...int) *TechnicianUpdate {
 	if tu.removedWorkOrders == nil {
-		tu.removedWorkOrders = make(map[string]struct{})
+		tu.removedWorkOrders = make(map[int]struct{})
 	}
 	for i := range ids {
 		tu.removedWorkOrders[ids[i]] = struct{}{}
@@ -83,7 +82,7 @@ func (tu *TechnicianUpdate) RemoveWorkOrderIDs(ids ...string) *TechnicianUpdate 
 
 // RemoveWorkOrders removes work_orders edges to WorkOrder.
 func (tu *TechnicianUpdate) RemoveWorkOrders(w ...*WorkOrder) *TechnicianUpdate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -137,7 +136,7 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   technician.Table,
 			Columns: technician.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: technician.FieldID,
 			},
 		},
@@ -179,16 +178,12 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -202,16 +197,12 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -230,13 +221,13 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // TechnicianUpdateOne is the builder for updating a single Technician entity.
 type TechnicianUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time       *time.Time
 	name              *string
 	email             *string
-	work_orders       map[string]struct{}
-	removedWorkOrders map[string]struct{}
+	work_orders       map[int]struct{}
+	removedWorkOrders map[int]struct{}
 }
 
 // SetName sets the name field.
@@ -252,9 +243,9 @@ func (tuo *TechnicianUpdateOne) SetEmail(s string) *TechnicianUpdateOne {
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (tuo *TechnicianUpdateOne) AddWorkOrderIDs(ids ...string) *TechnicianUpdateOne {
+func (tuo *TechnicianUpdateOne) AddWorkOrderIDs(ids ...int) *TechnicianUpdateOne {
 	if tuo.work_orders == nil {
-		tuo.work_orders = make(map[string]struct{})
+		tuo.work_orders = make(map[int]struct{})
 	}
 	for i := range ids {
 		tuo.work_orders[ids[i]] = struct{}{}
@@ -264,7 +255,7 @@ func (tuo *TechnicianUpdateOne) AddWorkOrderIDs(ids ...string) *TechnicianUpdate
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (tuo *TechnicianUpdateOne) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdateOne {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -272,9 +263,9 @@ func (tuo *TechnicianUpdateOne) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdate
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
-func (tuo *TechnicianUpdateOne) RemoveWorkOrderIDs(ids ...string) *TechnicianUpdateOne {
+func (tuo *TechnicianUpdateOne) RemoveWorkOrderIDs(ids ...int) *TechnicianUpdateOne {
 	if tuo.removedWorkOrders == nil {
-		tuo.removedWorkOrders = make(map[string]struct{})
+		tuo.removedWorkOrders = make(map[int]struct{})
 	}
 	for i := range ids {
 		tuo.removedWorkOrders[ids[i]] = struct{}{}
@@ -284,7 +275,7 @@ func (tuo *TechnicianUpdateOne) RemoveWorkOrderIDs(ids ...string) *TechnicianUpd
 
 // RemoveWorkOrders removes work_orders edges to WorkOrder.
 func (tuo *TechnicianUpdateOne) RemoveWorkOrders(w ...*WorkOrder) *TechnicianUpdateOne {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -339,7 +330,7 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 			Columns: technician.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  tuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: technician.FieldID,
 			},
 		},
@@ -374,16 +365,12 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -397,16 +384,12 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

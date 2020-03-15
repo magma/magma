@@ -6,8 +6,8 @@ package main
 
 import (
 	"context"
-	"os"
 
+	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
@@ -15,91 +15,127 @@ import (
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
-
-	"github.com/jessevdk/go-flags"
 	"go.uber.org/zap"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-type cliFlags struct {
-	Dsn    string `env:"MYSQL_DSN" long:"dsn" description:"data source name"`
-	Tenant string `long:"tenant" required:"true" description:"target specific tenant"`
-	User   string `long:"user" required:"true" description:"target specific user"`
-}
-
 func main() {
-	logger, _ := log.Config{Format: "console"}.Build()
+	kingpin.HelpFlag.Short('h')
+	dsn := kingpin.Flag("db-dsn", "data source name").Envar("MYSQL_DSN").Required().String()
+	tenantName := kingpin.Flag("tenant", "tenant name to target. \"ALL\" for running on all tenants").Required().String()
+	u := kingpin.Flag("user", "user name to target").Required().String()
+	logcfg := log.AddFlags(kingpin.CommandLine)
+	kingpin.Parse()
+
+	logger, _, _ := log.Provider(*logcfg)
 	ctx := context.Background()
 
-	var cf cliFlags
-	if _, err := flags.Parse(&cf); err != nil {
-		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
-			os.Exit(0)
-		}
-		os.Exit(1)
-	}
-
-	logger.For(ctx).Info("params", zap.String("dsn", cf.Dsn), zap.String("tenant", cf.Tenant), zap.String("user", cf.User))
-
-	tenancy, err := viewer.NewMySQLTenancy(cf.Dsn)
+	logger.For(ctx).Info("params",
+		zap.Stringp("dsn", dsn),
+		zap.Stringp("tenant", tenantName),
+		zap.Stringp("user", u),
+	)
+	tenancy, err := viewer.NewMySQLTenancy(*dsn)
 	if err != nil {
-		logger.For(ctx).Fatal("cannot connect to graph database", zap.String("dsn", cf.Dsn), zap.Error(err))
-		return
+		logger.For(ctx).Fatal("cannot connect to graph database",
+			zap.Stringp("dsn", dsn),
+			zap.Error(err),
+		)
 	}
-
 	mysql.SetLogger(logger)
 
-	v := &viewer.Viewer{Tenant: cf.Tenant, User: cf.User}
-
-	ctx = log.NewFieldsContext(ctx, zap.Object("viewer", v))
-	ctx = viewer.NewContext(ctx, v)
-
-	client, err := tenancy.ClientFor(ctx, cf.Tenant)
+	driver, err := sql.Open("mysql", *dsn)
 	if err != nil {
-		logger.For(ctx).Fatal("cannot get ent client for tenant", zap.String("tenant", cf.Tenant), zap.Error(err))
-		return
+		logger.For(ctx).Fatal("cannot connect sql database",
+			zap.Stringp("dsn", dsn),
+			zap.Error(err),
+		)
 	}
 
-	tx, err := client.Tx(ctx)
+	tenants, err := getTenantList(ctx, driver, tenantName)
 	if err != nil {
-		logger.For(ctx).Error("cannot begin transaction", zap.Error(err))
-		return
+		logger.For(ctx).Fatal("cannot get tenants to run on",
+			zap.Stringp("dsn", dsn),
+			zap.Stringp("tenant", tenantName),
+			zap.Error(err),
+		)
 	}
 
-	defer func() {
-		if r := recover(); r != nil {
+	for _, tenant := range tenants {
+		v := &viewer.Viewer{Tenant: tenant, User: *u}
+		ctx := log.NewFieldsContext(ctx, zap.Object("viewer", v))
+		ctx = viewer.NewContext(ctx, v)
+		client, err := tenancy.ClientFor(ctx, tenant)
+		if err != nil {
+			logger.For(ctx).Fatal("cannot get ent client for tenant",
+				zap.String("tenant", tenant),
+				zap.Error(err),
+			)
+		}
+
+		tx, err := client.Tx(ctx)
+		if err != nil {
+			logger.For(ctx).Fatal("cannot begin transaction", zap.Error(err))
+		}
+		defer func() {
+			if r := recover(); r != nil {
+				if err := tx.Rollback(); err != nil {
+					logger.For(ctx).Error("cannot rollback transaction", zap.Error(err))
+				}
+				logger.For(ctx).Panic("application panic", zap.Reflect("error", r))
+			}
+		}()
+
+		ctx = ent.NewContext(ctx, tx.Client())
+		// Since the client is already uses transaction we can't have transactions on graphql also
+		r := resolver.New(
+			resolver.Config{
+				Logger:     logger,
+				Emitter:    event.NewNopEmitter(),
+				Subscriber: event.NewNopSubscriber(),
+			},
+			resolver.WithTransaction(false),
+		)
+
+		if err := utilityFunc(ctx, r, logger, tenant); err != nil {
+			logger.For(ctx).Error("failed to run function", zap.Error(err))
 			if err := tx.Rollback(); err != nil {
 				logger.For(ctx).Error("cannot rollback transaction", zap.Error(err))
 			}
-			panic(r)
+			return
 		}
-	}()
 
-	ctx = ent.NewContext(ctx, tx.Client())
-
-	// Since the client is already uses transaction we can't have transactions on graphql also
-	r := resolver.New(
-		resolver.Config{
-			Logger:     logger,
-			Emitter:    event.NewNopEmitter(),
-			Subscriber: event.NewNopSubscriber(),
-		},
-		resolver.WithTransaction(false),
-	)
-
-	if err := utilityFunc(ctx, r, logger); err != nil {
-		logger.For(ctx).Error("failed to run function", zap.Error(err))
-		if err := tx.Rollback(); err != nil {
-			logger.For(ctx).Error("cannot rollback transaction", zap.Error(err))
+		if err := tx.Commit(); err != nil {
+			logger.For(ctx).Error("cannot commit transaction", zap.Error(err))
+			return
 		}
-		return
-	}
-
-	if err := tx.Commit(); err != nil {
-		logger.For(ctx).Error("cannot commit transaction", zap.Error(err))
 	}
 }
 
-func utilityFunc(_ context.Context, _ generated.ResolverRoot, _ log.Logger) error {
+func getTenantList(ctx context.Context, driver *sql.Driver, tenant *string) ([]string, error) {
+	if *tenant != "ALL" {
+		return []string{*tenant}, nil
+	}
+	rows, err := driver.DB().QueryContext(ctx,
+		"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME LIKE ?", viewer.DBName("%"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var tenants []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		name = viewer.FromDBName(name)
+		tenants = append(tenants, name)
+	}
+	return tenants, nil
+}
+
+func utilityFunc(ctx context.Context, _ generated.ResolverRoot, logger log.Logger, tenant string) error {
 	/**
 	Add your Go code in this function
 	You need to run this code from the same version production is at to avoid schema mismatches

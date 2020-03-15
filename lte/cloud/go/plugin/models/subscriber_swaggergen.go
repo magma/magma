@@ -35,6 +35,9 @@ type Subscriber struct {
 	// lte
 	// Required: true
 	Lte *LteSubscription `json:"lte"`
+
+	// monitoring
+	Monitoring *SubscriberStatus `json:"monitoring,omitempty"`
 }
 
 // Validate validates this subscriber
@@ -58,6 +61,10 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateLte(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMonitoring(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -145,6 +152,24 @@ func (m *Subscriber) validateLte(formats strfmt.Registry) error {
 		if err := m.Lte.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("lte")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateMonitoring(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Monitoring) { // not required
+		return nil
+	}
+
+	if m.Monitoring != nil {
+		if err := m.Monitoring.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("monitoring")
 			}
 			return err
 		}

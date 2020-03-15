@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -109,8 +108,8 @@ func (epdq *EquipmentPositionDefinitionQuery) FirstX(ctx context.Context) *Equip
 }
 
 // FirstID returns the first EquipmentPositionDefinition id in the query. Returns *NotFoundError when no id was found.
-func (epdq *EquipmentPositionDefinitionQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (epdq *EquipmentPositionDefinitionQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = epdq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -122,7 +121,7 @@ func (epdq *EquipmentPositionDefinitionQuery) FirstID(ctx context.Context) (id s
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (epdq *EquipmentPositionDefinitionQuery) FirstXID(ctx context.Context) string {
+func (epdq *EquipmentPositionDefinitionQuery) FirstXID(ctx context.Context) int {
 	id, err := epdq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -156,8 +155,8 @@ func (epdq *EquipmentPositionDefinitionQuery) OnlyX(ctx context.Context) *Equipm
 }
 
 // OnlyID returns the only EquipmentPositionDefinition id in the query, returns an error if not exactly one id was returned.
-func (epdq *EquipmentPositionDefinitionQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (epdq *EquipmentPositionDefinitionQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = epdq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -173,7 +172,7 @@ func (epdq *EquipmentPositionDefinitionQuery) OnlyID(ctx context.Context) (id st
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (epdq *EquipmentPositionDefinitionQuery) OnlyXID(ctx context.Context) string {
+func (epdq *EquipmentPositionDefinitionQuery) OnlyXID(ctx context.Context) int {
 	id, err := epdq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -196,8 +195,8 @@ func (epdq *EquipmentPositionDefinitionQuery) AllX(ctx context.Context) []*Equip
 }
 
 // IDs executes the query and returns a list of EquipmentPositionDefinition ids.
-func (epdq *EquipmentPositionDefinitionQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (epdq *EquipmentPositionDefinitionQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := epdq.Select(equipmentpositiondefinition.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -205,7 +204,7 @@ func (epdq *EquipmentPositionDefinitionQuery) IDs(ctx context.Context) ([]string
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (epdq *EquipmentPositionDefinitionQuery) IDsX(ctx context.Context) []string {
+func (epdq *EquipmentPositionDefinitionQuery) IDsX(ctx context.Context) []int {
 	ids, err := epdq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -361,13 +360,9 @@ func (epdq *EquipmentPositionDefinitionQuery) sqlAll(ctx context.Context) ([]*Eq
 
 	if query := epdq.withPositions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentPositionDefinition)
+		nodeids := make(map[int]*EquipmentPositionDefinition)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -392,8 +387,8 @@ func (epdq *EquipmentPositionDefinitionQuery) sqlAll(ctx context.Context) ([]*Eq
 	}
 
 	if query := epdq.withEquipmentType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*EquipmentPositionDefinition)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*EquipmentPositionDefinition)
 		for i := range nodes {
 			if fk := nodes[i].equipment_type_position_definitions; fk != nil {
 				ids = append(ids, *fk)
@@ -438,7 +433,7 @@ func (epdq *EquipmentPositionDefinitionQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   equipmentpositiondefinition.Table,
 			Columns: equipmentpositiondefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentpositiondefinition.FieldID,
 			},
 		},

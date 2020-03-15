@@ -206,7 +206,7 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   file.Table,
 			Columns: file.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: file.FieldID,
 			},
 		},
@@ -326,7 +326,7 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // FileUpdateOne is the builder for updating a single File entity.
 type FileUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time      *time.Time
 	_type            *string
@@ -506,7 +506,7 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
 			Columns: file.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  fuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: file.FieldID,
 			},
 		},

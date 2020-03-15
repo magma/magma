@@ -1171,8 +1171,8 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup)
   EXPECT_CALL(
     *pipelined_client,
     setup_cwf(CheckSessionInfos(imsi_list, ip_address_list, static_rule_list,
-      dynamic_rule_list), ue_mac_addrs, msisdns, apn_mac_addrs, apn_names,
-      testing::_, testing::_))
+      dynamic_rule_list), testing::_, ue_mac_addrs, msisdns, apn_mac_addrs,
+      apn_names, testing::_, testing::_))
     .Times(1)
     .WillOnce(testing::Return(true));
 

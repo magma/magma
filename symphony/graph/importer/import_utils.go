@@ -78,7 +78,7 @@ func (m *importer) getOrCreateEquipmentType(ctx context.Context, name string, po
 	return wq.SaveX(ctx)
 }
 
-func (m *importer) queryLocationForTypeAndParent(ctx context.Context, name string, locType *ent.LocationType, parentID *string) (*ent.Location, error) {
+func (m *importer) queryLocationForTypeAndParent(ctx context.Context, name string, locType *ent.LocationType, parentID *int) (*ent.Location, error) {
 	rq := locType.QueryLocations().Where(location.Name(name))
 	if parentID != nil {
 		rq = rq.Where(location.HasParentWith(location.ID(*parentID)))
@@ -92,7 +92,11 @@ func (m *importer) queryLocationForTypeAndParent(ctx context.Context, name strin
 	return nil, err
 }
 
-func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool, error) {
+func (m *importer) getOrCreateLocation(
+	ctx context.Context, name string, latitude, longitude float64,
+	locType *ent.LocationType, parentID *int, props []*models.PropertyInput,
+	externalID *string,
+) (*ent.Location, bool, error) {
 	log := m.logger.For(ctx)
 	l, err := m.queryLocationForTypeAndParent(ctx, name, locType, parentID)
 	if ent.MaskNotFound(err) != nil {
@@ -120,7 +124,10 @@ func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitud
 	return l, true, nil
 }
 
-func (m *importer) getEquipmentIfExist(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, error) {
+func (m *importer) getEquipmentIfExist(
+	ctx context.Context, name string, equipType *ent.EquipmentType,
+	loc *ent.Location, position *ent.EquipmentPosition,
+) (*ent.Equipment, error) {
 	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.EquipmentType.Query().
@@ -144,26 +151,30 @@ func (m *importer) getEquipmentIfExist(ctx context.Context, mr generated.Mutatio
 	if equip != nil {
 		log.Debug("equipment exists",
 			zap.String("name", name),
-			zap.String("type", equipType.ID),
+			zap.Int("type", equipType.ID),
 		)
 		return equip, nil
 	}
 	return nil, nil
 }
 
-func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
+func (m *importer) getOrCreateEquipment(
+	ctx context.Context, mr generated.MutationResolver, name string,
+	equipType *ent.EquipmentType, externalID *string, loc *ent.Location,
+	position *ent.EquipmentPosition, props []*models.PropertyInput,
+) (*ent.Equipment, bool, error) {
 	log := m.logger.For(ctx)
-	eq, err := m.getEquipmentIfExist(ctx, mr, name, equipType, externalID, loc, position, props)
+	eq, err := m.getEquipmentIfExist(ctx, name, equipType, loc, position)
 	if err != nil || eq != nil {
 		return eq, false, err
 	}
 
-	var locID *string
+	var locID *int
 	if loc != nil {
 		locID = &loc.ID
 	}
 
-	var parentEquipmentID, positionDefinitionID *string
+	var parentEquipmentID, positionDefinitionID *int
 	if position != nil {
 		p := position.QueryParent().OnlyXID(ctx)
 		d := position.QueryDefinition().OnlyXID(ctx)
@@ -183,11 +194,14 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 		log.Error("add equipment", zap.String("name", name), zap.Error(err))
 		return nil, false, err
 	}
-	log.Debug("Creating new equipment", zap.String("equip.Name", equip.Name), zap.String("equip.ID", equip.ID))
+	log.Debug("Creating new equipment",
+		zap.String("equip.Name", equip.Name),
+		zap.Int("equip.ID", equip.ID),
+	)
 	return equip, true, nil
 }
 
-func (m *importer) getServiceIfExist(ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string, status models.ServiceStatus) (*ent.Service, error) {
+func (m *importer) getServiceIfExist(ctx context.Context, name string, serviceType *ent.ServiceType) (*ent.Service, error) {
 	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.ServiceType.Query().
@@ -196,30 +210,32 @@ func (m *importer) getServiceIfExist(ctx context.Context, mr generated.MutationR
 		Where(
 			service.Name(name),
 		)
-	service, err := rq.First(ctx)
+	svc, err := rq.First(ctx)
 	if ent.MaskNotFound(err) != nil {
 		return nil, err
 	}
-	if service != nil {
+	if svc != nil {
 		log.Debug("service exists",
 			zap.String("name", name),
-			zap.String("type", serviceType.ID),
+			zap.Int("type", serviceType.ID),
 		)
-		return service, nil
+		return svc, nil
 	}
 	return nil, nil
 }
 
 func (m *importer) getOrCreateService(
-	ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string, status models.ServiceStatus) (*ent.Service, bool, error) {
+	ctx context.Context, mr generated.MutationResolver, name string,
+	serviceType *ent.ServiceType, props []*models.PropertyInput,
+	customerID *int, externalID *string, status models.ServiceStatus,
+) (*ent.Service, bool, error) {
 	log := m.logger.For(ctx)
-	service, err := m.getServiceIfExist(ctx, mr, name, serviceType, props, customerID, externalID, status)
-
-	if err != nil || service != nil {
-		return service, false, err
+	svc, err := m.getServiceIfExist(ctx, name, serviceType)
+	if err != nil || svc != nil {
+		return svc, false, err
 	}
 
-	service, err = mr.AddService(ctx, models.ServiceCreateData{
+	svc, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          name,
 		ServiceTypeID: serviceType.ID,
 		Properties:    props,
@@ -228,23 +244,23 @@ func (m *importer) getOrCreateService(
 		ExternalID:    externalID,
 	})
 	if err != nil {
-		log.Error("add service", zap.String("name", name), zap.Error(err))
+		log.Error("add svc", zap.String("name", name), zap.Error(err))
 		return nil, false, err
 	}
-	log.Debug("Creating new service", zap.String("service.Name", service.Name), zap.String("service.ID", service.ID))
+	log.Debug("Creating new svc", zap.String("svc.Name", svc.Name), zap.Int("svc.ID", svc.ID))
 
-	return service, true, nil
+	return svc, true, nil
 }
 
 func (m *importer) getCustomerIfExist(ctx context.Context, name string) (*ent.Customer, error) {
 	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
-	customer, err := client.Customer.Query().Where(customer.Name(name)).First(ctx)
-	if customer != nil {
+	c, err := client.Customer.Query().Where(customer.Name(name)).First(ctx)
+	if c != nil {
 		log.Debug("customer exists",
 			zap.String("name", name),
 		)
-		return customer, nil
+		return c, nil
 	}
 	if !ent.IsNotFound(err) {
 		return nil, err
@@ -260,20 +276,22 @@ func (m *importer) getOrCreateCustomer(ctx context.Context, mr generated.Mutatio
 	}
 
 	exID := pointer.ToStringOrNil(externalID)
-	customer, err := mr.AddCustomer(ctx, models.AddCustomerInput{
+	c, err := mr.AddCustomer(ctx, models.AddCustomerInput{
 		Name:       name,
 		ExternalID: exID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("Creating new customer", zap.String("customer.Name", customer.Name),
-		zap.String("customer.ID", customer.ID))
+	log.Debug("Creating new customer",
+		zap.String("customer.Name", c.Name),
+		zap.Int("customer.ID", c.ID),
+	)
 
-	return customer, nil
+	return c, nil
 }
 
-func (m *importer) getOrCreateEquipmentLocationByFullPath(ctx context.Context, line, firstLine []string, includePropTypes bool) (string, error) {
+func (m *importer) getOrCreateEquipmentLocationByFullPath(ctx context.Context, line, firstLine []string, includePropTypes bool) (int, error) {
 	var (
 		lastLocationTypeIdx   = getLowestLocationHierarchyIdxForRow(ctx, line)
 		indexToLocationTypeID = getImportContext(ctx).indexToLocationTypeID
@@ -316,7 +334,7 @@ func (m *importer) getOrCreateEquipmentLocationByFullPath(ctx context.Context, l
 				Name:       name,
 				Type:       locationTypeID,
 				Properties: pinputs,
-				Parent: func() *string {
+				Parent: func() *int {
 					if parent != nil {
 						return &parent.ID
 					}
@@ -324,7 +342,7 @@ func (m *importer) getOrCreateEquipmentLocationByFullPath(ctx context.Context, l
 				}(),
 			})
 			if err != nil {
-				return "", errors.WithMessage(err, "cannot add location")
+				return 0, errors.WithMessage(err, "cannot add location")
 			}
 			resLocation = l
 		}
@@ -333,12 +351,12 @@ func (m *importer) getOrCreateEquipmentLocationByFullPath(ctx context.Context, l
 	if resLocation != nil {
 		return resLocation.ID, nil
 	}
-	return "", nil
+	return 0, nil
 }
 
-func (m *importer) getLocationIDByName(ctx context.Context, loc string) (string, error) {
+func (m *importer) getLocationIDByName(ctx context.Context, name string) (int, error) {
 	return m.ClientFrom(ctx).Location.Query().
-		Where(location.Name(loc)).
+		Where(location.Name(name)).
 		OnlyID(ctx)
 }
 
@@ -346,15 +364,15 @@ func (m *importer) CloneContext(ctx context.Context) context.Context {
 	return viewer.NewContext(ent.NewContext(context.Background(), m.ClientFrom(ctx)), viewer.FromContext(ctx))
 }
 
-func (m *importer) validateServiceExistsAndUnique(ctx context.Context, serviceNamesMap map[string]bool, serviceName string) (string, error) {
+func (m *importer) validateServiceExistsAndUnique(ctx context.Context, serviceNamesMap map[string]bool, serviceName string) (int, error) {
 	client := m.ClientFrom(ctx)
 	if _, ok := serviceNamesMap[serviceName]; ok {
-		return "", errors.Errorf("Property can't be the endpoint of the same service more than once - service name=%q", serviceName)
+		return 0, errors.Errorf("property can't be the endpoint of the same service more than once - service name=%q", serviceName)
 	}
 	serviceNamesMap[serviceName] = true
 	s, err := client.Service.Query().Where(service.Name(serviceName)).Only(ctx)
 	if err != nil {
-		return "", errors.Wrapf(err, "can't query service name=%q", serviceName)
+		return 0, errors.Wrapf(err, "can't query service name=%q", serviceName)
 	}
 	return s.ID, nil
 }

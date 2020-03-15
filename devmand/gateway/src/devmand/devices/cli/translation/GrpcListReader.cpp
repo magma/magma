@@ -21,10 +21,8 @@ GrpcListReader::GrpcListReader(
     shared_ptr<grpc::Channel> channel,
     const string _id,
     shared_ptr<Executor> _executor)
-    :
-    GrpcCliHandler(_id, _executor),
-    stub_(devmand::channels::cli::plugin::ReaderPlugin::NewStub(channel))
-{}
+    : GrpcCliHandler(_id, _executor),
+      stub_(devmand::channels::cli::plugin::ReaderPlugin::NewStub(channel)) {}
 
 Future<vector<dynamic>> GrpcListReader::readKeys(
     const Path& path,
@@ -42,7 +40,8 @@ Future<vector<dynamic>> GrpcListReader::readKeys(
       [this](auto response) -> vector<dynamic> {
         dynamic result = parseJson(response.actualreadresponse().json());
         if (not result.isArray()) {
-          MLOG(MERROR) << "[" << id << "] Response is not json array:" << response.actualreadresponse().json() ;
+          MLOG(MERROR) << "[" << id << "] Response is not json array:"
+                       << response.actualreadresponse().json();
           throw runtime_error("Response is not json array");
         }
         vector<dynamic> values;

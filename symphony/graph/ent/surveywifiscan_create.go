@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -35,8 +34,8 @@ type SurveyWiFiScanCreate struct {
 	strength        *int
 	latitude        *float64
 	longitude       *float64
-	survey_question map[string]struct{}
-	location        map[string]struct{}
+	survey_question map[int]struct{}
+	location        map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -182,16 +181,16 @@ func (swfsc *SurveyWiFiScanCreate) SetNillableLongitude(f *float64) *SurveyWiFiS
 }
 
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
-func (swfsc *SurveyWiFiScanCreate) SetSurveyQuestionID(id string) *SurveyWiFiScanCreate {
+func (swfsc *SurveyWiFiScanCreate) SetSurveyQuestionID(id int) *SurveyWiFiScanCreate {
 	if swfsc.survey_question == nil {
-		swfsc.survey_question = make(map[string]struct{})
+		swfsc.survey_question = make(map[int]struct{})
 	}
 	swfsc.survey_question[id] = struct{}{}
 	return swfsc
 }
 
 // SetNillableSurveyQuestionID sets the survey_question edge to SurveyQuestion by id if the given value is not nil.
-func (swfsc *SurveyWiFiScanCreate) SetNillableSurveyQuestionID(id *string) *SurveyWiFiScanCreate {
+func (swfsc *SurveyWiFiScanCreate) SetNillableSurveyQuestionID(id *int) *SurveyWiFiScanCreate {
 	if id != nil {
 		swfsc = swfsc.SetSurveyQuestionID(*id)
 	}
@@ -204,16 +203,16 @@ func (swfsc *SurveyWiFiScanCreate) SetSurveyQuestion(s *SurveyQuestion) *SurveyW
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (swfsc *SurveyWiFiScanCreate) SetLocationID(id string) *SurveyWiFiScanCreate {
+func (swfsc *SurveyWiFiScanCreate) SetLocationID(id int) *SurveyWiFiScanCreate {
 	if swfsc.location == nil {
-		swfsc.location = make(map[string]struct{})
+		swfsc.location = make(map[int]struct{})
 	}
 	swfsc.location[id] = struct{}{}
 	return swfsc
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (swfsc *SurveyWiFiScanCreate) SetNillableLocationID(id *string) *SurveyWiFiScanCreate {
+func (swfsc *SurveyWiFiScanCreate) SetNillableLocationID(id *int) *SurveyWiFiScanCreate {
 	if id != nil {
 		swfsc = swfsc.SetLocationID(*id)
 	}
@@ -274,7 +273,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		_spec = &sqlgraph.CreateSpec{
 			Table: surveywifiscan.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveywifiscan.FieldID,
 			},
 		}
@@ -392,16 +391,12 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -415,16 +410,12 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -436,6 +427,6 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	swfs.ID = strconv.FormatInt(id, 10)
+	swfs.ID = int(id)
 	return swfs, nil
 }

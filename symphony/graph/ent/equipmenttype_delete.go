@@ -47,7 +47,7 @@ func (etd *EquipmentTypeDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: equipmenttype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmenttype.FieldID,
 			},
 		},

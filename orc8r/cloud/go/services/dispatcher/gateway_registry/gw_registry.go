@@ -14,10 +14,9 @@ import (
 	"sync"
 	"time"
 
-	"magma/orc8r/cloud/go/services/dispatcher"
+	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/lib/go/registry"
 
-	_ "github.com/mattn/go-sqlite3"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -79,7 +78,7 @@ func SetPort(port int) error {
 // of the Dispatcher grpc server who has an open bidirectional
 // stream with the gateway with hwId.
 func GetServiceAddressForGateway(hwId string) (string, error) {
-	hostName, err := dispatcher.GetHostnameForHwid(hwId)
+	hostName, err := directoryd.GetHostnameForHWID(hwId)
 	if err != nil {
 		fmt.Printf("err getting hostName in GetServiceAddressForGateway for hwId %v: %v\n", hwId, err)
 		return "", err

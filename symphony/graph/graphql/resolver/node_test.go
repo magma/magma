@@ -25,12 +25,14 @@ func TestQueryNode(t *testing.T) {
 		&lt,
 		client.Var("input", models.AddLocationTypeInput{Name: "city"}),
 	)
+	id, err := strconv.Atoi(lt.AddLocationType.ID)
+	require.NoError(t, err)
 
 	var l struct{ AddLocation struct{ ID string } }
 	c.MustPost(
 		`mutation($input: AddLocationInput!) { addLocation(input: $input) { id } }`,
 		&l,
-		client.Var("input", models.AddLocationInput{Name: "tlv", Type: lt.AddLocationType.ID}),
+		client.Var("input", models.AddLocationInput{Name: "tlv", Type: id}),
 	)
 
 	t.Run("LocationType", func(t *testing.T) {

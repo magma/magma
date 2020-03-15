@@ -15,7 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const ArrowLeftIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <path d="M7.41 1.41L2.83 6l4.58 4.59L6 12 0 6l6-6z" fillRule="evenodd" />
+    <path d="M15.41 7.41L10.83 12l4.58 4.59L14 18l-6-6 6-6z" />
   </SvgIcon>
 );
 

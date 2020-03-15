@@ -53,15 +53,17 @@ const LTE_STATE = 'lte_state';
 const LTE_AUTH_KEY = 'lte_auth_key';
 const LTE_AUTH_OPC = 'lte_auth_opc';
 const SUB_PROFILE = 'sub_profile';
+const APN_LIST = 'active_apns';
 
-const CSV_TEMPLATE_DATA = [
-  [IMSI, LTE_STATE, LTE_AUTH_KEY, LTE_AUTH_OPC, SUB_PROFILE],
+const CSV_TEMPLATE_DATA: Array<Array<string>> = [
+  [IMSI, LTE_STATE, LTE_AUTH_KEY, LTE_AUTH_OPC, SUB_PROFILE, APN_LIST],
   [
     '"""200056789012345"""',
     'ACTIVE',
     '20000000001234567890ABCDEFABCDEF',
     '21111111111234567890ABCDEFABCDEF',
     'low rate 1',
+    'supernet;inet-1',
   ],
   [
     '"""200056789012346"""',
@@ -181,6 +183,7 @@ function getSubscriberFromRow(row: Array<string>): ?subscriber {
           : data[LTE_AUTH_OPC],
       sub_profile: data[SUB_PROFILE] || 'default',
     },
+    active_apns: data[APN_LIST]?.split(';'),
   };
 }
 

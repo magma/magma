@@ -57,6 +57,7 @@ const EquipmentPowerSearchBar = (props: Props) => {
       searchConfig={EquipmentCriteriaConfig}
       filterConfigs={filterConfigs}
       footer={footer}
+      entity="EQUIPMENT"
     />
   );
 };

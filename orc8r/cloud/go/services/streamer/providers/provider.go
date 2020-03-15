@@ -24,7 +24,11 @@ type StreamProvider interface {
 	// globally unique
 	GetStreamName() string
 
-	// Stream updates back to a gateway given its hardware ID
+	// GetUpdates returns updates to stream updates back to a gateway given its hardware ID
+	// if GetUpdates returns error, the stream will be closed without sending any updates
+	// if GetUpdates returns error == nil, updates will be sent & the stream will be closed after that
+	// if GetUpdates returns error == io.EAGAIN - the returned updates will be sent & GetUpdates will be called again
+	// on the same stream
 	GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error)
 }
 

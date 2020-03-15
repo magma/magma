@@ -16,10 +16,10 @@ import (
 
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/policydb"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/metrics"
 	"magma/feg/gateway/services/session_proxy/relay"
+	"magma/gateway/service_registry"
 )
 
 // ccaHandler parses a CCADiameterMessage received over Gx and returns the
@@ -54,7 +54,7 @@ type ReAuthHandler func(request *ReAuthRequest) *ReAuthAnswer
 
 // Factory function for a RAR message handler which relays to the corresponding
 // gateway.
-func GetGxReAuthHandler(cloudRegistry registry.CloudRegistry, policyDBClient policydb.PolicyDBClient) ReAuthHandler {
+func GetGxReAuthHandler(cloudRegistry service_registry.GatewayRegistry, policyDBClient policydb.PolicyDBClient) ReAuthHandler {
 	return func(request *ReAuthRequest) *ReAuthAnswer {
 		sid := diameter.DecodeSessionID(request.SessionID)
 		imsi, err := relay.GetIMSIFromSessionID(sid)

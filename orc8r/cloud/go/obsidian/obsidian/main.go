@@ -11,8 +11,8 @@ package main
 import (
 	"flag"
 	"log"
+	"magma/orc8r/lib/go/definitions"
 
-	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/server"
 	"magma/orc8r/cloud/go/orc8r"
@@ -27,17 +27,17 @@ func main() {
 	flag.BoolVar(&obsidian.TLS, "tls", false, "HTTPS only access")
 	flag.StringVar(
 		&obsidian.ServerCertPemPath, "cert",
-		datastore.GetEnvWithDefault("REST_CERT", obsidian.DefaultServerCert),
+		definitions.GetEnvWithDefault("REST_CERT", obsidian.DefaultServerCert),
 		"Server's certificate PEM file",
 	)
 	flag.StringVar(
 		&obsidian.ServerKeyPemPath, "cert_key",
-		datastore.GetEnvWithDefault("REST_CERT_KEY", obsidian.DefaultServerCertKey),
+		definitions.GetEnvWithDefault("REST_CERT_KEY", obsidian.DefaultServerCertKey),
 		"Server's certificate private key PEM file",
 	)
 	flag.StringVar(
 		&obsidian.ClientCAPoolPath, "client_ca",
-		datastore.GetEnvWithDefault("REST_CLIENT_CERT", obsidian.DefaultClientCAs),
+		definitions.GetEnvWithDefault("REST_CLIENT_CERT", obsidian.DefaultClientCAs),
 		"Client certificate CA pool PEM file",
 	)
 	flag.BoolVar(

@@ -127,7 +127,7 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 				validRows++
-				if err == nil && locationForRow == nil {
+				if locationForRow == nil {
 					continue
 				}
 
@@ -162,11 +162,12 @@ func getProperties(ctx context.Context, line []string, index int) map[string]str
 }
 
 func (m *importer) handleLocationRow(ctx context.Context, lastPopulatedLocationIdx, latIndx, longIndx, externalIDIndex int, line []string, commit bool) (*ent.Location, error) {
-	var err error
-	var parentID *string
-	var locID string
-	log := m.logger.For(ctx)
-
+	var (
+		err      error
+		parentID *int
+		locID    int
+		log      = m.logger.For(ctx)
+	)
 	indexToLocationTypeID := getImportContext(ctx).indexToLocationTypeID
 	for index, name := range line {
 		if index > lastPopulatedLocationIdx {
@@ -224,7 +225,7 @@ func (m *importer) handleLocationRow(ctx context.Context, lastPopulatedLocationI
 			return nil, fmt.Errorf("query location. name=%v. error: %v", name, err.Error())
 		}
 		// nolint: gocritic
-		if locID == "" {
+		if locID == 0 {
 			ltyp, err := client.LocationType.Query().Where(locationtype.ID(locationTypeID)).Only(ctx)
 			if err != nil {
 				return nil, fmt.Errorf("no valid location type on column number %d. error: %v", index, err.Error())

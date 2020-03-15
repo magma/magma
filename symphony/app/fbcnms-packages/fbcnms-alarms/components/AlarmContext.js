@@ -17,10 +17,12 @@ import type {RuleInterfaceMap} from './rules/RuleInterface';
 
 export type AlarmContext = {|
   apiUtil: ApiUtil,
-  thresholdEditorEnabled?: boolean,
   filterLabels?: (labels: Labels) => Labels,
   ruleMap: RuleInterfaceMap<*>,
   getAlertType?: ?GetAlertType,
+  // feature flags
+  thresholdEditorEnabled?: boolean,
+  alertManagerGlobalConfigEnabled?: boolean,
 |};
 
 /***
@@ -53,14 +55,17 @@ const emptyApiUtil = {
   getRouteTree: (..._) => Promise.reject('not implemented'),
   editRouteTree: (..._) => Promise.reject('not implemented'),
   getMetricSeries: (..._) => Promise.reject('not implemented'),
+  getGlobalConfig: _ => Promise.reject('not implemented'),
+  editGlobalConfig: _ => Promise.reject('not implemented'),
 };
 
 const context = React.createContext<AlarmContext>({
   apiUtil: emptyApiUtil,
-  thresholdEditorEnabled: false,
   filterLabels: x => x,
   ruleMap: {},
   getAlertType: _ => PROMETHEUS_RULE_TYPE,
+  thresholdEditorEnabled: false,
+  alertManagerGlobalConfigEnabled: false,
 });
 
 export function useAlarmContext() {

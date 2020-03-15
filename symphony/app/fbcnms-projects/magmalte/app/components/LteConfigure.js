@@ -8,6 +8,7 @@
  * @format
  */
 
+import Apn from './network/Apn';
 import Configure from './network/Configure';
 import DataPlanConfig from './network/DataPlanConfig';
 import NetworkConfig from './network/NetworkConfig';
@@ -21,6 +22,11 @@ export default function LteConfigure() {
       component: DataPlanConfig,
       label: 'Data Plans',
       path: 'dataplans',
+    },
+    {
+      component: Apn,
+      label: 'APN Configuration',
+      path: 'apns',
     },
     {
       component: NetworkConfig,

@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -26,8 +25,8 @@ type ServiceTypeCreate struct {
 	update_time    *time.Time
 	name           *string
 	has_customer   *bool
-	services       map[string]struct{}
-	property_types map[string]struct{}
+	services       map[int]struct{}
+	property_types map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -79,9 +78,9 @@ func (stc *ServiceTypeCreate) SetNillableHasCustomer(b *bool) *ServiceTypeCreate
 }
 
 // AddServiceIDs adds the services edge to Service by ids.
-func (stc *ServiceTypeCreate) AddServiceIDs(ids ...string) *ServiceTypeCreate {
+func (stc *ServiceTypeCreate) AddServiceIDs(ids ...int) *ServiceTypeCreate {
 	if stc.services == nil {
-		stc.services = make(map[string]struct{})
+		stc.services = make(map[int]struct{})
 	}
 	for i := range ids {
 		stc.services[ids[i]] = struct{}{}
@@ -91,7 +90,7 @@ func (stc *ServiceTypeCreate) AddServiceIDs(ids ...string) *ServiceTypeCreate {
 
 // AddServices adds the services edges to Service.
 func (stc *ServiceTypeCreate) AddServices(s ...*Service) *ServiceTypeCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -99,9 +98,9 @@ func (stc *ServiceTypeCreate) AddServices(s ...*Service) *ServiceTypeCreate {
 }
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
-func (stc *ServiceTypeCreate) AddPropertyTypeIDs(ids ...string) *ServiceTypeCreate {
+func (stc *ServiceTypeCreate) AddPropertyTypeIDs(ids ...int) *ServiceTypeCreate {
 	if stc.property_types == nil {
-		stc.property_types = make(map[string]struct{})
+		stc.property_types = make(map[int]struct{})
 	}
 	for i := range ids {
 		stc.property_types[ids[i]] = struct{}{}
@@ -111,7 +110,7 @@ func (stc *ServiceTypeCreate) AddPropertyTypeIDs(ids ...string) *ServiceTypeCrea
 
 // AddPropertyTypes adds the property_types edges to PropertyType.
 func (stc *ServiceTypeCreate) AddPropertyTypes(p ...*PropertyType) *ServiceTypeCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -153,7 +152,7 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 		_spec = &sqlgraph.CreateSpec{
 			Table: servicetype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: servicetype.FieldID,
 			},
 		}
@@ -199,16 +198,12 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -222,16 +217,12 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -243,6 +234,6 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	st.ID = strconv.FormatInt(id, 10)
+	st.ID = int(id)
 	return st, nil
 }

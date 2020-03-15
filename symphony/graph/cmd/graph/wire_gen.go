@@ -12,6 +12,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/url"
+
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphhttp"
@@ -20,12 +22,11 @@ import (
 	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"google.golang.org/grpc"
-	"net/url"
-)
 
-import (
 	_ "github.com/go-sql-driver/mysql"
+
 	_ "gocloud.dev/pubsub/mempubsub"
+
 	_ "gocloud.dev/pubsub/natspubsub"
 )
 
@@ -33,7 +34,7 @@ import (
 
 func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(), error) {
 	config := flags.Log
-	logger, cleanup, err := log.New(config)
+	logger, cleanup, err := log.Provider(config)
 	if err != nil {
 		return nil, nil, err
 	}

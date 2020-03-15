@@ -11,6 +11,6 @@
 'use strict';
 
 export type MutationCallbacks<R> = ?{
-  onCompleted?: (response: R) => void,
+  onCompleted?: (response: R, errors: Array<Error>) => void,
   onError?: ?(error: Error) => void,
 };

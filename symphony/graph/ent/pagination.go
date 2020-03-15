@@ -41,6 +41,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
@@ -51,6 +52,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -67,7 +69,7 @@ type PageInfo struct {
 
 // Cursor of an edge type.
 type Cursor struct {
-	ID string
+	ID int
 }
 
 // ErrInvalidPagination error is returned when paginating with invalid parameters.
@@ -2494,6 +2496,98 @@ func (pt *PropertyTypeQuery) collectConnectionFields(ctx context.Context) *Prope
 	return pt
 }
 
+// ReportFilterEdge is the edge representation of ReportFilter.
+type ReportFilterEdge struct {
+	Node   *ReportFilter `json:"node"`
+	Cursor Cursor        `json:"cursor"`
+}
+
+// ReportFilterConnection is the connection containing edges to ReportFilter.
+type ReportFilterConnection struct {
+	Edges    []*ReportFilterEdge `json:"edges"`
+	PageInfo PageInfo            `json:"pageInfo"`
+}
+
+// Paginate executes the query and returns a relay based cursor connection to ReportFilter.
+func (rf *ReportFilterQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ReportFilterConnection, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &ReportFilterConnection{
+				Edges: []*ReportFilterEdge{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &ReportFilterConnection{
+				Edges: []*ReportFilterEdge{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		rf = rf.Where(reportfilter.IDGT(after.ID))
+	}
+	if before != nil {
+		rf = rf.Where(reportfilter.IDLT(before.ID))
+	}
+	if first != nil {
+		rf = rf.Order(Asc(reportfilter.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		rf = rf.Order(Desc(reportfilter.FieldID)).Limit(*last + 1)
+	}
+	rf = rf.collectConnectionFields(ctx)
+
+	nodes, err := rf.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &ReportFilterConnection{
+			Edges: []*ReportFilterEdge{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn ReportFilterConnection
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*ReportFilterEdge, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &ReportFilterEdge{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+func (rf *ReportFilterQuery) collectConnectionFields(ctx context.Context) *ReportFilterQuery {
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		rf = rf.collectField(graphql.GetRequestContext(ctx), *field)
+	}
+	return rf
+}
+
 // ServiceEdge is the edge representation of Service.
 type ServiceEdge struct {
 	Node   *Service `json:"node"`
@@ -3412,6 +3506,98 @@ func (t *TechnicianQuery) collectConnectionFields(ctx context.Context) *Technici
 		t = t.collectField(graphql.GetRequestContext(ctx), *field)
 	}
 	return t
+}
+
+// UserEdge is the edge representation of User.
+type UserEdge struct {
+	Node   *User  `json:"node"`
+	Cursor Cursor `json:"cursor"`
+}
+
+// UserConnection is the connection containing edges to User.
+type UserConnection struct {
+	Edges    []*UserEdge `json:"edges"`
+	PageInfo PageInfo    `json:"pageInfo"`
+}
+
+// Paginate executes the query and returns a relay based cursor connection to User.
+func (u *UserQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*UserConnection, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &UserConnection{
+				Edges: []*UserEdge{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &UserConnection{
+				Edges: []*UserEdge{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		u = u.Where(user.IDGT(after.ID))
+	}
+	if before != nil {
+		u = u.Where(user.IDLT(before.ID))
+	}
+	if first != nil {
+		u = u.Order(Asc(user.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		u = u.Order(Desc(user.FieldID)).Limit(*last + 1)
+	}
+	u = u.collectConnectionFields(ctx)
+
+	nodes, err := u.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &UserConnection{
+			Edges: []*UserEdge{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn UserConnection
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*UserEdge, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &UserEdge{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+func (u *UserQuery) collectConnectionFields(ctx context.Context) *UserQuery {
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		u = u.collectField(graphql.GetRequestContext(ctx), *field)
+	}
+	return u
 }
 
 // WorkOrderEdge is the edge representation of WorkOrder.

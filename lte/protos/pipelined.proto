@@ -100,7 +100,8 @@ message DeactivateFlowsResult {
 message FlowRequest {
   FlowMatch match = 1;
   string app_name = 2;
-  uint64  bytes_rx = 3;
+  uint64 bytes_rx = 3;
+  string service_type = 4;
 }
 
 message FlowResponse {
@@ -184,6 +185,9 @@ service Pipelined {
 
   // Add new dpi flow
   rpc CreateFlow (FlowRequest) returns (FlowResponse) {};
+
+  // Remove dpi flow
+  rpc RemoveFlow (FlowRequest) returns (FlowResponse) {};
 
   // Update flow stats
   rpc UpdateFlowStats (FlowRequest) returns (FlowResponse) {};

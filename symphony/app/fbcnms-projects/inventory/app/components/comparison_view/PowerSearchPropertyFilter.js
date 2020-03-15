@@ -54,7 +54,7 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
       name: 'property',
       operator: editedOperator,
       propertyValue: {
-        id: 'tmp@propertyType',
+        id: '0',
         name: newValue.propertyType
           ? newValue.propertyType.name
           : newValue.name,
@@ -93,7 +93,7 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
             inputType="Property"
             property={propertyValue}
             onBlur={e => {
-              if (e.relatedTarget.id === POWER_SEARCH_OPERATOR_ID) {
+              if (e.relatedTarget?.id === POWER_SEARCH_OPERATOR_ID) {
                 return;
               }
               onInputBlurred();

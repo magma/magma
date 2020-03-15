@@ -21,10 +21,10 @@ import (
 
 func StartTestService(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, accessd.ServiceName)
-	ds := test_utils.GetMockDatastoreInstance()
-	accessdStore := storage.NewAccessdDatastore(ds)
+	store := test_utils.NewEntStorage(t, storage.AccessdTableBlobstore)
+	accessdStore := storage.NewAccessdBlobstore(store)
 	protos.RegisterAccessControlManagerServer(
 		srv.GrpcServer,
 		servicers.NewAccessdServer(accessdStore))
-	go srv.GrpcServer.Serve(lis)
+	go srv.RunTest(lis)
 }

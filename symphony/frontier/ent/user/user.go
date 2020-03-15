@@ -43,7 +43,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "token" package.
 	TokensInverseTable = "tokens"
 	// TokensColumn is the table column denoting the tokens relation/edge.
-	TokensColumn = "user_id"
+	TokensColumn = "user_tokens"
 )
 
 // Columns holds all SQL columns for user fields.

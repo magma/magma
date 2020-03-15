@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,7 +23,7 @@ import (
 type Equipment struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -40,10 +39,10 @@ type Equipment struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentQuery when eager-loading is set.
 	Edges                         EquipmentEdges `json:"edges"`
-	equipment_type                *string
-	equipment_work_order          *string
-	equipment_position_attachment *string
-	location_equipment            *string
+	equipment_type                *int
+	equipment_work_order          *int
+	equipment_position_attachment *int
+	location_equipment            *int
 }
 
 // EquipmentEdges holds the relations/edges for other nodes in the graph.
@@ -205,7 +204,7 @@ func (e *Equipment) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	e.ID = strconv.FormatInt(value.Int64, 10)
+	e.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -242,26 +241,26 @@ func (e *Equipment) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_type", value)
 		} else if value.Valid {
-			e.equipment_type = new(string)
-			*e.equipment_type = strconv.FormatInt(value.Int64, 10)
+			e.equipment_type = new(int)
+			*e.equipment_type = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_work_order", value)
 		} else if value.Valid {
-			e.equipment_work_order = new(string)
-			*e.equipment_work_order = strconv.FormatInt(value.Int64, 10)
+			e.equipment_work_order = new(int)
+			*e.equipment_work_order = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_position_attachment", value)
 		} else if value.Valid {
-			e.equipment_position_attachment = new(string)
-			*e.equipment_position_attachment = strconv.FormatInt(value.Int64, 10)
+			e.equipment_position_attachment = new(int)
+			*e.equipment_position_attachment = int(value.Int64)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field location_equipment", value)
 		} else if value.Valid {
-			e.location_equipment = new(string)
-			*e.location_equipment = strconv.FormatInt(value.Int64, 10)
+			e.location_equipment = new(int)
+			*e.location_equipment = int(value.Int64)
 		}
 	}
 	return nil
@@ -269,54 +268,54 @@ func (e *Equipment) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the Equipment.
 func (e *Equipment) QueryType() *EquipmentTypeQuery {
-	return (&EquipmentClient{e.config}).QueryType(e)
+	return (&EquipmentClient{config: e.config}).QueryType(e)
 }
 
 // QueryLocation queries the location edge of the Equipment.
 func (e *Equipment) QueryLocation() *LocationQuery {
-	return (&EquipmentClient{e.config}).QueryLocation(e)
+	return (&EquipmentClient{config: e.config}).QueryLocation(e)
 }
 
 // QueryParentPosition queries the parent_position edge of the Equipment.
 func (e *Equipment) QueryParentPosition() *EquipmentPositionQuery {
-	return (&EquipmentClient{e.config}).QueryParentPosition(e)
+	return (&EquipmentClient{config: e.config}).QueryParentPosition(e)
 }
 
 // QueryPositions queries the positions edge of the Equipment.
 func (e *Equipment) QueryPositions() *EquipmentPositionQuery {
-	return (&EquipmentClient{e.config}).QueryPositions(e)
+	return (&EquipmentClient{config: e.config}).QueryPositions(e)
 }
 
 // QueryPorts queries the ports edge of the Equipment.
 func (e *Equipment) QueryPorts() *EquipmentPortQuery {
-	return (&EquipmentClient{e.config}).QueryPorts(e)
+	return (&EquipmentClient{config: e.config}).QueryPorts(e)
 }
 
 // QueryWorkOrder queries the work_order edge of the Equipment.
 func (e *Equipment) QueryWorkOrder() *WorkOrderQuery {
-	return (&EquipmentClient{e.config}).QueryWorkOrder(e)
+	return (&EquipmentClient{config: e.config}).QueryWorkOrder(e)
 }
 
 // QueryProperties queries the properties edge of the Equipment.
 func (e *Equipment) QueryProperties() *PropertyQuery {
-	return (&EquipmentClient{e.config}).QueryProperties(e)
+	return (&EquipmentClient{config: e.config}).QueryProperties(e)
 }
 
 // QueryFiles queries the files edge of the Equipment.
 func (e *Equipment) QueryFiles() *FileQuery {
-	return (&EquipmentClient{e.config}).QueryFiles(e)
+	return (&EquipmentClient{config: e.config}).QueryFiles(e)
 }
 
 // QueryHyperlinks queries the hyperlinks edge of the Equipment.
 func (e *Equipment) QueryHyperlinks() *HyperlinkQuery {
-	return (&EquipmentClient{e.config}).QueryHyperlinks(e)
+	return (&EquipmentClient{config: e.config}).QueryHyperlinks(e)
 }
 
 // Update returns a builder for updating this Equipment.
 // Note that, you need to call Equipment.Unwrap() before calling this method, if this Equipment
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (e *Equipment) Update() *EquipmentUpdateOne {
-	return (&EquipmentClient{e.config}).UpdateOne(e)
+	return (&EquipmentClient{config: e.config}).UpdateOne(e)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -349,12 +348,6 @@ func (e *Equipment) String() string {
 	builder.WriteString(e.ExternalID)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (e *Equipment) id() int {
-	id, _ := strconv.Atoi(e.ID)
-	return id
 }
 
 // EquipmentSlice is a parsable slice of Equipment.

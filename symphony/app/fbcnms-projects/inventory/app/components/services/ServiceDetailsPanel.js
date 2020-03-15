@@ -143,7 +143,11 @@ const ServiceDetailsPanel = (props: Props) => {
       data: {
         id: editableService.id,
         name: editableService.name,
-        externalId: editableService.externalId,
+        externalId:
+          editableService.externalId != null &&
+          editableService.externalId !== ''
+            ? editableService.externalId
+            : null,
         customerId: editableService.customer?.id,
         properties: toPropertyInput(editableService.properties),
         upstreamServiceIds: [],

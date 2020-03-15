@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
 from gql import gql
 
-gql(''' wrong query ''') # GQL100
+
+gql(""" wrong query """)  # GQL100

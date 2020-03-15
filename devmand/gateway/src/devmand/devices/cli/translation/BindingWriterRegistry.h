@@ -67,7 +67,8 @@ class BindingWriterAdapter : public Writer {
       BindingContext& _context)
       : bindingWriter(_bindingWriter), context(_context){};
 
-  Future<Unit> create(const Path& path, dynamic cfg, const DeviceAccess& device) const {
+  Future<Unit> create(const Path& path, dynamic cfg, const DeviceAccess& device)
+      const {
     shared_ptr<YDKTYPE> ptr = makePtr();
     context.getCodec().fromDom(cfg, ptr);
     return bindingWriter->create(path, ptr, device);
@@ -85,8 +86,8 @@ class BindingWriterAdapter : public Writer {
     return bindingWriter->update(path, ptrBefore, ptrAfter, device);
   };
 
-  Future<Unit> remove(const Path& path, dynamic before, const DeviceAccess& device)
-      const {
+  Future<Unit>
+  remove(const Path& path, dynamic before, const DeviceAccess& device) const {
     shared_ptr<YDKTYPE> ptrBefore = makePtr();
     context.getCodec().fromDom(before, ptrBefore);
     return bindingWriter->remove(path, ptrBefore, device);

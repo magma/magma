@@ -34,7 +34,7 @@ class SymphonyClient(GraphqlClient):
         is_local_host: bool = False,
         is_dev_mode: bool = False,
         reporter: Reporter = DUMMY_REPORTER,
-    ):
+    ) -> None:
         """This is the class to use for working with symphony server.
 
             The __init__ method uses the credentials to establish session with
@@ -83,7 +83,7 @@ class SymphonyClient(GraphqlClient):
         super().__init__(graphql_endpoint_address, self.session, reporter)
         self._verify_version_is_not_broken()
 
-    def _verify_version_is_not_broken(self):
+    def _verify_version_is_not_broken(self) -> None:
         package = self._get_latest_python_package_version()
 
         latest_version, latest_breaking_version = (
@@ -115,10 +115,15 @@ class SymphonyClient(GraphqlClient):
 
         package = LatestPythonPackageQuery.execute(self).latestPythonPackage
         if package is not None:
-            return (
-                package.lastPythonPackage.version,
-                package.lastBreakingPythonPackage.version,
-            )
+            last_version = package.lastPythonPackage
+            last_breaking_version = package.lastBreakingPythonPackage
+            if last_version is not None:
+                return (
+                    last_version.version,
+                    last_breaking_version.version
+                    if last_breaking_version
+                    else last_version.version,
+                )
         return None
 
     def store_file(self, file_path: str, file_type: str, is_global: bool) -> str:

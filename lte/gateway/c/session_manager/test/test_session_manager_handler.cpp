@@ -72,7 +72,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
     SessionState::Config cfg = {.ue_ipv4 = "",
             .spgw_ipv4 = "",
             .msisdn = msisdn,
-            .apn = "",
+            .apn = "apn1",
             .imei = "",
             .plmn_id = "",
             .imsi_plmn_id = "",

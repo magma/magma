@@ -36,22 +36,24 @@ func TestGetNetworkServiceEnum(t *testing.T) {
 }
 
 func TestGetPipelineDServicesConfig(t *testing.T) {
+	// Non-default service set -> that subset seen in mconfig
 	apps, err := protos.GetPipelineDServicesConfig([]protos.NetworkEPCConfig_NetworkServices{
-		protos.NetworkEPCConfig_METERING,
+		protos.NetworkEPCConfig_ENFORCEMENT,
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, apps, []mconfig.PipelineD_NetworkServices{
-		mconfig.PipelineD_METERING,
+		mconfig.PipelineD_ENFORCEMENT,
 	})
 
+	// Default service set -> default set seen in mconfig
 	apps, err = protos.GetPipelineDServicesConfig([]protos.NetworkEPCConfig_NetworkServices{})
 	assert.NoError(t, err)
 	assert.Equal(t, apps, []mconfig.PipelineD_NetworkServices{
-		mconfig.PipelineD_METERING,
 		mconfig.PipelineD_DPI,
 		mconfig.PipelineD_ENFORCEMENT,
 	})
 
+	// Unrecognized service -> err
 	_, err = protos.GetPipelineDServicesConfig([]protos.NetworkEPCConfig_NetworkServices{99999})
 	assert.Error(t, err, "Unknown pipeline service enum: 99999")
 }

@@ -275,7 +275,7 @@ bool CliRequest::MergePartialFromCodedStream(
               input, this->mutable_cmd()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->cmd().data(),
-(int)              this->cmd().length(),
+              (int)this->cmd().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.CliRequest.cmd"));
         } else {
@@ -340,7 +340,7 @@ void CliRequest::SerializeWithCachedSizes(
   if (this->cmd().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->cmd().data(),
-(int)        this->cmd().length(),
+        (int)this->cmd().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.CliRequest.cmd");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -371,7 +371,7 @@ void CliRequest::SerializeWithCachedSizes(
   if (this->cmd().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->cmd().data(),
-(int)        this->cmd().length(),
+        (int)this->cmd().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.CliRequest.cmd");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
@@ -686,7 +686,7 @@ bool CliResponse::MergePartialFromCodedStream(
               input, this->mutable_output()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
               this->output().data(),
-(int)              this->output().length(),
+              (int)this->output().length(),
               ::google::protobuf::internal::WireFormatLite::PARSE,
               "devmand.channels.cli.plugin.CliResponse.output"));
         } else {
@@ -734,7 +734,7 @@ void CliResponse::SerializeWithCachedSizes(
   if (this->output().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->output().data(),
-(int)        this->output().length(),
+        (int)this->output().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.CliResponse.output");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -759,7 +759,7 @@ void CliResponse::SerializeWithCachedSizes(
   if (this->output().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
         this->output().data(),
-(int)        this->output().length(),
+        (int)this->output().length(),
         ::google::protobuf::internal::WireFormatLite::SERIALIZE,
         "devmand.channels.cli.plugin.CliResponse.output");
     target = ::google::protobuf::internal::WireFormatLite::WriteStringToArray(

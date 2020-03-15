@@ -24,7 +24,7 @@ func NewServer(flags *cliFlags) (*server.Server, func(), error) {
 	wire.Build(
 		xserver.ServiceSet,
 		defaultViews,
-		log.Set,
+		log.Provider,
 		wire.FieldsOf(new(*cliFlags), "KeyPairs", "Census", "Log"),
 		wire.Value([]health.Checker(nil)),
 		handler.Set,

@@ -23,7 +23,7 @@ import (
 
 func NewServer(flags *cliFlags) (*server.Server, func(), error) {
 	config := flags.Log
-	logger, cleanup, err := log.New(config)
+	logger, cleanup, err := log.Provider(config)
 	if err != nil {
 		return nil, nil, err
 	}

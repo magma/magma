@@ -12,12 +12,12 @@ import (
 	"io"
 	"net/http"
 
-	"magma/orc8r/cloud/go/datastore"
 	models2 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/services/magmad"
-	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	magmadModels "magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/labstack/echo"
@@ -40,7 +40,7 @@ func rebootGateway(c echo.Context) error {
 
 	err := magmad.GatewayReboot(networkID, gatewayID)
 	if err != nil {
-		if datastore.IsErrNotFound(err) {
+		if err == merrors.ErrNotFound {
 			return obsidian.HttpError(err, http.StatusNotFound)
 		}
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -62,7 +62,7 @@ func restartServices(c echo.Context) error {
 	}
 	err = magmad.GatewayRestartServices(networkID, gatewayID, services)
 	if err != nil {
-		if datastore.IsErrNotFound(err) {
+		if err == merrors.ErrNotFound {
 			return obsidian.HttpError(err, http.StatusNotFound)
 		}
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -77,18 +77,18 @@ func gatewayPing(c echo.Context) error {
 		return nerr
 	}
 
-	pingRequest := magmad_models.PingRequest{}
+	pingRequest := magmadModels.PingRequest{}
 	err := c.Bind(&pingRequest)
 	response, err := magmad.GatewayPing(networkID, gatewayID, pingRequest.Packets, pingRequest.Hosts)
 	if err != nil {
-		if datastore.IsErrNotFound(err) {
+		if err == merrors.ErrNotFound {
 			return obsidian.HttpError(err, http.StatusNotFound)
 		}
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	var pingResponse magmad_models.PingResponse
+	var pingResponse magmadModels.PingResponse
 	for _, ping := range response.Pings {
-		pingResult := &magmad_models.PingResult{
+		pingResult := &magmadModels.PingResult{
 			HostOrIP:           &ping.HostOrIp,
 			NumPackets:         &ping.NumPackets,
 			PacketsTransmitted: ping.PacketsTransmitted,
@@ -107,7 +107,7 @@ func gatewayGenericCommand(c echo.Context) error {
 		return nerr
 	}
 
-	request := magmad_models.GenericCommandParams{}
+	request := magmadModels.GenericCommandParams{}
 	err := c.Bind(&request)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
@@ -127,7 +127,7 @@ func gatewayGenericCommand(c echo.Context) error {
 	}
 
 	resp, err := models2.ProtobufStructToJSONMap(response.Response)
-	genericCommandResponse := magmad_models.GenericCommandResponse{
+	genericCommandResponse := magmadModels.GenericCommandResponse{
 		Response: resp,
 	}
 	return c.JSON(http.StatusOK, genericCommandResponse)
@@ -139,7 +139,7 @@ func tailGatewayLogs(c echo.Context) error {
 		return nerr
 	}
 
-	request := magmad_models.TailLogsRequest{}
+	request := magmadModels.TailLogsRequest{}
 	err := c.Bind(&request)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)

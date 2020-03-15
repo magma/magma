@@ -80,6 +80,7 @@ describe('<AddToLocationDialog />', () => {
       );
 
       act(() => {
+        // $FlowFixMe (T62907961) Relay flow types
         RelayEnvironment.mock.resolveMostRecentOperation(operation =>
           MockPayloadGenerator.generate(operation, {
             LocationType() {
@@ -129,6 +130,7 @@ describe('<AddToLocationDialog />', () => {
       );
 
       act(() => {
+        // $FlowFixMe (T62907961) Relay flow types
         RelayEnvironment.mock.resolveMostRecentOperation(operation =>
           MockPayloadGenerator.generate(operation),
         );
@@ -156,6 +158,7 @@ describe('<AddToLocationDialog />', () => {
       );
 
       act(() => {
+        // $FlowFixMe (T62907961) Relay flow types
         RelayEnvironment.mock.resolveMostRecentOperation(operation =>
           MockPayloadGenerator.generate(operation, {
             EquipmentType() {

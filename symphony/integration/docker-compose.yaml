@@ -39,6 +39,8 @@ services:
       MYSQL_USER: root
       MYSQL_PASS: root
       FB_TEST_USER: fbuser@fb.com
+      USER_GRAFANA_HOSTNAME: user-grafana
+      USER_GRAFANA_PORT: 3000
     networks:
       - public
       - private
@@ -90,7 +92,7 @@ services:
   migrate:
     image: integration_graph
     entrypoint: /bin/migrate
-    command: "-db-dsn=root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true"
+    command: "--db-dsn=root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true"
     networks:
       - private
     depends_on:

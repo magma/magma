@@ -41,14 +41,17 @@ void protobuf_ShutdownFile_PluginRegistration_2eproto();
 
 class CapabilitiesRequest;
 class CapabilitiesResponse;
+class CliFlavourParams;
 class DeviceType;
 class ReaderCapability;
 class WriterCapability;
 
 // ===================================================================
 
-class CapabilitiesRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CapabilitiesRequest)
-                                                                */
+class CapabilitiesRequest
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CapabilitiesRequest)
+                   */
 {
  public:
   CapabilitiesRequest();
@@ -143,8 +146,151 @@ class CapabilitiesRequest : public ::google::protobuf::Message /* @@protoc_inser
 };
 // -------------------------------------------------------------------
 
-class DeviceType : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.DeviceType)
-                                                       */
+class CliFlavourParams
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CliFlavourParams)
+                   */
+{
+ public:
+  CliFlavourParams();
+  virtual ~CliFlavourParams();
+
+  CliFlavourParams(const CliFlavourParams& from);
+
+  inline CliFlavourParams& operator=(const CliFlavourParams& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const CliFlavourParams& default_instance();
+
+  void Swap(CliFlavourParams* other);
+
+  // implements Message ----------------------------------------------
+
+  inline CliFlavourParams* New() const {
+    return New(NULL);
+  }
+
+  CliFlavourParams* New(::google::protobuf::Arena* arena) const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const CliFlavourParams& from);
+  void MergeFrom(const CliFlavourParams& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic,
+      ::google::protobuf::uint8* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(
+      ::google::protobuf::uint8* output) const {
+    return InternalSerializeWithCachedSizesToArray(false, output);
+  }
+  int GetCachedSize() const {
+    return _cached_size_;
+  }
+
+ private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  void InternalSwap(CliFlavourParams* other);
+
+ private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return _internal_metadata_.arena();
+  }
+  inline void* MaybeArenaPtr() const {
+    return _internal_metadata_.raw_arena_ptr();
+  }
+
+ public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string newline = 1;
+  void clear_newline();
+  static const int kNewlineFieldNumber = 1;
+  const ::std::string& newline() const;
+  void set_newline(const ::std::string& value);
+  void set_newline(const char* value);
+  void set_newline(const char* value, size_t size);
+  ::std::string* mutable_newline();
+  ::std::string* release_newline();
+  void set_allocated_newline(::std::string* newline);
+
+  // optional string baseShowConfigRegex = 2;
+  void clear_baseshowconfigregex();
+  static const int kBaseShowConfigRegexFieldNumber = 2;
+  const ::std::string& baseshowconfigregex() const;
+  void set_baseshowconfigregex(const ::std::string& value);
+  void set_baseshowconfigregex(const char* value);
+  void set_baseshowconfigregex(const char* value, size_t size);
+  ::std::string* mutable_baseshowconfigregex();
+  ::std::string* release_baseshowconfigregex();
+  void set_allocated_baseshowconfigregex(::std::string* baseshowconfigregex);
+
+  // optional uint32 baseShowConfigIdx = 3;
+  void clear_baseshowconfigidx();
+  static const int kBaseShowConfigIdxFieldNumber = 3;
+  ::google::protobuf::uint32 baseshowconfigidx() const;
+  void set_baseshowconfigidx(::google::protobuf::uint32 value);
+
+  // optional string singleIndentChar = 4;
+  void clear_singleindentchar();
+  static const int kSingleIndentCharFieldNumber = 4;
+  const ::std::string& singleindentchar() const;
+  void set_singleindentchar(const ::std::string& value);
+  void set_singleindentchar(const char* value);
+  void set_singleindentchar(const char* value, size_t size);
+  ::std::string* mutable_singleindentchar();
+  ::std::string* release_singleindentchar();
+  void set_allocated_singleindentchar(::std::string* singleindentchar);
+
+  // optional string configSubsectionEnd = 5;
+  void clear_configsubsectionend();
+  static const int kConfigSubsectionEndFieldNumber = 5;
+  const ::std::string& configsubsectionend() const;
+  void set_configsubsectionend(const ::std::string& value);
+  void set_configsubsectionend(const char* value);
+  void set_configsubsectionend(const char* value, size_t size);
+  ::std::string* mutable_configsubsectionend();
+  ::std::string* release_configsubsectionend();
+  void set_allocated_configsubsectionend(::std::string* configsubsectionend);
+
+  // @@protoc_insertion_point(class_scope:devmand.channels.cli.plugin.CliFlavourParams)
+ private:
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  bool _is_default_instance_;
+  ::google::protobuf::internal::ArenaStringPtr newline_;
+  ::google::protobuf::internal::ArenaStringPtr baseshowconfigregex_;
+  ::google::protobuf::internal::ArenaStringPtr singleindentchar_;
+  ::google::protobuf::internal::ArenaStringPtr configsubsectionend_;
+  ::google::protobuf::uint32 baseshowconfigidx_;
+  mutable int _cached_size_;
+  friend void protobuf_AddDesc_PluginRegistration_2eproto();
+  friend void protobuf_AssignDesc_PluginRegistration_2eproto();
+  friend void protobuf_ShutdownFile_PluginRegistration_2eproto();
+
+  void InitAsDefaultInstance();
+  static CliFlavourParams* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class DeviceType
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.DeviceType)
+                   */
 {
  public:
   DeviceType();
@@ -235,12 +381,27 @@ class DeviceType : public ::google::protobuf::Message /* @@protoc_insertion_poin
   ::std::string* release_version();
   void set_allocated_version(::std::string* version);
 
+  // optional .devmand.channels.cli.plugin.CliFlavourParams cliFlavourParams =
+  // 3;
+  bool has_cliflavourparams() const;
+  void clear_cliflavourparams();
+  static const int kCliFlavourParamsFieldNumber = 3;
+  const ::devmand::channels::cli::plugin::CliFlavourParams& cliflavourparams()
+      const;
+  ::devmand::channels::cli::plugin::CliFlavourParams*
+  mutable_cliflavourparams();
+  ::devmand::channels::cli::plugin::CliFlavourParams*
+  release_cliflavourparams();
+  void set_allocated_cliflavourparams(
+      ::devmand::channels::cli::plugin::CliFlavourParams* cliflavourparams);
+
   // @@protoc_insertion_point(class_scope:devmand.channels.cli.plugin.DeviceType)
  private:
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   bool _is_default_instance_;
   ::google::protobuf::internal::ArenaStringPtr device_;
   ::google::protobuf::internal::ArenaStringPtr version_;
+  ::devmand::channels::cli::plugin::CliFlavourParams* cliflavourparams_;
   mutable int _cached_size_;
   friend void protobuf_AddDesc_PluginRegistration_2eproto();
   friend void protobuf_AssignDesc_PluginRegistration_2eproto();
@@ -251,8 +412,10 @@ class DeviceType : public ::google::protobuf::Message /* @@protoc_insertion_poin
 };
 // -------------------------------------------------------------------
 
-class ReaderCapability : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ReaderCapability)
-                                                             */
+class ReaderCapability
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ReaderCapability)
+                   */
 {
  public:
   ReaderCapability();
@@ -347,8 +510,10 @@ class ReaderCapability : public ::google::protobuf::Message /* @@protoc_insertio
 };
 // -------------------------------------------------------------------
 
-class WriterCapability : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.WriterCapability)
-                                                             */
+class WriterCapability
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.WriterCapability)
+                   */
 {
  public:
   WriterCapability();
@@ -461,8 +626,10 @@ class WriterCapability : public ::google::protobuf::Message /* @@protoc_insertio
 };
 // -------------------------------------------------------------------
 
-class CapabilitiesResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CapabilitiesResponse)
-                                                                 */
+class CapabilitiesResponse
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CapabilitiesResponse)
+                   */
 {
  public:
   CapabilitiesResponse();
@@ -667,6 +834,226 @@ inline void CapabilitiesRequest::set_allocated_id(::std::string* id) {
 
 // -------------------------------------------------------------------
 
+// CliFlavourParams
+
+// optional string newline = 1;
+inline void CliFlavourParams::clear_newline() {
+  newline_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& CliFlavourParams::newline() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.CliFlavourParams.newline)
+  return newline_.GetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void CliFlavourParams::set_newline(const ::std::string& value) {
+  newline_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:devmand.channels.cli.plugin.CliFlavourParams.newline)
+}
+inline void CliFlavourParams::set_newline(const char* value) {
+  newline_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:devmand.channels.cli.plugin.CliFlavourParams.newline)
+}
+inline void CliFlavourParams::set_newline(const char* value, size_t size) {
+  newline_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:devmand.channels.cli.plugin.CliFlavourParams.newline)
+}
+inline ::std::string* CliFlavourParams::mutable_newline() {
+  // @@protoc_insertion_point(field_mutable:devmand.channels.cli.plugin.CliFlavourParams.newline)
+  return newline_.MutableNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* CliFlavourParams::release_newline() {
+  // @@protoc_insertion_point(field_release:devmand.channels.cli.plugin.CliFlavourParams.newline)
+
+  return newline_.ReleaseNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void CliFlavourParams::set_allocated_newline(::std::string* newline) {
+  if (newline != NULL) {
+  } else {
+  }
+  newline_.SetAllocatedNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(), newline);
+  // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.CliFlavourParams.newline)
+}
+
+// optional string baseShowConfigRegex = 2;
+inline void CliFlavourParams::clear_baseshowconfigregex() {
+  baseshowconfigregex_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& CliFlavourParams::baseshowconfigregex() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+  return baseshowconfigregex_.GetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void CliFlavourParams::set_baseshowconfigregex(
+    const ::std::string& value) {
+  baseshowconfigregex_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+}
+inline void CliFlavourParams::set_baseshowconfigregex(const char* value) {
+  baseshowconfigregex_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+}
+inline void CliFlavourParams::set_baseshowconfigregex(
+    const char* value,
+    size_t size) {
+  baseshowconfigregex_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+}
+inline ::std::string* CliFlavourParams::mutable_baseshowconfigregex() {
+  // @@protoc_insertion_point(field_mutable:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+  return baseshowconfigregex_.MutableNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* CliFlavourParams::release_baseshowconfigregex() {
+  // @@protoc_insertion_point(field_release:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+
+  return baseshowconfigregex_.ReleaseNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void CliFlavourParams::set_allocated_baseshowconfigregex(
+    ::std::string* baseshowconfigregex) {
+  if (baseshowconfigregex != NULL) {
+  } else {
+  }
+  baseshowconfigregex_.SetAllocatedNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      baseshowconfigregex);
+  // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigRegex)
+}
+
+// optional uint32 baseShowConfigIdx = 3;
+inline void CliFlavourParams::clear_baseshowconfigidx() {
+  baseshowconfigidx_ = 0u;
+}
+inline ::google::protobuf::uint32 CliFlavourParams::baseshowconfigidx() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigIdx)
+  return baseshowconfigidx_;
+}
+inline void CliFlavourParams::set_baseshowconfigidx(
+    ::google::protobuf::uint32 value) {
+  baseshowconfigidx_ = value;
+  // @@protoc_insertion_point(field_set:devmand.channels.cli.plugin.CliFlavourParams.baseShowConfigIdx)
+}
+
+// optional string singleIndentChar = 4;
+inline void CliFlavourParams::clear_singleindentchar() {
+  singleindentchar_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& CliFlavourParams::singleindentchar() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+  return singleindentchar_.GetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void CliFlavourParams::set_singleindentchar(const ::std::string& value) {
+  singleindentchar_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+}
+inline void CliFlavourParams::set_singleindentchar(const char* value) {
+  singleindentchar_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+}
+inline void CliFlavourParams::set_singleindentchar(
+    const char* value,
+    size_t size) {
+  singleindentchar_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+}
+inline ::std::string* CliFlavourParams::mutable_singleindentchar() {
+  // @@protoc_insertion_point(field_mutable:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+  return singleindentchar_.MutableNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* CliFlavourParams::release_singleindentchar() {
+  // @@protoc_insertion_point(field_release:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+
+  return singleindentchar_.ReleaseNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void CliFlavourParams::set_allocated_singleindentchar(
+    ::std::string* singleindentchar) {
+  if (singleindentchar != NULL) {
+  } else {
+  }
+  singleindentchar_.SetAllocatedNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      singleindentchar);
+  // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.CliFlavourParams.singleIndentChar)
+}
+
+// optional string configSubsectionEnd = 5;
+inline void CliFlavourParams::clear_configsubsectionend() {
+  configsubsectionend_.ClearToEmptyNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& CliFlavourParams::configsubsectionend() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+  return configsubsectionend_.GetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void CliFlavourParams::set_configsubsectionend(
+    const ::std::string& value) {
+  configsubsectionend_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+}
+inline void CliFlavourParams::set_configsubsectionend(const char* value) {
+  configsubsectionend_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+}
+inline void CliFlavourParams::set_configsubsectionend(
+    const char* value,
+    size_t size) {
+  configsubsectionend_.SetNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+}
+inline ::std::string* CliFlavourParams::mutable_configsubsectionend() {
+  // @@protoc_insertion_point(field_mutable:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+  return configsubsectionend_.MutableNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* CliFlavourParams::release_configsubsectionend() {
+  // @@protoc_insertion_point(field_release:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+
+  return configsubsectionend_.ReleaseNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void CliFlavourParams::set_allocated_configsubsectionend(
+    ::std::string* configsubsectionend) {
+  if (configsubsectionend != NULL) {
+  } else {
+  }
+  configsubsectionend_.SetAllocatedNoArena(
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      configsubsectionend);
+  // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.CliFlavourParams.configSubsectionEnd)
+}
+
+// -------------------------------------------------------------------
+
 // DeviceType
 
 // optional string device = 1;
@@ -761,6 +1148,47 @@ inline void DeviceType::set_allocated_version(::std::string* version) {
   version_.SetAllocatedNoArena(
       &::google::protobuf::internal::GetEmptyStringAlreadyInited(), version);
   // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.DeviceType.version)
+}
+
+// optional .devmand.channels.cli.plugin.CliFlavourParams cliFlavourParams = 3;
+inline bool DeviceType::has_cliflavourparams() const {
+  return !_is_default_instance_ && cliflavourparams_ != NULL;
+}
+inline void DeviceType::clear_cliflavourparams() {
+  if (GetArenaNoVirtual() == NULL && cliflavourparams_ != NULL)
+    delete cliflavourparams_;
+  cliflavourparams_ = NULL;
+}
+inline const ::devmand::channels::cli::plugin::CliFlavourParams&
+DeviceType::cliflavourparams() const {
+  // @@protoc_insertion_point(field_get:devmand.channels.cli.plugin.DeviceType.cliFlavourParams)
+  return cliflavourparams_ != NULL ? *cliflavourparams_
+                                   : *default_instance_->cliflavourparams_;
+}
+inline ::devmand::channels::cli::plugin::CliFlavourParams*
+DeviceType::mutable_cliflavourparams() {
+  if (cliflavourparams_ == NULL) {
+    cliflavourparams_ = new ::devmand::channels::cli::plugin::CliFlavourParams;
+  }
+  // @@protoc_insertion_point(field_mutable:devmand.channels.cli.plugin.DeviceType.cliFlavourParams)
+  return cliflavourparams_;
+}
+inline ::devmand::channels::cli::plugin::CliFlavourParams*
+DeviceType::release_cliflavourparams() {
+  // @@protoc_insertion_point(field_release:devmand.channels.cli.plugin.DeviceType.cliFlavourParams)
+
+  ::devmand::channels::cli::plugin::CliFlavourParams* temp = cliflavourparams_;
+  cliflavourparams_ = NULL;
+  return temp;
+}
+inline void DeviceType::set_allocated_cliflavourparams(
+    ::devmand::channels::cli::plugin::CliFlavourParams* cliflavourparams) {
+  delete cliflavourparams_;
+  cliflavourparams_ = cliflavourparams;
+  if (cliflavourparams) {
+  } else {
+  }
+  // @@protoc_insertion_point(field_set_allocated:devmand.channels.cli.plugin.DeviceType.cliFlavourParams)
 }
 
 // -------------------------------------------------------------------
@@ -1073,6 +1501,8 @@ CapabilitiesResponse::writers() const {
 }
 
 #endif // !PROTOBUF_INLINE_NOT_IN_HEADERS
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

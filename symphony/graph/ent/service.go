@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 type Service struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -35,7 +34,7 @@ type Service struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceQuery when eager-loading is set.
 	Edges        ServiceEdges `json:"edges"`
-	service_type *string
+	service_type *int
 }
 
 // ServiceEdges holds the relations/edges for other nodes in the graph.
@@ -156,7 +155,7 @@ func (s *Service) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	s.ID = strconv.FormatInt(value.Int64, 10)
+	s.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -189,8 +188,8 @@ func (s *Service) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field service_type", value)
 		} else if value.Valid {
-			s.service_type = new(string)
-			*s.service_type = strconv.FormatInt(value.Int64, 10)
+			s.service_type = new(int)
+			*s.service_type = int(value.Int64)
 		}
 	}
 	return nil
@@ -198,44 +197,44 @@ func (s *Service) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the Service.
 func (s *Service) QueryType() *ServiceTypeQuery {
-	return (&ServiceClient{s.config}).QueryType(s)
+	return (&ServiceClient{config: s.config}).QueryType(s)
 }
 
 // QueryDownstream queries the downstream edge of the Service.
 func (s *Service) QueryDownstream() *ServiceQuery {
-	return (&ServiceClient{s.config}).QueryDownstream(s)
+	return (&ServiceClient{config: s.config}).QueryDownstream(s)
 }
 
 // QueryUpstream queries the upstream edge of the Service.
 func (s *Service) QueryUpstream() *ServiceQuery {
-	return (&ServiceClient{s.config}).QueryUpstream(s)
+	return (&ServiceClient{config: s.config}).QueryUpstream(s)
 }
 
 // QueryProperties queries the properties edge of the Service.
 func (s *Service) QueryProperties() *PropertyQuery {
-	return (&ServiceClient{s.config}).QueryProperties(s)
+	return (&ServiceClient{config: s.config}).QueryProperties(s)
 }
 
 // QueryLinks queries the links edge of the Service.
 func (s *Service) QueryLinks() *LinkQuery {
-	return (&ServiceClient{s.config}).QueryLinks(s)
+	return (&ServiceClient{config: s.config}).QueryLinks(s)
 }
 
 // QueryCustomer queries the customer edge of the Service.
 func (s *Service) QueryCustomer() *CustomerQuery {
-	return (&ServiceClient{s.config}).QueryCustomer(s)
+	return (&ServiceClient{config: s.config}).QueryCustomer(s)
 }
 
 // QueryEndpoints queries the endpoints edge of the Service.
 func (s *Service) QueryEndpoints() *ServiceEndpointQuery {
-	return (&ServiceClient{s.config}).QueryEndpoints(s)
+	return (&ServiceClient{config: s.config}).QueryEndpoints(s)
 }
 
 // Update returns a builder for updating this Service.
 // Note that, you need to call Service.Unwrap() before calling this method, if this Service
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (s *Service) Update() *ServiceUpdateOne {
-	return (&ServiceClient{s.config}).UpdateOne(s)
+	return (&ServiceClient{config: s.config}).UpdateOne(s)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -268,12 +267,6 @@ func (s *Service) String() string {
 	builder.WriteString(s.Status)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (s *Service) id() int {
-	id, _ := strconv.Atoi(s.ID)
-	return id
 }
 
 // Services is a parsable slice of Service.

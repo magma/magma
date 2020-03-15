@@ -19,8 +19,8 @@ const (
 	NetworkSubscriberConfigType = "network_subscriber_config"
 
 	EnodebStateType      = "single_enodeb"
-	SubscriberStateType  = "subscriber"
 	SubscriberEntityType = "subscriber"
+	ICMPStateType        = "icmp_monitoring"
 
 	BaseNameEntityType   = "base_name"
 	PolicyRuleEntityType = "policy"

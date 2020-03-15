@@ -71,6 +71,7 @@ const styles = {
 
 type Props = {
   equipment: Equipment,
+  // $FlowFixMe (T62907961) Relay flow types
   links: AvailableLinksTable_links,
   selectedLink: ?Link,
   onLinkSelected: (link: Link) => void,
@@ -83,6 +84,7 @@ type LinkPorts = Link & {
 
 const showLinksByOrder = (
   srcEquipment: Equipment,
+  // $FlowFixMe (T62907961) Relay flow types
   links: AvailableLinksTable_links,
 ): Array<LinkPorts> => {
   return links

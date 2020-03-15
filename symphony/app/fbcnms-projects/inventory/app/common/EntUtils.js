@@ -15,7 +15,7 @@ type EntWithID = $ReadOnly<{
 export const ENT_TEMP_ID_PREFIX = '@tmp';
 
 export const removeTempID = (ent: EntWithID) => {
-  if (ent.id && ent.id.startsWith(ENT_TEMP_ID_PREFIX)) {
+  if (ent.id && (ent.id.startsWith(ENT_TEMP_ID_PREFIX) || isNaN(ent.id))) {
     const {id: _, ...noIdEnt} = ent;
     return noIdEnt;
   }

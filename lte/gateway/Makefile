@@ -1,4 +1,4 @@
-.PHONY: all build test clean run status
+.PHONY: all build clean help log logs run status test
 
 GATEWAY_C_DIR = $(MAGMA_ROOT)/lte/gateway/c
 GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
@@ -10,34 +10,45 @@ TEST_FLAG = -DBUILD_TESTS=1
 
 all: build
 
-build: build_python build_common build_oai build_sctpd build_session_manager
+build: build_python build_common build_oai build_sctpd build_session_manager ## Build all
 
-test: test_python test_oai test_session_manager
+test: test_python test_oai test_session_manager ## Run all tests
 
 # Requires install of afl from http://lcamtuf.coredump.cx/afl/
-fuzz: build_fuzz
+fuzz: build_fuzz ## Fuzz test
 	mkdir -p ~/fuzz/input ~/fuzz/output && \
 	echo "testtest" > ~/fuzz/input/sample1 && \
 	afl-fuzz -i ~/fuzz/input/ -o ~/fuzz/output/ -m 300M ~/build/c/oai_fuzz/oai_fuzz/oai_fuzz nas
 
-clean: clean_python
+clean: clean_python  ## Clean all builds
 	rm -rf $(C_BUILD)
 
-clean_python:
+clean_python: ## Clean Python-only builds
 	make -C $(MAGMA_ROOT)/lte/gateway/python clean
 
-start:
+start: ## Start all services
 	sudo service magma@magmad start
 
-stop:
+stop: ## Stop all services
 	sudo service magma@* stop
 
-restart: stop start
+restart: stop start ## Restart all services
 
-run: build restart
+run: build restart ## Build and run all services
 
-status:
+status: ## Status of all services
 	sudo service magma@* status
+
+log: ## Follow logs for magmad service
+	sudo journalctl -fu magma@magmad | egrep 'error|$$' -i --color
+
+logs: ## Follow logs for all services
+	sudo journalctl -fu magma@* | egrep 'error|$$' -i --color
+
+# Ref: https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+help: ## Show documented commands
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
+
 
 # run_cmake BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS, ENV
 define run_cmake
@@ -63,23 +74,23 @@ $(call run_cmake, $(1), $(2), $(3) $(TEST_FLAG))
 cd $(1) && ctest --output-on-failure
 endef
 
-build_python: stop
+build_python: stop ## Build Python environment
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
-build_common:
+build_common: ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
-build_oai: build_common
+build_oai: build_common ## Build OAI
 	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
-build_sctpd: build_common
+build_sctpd: build_common ## Build SCTPD
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
 # Requires install of afl from http://lcamtuf.coredump.cx/afl/
-build_fuzz:
+build_fuzz: ## Build fuzz tool
 	$(call run_cmake, $(C_BUILD)/oai_fuzz, $(GATEWAY_C_DIR)/oai, $(FUZZ_FLAGS), CC=afl-gcc CXX=afl-g++ AFL_USE_ASAN=1)
 
-build_session_manager: build_common
+build_session_manager: build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
 # Catch all for c services that don't have custom flags
@@ -87,17 +98,17 @@ build_session_manager: build_common
 build_%:
 	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, )
 
-scan_oai:
+scan_oai: ## Scan OAI
 	$(call run_scanbuild, $(C_BUILD)/scan/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
-format_oai:
+format_oai: ## Format OAI
 	find $(GATEWAY_C_DIR)/oai \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
 
-test_python: stop
+test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
-test_oai: build_common
+test_oai: build_common ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
 # Catch all for c service tests
@@ -116,7 +127,7 @@ COV_HTML_DIR_TOTAL = $(MAGMA_ROOT)/c/code_coverage
 
 SLEEP_SECS = 10
 
-coverage:
+coverage: ## Generate full code coverage report
 	# Remove any previous gcov output files
 	rm -f `find $(OAI_BUILD) -name *.gcda`
 	rm -f `find $(C_BUILD)/session_manager -name *.gcda`
@@ -137,7 +148,7 @@ coverage:
 	genhtml $(COV_OUTPUT_TOTAL) --output-directory $(COV_HTML_DIR_TOTAL)
 	@echo "Generated coverage output to $(COV_HTML_DIR_TOTAL)/index.html"
 
-coverage_oai:
+coverage_oai: ## Generate code coverage report for OAI
 	rm -f `find $(OAI_BUILD) -name *.gcda`
 	sudo pkill -USR1 mme
 	@echo "Waiting for $(SLEEP_SECS) for gcov to write files"
@@ -147,7 +158,7 @@ coverage_oai:
 	genhtml $(COV_OUTPUT_OAI) --output-directory $(COV_HTML_DIR_OAI)
 	@echo "Generated coverage output to $(COV_HTML_DIR_OAI)/index.html"
 
-coverage_sm:
+coverage_sm: ## Generate code coverage report for session manager
 	rm -f `find $(C_BUILD)/session_manager -name *.gcda`
 	sudo pkill -INT sessiond
 	sleep $(SLEEP_SECS)
@@ -156,7 +167,6 @@ coverage_sm:
 	genhtml $(COV_OUTPUT_SM) --output-directory $(COV_HTML_DIR_SM)
 	@echo "Generated coverage output to $(COV_HTML_DIR_SM)/index.html"
 
-code_stats:
-	# Get line counts for entire magma project. Exclude auto-generated code.
+code_stats: ## Generate lines-of-code statistics for magma project
 	sudo apt-get install -y cloc
-	cloc . --exclude-dir=cloud/go/src/magma/obsidian/models
+	cloc .

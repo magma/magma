@@ -80,6 +80,7 @@ const styles = {
 
 type Props = {
   equipment: Equipment,
+  // $FlowFixMe (T62907961) Relay flow types
   ports: AvailablePortsTable_ports,
   selectedPort: ?EquipmentPort,
   onPortSelected?: (port: EquipmentPort) => void,

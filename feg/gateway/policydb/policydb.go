@@ -12,8 +12,8 @@ import (
 	"fmt"
 
 	"magma/feg/gateway/object_store"
-	"magma/feg/gateway/registry"
-	"magma/feg/gateway/streamer"
+	"magma/gateway/service_registry"
+	"magma/gateway/streamer"
 	"magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
@@ -59,7 +59,7 @@ func CreateChargingKey(rule *protos.PolicyRule) ChargingKey {
 }
 
 // NewRedisPolicyDBClient creates a new RedisPolicyDBClient
-func NewRedisPolicyDBClient(reg registry.CloudRegistry) (*RedisPolicyDBClient, error) {
+func NewRedisPolicyDBClient(reg service_registry.GatewayRegistry) (*RedisPolicyDBClient, error) {
 	redisClient, err := object_store.NewRedisClient()
 	if err != nil {
 		return nil, err
@@ -85,9 +85,9 @@ func NewRedisPolicyDBClient(reg registry.CloudRegistry) (*RedisPolicyDBClient, e
 		),
 		StreamerClient: streamer.NewStreamerClient(reg),
 	}
-	client.StreamerClient.AddListener(NewBaseNameStreamListener(client.BaseNameMap))
-	client.StreamerClient.AddListener(NewPolicyDBStreamListener(client.PolicyMap))
-	client.StreamerClient.AddListener(NewOmnipresentRulesListener(client.OmnipresentRules))
+	go client.StreamerClient.Stream(NewBaseNameStreamListener(client.BaseNameMap))
+	go client.StreamerClient.Stream(NewPolicyDBStreamListener(client.PolicyMap))
+	go client.StreamerClient.Stream(NewOmnipresentRulesListener(client.OmnipresentRules))
 	return client, nil
 }
 

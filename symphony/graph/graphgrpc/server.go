@@ -62,6 +62,7 @@ func newServer(tenancy viewer.Tenancy, db *sql.DB, logger log.Logger, registry *
 			return actions.NewClient(exc), nil
 		}),
 	)
+	RegisterUserServiceServer(s, NewUserService(tenancy.ClientFor))
 
 	reflection.Register(s)
 	err := view.Register(ocgrpc.DefaultServerViews...)

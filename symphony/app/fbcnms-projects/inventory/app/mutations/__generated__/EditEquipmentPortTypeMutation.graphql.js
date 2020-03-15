@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a2b1d4d2764d03822fa1eebcfbed8306
+ * @relayHash a7f48f50f2065c5eaba21dffebbcb776
  */
 
 /* eslint-disable */
@@ -47,7 +47,7 @@ export type EditEquipmentPortTypeMutationVariables = {|
   input: EditEquipmentPortTypeInput
 |};
 export type EditEquipmentPortTypeMutationResponse = {|
-  +editEquipmentPortType: ?{|
+  +editEquipmentPortType: {|
     +id: string,
     +name: string,
     +$fragmentRefs: EquipmentPortTypeItem_equipmentPortType$ref & AddEditEquipmentPortTypeCard_editingEquipmentPortType$ref,

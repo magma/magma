@@ -30,18 +30,19 @@ const passport = require('passport');
 const path = require('path');
 const fbcPassport = require('@fbcnms/auth/passport').default;
 const session = require('express-session');
-const {sequelize, Organization} = require('@fbcnms/sequelize-models');
+const {sequelize, Organization, User} = require('@fbcnms/sequelize-models');
 const OrganizationBasicLocalStrategy = require('@fbcnms/auth/strategies/OrganizationBasicLocalStrategy')
   .default;
 const OrganizationLocalStrategy = require('@fbcnms/auth/strategies/OrganizationLocalStrategy')
   .default;
 const OrganizationSamlStrategy = require('@fbcnms/auth/strategies/OrganizationSamlStrategy')
   .default;
-
+import type {UserModel} from '../../../fbcnms-packages/fbcnms-sequelize-models/models/user';
 const {createGraphTenant, deleteGraphTenant} = require('./graphgrpc/tenant');
+const {createGraphUser, deleteGraphUser} = require('./graphgrpc/user');
 const {access, configureAccess} = require('@fbcnms/auth/access');
 const {
-  AccessRoles: {USER},
+  AccessRoles: {SUPERUSER, USER},
 } = require('@fbcnms/auth/roles');
 
 const devMode = process.env.NODE_ENV !== 'production';
@@ -56,6 +57,23 @@ Organization.beforeCreate((org: any) => {
 });
 Organization.beforeDestroy((org: any) => {
   deleteGraphTenant(org.name);
+});
+
+// add hooks to User model
+User.beforeCreate((user: UserModel) => {
+  createGraphUser(
+    user.getDataValue('organization'),
+    user.getDataValue('email'),
+    user.getDataValue('role') === SUPERUSER,
+  );
+});
+
+User.beforeBulkDestroy(async (options: Object) => {
+  const {where, model, transaction, logging, benchmark} = options;
+  const emails = await model
+    .findAll({where, transaction, logging, benchmark})
+    .map(el => el.get('email'));
+  emails.map(email => deleteGraphUser(where.organization, email));
 });
 
 // FBC express initialization
@@ -117,6 +135,16 @@ app.use(
   access(USER),
   require('./webhooks/routes').default,
 );
+
+// Grafana uses its own CSRF, so we don't need to handle it on our side.
+// Grafana can access all metrics of an org, so it must be restricted
+// to superusers
+app.use(
+  '/grafana',
+  access(SUPERUSER),
+  require('@fbcnms/platform-server/grafana/routes').default,
+);
+
 app.use('/', csrfMiddleware(), access(USER), require('./main/routes').default);
 
 // Catch All

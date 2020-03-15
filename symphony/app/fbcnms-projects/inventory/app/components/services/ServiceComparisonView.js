@@ -132,6 +132,7 @@ const ServiceComparisonView = () => {
                         : `1 to ${count}`
                       : null
                   }
+                  entity={'SERVICE'}
                 />
               </div>
             </div>

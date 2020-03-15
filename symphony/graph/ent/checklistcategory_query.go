@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -95,8 +94,8 @@ func (clcq *CheckListCategoryQuery) FirstX(ctx context.Context) *CheckListCatego
 }
 
 // FirstID returns the first CheckListCategory id in the query. Returns *NotFoundError when no id was found.
-func (clcq *CheckListCategoryQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (clcq *CheckListCategoryQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = clcq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -108,7 +107,7 @@ func (clcq *CheckListCategoryQuery) FirstID(ctx context.Context) (id string, err
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (clcq *CheckListCategoryQuery) FirstXID(ctx context.Context) string {
+func (clcq *CheckListCategoryQuery) FirstXID(ctx context.Context) int {
 	id, err := clcq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -142,8 +141,8 @@ func (clcq *CheckListCategoryQuery) OnlyX(ctx context.Context) *CheckListCategor
 }
 
 // OnlyID returns the only CheckListCategory id in the query, returns an error if not exactly one id was returned.
-func (clcq *CheckListCategoryQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (clcq *CheckListCategoryQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = clcq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -159,7 +158,7 @@ func (clcq *CheckListCategoryQuery) OnlyID(ctx context.Context) (id string, err 
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (clcq *CheckListCategoryQuery) OnlyXID(ctx context.Context) string {
+func (clcq *CheckListCategoryQuery) OnlyXID(ctx context.Context) int {
 	id, err := clcq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -182,8 +181,8 @@ func (clcq *CheckListCategoryQuery) AllX(ctx context.Context) []*CheckListCatego
 }
 
 // IDs executes the query and returns a list of CheckListCategory ids.
-func (clcq *CheckListCategoryQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (clcq *CheckListCategoryQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := clcq.Select(checklistcategory.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -191,7 +190,7 @@ func (clcq *CheckListCategoryQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (clcq *CheckListCategoryQuery) IDsX(ctx context.Context) []string {
+func (clcq *CheckListCategoryQuery) IDsX(ctx context.Context) []int {
 	ids, err := clcq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -332,13 +331,9 @@ func (clcq *CheckListCategoryQuery) sqlAll(ctx context.Context) ([]*CheckListCat
 
 	if query := clcq.withCheckListItems; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*CheckListCategory)
+		nodeids := make(map[int]*CheckListCategory)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -384,7 +379,7 @@ func (clcq *CheckListCategoryQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   checklistcategory.Table,
 			Columns: checklistcategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistcategory.FieldID,
 			},
 		},

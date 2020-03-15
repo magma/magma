@@ -59,20 +59,17 @@ func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, i
 	if !isSuccess {
 		messageCode = int(FailedToUpload)
 	}
-	msg, err := json.Marshal(ReturnMessage{
-		Summary: SuccessMessage{
-			MessageCode:  messageCode,
-			SuccessLines: success,
-			AllLines:     all,
-			Committed:    startSaving,
+	return json.NewEncoder(w).Encode(
+		ReturnMessage{
+			Summary: SuccessMessage{
+				MessageCode:  messageCode,
+				SuccessLines: success,
+				AllLines:     all,
+				Committed:    startSaving,
+			},
+			Errors: errs,
 		},
-		Errors: errs,
-	})
-	if err != nil {
-		return err
-	}
-	w.Write(msg)
-	return nil
+	)
 }
 
 // ErrorLine represents a line which failed to validate
@@ -144,7 +141,7 @@ func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int,
 
 // nolint: unparam
 func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l ImportRecord, commit bool, limit *int) (*ent.Location, error) {
-	var currParentID *string
+	var currParentID *int
 	var loc *ent.Location
 	ic := getImportContext(ctx)
 
@@ -233,7 +230,7 @@ func (m *importer) verifyPositionHierarchy(ctx context.Context, equipment *ent.E
 	return nil
 }
 
-func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *ent.Location, importLine ImportRecord, mustBeEmpty bool) (*string, *string, error) {
+func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *ent.Location, importLine ImportRecord, mustBeEmpty bool) (*int, *int, error) {
 	l := importLine.line
 	title := importLine.title
 	if importLine.Position() == "" {
@@ -376,4 +373,13 @@ func (m *importer) parseImportArgs(r *http.Request) ([]int, *bool, error) {
 		return nil, nil, err
 	}
 	return skipLines, verifyBeforeCommit, nil
+}
+
+func isEmptyRow(s []string) bool {
+	for _, v := range s {
+		if v != "" {
+			return false
+		}
+	}
+	return true
 }

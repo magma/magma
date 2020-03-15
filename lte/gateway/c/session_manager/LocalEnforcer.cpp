@@ -141,6 +141,7 @@ bool LocalEnforcer::setup(
   std::function<void(Status status, SetupFlowsResult)> callback)
 {
   std::vector<SessionState::SessionInfo> session_infos;
+  std::vector<SubscriberQuotaUpdate> quota_updates;
   std::vector<std::string> msisdns;
   std::vector<std::string> ue_mac_addrs;
   std::vector<std::string> apn_mac_addrs;
@@ -168,12 +169,17 @@ bool LocalEnforcer::setup(
       apn_names.push_back(apn_name);
       if (session->is_radius_cwf_session()) {
         cwf = true;
+        SubscriberQuotaUpdate update = make_subscriber_quota_update(
+            session_info.imsi,
+            ue_mac_addr,
+            session->get_subscriber_quota_state());
+        quota_updates.push_back(update);
       }
     }
   }
   if (cwf){
-    return pipelined_client_->setup_cwf(session_infos, ue_mac_addrs, msisdns,
-        apn_mac_addrs, apn_names, epoch, callback);
+    return pipelined_client_->setup_cwf(session_infos, quota_updates,
+        ue_mac_addrs, msisdns, apn_mac_addrs, apn_names, epoch, callback);
   } else {
     return pipelined_client_->setup_lte(session_infos, epoch, callback);
   }
@@ -1423,16 +1429,12 @@ void LocalEnforcer::check_usage_for_reporting()
     });
 }
 
-bool LocalEnforcer::is_imsi_duplicate(const std::string& imsi) const
+bool LocalEnforcer::session_with_imsi_exists(const std::string& imsi) const
 {
-  auto it = session_map_.find(imsi);
-  if (it == session_map_.end()) {
-    return false;
-  }
-  return true;
+  return session_map_.find(imsi) != session_map_.end();
 }
 
-bool LocalEnforcer::is_apn_duplicate(
+bool LocalEnforcer::session_with_apn_exists(
   const std::string& imsi, const std::string& apn) const
 {
   auto it = session_map_.find(imsi);
@@ -1447,18 +1449,20 @@ bool LocalEnforcer::is_apn_duplicate(
   return false;
 }
 
-std::string* LocalEnforcer::duplicate_session_id(
-  const std::string& imsi, const magma::SessionState::Config& config) const
+bool LocalEnforcer::session_with_same_config_exists(
+  const std::string& imsi, const magma::SessionState::Config& config,
+  std::string* core_session_id) const
 {
   auto it = session_map_.find(imsi);
   if (it != session_map_.end()) {
     for (const auto &session : it->second) {
       if (session->is_same_config(config)) {
-        return new std::string(session->get_core_session_id());
+        *core_session_id = session->get_core_session_id();
+        return true;
       }
     }
   }
-  return nullptr;
+  return false;
 }
 
 static void handle_command_level_result_code(

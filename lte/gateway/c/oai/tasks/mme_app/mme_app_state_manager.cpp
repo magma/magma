@@ -55,7 +55,6 @@ MmeNasStateManager& MmeNasStateManager::getInstance()
 
 // Constructor for MME NAS state object
 MmeNasStateManager::MmeNasStateManager():
-  mme_nas_state_dirty_(false),
   max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS),
   mme_statistic_timer_(10)
 {
@@ -83,87 +82,6 @@ int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p)
   return rc;
 }
 
-void MmeNasStateManager::lock_mme_nas_state()
-{
-  AssertFatal(
-    is_initialized, "Trying to lock state without initializing state manager");
-  OAILOG_DEBUG(LOG_MME_APP, "Acquiring lock");
-  pthread_rwlock_wrlock(&state_cache_p->rw_lock);
-}
-
-void MmeNasStateManager::unlock_mme_nas_state()
-{
-  AssertFatal(
-    is_initialized,
-    "Trying to unlock state without initializing state manager");
-  OAILOG_DEBUG(LOG_MME_APP, "Releasing lock");
-  pthread_rwlock_unlock(&state_cache_p->rw_lock);
-  OAILOG_DEBUG(LOG_MME_APP, "Lock released");
-}
-
-void MmeNasStateManager::write_state_to_db(mme_app_desc_t** task_state_ptr)
-{
-  AssertFatal(
-    is_initialized, "Calling write without initializing MME state manager");
-  if (!mme_nas_state_dirty_) {
-    OAILOG_ERROR(
-      LOG_MME_APP, "Tried to put mme_nas_state without getting it first");
-    return;
-  }
-
-  // check if the calling thread owns the lock on state
-  AssertFatal(
-    pthread_rwlock_trywrlock(&state_cache_p->rw_lock),
-    "Thread trying to write state without locking");
-
-  // clear up the local ptr of the task holding the state pointer
-  *task_state_ptr = nullptr;
-
-  if (persist_state_enabled) {
-    std::string serialized_state;
-    // convert the in-memory state to proto message
-    MmeNasState state_proto = MmeNasState();
-    MmeNasStateConverter::state_to_proto(state_cache_p, &state_proto);
-
-    if (!state_proto.SerializeToString(&serialized_state)) {
-      OAILOG_ERROR(LOG_MME_APP, "Failed to serialize MME state");
-      goto error;
-      return;
-    }
-
-    OAILOG_DEBUG(LOG_MME_APP, "Writing serialized MME state to redis");
-    // write the proto to redis store
-    if (
-      redis_client->write(MME_NAS_STATE_KEY, serialized_state) !=
-      RETURNok) {
-      OAILOG_ERROR(LOG_MME_APP, "Failed to write state to db");
-      return;
-    }
-    OAILOG_DEBUG(LOG_MME_APP, "MME NAS state written to redis");
-  }
-  mme_nas_state_dirty_ = false;
-error:
-  unlock_mme_nas_state();
-}
-
-/**
- * Getter function to lock the state before returning the pointer to in-memory
- * user state. The read_from_db flag is a debug flag to force read from the
- * data store instead of just returning the pointer.
- */
-mme_app_desc_t* MmeNasStateManager::get_locked_mme_nas_state(bool read_from_db)
-{
-  AssertFatal(
-    is_initialized,
-    "Calling get_locked_mme_nas_state without initializing state manager");
-  OAILOG_DEBUG(
-    LOG_MME_APP,
-    "Inside get_locked_mme_nas_state with read_from_db %d",
-    read_from_db);
-  lock_mme_nas_state();
-  return get_state(read_from_db);
-}
-
 /**
  * Getter function to get the pointer to the in-memory user state. The
  * read_from_db flag is a debug flag to force read from data store instead of
@@ -180,12 +98,7 @@ mme_app_desc_t* MmeNasStateManager::get_state(bool read_from_db)
   OAILOG_DEBUG(
     LOG_MME_APP, "Inside get_state with read_from_db %d", read_from_db);
 
-  // check if the calling thread owns the lock on state
-  AssertFatal(
-    pthread_rwlock_trywrlock(&state_cache_p->rw_lock),
-    "Thread trying to get state without locking");
-
-  mme_nas_state_dirty_ = true;
+  state_dirty = true;
   if (persist_state_enabled && read_from_db) {
     // free up the memory allocated to hashtables
     OAILOG_DEBUG(LOG_MME_APP, "Freeing up in-memory hashtables");
@@ -214,12 +127,9 @@ void MmeNasStateManager::clear_db_state()
   }
 }
 
-// Initialize state that is non-persistent, e.g. mutex locks and timers
+// Initialize state that is non-persistent, e.g. timers
 void MmeNasStateManager::mme_nas_state_init_local_state()
 {
-  // create local lock for this state
-  pthread_rwlock_init(&state_cache_p->rw_lock, nullptr);
-
   // create statistic timer locally
   state_cache_p->statistic_timer_period = mme_statistic_timer_;
 
@@ -280,7 +190,7 @@ void MmeNasStateManager::create_state()
     return;
   }
   create_hashtables();
-  // Initialize the lock and local timers, which are non-persistent
+  // Initialize the local timers, which are non-persistent
   mme_nas_state_init_local_state();
 }
 
@@ -303,16 +213,14 @@ void MmeNasStateManager::clear_mme_nas_hashtables()
     state_cache_p->mme_ue_contexts.guti_ue_context_htbl);
 }
 
-// Free the memory allocated to state pointer and destroy the read/write lock
+// Free the memory allocated to state pointer
 void MmeNasStateManager::free_state()
 {
   if (!state_cache_p) {
     return;
   }
-  lock_mme_nas_state();
   clear_mme_nas_hashtables();
   timer_remove(state_cache_p->statistic_timer_id, nullptr);
-  pthread_rwlock_destroy(&state_cache_p->rw_lock);
   free(state_cache_p);
   state_cache_p = nullptr;
 }

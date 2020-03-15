@@ -33,7 +33,6 @@ func TestAddFloorPlan(t *testing.T) {
 
 	imageInput := models.AddImageInput{
 		EntityType:  "floor_plan",
-		EntityID:    "na",
 		ImgKey:      "key1",
 		FileName:    "test_file",
 		FileSize:    100,
@@ -104,7 +103,6 @@ func TestRemoveFloorPlan(t *testing.T) {
 
 	imageInput := models.AddImageInput{
 		EntityType:  "floor_plan",
-		EntityID:    "na",
 		ImgKey:      "key1",
 		FileName:    "test_file",
 		FileSize:    100,

@@ -78,8 +78,8 @@ func (hq *HyperlinkQuery) FirstX(ctx context.Context) *Hyperlink {
 }
 
 // FirstID returns the first Hyperlink id in the query. Returns *NotFoundError when no id was found.
-func (hq *HyperlinkQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (hq *HyperlinkQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = hq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -91,7 +91,7 @@ func (hq *HyperlinkQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (hq *HyperlinkQuery) FirstXID(ctx context.Context) string {
+func (hq *HyperlinkQuery) FirstXID(ctx context.Context) int {
 	id, err := hq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -125,8 +125,8 @@ func (hq *HyperlinkQuery) OnlyX(ctx context.Context) *Hyperlink {
 }
 
 // OnlyID returns the only Hyperlink id in the query, returns an error if not exactly one id was returned.
-func (hq *HyperlinkQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (hq *HyperlinkQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = hq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -142,7 +142,7 @@ func (hq *HyperlinkQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (hq *HyperlinkQuery) OnlyXID(ctx context.Context) string {
+func (hq *HyperlinkQuery) OnlyXID(ctx context.Context) int {
 	id, err := hq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -165,8 +165,8 @@ func (hq *HyperlinkQuery) AllX(ctx context.Context) []*Hyperlink {
 }
 
 // IDs executes the query and returns a list of Hyperlink ids.
-func (hq *HyperlinkQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (hq *HyperlinkQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := hq.Select(hyperlink.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -174,7 +174,7 @@ func (hq *HyperlinkQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (hq *HyperlinkQuery) IDsX(ctx context.Context) []string {
+func (hq *HyperlinkQuery) IDsX(ctx context.Context) []int {
 	ids, err := hq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -319,7 +319,7 @@ func (hq *HyperlinkQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   hyperlink.Table,
 			Columns: hyperlink.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: hyperlink.FieldID,
 			},
 		},

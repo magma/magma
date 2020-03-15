@@ -77,8 +77,8 @@ func (arq *ActionsRuleQuery) FirstX(ctx context.Context) *ActionsRule {
 }
 
 // FirstID returns the first ActionsRule id in the query. Returns *NotFoundError when no id was found.
-func (arq *ActionsRuleQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (arq *ActionsRuleQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = arq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -90,7 +90,7 @@ func (arq *ActionsRuleQuery) FirstID(ctx context.Context) (id string, err error)
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (arq *ActionsRuleQuery) FirstXID(ctx context.Context) string {
+func (arq *ActionsRuleQuery) FirstXID(ctx context.Context) int {
 	id, err := arq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -124,8 +124,8 @@ func (arq *ActionsRuleQuery) OnlyX(ctx context.Context) *ActionsRule {
 }
 
 // OnlyID returns the only ActionsRule id in the query, returns an error if not exactly one id was returned.
-func (arq *ActionsRuleQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (arq *ActionsRuleQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = arq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -141,7 +141,7 @@ func (arq *ActionsRuleQuery) OnlyID(ctx context.Context) (id string, err error) 
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (arq *ActionsRuleQuery) OnlyXID(ctx context.Context) string {
+func (arq *ActionsRuleQuery) OnlyXID(ctx context.Context) int {
 	id, err := arq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -164,8 +164,8 @@ func (arq *ActionsRuleQuery) AllX(ctx context.Context) []*ActionsRule {
 }
 
 // IDs executes the query and returns a list of ActionsRule ids.
-func (arq *ActionsRuleQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (arq *ActionsRuleQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := arq.Select(actionsrule.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (arq *ActionsRuleQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (arq *ActionsRuleQuery) IDsX(ctx context.Context) []string {
+func (arq *ActionsRuleQuery) IDsX(ctx context.Context) []int {
 	ids, err := arq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -311,7 +311,7 @@ func (arq *ActionsRuleQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   actionsrule.Table,
 			Columns: actionsrule.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: actionsrule.FieldID,
 			},
 		},

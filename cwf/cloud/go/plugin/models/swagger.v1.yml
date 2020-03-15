@@ -804,7 +804,6 @@ definitions:
         items:
           type: string
           enum:
-          - 'metering'
           - 'dpi'
           - 'policy_enforcement'
         example:

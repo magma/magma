@@ -14,7 +14,10 @@ from lte.protos import subscriberdb_pb2, subscriberdb_pb2_grpc
 
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
-from .store.base import DuplicateSubscriberError, SubscriberNotFoundError
+from .store.base import (
+    DuplicateSubscriberError,
+    SubscriberNotFoundError,
+)
 
 
 class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
@@ -63,7 +66,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         sid = SIDUtils.to_str(request.data.sid)
         try:
-            with self._store.edit_subscriber(sid) as subs:
+            with self._store.edit_subscriber(sid, request) as subs:
                 request.mask.MergeMessage(request.data, subs)
         except SubscriberNotFoundError:
             context.set_details('Subscriber not found: %s' % sid)

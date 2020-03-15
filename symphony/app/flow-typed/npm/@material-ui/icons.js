@@ -436,6 +436,14 @@ declare module "@material-ui/icons/Bookmark" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
+declare module "@material-ui/icons/Bookmarks" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
+declare module "@material-ui/icons/BookmarksOutlined" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/BookmarkBorder" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
@@ -3995,6 +4003,8 @@ declare module "@material-ui/icons" {
       BlurOn: $Exports<"@material-ui/icons/BlurOn">,
       Book: $Exports<"@material-ui/icons/Book">,
       Bookmark: $Exports<"@material-ui/icons/Bookmark">,
+      BookmarksOutlined: $Exports<"@material-ui/icons/BookmarksOutlined">,
+      Bookmarks: $Exports<"@material-ui/icons/Bookmarks">,
       BookmarkBorder: $Exports<"@material-ui/icons/BookmarkBorder">,
       BorderAll: $Exports<"@material-ui/icons/BorderAll">,
       BorderBottom: $Exports<"@material-ui/icons/BorderBottom">,

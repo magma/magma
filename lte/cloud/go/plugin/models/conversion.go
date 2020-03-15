@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"time"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
@@ -21,6 +22,7 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	orc8rProtos "magma/orc8r/lib/go/protos"
@@ -28,6 +30,7 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
 )
 
@@ -141,7 +144,11 @@ func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interfa
 }
 
 func (m *NetworkSubscriberConfig) GetFromNetwork(network configurator.Network) interface{} {
-	return orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	res := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if res == nil {
+		return &NetworkSubscriberConfig{}
+	}
+	return res
 }
 
 func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
@@ -151,7 +158,7 @@ func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network)
 func (m *RuleNames) GetFromNetwork(network configurator.Network) interface{} {
 	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
 	if iNetworkSubscriberConfig == nil {
-		return nil
+		return RuleNames{}
 	}
 	return iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideRuleNames
 }
@@ -169,7 +176,7 @@ func (m *RuleNames) ToUpdateCriteria(network configurator.Network) (configurator
 func (m *BaseNames) GetFromNetwork(network configurator.Network) interface{} {
 	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
 	if iNetworkSubscriberConfig == nil {
-		return nil
+		return BaseNames{}
 	}
 	return iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideBaseNames
 }
@@ -442,7 +449,7 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	}
 }
 
-func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscriber {
+func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByType map[string]state.State) *Subscriber {
 	m.ID = SubscriberID(ent.Key)
 	m.Lte = ent.Config.(*LteSubscription)
 	// If no profile in backend, return "default"
@@ -452,6 +459,22 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscrib
 	for _, tk := range ent.Associations {
 		if tk.Type == lte.ApnEntityType {
 			m.ActiveApns = append(m.ActiveApns, tk.Key)
+		}
+	}
+
+	if !funk.IsEmpty(statesByType) {
+		m.Monitoring = &SubscriberStatus{}
+	}
+
+	for stateType, stateVal := range statesByType {
+		switch stateType {
+		case lte.ICMPStateType:
+			reportedState := stateVal.ReportedState.(*IcmpStatus)
+			// reported time is unix timestamp in seconds, so divide ms by 1k
+			reportedState.LastReportedTime = int64(stateVal.TimeMs / uint64(time.Second/time.Millisecond))
+			m.Monitoring.Icmp = reportedState
+		default:
+			glog.Errorf("Loaded unrecognized subscriber state type %s", stateType)
 		}
 	}
 	return m

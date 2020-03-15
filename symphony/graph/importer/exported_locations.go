@@ -111,22 +111,25 @@ func (m *importer) processExportedLocation(w http.ResponseWriter, r *http.Reques
 					continue
 				}
 
-				importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
-
+				importLine, err := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				var parentLoc *ent.Location
-				currLocIndex, err := m.getCurrentLocationIndex(ctx, importLine)
+				currLocIndex, err := m.getCurrentLocationIndex(importLine)
 				if err != nil || currLocIndex <= 0 {
 					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "getting relevant location index"})
 					continue
 				}
-				parentIndex, err := m.getParentOfLocationIndex(ctx, importLine)
+				parentIndex, err := m.getParentOfLocationIndex(importLine)
 				if err != nil {
 					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "getting relevant location index"})
 					continue
 				}
 
 				shouldHaveParent := parentIndex != -1
-				var parentLocID *string
+				var parentLocID *int
 				if shouldHaveParent {
 					parentLoc, err = m.verifyOrCreateLocationHierarchy(ctx, importLine, commit, pointer.ToInt(currLocIndex-1))
 					if err != nil {
@@ -149,7 +152,7 @@ func (m *importer) processExportedLocation(w http.ResponseWriter, r *http.Reques
 				}
 
 				id := importLine.ID()
-				if id == "" {
+				if id == 0 {
 					// new location
 					typName := importHeader.line[currLocIndex] // the actual index
 					locType, err := client.LocationType.Query().Where(locationtype.Name(typName)).Only(ctx)
@@ -199,7 +202,7 @@ func (m *importer) processExportedLocation(w http.ResponseWriter, r *http.Reques
 						}
 						modifiedCount++
 					}
-					if err != nil { //both commit and dry-run
+					if err != nil { // both commit and dry-run
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/fetching location"})
 						continue
 					}
@@ -215,7 +218,6 @@ func (m *importer) processExportedLocation(w http.ResponseWriter, r *http.Reques
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: msg})
 						continue
 					}
-					modifiedCount++
 					if commit {
 						_, err = m.r.Mutation().EditLocation(ctx, models.EditLocationInput{
 							ID:         id,
@@ -230,6 +232,7 @@ func (m *importer) processExportedLocation(w http.ResponseWriter, r *http.Reques
 							continue
 						}
 					}
+					modifiedCount++
 				}
 			}
 		}
@@ -244,7 +247,7 @@ func (m *importer) processExportedLocation(w http.ResponseWriter, r *http.Reques
 	log.Debug("Exported location - Done", zap.Any("errors list", errs), zap.Int("all_lines", numRows), zap.Int("edited_added_rows", modifiedCount))
 }
 
-func (m *importer) getCurrentLocationIndex(ctx context.Context, importLine ImportRecord) (int, error) {
+func (m *importer) getCurrentLocationIndex(importLine ImportRecord) (int, error) {
 	header := importLine.Header()
 	i := header.ExternalIDIdx() - 1
 	locIndexStart, _ := header.LocationsRangeIdx()
@@ -257,9 +260,9 @@ func (m *importer) getCurrentLocationIndex(ctx context.Context, importLine Impor
 	return -1, fmt.Errorf("no location names specified in row")
 }
 
-func (m *importer) getParentOfLocationIndex(ctx context.Context, importLine ImportRecord) (int, error) {
+func (m *importer) getParentOfLocationIndex(importLine ImportRecord) (int, error) {
 	header := importLine.Header()
-	currLocationIndex, err := m.getCurrentLocationIndex(ctx, importLine)
+	currLocationIndex, err := m.getCurrentLocationIndex(importLine)
 	if err != nil {
 		return -1, err
 	}
@@ -305,7 +308,7 @@ func (m *importer) getLocationPropertyInputs(ctx context.Context, importLine Imp
 	return inputs, "", nil
 }
 
-func (m *importer) validateLineForExistingLocation(ctx context.Context, locationID string, importLine ImportRecord) (*ent.Location, error) {
+func (m *importer) validateLineForExistingLocation(ctx context.Context, locationID int, importLine ImportRecord) (*ent.Location, error) {
 	location, err := m.ClientFrom(ctx).Location.Get(ctx, locationID)
 	if err != nil {
 		return nil, fmt.Errorf("fetching location: %w", err)
@@ -314,7 +317,7 @@ func (m *importer) validateLineForExistingLocation(ctx context.Context, location
 	if err != nil {
 		return nil, fmt.Errorf("fetching location type: %w", err)
 	}
-	currLocIndex, err := m.getCurrentLocationIndex(ctx, importLine)
+	currLocIndex, err := m.getCurrentLocationIndex(importLine)
 	if err != nil {
 		return nil, err
 	}

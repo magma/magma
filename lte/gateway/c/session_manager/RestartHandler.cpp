@@ -112,7 +112,7 @@ void RestartHandler::terminate_previous_session(
           return;
         }
         // Don't delete subscriber from directoryD if IMSI is known
-        if (enforcer_->is_imsi_duplicate(response.sid())) {
+        if (enforcer_->session_with_imsi_exists(response.sid())) {
           MLOG(MINFO) << "Not cleaning up previous session after restart "
                       << "for subscriber " << response.sid()
                       << ", session id: " << response.session_id()

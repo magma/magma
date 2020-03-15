@@ -43,6 +43,7 @@ in `release/magma.lockfile`
 
 AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
 AGW_PYTHON_ROOT = "$MAGMA_ROOT/lte/gateway/python"
+ORC8R_AGW_PYTHON_ROOT = "$MAGMA_ROOT/orc8r/gateway/python"
 AGW_INTEG_ROOT = "$MAGMA_ROOT/lte/gateway/python/integ_tests"
 DEFAULT_CERT = "$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 DEFAULT_PROXY = "$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
@@ -86,9 +87,12 @@ def package(vcs='hg', all_deps="False",
             (hash, build_type, cert_file, proxy_config))
 
         # Generate magma dependency packages
-        print("Generating magma dependency packages")
         run('mkdir -p ~/magma-deps')
+        print("Generating lte/setup.py magma dependency packages")
         run('./release/pydep finddep -b --build-output ~/magma-deps python/setup.py')
+
+        print("Generating orc8r/setup.py magma dependency packages")
+        run('./release/pydep finddep -b --build-output ~/magma-deps %s/setup.py' % ORC8R_AGW_PYTHON_ROOT)
 
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')

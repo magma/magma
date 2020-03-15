@@ -107,4 +107,8 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
     });
     return series;
   },
+
+  //alertmanager global config
+  getGlobalConfig: _ => Promise.reject('Disabled feature'),
+  editGlobalConfig: _ => Promise.reject('Disabled feature'),
 };

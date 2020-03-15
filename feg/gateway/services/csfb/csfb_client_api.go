@@ -43,7 +43,7 @@ var clientFuncMap = map[decode.SGsMessageType]grpcClient{
 }
 
 func SendSGsMessageToGateway(messageType decode.SGsMessageType, msg *any.Any) (*orcprotos.Void, error) {
-	conn, err := registry.NewCloudRegistry().GetCloudConnection(feg_relay.ServiceName)
+	conn, err := registry.Get().GetCloudConnection(feg_relay.ServiceName)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to establish connection to cloud FegToGwRelayClient: %s", err)
 		glog.Error(errMsg)

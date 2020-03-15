@@ -14,10 +14,68 @@ import (
 	"testing"
 
 	"github.com/labstack/echo"
+	"github.com/olivere/elastic/v7"
 	"github.com/stretchr/testify/assert"
 )
 
+type elasticTestCase struct {
+	name     string
+	params   eventQueryParams
+	expected *elastic.BoolQuery
+}
+
+type queryParamTestCase struct {
+	name           string
+	urlString      string
+	paramNames     []string
+	paramValues    []string
+	expectsError   bool
+	expectedParams eventQueryParams
+}
+
+type eventMapTestCase struct {
+	name         string
+	jsonSource   string
+	expectedMaps []map[string]interface{}
+	expectsError bool
+}
+
 var (
+	elasticCases = []elasticTestCase{
+		{
+			name: "full query params",
+			params: eventQueryParams{
+				StreamName: "streamOne",
+				EventType:  "an_event",
+				HardwareID: "hardware-2",
+				Tag:        "critical",
+			},
+			expected: elastic.NewBoolQuery().
+				Filter(elastic.NewTermQuery("stream_name.keyword", "streamOne")).
+				Filter(elastic.NewTermQuery("event_type.keyword", "an_event")).
+				Filter(elastic.NewTermQuery("hw_id.keyword", "hardware-2")).
+				Filter(elastic.NewTermQuery("event_tag.keyword", "critical")),
+		},
+		{
+			name: "partial query params",
+			params: eventQueryParams{
+				StreamName: "streamTwo",
+				EventType:  "an_event",
+			},
+			expected: elastic.NewBoolQuery().
+				Filter(elastic.NewTermQuery("stream_name.keyword", "streamTwo")).
+				Filter(elastic.NewTermQuery("event_type.keyword", "an_event")),
+		},
+		{
+			name: "only StreamName",
+			params: eventQueryParams{
+				StreamName: "streamThree",
+			},
+			expected: elastic.NewBoolQuery().
+				Filter(elastic.NewTermQuery("stream_name.keyword", "streamThree")),
+		},
+	}
+
 	queryParamsTestCases = []queryParamTestCase{
 		{
 			name:           "no params will error",
@@ -57,7 +115,69 @@ var (
 			},
 		},
 	}
+
+	eventMapTestCases = []eventMapTestCase{
+		{
+			name: "all fields",
+			jsonSource: `{
+				"stream_name": "a",
+				"event_type": "b",
+				"hw_id": "c",
+				"event_tag": "d",
+				"value":"{ \"some_property\": true }"
+			}`,
+			expectedMaps: []map[string]interface{}{
+				{
+					"stream_name":   "a",
+					"event_type":    "b",
+					"hardware_id":   "c",
+					"tag":           "d",
+					"some_property": true,
+					"timestamp":     "",
+				},
+			},
+		},
+		{
+			name: "partial fields with value present",
+			jsonSource: `{
+				"stream_name": "a",
+				"event_type": "b",
+				"value":"{}"
+			}`,
+			expectedMaps: []map[string]interface{}{
+				{
+					"stream_name": "a",
+					"event_type":  "b",
+					"hardware_id": "",
+					"tag":         "",
+					"timestamp":   "",
+				},
+			},
+		},
+		{
+			name: "partial fields without a value",
+			jsonSource: `{
+				"stream_name": "a",
+				"event_type": "b"
+			}`,
+			expectedMaps: []map[string]interface{}{},
+			expectsError: true,
+		},
+	}
 )
+
+func TestElasticBoolQuery(t *testing.T) {
+	for _, test := range elasticCases {
+		t.Run(test.name, func(t *testing.T) {
+			runToElasticBoolQueryTestCase(t, test)
+		})
+	}
+}
+
+func runToElasticBoolQueryTestCase(t *testing.T, tc elasticTestCase) {
+	query := tc.params.ToElasticBoolQuery()
+	assert.Equal(t, tc.expected, query)
+}
 
 // TestGetQueryParams tests that parameters in the url are parsed correctly
 func TestGetQueryParams(t *testing.T) {
@@ -66,15 +186,6 @@ func TestGetQueryParams(t *testing.T) {
 			runQueryParamTestCase(t, test)
 		})
 	}
-}
-
-type queryParamTestCase struct {
-	name           string
-	urlString      string
-	paramNames     []string
-	paramValues    []string
-	expectsError   bool
-	expectedParams eventQueryParams
 }
 
 func runQueryParamTestCase(t *testing.T, tc queryParamTestCase) {
@@ -90,4 +201,25 @@ func runQueryParamTestCase(t *testing.T, tc queryParamTestCase) {
 		assert.NoError(t, err)
 	}
 	assert.Equal(t, tc.expectedParams, params)
+}
+
+func TestGetEventMap(t *testing.T) {
+	for _, test := range eventMapTestCases {
+		t.Run(test.name, func(t *testing.T) {
+			runEventMapTestCase(t, test)
+		})
+	}
+}
+
+func runEventMapTestCase(t *testing.T, tc eventMapTestCase) {
+	hit := elastic.SearchHit{
+		Source: []byte(tc.jsonSource),
+	}
+	maps, err := getEventMaps([]*elastic.SearchHit{&hit})
+	if tc.expectsError {
+		assert.Error(t, err)
+	} else {
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expectedMaps, maps)
+	}
 }

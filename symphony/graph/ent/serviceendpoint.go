@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 type ServiceEndpoint struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -32,8 +31,8 @@ type ServiceEndpoint struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ServiceEndpointQuery when eager-loading is set.
 	Edges                 ServiceEndpointEdges `json:"edges"`
-	service_endpoints     *string
-	service_endpoint_port *string
+	service_endpoints     *int
+	service_endpoint_port *int
 }
 
 // ServiceEndpointEdges holds the relations/edges for other nodes in the graph.
@@ -103,7 +102,7 @@ func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	se.ID = strconv.FormatInt(value.Int64, 10)
+	se.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -125,14 +124,14 @@ func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field service_endpoints", value)
 		} else if value.Valid {
-			se.service_endpoints = new(string)
-			*se.service_endpoints = strconv.FormatInt(value.Int64, 10)
+			se.service_endpoints = new(int)
+			*se.service_endpoints = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field service_endpoint_port", value)
 		} else if value.Valid {
-			se.service_endpoint_port = new(string)
-			*se.service_endpoint_port = strconv.FormatInt(value.Int64, 10)
+			se.service_endpoint_port = new(int)
+			*se.service_endpoint_port = int(value.Int64)
 		}
 	}
 	return nil
@@ -140,19 +139,19 @@ func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
 
 // QueryPort queries the port edge of the ServiceEndpoint.
 func (se *ServiceEndpoint) QueryPort() *EquipmentPortQuery {
-	return (&ServiceEndpointClient{se.config}).QueryPort(se)
+	return (&ServiceEndpointClient{config: se.config}).QueryPort(se)
 }
 
 // QueryService queries the service edge of the ServiceEndpoint.
 func (se *ServiceEndpoint) QueryService() *ServiceQuery {
-	return (&ServiceEndpointClient{se.config}).QueryService(se)
+	return (&ServiceEndpointClient{config: se.config}).QueryService(se)
 }
 
 // Update returns a builder for updating this ServiceEndpoint.
 // Note that, you need to call ServiceEndpoint.Unwrap() before calling this method, if this ServiceEndpoint
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (se *ServiceEndpoint) Update() *ServiceEndpointUpdateOne {
-	return (&ServiceEndpointClient{se.config}).UpdateOne(se)
+	return (&ServiceEndpointClient{config: se.config}).UpdateOne(se)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -179,12 +178,6 @@ func (se *ServiceEndpoint) String() string {
 	builder.WriteString(se.Role)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (se *ServiceEndpoint) id() int {
-	id, _ := strconv.Atoi(se.ID)
-	return id
 }
 
 // ServiceEndpoints is a parsable slice of ServiceEndpoint.

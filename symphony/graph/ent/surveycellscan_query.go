@@ -107,8 +107,8 @@ func (scsq *SurveyCellScanQuery) FirstX(ctx context.Context) *SurveyCellScan {
 }
 
 // FirstID returns the first SurveyCellScan id in the query. Returns *NotFoundError when no id was found.
-func (scsq *SurveyCellScanQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (scsq *SurveyCellScanQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = scsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -120,7 +120,7 @@ func (scsq *SurveyCellScanQuery) FirstID(ctx context.Context) (id string, err er
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (scsq *SurveyCellScanQuery) FirstXID(ctx context.Context) string {
+func (scsq *SurveyCellScanQuery) FirstXID(ctx context.Context) int {
 	id, err := scsq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -154,8 +154,8 @@ func (scsq *SurveyCellScanQuery) OnlyX(ctx context.Context) *SurveyCellScan {
 }
 
 // OnlyID returns the only SurveyCellScan id in the query, returns an error if not exactly one id was returned.
-func (scsq *SurveyCellScanQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (scsq *SurveyCellScanQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = scsq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -171,7 +171,7 @@ func (scsq *SurveyCellScanQuery) OnlyID(ctx context.Context) (id string, err err
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (scsq *SurveyCellScanQuery) OnlyXID(ctx context.Context) string {
+func (scsq *SurveyCellScanQuery) OnlyXID(ctx context.Context) int {
 	id, err := scsq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -194,8 +194,8 @@ func (scsq *SurveyCellScanQuery) AllX(ctx context.Context) []*SurveyCellScan {
 }
 
 // IDs executes the query and returns a list of SurveyCellScan ids.
-func (scsq *SurveyCellScanQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (scsq *SurveyCellScanQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := scsq.Select(surveycellscan.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func (scsq *SurveyCellScanQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (scsq *SurveyCellScanQuery) IDsX(ctx context.Context) []string {
+func (scsq *SurveyCellScanQuery) IDsX(ctx context.Context) []int {
 	ids, err := scsq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -358,8 +358,8 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 	}
 
 	if query := scsq.withSurveyQuestion; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*SurveyCellScan)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyCellScan)
 		for i := range nodes {
 			if fk := nodes[i].survey_cell_scan_survey_question; fk != nil {
 				ids = append(ids, *fk)
@@ -383,8 +383,8 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 	}
 
 	if query := scsq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*SurveyCellScan)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyCellScan)
 		for i := range nodes {
 			if fk := nodes[i].survey_cell_scan_location; fk != nil {
 				ids = append(ids, *fk)
@@ -429,7 +429,7 @@ func (scsq *SurveyCellScanQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   surveycellscan.Table,
 			Columns: surveycellscan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveycellscan.FieldID,
 			},
 		},

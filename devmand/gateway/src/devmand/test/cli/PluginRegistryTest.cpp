@@ -39,7 +39,7 @@ TEST_F(PluginRegistryTest, api) {
     void provideReaders(ReaderRegistryBuilder& reg) const override {
       (void)reg;
     };
-    void provideWriters(WriterRegistryBuilder& reg) const override{
+    void provideWriters(WriterRegistryBuilder& reg) const override {
       (void)reg;
     };
   } TestPlugin;

@@ -15,10 +15,12 @@ import (
 	"time"
 
 	"fbc/lib/go/radius/rfc2869"
+	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/plugin/models"
 
 	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,16 +36,16 @@ func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
 
 	ue := ues[0]
 	// Set a block all rule to be installed by the PCRF
-	err = ruleManager.AddStaticRule(getStaticDenyAll("static-block-all", "mkey-1", models.PolicyRuleConfigTrackingTypeONLYPCRF, 30))
+	err = ruleManager.AddStaticRuleToDB(getStaticDenyAll("static-block-all", "mkey1", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 30))
 	assert.NoError(t, err)
-	err = ruleManager.AddDynamicRules(ue.Imsi, []string{"static-block-all"}, nil)
+	err = ruleManager.AddRulesToPCRF(ue.Imsi, []string{"static-block-all"}, nil)
 	assert.NoError(t, err)
 
 	// Override with an omni pass all static rule with a higher priority
-	err = ruleManager.AddStaticPassAll("omni-pass-all-1", "", models.PolicyRuleTrackingTypeNOTRACKING, 20)
+	err = ruleManager.AddStaticPassAllToDB("omni-pass-all-1", "", 0, models.PolicyRuleTrackingTypeNOTRACKING, 20)
 	assert.NoError(t, err)
 	// Apply a network wide rule that points to the static rule above
-	err = ruleManager.AddOmniPresentRules("onmi", []string{"omni-pass-all-1"}, []string{""})
+	err = ruleManager.AddOmniPresentRulesToDB("onmi", []string{"omni-pass-all-1"}, []string{""})
 	assert.NoError(t, err)
 
 	// Wait for rules propagation
@@ -55,7 +57,8 @@ func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
 	assert.NotNil(t, eapMessage)
 	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
 
-	err = tr.GenULTraffic(ue.GetImsi(), swag.String("200K"))
+	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("200k")}}
+	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
 	// Wait for traffic to go through

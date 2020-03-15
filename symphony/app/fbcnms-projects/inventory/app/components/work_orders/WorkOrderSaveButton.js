@@ -20,8 +20,8 @@ import {removeTempIDs} from '../../common/EntUtils';
 import {toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import type {
+  // $FlowFixMe (T62907961) Relay flow types
   CheckListCategoryTable_list,
-  ChecklistViewer_checkListItems,
   WorkOrderDetails_workOrder,
 } from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 import type {
@@ -34,19 +34,12 @@ import type {Property} from '../../common/Property';
 type Props = {
   workOrder: WorkOrderDetails_workOrder,
   properties: Array<Property>,
-  checklist: ChecklistViewer_checkListItems,
   checkListCategories: CheckListCategoryTable_list,
   locationId: ?string,
 };
 
 const WorkOrderSaveButton = (props: Props) => {
-  const {
-    workOrder,
-    properties,
-    checklist,
-    checkListCategories,
-    locationId,
-  } = props;
+  const {workOrder, properties, checkListCategories, locationId} = props;
   const enqueueSnackbar = useEnqueueSnackbar();
   const {history, match} = useRouter();
 
@@ -90,7 +83,7 @@ const WorkOrderSaveButton = (props: Props) => {
           id: item.id,
           title: item.title,
           description: item.description,
-          checkList: removeTempIDs(item.checkList).map(item => {
+          checkList: removeTempIDs(item.checkList ?? []).map(item => {
             return {
               id: item.id,
               title: item.title,
@@ -103,18 +96,6 @@ const WorkOrderSaveButton = (props: Props) => {
             };
           }),
         })),
-        checkList: removeTempIDs(checklist).map(item => {
-          return {
-            id: item.id,
-            title: item.title,
-            type: item.type,
-            index: item.index,
-            helpText: item.helpText,
-            enumValues: item.enumValues,
-            stringValue: item.stringValue,
-            checked: item.checked,
-          };
-        }),
       },
     };
     const callbacks: MutationCallbacks<EditWorkOrderMutationResponse> = {
@@ -139,7 +120,6 @@ const WorkOrderSaveButton = (props: Props) => {
     properties,
     locationId,
     checkListCategories,
-    checklist,
     enqueueError,
     history,
     match.url,

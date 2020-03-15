@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 # Copyright (c) 2004-present Facebook All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
@@ -11,9 +10,9 @@ from dacite import Config, from_dict
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 
-from .._utils import format_properties, get_graphql_property_type_inputs
+from .._utils import format_property_definitions, get_graphql_property_type_inputs
 from ..client import SymphonyClient
-from ..consts import EquipmentPortType, PropertyDefinition, PropertyValue
+from ..consts import Entity, EquipmentPortType, PropertyDefinition, PropertyValue
 from ..exceptions import EntityNotFoundError
 from ..graphql.add_equipment_port_type_mutation import (
     AddEquipmentPortTypeInput,
@@ -63,8 +62,8 @@ def add_equipment_port_type(
         ```
     """
 
-    formated_property_types = format_properties(properties)
-    formated_link_property_types = format_properties(link_properties)
+    formated_property_types = format_property_definitions(properties)
+    formated_link_property_types = format_property_definitions(link_properties)
     add_equipment_port_type_input = {
         "name": name,
         "properties": formated_property_types,
@@ -76,18 +75,8 @@ def add_equipment_port_type(
             client,
             AddEquipmentPortTypeInput(
                 name=name,
-                properties=[
-                    from_dict(
-                        data_class=PropertyTypeInput, data=p, config=Config(strict=True)
-                    )
-                    for p in formated_property_types
-                ],
-                linkProperties=[
-                    from_dict(
-                        data_class=PropertyTypeInput, data=p, config=Config(strict=True)
-                    )
-                    for p in formated_link_property_types
-                ],
+                properties=formated_property_types,
+                linkProperties=formated_link_property_types,
             ),
         ).__dict__[ADD_EQUIPMENT_PORT_TYPE_MUTATION_NAME]
         client.reporter.log_successful_operation(
@@ -135,7 +124,7 @@ def get_equipment_port_type(
     result = EquipmentPortTypeQuery.execute(client, id=equipment_port_type_id).port_type
     if not result:
         raise EntityNotFoundError(
-            entity="Equipment Port Type", entity_id=equipment_port_type_id
+            entity=Entity.EquipmentPortType, entity_id=equipment_port_type_id
         )
 
     return EquipmentPortType(

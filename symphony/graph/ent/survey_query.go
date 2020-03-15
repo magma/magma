@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -123,8 +122,8 @@ func (sq *SurveyQuery) FirstX(ctx context.Context) *Survey {
 }
 
 // FirstID returns the first Survey id in the query. Returns *NotFoundError when no id was found.
-func (sq *SurveyQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sq *SurveyQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -136,7 +135,7 @@ func (sq *SurveyQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (sq *SurveyQuery) FirstXID(ctx context.Context) string {
+func (sq *SurveyQuery) FirstXID(ctx context.Context) int {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -170,8 +169,8 @@ func (sq *SurveyQuery) OnlyX(ctx context.Context) *Survey {
 }
 
 // OnlyID returns the only Survey id in the query, returns an error if not exactly one id was returned.
-func (sq *SurveyQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sq *SurveyQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -187,7 +186,7 @@ func (sq *SurveyQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (sq *SurveyQuery) OnlyXID(ctx context.Context) string {
+func (sq *SurveyQuery) OnlyXID(ctx context.Context) int {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -210,8 +209,8 @@ func (sq *SurveyQuery) AllX(ctx context.Context) []*Survey {
 }
 
 // IDs executes the query and returns a list of Survey ids.
-func (sq *SurveyQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (sq *SurveyQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := sq.Select(survey.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -219,7 +218,7 @@ func (sq *SurveyQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *SurveyQuery) IDsX(ctx context.Context) []string {
+func (sq *SurveyQuery) IDsX(ctx context.Context) []int {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -386,8 +385,8 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	}
 
 	if query := sq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Survey)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Survey)
 		for i := range nodes {
 			if fk := nodes[i].survey_location; fk != nil {
 				ids = append(ids, *fk)
@@ -411,8 +410,8 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	}
 
 	if query := sq.withSourceFile; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Survey)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Survey)
 		for i := range nodes {
 			if fk := nodes[i].survey_source_file; fk != nil {
 				ids = append(ids, *fk)
@@ -437,13 +436,9 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 
 	if query := sq.withQuestions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Survey)
+		nodeids := make(map[int]*Survey)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -489,7 +484,7 @@ func (sq *SurveyQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   survey.Table,
 			Columns: survey.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: survey.FieldID,
 			},
 		},

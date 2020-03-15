@@ -7,9 +7,11 @@ package viewer
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/gorilla/websocket"
@@ -35,6 +37,10 @@ const (
 	UserAttribute      = "viewer.user"
 	RoleAttribute      = "viewer.role"
 	UserAgentAttribute = "viewer.user_agent"
+)
+
+const (
+	UserIsDeactivatedError = "USER_IS_DEACTIVATED"
 )
 
 // The following tags are applied to context recorded by this package.
@@ -86,15 +92,17 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 			},
 		},
 	}
-	authenticate := func(r *http.Request) *http.Request {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !websocket.IsWebSocketUpgrade(r) || r.Header.Get(TenantHeader) != "" {
-			return r
+			h.ServeHTTP(w, r)
+			return
 		}
 		req, err := http.NewRequestWithContext(
 			r.Context(), http.MethodGet, authurl, nil,
 		)
 		if err != nil {
-			return r
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		req.Header.Set("X-Forwarded-Host", r.Host)
 		if username, password, ok := r.BasicAuth(); ok {
@@ -106,24 +114,24 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 
 		rsp, err := client.Do(req)
 		if err != nil {
-			return r
+			http.Error(w, err.Error(), http.StatusServiceUnavailable)
+			return
 		}
 		defer rsp.Body.Close()
 		if rsp.StatusCode != http.StatusOK {
-			return r
+			http.Error(w, "", http.StatusUnauthorized)
+			return
 		}
 
 		var v Viewer
-		if err := json.NewDecoder(rsp.Body).Decode(&v); err == nil {
-			r.Header.Set(TenantHeader, v.Tenant)
-			r.Header.Set(UserHeader, v.User)
-			r.Header.Set(RoleHeader, v.Role)
+		if err := json.NewDecoder(rsp.Body).Decode(&v); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		return r
-	}
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(w, authenticate(r))
+		r.Header.Set(TenantHeader, v.Tenant)
+		r.Header.Set(UserHeader, v.User)
+		r.Header.Set(RoleHeader, v.Role)
+		h.ServeHTTP(w, r)
 	})
 }
 
@@ -159,6 +167,35 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 			ctx = ent.NewContext(ctx, client)
 		}
 		h.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// UserHandler adds users if request is from user that is not found.
+func UserHandler(h http.Handler, logger log.Logger) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		v := FromContext(ctx)
+		client := ent.FromContext(ctx)
+		u, err := client.User.Query().Where(user.AuthID(v.User)).Only(ctx)
+		if err != nil {
+			if !ent.IsNotFound(err) {
+				http.Error(w, "query user ent", http.StatusServiceUnavailable)
+				return
+			}
+			_, err := client.User.Create().SetAuthID(v.User).Save(ctx)
+			if err != nil {
+				http.Error(w, "create user ent", http.StatusServiceUnavailable)
+				return
+			}
+			logger.For(ctx).Info("New user created", zap.String("AuthID", v.User))
+		} else if u.Status == user.StatusDEACTIVATED {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			_, _ = fmt.Fprintln(
+				w, "{\"errorCode\": \"USER_IS_DEACTIVATED\", \"description\"Error struct: \"User must be active to see this\"}")
+			return
+		}
+		h.ServeHTTP(w, r)
 	})
 }
 

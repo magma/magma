@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -24,9 +23,9 @@ type EquipmentPositionCreate struct {
 	config
 	create_time *time.Time
 	update_time *time.Time
-	definition  map[string]struct{}
-	parent      map[string]struct{}
-	attachment  map[string]struct{}
+	definition  map[int]struct{}
+	parent      map[int]struct{}
+	attachment  map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -58,9 +57,9 @@ func (epc *EquipmentPositionCreate) SetNillableUpdateTime(t *time.Time) *Equipme
 }
 
 // SetDefinitionID sets the definition edge to EquipmentPositionDefinition by id.
-func (epc *EquipmentPositionCreate) SetDefinitionID(id string) *EquipmentPositionCreate {
+func (epc *EquipmentPositionCreate) SetDefinitionID(id int) *EquipmentPositionCreate {
 	if epc.definition == nil {
-		epc.definition = make(map[string]struct{})
+		epc.definition = make(map[int]struct{})
 	}
 	epc.definition[id] = struct{}{}
 	return epc
@@ -72,16 +71,16 @@ func (epc *EquipmentPositionCreate) SetDefinition(e *EquipmentPositionDefinition
 }
 
 // SetParentID sets the parent edge to Equipment by id.
-func (epc *EquipmentPositionCreate) SetParentID(id string) *EquipmentPositionCreate {
+func (epc *EquipmentPositionCreate) SetParentID(id int) *EquipmentPositionCreate {
 	if epc.parent == nil {
-		epc.parent = make(map[string]struct{})
+		epc.parent = make(map[int]struct{})
 	}
 	epc.parent[id] = struct{}{}
 	return epc
 }
 
 // SetNillableParentID sets the parent edge to Equipment by id if the given value is not nil.
-func (epc *EquipmentPositionCreate) SetNillableParentID(id *string) *EquipmentPositionCreate {
+func (epc *EquipmentPositionCreate) SetNillableParentID(id *int) *EquipmentPositionCreate {
 	if id != nil {
 		epc = epc.SetParentID(*id)
 	}
@@ -94,16 +93,16 @@ func (epc *EquipmentPositionCreate) SetParent(e *Equipment) *EquipmentPositionCr
 }
 
 // SetAttachmentID sets the attachment edge to Equipment by id.
-func (epc *EquipmentPositionCreate) SetAttachmentID(id string) *EquipmentPositionCreate {
+func (epc *EquipmentPositionCreate) SetAttachmentID(id int) *EquipmentPositionCreate {
 	if epc.attachment == nil {
-		epc.attachment = make(map[string]struct{})
+		epc.attachment = make(map[int]struct{})
 	}
 	epc.attachment[id] = struct{}{}
 	return epc
 }
 
 // SetNillableAttachmentID sets the attachment edge to Equipment by id if the given value is not nil.
-func (epc *EquipmentPositionCreate) SetNillableAttachmentID(id *string) *EquipmentPositionCreate {
+func (epc *EquipmentPositionCreate) SetNillableAttachmentID(id *int) *EquipmentPositionCreate {
 	if id != nil {
 		epc = epc.SetAttachmentID(*id)
 	}
@@ -155,7 +154,7 @@ func (epc *EquipmentPositionCreate) sqlSave(ctx context.Context) (*EquipmentPosi
 		_spec = &sqlgraph.CreateSpec{
 			Table: equipmentposition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentposition.FieldID,
 			},
 		}
@@ -185,16 +184,12 @@ func (epc *EquipmentPositionCreate) sqlSave(ctx context.Context) (*EquipmentPosi
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentpositiondefinition.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -208,16 +203,12 @@ func (epc *EquipmentPositionCreate) sqlSave(ctx context.Context) (*EquipmentPosi
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -231,16 +222,12 @@ func (epc *EquipmentPositionCreate) sqlSave(ctx context.Context) (*EquipmentPosi
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
 		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -252,6 +239,6 @@ func (epc *EquipmentPositionCreate) sqlSave(ctx context.Context) (*EquipmentPosi
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	ep.ID = strconv.FormatInt(id, 10)
+	ep.ID = int(id)
 	return ep, nil
 }

@@ -46,6 +46,7 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		state.NewStateSerde(lte.EnodebStateType, &lteModels.EnodebState{}),
+		state.NewStateSerde(lte.ICMPStateType, &lteModels.IcmpStatus{}),
 
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lteModels.NetworkCellularConfigs{}),

@@ -4,7 +4,11 @@
 
 package importer
 
-import "github.com/pkg/errors"
+import (
+	"fmt"
+
+	"github.com/pkg/errors"
+)
 
 type ImportHeader struct {
 	line     []string
@@ -221,12 +225,19 @@ func (l ImportHeader) LinkGetTwoPortsRange() ([]int, []int) {
 	return nil, nil
 }
 
-func (l ImportHeader) LinkGetTwoPortsSlices() [][]string {
+// LinkGetTwoPortsSlices get metric of two slices, one for each port
+func (l ImportHeader) LinkGetTwoPortsSlices() ([][]string, error) {
 	if l.entity == ImportEntityLink {
 		idxA, idxB := l.LinkGetTwoPortsRange()
-		return [][]string{l.line[idxA[0]:idxA[1]], l.line[idxB[0]:idxB[1]]}
+		if idxA[0] == -1 || idxA[1] == -1 {
+			return nil, errors.New("one of the port headers is missing")
+		}
+		if idxB[0] == -1 || idxB[1] == -1 {
+			return nil, errors.New("one of the port B headers, or 'Service Names' column is missing")
+		}
+		return [][]string{l.line[idxA[0]:idxA[1]], l.line[idxB[0]:idxB[1]]}, nil
 	}
-	return nil
+	return nil, fmt.Errorf("invalid entity %v", l.entity)
 }
 
 func (l ImportHeader) LinkSecondPortStartIdx() int {

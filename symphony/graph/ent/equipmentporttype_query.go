@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -121,8 +120,8 @@ func (eptq *EquipmentPortTypeQuery) FirstX(ctx context.Context) *EquipmentPortTy
 }
 
 // FirstID returns the first EquipmentPortType id in the query. Returns *NotFoundError when no id was found.
-func (eptq *EquipmentPortTypeQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (eptq *EquipmentPortTypeQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = eptq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -134,7 +133,7 @@ func (eptq *EquipmentPortTypeQuery) FirstID(ctx context.Context) (id string, err
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (eptq *EquipmentPortTypeQuery) FirstXID(ctx context.Context) string {
+func (eptq *EquipmentPortTypeQuery) FirstXID(ctx context.Context) int {
 	id, err := eptq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -168,8 +167,8 @@ func (eptq *EquipmentPortTypeQuery) OnlyX(ctx context.Context) *EquipmentPortTyp
 }
 
 // OnlyID returns the only EquipmentPortType id in the query, returns an error if not exactly one id was returned.
-func (eptq *EquipmentPortTypeQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (eptq *EquipmentPortTypeQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = eptq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -185,7 +184,7 @@ func (eptq *EquipmentPortTypeQuery) OnlyID(ctx context.Context) (id string, err 
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (eptq *EquipmentPortTypeQuery) OnlyXID(ctx context.Context) string {
+func (eptq *EquipmentPortTypeQuery) OnlyXID(ctx context.Context) int {
 	id, err := eptq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -208,8 +207,8 @@ func (eptq *EquipmentPortTypeQuery) AllX(ctx context.Context) []*EquipmentPortTy
 }
 
 // IDs executes the query and returns a list of EquipmentPortType ids.
-func (eptq *EquipmentPortTypeQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (eptq *EquipmentPortTypeQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := eptq.Select(equipmentporttype.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -217,7 +216,7 @@ func (eptq *EquipmentPortTypeQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (eptq *EquipmentPortTypeQuery) IDsX(ctx context.Context) []string {
+func (eptq *EquipmentPortTypeQuery) IDsX(ctx context.Context) []int {
 	ids, err := eptq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -375,13 +374,9 @@ func (eptq *EquipmentPortTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentPor
 
 	if query := eptq.withPropertyTypes; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentPortType)
+		nodeids := make(map[int]*EquipmentPortType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -407,13 +402,9 @@ func (eptq *EquipmentPortTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentPor
 
 	if query := eptq.withLinkPropertyTypes; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentPortType)
+		nodeids := make(map[int]*EquipmentPortType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -439,13 +430,9 @@ func (eptq *EquipmentPortTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentPor
 
 	if query := eptq.withPortDefinitions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentPortType)
+		nodeids := make(map[int]*EquipmentPortType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -491,7 +478,7 @@ func (eptq *EquipmentPortTypeQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   equipmentporttype.Table,
 			Columns: equipmentporttype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentporttype.FieldID,
 			},
 		},

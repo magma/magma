@@ -93,8 +93,8 @@ func (clidq *CheckListItemDefinitionQuery) FirstX(ctx context.Context) *CheckLis
 }
 
 // FirstID returns the first CheckListItemDefinition id in the query. Returns *NotFoundError when no id was found.
-func (clidq *CheckListItemDefinitionQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (clidq *CheckListItemDefinitionQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = clidq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -106,7 +106,7 @@ func (clidq *CheckListItemDefinitionQuery) FirstID(ctx context.Context) (id stri
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (clidq *CheckListItemDefinitionQuery) FirstXID(ctx context.Context) string {
+func (clidq *CheckListItemDefinitionQuery) FirstXID(ctx context.Context) int {
 	id, err := clidq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -140,8 +140,8 @@ func (clidq *CheckListItemDefinitionQuery) OnlyX(ctx context.Context) *CheckList
 }
 
 // OnlyID returns the only CheckListItemDefinition id in the query, returns an error if not exactly one id was returned.
-func (clidq *CheckListItemDefinitionQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (clidq *CheckListItemDefinitionQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = clidq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -157,7 +157,7 @@ func (clidq *CheckListItemDefinitionQuery) OnlyID(ctx context.Context) (id strin
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (clidq *CheckListItemDefinitionQuery) OnlyXID(ctx context.Context) string {
+func (clidq *CheckListItemDefinitionQuery) OnlyXID(ctx context.Context) int {
 	id, err := clidq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -180,8 +180,8 @@ func (clidq *CheckListItemDefinitionQuery) AllX(ctx context.Context) []*CheckLis
 }
 
 // IDs executes the query and returns a list of CheckListItemDefinition ids.
-func (clidq *CheckListItemDefinitionQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (clidq *CheckListItemDefinitionQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := clidq.Select(checklistitemdefinition.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (clidq *CheckListItemDefinitionQuery) IDs(ctx context.Context) ([]string, e
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (clidq *CheckListItemDefinitionQuery) IDsX(ctx context.Context) []string {
+func (clidq *CheckListItemDefinitionQuery) IDsX(ctx context.Context) []int {
 	ids, err := clidq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -332,8 +332,8 @@ func (clidq *CheckListItemDefinitionQuery) sqlAll(ctx context.Context) ([]*Check
 	}
 
 	if query := clidq.withWorkOrderType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*CheckListItemDefinition)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*CheckListItemDefinition)
 		for i := range nodes {
 			if fk := nodes[i].work_order_type_check_list_definitions; fk != nil {
 				ids = append(ids, *fk)
@@ -378,7 +378,7 @@ func (clidq *CheckListItemDefinitionQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   checklistitemdefinition.Table,
 			Columns: checklistitemdefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistitemdefinition.FieldID,
 			},
 		},

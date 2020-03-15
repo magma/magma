@@ -328,8 +328,8 @@ def get_enforcement_stats(enforcement_stats):
     return stats
 
 
-def create_service_manager(services: List[int], include_ue_mac=False,
-                           include_ipfix=False):
+def create_service_manager(services: List[int],
+                           static_services: List[str] = None):
     """
     Creates a service manager from the given list of services.
     Args:
@@ -340,13 +340,8 @@ def create_service_manager(services: List[int], include_ue_mac=False,
     mconfig = PipelineD(relay_enabled=True, services=services)
     magma_service = MagicMock()
     magma_service.mconfig = mconfig
-
-    static_services = (['ue_mac', 'arpd', 'access_control', 'tunnel_learn',
-                        'vlan_learn', 'check_quota']
-                       if include_ue_mac
-                       else ['arpd', 'access_control'])
-    if include_ipfix:
-        static_services.append('ipfix')
+    if static_services is None:
+        static_services = []
     magma_service.config = {
         'static_services': static_services
     }
@@ -363,20 +358,22 @@ def _parse_flow(flow):
     return flow
 
 
-def _get_current_bridge_snapshot(bridge_name, service_manager) -> List[str]:
+def _get_current_bridge_snapshot(bridge_name, service_manager,
+                                 include_stats=True) -> List[str]:
     table_assignments = service_manager.get_all_table_assignments()
     # Currently, the unit test setup library does not set up the ryu api app.
     # For now, snapshots are created from the flow dump output using ovs and
     # parsed using regex. Once the ryu api works for unit tests, we can
     # directly parse the api response and avoid the regex.
     flows = BridgeTools.get_annotated_flows_for_bridge(bridge_name,
-                                                       table_assignments)
+        table_assignments, include_stats=include_stats)
     return [_parse_flow(flow) for flow in flows]
 
 
 def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
                                  service_manager: ServiceManager,
-                                 snapshot_name: Optional[str] = None):
+                                 snapshot_name: Optional[str] = None,
+                                 include_stats: bool = True):
     """
     Verifies the current bridge snapshot matches the snapshot saved in file for
     the given test case. Fails the test case if the snapshots differ.
@@ -399,7 +396,8 @@ def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
         SNAPSHOT_DIR,
         combined_name)
     current_snapshot = _get_current_bridge_snapshot(bridge_name,
-                                                    service_manager)
+                                                    service_manager,
+                                                    include_stats=include_stats)
 
     def fail(err_msg: str):
         msg = 'Snapshot mismatch with error:\n' \

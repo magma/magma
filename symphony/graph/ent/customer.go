@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type Customer struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -73,7 +72,7 @@ func (c *Customer) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	c.ID = strconv.FormatInt(value.Int64, 10)
+	c.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -101,14 +100,14 @@ func (c *Customer) assignValues(values ...interface{}) error {
 
 // QueryServices queries the services edge of the Customer.
 func (c *Customer) QueryServices() *ServiceQuery {
-	return (&CustomerClient{c.config}).QueryServices(c)
+	return (&CustomerClient{config: c.config}).QueryServices(c)
 }
 
 // Update returns a builder for updating this Customer.
 // Note that, you need to call Customer.Unwrap() before calling this method, if this Customer
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (c *Customer) Update() *CustomerUpdateOne {
-	return (&CustomerClient{c.config}).UpdateOne(c)
+	return (&CustomerClient{config: c.config}).UpdateOne(c)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -139,12 +138,6 @@ func (c *Customer) String() string {
 	}
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (c *Customer) id() int {
-	id, _ := strconv.Atoi(c.ID)
-	return id
 }
 
 // Customers is a parsable slice of Customer.

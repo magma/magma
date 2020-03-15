@@ -15,7 +15,7 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-func getStaticPassAll(ruleID string, monitoringKey string, trackingType string, priority uint32) *protos.PolicyRule {
+func getStaticPassAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) *protos.PolicyRule {
 	rule := &models.PolicyRuleConfig{
 		FlowList: []*models.FlowDescription{
 			{
@@ -40,13 +40,13 @@ func getStaticPassAll(ruleID string, monitoringKey string, trackingType string, 
 		MonitoringKey: monitoringKey,
 		Priority:      swag.Uint32(priority),
 		TrackingType:  trackingType,
-		RatingGroup:   0,
+		RatingGroup:   ratingGroup,
 	}
 
 	return rule.ToProto(ruleID)
 }
 
-func getStaticDenyAll(ruleID string, monitoringKey string, trackingType string, priority uint32) *protos.PolicyRule {
+func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) *protos.PolicyRule {
 	rule := &models.PolicyRuleConfig{
 		FlowList: []*models.FlowDescription{
 			{
@@ -71,7 +71,7 @@ func getStaticDenyAll(ruleID string, monitoringKey string, trackingType string, 
 		MonitoringKey: monitoringKey,
 		Priority:      swag.Uint32(priority),
 		TrackingType:  trackingType,
-		RatingGroup:   0,
+		RatingGroup:   ratingGroup,
 	}
 
 	return rule.ToProto(ruleID)

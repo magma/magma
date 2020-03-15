@@ -14,9 +14,11 @@ import (
 	"testing"
 
 	"fbc/lib/go/radius/rfc2869"
+	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 
 	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +32,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	assert.NoError(t, err)
 
 	ue := ues[0]
-	err = ruleManager.AddDynamicPassAll(ue.GetImsi(), "dynamic-pass-all", "mkey1")
+	err = ruleManager.AddDynamicPassAllToPCRF(ue.GetImsi(), "dynamic-pass-all", "mkey1")
 	assert.NoError(t, err)
 	radiusP, err := tr.Authenticate(ue.GetImsi())
 	assert.NoError(t, err)
@@ -39,7 +41,8 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	assert.NotNil(t, eapMessage)
 	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
 
-	err = tr.GenULTraffic(ue.GetImsi(), swag.String("100K"))
+	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("100K")}}
+	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
 	// Clear hss, ocs, and pcrf

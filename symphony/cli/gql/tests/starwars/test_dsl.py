@@ -1,5 +1,6 @@
-import pytest
+#!/usr/bin/env python3
 
+import pytest
 from gql import Client
 from gql.dsl import DSLSchema
 
@@ -14,19 +15,17 @@ def ds():
 
 
 def test_hero_name_query(ds):
-    query = '''
+    query = """
 hero {
   name
 }
-    '''.strip()
-    query_dsl = ds.Query.hero.select(
-        ds.Character.name
-    )
+    """.strip()
+    query_dsl = ds.Query.hero.select(ds.Character.name)
     assert query == str(query_dsl)
 
 
 def test_hero_name_and_friends_query(ds):
-    query = '''
+    query = """
 hero {
   id
   name
@@ -34,19 +33,17 @@ hero {
     name
   }
 }
-    '''.strip()
+    """.strip()
     query_dsl = ds.Query.hero.select(
         ds.Character.id,
         ds.Character.name,
-        ds.Character.friends.select(
-            ds.Character.name,
-        )
+        ds.Character.friends.select(ds.Character.name),
     )
     assert query == str(query_dsl)
 
 
 def test_nested_query(ds):
-    query = '''
+    query = """
 hero {
   name
   friends {
@@ -57,29 +54,25 @@ hero {
     }
   }
 }
-    '''.strip()
+    """.strip()
     query_dsl = ds.Query.hero.select(
         ds.Character.name,
         ds.Character.friends.select(
             ds.Character.name,
             ds.Character.appears_in,
-            ds.Character.friends.select(
-                ds.Character.name
-            )
-        )
+            ds.Character.friends.select(ds.Character.name),
+        ),
     )
     assert query == str(query_dsl)
 
 
 def test_fetch_luke_query(ds):
-    query = '''
+    query = """
 human(id: "1000") {
   name
 }
-    '''.strip()
-    query_dsl = ds.Query.human(id="1000").select(
-        ds.Human.name,
-    )
+    """.strip()
+    query_dsl = ds.Query.human(id="1000").select(ds.Human.name)
 
     assert query == str(query_dsl)
 
@@ -146,14 +139,12 @@ human(id: "1000") {
 
 
 def test_fetch_luke_aliased(ds):
-    query = '''
+    query = """
 luke: human(id: "1000") {
   name
 }
-    '''.strip()
-    query_dsl = ds.Query.human.args(id=1000).alias('luke').select(
-        ds.Character.name,
-    )
+    """.strip()
+    query_dsl = ds.Query.human.args(id=1000).alias("luke").select(ds.Character.name)
     assert query == str(query_dsl)
 
 
@@ -279,16 +270,7 @@ luke: human(id: "1000") {
 #     assert result.data == expected
 
 
-
 def test_hero_name_query(ds):
-    result = ds.query(
-        ds.Query.hero.select(
-            ds.Character.name
-        )
-    )
-    expected = {
-        'hero': {
-            'name': 'R2-D2'
-        }
-    }
+    result = ds.query(ds.Query.hero.select(ds.Character.name))
+    expected = {"hero": {"name": "R2-D2"}}
     assert result == expected

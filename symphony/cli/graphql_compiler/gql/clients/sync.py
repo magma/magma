@@ -11,22 +11,18 @@ class Client:
         headers = headers or {}
         self.__headers = {
             **headers,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Accept-Encoding': 'gzip',
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip",
         }
 
-    def call(self, query,
-             variables=None,
-             return_json=False) -> Union[dict, str]:
+    def call(self, query, variables=None, return_json=False) -> Union[dict, str]:
 
         headers = self.__headers.copy()
 
-        payload = {
-            'query': query
-        }
+        payload = {"query": query}
         if variables:
-            payload['variables'] = variables
+            payload["variables"] = variables
 
         response = requests.post(self.endpoint, json=payload, headers=headers)
         response.raise_for_status()

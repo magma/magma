@@ -56,6 +56,7 @@ const LocationsPowerSearchBar = (props: Props) => {
       filterConfigs={filterConfigs}
       footer={footer}
       exportPath={'/locations'}
+      entity="LOCATION"
     />
   );
 };

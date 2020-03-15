@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-# pyre-strict
 # Copyright (c) 2004-present Facebook All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
 from dataclasses import asdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
@@ -13,8 +12,8 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import format_properties
 from ..client import SymphonyClient
-from ..consts import Equipment, EquipmentPortType, EquipmentType, PropertyDefinition
-from ..exceptions import EquipmentTypeNotFoundException
+from ..consts import Entity, Equipment, EquipmentPortType, EquipmentType, PropertyValue
+from ..exceptions import EntityNotFoundError, EquipmentTypeNotFoundException
 from ..graphql.add_equipment_type_input import AddEquipmentTypeInput
 from ..graphql.add_equipment_type_mutation import AddEquipmentTypeMutation
 from ..graphql.edit_equipment_type_input import EditEquipmentTypeInput
@@ -38,16 +37,17 @@ def _populate_equipment_types(client: SymphonyClient) -> None:
 
     for edge in edges:
         node = edge.node
-        client.equipmentTypes[node.name] = EquipmentType(
-            name=node.name,
-            category=node.category,
-            id=node.id,
-            propertyTypes=list(map(lambda p: asdict(p), node.propertyTypes)),
-            positionDefinitions=list(
-                map(lambda p: asdict(p), node.positionDefinitions)
-            ),
-            portDefinitions=list(map(lambda p: asdict(p), node.portDefinitions)),
-        )
+        if node:
+            client.equipmentTypes[node.name] = EquipmentType(
+                name=node.name,
+                category=node.category,
+                id=node.id,
+                propertyTypes=list(map(lambda p: asdict(p), node.propertyTypes)),
+                positionDefinitions=list(
+                    map(lambda p: asdict(p), node.positionDefinitions)
+                ),
+                portDefinitions=list(map(lambda p: asdict(p), node.portDefinitions)),
+            )
 
 
 def _populate_equipment_port_types(client: SymphonyClient) -> None:
@@ -55,19 +55,20 @@ def _populate_equipment_port_types(client: SymphonyClient) -> None:
 
     for edge in edges:
         node = edge.node
-        client.portTypes[node.name] = EquipmentPortType(
-            id=node.id,
-            name=node.name,
-            properties=list(map(lambda p: asdict(p), node.propertyTypes)),
-            link_properties=list(map(lambda p: asdict(p), node.linkPropertyTypes)),
-        )
+        if node:
+            client.portTypes[node.name] = EquipmentPortType(
+                id=node.id,
+                name=node.name,
+                properties=list(map(lambda p: asdict(p), node.propertyTypes)),
+                link_properties=list(map(lambda p: asdict(p), node.linkPropertyTypes)),
+            )
 
 
 def _add_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: List[Dict[str, Any]],
+    properties: List[PropertyTypeInput],
     position_definitions: List[Dict[str, Any]],
     port_definitions: List[Dict[str, Any]],
 ) -> AddEquipmentTypeMutation.AddEquipmentTypeMutationData.EquipmentType:
@@ -90,12 +91,7 @@ def _add_equipment_type(
                 )
                 for port in port_definitions
             ],
-            properties=[
-                from_dict(
-                    data_class=PropertyTypeInput, data=prop, config=Config(strict=True)
-                )
-                for prop in properties
-            ],
+            properties=properties,
         ),
     ).__dict__[ADD_EQUIPMENT_TYPE_MUTATION_NAME]
 
@@ -104,10 +100,46 @@ def get_or_create_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: List[PropertyDefinition],
+    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
+    """This function checks equipment type existence, 
+        in case it is not found, creates one.
+
+        Args:
+            name (str): equipment name
+            category (str): category name
+            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]): 
+            - str - type name
+            - str - enum["string", "int", "bool", "float", "date", "enum", "range", 
+            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
+            - PropertyValue - default property value
+            - bool - fixed value flag
+
+            ports_dict (Dict[str, str]): dict of property name to property value
+            - str - port name
+            - str - port type name
+            
+            position_list (List[str]): list of positions names
+
+        Returns:
+            pyinventory.consts.EquipmentType object
+        
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            e_type = client.get_or_create_equipment_type(
+                name="Tp-Link T1600G",
+                category="Router",
+                properties=[("IP", "string", None, True)],
+                ports_dict={"Port 1": "eth port", "port 2": "eth port"},
+                position_list=[],
+            )
+            ```
+    """
     if name in client.equipmentTypes:
         return client.equipmentTypes[name]
     return add_equipment_type(
@@ -158,11 +190,45 @@ def add_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: List[PropertyDefinition],
+    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
+    """This function creates new equipment type.
 
+        Args:
+            name (str): equipment type name
+            category (str): category name
+            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]): 
+            - str - type name
+            - str - enum["string", "int", "bool", "float", "date", "enum", "range", 
+            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
+            - PropertyValue - default property value
+            - bool - fixed value flag
+
+            ports_dict (Dict[str, str]): dict of property name to property value
+            - str - port name
+            - str - port type name
+            
+            position_list (List[str]): list of positions names
+
+        Returns:
+            pyinventory.consts.EquipmentType object
+        
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            e_type = client.add_equipment_type(
+                name="Tp-Link T1600G",
+                category="Router",
+                properties=[("IP", "string", None, True)],
+                ports_dict={"Port 1": "eth port", "port 2": "eth port"},
+                position_list=[],
+            )
+            ```
+    """
     new_property_types = format_properties(properties)
 
     port_definitions = [{"name": name} for name, _ in ports_dict.items()]
@@ -289,6 +355,26 @@ def edit_equipment_type(
 def copy_equipment_type(
     client: SymphonyClient, curr_equipment_type_name: str, new_equipment_type_name: str
 ) -> EquipmentType:
+    """Copy existing equipment type.
+
+        Args:
+            curr_equipment_type_name (str): existing equipment type name
+            new_equipment_type_name (str): new equipment type name
+
+        Returns:
+            pyinventory.consts.EquipmentType object
+        
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            e_type = client.copy_equipment_type(
+                curr_equipment_type_name="Card",
+                new_equipment_type_name="External_Card",
+            )
+            ```
+    """
     if curr_equipment_type_name not in client.equipmentTypes:
         raise Exception(
             "Equipment type " + curr_equipment_type_name + " does not exist"
@@ -338,10 +424,21 @@ def copy_equipment_type(
 def delete_equipment_type_with_equipments(
     client: SymphonyClient, equipment_type: EquipmentType
 ) -> None:
-    equipments = EquipmentTypeEquipmentQuery.execute(
+    equipment_type_with_equipments = EquipmentTypeEquipmentQuery.execute(
         client, id=equipment_type.id
-    ).equipmentType.equipments
-    for equipment in equipments:
-        delete_equipment(client, Equipment(id=equipment.id, name=equipment.name))
+    ).equipmentType
+    if not equipment_type_with_equipments:
+        raise EntityNotFoundError(
+            entity=Entity.EquipmentType, entity_id=equipment_type.id
+        )
+    for equipment in equipment_type_with_equipments.equipments:
+        delete_equipment(
+            client,
+            Equipment(
+                id=equipment.id,
+                name=equipment.name,
+                equipment_type_name=equipment.equipmentType.name,
+            ),
+        )
 
     RemoveEquipmentTypeMutation.execute(client, id=equipment_type.id)

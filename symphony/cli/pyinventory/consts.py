@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from datetime import date, datetime
+from enum import Enum
+from numbers import Number
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Type, TypeVar, Union
 
 from .graphql.image_entity_enum import ImageEntity
+from .graphql.property_kind_enum import PropertyKind
 
 
 __version__ = "2.4.0"
@@ -34,8 +36,8 @@ class PropertyDefinition(NamedTuple):
     """
 
     property_name: str
-    property_type: str
-    default_value: PropertyValue
+    property_kind: PropertyKind
+    default_value: Optional[PropertyValue]
     is_fixed: Optional[bool] = False
 
 
@@ -66,8 +68,8 @@ class LocationType(NamedTuple):
 class Location(NamedTuple):
     name: str
     id: str
-    latitude: float
-    longitude: float
+    latitude: Number
+    longitude: Number
     externalId: Optional[str]
     locationTypeName: str
 
@@ -82,6 +84,14 @@ class EquipmentType(NamedTuple):
 
 
 class EquipmentPortType(NamedTuple):
+    """
+    Attributes:
+        id (str): equipment port type ID
+        name (str): equipment port type name
+        properties (List[Dict[str, PropertyValue]]): list of equipment port type propertyTypes to their default values
+        link_properties (List[Dict[str, PropertyValue]]): list of equipment port type linkPropertyTypes to their default values
+    """
+
     id: str
     name: str
     properties: List[Dict[str, PropertyValue]]
@@ -89,16 +99,55 @@ class EquipmentPortType(NamedTuple):
 
 
 class Equipment(NamedTuple):
+    """
+    Attributes:
+        name (str): equipment name
+        id (str): equipment ID
+        equipment_type_name (str): equipment type name
+    """
+
     name: str
     id: str
-
-
-class EquipmentPort(NamedTuple):
-    id: str
+    equipment_type_name: str
 
 
 class Link(NamedTuple):
+    """
+    Attributes:
+        id (str): link ID
+        service_ids (List[str]): service IDs 
+    """
+
     id: str
+    service_ids: List[str]
+
+
+class EquipmentPortDefinition(NamedTuple):
+    """
+    Attributes:
+        id (str): equipment port definition ID
+        name (str): equipment port definition name
+        port_type_name (Optional[str]): equipment port definition port type name
+    """
+
+    id: str
+    name: str
+    port_type_name: Optional[str] = None
+
+
+class EquipmentPort(NamedTuple):
+    """
+    Attributes:
+        id (str): equipment port ID
+        properties (List[Dict[str, PropertyValue]]): list of equipment port properties
+        definition (pyinventory.Consts.EquipmentPortDefinition): port definition
+        link (Optional[pyinventory.consts.Link]): link
+    """
+
+    id: str
+    properties: List[Dict[str, PropertyValue]]
+    definition: EquipmentPortDefinition
+    link: Optional[Link]
 
 
 class SiteSurvey(NamedTuple):
@@ -145,3 +194,21 @@ class Document(NamedTuple):
     parentId: str
     parentEntity: ImageEntity
     category: Optional[str]
+
+
+class Entity(Enum):
+    Location = "Location"
+    LocationType = "LocationType"
+    Equipment = "Equipment"
+    EquipmentType = "EquipmentType"
+    EquipmentPort = "EquipmentPort"
+    EquipmentPortType = "EquipmentPortType"
+    Link = "Link"
+    Service = "Service"
+    ServiceType = "ServiceType"
+    ServiceEndpoint = "ServiceEndpoint"
+    SiteSurvey = "SiteSurvey"
+    Customer = "Customer"
+    Document = "Document"
+    PropertyType = "PropertyType"
+    Property = "Property"

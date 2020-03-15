@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -23,7 +22,7 @@ import (
 type EquipmentPort struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -31,9 +30,9 @@ type EquipmentPort struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPortQuery when eager-loading is set.
 	Edges                     EquipmentPortEdges `json:"edges"`
-	equipment_ports           *string
-	equipment_port_definition *string
-	equipment_port_link       *string
+	equipment_ports           *int
+	equipment_port_definition *int
+	equipment_port_link       *int
 }
 
 // EquipmentPortEdges holds the relations/edges for other nodes in the graph.
@@ -141,7 +140,7 @@ func (ep *EquipmentPort) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	ep.ID = strconv.FormatInt(value.Int64, 10)
+	ep.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -158,20 +157,20 @@ func (ep *EquipmentPort) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_ports", value)
 		} else if value.Valid {
-			ep.equipment_ports = new(string)
-			*ep.equipment_ports = strconv.FormatInt(value.Int64, 10)
+			ep.equipment_ports = new(int)
+			*ep.equipment_ports = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_port_definition", value)
 		} else if value.Valid {
-			ep.equipment_port_definition = new(string)
-			*ep.equipment_port_definition = strconv.FormatInt(value.Int64, 10)
+			ep.equipment_port_definition = new(int)
+			*ep.equipment_port_definition = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_port_link", value)
 		} else if value.Valid {
-			ep.equipment_port_link = new(string)
-			*ep.equipment_port_link = strconv.FormatInt(value.Int64, 10)
+			ep.equipment_port_link = new(int)
+			*ep.equipment_port_link = int(value.Int64)
 		}
 	}
 	return nil
@@ -179,34 +178,34 @@ func (ep *EquipmentPort) assignValues(values ...interface{}) error {
 
 // QueryDefinition queries the definition edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryDefinition() *EquipmentPortDefinitionQuery {
-	return (&EquipmentPortClient{ep.config}).QueryDefinition(ep)
+	return (&EquipmentPortClient{config: ep.config}).QueryDefinition(ep)
 }
 
 // QueryParent queries the parent edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryParent() *EquipmentQuery {
-	return (&EquipmentPortClient{ep.config}).QueryParent(ep)
+	return (&EquipmentPortClient{config: ep.config}).QueryParent(ep)
 }
 
 // QueryLink queries the link edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryLink() *LinkQuery {
-	return (&EquipmentPortClient{ep.config}).QueryLink(ep)
+	return (&EquipmentPortClient{config: ep.config}).QueryLink(ep)
 }
 
 // QueryProperties queries the properties edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryProperties() *PropertyQuery {
-	return (&EquipmentPortClient{ep.config}).QueryProperties(ep)
+	return (&EquipmentPortClient{config: ep.config}).QueryProperties(ep)
 }
 
 // QueryEndpoints queries the endpoints edge of the EquipmentPort.
 func (ep *EquipmentPort) QueryEndpoints() *ServiceEndpointQuery {
-	return (&EquipmentPortClient{ep.config}).QueryEndpoints(ep)
+	return (&EquipmentPortClient{config: ep.config}).QueryEndpoints(ep)
 }
 
 // Update returns a builder for updating this EquipmentPort.
 // Note that, you need to call EquipmentPort.Unwrap() before calling this method, if this EquipmentPort
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ep *EquipmentPort) Update() *EquipmentPortUpdateOne {
-	return (&EquipmentPortClient{ep.config}).UpdateOne(ep)
+	return (&EquipmentPortClient{config: ep.config}).UpdateOne(ep)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -231,12 +230,6 @@ func (ep *EquipmentPort) String() string {
 	builder.WriteString(ep.UpdateTime.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (ep *EquipmentPort) id() int {
-	id, _ := strconv.Atoi(ep.ID)
-	return id
 }
 
 // EquipmentPorts is a parsable slice of EquipmentPort.

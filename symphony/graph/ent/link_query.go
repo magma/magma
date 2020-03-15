@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -137,8 +136,8 @@ func (lq *LinkQuery) FirstX(ctx context.Context) *Link {
 }
 
 // FirstID returns the first Link id in the query. Returns *NotFoundError when no id was found.
-func (lq *LinkQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (lq *LinkQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -150,7 +149,7 @@ func (lq *LinkQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (lq *LinkQuery) FirstXID(ctx context.Context) string {
+func (lq *LinkQuery) FirstXID(ctx context.Context) int {
 	id, err := lq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -184,8 +183,8 @@ func (lq *LinkQuery) OnlyX(ctx context.Context) *Link {
 }
 
 // OnlyID returns the only Link id in the query, returns an error if not exactly one id was returned.
-func (lq *LinkQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (lq *LinkQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -201,7 +200,7 @@ func (lq *LinkQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (lq *LinkQuery) OnlyXID(ctx context.Context) string {
+func (lq *LinkQuery) OnlyXID(ctx context.Context) int {
 	id, err := lq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -224,8 +223,8 @@ func (lq *LinkQuery) AllX(ctx context.Context) []*Link {
 }
 
 // IDs executes the query and returns a list of Link ids.
-func (lq *LinkQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (lq *LinkQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := lq.Select(link.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -233,7 +232,7 @@ func (lq *LinkQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (lq *LinkQuery) IDsX(ctx context.Context) []string {
+func (lq *LinkQuery) IDsX(ctx context.Context) []int {
 	ids, err := lq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -413,13 +412,9 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 
 	if query := lq.withPorts; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Link)
+		nodeids := make(map[int]*Link)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -444,8 +439,8 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 	}
 
 	if query := lq.withWorkOrder; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Link)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Link)
 		for i := range nodes {
 			if fk := nodes[i].link_work_order; fk != nil {
 				ids = append(ids, *fk)
@@ -470,13 +465,9 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 
 	if query := lq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Link)
+		nodeids := make(map[int]*Link)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -502,14 +493,14 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 
 	if query := lq.withService; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Link, len(nodes))
+		ids := make(map[int]*Link, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Link)
+			edgeids []int
+			edges   = make(map[int][]*Link)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -533,8 +524,8 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -585,7 +576,7 @@ func (lq *LinkQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   link.Table,
 			Columns: link.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: link.FieldID,
 			},
 		},

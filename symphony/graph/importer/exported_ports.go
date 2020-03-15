@@ -121,14 +121,17 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 					nextLineToSkipIndex++
 					continue
 				}
-				importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
-
+				importLine, err := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				id := importLine.ID()
-				if id == "" {
+				if id == 0 {
 					errs = append(errs, ErrorLine{Line: numRows, Error: "no id provided for row", Message: "supporting only port editing"})
 					continue
 				} else {
-					//edit existing  port
+					// edit existing port
 					port, err := m.validateLineForExistingPort(ctx, id, importLine)
 					if err != nil {
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: validating existing port: id %v", err.Error(), id)})
@@ -180,11 +183,11 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 								continue
 							}
 							modifiedCount++
-							log.Info(fmt.Sprintf("(row #%d) editing port", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+							log.Info(fmt.Sprintf("(row #%d) editing port", numRows), zap.String("name", importLine.Name()), zap.Int("id", importLine.ID()))
 						}
 					} else {
 						modifiedCount++
-						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port type or properties", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port type or properties", numRows), zap.String("name", importLine.Name()), zap.Int("id", importLine.ID()))
 					}
 				}
 			}
@@ -200,12 +203,12 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (m *importer) validateLineForExistingPort(ctx context.Context, portID string, importLine ImportRecord) (*ent.EquipmentPort, error) {
+func (m *importer) validateLineForExistingPort(ctx context.Context, portID int, importLine ImportRecord) (*ent.EquipmentPort, error) {
 	port, err := m.ClientFrom(ctx).EquipmentPort.Query().Where(equipmentport.ID(portID)).Only(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching equipment port")
 	}
-	portData, err := importLine.PortData(nil)
+	portData, err := importLine.PortData()
 	if err != nil {
 		return nil, errors.New("error while calculating port data")
 	}
@@ -246,10 +249,9 @@ func (m *importer) inputValidationsPorts(ctx context.Context, importHeader Impor
 	return err
 }
 
-func (m *importer) validateServicesForPortEndpoints(ctx context.Context, line ImportRecord) ([]string, []string, error) {
+func (m *importer) validateServicesForPortEndpoints(ctx context.Context, line ImportRecord) ([]int, []int, error) {
 	serviceNamesMap := make(map[string]bool)
-	var consumerServiceIds []string
-	var providerServiceIds []string
+	var consumerServiceIds, providerServiceIds []int
 	consumerServiceNames := strings.Split(line.ConsumerPortsServices(), ";")
 	for _, serviceName := range consumerServiceNames {
 		if serviceName != "" {
@@ -274,7 +276,7 @@ func (m *importer) validateServicesForPortEndpoints(ctx context.Context, line Im
 	return consumerServiceIds, providerServiceIds, nil
 }
 
-func (m *importer) editServiceEndpoints(ctx context.Context, port *ent.EquipmentPort, serviceIds []string, role models.ServiceEndpointRole) error {
+func (m *importer) editServiceEndpoints(ctx context.Context, port *ent.EquipmentPort, serviceIds []int, role models.ServiceEndpointRole) error {
 	mutation := m.r.Mutation()
 	currentServiceIds, err := port.QueryEndpoints().Where(serviceendpoint.Role(role.String())).QueryService().IDs(ctx)
 	if err != nil {

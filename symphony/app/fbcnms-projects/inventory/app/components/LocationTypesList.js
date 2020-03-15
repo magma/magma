@@ -66,6 +66,7 @@ class LocationTypesList extends React.Component<Props, State> {
   };
 
   componentDidMount() {
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, locationQuery).then(response => {
       this.setState({
         locationTypes: response.locationTypes.edges.map(x => x.node),

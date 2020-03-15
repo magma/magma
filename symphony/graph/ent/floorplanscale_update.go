@@ -163,7 +163,7 @@ func (fpsu *FloorPlanScaleUpdate) sqlSave(ctx context.Context) (n int, err error
 			Table:   floorplanscale.Table,
 			Columns: floorplanscale.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanscale.FieldID,
 			},
 		},
@@ -266,7 +266,7 @@ func (fpsu *FloorPlanScaleUpdate) sqlSave(ctx context.Context) (n int, err error
 // FloorPlanScaleUpdateOne is the builder for updating a single FloorPlanScale entity.
 type FloorPlanScaleUpdateOne struct {
 	config
-	id string
+	id int
 
 	update_time           *time.Time
 	reference_point1_x    *int
@@ -404,7 +404,7 @@ func (fpsuo *FloorPlanScaleUpdateOne) sqlSave(ctx context.Context) (fps *FloorPl
 			Columns: floorplanscale.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  fpsuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanscale.FieldID,
 			},
 		},

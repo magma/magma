@@ -55,8 +55,10 @@ class UpdateResponse;
 
 // ===================================================================
 
-class ActualCreateRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualCreateRequest)
-                                                                */
+class ActualCreateRequest
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualCreateRequest)
+                   */
 {
  public:
   ActualCreateRequest();
@@ -163,8 +165,10 @@ class ActualCreateRequest : public ::google::protobuf::Message /* @@protoc_inser
 };
 // -------------------------------------------------------------------
 
-class CreateRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CreateRequest)
-                                                          */
+class CreateRequest
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CreateRequest)
+                   */
 {
  public:
   CreateRequest();
@@ -293,8 +297,10 @@ class CreateRequest : public ::google::protobuf::Message /* @@protoc_insertion_p
 };
 // -------------------------------------------------------------------
 
-class ActualCreateResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualCreateResponse)
-                                                                 */
+class ActualCreateResponse
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualCreateResponse)
+                   */
 {
  public:
   ActualCreateResponse();
@@ -377,8 +383,10 @@ class ActualCreateResponse : public ::google::protobuf::Message /* @@protoc_inse
 };
 // -------------------------------------------------------------------
 
-class CreateResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CreateResponse)
-                                                           */
+class CreateResponse
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.CreateResponse)
+                   */
 {
  public:
   CreateResponse();
@@ -508,8 +516,10 @@ class CreateResponse : public ::google::protobuf::Message /* @@protoc_insertion_
 };
 // -------------------------------------------------------------------
 
-class ActualUpdateRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualUpdateRequest)
-                                                                */
+class ActualUpdateRequest
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualUpdateRequest)
+                   */
 {
  public:
   ActualUpdateRequest();
@@ -628,8 +638,10 @@ class ActualUpdateRequest : public ::google::protobuf::Message /* @@protoc_inser
 };
 // -------------------------------------------------------------------
 
-class UpdateRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.UpdateRequest)
-                                                          */
+class UpdateRequest
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.UpdateRequest)
+                   */
 {
  public:
   UpdateRequest();
@@ -758,8 +770,10 @@ class UpdateRequest : public ::google::protobuf::Message /* @@protoc_insertion_p
 };
 // -------------------------------------------------------------------
 
-class ActualUpdateResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualUpdateResponse)
-                                                                 */
+class ActualUpdateResponse
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualUpdateResponse)
+                   */
 {
  public:
   ActualUpdateResponse();
@@ -842,8 +856,10 @@ class ActualUpdateResponse : public ::google::protobuf::Message /* @@protoc_inse
 };
 // -------------------------------------------------------------------
 
-class UpdateResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.UpdateResponse)
-                                                           */
+class UpdateResponse
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.UpdateResponse)
+                   */
 {
  public:
   UpdateResponse();
@@ -973,8 +989,10 @@ class UpdateResponse : public ::google::protobuf::Message /* @@protoc_insertion_
 };
 // -------------------------------------------------------------------
 
-class ActualRemoveRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualRemoveRequest)
-                                                                */
+class ActualRemoveRequest
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualRemoveRequest)
+                   */
 {
  public:
   ActualRemoveRequest();
@@ -1081,8 +1099,10 @@ class ActualRemoveRequest : public ::google::protobuf::Message /* @@protoc_inser
 };
 // -------------------------------------------------------------------
 
-class RemoveRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.RemoveRequest)
-                                                          */
+class RemoveRequest
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.RemoveRequest)
+                   */
 {
  public:
   RemoveRequest();
@@ -1211,8 +1231,10 @@ class RemoveRequest : public ::google::protobuf::Message /* @@protoc_insertion_p
 };
 // -------------------------------------------------------------------
 
-class ActualRemoveResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualRemoveResponse)
-                                                                 */
+class ActualRemoveResponse
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.ActualRemoveResponse)
+                   */
 {
  public:
   ActualRemoveResponse();
@@ -1295,8 +1317,10 @@ class ActualRemoveResponse : public ::google::protobuf::Message /* @@protoc_inse
 };
 // -------------------------------------------------------------------
 
-class RemoveResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.RemoveResponse)
-                                                           */
+class RemoveResponse
+    : public ::google::protobuf::
+          Message /* @@protoc_insertion_point(class_definition:devmand.channels.cli.plugin.RemoveResponse)
+                   */
 {
  public:
   RemoveResponse();

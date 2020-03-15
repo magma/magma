@@ -16,6 +16,7 @@ import (
 	"crypto/sha256"
 	"encoding/pem"
 	"fmt"
+
 	"github.com/emakeev/snowflake"
 	"github.com/golang/protobuf/ptypes"
 	"log"
@@ -23,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	"magma/gateway/config"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	"magma/orc8r/lib/go/security/key"
@@ -44,16 +46,9 @@ type Bootstrapper struct {
 
 	// GW Hardware ID
 	HardwareId string
-	// Challenge Key params
-	ChallengeKeyFile string
-	// Configs loaded from control_proxy.yml
-	CpConfig ControlProxyCfg
-	// BootstrapCompletionNotifier is an optional callback function which will be called on every
-	// successful or failed bootstrap completion.
-	// NOTE: it's responsibility of the notifier to lock/unlock passed *Bootstrapper if it needs
-	// to access (read/write) it's fields. The bootstrapper object will not be locked prior to
-	// the notify callback.
-	BootstrapCompletionNotifier func(*Bootstrapper, error) `json:"-"`
+	// CompletionChan is an optional chan which will receive BootstrapCompletion on every
+	// successful or failed (Result ==/!= nil) bootstrap event
+	CompletionChan chan interface{}
 	//
 	// private, caches, tmps
 	//
@@ -63,12 +58,16 @@ type Bootstrapper struct {
 	forceBootstrap bool
 }
 
+// BootstrapCompletion is a type sent to bootstrap channel (if any) on every bootstrapping attempt
+type BootstrapCompletion *BootstrapCompletionStruct
+type BootstrapCompletionStruct struct {
+	HardwareId string
+	Result     error
+}
+
 // NewBootstrapper returns a new instance of bootstrapper with initialized configuration
-func NewBootstrapper() *Bootstrapper {
-	b := NewDefaultBootsrapper()
-	b.updateBootstrapperKeyCfg()
-	b.updateFromControlProxyCfg()
-	return b
+func NewBootstrapper(bootstrapCompletionChan chan interface{}) *Bootstrapper {
+	return &Bootstrapper{CompletionChan: bootstrapCompletionChan}
 }
 
 // Initialize loads HW ID & challenge key and verifies it's validity
@@ -108,7 +107,11 @@ func (b *Bootstrapper) Start() error {
 	if b == nil {
 		return fmt.Errorf("Invalid (nil) Bootstrapper")
 	}
-	if b.challengeKey == nil {
+	b.RLock()
+	challengeKey := b.challengeKey
+	b.RUnlock()
+
+	if challengeKey == nil {
 		err := b.Initialize()
 		if err != nil {
 			return err
@@ -130,21 +133,23 @@ func (b *Bootstrapper) Start() error {
 
 // PeriodicCheck verifies GW certificate validity and bootstraps GW if needed
 func (b *Bootstrapper) PeriodicCheck(now time.Time) (err error) {
+	cfg := config.GetControlProxyConfigs()
 	b.RLock()
-	notifier := b.BootstrapCompletionNotifier
-	defer func() {
-		if notifier != nil {
-			notifier(b, err)
-		}
-	}()
-	if b.validateCert(now) {
+	if b.validateCert(now, cfg) {
 		b.RUnlock()
 		return // all good, cert is still valid - return
+	}
+	if completionChan := b.CompletionChan; completionChan != nil {
+		bc := BootstrapCompletion(&BootstrapCompletionStruct{HardwareId: b.HardwareId})
+		defer func() {
+			bc.Result = err
+			completionChan <- bc
+		}()
 	}
 	// Need a new certificate, bootstrap using cloud
 	newCert, newCertKey, err := b.bootstrap()
 	// Save the new cert & key
-	certFile, certKeyFile := b.CpConfig.GwCertFile, b.CpConfig.GwCertKeyFile
+	certFile, certKeyFile := cfg.GwCertFile, cfg.GwCertKeyFile
 	b.RUnlock()
 
 	if err != nil {
@@ -228,8 +233,6 @@ func (b *Bootstrapper) ForceBootstrap() error {
 func (b *Bootstrapper) RefreshConfigs() {
 	if b == nil {
 		b.Lock()
-		b.updateBootstrapperKeyCfg()
-		b.updateFromControlProxyCfg()
 		b.challengeKey = nil
 		b.Unlock()
 	}
@@ -292,14 +295,14 @@ func (b *Bootstrapper) bootstrap() (*protos.Certificate, interface{}, error) {
 	return newCert, newCertKey, nil
 }
 
-func (b *Bootstrapper) validateCert(now time.Time) bool {
+func (b *Bootstrapper) validateCert(now time.Time, cfg *config.ControlProxyCfg) bool {
 	if b.forceBootstrap {
 		return false // Force Bootstrap
 	}
-	crt, err := cert.LoadCert(b.CpConfig.GwCertFile)
+	crt, err := cert.LoadCert(cfg.GwCertFile)
 	if err != nil {
 		log.Printf("Failed to load certificate & key from '%s', '%s'; error: %v; will bootstrap",
-			b.CpConfig.GwCertFile, b.CpConfig.GwCertKeyFile, err)
+			cfg.GwCertFile, cfg.GwCertKeyFile, err)
 		return false
 	}
 	// Loaded cert, check expiry time
@@ -323,9 +326,10 @@ func (b *Bootstrapper) validateCert(now time.Time) bool {
 }
 
 func (b *Bootstrapper) updateChallengeKey() error {
-	privKey, err := key.ReadKey(b.ChallengeKeyFile)
+	challengeKeyFile := config.GetMagmadConfigs().BootstrapConfig.ChallengeKey
+	privKey, err := key.ReadKey(challengeKeyFile)
 	if err != nil {
-		return fmt.Errorf("Bootstrapper ReadKey(%s) error: %v", b.ChallengeKeyFile, err)
+		return fmt.Errorf("Bootstrapper ReadKey(%s) error: %v", challengeKeyFile, err)
 	}
 	var ok bool
 	b.challengeKey, ok = privKey.(*ecdsa.PrivateKey)

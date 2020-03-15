@@ -65,8 +65,9 @@ type Props = {
   limit?: number,
   showExport?: boolean,
   children: (props: {
-    equipment:
+    equipment:  // $FlowFixMe (T62907961) Relay flow types
       | PowerSearchEquipmentResultsTable_equipment
+      // $FlowFixMe (T62907961) Relay flow types
       | PowerSearchLinkFirstEquipmentResultsTable_equipment,
   }) => React.Element<*>,
 };

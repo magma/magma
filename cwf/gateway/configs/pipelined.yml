@@ -76,7 +76,7 @@ subscriber:
   poll_interval: 5
 
 dpi:
-  enabled: false
+  enabled: true
   mon_port: mon1
   mon_port_number: 32769
 
@@ -96,6 +96,7 @@ ipfix:
   collector_port: 4740
   probability: 30000
   collector_set_id: 1
+  cache_timeout: 60
   obs_domain_id: 1
   obs_point_id: 1
 

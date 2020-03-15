@@ -47,7 +47,7 @@ func (clidd *CheckListItemDefinitionDelete) sqlExec(ctx context.Context) (int, e
 		Node: &sqlgraph.NodeSpec{
 			Table: checklistitemdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistitemdefinition.FieldID,
 			},
 		},
