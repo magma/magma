@@ -6,7 +6,6 @@
 from dataclasses import asdict
 from typing import Dict, List, Optional
 
-from dacite import Config, from_dict
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 
@@ -23,7 +22,6 @@ from ..graphql.edit_equipment_port_type_mutation import (
     EditEquipmentPortTypeMutation,
 )
 from ..graphql.equipment_port_type_query import EquipmentPortTypeQuery
-from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_equipment_port_type_mutation import (
     RemoveEquipmentPortTypeMutation,
 )
@@ -54,10 +52,11 @@ def add_equipment_port_type(
 
         Example:
         ```
+        from pyinventory.consts import PropertyDefinition
         port_type1 = client.add_equipment_port_type(
             "port type 1",
-            [("port property", "string", None, True)],
-            [("link port property", "string", None, True)],
+            [PropertyDefinition("port property", "string", None, True)],
+            [PropertyDefinition("link port property", "string", None, True)],
         )
         ```
     """

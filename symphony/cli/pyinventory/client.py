@@ -15,16 +15,20 @@ from .consts import (
     INVENTORY_STORE_DELETE_ENDPOINT,
     INVENTORY_STORE_PUT_ENDPOINT,
     LOCALHOST_INVENTORY_ENDPOINT,
+    EquipmentPortType,
+    EquipmentType,
+    LocationType,
+    ServiceType,
     __version__,
 )
 from .graphql.latest_python_package_query import LatestPythonPackageQuery
 
 
 class SymphonyClient(GraphqlClient):
-    locationTypes: Dict[str, Any] = {}
-    equipmentTypes: Dict[str, Any] = {}
-    serviceTypes: Dict[str, Any] = {}
-    portTypes: Dict[str, Any] = {}
+    locationTypes: Dict[str, LocationType] = {}
+    equipmentTypes: Dict[str, EquipmentType] = {}
+    serviceTypes: Dict[str, ServiceType] = {}
+    portTypes: Dict[str, EquipmentPortType] = {}
 
     def __init__(
         self,

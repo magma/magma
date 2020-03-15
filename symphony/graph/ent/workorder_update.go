@@ -50,6 +50,8 @@ type WorkOrderUpdate struct {
 	index                      *int
 	addindex                   *int
 	clearindex                 bool
+	close_date                 *time.Time
+	clearclose_date            bool
 	_type                      map[int]struct{}
 	equipment                  map[int]struct{}
 	links                      map[int]struct{}
@@ -221,6 +223,27 @@ func (wou *WorkOrderUpdate) AddIndex(i int) *WorkOrderUpdate {
 func (wou *WorkOrderUpdate) ClearIndex() *WorkOrderUpdate {
 	wou.index = nil
 	wou.clearindex = true
+	return wou
+}
+
+// SetCloseDate sets the close_date field.
+func (wou *WorkOrderUpdate) SetCloseDate(t time.Time) *WorkOrderUpdate {
+	wou.close_date = &t
+	return wou
+}
+
+// SetNillableCloseDate sets the close_date field if the given value is not nil.
+func (wou *WorkOrderUpdate) SetNillableCloseDate(t *time.Time) *WorkOrderUpdate {
+	if t != nil {
+		wou.SetCloseDate(*t)
+	}
+	return wou
+}
+
+// ClearCloseDate clears the value of close_date.
+func (wou *WorkOrderUpdate) ClearCloseDate() *WorkOrderUpdate {
+	wou.close_date = nil
+	wou.clearclose_date = true
 	return wou
 }
 
@@ -823,6 +846,19 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: workorder.FieldIndex,
 		})
 	}
+	if value := wou.close_date; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workorder.FieldCloseDate,
+		})
+	}
+	if wou.clearclose_date {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: workorder.FieldCloseDate,
+		})
+	}
 	if wou.clearedType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1298,6 +1334,8 @@ type WorkOrderUpdateOne struct {
 	index                      *int
 	addindex                   *int
 	clearindex                 bool
+	close_date                 *time.Time
+	clearclose_date            bool
 	_type                      map[int]struct{}
 	equipment                  map[int]struct{}
 	links                      map[int]struct{}
@@ -1462,6 +1500,27 @@ func (wouo *WorkOrderUpdateOne) AddIndex(i int) *WorkOrderUpdateOne {
 func (wouo *WorkOrderUpdateOne) ClearIndex() *WorkOrderUpdateOne {
 	wouo.index = nil
 	wouo.clearindex = true
+	return wouo
+}
+
+// SetCloseDate sets the close_date field.
+func (wouo *WorkOrderUpdateOne) SetCloseDate(t time.Time) *WorkOrderUpdateOne {
+	wouo.close_date = &t
+	return wouo
+}
+
+// SetNillableCloseDate sets the close_date field if the given value is not nil.
+func (wouo *WorkOrderUpdateOne) SetNillableCloseDate(t *time.Time) *WorkOrderUpdateOne {
+	if t != nil {
+		wouo.SetCloseDate(*t)
+	}
+	return wouo
+}
+
+// ClearCloseDate clears the value of close_date.
+func (wouo *WorkOrderUpdateOne) ClearCloseDate() *WorkOrderUpdateOne {
+	wouo.close_date = nil
+	wouo.clearclose_date = true
 	return wouo
 }
 
@@ -2056,6 +2115,19 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: workorder.FieldIndex,
+		})
+	}
+	if value := wouo.close_date; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: workorder.FieldCloseDate,
+		})
+	}
+	if wouo.clearclose_date {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: workorder.FieldCloseDate,
 		})
 	}
 	if wouo.clearedType {

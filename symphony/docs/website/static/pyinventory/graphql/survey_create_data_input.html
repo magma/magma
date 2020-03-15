@@ -29,15 +29,6 @@
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="pyinventory.graphql.survey_create_data_input.enum_field"><code class="name flex">
-<span>def <span class="ident">enum_field</span></span>(<span>enum_type)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -48,6 +39,11 @@
 </code></dt>
 <dd>
 <section class="desc"><p>SurveyCreateData(name: str, completionTimestamp: int, locationID: str, surveyResponses: List[pyinventory.graphql.survey_question_response_input.SurveyQuestionResponse], ownerName: Union[str, NoneType] = None, creationTimestamp: Union[int, NoneType] = None, status: Union[pyinventory.graphql.survey_status_enum.SurveyStatus, NoneType] = None)</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.survey_create_data_input.SurveyCreateData.creationTimestamp"><code class="name">var <span class="ident">creationTimestamp</span></code></dt>
@@ -59,42 +55,6 @@
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.survey_create_data_input.SurveyCreateData.status"><code class="name">var <span class="ident">status</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="pyinventory.graphql.survey_create_data_input.SurveyCreateData.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.survey_create_data_input.SurveyCreateData.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.survey_create_data_input.SurveyCreateData.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.survey_create_data_input.SurveyCreateData.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.survey_create_data_input.SurveyCreateData.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
-</code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
@@ -114,24 +74,14 @@
 <li><code><a title="pyinventory.graphql" href="index.html">pyinventory.graphql</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="pyinventory.graphql.survey_create_data_input.enum_field" href="#pyinventory.graphql.survey_create_data_input.enum_field">enum_field</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
 <h4><code><a title="pyinventory.graphql.survey_create_data_input.SurveyCreateData" href="#pyinventory.graphql.survey_create_data_input.SurveyCreateData">SurveyCreateData</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="pyinventory.graphql.survey_create_data_input.SurveyCreateData.creationTimestamp" href="#pyinventory.graphql.survey_create_data_input.SurveyCreateData.creationTimestamp">creationTimestamp</a></code></li>
-<li><code><a title="pyinventory.graphql.survey_create_data_input.SurveyCreateData.from_dict" href="#pyinventory.graphql.survey_create_data_input.SurveyCreateData.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.survey_create_data_input.SurveyCreateData.from_json" href="#pyinventory.graphql.survey_create_data_input.SurveyCreateData.from_json">from_json</a></code></li>
 <li><code><a title="pyinventory.graphql.survey_create_data_input.SurveyCreateData.ownerName" href="#pyinventory.graphql.survey_create_data_input.SurveyCreateData.ownerName">ownerName</a></code></li>
-<li><code><a title="pyinventory.graphql.survey_create_data_input.SurveyCreateData.schema" href="#pyinventory.graphql.survey_create_data_input.SurveyCreateData.schema">schema</a></code></li>
 <li><code><a title="pyinventory.graphql.survey_create_data_input.SurveyCreateData.status" href="#pyinventory.graphql.survey_create_data_input.SurveyCreateData.status">status</a></code></li>
-<li><code><a title="pyinventory.graphql.survey_create_data_input.SurveyCreateData.to_dict" href="#pyinventory.graphql.survey_create_data_input.SurveyCreateData.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.survey_create_data_input.SurveyCreateData.to_json" href="#pyinventory.graphql.survey_create_data_input.SurveyCreateData.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

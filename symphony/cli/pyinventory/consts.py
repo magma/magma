@@ -79,8 +79,8 @@ class EquipmentType(NamedTuple):
     category: Optional[str]
     id: str
     propertyTypes: List[Dict[str, PropertyValue]]
-    positionDefinitions: List[Dict[str, Any]]
-    portDefinitions: List[Dict[str, Any]]
+    positionDefinitions: List[Dict[str, str]]
+    portDefinitions: List[Dict[str, str]]
 
 
 class EquipmentPortType(NamedTuple):

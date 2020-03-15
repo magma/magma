@@ -50,10 +50,11 @@
 <dd>FailedOperationException</dd>
 </dl>
 <p>Example:</p>
-<pre><code>port_type1 = client.add_equipment_port_type(
+<pre><code>from pyinventory.consts import PropertyDefinition
+port_type1 = client.add_equipment_port_type(
     &quot;port type 1&quot;,
-    [(&quot;port property&quot;, &quot;string&quot;, None, True)],
-    [(&quot;link port property&quot;, &quot;string&quot;, None, True)],
+    [PropertyDefinition(&quot;port property&quot;, &quot;string&quot;, None, True)],
+    [PropertyDefinition(&quot;link port property&quot;, &quot;string&quot;, None, True)],
 )
 </code></pre></section>
 </dd>

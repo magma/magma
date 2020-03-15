@@ -3,7 +3,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-import unicodecsv as csv
+from unicodecsv import writer
+from unicodecsv.py3 import UnicodeWriter
 
 
 class FailedOperationException(Exception):
@@ -76,12 +77,14 @@ class InventoryReporter(Reporter):
 
         """
 
-        # pyre-fixme[4]: Attribute must be annotated.
-        self.outFile = csv.writer(open(out_file_path, "wb"), encoding="utf-8")
+        self.outFile: UnicodeWriter = writer(
+            open(out_file_path, "wb"), encoding="utf-8"
+        )
         self.outFile.writerow(["mutationName", "variables"])
 
-        # pyre-fixme[4]: Attribute must be annotated.
-        self.errFile = csv.writer(open(err_file_path, "wb"), encoding="utf-8")
+        self.errFile: UnicodeWriter = writer(
+            open(err_file_path, "wb"), encoding="utf-8"
+        )
         self.errFile.writerow(
             [
                 "mutationName",

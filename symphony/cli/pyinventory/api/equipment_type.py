@@ -67,10 +67,10 @@ def _populate_equipment_port_types(client: SymphonyClient) -> None:
 def _add_equipment_type(
     client: SymphonyClient,
     name: str,
-    category: str,
+    category: Optional[str],
     properties: List[PropertyTypeInput],
-    position_definitions: List[Dict[str, Any]],
-    port_definitions: List[Dict[str, Any]],
+    position_definitions: List[Dict[str, str]],
+    port_definitions: List[Dict[str, str]],
 ) -> AddEquipmentTypeMutation.AddEquipmentTypeMutationData.EquipmentType:
     return AddEquipmentTypeMutation.execute(
         client,
@@ -151,10 +151,10 @@ def _edit_equipment_type(
     client: SymphonyClient,
     equipment_type_id: str,
     name: str,
-    category: str,
-    properties: List[Dict[str, Any]],
-    position_definitions: List[Dict[str, Any]],
-    port_definitions: List[Dict[str, Any]],
+    category: Optional[str],
+    properties: List[Dict[str, PropertyValue]],
+    position_definitions: List[Dict[str, str]],
+    port_definitions: List[Dict[str, str]],
 ) -> EditEquipmentTypeMutation.EditEquipmentTypeMutationData.EquipmentType:
     return EditEquipmentTypeMutation.execute(
         client,
@@ -383,7 +383,11 @@ def copy_equipment_type(
     equipment_type = client.equipmentTypes[curr_equipment_type_name]
 
     new_property_types = [
-        {key: value for (key, value) in property_type.items() if key != "id"}
+        from_dict(
+            data_class=PropertyTypeInput,
+            data={key: value for (key, value) in property_type.items() if key != "id"},
+            config=Config(strict=True),
+        )
         for property_type in equipment_type.propertyTypes
     ]
 

@@ -61,6 +61,8 @@ func (WorkOrder) Fields() []ent.Field {
 			Optional(),
 		field.Int("index").
 			Optional(),
+		field.Time("close_date").
+			Optional(),
 	}
 }
 

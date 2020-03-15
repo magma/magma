@@ -129,6 +129,12 @@ const WorkOrdersView = (props: Props) => {
           title: 'Assignee',
           render: row => row.assignee || null,
         },
+        {
+          key: 'closeDate',
+          title: 'Close Date',
+          render: row =>
+            !!row.closeDate ? new Date(row.closeDate).toLocaleDateString() : '',
+        },
       ]}
     />
   );
@@ -157,6 +163,7 @@ export default createFragmentContainer(WorkOrdersView, {
         id
         name
       }
+      closeDate
     }
   `,
 });

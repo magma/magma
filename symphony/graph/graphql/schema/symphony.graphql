@@ -1045,6 +1045,7 @@ type WorkOrder implements Node {
   checkList: [CheckListItem]!
   checkListCategories: [CheckListCategory!]!
   hyperlinks: [Hyperlink!]!
+  closeDate: Time
 }
 
 """

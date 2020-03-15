@@ -29,77 +29,57 @@
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="pyinventory.graphql.location_types_query.enum_field"><code class="name flex">
-<span>def <span class="ident">enum_field</span></span>(<span>enum_type)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
 <dt id="pyinventory.graphql.location_types_query.LocationTypesQuery"><code class="flex name class">
 <span>class <span class="ident">LocationTypesQuery</span></span>
-<span>(</span><span>data: Union[<a title="pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData">LocationTypesQuery.LocationTypesQueryData</a>, NoneType] = None, errors: Union[Any, NoneType] = None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData">LocationTypesQuery.LocationTypesQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>LocationTypesQuery(data: Union[pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
+<section class="desc"><p>LocationTypesQuery(data: pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData, <strong>QUERY</strong>: str = '\n
+query LocationTypesQuery {\n
+locationTypes {\n
+edges {\n
+node {\n
+id\n
+name\n
+propertyTypes {\n
+id\n
+name\n
+type\n
+index\n
+category\n
+stringValue\n
+intValue\n
+booleanValue\n
+floatValue\n
+latitudeValue\n
+longitudeValue\n
+isEditable\n
+isInstanceProperty\n
+}\n
+}\n
+}\n
+}\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData"><code class="name">var <span class="ident">LocationTypesQueryData</span></code></dt>
 <dd>
 <section class="desc"><p>LocationTypesQueryData(locationTypes: Union[pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData.LocationTypeConnection, NoneType] = None)</p></section>
 </dd>
-<dt id="pyinventory.graphql.location_types_query.LocationTypesQuery.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_types_query.LocationTypesQuery.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.location_types_query.LocationTypesQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_types_query.LocationTypesQuery.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_types_query.LocationTypesQuery.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_types_query.LocationTypesQuery.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.location_types_query.LocationTypesQuery.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_types_query.LocationTypesQuery.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient) -> <a title="pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData">LocationTypesQuery.LocationTypesQueryData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -120,25 +100,13 @@
 <li><code><a title="pyinventory.graphql" href="index.html">pyinventory.graphql</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="pyinventory.graphql.location_types_query.enum_field" href="#pyinventory.graphql.location_types_query.enum_field">enum_field</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
 <h4><code><a title="pyinventory.graphql.location_types_query.LocationTypesQuery" href="#pyinventory.graphql.location_types_query.LocationTypesQuery">LocationTypesQuery</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData">LocationTypesQueryData</a></code></li>
-<li><code><a title="pyinventory.graphql.location_types_query.LocationTypesQuery.data" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.location_types_query.LocationTypesQuery.errors" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.location_types_query.LocationTypesQuery.execute" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.location_types_query.LocationTypesQuery.from_dict" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.location_types_query.LocationTypesQuery.from_json" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.location_types_query.LocationTypesQuery.schema" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.location_types_query.LocationTypesQuery.to_dict" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.location_types_query.LocationTypesQuery.to_json" href="#pyinventory.graphql.location_types_query.LocationTypesQuery.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

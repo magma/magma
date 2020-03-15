@@ -32,16 +32,86 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.equipment_type.add_equipment_type"><code class="name flex">
-<span>def <span class="ident">add_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: List[<a title="pyinventory.consts.PropertyDefinition" href="../consts.html#pyinventory.consts.PropertyDefinition">PropertyDefinition</a>], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">add_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function creates new equipment type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>equipment type name</dd>
+<dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
+<dd>category name</dd>
+<dt><strong><code>properties</code></strong> :&ensp;<code>List</code>[<code>Tuple</code>[<code>str</code>, <code>str</code>, <code>Optional</code>[<code>PropertyValue</code>], <code>Optional</code>[<code>bool</code>]]]</dt>
+<dd>&nbsp;</dd>
+</dl>
+<ul>
+<li>str - type name</li>
+<li>str - enum["string", "int", "bool", "float", "date", "enum", "range",
+"email", "gps_location", "equipment", "location", "service", "datetime_local"]</li>
+<li>PropertyValue - default property value</li>
+<li>bool - fixed value flag</li>
+</ul>
+<dl>
+<dt><strong><code>ports_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>str</code>]</dt>
+<dd>dict of property name to property value</dd>
+</dl>
+<ul>
+<li>str - port name</li>
+<li>str - port type name</li>
+</ul>
+<dl>
+<dt><strong><code>position_list</code></strong> :&ensp;<code>List</code>[<code>str</code>]</dt>
+<dd>list of positions names</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>e_type = client.add_equipment_type(
+    name=&quot;Tp-Link T1600G&quot;,
+    category=&quot;Router&quot;,
+    properties=[(&quot;IP&quot;, &quot;string&quot;, None, True)],
+    ports_dict={&quot;Port 1&quot;: &quot;eth port&quot;, &quot;port 2&quot;: &quot;eth port&quot;},
+    position_list=[],
+)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.equipment_type.copy_equipment_type"><code class="name flex">
 <span>def <span class="ident">copy_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, curr_equipment_type_name: str, new_equipment_type_name: str) -> <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Copy existing equipment type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>curr_equipment_type_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing equipment type name</dd>
+<dt><strong><code>new_equipment_type_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>new equipment type name</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>e_type = client.copy_equipment_type(
+    curr_equipment_type_name=&quot;Card&quot;,
+    new_equipment_type_name=&quot;External_Card&quot;,
+)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.equipment_type.delete_equipment_type_with_equipments"><code class="name flex">
 <span>def <span class="ident">delete_equipment_type_with_equipments</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type: <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a>) -> NoneType</span>
@@ -77,10 +147,58 @@
 <p>edited_equipment = client.edit_equipment_type("Card", [], {"Port 5": "Z Cards Only (LS - DND)"})</p></section>
 </dd>
 <dt id="pyinventory.api.equipment_type.get_or_create_equipment_type"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: List[<a title="pyinventory.consts.PropertyDefinition" href="../consts.html#pyinventory.consts.PropertyDefinition">PropertyDefinition</a>], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function checks equipment type existence,
+in case it is not found, creates one.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>equipment name</dd>
+<dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
+<dd>category name</dd>
+<dt><strong><code>properties</code></strong> :&ensp;<code>List</code>[<code>Tuple</code>[<code>str</code>, <code>str</code>, <code>Optional</code>[<code>PropertyValue</code>], <code>Optional</code>[<code>bool</code>]]]</dt>
+<dd>&nbsp;</dd>
+</dl>
+<ul>
+<li>str - type name</li>
+<li>str - enum["string", "int", "bool", "float", "date", "enum", "range",
+"email", "gps_location", "equipment", "location", "service", "datetime_local"]</li>
+<li>PropertyValue - default property value</li>
+<li>bool - fixed value flag</li>
+</ul>
+<dl>
+<dt><strong><code>ports_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>str</code>]</dt>
+<dd>dict of property name to property value</dd>
+</dl>
+<ul>
+<li>str - port name</li>
+<li>str - port type name</li>
+</ul>
+<dl>
+<dt><strong><code>position_list</code></strong> :&ensp;<code>List</code>[<code>str</code>]</dt>
+<dd>list of positions names</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>e_type = client.get_or_create_equipment_type(
+    name=&quot;Tp-Link T1600G&quot;,
+    category=&quot;Router&quot;,
+    properties=[(&quot;IP&quot;, &quot;string&quot;, None, True)],
+    ports_dict={&quot;Port 1&quot;: &quot;eth port&quot;, &quot;port 2&quot;: &quot;eth port&quot;},
+    position_list=[],
+)
+</code></pre></section>
 </dd>
 </dl>
 </section>

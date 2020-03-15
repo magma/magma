@@ -35,62 +35,39 @@
 <dl>
 <dt id="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery"><code class="flex name class">
 <span>class <span class="ident">LocationEquipmentsQuery</span></span>
-<span>(</span><span>data: Union[<a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData">LocationEquipmentsQuery.LocationEquipmentsQueryData</a>, NoneType] = None, errors: Union[Any, NoneType] = None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData">LocationEquipmentsQuery.LocationEquipmentsQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>LocationEquipmentsQuery(data: Union[pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
+<section class="desc"><p>LocationEquipmentsQuery(data: pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData, <strong>QUERY</strong>: str = '\n
+query LocationEquipmentsQuery($id: ID!) {\n
+location: node(id: $id) {\n
+&hellip; on Location {\n
+equipments {\n
+id\n
+name\n
+equipmentType {\n
+name\n
+}\n
+}\n
+}\n
+}\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData"><code class="name">var <span class="ident">LocationEquipmentsQueryData</span></code></dt>
 <dd>
 <section class="desc"><p>LocationEquipmentsQueryData(location: Union[pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData.Node, NoneType] = None)</p></section>
 </dd>
-<dt id="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, id: str)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, id: str) -> <a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData">LocationEquipmentsQuery.LocationEquipmentsQueryData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -117,14 +94,7 @@
 <h4><code><a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery">LocationEquipmentsQuery</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.LocationEquipmentsQueryData">LocationEquipmentsQueryData</a></code></li>
-<li><code><a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.data" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.errors" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.execute" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.from_dict" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.from_json" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.schema" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.to_dict" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.to_json" href="#pyinventory.graphql.location_equipments_query.LocationEquipmentsQuery.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>
