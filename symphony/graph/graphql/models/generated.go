@@ -394,6 +394,7 @@ type FileInput struct {
 	ModificationTime *int      `json:"modificationTime"`
 	UploadTime       *int      `json:"uploadTime"`
 	FileType         *FileType `json:"fileType"`
+	MimeType         *string   `json:"mimeType"`
 	StoreKey         string    `json:"storeKey"`
 }
 

@@ -332,14 +332,15 @@ type ComplexityRoot struct {
 	}
 
 	File struct {
-		Category   func(childComplexity int) int
-		FileType   func(childComplexity int) int
-		ID         func(childComplexity int) int
-		ModifiedAt func(childComplexity int) int
-		Name       func(childComplexity int) int
-		Size       func(childComplexity int) int
-		StoreKey   func(childComplexity int) int
-		UploadedAt func(childComplexity int) int
+		Category    func(childComplexity int) int
+		ContentType func(childComplexity int) int
+		FileType    func(childComplexity int) int
+		ID          func(childComplexity int) int
+		ModifiedAt  func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Size        func(childComplexity int) int
+		StoreKey    func(childComplexity int) int
+		UploadedAt  func(childComplexity int) int
 	}
 
 	FloorPlan struct {
@@ -2275,6 +2276,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.File.Category(childComplexity), true
+
+	case "File.mimeType":
+		if e.complexity.File.ContentType == nil {
+			break
+		}
+
+		return e.complexity.File.ContentType(childComplexity), true
 
 	case "File.fileType":
 		if e.complexity.File.FileType == nil {
@@ -6240,6 +6248,7 @@ type File implements Node {
   modified: Time
   uploaded: Time
   fileType: FileType
+  mimeType: String
   storeKey: String
   category: String
 }
@@ -7661,6 +7670,7 @@ input FileInput {
   modificationTime: Int
   uploadTime: Int
   fileType: FileType
+  mimeType: String
   storeKey: String!
 }
 
@@ -15591,6 +15601,40 @@ func (ec *executionContext) _File_fileType(ctx context.Context, field graphql.Co
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOFileType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _File_mimeType(ctx context.Context, field graphql.CollectedField, obj *ent.File) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "File",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContentType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _File_storeKey(ctx context.Context, field graphql.CollectedField, obj *ent.File) (ret graphql.Marshaler) {
@@ -35776,6 +35820,12 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
+		case "mimeType":
+			var err error
+			it.MimeType, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "storeKey":
 			var err error
 			it.StoreKey, err = ec.unmarshalNString2string(ctx, v)
@@ -39153,6 +39203,8 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 				res = ec._File_fileType(ctx, field, obj)
 				return res
 			})
+		case "mimeType":
+			out.Values[i] = ec._File_mimeType(ctx, field, obj)
 		case "storeKey":
 			out.Values[i] = ec._File_storeKey(ctx, field, obj)
 		case "category":
