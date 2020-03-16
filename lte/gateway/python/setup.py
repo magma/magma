@@ -66,6 +66,7 @@ setup(
         'scripts/sgs_cli.py',
         'scripts/subscriber_cli.py',
         'scripts/spgw_service_cli.py',
+        'scripts/cpe_monitoring_cli.py',
     ],
     package_data={'magma.redirectd.templates': ['*.html']},
     install_requires=[
