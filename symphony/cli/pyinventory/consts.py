@@ -9,7 +9,7 @@ from .graphql.image_entity_enum import ImageEntity
 from .graphql.property_kind_enum import PropertyKind
 
 
-__version__ = "2.4.0"
+__version__ = "2.5.0"
 
 INVENTORY_ENDPOINT = "https://{}.thesymphony.cloud"
 LOCALHOST_INVENTORY_ENDPOINT = "https://{}.localtest.me"

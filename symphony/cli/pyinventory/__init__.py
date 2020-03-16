@@ -55,6 +55,7 @@ class InventoryClient(SymphonyClient):
         add_location,
         edit_location,
         move_location,
+        get_locations,
     )
     from .api.equipment_type import (
         copy_equipment_type,
