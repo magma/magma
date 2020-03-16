@@ -25,3 +25,5 @@ ovs_uplink_port_number: 65534
 # These is duplicated into pipelined.yml - if you change the value here,
 # also change it there
 ovs_gtp_port_number: 32768
+# Internal port for monitoring service
+ovs_mtr_port_number: 15577
