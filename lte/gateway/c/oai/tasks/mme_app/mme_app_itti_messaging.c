@@ -143,7 +143,7 @@ int mme_app_send_s11_release_access_bearers_req(
   release_access_bearers_request_p->local_teid = ue_mm_context->mme_teid_s11;
   pdn_context_t *pdn_connection = ue_mm_context->pdn_contexts[pdn_index];
   release_access_bearers_request_p->teid = pdn_connection->s_gw_teid_s11_s4;
-  release_access_bearers_request_p->peer_ip =
+  release_access_bearers_request_p->edns_peer_ip.addr_v4.sin_addr =
     pdn_connection->s_gw_address_s11_s4.address.ipv4_address;
 
   release_access_bearers_request_p->originating_node = NODE_TYPE_MME;
@@ -290,7 +290,7 @@ int mme_app_send_s11_create_session_req(
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
   mme_config_read_lock(&mme_config);
   session_request_p->sender_fteid_for_cp.ipv4_address.s_addr =
-    mme_config.ipv4.s11.s_addr;
+    mme_config.ip.s11_mme_v4.s_addr;
   mme_config_unlock(&mme_config);
   session_request_p->sender_fteid_for_cp.ipv4 = 1;
 
@@ -356,7 +356,7 @@ int mme_app_send_s11_create_session_req(
   if (1) {
     // TODO prototype may change
     mme_app_select_sgw(
-      &ue_mm_context->emm_context.originating_tai, &session_request_p->peer_ip);
+      &ue_mm_context->emm_context.originating_tai, &session_request_p->edns_peer_ip);
   }
 
   session_request_p->serving_network.mcc[0] =

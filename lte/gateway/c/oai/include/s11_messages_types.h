@@ -150,7 +150,7 @@ typedef struct itti_s11_nw_init_deactv_bearer_rsp_s {
 typedef struct itti_s11_create_session_request_s {
   teid_t teid; ///< S11- S-GW Tunnel Endpoint Identifier
 
-  imsi_t imsi; ///< The IMSI shall be included in the message on the S4/S11
+  Imsi_t imsi; ///< The IMSI shall be included in the message on the S4/S11
   ///< interface, and on S5/S8 interface if provided by the
   ///< MME/SGSN, except for the case:
   ///<     - If the UE is emergency attached and the UE is UICCless.
@@ -986,7 +986,7 @@ typedef struct itti_s11_modify_bearer_request_s {
   void *trxn; ///< Transaction identifier
   union {
     struct sockaddr_in
-        addr_v4;  ///< MME ipv4 address for S-GW or S-GW ipv4 address for MME
+        addr_v4_;  ///< MME ipv4 address for S-GW or S-GW ipv4 address for MME
     struct sockaddr_in6
         addr_v6;  ///< MME ipv4 address for S-GW or S-GW ipv4 address for MME
   } edns_peer_ip;
@@ -1207,6 +1207,7 @@ typedef struct itti_s11_release_access_bearers_request_s {
     struct sockaddr_in6
         addr_v6;  ///< MME ipv4 address for S-GW or S-GW ipv4 address for MME
   } edns_peer_ip;
+  
 } itti_s11_release_access_bearers_request_t;
 
 //-----------------------------------------------------------------------------
