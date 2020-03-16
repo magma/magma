@@ -231,5 +231,5 @@
   shell: ifup {{ item }}
   with_items:
     - eth0
-    - cpe_port
+    - mtr0
   when: full_provision

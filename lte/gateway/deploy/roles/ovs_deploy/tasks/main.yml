@@ -94,8 +94,8 @@
   shell: ifup gtp_br0
   become: yes
 
-- name: Bring up cpe_port
-  shell: ifup cpe_port
+- name: Bring up mtr0
+  shell: ifup mtr0
   become: yes
 
 - name: Start service magma@magmad.
