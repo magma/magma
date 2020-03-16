@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,16 +22,9 @@ import (
 // EquipmentPortTypeUpdate is the builder for updating EquipmentPortType entities.
 type EquipmentPortTypeUpdate struct {
 	config
-
-	update_time              *time.Time
-	name                     *string
-	property_types           map[int]struct{}
-	link_property_types      map[int]struct{}
-	port_definitions         map[int]struct{}
-	removedPropertyTypes     map[int]struct{}
-	removedLinkPropertyTypes map[int]struct{}
-	removedPortDefinitions   map[int]struct{}
-	predicates               []predicate.EquipmentPortType
+	hooks      []Hook
+	mutation   *EquipmentPortTypeMutation
+	predicates []predicate.EquipmentPortType
 }
 
 // Where adds a new predicate for the builder.
@@ -42,18 +35,13 @@ func (eptu *EquipmentPortTypeUpdate) Where(ps ...predicate.EquipmentPortType) *E
 
 // SetName sets the name field.
 func (eptu *EquipmentPortTypeUpdate) SetName(s string) *EquipmentPortTypeUpdate {
-	eptu.name = &s
+	eptu.mutation.SetName(s)
 	return eptu
 }
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (eptu *EquipmentPortTypeUpdate) AddPropertyTypeIDs(ids ...int) *EquipmentPortTypeUpdate {
-	if eptu.property_types == nil {
-		eptu.property_types = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptu.property_types[ids[i]] = struct{}{}
-	}
+	eptu.mutation.AddPropertyTypeIDs(ids...)
 	return eptu
 }
 
@@ -68,12 +56,7 @@ func (eptu *EquipmentPortTypeUpdate) AddPropertyTypes(p ...*PropertyType) *Equip
 
 // AddLinkPropertyTypeIDs adds the link_property_types edge to PropertyType by ids.
 func (eptu *EquipmentPortTypeUpdate) AddLinkPropertyTypeIDs(ids ...int) *EquipmentPortTypeUpdate {
-	if eptu.link_property_types == nil {
-		eptu.link_property_types = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptu.link_property_types[ids[i]] = struct{}{}
-	}
+	eptu.mutation.AddLinkPropertyTypeIDs(ids...)
 	return eptu
 }
 
@@ -88,12 +71,7 @@ func (eptu *EquipmentPortTypeUpdate) AddLinkPropertyTypes(p ...*PropertyType) *E
 
 // AddPortDefinitionIDs adds the port_definitions edge to EquipmentPortDefinition by ids.
 func (eptu *EquipmentPortTypeUpdate) AddPortDefinitionIDs(ids ...int) *EquipmentPortTypeUpdate {
-	if eptu.port_definitions == nil {
-		eptu.port_definitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptu.port_definitions[ids[i]] = struct{}{}
-	}
+	eptu.mutation.AddPortDefinitionIDs(ids...)
 	return eptu
 }
 
@@ -108,12 +86,7 @@ func (eptu *EquipmentPortTypeUpdate) AddPortDefinitions(e ...*EquipmentPortDefin
 
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (eptu *EquipmentPortTypeUpdate) RemovePropertyTypeIDs(ids ...int) *EquipmentPortTypeUpdate {
-	if eptu.removedPropertyTypes == nil {
-		eptu.removedPropertyTypes = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptu.removedPropertyTypes[ids[i]] = struct{}{}
-	}
+	eptu.mutation.RemovePropertyTypeIDs(ids...)
 	return eptu
 }
 
@@ -128,12 +101,7 @@ func (eptu *EquipmentPortTypeUpdate) RemovePropertyTypes(p ...*PropertyType) *Eq
 
 // RemoveLinkPropertyTypeIDs removes the link_property_types edge to PropertyType by ids.
 func (eptu *EquipmentPortTypeUpdate) RemoveLinkPropertyTypeIDs(ids ...int) *EquipmentPortTypeUpdate {
-	if eptu.removedLinkPropertyTypes == nil {
-		eptu.removedLinkPropertyTypes = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptu.removedLinkPropertyTypes[ids[i]] = struct{}{}
-	}
+	eptu.mutation.RemoveLinkPropertyTypeIDs(ids...)
 	return eptu
 }
 
@@ -148,12 +116,7 @@ func (eptu *EquipmentPortTypeUpdate) RemoveLinkPropertyTypes(p ...*PropertyType)
 
 // RemovePortDefinitionIDs removes the port_definitions edge to EquipmentPortDefinition by ids.
 func (eptu *EquipmentPortTypeUpdate) RemovePortDefinitionIDs(ids ...int) *EquipmentPortTypeUpdate {
-	if eptu.removedPortDefinitions == nil {
-		eptu.removedPortDefinitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptu.removedPortDefinitions[ids[i]] = struct{}{}
-	}
+	eptu.mutation.RemovePortDefinitionIDs(ids...)
 	return eptu
 }
 
@@ -168,11 +131,35 @@ func (eptu *EquipmentPortTypeUpdate) RemovePortDefinitions(e ...*EquipmentPortDe
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (eptu *EquipmentPortTypeUpdate) Save(ctx context.Context) (int, error) {
-	if eptu.update_time == nil {
+	if _, ok := eptu.mutation.UpdateTime(); !ok {
 		v := equipmentporttype.UpdateDefaultUpdateTime()
-		eptu.update_time = &v
+		eptu.mutation.SetUpdateTime(v)
 	}
-	return eptu.sqlSave(ctx)
+
+	var (
+		err      error
+		affected int
+	)
+	if len(eptu.hooks) == 0 {
+		affected, err = eptu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentPortTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			eptu.mutation = mutation
+			affected, err = eptu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(eptu.hooks); i > 0; i-- {
+			mut = eptu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, eptu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -215,21 +202,21 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 			}
 		}
 	}
-	if value := eptu.update_time; value != nil {
+	if value, ok := eptu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentporttype.FieldUpdateTime,
 		})
 	}
-	if value := eptu.name; value != nil {
+	if value, ok := eptu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentporttype.FieldName,
 		})
 	}
-	if nodes := eptu.removedPropertyTypes; len(nodes) > 0 {
+	if nodes := eptu.mutation.RemovedPropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -243,12 +230,12 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eptu.property_types; len(nodes) > 0 {
+	if nodes := eptu.mutation.PropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -262,12 +249,12 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := eptu.removedLinkPropertyTypes; len(nodes) > 0 {
+	if nodes := eptu.mutation.RemovedLinkPropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -281,12 +268,12 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eptu.link_property_types; len(nodes) > 0 {
+	if nodes := eptu.mutation.LinkPropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -300,12 +287,12 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := eptu.removedPortDefinitions; len(nodes) > 0 {
+	if nodes := eptu.mutation.RemovedPortDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -319,12 +306,12 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eptu.port_definitions; len(nodes) > 0 {
+	if nodes := eptu.mutation.PortDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -338,7 +325,7 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -357,32 +344,19 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 // EquipmentPortTypeUpdateOne is the builder for updating a single EquipmentPortType entity.
 type EquipmentPortTypeUpdateOne struct {
 	config
-	id int
-
-	update_time              *time.Time
-	name                     *string
-	property_types           map[int]struct{}
-	link_property_types      map[int]struct{}
-	port_definitions         map[int]struct{}
-	removedPropertyTypes     map[int]struct{}
-	removedLinkPropertyTypes map[int]struct{}
-	removedPortDefinitions   map[int]struct{}
+	hooks    []Hook
+	mutation *EquipmentPortTypeMutation
 }
 
 // SetName sets the name field.
 func (eptuo *EquipmentPortTypeUpdateOne) SetName(s string) *EquipmentPortTypeUpdateOne {
-	eptuo.name = &s
+	eptuo.mutation.SetName(s)
 	return eptuo
 }
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (eptuo *EquipmentPortTypeUpdateOne) AddPropertyTypeIDs(ids ...int) *EquipmentPortTypeUpdateOne {
-	if eptuo.property_types == nil {
-		eptuo.property_types = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptuo.property_types[ids[i]] = struct{}{}
-	}
+	eptuo.mutation.AddPropertyTypeIDs(ids...)
 	return eptuo
 }
 
@@ -397,12 +371,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) AddPropertyTypes(p ...*PropertyType) *E
 
 // AddLinkPropertyTypeIDs adds the link_property_types edge to PropertyType by ids.
 func (eptuo *EquipmentPortTypeUpdateOne) AddLinkPropertyTypeIDs(ids ...int) *EquipmentPortTypeUpdateOne {
-	if eptuo.link_property_types == nil {
-		eptuo.link_property_types = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptuo.link_property_types[ids[i]] = struct{}{}
-	}
+	eptuo.mutation.AddLinkPropertyTypeIDs(ids...)
 	return eptuo
 }
 
@@ -417,12 +386,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) AddLinkPropertyTypes(p ...*PropertyType
 
 // AddPortDefinitionIDs adds the port_definitions edge to EquipmentPortDefinition by ids.
 func (eptuo *EquipmentPortTypeUpdateOne) AddPortDefinitionIDs(ids ...int) *EquipmentPortTypeUpdateOne {
-	if eptuo.port_definitions == nil {
-		eptuo.port_definitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptuo.port_definitions[ids[i]] = struct{}{}
-	}
+	eptuo.mutation.AddPortDefinitionIDs(ids...)
 	return eptuo
 }
 
@@ -437,12 +401,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) AddPortDefinitions(e ...*EquipmentPortD
 
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (eptuo *EquipmentPortTypeUpdateOne) RemovePropertyTypeIDs(ids ...int) *EquipmentPortTypeUpdateOne {
-	if eptuo.removedPropertyTypes == nil {
-		eptuo.removedPropertyTypes = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptuo.removedPropertyTypes[ids[i]] = struct{}{}
-	}
+	eptuo.mutation.RemovePropertyTypeIDs(ids...)
 	return eptuo
 }
 
@@ -457,12 +416,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) RemovePropertyTypes(p ...*PropertyType)
 
 // RemoveLinkPropertyTypeIDs removes the link_property_types edge to PropertyType by ids.
 func (eptuo *EquipmentPortTypeUpdateOne) RemoveLinkPropertyTypeIDs(ids ...int) *EquipmentPortTypeUpdateOne {
-	if eptuo.removedLinkPropertyTypes == nil {
-		eptuo.removedLinkPropertyTypes = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptuo.removedLinkPropertyTypes[ids[i]] = struct{}{}
-	}
+	eptuo.mutation.RemoveLinkPropertyTypeIDs(ids...)
 	return eptuo
 }
 
@@ -477,12 +431,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) RemoveLinkPropertyTypes(p ...*PropertyT
 
 // RemovePortDefinitionIDs removes the port_definitions edge to EquipmentPortDefinition by ids.
 func (eptuo *EquipmentPortTypeUpdateOne) RemovePortDefinitionIDs(ids ...int) *EquipmentPortTypeUpdateOne {
-	if eptuo.removedPortDefinitions == nil {
-		eptuo.removedPortDefinitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		eptuo.removedPortDefinitions[ids[i]] = struct{}{}
-	}
+	eptuo.mutation.RemovePortDefinitionIDs(ids...)
 	return eptuo
 }
 
@@ -497,11 +446,35 @@ func (eptuo *EquipmentPortTypeUpdateOne) RemovePortDefinitions(e ...*EquipmentPo
 
 // Save executes the query and returns the updated entity.
 func (eptuo *EquipmentPortTypeUpdateOne) Save(ctx context.Context) (*EquipmentPortType, error) {
-	if eptuo.update_time == nil {
+	if _, ok := eptuo.mutation.UpdateTime(); !ok {
 		v := equipmentporttype.UpdateDefaultUpdateTime()
-		eptuo.update_time = &v
+		eptuo.mutation.SetUpdateTime(v)
 	}
-	return eptuo.sqlSave(ctx)
+
+	var (
+		err  error
+		node *EquipmentPortType
+	)
+	if len(eptuo.hooks) == 0 {
+		node, err = eptuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentPortTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			eptuo.mutation = mutation
+			node, err = eptuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(eptuo.hooks); i > 0; i-- {
+			mut = eptuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, eptuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -532,27 +505,31 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 			Table:   equipmentporttype.Table,
 			Columns: equipmentporttype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  eptuo.id,
 				Type:   field.TypeInt,
 				Column: equipmentporttype.FieldID,
 			},
 		},
 	}
-	if value := eptuo.update_time; value != nil {
+	id, ok := eptuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing EquipmentPortType.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := eptuo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentporttype.FieldUpdateTime,
 		})
 	}
-	if value := eptuo.name; value != nil {
+	if value, ok := eptuo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentporttype.FieldName,
 		})
 	}
-	if nodes := eptuo.removedPropertyTypes; len(nodes) > 0 {
+	if nodes := eptuo.mutation.RemovedPropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -566,12 +543,12 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eptuo.property_types; len(nodes) > 0 {
+	if nodes := eptuo.mutation.PropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -585,12 +562,12 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := eptuo.removedLinkPropertyTypes; len(nodes) > 0 {
+	if nodes := eptuo.mutation.RemovedLinkPropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -604,12 +581,12 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eptuo.link_property_types; len(nodes) > 0 {
+	if nodes := eptuo.mutation.LinkPropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -623,12 +600,12 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := eptuo.removedPortDefinitions; len(nodes) > 0 {
+	if nodes := eptuo.mutation.RemovedPortDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -642,12 +619,12 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eptuo.port_definitions; len(nodes) > 0 {
+	if nodes := eptuo.mutation.PortDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -661,7 +638,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

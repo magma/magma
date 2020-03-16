@@ -21,16 +21,13 @@ import (
 // TechnicianCreate is the builder for creating a Technician entity.
 type TechnicianCreate struct {
 	config
-	create_time *time.Time
-	update_time *time.Time
-	name        *string
-	email       *string
-	work_orders map[int]struct{}
+	mutation *TechnicianMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (tc *TechnicianCreate) SetCreateTime(t time.Time) *TechnicianCreate {
-	tc.create_time = &t
+	tc.mutation.SetCreateTime(t)
 	return tc
 }
 
@@ -44,7 +41,7 @@ func (tc *TechnicianCreate) SetNillableCreateTime(t *time.Time) *TechnicianCreat
 
 // SetUpdateTime sets the update_time field.
 func (tc *TechnicianCreate) SetUpdateTime(t time.Time) *TechnicianCreate {
-	tc.update_time = &t
+	tc.mutation.SetUpdateTime(t)
 	return tc
 }
 
@@ -58,24 +55,19 @@ func (tc *TechnicianCreate) SetNillableUpdateTime(t *time.Time) *TechnicianCreat
 
 // SetName sets the name field.
 func (tc *TechnicianCreate) SetName(s string) *TechnicianCreate {
-	tc.name = &s
+	tc.mutation.SetName(s)
 	return tc
 }
 
 // SetEmail sets the email field.
 func (tc *TechnicianCreate) SetEmail(s string) *TechnicianCreate {
-	tc.email = &s
+	tc.mutation.SetEmail(s)
 	return tc
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (tc *TechnicianCreate) AddWorkOrderIDs(ids ...int) *TechnicianCreate {
-	if tc.work_orders == nil {
-		tc.work_orders = make(map[int]struct{})
-	}
-	for i := range ids {
-		tc.work_orders[ids[i]] = struct{}{}
-	}
+	tc.mutation.AddWorkOrderIDs(ids...)
 	return tc
 }
 
@@ -90,27 +82,54 @@ func (tc *TechnicianCreate) AddWorkOrders(w ...*WorkOrder) *TechnicianCreate {
 
 // Save creates the Technician in the database.
 func (tc *TechnicianCreate) Save(ctx context.Context) (*Technician, error) {
-	if tc.create_time == nil {
+	if _, ok := tc.mutation.CreateTime(); !ok {
 		v := technician.DefaultCreateTime()
-		tc.create_time = &v
+		tc.mutation.SetCreateTime(v)
 	}
-	if tc.update_time == nil {
+	if _, ok := tc.mutation.UpdateTime(); !ok {
 		v := technician.DefaultUpdateTime()
-		tc.update_time = &v
+		tc.mutation.SetUpdateTime(v)
 	}
-	if tc.name == nil {
+	if _, ok := tc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if err := technician.NameValidator(*tc.name); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+	if v, ok := tc.mutation.Name(); ok {
+		if err := technician.NameValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
 	}
-	if tc.email == nil {
+	if _, ok := tc.mutation.Email(); !ok {
 		return nil, errors.New("ent: missing required field \"email\"")
 	}
-	if err := technician.EmailValidator(*tc.email); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
+	if v, ok := tc.mutation.Email(); ok {
+		if err := technician.EmailValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
+		}
 	}
-	return tc.sqlSave(ctx)
+	var (
+		err  error
+		node *Technician
+	)
+	if len(tc.hooks) == 0 {
+		node, err = tc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*TechnicianMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			tc.mutation = mutation
+			node, err = tc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(tc.hooks); i > 0; i-- {
+			mut = tc.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, tc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -133,39 +152,39 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 			},
 		}
 	)
-	if value := tc.create_time; value != nil {
+	if value, ok := tc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: technician.FieldCreateTime,
 		})
-		t.CreateTime = *value
+		t.CreateTime = value
 	}
-	if value := tc.update_time; value != nil {
+	if value, ok := tc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: technician.FieldUpdateTime,
 		})
-		t.UpdateTime = *value
+		t.UpdateTime = value
 	}
-	if value := tc.name; value != nil {
+	if value, ok := tc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: technician.FieldName,
 		})
-		t.Name = *value
+		t.Name = value
 	}
-	if value := tc.email; value != nil {
+	if value, ok := tc.mutation.Email(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: technician.FieldEmail,
 		})
-		t.Email = *value
+		t.Email = value
 	}
-	if nodes := tc.work_orders; len(nodes) > 0 {
+	if nodes := tc.mutation.WorkOrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -179,7 +198,7 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

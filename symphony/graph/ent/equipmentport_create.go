@@ -9,6 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -24,18 +25,13 @@ import (
 // EquipmentPortCreate is the builder for creating a EquipmentPort entity.
 type EquipmentPortCreate struct {
 	config
-	create_time *time.Time
-	update_time *time.Time
-	definition  map[int]struct{}
-	parent      map[int]struct{}
-	link        map[int]struct{}
-	properties  map[int]struct{}
-	endpoints   map[int]struct{}
+	mutation *EquipmentPortMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (epc *EquipmentPortCreate) SetCreateTime(t time.Time) *EquipmentPortCreate {
-	epc.create_time = &t
+	epc.mutation.SetCreateTime(t)
 	return epc
 }
 
@@ -49,7 +45,7 @@ func (epc *EquipmentPortCreate) SetNillableCreateTime(t *time.Time) *EquipmentPo
 
 // SetUpdateTime sets the update_time field.
 func (epc *EquipmentPortCreate) SetUpdateTime(t time.Time) *EquipmentPortCreate {
-	epc.update_time = &t
+	epc.mutation.SetUpdateTime(t)
 	return epc
 }
 
@@ -63,10 +59,7 @@ func (epc *EquipmentPortCreate) SetNillableUpdateTime(t *time.Time) *EquipmentPo
 
 // SetDefinitionID sets the definition edge to EquipmentPortDefinition by id.
 func (epc *EquipmentPortCreate) SetDefinitionID(id int) *EquipmentPortCreate {
-	if epc.definition == nil {
-		epc.definition = make(map[int]struct{})
-	}
-	epc.definition[id] = struct{}{}
+	epc.mutation.SetDefinitionID(id)
 	return epc
 }
 
@@ -77,10 +70,7 @@ func (epc *EquipmentPortCreate) SetDefinition(e *EquipmentPortDefinition) *Equip
 
 // SetParentID sets the parent edge to Equipment by id.
 func (epc *EquipmentPortCreate) SetParentID(id int) *EquipmentPortCreate {
-	if epc.parent == nil {
-		epc.parent = make(map[int]struct{})
-	}
-	epc.parent[id] = struct{}{}
+	epc.mutation.SetParentID(id)
 	return epc
 }
 
@@ -99,10 +89,7 @@ func (epc *EquipmentPortCreate) SetParent(e *Equipment) *EquipmentPortCreate {
 
 // SetLinkID sets the link edge to Link by id.
 func (epc *EquipmentPortCreate) SetLinkID(id int) *EquipmentPortCreate {
-	if epc.link == nil {
-		epc.link = make(map[int]struct{})
-	}
-	epc.link[id] = struct{}{}
+	epc.mutation.SetLinkID(id)
 	return epc
 }
 
@@ -121,12 +108,7 @@ func (epc *EquipmentPortCreate) SetLink(l *Link) *EquipmentPortCreate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (epc *EquipmentPortCreate) AddPropertyIDs(ids ...int) *EquipmentPortCreate {
-	if epc.properties == nil {
-		epc.properties = make(map[int]struct{})
-	}
-	for i := range ids {
-		epc.properties[ids[i]] = struct{}{}
-	}
+	epc.mutation.AddPropertyIDs(ids...)
 	return epc
 }
 
@@ -141,12 +123,7 @@ func (epc *EquipmentPortCreate) AddProperties(p ...*Property) *EquipmentPortCrea
 
 // AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
 func (epc *EquipmentPortCreate) AddEndpointIDs(ids ...int) *EquipmentPortCreate {
-	if epc.endpoints == nil {
-		epc.endpoints = make(map[int]struct{})
-	}
-	for i := range ids {
-		epc.endpoints[ids[i]] = struct{}{}
-	}
+	epc.mutation.AddEndpointIDs(ids...)
 	return epc
 }
 
@@ -161,27 +138,41 @@ func (epc *EquipmentPortCreate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentPo
 
 // Save creates the EquipmentPort in the database.
 func (epc *EquipmentPortCreate) Save(ctx context.Context) (*EquipmentPort, error) {
-	if epc.create_time == nil {
+	if _, ok := epc.mutation.CreateTime(); !ok {
 		v := equipmentport.DefaultCreateTime()
-		epc.create_time = &v
+		epc.mutation.SetCreateTime(v)
 	}
-	if epc.update_time == nil {
+	if _, ok := epc.mutation.UpdateTime(); !ok {
 		v := equipmentport.DefaultUpdateTime()
-		epc.update_time = &v
+		epc.mutation.SetUpdateTime(v)
 	}
-	if len(epc.definition) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"definition\"")
-	}
-	if epc.definition == nil {
+	if _, ok := epc.mutation.DefinitionID(); !ok {
 		return nil, errors.New("ent: missing required edge \"definition\"")
 	}
-	if len(epc.parent) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"parent\"")
+	var (
+		err  error
+		node *EquipmentPort
+	)
+	if len(epc.hooks) == 0 {
+		node, err = epc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentPortMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			epc.mutation = mutation
+			node, err = epc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(epc.hooks); i > 0; i-- {
+			mut = epc.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, epc.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(epc.link) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"link\"")
-	}
-	return epc.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -204,23 +195,23 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 			},
 		}
 	)
-	if value := epc.create_time; value != nil {
+	if value, ok := epc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentport.FieldCreateTime,
 		})
-		ep.CreateTime = *value
+		ep.CreateTime = value
 	}
-	if value := epc.update_time; value != nil {
+	if value, ok := epc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentport.FieldUpdateTime,
 		})
-		ep.UpdateTime = *value
+		ep.UpdateTime = value
 	}
-	if nodes := epc.definition; len(nodes) > 0 {
+	if nodes := epc.mutation.DefinitionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -234,12 +225,12 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := epc.parent; len(nodes) > 0 {
+	if nodes := epc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -253,12 +244,12 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := epc.link; len(nodes) > 0 {
+	if nodes := epc.mutation.LinkIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -272,12 +263,12 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := epc.properties; len(nodes) > 0 {
+	if nodes := epc.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -291,12 +282,12 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := epc.endpoints; len(nodes) > 0 {
+	if nodes := epc.mutation.EndpointsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -310,7 +301,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

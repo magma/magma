@@ -53,7 +53,7 @@ func (mutationResolver) Me(ctx context.Context) *viewer.Viewer {
 	return viewer.FromContext(ctx)
 }
 
-var BadID = -1
+const badID = -1
 
 func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) (bool, error) {
 	var (
@@ -317,7 +317,6 @@ func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.
 }
 
 func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error) {
-
 	client := r.ClientFrom(ctx)
 	query := client.Survey.
 		Create().
@@ -330,7 +329,7 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 	}
 	srv, err := query.Save(ctx)
 	if err != nil {
-		return BadID, errors.Wrap(err, "creating survey")
+		return badID, errors.Wrap(err, "creating survey")
 	}
 
 	for _, sr := range data.SurveyResponses {
@@ -374,14 +373,14 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 					},
 				)
 			if err != nil {
-				return BadID, err
+				return badID, err
 			}
 			query.AddPhotoData(f)
 		}
 
 		question, err := query.Save(ctx)
 		if err != nil {
-			return BadID, errors.Wrap(err, "creating survey question")
+			return badID, errors.Wrap(err, "creating survey question")
 		}
 
 		switch *sr.QuestionFormat {
@@ -391,7 +390,7 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 			_, err = r.CreateCellScans(ctx, sr.CellData, &question.ID, nil)
 		}
 		if err != nil {
-			return BadID, err
+			return badID, err
 		}
 	}
 	return srv.ID, nil
@@ -413,23 +412,26 @@ func (r mutationResolver) validateRootLocationUniqueness(ctx context.Context, ty
 }
 
 func (r mutationResolver) verifyLocationParent(ctx context.Context, typeID, parentID int) error {
-	typ, err := r.ClientFrom(ctx).
-		LocationType.Query().
+	client := r.ClientFrom(ctx)
+	typeIdx, err := client.LocationType.Query().
 		Where(locationtype.ID(typeID)).
-		Only(ctx)
-	if err != nil {
-		return errors.Wrapf(err, "querying location type by id %q", typeID)
+		Select(locationtype.FieldIndex).
+		Ints(ctx)
+	if err != nil || len(typeIdx) == 0 {
+		return fmt.Errorf("querying location type %d index: %w", typeID, err)
 	}
-	ptype, err := r.ClientFrom(ctx).
-		Location.Query().
+	parentIdx, err := client.Location.Query().
 		Where(location.ID(parentID)).
 		QueryType().
-		Only(ctx)
-	if err != nil {
-		return errors.Wrapf(err, "querying parent location type by parent id %q", parentID)
+		Select(locationtype.FieldIndex).
+		Ints(ctx)
+	if err != nil || len(parentIdx) == 0 {
+		return fmt.Errorf("querying location %d parent type index: %w", parentID, err)
 	}
-	if ptype.Index > typ.Index {
-		return gqlerror.Errorf("Can't link child to parent with bigger index (%d, %d)", ptype.Index, typ.Index)
+	if parentIdx[0] > typeIdx[0] {
+		return gqlerror.Errorf(
+			"Can't link child to parent with bigger index (%d, %d)", typeIdx[0], parentIdx[0],
+		)
 	}
 	return nil
 }

@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // AuditLogDelete is the builder for deleting a AuditLog entity.
 type AuditLogDelete struct {
 	config
+	hooks      []Hook
+	mutation   *AuditLogMutation
 	predicates []predicate.AuditLog
 }
 
@@ -30,7 +33,30 @@ func (ald *AuditLogDelete) Where(ps ...predicate.AuditLog) *AuditLogDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ald *AuditLogDelete) Exec(ctx context.Context) (int, error) {
-	return ald.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(ald.hooks) == 0 {
+		affected, err = ald.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*AuditLogMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ald.mutation = mutation
+			affected, err = ald.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(ald.hooks); i > 0; i-- {
+			mut = ald.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ald.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.

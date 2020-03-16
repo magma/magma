@@ -9,6 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -26,37 +27,13 @@ import (
 // PropertyTypeCreate is the builder for creating a PropertyType entity.
 type PropertyTypeCreate struct {
 	config
-	create_time              *time.Time
-	update_time              *time.Time
-	_type                    *string
-	name                     *string
-	index                    *int
-	category                 *string
-	int_val                  *int
-	bool_val                 *bool
-	float_val                *float64
-	latitude_val             *float64
-	longitude_val            *float64
-	string_val               *string
-	range_from_val           *float64
-	range_to_val             *float64
-	is_instance_property     *bool
-	editable                 *bool
-	mandatory                *bool
-	deleted                  *bool
-	properties               map[int]struct{}
-	location_type            map[int]struct{}
-	equipment_port_type      map[int]struct{}
-	link_equipment_port_type map[int]struct{}
-	equipment_type           map[int]struct{}
-	service_type             map[int]struct{}
-	work_order_type          map[int]struct{}
-	project_type             map[int]struct{}
+	mutation *PropertyTypeMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (ptc *PropertyTypeCreate) SetCreateTime(t time.Time) *PropertyTypeCreate {
-	ptc.create_time = &t
+	ptc.mutation.SetCreateTime(t)
 	return ptc
 }
 
@@ -70,7 +47,7 @@ func (ptc *PropertyTypeCreate) SetNillableCreateTime(t *time.Time) *PropertyType
 
 // SetUpdateTime sets the update_time field.
 func (ptc *PropertyTypeCreate) SetUpdateTime(t time.Time) *PropertyTypeCreate {
-	ptc.update_time = &t
+	ptc.mutation.SetUpdateTime(t)
 	return ptc
 }
 
@@ -84,19 +61,19 @@ func (ptc *PropertyTypeCreate) SetNillableUpdateTime(t *time.Time) *PropertyType
 
 // SetType sets the type field.
 func (ptc *PropertyTypeCreate) SetType(s string) *PropertyTypeCreate {
-	ptc._type = &s
+	ptc.mutation.SetType(s)
 	return ptc
 }
 
 // SetName sets the name field.
 func (ptc *PropertyTypeCreate) SetName(s string) *PropertyTypeCreate {
-	ptc.name = &s
+	ptc.mutation.SetName(s)
 	return ptc
 }
 
 // SetIndex sets the index field.
 func (ptc *PropertyTypeCreate) SetIndex(i int) *PropertyTypeCreate {
-	ptc.index = &i
+	ptc.mutation.SetIndex(i)
 	return ptc
 }
 
@@ -110,7 +87,7 @@ func (ptc *PropertyTypeCreate) SetNillableIndex(i *int) *PropertyTypeCreate {
 
 // SetCategory sets the category field.
 func (ptc *PropertyTypeCreate) SetCategory(s string) *PropertyTypeCreate {
-	ptc.category = &s
+	ptc.mutation.SetCategory(s)
 	return ptc
 }
 
@@ -124,7 +101,7 @@ func (ptc *PropertyTypeCreate) SetNillableCategory(s *string) *PropertyTypeCreat
 
 // SetIntVal sets the int_val field.
 func (ptc *PropertyTypeCreate) SetIntVal(i int) *PropertyTypeCreate {
-	ptc.int_val = &i
+	ptc.mutation.SetIntVal(i)
 	return ptc
 }
 
@@ -138,7 +115,7 @@ func (ptc *PropertyTypeCreate) SetNillableIntVal(i *int) *PropertyTypeCreate {
 
 // SetBoolVal sets the bool_val field.
 func (ptc *PropertyTypeCreate) SetBoolVal(b bool) *PropertyTypeCreate {
-	ptc.bool_val = &b
+	ptc.mutation.SetBoolVal(b)
 	return ptc
 }
 
@@ -152,7 +129,7 @@ func (ptc *PropertyTypeCreate) SetNillableBoolVal(b *bool) *PropertyTypeCreate {
 
 // SetFloatVal sets the float_val field.
 func (ptc *PropertyTypeCreate) SetFloatVal(f float64) *PropertyTypeCreate {
-	ptc.float_val = &f
+	ptc.mutation.SetFloatVal(f)
 	return ptc
 }
 
@@ -166,7 +143,7 @@ func (ptc *PropertyTypeCreate) SetNillableFloatVal(f *float64) *PropertyTypeCrea
 
 // SetLatitudeVal sets the latitude_val field.
 func (ptc *PropertyTypeCreate) SetLatitudeVal(f float64) *PropertyTypeCreate {
-	ptc.latitude_val = &f
+	ptc.mutation.SetLatitudeVal(f)
 	return ptc
 }
 
@@ -180,7 +157,7 @@ func (ptc *PropertyTypeCreate) SetNillableLatitudeVal(f *float64) *PropertyTypeC
 
 // SetLongitudeVal sets the longitude_val field.
 func (ptc *PropertyTypeCreate) SetLongitudeVal(f float64) *PropertyTypeCreate {
-	ptc.longitude_val = &f
+	ptc.mutation.SetLongitudeVal(f)
 	return ptc
 }
 
@@ -194,7 +171,7 @@ func (ptc *PropertyTypeCreate) SetNillableLongitudeVal(f *float64) *PropertyType
 
 // SetStringVal sets the string_val field.
 func (ptc *PropertyTypeCreate) SetStringVal(s string) *PropertyTypeCreate {
-	ptc.string_val = &s
+	ptc.mutation.SetStringVal(s)
 	return ptc
 }
 
@@ -208,7 +185,7 @@ func (ptc *PropertyTypeCreate) SetNillableStringVal(s *string) *PropertyTypeCrea
 
 // SetRangeFromVal sets the range_from_val field.
 func (ptc *PropertyTypeCreate) SetRangeFromVal(f float64) *PropertyTypeCreate {
-	ptc.range_from_val = &f
+	ptc.mutation.SetRangeFromVal(f)
 	return ptc
 }
 
@@ -222,7 +199,7 @@ func (ptc *PropertyTypeCreate) SetNillableRangeFromVal(f *float64) *PropertyType
 
 // SetRangeToVal sets the range_to_val field.
 func (ptc *PropertyTypeCreate) SetRangeToVal(f float64) *PropertyTypeCreate {
-	ptc.range_to_val = &f
+	ptc.mutation.SetRangeToVal(f)
 	return ptc
 }
 
@@ -236,7 +213,7 @@ func (ptc *PropertyTypeCreate) SetNillableRangeToVal(f *float64) *PropertyTypeCr
 
 // SetIsInstanceProperty sets the is_instance_property field.
 func (ptc *PropertyTypeCreate) SetIsInstanceProperty(b bool) *PropertyTypeCreate {
-	ptc.is_instance_property = &b
+	ptc.mutation.SetIsInstanceProperty(b)
 	return ptc
 }
 
@@ -250,7 +227,7 @@ func (ptc *PropertyTypeCreate) SetNillableIsInstanceProperty(b *bool) *PropertyT
 
 // SetEditable sets the editable field.
 func (ptc *PropertyTypeCreate) SetEditable(b bool) *PropertyTypeCreate {
-	ptc.editable = &b
+	ptc.mutation.SetEditable(b)
 	return ptc
 }
 
@@ -264,7 +241,7 @@ func (ptc *PropertyTypeCreate) SetNillableEditable(b *bool) *PropertyTypeCreate 
 
 // SetMandatory sets the mandatory field.
 func (ptc *PropertyTypeCreate) SetMandatory(b bool) *PropertyTypeCreate {
-	ptc.mandatory = &b
+	ptc.mutation.SetMandatory(b)
 	return ptc
 }
 
@@ -278,7 +255,7 @@ func (ptc *PropertyTypeCreate) SetNillableMandatory(b *bool) *PropertyTypeCreate
 
 // SetDeleted sets the deleted field.
 func (ptc *PropertyTypeCreate) SetDeleted(b bool) *PropertyTypeCreate {
-	ptc.deleted = &b
+	ptc.mutation.SetDeleted(b)
 	return ptc
 }
 
@@ -292,12 +269,7 @@ func (ptc *PropertyTypeCreate) SetNillableDeleted(b *bool) *PropertyTypeCreate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptc *PropertyTypeCreate) AddPropertyIDs(ids ...int) *PropertyTypeCreate {
-	if ptc.properties == nil {
-		ptc.properties = make(map[int]struct{})
-	}
-	for i := range ids {
-		ptc.properties[ids[i]] = struct{}{}
-	}
+	ptc.mutation.AddPropertyIDs(ids...)
 	return ptc
 }
 
@@ -312,10 +284,7 @@ func (ptc *PropertyTypeCreate) AddProperties(p ...*Property) *PropertyTypeCreate
 
 // SetLocationTypeID sets the location_type edge to LocationType by id.
 func (ptc *PropertyTypeCreate) SetLocationTypeID(id int) *PropertyTypeCreate {
-	if ptc.location_type == nil {
-		ptc.location_type = make(map[int]struct{})
-	}
-	ptc.location_type[id] = struct{}{}
+	ptc.mutation.SetLocationTypeID(id)
 	return ptc
 }
 
@@ -334,10 +303,7 @@ func (ptc *PropertyTypeCreate) SetLocationType(l *LocationType) *PropertyTypeCre
 
 // SetEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id.
 func (ptc *PropertyTypeCreate) SetEquipmentPortTypeID(id int) *PropertyTypeCreate {
-	if ptc.equipment_port_type == nil {
-		ptc.equipment_port_type = make(map[int]struct{})
-	}
-	ptc.equipment_port_type[id] = struct{}{}
+	ptc.mutation.SetEquipmentPortTypeID(id)
 	return ptc
 }
 
@@ -356,10 +322,7 @@ func (ptc *PropertyTypeCreate) SetEquipmentPortType(e *EquipmentPortType) *Prope
 
 // SetLinkEquipmentPortTypeID sets the link_equipment_port_type edge to EquipmentPortType by id.
 func (ptc *PropertyTypeCreate) SetLinkEquipmentPortTypeID(id int) *PropertyTypeCreate {
-	if ptc.link_equipment_port_type == nil {
-		ptc.link_equipment_port_type = make(map[int]struct{})
-	}
-	ptc.link_equipment_port_type[id] = struct{}{}
+	ptc.mutation.SetLinkEquipmentPortTypeID(id)
 	return ptc
 }
 
@@ -378,10 +341,7 @@ func (ptc *PropertyTypeCreate) SetLinkEquipmentPortType(e *EquipmentPortType) *P
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
 func (ptc *PropertyTypeCreate) SetEquipmentTypeID(id int) *PropertyTypeCreate {
-	if ptc.equipment_type == nil {
-		ptc.equipment_type = make(map[int]struct{})
-	}
-	ptc.equipment_type[id] = struct{}{}
+	ptc.mutation.SetEquipmentTypeID(id)
 	return ptc
 }
 
@@ -400,10 +360,7 @@ func (ptc *PropertyTypeCreate) SetEquipmentType(e *EquipmentType) *PropertyTypeC
 
 // SetServiceTypeID sets the service_type edge to ServiceType by id.
 func (ptc *PropertyTypeCreate) SetServiceTypeID(id int) *PropertyTypeCreate {
-	if ptc.service_type == nil {
-		ptc.service_type = make(map[int]struct{})
-	}
-	ptc.service_type[id] = struct{}{}
+	ptc.mutation.SetServiceTypeID(id)
 	return ptc
 }
 
@@ -422,10 +379,7 @@ func (ptc *PropertyTypeCreate) SetServiceType(s *ServiceType) *PropertyTypeCreat
 
 // SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
 func (ptc *PropertyTypeCreate) SetWorkOrderTypeID(id int) *PropertyTypeCreate {
-	if ptc.work_order_type == nil {
-		ptc.work_order_type = make(map[int]struct{})
-	}
-	ptc.work_order_type[id] = struct{}{}
+	ptc.mutation.SetWorkOrderTypeID(id)
 	return ptc
 }
 
@@ -444,10 +398,7 @@ func (ptc *PropertyTypeCreate) SetWorkOrderType(w *WorkOrderType) *PropertyTypeC
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
 func (ptc *PropertyTypeCreate) SetProjectTypeID(id int) *PropertyTypeCreate {
-	if ptc.project_type == nil {
-		ptc.project_type = make(map[int]struct{})
-	}
-	ptc.project_type[id] = struct{}{}
+	ptc.mutation.SetProjectTypeID(id)
 	return ptc
 }
 
@@ -466,58 +417,60 @@ func (ptc *PropertyTypeCreate) SetProjectType(p *ProjectType) *PropertyTypeCreat
 
 // Save creates the PropertyType in the database.
 func (ptc *PropertyTypeCreate) Save(ctx context.Context) (*PropertyType, error) {
-	if ptc.create_time == nil {
+	if _, ok := ptc.mutation.CreateTime(); !ok {
 		v := propertytype.DefaultCreateTime()
-		ptc.create_time = &v
+		ptc.mutation.SetCreateTime(v)
 	}
-	if ptc.update_time == nil {
+	if _, ok := ptc.mutation.UpdateTime(); !ok {
 		v := propertytype.DefaultUpdateTime()
-		ptc.update_time = &v
+		ptc.mutation.SetUpdateTime(v)
 	}
-	if ptc._type == nil {
+	if _, ok := ptc.mutation.GetType(); !ok {
 		return nil, errors.New("ent: missing required field \"type\"")
 	}
-	if ptc.name == nil {
+	if _, ok := ptc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if ptc.is_instance_property == nil {
+	if _, ok := ptc.mutation.IsInstanceProperty(); !ok {
 		v := propertytype.DefaultIsInstanceProperty
-		ptc.is_instance_property = &v
+		ptc.mutation.SetIsInstanceProperty(v)
 	}
-	if ptc.editable == nil {
+	if _, ok := ptc.mutation.Editable(); !ok {
 		v := propertytype.DefaultEditable
-		ptc.editable = &v
+		ptc.mutation.SetEditable(v)
 	}
-	if ptc.mandatory == nil {
+	if _, ok := ptc.mutation.Mandatory(); !ok {
 		v := propertytype.DefaultMandatory
-		ptc.mandatory = &v
+		ptc.mutation.SetMandatory(v)
 	}
-	if ptc.deleted == nil {
+	if _, ok := ptc.mutation.Deleted(); !ok {
 		v := propertytype.DefaultDeleted
-		ptc.deleted = &v
+		ptc.mutation.SetDeleted(v)
 	}
-	if len(ptc.location_type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"location_type\"")
+	var (
+		err  error
+		node *PropertyType
+	)
+	if len(ptc.hooks) == 0 {
+		node, err = ptc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*PropertyTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ptc.mutation = mutation
+			node, err = ptc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(ptc.hooks); i > 0; i-- {
+			mut = ptc.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ptc.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(ptc.equipment_port_type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_port_type\"")
-	}
-	if len(ptc.link_equipment_port_type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"link_equipment_port_type\"")
-	}
-	if len(ptc.equipment_type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_type\"")
-	}
-	if len(ptc.service_type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"service_type\"")
-	}
-	if len(ptc.work_order_type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"work_order_type\"")
-	}
-	if len(ptc.project_type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"project_type\"")
-	}
-	return ptc.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -540,151 +493,151 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			},
 		}
 	)
-	if value := ptc.create_time; value != nil {
+	if value, ok := ptc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldCreateTime,
 		})
-		pt.CreateTime = *value
+		pt.CreateTime = value
 	}
-	if value := ptc.update_time; value != nil {
+	if value, ok := ptc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldUpdateTime,
 		})
-		pt.UpdateTime = *value
+		pt.UpdateTime = value
 	}
-	if value := ptc._type; value != nil {
+	if value, ok := ptc.mutation.GetType(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldType,
 		})
-		pt.Type = *value
+		pt.Type = value
 	}
-	if value := ptc.name; value != nil {
+	if value, ok := ptc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldName,
 		})
-		pt.Name = *value
+		pt.Name = value
 	}
-	if value := ptc.index; value != nil {
+	if value, ok := ptc.mutation.Index(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldIndex,
 		})
-		pt.Index = *value
+		pt.Index = value
 	}
-	if value := ptc.category; value != nil {
+	if value, ok := ptc.mutation.Category(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldCategory,
 		})
-		pt.Category = *value
+		pt.Category = value
 	}
-	if value := ptc.int_val; value != nil {
+	if value, ok := ptc.mutation.IntVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldIntVal,
 		})
-		pt.IntVal = *value
+		pt.IntVal = value
 	}
-	if value := ptc.bool_val; value != nil {
+	if value, ok := ptc.mutation.BoolVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldBoolVal,
 		})
-		pt.BoolVal = *value
+		pt.BoolVal = value
 	}
-	if value := ptc.float_val; value != nil {
+	if value, ok := ptc.mutation.FloatVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldFloatVal,
 		})
-		pt.FloatVal = *value
+		pt.FloatVal = value
 	}
-	if value := ptc.latitude_val; value != nil {
+	if value, ok := ptc.mutation.LatitudeVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldLatitudeVal,
 		})
-		pt.LatitudeVal = *value
+		pt.LatitudeVal = value
 	}
-	if value := ptc.longitude_val; value != nil {
+	if value, ok := ptc.mutation.LongitudeVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldLongitudeVal,
 		})
-		pt.LongitudeVal = *value
+		pt.LongitudeVal = value
 	}
-	if value := ptc.string_val; value != nil {
+	if value, ok := ptc.mutation.StringVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldStringVal,
 		})
-		pt.StringVal = *value
+		pt.StringVal = value
 	}
-	if value := ptc.range_from_val; value != nil {
+	if value, ok := ptc.mutation.RangeFromVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldRangeFromVal,
 		})
-		pt.RangeFromVal = *value
+		pt.RangeFromVal = value
 	}
-	if value := ptc.range_to_val; value != nil {
+	if value, ok := ptc.mutation.RangeToVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldRangeToVal,
 		})
-		pt.RangeToVal = *value
+		pt.RangeToVal = value
 	}
-	if value := ptc.is_instance_property; value != nil {
+	if value, ok := ptc.mutation.IsInstanceProperty(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldIsInstanceProperty,
 		})
-		pt.IsInstanceProperty = *value
+		pt.IsInstanceProperty = value
 	}
-	if value := ptc.editable; value != nil {
+	if value, ok := ptc.mutation.Editable(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldEditable,
 		})
-		pt.Editable = *value
+		pt.Editable = value
 	}
-	if value := ptc.mandatory; value != nil {
+	if value, ok := ptc.mutation.Mandatory(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldMandatory,
 		})
-		pt.Mandatory = *value
+		pt.Mandatory = value
 	}
-	if value := ptc.deleted; value != nil {
+	if value, ok := ptc.mutation.Deleted(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: propertytype.FieldDeleted,
 		})
-		pt.Deleted = *value
+		pt.Deleted = value
 	}
-	if nodes := ptc.properties; len(nodes) > 0 {
+	if nodes := ptc.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -698,12 +651,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ptc.location_type; len(nodes) > 0 {
+	if nodes := ptc.mutation.LocationTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -717,12 +670,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ptc.equipment_port_type; len(nodes) > 0 {
+	if nodes := ptc.mutation.EquipmentPortTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -736,12 +689,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ptc.link_equipment_port_type; len(nodes) > 0 {
+	if nodes := ptc.mutation.LinkEquipmentPortTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -755,12 +708,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ptc.equipment_type; len(nodes) > 0 {
+	if nodes := ptc.mutation.EquipmentTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -774,12 +727,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ptc.service_type; len(nodes) > 0 {
+	if nodes := ptc.mutation.ServiceTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -793,12 +746,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ptc.work_order_type; len(nodes) > 0 {
+	if nodes := ptc.mutation.WorkOrderTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -812,12 +765,12 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ptc.project_type; len(nodes) > 0 {
+	if nodes := ptc.mutation.ProjectTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -831,7 +784,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

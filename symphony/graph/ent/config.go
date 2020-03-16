@@ -7,6 +7,7 @@
 package ent
 
 import (
+	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/dialect"
 )
 
@@ -21,6 +22,53 @@ type config struct {
 	debug bool
 	// log used for logging on debug mode.
 	log func(...interface{})
+	// hooks to execute on mutations.
+	hooks *hooks
+}
+
+// hooks per client, for fast access.
+type hooks struct {
+	ActionsRule                 []ent.Hook
+	CheckListCategory           []ent.Hook
+	CheckListItem               []ent.Hook
+	CheckListItemDefinition     []ent.Hook
+	Comment                     []ent.Hook
+	Customer                    []ent.Hook
+	Equipment                   []ent.Hook
+	EquipmentCategory           []ent.Hook
+	EquipmentPort               []ent.Hook
+	EquipmentPortDefinition     []ent.Hook
+	EquipmentPortType           []ent.Hook
+	EquipmentPosition           []ent.Hook
+	EquipmentPositionDefinition []ent.Hook
+	EquipmentType               []ent.Hook
+	File                        []ent.Hook
+	FloorPlan                   []ent.Hook
+	FloorPlanReferencePoint     []ent.Hook
+	FloorPlanScale              []ent.Hook
+	Hyperlink                   []ent.Hook
+	Link                        []ent.Hook
+	Location                    []ent.Hook
+	LocationType                []ent.Hook
+	Project                     []ent.Hook
+	ProjectType                 []ent.Hook
+	Property                    []ent.Hook
+	PropertyType                []ent.Hook
+	ReportFilter                []ent.Hook
+	Service                     []ent.Hook
+	ServiceEndpoint             []ent.Hook
+	ServiceType                 []ent.Hook
+	Survey                      []ent.Hook
+	SurveyCellScan              []ent.Hook
+	SurveyQuestion              []ent.Hook
+	SurveyTemplateCategory      []ent.Hook
+	SurveyTemplateQuestion      []ent.Hook
+	SurveyWiFiScan              []ent.Hook
+	Technician                  []ent.Hook
+	User                        []ent.Hook
+	WorkOrder                   []ent.Hook
+	WorkOrderDefinition         []ent.Hook
+	WorkOrderType               []ent.Hook
 }
 
 // Options applies the options on the config object.

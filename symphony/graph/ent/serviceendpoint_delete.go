@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // ServiceEndpointDelete is the builder for deleting a ServiceEndpoint entity.
 type ServiceEndpointDelete struct {
 	config
+	hooks      []Hook
+	mutation   *ServiceEndpointMutation
 	predicates []predicate.ServiceEndpoint
 }
 
@@ -30,7 +33,30 @@ func (sed *ServiceEndpointDelete) Where(ps ...predicate.ServiceEndpoint) *Servic
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (sed *ServiceEndpointDelete) Exec(ctx context.Context) (int, error) {
-	return sed.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(sed.hooks) == 0 {
+		affected, err = sed.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ServiceEndpointMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			sed.mutation = mutation
+			affected, err = sed.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(sed.hooks); i > 0; i-- {
+			mut = sed.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, sed.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
