@@ -70,8 +70,7 @@ class SqliteStore(BaseStore):
         self._on_ready.add_subscriber(subscriber_data)
 
     @contextmanager
-    # pylint: disable=W0221
-    def edit_subscriber(self, subscriber_id, request=None):
+    def edit_subscriber(self, subscriber_id):
         """
         Context manager to modify the subscriber data.
         """
@@ -85,15 +84,6 @@ class SqliteStore(BaseStore):
                 raise SubscriberNotFoundError(subscriber_id)
             subscriber_data = SubscriberData()
             subscriber_data.ParseFromString(row[0])
-            # Manually update APN config as MergeMessage() does not work on
-            # repeated field
-            if request and request.data.non_3gpp.apn_config:
-                # Delete the existing APN config/s in the subscriberdb and add
-                # new APN config received
-                del subscriber_data.non_3gpp.apn_config[:]
-                for apn in request.data.non_3gpp.apn_config:
-                    apn_config = subscriber_data.non_3gpp.apn_config.add()
-                    self._update_apn(apn_config, apn)
             yield subscriber_data
             data_str = subscriber_data.SerializeToString()
             self.conn.execute(

@@ -195,6 +195,8 @@ class SubscriberDbGrpc(SubscriberDbClient):
     def config_apn_details(self, imsi, apn_list):
         sid = SIDUtils.to_pb(imsi)
         update_sub = self._get_apn_data(sid, apn_list)
+        fields = update_sub.mask.paths
+        fields.append('non_3gpp')
         SubscriberDbGrpc._try_to_call(
             lambda: self._subscriber_stub.UpdateSubscriber(update_sub)
         )
