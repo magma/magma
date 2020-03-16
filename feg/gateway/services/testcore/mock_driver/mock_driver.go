@@ -54,7 +54,7 @@ func (e *MockDriver) GetAnswerFromExpectations(message interface{}) interface{} 
 	if !e.expectationsSet {
 		return nil
 	}
-	if len(e.expectations) == 0 {
+	if len(e.expectations) == 0 || e.expectationIndex >= len(e.expectations) {
 		return e.getAnswerForUnexpectedMessage()
 	}
 	expectation := e.expectations[e.expectationIndex]

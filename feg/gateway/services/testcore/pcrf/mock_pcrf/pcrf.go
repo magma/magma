@@ -13,10 +13,12 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/testcore/mock_driver"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 
@@ -48,6 +50,8 @@ type PCRFDiamServer struct {
 	serviceConfig       *protos.PCRFConfigs
 	subscribers         map[string]*subscriberAccount // map of imsi to to rules
 	LastMessageReceived *ccrMessage
+	mockDriverLock      sync.Mutex
+	mockDriver          *mock_driver.MockDriver
 }
 
 // NewPCRFDiamServer initializes an PCRF with an empty rule map
@@ -63,6 +67,7 @@ func NewPCRFDiamServer(
 		diameterSettings: diameterSettings,
 		pcrfConfig:       pcrfConfig,
 		subscribers:      map[string]*subscriberAccount{},
+		serviceConfig:    &protos.PCRFConfigs{},
 	}
 }
 
@@ -113,15 +118,8 @@ func (srv *PCRFDiamServer) Start(lis net.Listener) error {
 // If ServerConfig did not have valid values, default values would be used
 func (srv *PCRFDiamServer) StartListener() (net.Listener, error) {
 	serverConfig := srv.pcrfConfig.ServerConfig
-
 	network := serverConfig.Protocol
-	if len(network) == 0 {
-		network = "tcp"
-	}
 	addr := serverConfig.Addr
-	if len(addr) == 0 {
-		addr = ":3870"
-	}
 	l, e := diam.Listen(network, addr)
 	if e != nil {
 		return nil, e
@@ -238,10 +236,22 @@ func (srv *PCRFDiamServer) ClearSubscribers(ctx context.Context, void *orcprotos
 	return &orcprotos.Void{}, nil
 }
 
-func (srv *PCRFDiamServer) SetExpectations(ctx context.Context, expectations *protos.GxCreditControlExpectations) (*orcprotos.Void, error) {
+func (srv *PCRFDiamServer) SetExpectations(ctx context.Context, req *protos.GxCreditControlExpectations) (*orcprotos.Void, error) {
+	srv.mockDriverLock.Lock()
+	defer srv.mockDriverLock.Unlock()
+
+	es := []mock_driver.Expectation{}
+	for _, e := range req.Expectations {
+		es = append(es, mock_driver.Expectation(GxExpectation{e}))
+	}
+	srv.mockDriver = mock_driver.NewMockDriver(es, req.UnexpectedRequestBehavior, GxAnswer{req.GxDefaultCca})
 	return &orcprotos.Void{}, nil
 }
 
 func (srv *PCRFDiamServer) AssertExpectations(ctx context.Context, void *orcprotos.Void) (*protos.GxCreditControlResult, error) {
-	return &protos.GxCreditControlResult{}, nil
+	srv.mockDriverLock.Lock()
+	defer srv.mockDriverLock.Unlock()
+
+	results, errs := srv.mockDriver.AggregateResults()
+	return &protos.GxCreditControlResult{Results: results, Errors: errs}, nil
 }
