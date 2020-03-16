@@ -70,6 +70,7 @@ class SqliteStore(BaseStore):
         self._on_ready.add_subscriber(subscriber_data)
 
     @contextmanager
+    # pylint: disable=W0221
     def edit_subscriber(self, subscriber_id, request=None):
         """
         Context manager to modify the subscriber data.
