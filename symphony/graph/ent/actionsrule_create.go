@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -21,13 +20,17 @@ import (
 // ActionsRuleCreate is the builder for creating a ActionsRule entity.
 type ActionsRuleCreate struct {
 	config
-	mutation *ActionsRuleMutation
-	hooks    []Hook
+	create_time *time.Time
+	update_time *time.Time
+	name        *string
+	triggerID   *string
+	ruleFilters *[]*core.ActionsRuleFilter
+	ruleActions *[]*core.ActionsRuleAction
 }
 
 // SetCreateTime sets the create_time field.
 func (arc *ActionsRuleCreate) SetCreateTime(t time.Time) *ActionsRuleCreate {
-	arc.mutation.SetCreateTime(t)
+	arc.create_time = &t
 	return arc
 }
 
@@ -41,7 +44,7 @@ func (arc *ActionsRuleCreate) SetNillableCreateTime(t *time.Time) *ActionsRuleCr
 
 // SetUpdateTime sets the update_time field.
 func (arc *ActionsRuleCreate) SetUpdateTime(t time.Time) *ActionsRuleCreate {
-	arc.mutation.SetUpdateTime(t)
+	arc.update_time = &t
 	return arc
 }
 
@@ -55,74 +58,51 @@ func (arc *ActionsRuleCreate) SetNillableUpdateTime(t *time.Time) *ActionsRuleCr
 
 // SetName sets the name field.
 func (arc *ActionsRuleCreate) SetName(s string) *ActionsRuleCreate {
-	arc.mutation.SetName(s)
+	arc.name = &s
 	return arc
 }
 
 // SetTriggerID sets the triggerID field.
 func (arc *ActionsRuleCreate) SetTriggerID(s string) *ActionsRuleCreate {
-	arc.mutation.SetTriggerID(s)
+	arc.triggerID = &s
 	return arc
 }
 
 // SetRuleFilters sets the ruleFilters field.
 func (arc *ActionsRuleCreate) SetRuleFilters(crf []*core.ActionsRuleFilter) *ActionsRuleCreate {
-	arc.mutation.SetRuleFilters(crf)
+	arc.ruleFilters = &crf
 	return arc
 }
 
 // SetRuleActions sets the ruleActions field.
 func (arc *ActionsRuleCreate) SetRuleActions(cra []*core.ActionsRuleAction) *ActionsRuleCreate {
-	arc.mutation.SetRuleActions(cra)
+	arc.ruleActions = &cra
 	return arc
 }
 
 // Save creates the ActionsRule in the database.
 func (arc *ActionsRuleCreate) Save(ctx context.Context) (*ActionsRule, error) {
-	if _, ok := arc.mutation.CreateTime(); !ok {
+	if arc.create_time == nil {
 		v := actionsrule.DefaultCreateTime()
-		arc.mutation.SetCreateTime(v)
+		arc.create_time = &v
 	}
-	if _, ok := arc.mutation.UpdateTime(); !ok {
+	if arc.update_time == nil {
 		v := actionsrule.DefaultUpdateTime()
-		arc.mutation.SetUpdateTime(v)
+		arc.update_time = &v
 	}
-	if _, ok := arc.mutation.Name(); !ok {
+	if arc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if _, ok := arc.mutation.TriggerID(); !ok {
+	if arc.triggerID == nil {
 		return nil, errors.New("ent: missing required field \"triggerID\"")
 	}
-	if _, ok := arc.mutation.RuleFilters(); !ok {
+	if arc.ruleFilters == nil {
 		return nil, errors.New("ent: missing required field \"ruleFilters\"")
 	}
-	if _, ok := arc.mutation.RuleActions(); !ok {
+	if arc.ruleActions == nil {
 		return nil, errors.New("ent: missing required field \"ruleActions\"")
 	}
-	var (
-		err  error
-		node *ActionsRule
-	)
-	if len(arc.hooks) == 0 {
-		node, err = arc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ActionsRuleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			arc.mutation = mutation
-			node, err = arc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(arc.hooks); i > 0; i-- {
-			mut = arc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, arc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return arc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -145,53 +125,53 @@ func (arc *ActionsRuleCreate) sqlSave(ctx context.Context) (*ActionsRule, error)
 			},
 		}
 	)
-	if value, ok := arc.mutation.CreateTime(); ok {
+	if value := arc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldCreateTime,
 		})
-		ar.CreateTime = value
+		ar.CreateTime = *value
 	}
-	if value, ok := arc.mutation.UpdateTime(); ok {
+	if value := arc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldUpdateTime,
 		})
-		ar.UpdateTime = value
+		ar.UpdateTime = *value
 	}
-	if value, ok := arc.mutation.Name(); ok {
+	if value := arc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldName,
 		})
-		ar.Name = value
+		ar.Name = *value
 	}
-	if value, ok := arc.mutation.TriggerID(); ok {
+	if value := arc.triggerID; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldTriggerID,
 		})
-		ar.TriggerID = value
+		ar.TriggerID = *value
 	}
-	if value, ok := arc.mutation.RuleFilters(); ok {
+	if value := arc.ruleFilters; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldRuleFilters,
 		})
-		ar.RuleFilters = value
+		ar.RuleFilters = *value
 	}
-	if value, ok := arc.mutation.RuleActions(); ok {
+	if value := arc.ruleActions; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldRuleActions,
 		})
-		ar.RuleActions = value
+		ar.RuleActions = *value
 	}
 	if err := sqlgraph.CreateNode(ctx, arc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

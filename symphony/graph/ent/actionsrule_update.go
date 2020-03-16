@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -21,9 +21,13 @@ import (
 // ActionsRuleUpdate is the builder for updating ActionsRule entities.
 type ActionsRuleUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *ActionsRuleMutation
-	predicates []predicate.ActionsRule
+
+	update_time *time.Time
+	name        *string
+	triggerID   *string
+	ruleFilters *[]*core.ActionsRuleFilter
+	ruleActions *[]*core.ActionsRuleAction
+	predicates  []predicate.ActionsRule
 }
 
 // Where adds a new predicate for the builder.
@@ -34,58 +38,35 @@ func (aru *ActionsRuleUpdate) Where(ps ...predicate.ActionsRule) *ActionsRuleUpd
 
 // SetName sets the name field.
 func (aru *ActionsRuleUpdate) SetName(s string) *ActionsRuleUpdate {
-	aru.mutation.SetName(s)
+	aru.name = &s
 	return aru
 }
 
 // SetTriggerID sets the triggerID field.
 func (aru *ActionsRuleUpdate) SetTriggerID(s string) *ActionsRuleUpdate {
-	aru.mutation.SetTriggerID(s)
+	aru.triggerID = &s
 	return aru
 }
 
 // SetRuleFilters sets the ruleFilters field.
 func (aru *ActionsRuleUpdate) SetRuleFilters(crf []*core.ActionsRuleFilter) *ActionsRuleUpdate {
-	aru.mutation.SetRuleFilters(crf)
+	aru.ruleFilters = &crf
 	return aru
 }
 
 // SetRuleActions sets the ruleActions field.
 func (aru *ActionsRuleUpdate) SetRuleActions(cra []*core.ActionsRuleAction) *ActionsRuleUpdate {
-	aru.mutation.SetRuleActions(cra)
+	aru.ruleActions = &cra
 	return aru
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (aru *ActionsRuleUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := aru.mutation.UpdateTime(); !ok {
+	if aru.update_time == nil {
 		v := actionsrule.UpdateDefaultUpdateTime()
-		aru.mutation.SetUpdateTime(v)
+		aru.update_time = &v
 	}
-	var (
-		err      error
-		affected int
-	)
-	if len(aru.hooks) == 0 {
-		affected, err = aru.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ActionsRuleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			aru.mutation = mutation
-			affected, err = aru.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(aru.hooks); i > 0; i-- {
-			mut = aru.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, aru.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return aru.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -128,38 +109,38 @@ func (aru *ActionsRuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := aru.mutation.UpdateTime(); ok {
+	if value := aru.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldUpdateTime,
 		})
 	}
-	if value, ok := aru.mutation.Name(); ok {
+	if value := aru.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldName,
 		})
 	}
-	if value, ok := aru.mutation.TriggerID(); ok {
+	if value := aru.triggerID; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldTriggerID,
 		})
 	}
-	if value, ok := aru.mutation.RuleFilters(); ok {
+	if value := aru.ruleFilters; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldRuleFilters,
 		})
 	}
-	if value, ok := aru.mutation.RuleActions(); ok {
+	if value := aru.ruleActions; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldRuleActions,
 		})
 	}
@@ -177,64 +158,46 @@ func (aru *ActionsRuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ActionsRuleUpdateOne is the builder for updating a single ActionsRule entity.
 type ActionsRuleUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *ActionsRuleMutation
+	id int
+
+	update_time *time.Time
+	name        *string
+	triggerID   *string
+	ruleFilters *[]*core.ActionsRuleFilter
+	ruleActions *[]*core.ActionsRuleAction
 }
 
 // SetName sets the name field.
 func (aruo *ActionsRuleUpdateOne) SetName(s string) *ActionsRuleUpdateOne {
-	aruo.mutation.SetName(s)
+	aruo.name = &s
 	return aruo
 }
 
 // SetTriggerID sets the triggerID field.
 func (aruo *ActionsRuleUpdateOne) SetTriggerID(s string) *ActionsRuleUpdateOne {
-	aruo.mutation.SetTriggerID(s)
+	aruo.triggerID = &s
 	return aruo
 }
 
 // SetRuleFilters sets the ruleFilters field.
 func (aruo *ActionsRuleUpdateOne) SetRuleFilters(crf []*core.ActionsRuleFilter) *ActionsRuleUpdateOne {
-	aruo.mutation.SetRuleFilters(crf)
+	aruo.ruleFilters = &crf
 	return aruo
 }
 
 // SetRuleActions sets the ruleActions field.
 func (aruo *ActionsRuleUpdateOne) SetRuleActions(cra []*core.ActionsRuleAction) *ActionsRuleUpdateOne {
-	aruo.mutation.SetRuleActions(cra)
+	aruo.ruleActions = &cra
 	return aruo
 }
 
 // Save executes the query and returns the updated entity.
 func (aruo *ActionsRuleUpdateOne) Save(ctx context.Context) (*ActionsRule, error) {
-	if _, ok := aruo.mutation.UpdateTime(); !ok {
+	if aruo.update_time == nil {
 		v := actionsrule.UpdateDefaultUpdateTime()
-		aruo.mutation.SetUpdateTime(v)
+		aruo.update_time = &v
 	}
-	var (
-		err  error
-		node *ActionsRule
-	)
-	if len(aruo.hooks) == 0 {
-		node, err = aruo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ActionsRuleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			aruo.mutation = mutation
-			node, err = aruo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(aruo.hooks); i > 0; i-- {
-			mut = aruo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, aruo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return aruo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -265,48 +228,44 @@ func (aruo *ActionsRuleUpdateOne) sqlSave(ctx context.Context) (ar *ActionsRule,
 			Table:   actionsrule.Table,
 			Columns: actionsrule.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  aruo.id,
 				Type:   field.TypeInt,
 				Column: actionsrule.FieldID,
 			},
 		},
 	}
-	id, ok := aruo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing ActionsRule.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := aruo.mutation.UpdateTime(); ok {
+	if value := aruo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldUpdateTime,
 		})
 	}
-	if value, ok := aruo.mutation.Name(); ok {
+	if value := aruo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldName,
 		})
 	}
-	if value, ok := aruo.mutation.TriggerID(); ok {
+	if value := aruo.triggerID; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldTriggerID,
 		})
 	}
-	if value, ok := aruo.mutation.RuleFilters(); ok {
+	if value := aruo.ruleFilters; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldRuleFilters,
 		})
 	}
-	if value, ok := aruo.mutation.RuleActions(); ok {
+	if value := aruo.ruleActions; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: actionsrule.FieldRuleActions,
 		})
 	}

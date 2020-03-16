@@ -21,13 +21,16 @@ import (
 // CustomerCreate is the builder for creating a Customer entity.
 type CustomerCreate struct {
 	config
-	mutation *CustomerMutation
-	hooks    []Hook
+	create_time *time.Time
+	update_time *time.Time
+	name        *string
+	external_id *string
+	services    map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (cc *CustomerCreate) SetCreateTime(t time.Time) *CustomerCreate {
-	cc.mutation.SetCreateTime(t)
+	cc.create_time = &t
 	return cc
 }
 
@@ -41,7 +44,7 @@ func (cc *CustomerCreate) SetNillableCreateTime(t *time.Time) *CustomerCreate {
 
 // SetUpdateTime sets the update_time field.
 func (cc *CustomerCreate) SetUpdateTime(t time.Time) *CustomerCreate {
-	cc.mutation.SetUpdateTime(t)
+	cc.update_time = &t
 	return cc
 }
 
@@ -55,13 +58,13 @@ func (cc *CustomerCreate) SetNillableUpdateTime(t *time.Time) *CustomerCreate {
 
 // SetName sets the name field.
 func (cc *CustomerCreate) SetName(s string) *CustomerCreate {
-	cc.mutation.SetName(s)
+	cc.name = &s
 	return cc
 }
 
 // SetExternalID sets the external_id field.
 func (cc *CustomerCreate) SetExternalID(s string) *CustomerCreate {
-	cc.mutation.SetExternalID(s)
+	cc.external_id = &s
 	return cc
 }
 
@@ -75,7 +78,12 @@ func (cc *CustomerCreate) SetNillableExternalID(s *string) *CustomerCreate {
 
 // AddServiceIDs adds the services edge to Service by ids.
 func (cc *CustomerCreate) AddServiceIDs(ids ...int) *CustomerCreate {
-	cc.mutation.AddServiceIDs(ids...)
+	if cc.services == nil {
+		cc.services = make(map[int]struct{})
+	}
+	for i := range ids {
+		cc.services[ids[i]] = struct{}{}
+	}
 	return cc
 }
 
@@ -90,51 +98,26 @@ func (cc *CustomerCreate) AddServices(s ...*Service) *CustomerCreate {
 
 // Save creates the Customer in the database.
 func (cc *CustomerCreate) Save(ctx context.Context) (*Customer, error) {
-	if _, ok := cc.mutation.CreateTime(); !ok {
+	if cc.create_time == nil {
 		v := customer.DefaultCreateTime()
-		cc.mutation.SetCreateTime(v)
+		cc.create_time = &v
 	}
-	if _, ok := cc.mutation.UpdateTime(); !ok {
+	if cc.update_time == nil {
 		v := customer.DefaultUpdateTime()
-		cc.mutation.SetUpdateTime(v)
+		cc.update_time = &v
 	}
-	if _, ok := cc.mutation.Name(); !ok {
+	if cc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if v, ok := cc.mutation.Name(); ok {
-		if err := customer.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
-		}
+	if err := customer.NameValidator(*cc.name); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 	}
-	if v, ok := cc.mutation.ExternalID(); ok {
-		if err := customer.ExternalIDValidator(v); err != nil {
+	if cc.external_id != nil {
+		if err := customer.ExternalIDValidator(*cc.external_id); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
 		}
 	}
-	var (
-		err  error
-		node *Customer
-	)
-	if len(cc.hooks) == 0 {
-		node, err = cc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CustomerMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			cc.mutation = mutation
-			node, err = cc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(cc.hooks); i > 0; i-- {
-			mut = cc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, cc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return cc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -157,39 +140,39 @@ func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 			},
 		}
 	)
-	if value, ok := cc.mutation.CreateTime(); ok {
+	if value := cc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: customer.FieldCreateTime,
 		})
-		c.CreateTime = value
+		c.CreateTime = *value
 	}
-	if value, ok := cc.mutation.UpdateTime(); ok {
+	if value := cc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: customer.FieldUpdateTime,
 		})
-		c.UpdateTime = value
+		c.UpdateTime = *value
 	}
-	if value, ok := cc.mutation.Name(); ok {
+	if value := cc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: customer.FieldName,
 		})
-		c.Name = value
+		c.Name = *value
 	}
-	if value, ok := cc.mutation.ExternalID(); ok {
+	if value := cc.external_id; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: customer.FieldExternalID,
 		})
-		c.ExternalID = &value
+		c.ExternalID = value
 	}
-	if nodes := cc.mutation.ServicesIDs(); len(nodes) > 0 {
+	if nodes := cc.services; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -203,7 +186,7 @@ func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

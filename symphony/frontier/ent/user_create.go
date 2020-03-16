@@ -21,13 +21,20 @@ import (
 // UserCreate is the builder for creating a User entity.
 type UserCreate struct {
 	config
-	mutation *UserMutation
-	hooks    []Hook
+	created_at *time.Time
+	updated_at *time.Time
+	email      *string
+	password   *string
+	role       *int
+	tenant     *string
+	networks   *[]string
+	tabs       *[]string
+	tokens     map[int]struct{}
 }
 
 // SetCreatedAt sets the created_at field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
-	uc.mutation.SetCreatedAt(t)
+	uc.created_at = &t
 	return uc
 }
 
@@ -41,7 +48,7 @@ func (uc *UserCreate) SetNillableCreatedAt(t *time.Time) *UserCreate {
 
 // SetUpdatedAt sets the updated_at field.
 func (uc *UserCreate) SetUpdatedAt(t time.Time) *UserCreate {
-	uc.mutation.SetUpdatedAt(t)
+	uc.updated_at = &t
 	return uc
 }
 
@@ -55,19 +62,19 @@ func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
 
 // SetEmail sets the email field.
 func (uc *UserCreate) SetEmail(s string) *UserCreate {
-	uc.mutation.SetEmail(s)
+	uc.email = &s
 	return uc
 }
 
 // SetPassword sets the password field.
 func (uc *UserCreate) SetPassword(s string) *UserCreate {
-	uc.mutation.SetPassword(s)
+	uc.password = &s
 	return uc
 }
 
 // SetRole sets the role field.
 func (uc *UserCreate) SetRole(i int) *UserCreate {
-	uc.mutation.SetRole(i)
+	uc.role = &i
 	return uc
 }
 
@@ -81,7 +88,7 @@ func (uc *UserCreate) SetNillableRole(i *int) *UserCreate {
 
 // SetTenant sets the tenant field.
 func (uc *UserCreate) SetTenant(s string) *UserCreate {
-	uc.mutation.SetTenant(s)
+	uc.tenant = &s
 	return uc
 }
 
@@ -95,19 +102,24 @@ func (uc *UserCreate) SetNillableTenant(s *string) *UserCreate {
 
 // SetNetworks sets the networks field.
 func (uc *UserCreate) SetNetworks(s []string) *UserCreate {
-	uc.mutation.SetNetworks(s)
+	uc.networks = &s
 	return uc
 }
 
 // SetTabs sets the tabs field.
 func (uc *UserCreate) SetTabs(s []string) *UserCreate {
-	uc.mutation.SetTabs(s)
+	uc.tabs = &s
 	return uc
 }
 
 // AddTokenIDs adds the tokens edge to Token by ids.
 func (uc *UserCreate) AddTokenIDs(ids ...int) *UserCreate {
-	uc.mutation.AddTokenIDs(ids...)
+	if uc.tokens == nil {
+		uc.tokens = make(map[int]struct{})
+	}
+	for i := range ids {
+		uc.tokens[ids[i]] = struct{}{}
+	}
 	return uc
 }
 
@@ -122,70 +134,41 @@ func (uc *UserCreate) AddTokens(t ...*Token) *UserCreate {
 
 // Save creates the User in the database.
 func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
-	if _, ok := uc.mutation.CreatedAt(); !ok {
+	if uc.created_at == nil {
 		v := user.DefaultCreatedAt()
-		uc.mutation.SetCreatedAt(v)
+		uc.created_at = &v
 	}
-	if _, ok := uc.mutation.UpdatedAt(); !ok {
+	if uc.updated_at == nil {
 		v := user.DefaultUpdatedAt()
-		uc.mutation.SetUpdatedAt(v)
+		uc.updated_at = &v
 	}
-	if _, ok := uc.mutation.Email(); !ok {
+	if uc.email == nil {
 		return nil, errors.New("ent: missing required field \"email\"")
 	}
-	if v, ok := uc.mutation.Email(); ok {
-		if err := user.EmailValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
-		}
+	if err := user.EmailValidator(*uc.email); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 	}
-	if _, ok := uc.mutation.Password(); !ok {
+	if uc.password == nil {
 		return nil, errors.New("ent: missing required field \"password\"")
 	}
-	if v, ok := uc.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"password\": %v", err)
-		}
+	if err := user.PasswordValidator(*uc.password); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"password\": %v", err)
 	}
-	if _, ok := uc.mutation.Role(); !ok {
+	if uc.role == nil {
 		v := user.DefaultRole
-		uc.mutation.SetRole(v)
+		uc.role = &v
 	}
-	if v, ok := uc.mutation.Role(); ok {
-		if err := user.RoleValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
-		}
+	if err := user.RoleValidator(*uc.role); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
 	}
-	if _, ok := uc.mutation.Tenant(); !ok {
+	if uc.tenant == nil {
 		v := user.DefaultTenant
-		uc.mutation.SetTenant(v)
+		uc.tenant = &v
 	}
-	if _, ok := uc.mutation.Networks(); !ok {
+	if uc.networks == nil {
 		return nil, errors.New("ent: missing required field \"networks\"")
 	}
-	var (
-		err  error
-		node *User
-	)
-	if len(uc.hooks) == 0 {
-		node, err = uc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*UserMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			uc.mutation = mutation
-			node, err = uc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(uc.hooks); i > 0; i-- {
-			mut = uc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, uc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return uc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -208,71 +191,71 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 			},
 		}
 	)
-	if value, ok := uc.mutation.CreatedAt(); ok {
+	if value := uc.created_at; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldCreatedAt,
 		})
-		u.CreatedAt = value
+		u.CreatedAt = *value
 	}
-	if value, ok := uc.mutation.UpdatedAt(); ok {
+	if value := uc.updated_at; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldUpdatedAt,
 		})
-		u.UpdatedAt = value
+		u.UpdatedAt = *value
 	}
-	if value, ok := uc.mutation.Email(); ok {
+	if value := uc.email; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldEmail,
 		})
-		u.Email = value
+		u.Email = *value
 	}
-	if value, ok := uc.mutation.Password(); ok {
+	if value := uc.password; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldPassword,
 		})
-		u.Password = value
+		u.Password = *value
 	}
-	if value, ok := uc.mutation.Role(); ok {
+	if value := uc.role; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldRole,
 		})
-		u.Role = value
+		u.Role = *value
 	}
-	if value, ok := uc.mutation.Tenant(); ok {
+	if value := uc.tenant; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldTenant,
 		})
-		u.Tenant = value
+		u.Tenant = *value
 	}
-	if value, ok := uc.mutation.Networks(); ok {
+	if value := uc.networks; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldNetworks,
 		})
-		u.Networks = value
+		u.Networks = *value
 	}
-	if value, ok := uc.mutation.Tabs(); ok {
+	if value := uc.tabs; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldTabs,
 		})
-		u.Tabs = value
+		u.Tabs = *value
 	}
-	if nodes := uc.mutation.TokensIDs(); len(nodes) > 0 {
+	if nodes := uc.tokens; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -286,7 +269,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

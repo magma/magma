@@ -8,27 +8,30 @@ package locationtype
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the locationtype type in the database.
 	Label = "location_type"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID           = "id"             // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime   = "create_time"    // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime   = "update_time"    // FieldSite holds the string denoting the site vertex property in the database.
-	FieldSite         = "site"           // FieldName holds the string denoting the name vertex property in the database.
-	FieldName         = "name"           // FieldMapType holds the string denoting the map_type vertex property in the database.
-	FieldMapType      = "map_type"       // FieldMapZoomLevel holds the string denoting the map_zoom_level vertex property in the database.
-	FieldMapZoomLevel = "map_zoom_level" // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex        = "index"
-
-	// EdgeLocations holds the string denoting the locations edge name in mutations.
-	EdgeLocations = "locations"
-	// EdgePropertyTypes holds the string denoting the property_types edge name in mutations.
-	EdgePropertyTypes = "property_types"
-	// EdgeSurveyTemplateCategories holds the string denoting the survey_template_categories edge name in mutations.
-	EdgeSurveyTemplateCategories = "survey_template_categories"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime = "update_time"
+	// FieldSite holds the string denoting the site vertex property in the database.
+	FieldSite = "site"
+	// FieldName holds the string denoting the name vertex property in the database.
+	FieldName = "name"
+	// FieldMapType holds the string denoting the map_type vertex property in the database.
+	FieldMapType = "map_type"
+	// FieldMapZoomLevel holds the string denoting the map_zoom_level vertex property in the database.
+	FieldMapZoomLevel = "map_zoom_level"
+	// FieldIndex holds the string denoting the index vertex property in the database.
+	FieldIndex = "index"
 
 	// Table holds the table name of the locationtype in the database.
 	Table = "location_types"
@@ -68,16 +71,36 @@ var Columns = []string{
 }
 
 var (
+	mixin       = schema.LocationType{}.Mixin()
+	mixinFields = [...][]ent.Field{
+		mixin[0].Fields(),
+	}
+	fields = schema.LocationType{}.Fields()
+
+	// descCreateTime is the schema descriptor for create_time field.
+	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime func() time.Time
+	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
+
+	// descUpdateTime is the schema descriptor for update_time field.
+	descUpdateTime = mixinFields[0][1].Descriptor()
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime func() time.Time
+	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime func() time.Time
+	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
+
+	// descSite is the schema descriptor for site field.
+	descSite = fields[0].Descriptor()
 	// DefaultSite holds the default value on creation for the site field.
-	DefaultSite bool
+	DefaultSite = descSite.Default.(bool)
+
+	// descMapZoomLevel is the schema descriptor for map_zoom_level field.
+	descMapZoomLevel = fields[3].Descriptor()
 	// DefaultMapZoomLevel holds the default value on creation for the map_zoom_level field.
-	DefaultMapZoomLevel int
+	DefaultMapZoomLevel = descMapZoomLevel.Default.(int)
+
+	// descIndex is the schema descriptor for index field.
+	descIndex = fields[4].Descriptor()
 	// DefaultIndex holds the default value on creation for the index field.
-	DefaultIndex int
+	DefaultIndex = descIndex.Default.(int)
 )

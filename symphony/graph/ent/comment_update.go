@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,9 +20,11 @@ import (
 // CommentUpdate is the builder for updating Comment entities.
 type CommentUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *CommentMutation
-	predicates []predicate.Comment
+
+	update_time *time.Time
+	author_name *string
+	text        *string
+	predicates  []predicate.Comment
 }
 
 // Where adds a new predicate for the builder.
@@ -33,46 +35,23 @@ func (cu *CommentUpdate) Where(ps ...predicate.Comment) *CommentUpdate {
 
 // SetAuthorName sets the author_name field.
 func (cu *CommentUpdate) SetAuthorName(s string) *CommentUpdate {
-	cu.mutation.SetAuthorName(s)
+	cu.author_name = &s
 	return cu
 }
 
 // SetText sets the text field.
 func (cu *CommentUpdate) SetText(s string) *CommentUpdate {
-	cu.mutation.SetText(s)
+	cu.text = &s
 	return cu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (cu *CommentUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := cu.mutation.UpdateTime(); !ok {
+	if cu.update_time == nil {
 		v := comment.UpdateDefaultUpdateTime()
-		cu.mutation.SetUpdateTime(v)
+		cu.update_time = &v
 	}
-	var (
-		err      error
-		affected int
-	)
-	if len(cu.hooks) == 0 {
-		affected, err = cu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CommentMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			cu.mutation = mutation
-			affected, err = cu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(cu.hooks); i > 0; i-- {
-			mut = cu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, cu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return cu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -115,24 +94,24 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := cu.mutation.UpdateTime(); ok {
+	if value := cu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: comment.FieldUpdateTime,
 		})
 	}
-	if value, ok := cu.mutation.AuthorName(); ok {
+	if value := cu.author_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: comment.FieldAuthorName,
 		})
 	}
-	if value, ok := cu.mutation.Text(); ok {
+	if value := cu.text; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: comment.FieldText,
 		})
 	}
@@ -150,52 +129,32 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // CommentUpdateOne is the builder for updating a single Comment entity.
 type CommentUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *CommentMutation
+	id int
+
+	update_time *time.Time
+	author_name *string
+	text        *string
 }
 
 // SetAuthorName sets the author_name field.
 func (cuo *CommentUpdateOne) SetAuthorName(s string) *CommentUpdateOne {
-	cuo.mutation.SetAuthorName(s)
+	cuo.author_name = &s
 	return cuo
 }
 
 // SetText sets the text field.
 func (cuo *CommentUpdateOne) SetText(s string) *CommentUpdateOne {
-	cuo.mutation.SetText(s)
+	cuo.text = &s
 	return cuo
 }
 
 // Save executes the query and returns the updated entity.
 func (cuo *CommentUpdateOne) Save(ctx context.Context) (*Comment, error) {
-	if _, ok := cuo.mutation.UpdateTime(); !ok {
+	if cuo.update_time == nil {
 		v := comment.UpdateDefaultUpdateTime()
-		cuo.mutation.SetUpdateTime(v)
+		cuo.update_time = &v
 	}
-	var (
-		err  error
-		node *Comment
-	)
-	if len(cuo.hooks) == 0 {
-		node, err = cuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CommentMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			cuo.mutation = mutation
-			node, err = cuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(cuo.hooks); i > 0; i-- {
-			mut = cuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, cuo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return cuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -226,34 +185,30 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (c *Comment, err error
 			Table:   comment.Table,
 			Columns: comment.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  cuo.id,
 				Type:   field.TypeInt,
 				Column: comment.FieldID,
 			},
 		},
 	}
-	id, ok := cuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing Comment.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := cuo.mutation.UpdateTime(); ok {
+	if value := cuo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: comment.FieldUpdateTime,
 		})
 	}
-	if value, ok := cuo.mutation.AuthorName(); ok {
+	if value := cuo.author_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: comment.FieldAuthorName,
 		})
 	}
-	if value, ok := cuo.mutation.Text(); ok {
+	if value := cuo.text; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: comment.FieldText,
 		})
 	}

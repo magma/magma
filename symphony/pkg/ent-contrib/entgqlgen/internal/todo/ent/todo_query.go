@@ -360,7 +360,7 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*Todo)
 		for i := range nodes {
-			if fk := nodes[i].todo_children; fk != nil {
+			if fk := nodes[i].parent_id; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -373,7 +373,7 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "todo_children" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Parent = n
@@ -397,13 +397,13 @@ func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.todo_children
+			fk := n.parent_id
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "todo_children" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "parent_id" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "todo_children" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Children = append(node.Edges.Children, n)
 		}

@@ -21,13 +21,20 @@ import (
 // UserCreate is the builder for creating a User entity.
 type UserCreate struct {
 	config
-	mutation *UserMutation
-	hooks    []Hook
+	create_time   *time.Time
+	update_time   *time.Time
+	auth_id       *string
+	first_name    *string
+	last_name     *string
+	email         *string
+	status        *user.Status
+	role          *user.Role
+	profile_photo map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (uc *UserCreate) SetCreateTime(t time.Time) *UserCreate {
-	uc.mutation.SetCreateTime(t)
+	uc.create_time = &t
 	return uc
 }
 
@@ -41,7 +48,7 @@ func (uc *UserCreate) SetNillableCreateTime(t *time.Time) *UserCreate {
 
 // SetUpdateTime sets the update_time field.
 func (uc *UserCreate) SetUpdateTime(t time.Time) *UserCreate {
-	uc.mutation.SetUpdateTime(t)
+	uc.update_time = &t
 	return uc
 }
 
@@ -55,13 +62,13 @@ func (uc *UserCreate) SetNillableUpdateTime(t *time.Time) *UserCreate {
 
 // SetAuthID sets the auth_id field.
 func (uc *UserCreate) SetAuthID(s string) *UserCreate {
-	uc.mutation.SetAuthID(s)
+	uc.auth_id = &s
 	return uc
 }
 
 // SetFirstName sets the first_name field.
 func (uc *UserCreate) SetFirstName(s string) *UserCreate {
-	uc.mutation.SetFirstName(s)
+	uc.first_name = &s
 	return uc
 }
 
@@ -75,7 +82,7 @@ func (uc *UserCreate) SetNillableFirstName(s *string) *UserCreate {
 
 // SetLastName sets the last_name field.
 func (uc *UserCreate) SetLastName(s string) *UserCreate {
-	uc.mutation.SetLastName(s)
+	uc.last_name = &s
 	return uc
 }
 
@@ -89,7 +96,7 @@ func (uc *UserCreate) SetNillableLastName(s *string) *UserCreate {
 
 // SetEmail sets the email field.
 func (uc *UserCreate) SetEmail(s string) *UserCreate {
-	uc.mutation.SetEmail(s)
+	uc.email = &s
 	return uc
 }
 
@@ -103,7 +110,7 @@ func (uc *UserCreate) SetNillableEmail(s *string) *UserCreate {
 
 // SetStatus sets the status field.
 func (uc *UserCreate) SetStatus(u user.Status) *UserCreate {
-	uc.mutation.SetStatus(u)
+	uc.status = &u
 	return uc
 }
 
@@ -117,7 +124,7 @@ func (uc *UserCreate) SetNillableStatus(u *user.Status) *UserCreate {
 
 // SetRole sets the role field.
 func (uc *UserCreate) SetRole(u user.Role) *UserCreate {
-	uc.mutation.SetRole(u)
+	uc.role = &u
 	return uc
 }
 
@@ -131,7 +138,10 @@ func (uc *UserCreate) SetNillableRole(u *user.Role) *UserCreate {
 
 // SetProfilePhotoID sets the profile_photo edge to File by id.
 func (uc *UserCreate) SetProfilePhotoID(id int) *UserCreate {
-	uc.mutation.SetProfilePhotoID(id)
+	if uc.profile_photo == nil {
+		uc.profile_photo = make(map[int]struct{})
+	}
+	uc.profile_photo[id] = struct{}{}
 	return uc
 }
 
@@ -150,79 +160,53 @@ func (uc *UserCreate) SetProfilePhoto(f *File) *UserCreate {
 
 // Save creates the User in the database.
 func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
-	if _, ok := uc.mutation.CreateTime(); !ok {
+	if uc.create_time == nil {
 		v := user.DefaultCreateTime()
-		uc.mutation.SetCreateTime(v)
+		uc.create_time = &v
 	}
-	if _, ok := uc.mutation.UpdateTime(); !ok {
+	if uc.update_time == nil {
 		v := user.DefaultUpdateTime()
-		uc.mutation.SetUpdateTime(v)
+		uc.update_time = &v
 	}
-	if _, ok := uc.mutation.AuthID(); !ok {
+	if uc.auth_id == nil {
 		return nil, errors.New("ent: missing required field \"auth_id\"")
 	}
-	if v, ok := uc.mutation.AuthID(); ok {
-		if err := user.AuthIDValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"auth_id\": %v", err)
-		}
+	if err := user.AuthIDValidator(*uc.auth_id); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"auth_id\": %v", err)
 	}
-	if v, ok := uc.mutation.FirstName(); ok {
-		if err := user.FirstNameValidator(v); err != nil {
+	if uc.first_name != nil {
+		if err := user.FirstNameValidator(*uc.first_name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"first_name\": %v", err)
 		}
 	}
-	if v, ok := uc.mutation.LastName(); ok {
-		if err := user.LastNameValidator(v); err != nil {
+	if uc.last_name != nil {
+		if err := user.LastNameValidator(*uc.last_name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"last_name\": %v", err)
 		}
 	}
-	if v, ok := uc.mutation.Email(); ok {
-		if err := user.EmailValidator(v); err != nil {
+	if uc.email != nil {
+		if err := user.EmailValidator(*uc.email); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
-	if _, ok := uc.mutation.Status(); !ok {
+	if uc.status == nil {
 		v := user.DefaultStatus
-		uc.mutation.SetStatus(v)
+		uc.status = &v
 	}
-	if v, ok := uc.mutation.Status(); ok {
-		if err := user.StatusValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
-		}
+	if err := user.StatusValidator(*uc.status); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
 	}
-	if _, ok := uc.mutation.Role(); !ok {
+	if uc.role == nil {
 		v := user.DefaultRole
-		uc.mutation.SetRole(v)
+		uc.role = &v
 	}
-	if v, ok := uc.mutation.Role(); ok {
-		if err := user.RoleValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
-		}
+	if err := user.RoleValidator(*uc.role); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
 	}
-	var (
-		err  error
-		node *User
-	)
-	if len(uc.hooks) == 0 {
-		node, err = uc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*UserMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			uc.mutation = mutation
-			node, err = uc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(uc.hooks); i > 0; i-- {
-			mut = uc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, uc.mutation); err != nil {
-			return nil, err
-		}
+	if len(uc.profile_photo) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"profile_photo\"")
 	}
-	return node, err
+	return uc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -245,71 +229,71 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 			},
 		}
 	)
-	if value, ok := uc.mutation.CreateTime(); ok {
+	if value := uc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldCreateTime,
 		})
-		u.CreateTime = value
+		u.CreateTime = *value
 	}
-	if value, ok := uc.mutation.UpdateTime(); ok {
+	if value := uc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldUpdateTime,
 		})
-		u.UpdateTime = value
+		u.UpdateTime = *value
 	}
-	if value, ok := uc.mutation.AuthID(); ok {
+	if value := uc.auth_id; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldAuthID,
 		})
-		u.AuthID = value
+		u.AuthID = *value
 	}
-	if value, ok := uc.mutation.FirstName(); ok {
+	if value := uc.first_name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldFirstName,
 		})
-		u.FirstName = value
+		u.FirstName = *value
 	}
-	if value, ok := uc.mutation.LastName(); ok {
+	if value := uc.last_name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldLastName,
 		})
-		u.LastName = value
+		u.LastName = *value
 	}
-	if value, ok := uc.mutation.Email(); ok {
+	if value := uc.email; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldEmail,
 		})
-		u.Email = value
+		u.Email = *value
 	}
-	if value, ok := uc.mutation.Status(); ok {
+	if value := uc.status; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldStatus,
 		})
-		u.Status = value
+		u.Status = *value
 	}
-	if value, ok := uc.mutation.Role(); ok {
+	if value := uc.role; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldRole,
 		})
-		u.Role = value
+		u.Role = *value
 	}
-	if nodes := uc.mutation.ProfilePhotoIDs(); len(nodes) > 0 {
+	if nodes := uc.profile_photo; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -323,7 +307,7 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

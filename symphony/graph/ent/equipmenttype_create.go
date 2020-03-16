@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -25,13 +24,19 @@ import (
 // EquipmentTypeCreate is the builder for creating a EquipmentType entity.
 type EquipmentTypeCreate struct {
 	config
-	mutation *EquipmentTypeMutation
-	hooks    []Hook
+	create_time          *time.Time
+	update_time          *time.Time
+	name                 *string
+	port_definitions     map[int]struct{}
+	position_definitions map[int]struct{}
+	property_types       map[int]struct{}
+	equipment            map[int]struct{}
+	category             map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (etc *EquipmentTypeCreate) SetCreateTime(t time.Time) *EquipmentTypeCreate {
-	etc.mutation.SetCreateTime(t)
+	etc.create_time = &t
 	return etc
 }
 
@@ -45,7 +50,7 @@ func (etc *EquipmentTypeCreate) SetNillableCreateTime(t *time.Time) *EquipmentTy
 
 // SetUpdateTime sets the update_time field.
 func (etc *EquipmentTypeCreate) SetUpdateTime(t time.Time) *EquipmentTypeCreate {
-	etc.mutation.SetUpdateTime(t)
+	etc.update_time = &t
 	return etc
 }
 
@@ -59,13 +64,18 @@ func (etc *EquipmentTypeCreate) SetNillableUpdateTime(t *time.Time) *EquipmentTy
 
 // SetName sets the name field.
 func (etc *EquipmentTypeCreate) SetName(s string) *EquipmentTypeCreate {
-	etc.mutation.SetName(s)
+	etc.name = &s
 	return etc
 }
 
 // AddPortDefinitionIDs adds the port_definitions edge to EquipmentPortDefinition by ids.
 func (etc *EquipmentTypeCreate) AddPortDefinitionIDs(ids ...int) *EquipmentTypeCreate {
-	etc.mutation.AddPortDefinitionIDs(ids...)
+	if etc.port_definitions == nil {
+		etc.port_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		etc.port_definitions[ids[i]] = struct{}{}
+	}
 	return etc
 }
 
@@ -80,7 +90,12 @@ func (etc *EquipmentTypeCreate) AddPortDefinitions(e ...*EquipmentPortDefinition
 
 // AddPositionDefinitionIDs adds the position_definitions edge to EquipmentPositionDefinition by ids.
 func (etc *EquipmentTypeCreate) AddPositionDefinitionIDs(ids ...int) *EquipmentTypeCreate {
-	etc.mutation.AddPositionDefinitionIDs(ids...)
+	if etc.position_definitions == nil {
+		etc.position_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		etc.position_definitions[ids[i]] = struct{}{}
+	}
 	return etc
 }
 
@@ -95,7 +110,12 @@ func (etc *EquipmentTypeCreate) AddPositionDefinitions(e ...*EquipmentPositionDe
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (etc *EquipmentTypeCreate) AddPropertyTypeIDs(ids ...int) *EquipmentTypeCreate {
-	etc.mutation.AddPropertyTypeIDs(ids...)
+	if etc.property_types == nil {
+		etc.property_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		etc.property_types[ids[i]] = struct{}{}
+	}
 	return etc
 }
 
@@ -110,7 +130,12 @@ func (etc *EquipmentTypeCreate) AddPropertyTypes(p ...*PropertyType) *EquipmentT
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
 func (etc *EquipmentTypeCreate) AddEquipmentIDs(ids ...int) *EquipmentTypeCreate {
-	etc.mutation.AddEquipmentIDs(ids...)
+	if etc.equipment == nil {
+		etc.equipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		etc.equipment[ids[i]] = struct{}{}
+	}
 	return etc
 }
 
@@ -125,7 +150,10 @@ func (etc *EquipmentTypeCreate) AddEquipment(e ...*Equipment) *EquipmentTypeCrea
 
 // SetCategoryID sets the category edge to EquipmentCategory by id.
 func (etc *EquipmentTypeCreate) SetCategoryID(id int) *EquipmentTypeCreate {
-	etc.mutation.SetCategoryID(id)
+	if etc.category == nil {
+		etc.category = make(map[int]struct{})
+	}
+	etc.category[id] = struct{}{}
 	return etc
 }
 
@@ -144,41 +172,21 @@ func (etc *EquipmentTypeCreate) SetCategory(e *EquipmentCategory) *EquipmentType
 
 // Save creates the EquipmentType in the database.
 func (etc *EquipmentTypeCreate) Save(ctx context.Context) (*EquipmentType, error) {
-	if _, ok := etc.mutation.CreateTime(); !ok {
+	if etc.create_time == nil {
 		v := equipmenttype.DefaultCreateTime()
-		etc.mutation.SetCreateTime(v)
+		etc.create_time = &v
 	}
-	if _, ok := etc.mutation.UpdateTime(); !ok {
+	if etc.update_time == nil {
 		v := equipmenttype.DefaultUpdateTime()
-		etc.mutation.SetUpdateTime(v)
+		etc.update_time = &v
 	}
-	if _, ok := etc.mutation.Name(); !ok {
+	if etc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	var (
-		err  error
-		node *EquipmentType
-	)
-	if len(etc.hooks) == 0 {
-		node, err = etc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EquipmentTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			etc.mutation = mutation
-			node, err = etc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(etc.hooks); i > 0; i-- {
-			mut = etc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, etc.mutation); err != nil {
-			return nil, err
-		}
+	if len(etc.category) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"category\"")
 	}
-	return node, err
+	return etc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -201,31 +209,31 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 			},
 		}
 	)
-	if value, ok := etc.mutation.CreateTime(); ok {
+	if value := etc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmenttype.FieldCreateTime,
 		})
-		et.CreateTime = value
+		et.CreateTime = *value
 	}
-	if value, ok := etc.mutation.UpdateTime(); ok {
+	if value := etc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmenttype.FieldUpdateTime,
 		})
-		et.UpdateTime = value
+		et.UpdateTime = *value
 	}
-	if value, ok := etc.mutation.Name(); ok {
+	if value := etc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: equipmenttype.FieldName,
 		})
-		et.Name = value
+		et.Name = *value
 	}
-	if nodes := etc.mutation.PortDefinitionsIDs(); len(nodes) > 0 {
+	if nodes := etc.port_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -239,12 +247,12 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := etc.mutation.PositionDefinitionsIDs(); len(nodes) > 0 {
+	if nodes := etc.position_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -258,12 +266,12 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := etc.mutation.PropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := etc.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -277,12 +285,12 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := etc.mutation.EquipmentIDs(); len(nodes) > 0 {
+	if nodes := etc.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -296,12 +304,12 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := etc.mutation.CategoryIDs(); len(nodes) > 0 {
+	if nodes := etc.category; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -315,7 +323,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

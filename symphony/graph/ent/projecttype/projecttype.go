@@ -8,24 +8,24 @@ package projecttype
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the projecttype type in the database.
 	Label = "project_type"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID          = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime  = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime  = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName        = "name"        // FieldDescription holds the string denoting the description vertex property in the database.
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name vertex property in the database.
+	FieldName = "name"
+	// FieldDescription holds the string denoting the description vertex property in the database.
 	FieldDescription = "description"
-
-	// EdgeProjects holds the string denoting the projects edge name in mutations.
-	EdgeProjects = "projects"
-	// EdgeProperties holds the string denoting the properties edge name in mutations.
-	EdgeProperties = "properties"
-	// EdgeWorkOrders holds the string denoting the work_orders edge name in mutations.
-	EdgeWorkOrders = "work_orders"
 
 	// Table holds the table name of the projecttype in the database.
 	Table = "project_types"
@@ -62,12 +62,26 @@ var Columns = []string{
 }
 
 var (
+	mixin       = schema.ProjectType{}.Mixin()
+	mixinFields = [...][]ent.Field{
+		mixin[0].Fields(),
+	}
+	fields = schema.ProjectType{}.Fields()
+
+	// descCreateTime is the schema descriptor for create_time field.
+	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime func() time.Time
+	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
+
+	// descUpdateTime is the schema descriptor for update_time field.
+	descUpdateTime = mixinFields[0][1].Descriptor()
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime func() time.Time
+	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime func() time.Time
+	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
+
+	// descName is the schema descriptor for name field.
+	descName = fields[0].Descriptor()
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
+	NameValidator = descName.Validators[0].(func(string) error)
 )

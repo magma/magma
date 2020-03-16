@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,13 +21,16 @@ import (
 // ServiceEndpointCreate is the builder for creating a ServiceEndpoint entity.
 type ServiceEndpointCreate struct {
 	config
-	mutation *ServiceEndpointMutation
-	hooks    []Hook
+	create_time *time.Time
+	update_time *time.Time
+	role        *string
+	port        map[int]struct{}
+	service     map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (sec *ServiceEndpointCreate) SetCreateTime(t time.Time) *ServiceEndpointCreate {
-	sec.mutation.SetCreateTime(t)
+	sec.create_time = &t
 	return sec
 }
 
@@ -42,7 +44,7 @@ func (sec *ServiceEndpointCreate) SetNillableCreateTime(t *time.Time) *ServiceEn
 
 // SetUpdateTime sets the update_time field.
 func (sec *ServiceEndpointCreate) SetUpdateTime(t time.Time) *ServiceEndpointCreate {
-	sec.mutation.SetUpdateTime(t)
+	sec.update_time = &t
 	return sec
 }
 
@@ -56,13 +58,16 @@ func (sec *ServiceEndpointCreate) SetNillableUpdateTime(t *time.Time) *ServiceEn
 
 // SetRole sets the role field.
 func (sec *ServiceEndpointCreate) SetRole(s string) *ServiceEndpointCreate {
-	sec.mutation.SetRole(s)
+	sec.role = &s
 	return sec
 }
 
 // SetPortID sets the port edge to EquipmentPort by id.
 func (sec *ServiceEndpointCreate) SetPortID(id int) *ServiceEndpointCreate {
-	sec.mutation.SetPortID(id)
+	if sec.port == nil {
+		sec.port = make(map[int]struct{})
+	}
+	sec.port[id] = struct{}{}
 	return sec
 }
 
@@ -81,7 +86,10 @@ func (sec *ServiceEndpointCreate) SetPort(e *EquipmentPort) *ServiceEndpointCrea
 
 // SetServiceID sets the service edge to Service by id.
 func (sec *ServiceEndpointCreate) SetServiceID(id int) *ServiceEndpointCreate {
-	sec.mutation.SetServiceID(id)
+	if sec.service == nil {
+		sec.service = make(map[int]struct{})
+	}
+	sec.service[id] = struct{}{}
 	return sec
 }
 
@@ -100,41 +108,24 @@ func (sec *ServiceEndpointCreate) SetService(s *Service) *ServiceEndpointCreate 
 
 // Save creates the ServiceEndpoint in the database.
 func (sec *ServiceEndpointCreate) Save(ctx context.Context) (*ServiceEndpoint, error) {
-	if _, ok := sec.mutation.CreateTime(); !ok {
+	if sec.create_time == nil {
 		v := serviceendpoint.DefaultCreateTime()
-		sec.mutation.SetCreateTime(v)
+		sec.create_time = &v
 	}
-	if _, ok := sec.mutation.UpdateTime(); !ok {
+	if sec.update_time == nil {
 		v := serviceendpoint.DefaultUpdateTime()
-		sec.mutation.SetUpdateTime(v)
+		sec.update_time = &v
 	}
-	if _, ok := sec.mutation.Role(); !ok {
+	if sec.role == nil {
 		return nil, errors.New("ent: missing required field \"role\"")
 	}
-	var (
-		err  error
-		node *ServiceEndpoint
-	)
-	if len(sec.hooks) == 0 {
-		node, err = sec.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ServiceEndpointMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			sec.mutation = mutation
-			node, err = sec.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(sec.hooks); i > 0; i-- {
-			mut = sec.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, sec.mutation); err != nil {
-			return nil, err
-		}
+	if len(sec.port) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"port\"")
 	}
-	return node, err
+	if len(sec.service) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"service\"")
+	}
+	return sec.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -157,31 +148,31 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 			},
 		}
 	)
-	if value, ok := sec.mutation.CreateTime(); ok {
+	if value := sec.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: serviceendpoint.FieldCreateTime,
 		})
-		se.CreateTime = value
+		se.CreateTime = *value
 	}
-	if value, ok := sec.mutation.UpdateTime(); ok {
+	if value := sec.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: serviceendpoint.FieldUpdateTime,
 		})
-		se.UpdateTime = value
+		se.UpdateTime = *value
 	}
-	if value, ok := sec.mutation.Role(); ok {
+	if value := sec.role; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: serviceendpoint.FieldRole,
 		})
-		se.Role = value
+		se.Role = *value
 	}
-	if nodes := sec.mutation.PortIDs(); len(nodes) > 0 {
+	if nodes := sec.port; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -195,12 +186,12 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sec.mutation.ServiceIDs(); len(nodes) > 0 {
+	if nodes := sec.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -214,7 +205,7 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

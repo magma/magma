@@ -10,6 +10,7 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 )
 
 // Tx is a transactional client that is created by calling Client.Tx().
@@ -111,53 +112,51 @@ func (tx *Tx) Rollback() error {
 
 // Client returns a Client that binds to current transaction.
 func (tx *Tx) Client() *Client {
-	client := &Client{config: tx.config}
-	client.init()
-	return client
-}
-
-func (tx *Tx) init() {
-	tx.ActionsRule = NewActionsRuleClient(tx.config)
-	tx.CheckListCategory = NewCheckListCategoryClient(tx.config)
-	tx.CheckListItem = NewCheckListItemClient(tx.config)
-	tx.CheckListItemDefinition = NewCheckListItemDefinitionClient(tx.config)
-	tx.Comment = NewCommentClient(tx.config)
-	tx.Customer = NewCustomerClient(tx.config)
-	tx.Equipment = NewEquipmentClient(tx.config)
-	tx.EquipmentCategory = NewEquipmentCategoryClient(tx.config)
-	tx.EquipmentPort = NewEquipmentPortClient(tx.config)
-	tx.EquipmentPortDefinition = NewEquipmentPortDefinitionClient(tx.config)
-	tx.EquipmentPortType = NewEquipmentPortTypeClient(tx.config)
-	tx.EquipmentPosition = NewEquipmentPositionClient(tx.config)
-	tx.EquipmentPositionDefinition = NewEquipmentPositionDefinitionClient(tx.config)
-	tx.EquipmentType = NewEquipmentTypeClient(tx.config)
-	tx.File = NewFileClient(tx.config)
-	tx.FloorPlan = NewFloorPlanClient(tx.config)
-	tx.FloorPlanReferencePoint = NewFloorPlanReferencePointClient(tx.config)
-	tx.FloorPlanScale = NewFloorPlanScaleClient(tx.config)
-	tx.Hyperlink = NewHyperlinkClient(tx.config)
-	tx.Link = NewLinkClient(tx.config)
-	tx.Location = NewLocationClient(tx.config)
-	tx.LocationType = NewLocationTypeClient(tx.config)
-	tx.Project = NewProjectClient(tx.config)
-	tx.ProjectType = NewProjectTypeClient(tx.config)
-	tx.Property = NewPropertyClient(tx.config)
-	tx.PropertyType = NewPropertyTypeClient(tx.config)
-	tx.ReportFilter = NewReportFilterClient(tx.config)
-	tx.Service = NewServiceClient(tx.config)
-	tx.ServiceEndpoint = NewServiceEndpointClient(tx.config)
-	tx.ServiceType = NewServiceTypeClient(tx.config)
-	tx.Survey = NewSurveyClient(tx.config)
-	tx.SurveyCellScan = NewSurveyCellScanClient(tx.config)
-	tx.SurveyQuestion = NewSurveyQuestionClient(tx.config)
-	tx.SurveyTemplateCategory = NewSurveyTemplateCategoryClient(tx.config)
-	tx.SurveyTemplateQuestion = NewSurveyTemplateQuestionClient(tx.config)
-	tx.SurveyWiFiScan = NewSurveyWiFiScanClient(tx.config)
-	tx.Technician = NewTechnicianClient(tx.config)
-	tx.User = NewUserClient(tx.config)
-	tx.WorkOrder = NewWorkOrderClient(tx.config)
-	tx.WorkOrderDefinition = NewWorkOrderDefinitionClient(tx.config)
-	tx.WorkOrderType = NewWorkOrderTypeClient(tx.config)
+	return &Client{
+		config:                      tx.config,
+		Schema:                      migrate.NewSchema(tx.driver),
+		ActionsRule:                 NewActionsRuleClient(tx.config),
+		CheckListCategory:           NewCheckListCategoryClient(tx.config),
+		CheckListItem:               NewCheckListItemClient(tx.config),
+		CheckListItemDefinition:     NewCheckListItemDefinitionClient(tx.config),
+		Comment:                     NewCommentClient(tx.config),
+		Customer:                    NewCustomerClient(tx.config),
+		Equipment:                   NewEquipmentClient(tx.config),
+		EquipmentCategory:           NewEquipmentCategoryClient(tx.config),
+		EquipmentPort:               NewEquipmentPortClient(tx.config),
+		EquipmentPortDefinition:     NewEquipmentPortDefinitionClient(tx.config),
+		EquipmentPortType:           NewEquipmentPortTypeClient(tx.config),
+		EquipmentPosition:           NewEquipmentPositionClient(tx.config),
+		EquipmentPositionDefinition: NewEquipmentPositionDefinitionClient(tx.config),
+		EquipmentType:               NewEquipmentTypeClient(tx.config),
+		File:                        NewFileClient(tx.config),
+		FloorPlan:                   NewFloorPlanClient(tx.config),
+		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(tx.config),
+		FloorPlanScale:              NewFloorPlanScaleClient(tx.config),
+		Hyperlink:                   NewHyperlinkClient(tx.config),
+		Link:                        NewLinkClient(tx.config),
+		Location:                    NewLocationClient(tx.config),
+		LocationType:                NewLocationTypeClient(tx.config),
+		Project:                     NewProjectClient(tx.config),
+		ProjectType:                 NewProjectTypeClient(tx.config),
+		Property:                    NewPropertyClient(tx.config),
+		PropertyType:                NewPropertyTypeClient(tx.config),
+		ReportFilter:                NewReportFilterClient(tx.config),
+		Service:                     NewServiceClient(tx.config),
+		ServiceEndpoint:             NewServiceEndpointClient(tx.config),
+		ServiceType:                 NewServiceTypeClient(tx.config),
+		Survey:                      NewSurveyClient(tx.config),
+		SurveyCellScan:              NewSurveyCellScanClient(tx.config),
+		SurveyQuestion:              NewSurveyQuestionClient(tx.config),
+		SurveyTemplateCategory:      NewSurveyTemplateCategoryClient(tx.config),
+		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(tx.config),
+		SurveyWiFiScan:              NewSurveyWiFiScanClient(tx.config),
+		Technician:                  NewTechnicianClient(tx.config),
+		User:                        NewUserClient(tx.config),
+		WorkOrder:                   NewWorkOrderClient(tx.config),
+		WorkOrderDefinition:         NewWorkOrderDefinitionClient(tx.config),
+		WorkOrderType:               NewWorkOrderTypeClient(tx.config),
+	}
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

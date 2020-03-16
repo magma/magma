@@ -8,7 +8,8 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,9 +23,16 @@ import (
 // WorkOrderDefinitionUpdate is the builder for updating WorkOrderDefinition entities.
 type WorkOrderDefinitionUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *WorkOrderDefinitionMutation
-	predicates []predicate.WorkOrderDefinition
+
+	update_time        *time.Time
+	index              *int
+	addindex           *int
+	clearindex         bool
+	_type              map[int]struct{}
+	project_type       map[int]struct{}
+	clearedType        bool
+	clearedProjectType bool
+	predicates         []predicate.WorkOrderDefinition
 }
 
 // Where adds a new predicate for the builder.
@@ -35,8 +43,8 @@ func (wodu *WorkOrderDefinitionUpdate) Where(ps ...predicate.WorkOrderDefinition
 
 // SetIndex sets the index field.
 func (wodu *WorkOrderDefinitionUpdate) SetIndex(i int) *WorkOrderDefinitionUpdate {
-	wodu.mutation.ResetIndex()
-	wodu.mutation.SetIndex(i)
+	wodu.index = &i
+	wodu.addindex = nil
 	return wodu
 }
 
@@ -50,19 +58,27 @@ func (wodu *WorkOrderDefinitionUpdate) SetNillableIndex(i *int) *WorkOrderDefini
 
 // AddIndex adds i to index.
 func (wodu *WorkOrderDefinitionUpdate) AddIndex(i int) *WorkOrderDefinitionUpdate {
-	wodu.mutation.AddIndex(i)
+	if wodu.addindex == nil {
+		wodu.addindex = &i
+	} else {
+		*wodu.addindex += i
+	}
 	return wodu
 }
 
 // ClearIndex clears the value of index.
 func (wodu *WorkOrderDefinitionUpdate) ClearIndex() *WorkOrderDefinitionUpdate {
-	wodu.mutation.ClearIndex()
+	wodu.index = nil
+	wodu.clearindex = true
 	return wodu
 }
 
 // SetTypeID sets the type edge to WorkOrderType by id.
 func (wodu *WorkOrderDefinitionUpdate) SetTypeID(id int) *WorkOrderDefinitionUpdate {
-	wodu.mutation.SetTypeID(id)
+	if wodu._type == nil {
+		wodu._type = make(map[int]struct{})
+	}
+	wodu._type[id] = struct{}{}
 	return wodu
 }
 
@@ -81,7 +97,10 @@ func (wodu *WorkOrderDefinitionUpdate) SetType(w *WorkOrderType) *WorkOrderDefin
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
 func (wodu *WorkOrderDefinitionUpdate) SetProjectTypeID(id int) *WorkOrderDefinitionUpdate {
-	wodu.mutation.SetProjectTypeID(id)
+	if wodu.project_type == nil {
+		wodu.project_type = make(map[int]struct{})
+	}
+	wodu.project_type[id] = struct{}{}
 	return wodu
 }
 
@@ -100,47 +119,29 @@ func (wodu *WorkOrderDefinitionUpdate) SetProjectType(p *ProjectType) *WorkOrder
 
 // ClearType clears the type edge to WorkOrderType.
 func (wodu *WorkOrderDefinitionUpdate) ClearType() *WorkOrderDefinitionUpdate {
-	wodu.mutation.ClearType()
+	wodu.clearedType = true
 	return wodu
 }
 
 // ClearProjectType clears the project_type edge to ProjectType.
 func (wodu *WorkOrderDefinitionUpdate) ClearProjectType() *WorkOrderDefinitionUpdate {
-	wodu.mutation.ClearProjectType()
+	wodu.clearedProjectType = true
 	return wodu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (wodu *WorkOrderDefinitionUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := wodu.mutation.UpdateTime(); !ok {
+	if wodu.update_time == nil {
 		v := workorderdefinition.UpdateDefaultUpdateTime()
-		wodu.mutation.SetUpdateTime(v)
+		wodu.update_time = &v
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(wodu.hooks) == 0 {
-		affected, err = wodu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WorkOrderDefinitionMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wodu.mutation = mutation
-			affected, err = wodu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(wodu.hooks); i > 0; i-- {
-			mut = wodu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, wodu.mutation); err != nil {
-			return 0, err
-		}
+	if len(wodu._type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"type\"")
 	}
-	return affected, err
+	if len(wodu.project_type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"project_type\"")
+	}
+	return wodu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -183,34 +184,34 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 			}
 		}
 	}
-	if value, ok := wodu.mutation.UpdateTime(); ok {
+	if value := wodu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workorderdefinition.FieldUpdateTime,
 		})
 	}
-	if value, ok := wodu.mutation.Index(); ok {
+	if value := wodu.index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: workorderdefinition.FieldIndex,
 		})
 	}
-	if value, ok := wodu.mutation.AddedIndex(); ok {
+	if value := wodu.addindex; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: workorderdefinition.FieldIndex,
 		})
 	}
-	if wodu.mutation.IndexCleared() {
+	if wodu.clearindex {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: workorderdefinition.FieldIndex,
 		})
 	}
-	if wodu.mutation.TypeCleared() {
+	if wodu.clearedType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -226,7 +227,7 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wodu.mutation.TypeIDs(); len(nodes) > 0 {
+	if nodes := wodu._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -240,12 +241,12 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if wodu.mutation.ProjectTypeCleared() {
+	if wodu.clearedProjectType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -261,7 +262,7 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wodu.mutation.ProjectTypeIDs(); len(nodes) > 0 {
+	if nodes := wodu.project_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -275,7 +276,7 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -294,14 +295,22 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 // WorkOrderDefinitionUpdateOne is the builder for updating a single WorkOrderDefinition entity.
 type WorkOrderDefinitionUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *WorkOrderDefinitionMutation
+	id int
+
+	update_time        *time.Time
+	index              *int
+	addindex           *int
+	clearindex         bool
+	_type              map[int]struct{}
+	project_type       map[int]struct{}
+	clearedType        bool
+	clearedProjectType bool
 }
 
 // SetIndex sets the index field.
 func (woduo *WorkOrderDefinitionUpdateOne) SetIndex(i int) *WorkOrderDefinitionUpdateOne {
-	woduo.mutation.ResetIndex()
-	woduo.mutation.SetIndex(i)
+	woduo.index = &i
+	woduo.addindex = nil
 	return woduo
 }
 
@@ -315,19 +324,27 @@ func (woduo *WorkOrderDefinitionUpdateOne) SetNillableIndex(i *int) *WorkOrderDe
 
 // AddIndex adds i to index.
 func (woduo *WorkOrderDefinitionUpdateOne) AddIndex(i int) *WorkOrderDefinitionUpdateOne {
-	woduo.mutation.AddIndex(i)
+	if woduo.addindex == nil {
+		woduo.addindex = &i
+	} else {
+		*woduo.addindex += i
+	}
 	return woduo
 }
 
 // ClearIndex clears the value of index.
 func (woduo *WorkOrderDefinitionUpdateOne) ClearIndex() *WorkOrderDefinitionUpdateOne {
-	woduo.mutation.ClearIndex()
+	woduo.index = nil
+	woduo.clearindex = true
 	return woduo
 }
 
 // SetTypeID sets the type edge to WorkOrderType by id.
 func (woduo *WorkOrderDefinitionUpdateOne) SetTypeID(id int) *WorkOrderDefinitionUpdateOne {
-	woduo.mutation.SetTypeID(id)
+	if woduo._type == nil {
+		woduo._type = make(map[int]struct{})
+	}
+	woduo._type[id] = struct{}{}
 	return woduo
 }
 
@@ -346,7 +363,10 @@ func (woduo *WorkOrderDefinitionUpdateOne) SetType(w *WorkOrderType) *WorkOrderD
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
 func (woduo *WorkOrderDefinitionUpdateOne) SetProjectTypeID(id int) *WorkOrderDefinitionUpdateOne {
-	woduo.mutation.SetProjectTypeID(id)
+	if woduo.project_type == nil {
+		woduo.project_type = make(map[int]struct{})
+	}
+	woduo.project_type[id] = struct{}{}
 	return woduo
 }
 
@@ -365,47 +385,29 @@ func (woduo *WorkOrderDefinitionUpdateOne) SetProjectType(p *ProjectType) *WorkO
 
 // ClearType clears the type edge to WorkOrderType.
 func (woduo *WorkOrderDefinitionUpdateOne) ClearType() *WorkOrderDefinitionUpdateOne {
-	woduo.mutation.ClearType()
+	woduo.clearedType = true
 	return woduo
 }
 
 // ClearProjectType clears the project_type edge to ProjectType.
 func (woduo *WorkOrderDefinitionUpdateOne) ClearProjectType() *WorkOrderDefinitionUpdateOne {
-	woduo.mutation.ClearProjectType()
+	woduo.clearedProjectType = true
 	return woduo
 }
 
 // Save executes the query and returns the updated entity.
 func (woduo *WorkOrderDefinitionUpdateOne) Save(ctx context.Context) (*WorkOrderDefinition, error) {
-	if _, ok := woduo.mutation.UpdateTime(); !ok {
+	if woduo.update_time == nil {
 		v := workorderdefinition.UpdateDefaultUpdateTime()
-		woduo.mutation.SetUpdateTime(v)
+		woduo.update_time = &v
 	}
-
-	var (
-		err  error
-		node *WorkOrderDefinition
-	)
-	if len(woduo.hooks) == 0 {
-		node, err = woduo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WorkOrderDefinitionMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			woduo.mutation = mutation
-			node, err = woduo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(woduo.hooks); i > 0; i-- {
-			mut = woduo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, woduo.mutation); err != nil {
-			return nil, err
-		}
+	if len(woduo._type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
 	}
-	return node, err
+	if len(woduo.project_type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"project_type\"")
+	}
+	return woduo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -436,44 +438,40 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 			Table:   workorderdefinition.Table,
 			Columns: workorderdefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  woduo.id,
 				Type:   field.TypeInt,
 				Column: workorderdefinition.FieldID,
 			},
 		},
 	}
-	id, ok := woduo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing WorkOrderDefinition.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := woduo.mutation.UpdateTime(); ok {
+	if value := woduo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workorderdefinition.FieldUpdateTime,
 		})
 	}
-	if value, ok := woduo.mutation.Index(); ok {
+	if value := woduo.index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: workorderdefinition.FieldIndex,
 		})
 	}
-	if value, ok := woduo.mutation.AddedIndex(); ok {
+	if value := woduo.addindex; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: workorderdefinition.FieldIndex,
 		})
 	}
-	if woduo.mutation.IndexCleared() {
+	if woduo.clearindex {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: workorderdefinition.FieldIndex,
 		})
 	}
-	if woduo.mutation.TypeCleared() {
+	if woduo.clearedType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -489,7 +487,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := woduo.mutation.TypeIDs(); len(nodes) > 0 {
+	if nodes := woduo._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -503,12 +501,12 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if woduo.mutation.ProjectTypeCleared() {
+	if woduo.clearedProjectType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -524,7 +522,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := woduo.mutation.ProjectTypeIDs(); len(nodes) > 0 {
+	if nodes := woduo.project_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -538,7 +536,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

@@ -8,31 +8,42 @@ package surveywifiscan
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the surveywifiscan type in the database.
 	Label = "survey_wi_fi_scan"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID           = "id"            // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime   = "create_time"   // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime   = "update_time"   // FieldSsid holds the string denoting the ssid vertex property in the database.
-	FieldSsid         = "ssid"          // FieldBssid holds the string denoting the bssid vertex property in the database.
-	FieldBssid        = "bssid"         // FieldTimestamp holds the string denoting the timestamp vertex property in the database.
-	FieldTimestamp    = "timestamp"     // FieldFrequency holds the string denoting the frequency vertex property in the database.
-	FieldFrequency    = "frequency"     // FieldChannel holds the string denoting the channel vertex property in the database.
-	FieldChannel      = "channel"       // FieldBand holds the string denoting the band vertex property in the database.
-	FieldBand         = "band"          // FieldChannelWidth holds the string denoting the channel_width vertex property in the database.
-	FieldChannelWidth = "channel_width" // FieldCapabilities holds the string denoting the capabilities vertex property in the database.
-	FieldCapabilities = "capabilities"  // FieldStrength holds the string denoting the strength vertex property in the database.
-	FieldStrength     = "strength"      // FieldLatitude holds the string denoting the latitude vertex property in the database.
-	FieldLatitude     = "latitude"      // FieldLongitude holds the string denoting the longitude vertex property in the database.
-	FieldLongitude    = "longitude"
-
-	// EdgeSurveyQuestion holds the string denoting the survey_question edge name in mutations.
-	EdgeSurveyQuestion = "survey_question"
-	// EdgeLocation holds the string denoting the location edge name in mutations.
-	EdgeLocation = "location"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime = "update_time"
+	// FieldSsid holds the string denoting the ssid vertex property in the database.
+	FieldSsid = "ssid"
+	// FieldBssid holds the string denoting the bssid vertex property in the database.
+	FieldBssid = "bssid"
+	// FieldTimestamp holds the string denoting the timestamp vertex property in the database.
+	FieldTimestamp = "timestamp"
+	// FieldFrequency holds the string denoting the frequency vertex property in the database.
+	FieldFrequency = "frequency"
+	// FieldChannel holds the string denoting the channel vertex property in the database.
+	FieldChannel = "channel"
+	// FieldBand holds the string denoting the band vertex property in the database.
+	FieldBand = "band"
+	// FieldChannelWidth holds the string denoting the channel_width vertex property in the database.
+	FieldChannelWidth = "channel_width"
+	// FieldCapabilities holds the string denoting the capabilities vertex property in the database.
+	FieldCapabilities = "capabilities"
+	// FieldStrength holds the string denoting the strength vertex property in the database.
+	FieldStrength = "strength"
+	// FieldLatitude holds the string denoting the latitude vertex property in the database.
+	FieldLatitude = "latitude"
+	// FieldLongitude holds the string denoting the longitude vertex property in the database.
+	FieldLongitude = "longitude"
 
 	// Table holds the table name of the surveywifiscan in the database.
 	Table = "survey_wi_fi_scans"
@@ -77,10 +88,21 @@ var ForeignKeys = []string{
 }
 
 var (
+	mixin       = schema.SurveyWiFiScan{}.Mixin()
+	mixinFields = [...][]ent.Field{
+		mixin[0].Fields(),
+	}
+	fields = schema.SurveyWiFiScan{}.Fields()
+
+	// descCreateTime is the schema descriptor for create_time field.
+	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime func() time.Time
+	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
+
+	// descUpdateTime is the schema descriptor for update_time field.
+	descUpdateTime = mixinFields[0][1].Descriptor()
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime func() time.Time
+	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime func() time.Time
+	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
 )

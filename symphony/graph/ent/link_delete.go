@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,8 +19,6 @@ import (
 // LinkDelete is the builder for deleting a Link entity.
 type LinkDelete struct {
 	config
-	hooks      []Hook
-	mutation   *LinkMutation
 	predicates []predicate.Link
 }
 
@@ -33,30 +30,7 @@ func (ld *LinkDelete) Where(ps ...predicate.Link) *LinkDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ld *LinkDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ld.hooks) == 0 {
-		affected, err = ld.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LinkMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ld.mutation = mutation
-			affected, err = ld.sqlExec(ctx)
-			return affected, err
-		})
-		for i := len(ld.hooks); i > 0; i-- {
-			mut = ld.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, ld.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return ld.sqlExec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

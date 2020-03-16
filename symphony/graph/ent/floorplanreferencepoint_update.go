@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,9 +20,17 @@ import (
 // FloorPlanReferencePointUpdate is the builder for updating FloorPlanReferencePoint entities.
 type FloorPlanReferencePointUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *FloorPlanReferencePointMutation
-	predicates []predicate.FloorPlanReferencePoint
+
+	update_time  *time.Time
+	x            *int
+	addx         *int
+	y            *int
+	addy         *int
+	latitude     *float64
+	addlatitude  *float64
+	longitude    *float64
+	addlongitude *float64
+	predicates   []predicate.FloorPlanReferencePoint
 }
 
 // Where adds a new predicate for the builder.
@@ -33,86 +41,79 @@ func (fprpu *FloorPlanReferencePointUpdate) Where(ps ...predicate.FloorPlanRefer
 
 // SetX sets the x field.
 func (fprpu *FloorPlanReferencePointUpdate) SetX(i int) *FloorPlanReferencePointUpdate {
-	fprpu.mutation.ResetX()
-	fprpu.mutation.SetX(i)
+	fprpu.x = &i
+	fprpu.addx = nil
 	return fprpu
 }
 
 // AddX adds i to x.
 func (fprpu *FloorPlanReferencePointUpdate) AddX(i int) *FloorPlanReferencePointUpdate {
-	fprpu.mutation.AddX(i)
+	if fprpu.addx == nil {
+		fprpu.addx = &i
+	} else {
+		*fprpu.addx += i
+	}
 	return fprpu
 }
 
 // SetY sets the y field.
 func (fprpu *FloorPlanReferencePointUpdate) SetY(i int) *FloorPlanReferencePointUpdate {
-	fprpu.mutation.ResetY()
-	fprpu.mutation.SetY(i)
+	fprpu.y = &i
+	fprpu.addy = nil
 	return fprpu
 }
 
 // AddY adds i to y.
 func (fprpu *FloorPlanReferencePointUpdate) AddY(i int) *FloorPlanReferencePointUpdate {
-	fprpu.mutation.AddY(i)
+	if fprpu.addy == nil {
+		fprpu.addy = &i
+	} else {
+		*fprpu.addy += i
+	}
 	return fprpu
 }
 
 // SetLatitude sets the latitude field.
 func (fprpu *FloorPlanReferencePointUpdate) SetLatitude(f float64) *FloorPlanReferencePointUpdate {
-	fprpu.mutation.ResetLatitude()
-	fprpu.mutation.SetLatitude(f)
+	fprpu.latitude = &f
+	fprpu.addlatitude = nil
 	return fprpu
 }
 
 // AddLatitude adds f to latitude.
 func (fprpu *FloorPlanReferencePointUpdate) AddLatitude(f float64) *FloorPlanReferencePointUpdate {
-	fprpu.mutation.AddLatitude(f)
+	if fprpu.addlatitude == nil {
+		fprpu.addlatitude = &f
+	} else {
+		*fprpu.addlatitude += f
+	}
 	return fprpu
 }
 
 // SetLongitude sets the longitude field.
 func (fprpu *FloorPlanReferencePointUpdate) SetLongitude(f float64) *FloorPlanReferencePointUpdate {
-	fprpu.mutation.ResetLongitude()
-	fprpu.mutation.SetLongitude(f)
+	fprpu.longitude = &f
+	fprpu.addlongitude = nil
 	return fprpu
 }
 
 // AddLongitude adds f to longitude.
 func (fprpu *FloorPlanReferencePointUpdate) AddLongitude(f float64) *FloorPlanReferencePointUpdate {
-	fprpu.mutation.AddLongitude(f)
+	if fprpu.addlongitude == nil {
+		fprpu.addlongitude = &f
+	} else {
+		*fprpu.addlongitude += f
+	}
 	return fprpu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (fprpu *FloorPlanReferencePointUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := fprpu.mutation.UpdateTime(); !ok {
+	if fprpu.update_time == nil {
 		v := floorplanreferencepoint.UpdateDefaultUpdateTime()
-		fprpu.mutation.SetUpdateTime(v)
+		fprpu.update_time = &v
 	}
-	var (
-		err      error
-		affected int
-	)
-	if len(fprpu.hooks) == 0 {
-		affected, err = fprpu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FloorPlanReferencePointMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			fprpu.mutation = mutation
-			affected, err = fprpu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(fprpu.hooks); i > 0; i-- {
-			mut = fprpu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, fprpu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return fprpu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -155,66 +156,66 @@ func (fprpu *FloorPlanReferencePointUpdate) sqlSave(ctx context.Context) (n int,
 			}
 		}
 	}
-	if value, ok := fprpu.mutation.UpdateTime(); ok {
+	if value := fprpu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldUpdateTime,
 		})
 	}
-	if value, ok := fprpu.mutation.X(); ok {
+	if value := fprpu.x; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldX,
 		})
 	}
-	if value, ok := fprpu.mutation.AddedX(); ok {
+	if value := fprpu.addx; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldX,
 		})
 	}
-	if value, ok := fprpu.mutation.Y(); ok {
+	if value := fprpu.y; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldY,
 		})
 	}
-	if value, ok := fprpu.mutation.AddedY(); ok {
+	if value := fprpu.addy; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldY,
 		})
 	}
-	if value, ok := fprpu.mutation.Latitude(); ok {
+	if value := fprpu.latitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldLatitude,
 		})
 	}
-	if value, ok := fprpu.mutation.AddedLatitude(); ok {
+	if value := fprpu.addlatitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldLatitude,
 		})
 	}
-	if value, ok := fprpu.mutation.Longitude(); ok {
+	if value := fprpu.longitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldLongitude,
 		})
 	}
-	if value, ok := fprpu.mutation.AddedLongitude(); ok {
+	if value := fprpu.addlongitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldLongitude,
 		})
 	}
@@ -232,92 +233,94 @@ func (fprpu *FloorPlanReferencePointUpdate) sqlSave(ctx context.Context) (n int,
 // FloorPlanReferencePointUpdateOne is the builder for updating a single FloorPlanReferencePoint entity.
 type FloorPlanReferencePointUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *FloorPlanReferencePointMutation
+	id int
+
+	update_time  *time.Time
+	x            *int
+	addx         *int
+	y            *int
+	addy         *int
+	latitude     *float64
+	addlatitude  *float64
+	longitude    *float64
+	addlongitude *float64
 }
 
 // SetX sets the x field.
 func (fprpuo *FloorPlanReferencePointUpdateOne) SetX(i int) *FloorPlanReferencePointUpdateOne {
-	fprpuo.mutation.ResetX()
-	fprpuo.mutation.SetX(i)
+	fprpuo.x = &i
+	fprpuo.addx = nil
 	return fprpuo
 }
 
 // AddX adds i to x.
 func (fprpuo *FloorPlanReferencePointUpdateOne) AddX(i int) *FloorPlanReferencePointUpdateOne {
-	fprpuo.mutation.AddX(i)
+	if fprpuo.addx == nil {
+		fprpuo.addx = &i
+	} else {
+		*fprpuo.addx += i
+	}
 	return fprpuo
 }
 
 // SetY sets the y field.
 func (fprpuo *FloorPlanReferencePointUpdateOne) SetY(i int) *FloorPlanReferencePointUpdateOne {
-	fprpuo.mutation.ResetY()
-	fprpuo.mutation.SetY(i)
+	fprpuo.y = &i
+	fprpuo.addy = nil
 	return fprpuo
 }
 
 // AddY adds i to y.
 func (fprpuo *FloorPlanReferencePointUpdateOne) AddY(i int) *FloorPlanReferencePointUpdateOne {
-	fprpuo.mutation.AddY(i)
+	if fprpuo.addy == nil {
+		fprpuo.addy = &i
+	} else {
+		*fprpuo.addy += i
+	}
 	return fprpuo
 }
 
 // SetLatitude sets the latitude field.
 func (fprpuo *FloorPlanReferencePointUpdateOne) SetLatitude(f float64) *FloorPlanReferencePointUpdateOne {
-	fprpuo.mutation.ResetLatitude()
-	fprpuo.mutation.SetLatitude(f)
+	fprpuo.latitude = &f
+	fprpuo.addlatitude = nil
 	return fprpuo
 }
 
 // AddLatitude adds f to latitude.
 func (fprpuo *FloorPlanReferencePointUpdateOne) AddLatitude(f float64) *FloorPlanReferencePointUpdateOne {
-	fprpuo.mutation.AddLatitude(f)
+	if fprpuo.addlatitude == nil {
+		fprpuo.addlatitude = &f
+	} else {
+		*fprpuo.addlatitude += f
+	}
 	return fprpuo
 }
 
 // SetLongitude sets the longitude field.
 func (fprpuo *FloorPlanReferencePointUpdateOne) SetLongitude(f float64) *FloorPlanReferencePointUpdateOne {
-	fprpuo.mutation.ResetLongitude()
-	fprpuo.mutation.SetLongitude(f)
+	fprpuo.longitude = &f
+	fprpuo.addlongitude = nil
 	return fprpuo
 }
 
 // AddLongitude adds f to longitude.
 func (fprpuo *FloorPlanReferencePointUpdateOne) AddLongitude(f float64) *FloorPlanReferencePointUpdateOne {
-	fprpuo.mutation.AddLongitude(f)
+	if fprpuo.addlongitude == nil {
+		fprpuo.addlongitude = &f
+	} else {
+		*fprpuo.addlongitude += f
+	}
 	return fprpuo
 }
 
 // Save executes the query and returns the updated entity.
 func (fprpuo *FloorPlanReferencePointUpdateOne) Save(ctx context.Context) (*FloorPlanReferencePoint, error) {
-	if _, ok := fprpuo.mutation.UpdateTime(); !ok {
+	if fprpuo.update_time == nil {
 		v := floorplanreferencepoint.UpdateDefaultUpdateTime()
-		fprpuo.mutation.SetUpdateTime(v)
+		fprpuo.update_time = &v
 	}
-	var (
-		err  error
-		node *FloorPlanReferencePoint
-	)
-	if len(fprpuo.hooks) == 0 {
-		node, err = fprpuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FloorPlanReferencePointMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			fprpuo.mutation = mutation
-			node, err = fprpuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(fprpuo.hooks); i > 0; i-- {
-			mut = fprpuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, fprpuo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return fprpuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -348,76 +351,72 @@ func (fprpuo *FloorPlanReferencePointUpdateOne) sqlSave(ctx context.Context) (fp
 			Table:   floorplanreferencepoint.Table,
 			Columns: floorplanreferencepoint.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  fprpuo.id,
 				Type:   field.TypeInt,
 				Column: floorplanreferencepoint.FieldID,
 			},
 		},
 	}
-	id, ok := fprpuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing FloorPlanReferencePoint.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := fprpuo.mutation.UpdateTime(); ok {
+	if value := fprpuo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldUpdateTime,
 		})
 	}
-	if value, ok := fprpuo.mutation.X(); ok {
+	if value := fprpuo.x; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldX,
 		})
 	}
-	if value, ok := fprpuo.mutation.AddedX(); ok {
+	if value := fprpuo.addx; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldX,
 		})
 	}
-	if value, ok := fprpuo.mutation.Y(); ok {
+	if value := fprpuo.y; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldY,
 		})
 	}
-	if value, ok := fprpuo.mutation.AddedY(); ok {
+	if value := fprpuo.addy; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldY,
 		})
 	}
-	if value, ok := fprpuo.mutation.Latitude(); ok {
+	if value := fprpuo.latitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldLatitude,
 		})
 	}
-	if value, ok := fprpuo.mutation.AddedLatitude(); ok {
+	if value := fprpuo.addlatitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldLatitude,
 		})
 	}
-	if value, ok := fprpuo.mutation.Longitude(); ok {
+	if value := fprpuo.longitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldLongitude,
 		})
 	}
-	if value, ok := fprpuo.mutation.AddedLongitude(); ok {
+	if value := fprpuo.addlongitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanreferencepoint.FieldLongitude,
 		})
 	}

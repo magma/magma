@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,13 +21,35 @@ import (
 // SurveyCellScanCreate is the builder for creating a SurveyCellScan entity.
 type SurveyCellScanCreate struct {
 	config
-	mutation *SurveyCellScanMutation
-	hooks    []Hook
+	create_time             *time.Time
+	update_time             *time.Time
+	network_type            *string
+	signal_strength         *int
+	timestamp               *time.Time
+	base_station_id         *string
+	network_id              *string
+	system_id               *string
+	cell_id                 *string
+	location_area_code      *string
+	mobile_country_code     *string
+	mobile_network_code     *string
+	primary_scrambling_code *string
+	operator                *string
+	arfcn                   *int
+	physical_cell_id        *string
+	tracking_area_code      *string
+	timing_advance          *int
+	earfcn                  *int
+	uarfcn                  *int
+	latitude                *float64
+	longitude               *float64
+	survey_question         map[int]struct{}
+	location                map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (scsc *SurveyCellScanCreate) SetCreateTime(t time.Time) *SurveyCellScanCreate {
-	scsc.mutation.SetCreateTime(t)
+	scsc.create_time = &t
 	return scsc
 }
 
@@ -42,7 +63,7 @@ func (scsc *SurveyCellScanCreate) SetNillableCreateTime(t *time.Time) *SurveyCel
 
 // SetUpdateTime sets the update_time field.
 func (scsc *SurveyCellScanCreate) SetUpdateTime(t time.Time) *SurveyCellScanCreate {
-	scsc.mutation.SetUpdateTime(t)
+	scsc.update_time = &t
 	return scsc
 }
 
@@ -56,19 +77,19 @@ func (scsc *SurveyCellScanCreate) SetNillableUpdateTime(t *time.Time) *SurveyCel
 
 // SetNetworkType sets the network_type field.
 func (scsc *SurveyCellScanCreate) SetNetworkType(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetNetworkType(s)
+	scsc.network_type = &s
 	return scsc
 }
 
 // SetSignalStrength sets the signal_strength field.
 func (scsc *SurveyCellScanCreate) SetSignalStrength(i int) *SurveyCellScanCreate {
-	scsc.mutation.SetSignalStrength(i)
+	scsc.signal_strength = &i
 	return scsc
 }
 
 // SetTimestamp sets the timestamp field.
 func (scsc *SurveyCellScanCreate) SetTimestamp(t time.Time) *SurveyCellScanCreate {
-	scsc.mutation.SetTimestamp(t)
+	scsc.timestamp = &t
 	return scsc
 }
 
@@ -82,7 +103,7 @@ func (scsc *SurveyCellScanCreate) SetNillableTimestamp(t *time.Time) *SurveyCell
 
 // SetBaseStationID sets the base_station_id field.
 func (scsc *SurveyCellScanCreate) SetBaseStationID(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetBaseStationID(s)
+	scsc.base_station_id = &s
 	return scsc
 }
 
@@ -96,7 +117,7 @@ func (scsc *SurveyCellScanCreate) SetNillableBaseStationID(s *string) *SurveyCel
 
 // SetNetworkID sets the network_id field.
 func (scsc *SurveyCellScanCreate) SetNetworkID(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetNetworkID(s)
+	scsc.network_id = &s
 	return scsc
 }
 
@@ -110,7 +131,7 @@ func (scsc *SurveyCellScanCreate) SetNillableNetworkID(s *string) *SurveyCellSca
 
 // SetSystemID sets the system_id field.
 func (scsc *SurveyCellScanCreate) SetSystemID(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetSystemID(s)
+	scsc.system_id = &s
 	return scsc
 }
 
@@ -124,7 +145,7 @@ func (scsc *SurveyCellScanCreate) SetNillableSystemID(s *string) *SurveyCellScan
 
 // SetCellID sets the cell_id field.
 func (scsc *SurveyCellScanCreate) SetCellID(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetCellID(s)
+	scsc.cell_id = &s
 	return scsc
 }
 
@@ -138,7 +159,7 @@ func (scsc *SurveyCellScanCreate) SetNillableCellID(s *string) *SurveyCellScanCr
 
 // SetLocationAreaCode sets the location_area_code field.
 func (scsc *SurveyCellScanCreate) SetLocationAreaCode(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetLocationAreaCode(s)
+	scsc.location_area_code = &s
 	return scsc
 }
 
@@ -152,7 +173,7 @@ func (scsc *SurveyCellScanCreate) SetNillableLocationAreaCode(s *string) *Survey
 
 // SetMobileCountryCode sets the mobile_country_code field.
 func (scsc *SurveyCellScanCreate) SetMobileCountryCode(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetMobileCountryCode(s)
+	scsc.mobile_country_code = &s
 	return scsc
 }
 
@@ -166,7 +187,7 @@ func (scsc *SurveyCellScanCreate) SetNillableMobileCountryCode(s *string) *Surve
 
 // SetMobileNetworkCode sets the mobile_network_code field.
 func (scsc *SurveyCellScanCreate) SetMobileNetworkCode(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetMobileNetworkCode(s)
+	scsc.mobile_network_code = &s
 	return scsc
 }
 
@@ -180,7 +201,7 @@ func (scsc *SurveyCellScanCreate) SetNillableMobileNetworkCode(s *string) *Surve
 
 // SetPrimaryScramblingCode sets the primary_scrambling_code field.
 func (scsc *SurveyCellScanCreate) SetPrimaryScramblingCode(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetPrimaryScramblingCode(s)
+	scsc.primary_scrambling_code = &s
 	return scsc
 }
 
@@ -194,7 +215,7 @@ func (scsc *SurveyCellScanCreate) SetNillablePrimaryScramblingCode(s *string) *S
 
 // SetOperator sets the operator field.
 func (scsc *SurveyCellScanCreate) SetOperator(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetOperator(s)
+	scsc.operator = &s
 	return scsc
 }
 
@@ -208,7 +229,7 @@ func (scsc *SurveyCellScanCreate) SetNillableOperator(s *string) *SurveyCellScan
 
 // SetArfcn sets the arfcn field.
 func (scsc *SurveyCellScanCreate) SetArfcn(i int) *SurveyCellScanCreate {
-	scsc.mutation.SetArfcn(i)
+	scsc.arfcn = &i
 	return scsc
 }
 
@@ -222,7 +243,7 @@ func (scsc *SurveyCellScanCreate) SetNillableArfcn(i *int) *SurveyCellScanCreate
 
 // SetPhysicalCellID sets the physical_cell_id field.
 func (scsc *SurveyCellScanCreate) SetPhysicalCellID(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetPhysicalCellID(s)
+	scsc.physical_cell_id = &s
 	return scsc
 }
 
@@ -236,7 +257,7 @@ func (scsc *SurveyCellScanCreate) SetNillablePhysicalCellID(s *string) *SurveyCe
 
 // SetTrackingAreaCode sets the tracking_area_code field.
 func (scsc *SurveyCellScanCreate) SetTrackingAreaCode(s string) *SurveyCellScanCreate {
-	scsc.mutation.SetTrackingAreaCode(s)
+	scsc.tracking_area_code = &s
 	return scsc
 }
 
@@ -250,7 +271,7 @@ func (scsc *SurveyCellScanCreate) SetNillableTrackingAreaCode(s *string) *Survey
 
 // SetTimingAdvance sets the timing_advance field.
 func (scsc *SurveyCellScanCreate) SetTimingAdvance(i int) *SurveyCellScanCreate {
-	scsc.mutation.SetTimingAdvance(i)
+	scsc.timing_advance = &i
 	return scsc
 }
 
@@ -264,7 +285,7 @@ func (scsc *SurveyCellScanCreate) SetNillableTimingAdvance(i *int) *SurveyCellSc
 
 // SetEarfcn sets the earfcn field.
 func (scsc *SurveyCellScanCreate) SetEarfcn(i int) *SurveyCellScanCreate {
-	scsc.mutation.SetEarfcn(i)
+	scsc.earfcn = &i
 	return scsc
 }
 
@@ -278,7 +299,7 @@ func (scsc *SurveyCellScanCreate) SetNillableEarfcn(i *int) *SurveyCellScanCreat
 
 // SetUarfcn sets the uarfcn field.
 func (scsc *SurveyCellScanCreate) SetUarfcn(i int) *SurveyCellScanCreate {
-	scsc.mutation.SetUarfcn(i)
+	scsc.uarfcn = &i
 	return scsc
 }
 
@@ -292,7 +313,7 @@ func (scsc *SurveyCellScanCreate) SetNillableUarfcn(i *int) *SurveyCellScanCreat
 
 // SetLatitude sets the latitude field.
 func (scsc *SurveyCellScanCreate) SetLatitude(f float64) *SurveyCellScanCreate {
-	scsc.mutation.SetLatitude(f)
+	scsc.latitude = &f
 	return scsc
 }
 
@@ -306,7 +327,7 @@ func (scsc *SurveyCellScanCreate) SetNillableLatitude(f *float64) *SurveyCellSca
 
 // SetLongitude sets the longitude field.
 func (scsc *SurveyCellScanCreate) SetLongitude(f float64) *SurveyCellScanCreate {
-	scsc.mutation.SetLongitude(f)
+	scsc.longitude = &f
 	return scsc
 }
 
@@ -320,7 +341,10 @@ func (scsc *SurveyCellScanCreate) SetNillableLongitude(f *float64) *SurveyCellSc
 
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (scsc *SurveyCellScanCreate) SetSurveyQuestionID(id int) *SurveyCellScanCreate {
-	scsc.mutation.SetSurveyQuestionID(id)
+	if scsc.survey_question == nil {
+		scsc.survey_question = make(map[int]struct{})
+	}
+	scsc.survey_question[id] = struct{}{}
 	return scsc
 }
 
@@ -339,7 +363,10 @@ func (scsc *SurveyCellScanCreate) SetSurveyQuestion(s *SurveyQuestion) *SurveyCe
 
 // SetLocationID sets the location edge to Location by id.
 func (scsc *SurveyCellScanCreate) SetLocationID(id int) *SurveyCellScanCreate {
-	scsc.mutation.SetLocationID(id)
+	if scsc.location == nil {
+		scsc.location = make(map[int]struct{})
+	}
+	scsc.location[id] = struct{}{}
 	return scsc
 }
 
@@ -358,44 +385,27 @@ func (scsc *SurveyCellScanCreate) SetLocation(l *Location) *SurveyCellScanCreate
 
 // Save creates the SurveyCellScan in the database.
 func (scsc *SurveyCellScanCreate) Save(ctx context.Context) (*SurveyCellScan, error) {
-	if _, ok := scsc.mutation.CreateTime(); !ok {
+	if scsc.create_time == nil {
 		v := surveycellscan.DefaultCreateTime()
-		scsc.mutation.SetCreateTime(v)
+		scsc.create_time = &v
 	}
-	if _, ok := scsc.mutation.UpdateTime(); !ok {
+	if scsc.update_time == nil {
 		v := surveycellscan.DefaultUpdateTime()
-		scsc.mutation.SetUpdateTime(v)
+		scsc.update_time = &v
 	}
-	if _, ok := scsc.mutation.NetworkType(); !ok {
+	if scsc.network_type == nil {
 		return nil, errors.New("ent: missing required field \"network_type\"")
 	}
-	if _, ok := scsc.mutation.SignalStrength(); !ok {
+	if scsc.signal_strength == nil {
 		return nil, errors.New("ent: missing required field \"signal_strength\"")
 	}
-	var (
-		err  error
-		node *SurveyCellScan
-	)
-	if len(scsc.hooks) == 0 {
-		node, err = scsc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SurveyCellScanMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			scsc.mutation = mutation
-			node, err = scsc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(scsc.hooks); i > 0; i-- {
-			mut = scsc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, scsc.mutation); err != nil {
-			return nil, err
-		}
+	if len(scsc.survey_question) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"survey_question\"")
 	}
-	return node, err
+	if len(scsc.location) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
+	}
+	return scsc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -418,183 +428,183 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 			},
 		}
 	)
-	if value, ok := scsc.mutation.CreateTime(); ok {
+	if value := scsc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldCreateTime,
 		})
-		scs.CreateTime = value
+		scs.CreateTime = *value
 	}
-	if value, ok := scsc.mutation.UpdateTime(); ok {
+	if value := scsc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldUpdateTime,
 		})
-		scs.UpdateTime = value
+		scs.UpdateTime = *value
 	}
-	if value, ok := scsc.mutation.NetworkType(); ok {
+	if value := scsc.network_type; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldNetworkType,
 		})
-		scs.NetworkType = value
+		scs.NetworkType = *value
 	}
-	if value, ok := scsc.mutation.SignalStrength(); ok {
+	if value := scsc.signal_strength; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldSignalStrength,
 		})
-		scs.SignalStrength = value
+		scs.SignalStrength = *value
 	}
-	if value, ok := scsc.mutation.Timestamp(); ok {
+	if value := scsc.timestamp; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldTimestamp,
 		})
-		scs.Timestamp = value
+		scs.Timestamp = *value
 	}
-	if value, ok := scsc.mutation.BaseStationID(); ok {
+	if value := scsc.base_station_id; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldBaseStationID,
 		})
-		scs.BaseStationID = value
+		scs.BaseStationID = *value
 	}
-	if value, ok := scsc.mutation.NetworkID(); ok {
+	if value := scsc.network_id; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldNetworkID,
 		})
-		scs.NetworkID = value
+		scs.NetworkID = *value
 	}
-	if value, ok := scsc.mutation.SystemID(); ok {
+	if value := scsc.system_id; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldSystemID,
 		})
-		scs.SystemID = value
+		scs.SystemID = *value
 	}
-	if value, ok := scsc.mutation.CellID(); ok {
+	if value := scsc.cell_id; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldCellID,
 		})
-		scs.CellID = value
+		scs.CellID = *value
 	}
-	if value, ok := scsc.mutation.LocationAreaCode(); ok {
+	if value := scsc.location_area_code; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldLocationAreaCode,
 		})
-		scs.LocationAreaCode = value
+		scs.LocationAreaCode = *value
 	}
-	if value, ok := scsc.mutation.MobileCountryCode(); ok {
+	if value := scsc.mobile_country_code; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldMobileCountryCode,
 		})
-		scs.MobileCountryCode = value
+		scs.MobileCountryCode = *value
 	}
-	if value, ok := scsc.mutation.MobileNetworkCode(); ok {
+	if value := scsc.mobile_network_code; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldMobileNetworkCode,
 		})
-		scs.MobileNetworkCode = value
+		scs.MobileNetworkCode = *value
 	}
-	if value, ok := scsc.mutation.PrimaryScramblingCode(); ok {
+	if value := scsc.primary_scrambling_code; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldPrimaryScramblingCode,
 		})
-		scs.PrimaryScramblingCode = value
+		scs.PrimaryScramblingCode = *value
 	}
-	if value, ok := scsc.mutation.Operator(); ok {
+	if value := scsc.operator; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldOperator,
 		})
-		scs.Operator = value
+		scs.Operator = *value
 	}
-	if value, ok := scsc.mutation.Arfcn(); ok {
+	if value := scsc.arfcn; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldArfcn,
 		})
-		scs.Arfcn = value
+		scs.Arfcn = *value
 	}
-	if value, ok := scsc.mutation.PhysicalCellID(); ok {
+	if value := scsc.physical_cell_id; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldPhysicalCellID,
 		})
-		scs.PhysicalCellID = value
+		scs.PhysicalCellID = *value
 	}
-	if value, ok := scsc.mutation.TrackingAreaCode(); ok {
+	if value := scsc.tracking_area_code; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldTrackingAreaCode,
 		})
-		scs.TrackingAreaCode = value
+		scs.TrackingAreaCode = *value
 	}
-	if value, ok := scsc.mutation.TimingAdvance(); ok {
+	if value := scsc.timing_advance; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldTimingAdvance,
 		})
-		scs.TimingAdvance = value
+		scs.TimingAdvance = *value
 	}
-	if value, ok := scsc.mutation.Earfcn(); ok {
+	if value := scsc.earfcn; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldEarfcn,
 		})
-		scs.Earfcn = value
+		scs.Earfcn = *value
 	}
-	if value, ok := scsc.mutation.Uarfcn(); ok {
+	if value := scsc.uarfcn; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldUarfcn,
 		})
-		scs.Uarfcn = value
+		scs.Uarfcn = *value
 	}
-	if value, ok := scsc.mutation.Latitude(); ok {
+	if value := scsc.latitude; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldLatitude,
 		})
-		scs.Latitude = value
+		scs.Latitude = *value
 	}
-	if value, ok := scsc.mutation.Longitude(); ok {
+	if value := scsc.longitude; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveycellscan.FieldLongitude,
 		})
-		scs.Longitude = value
+		scs.Longitude = *value
 	}
-	if nodes := scsc.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
+	if nodes := scsc.survey_question; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -608,12 +618,12 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := scsc.mutation.LocationIDs(); len(nodes) > 0 {
+	if nodes := scsc.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -627,7 +637,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

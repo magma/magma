@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -23,13 +22,21 @@ import (
 // LocationTypeCreate is the builder for creating a LocationType entity.
 type LocationTypeCreate struct {
 	config
-	mutation *LocationTypeMutation
-	hooks    []Hook
+	create_time                *time.Time
+	update_time                *time.Time
+	site                       *bool
+	name                       *string
+	map_type                   *string
+	map_zoom_level             *int
+	index                      *int
+	locations                  map[int]struct{}
+	property_types             map[int]struct{}
+	survey_template_categories map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (ltc *LocationTypeCreate) SetCreateTime(t time.Time) *LocationTypeCreate {
-	ltc.mutation.SetCreateTime(t)
+	ltc.create_time = &t
 	return ltc
 }
 
@@ -43,7 +50,7 @@ func (ltc *LocationTypeCreate) SetNillableCreateTime(t *time.Time) *LocationType
 
 // SetUpdateTime sets the update_time field.
 func (ltc *LocationTypeCreate) SetUpdateTime(t time.Time) *LocationTypeCreate {
-	ltc.mutation.SetUpdateTime(t)
+	ltc.update_time = &t
 	return ltc
 }
 
@@ -57,7 +64,7 @@ func (ltc *LocationTypeCreate) SetNillableUpdateTime(t *time.Time) *LocationType
 
 // SetSite sets the site field.
 func (ltc *LocationTypeCreate) SetSite(b bool) *LocationTypeCreate {
-	ltc.mutation.SetSite(b)
+	ltc.site = &b
 	return ltc
 }
 
@@ -71,13 +78,13 @@ func (ltc *LocationTypeCreate) SetNillableSite(b *bool) *LocationTypeCreate {
 
 // SetName sets the name field.
 func (ltc *LocationTypeCreate) SetName(s string) *LocationTypeCreate {
-	ltc.mutation.SetName(s)
+	ltc.name = &s
 	return ltc
 }
 
 // SetMapType sets the map_type field.
 func (ltc *LocationTypeCreate) SetMapType(s string) *LocationTypeCreate {
-	ltc.mutation.SetMapType(s)
+	ltc.map_type = &s
 	return ltc
 }
 
@@ -91,7 +98,7 @@ func (ltc *LocationTypeCreate) SetNillableMapType(s *string) *LocationTypeCreate
 
 // SetMapZoomLevel sets the map_zoom_level field.
 func (ltc *LocationTypeCreate) SetMapZoomLevel(i int) *LocationTypeCreate {
-	ltc.mutation.SetMapZoomLevel(i)
+	ltc.map_zoom_level = &i
 	return ltc
 }
 
@@ -105,7 +112,7 @@ func (ltc *LocationTypeCreate) SetNillableMapZoomLevel(i *int) *LocationTypeCrea
 
 // SetIndex sets the index field.
 func (ltc *LocationTypeCreate) SetIndex(i int) *LocationTypeCreate {
-	ltc.mutation.SetIndex(i)
+	ltc.index = &i
 	return ltc
 }
 
@@ -119,7 +126,12 @@ func (ltc *LocationTypeCreate) SetNillableIndex(i *int) *LocationTypeCreate {
 
 // AddLocationIDs adds the locations edge to Location by ids.
 func (ltc *LocationTypeCreate) AddLocationIDs(ids ...int) *LocationTypeCreate {
-	ltc.mutation.AddLocationIDs(ids...)
+	if ltc.locations == nil {
+		ltc.locations = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltc.locations[ids[i]] = struct{}{}
+	}
 	return ltc
 }
 
@@ -134,7 +146,12 @@ func (ltc *LocationTypeCreate) AddLocations(l ...*Location) *LocationTypeCreate 
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (ltc *LocationTypeCreate) AddPropertyTypeIDs(ids ...int) *LocationTypeCreate {
-	ltc.mutation.AddPropertyTypeIDs(ids...)
+	if ltc.property_types == nil {
+		ltc.property_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltc.property_types[ids[i]] = struct{}{}
+	}
 	return ltc
 }
 
@@ -149,7 +166,12 @@ func (ltc *LocationTypeCreate) AddPropertyTypes(p ...*PropertyType) *LocationTyp
 
 // AddSurveyTemplateCategoryIDs adds the survey_template_categories edge to SurveyTemplateCategory by ids.
 func (ltc *LocationTypeCreate) AddSurveyTemplateCategoryIDs(ids ...int) *LocationTypeCreate {
-	ltc.mutation.AddSurveyTemplateCategoryIDs(ids...)
+	if ltc.survey_template_categories == nil {
+		ltc.survey_template_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltc.survey_template_categories[ids[i]] = struct{}{}
+	}
 	return ltc
 }
 
@@ -164,53 +186,30 @@ func (ltc *LocationTypeCreate) AddSurveyTemplateCategories(s ...*SurveyTemplateC
 
 // Save creates the LocationType in the database.
 func (ltc *LocationTypeCreate) Save(ctx context.Context) (*LocationType, error) {
-	if _, ok := ltc.mutation.CreateTime(); !ok {
+	if ltc.create_time == nil {
 		v := locationtype.DefaultCreateTime()
-		ltc.mutation.SetCreateTime(v)
+		ltc.create_time = &v
 	}
-	if _, ok := ltc.mutation.UpdateTime(); !ok {
+	if ltc.update_time == nil {
 		v := locationtype.DefaultUpdateTime()
-		ltc.mutation.SetUpdateTime(v)
+		ltc.update_time = &v
 	}
-	if _, ok := ltc.mutation.Site(); !ok {
+	if ltc.site == nil {
 		v := locationtype.DefaultSite
-		ltc.mutation.SetSite(v)
+		ltc.site = &v
 	}
-	if _, ok := ltc.mutation.Name(); !ok {
+	if ltc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if _, ok := ltc.mutation.MapZoomLevel(); !ok {
+	if ltc.map_zoom_level == nil {
 		v := locationtype.DefaultMapZoomLevel
-		ltc.mutation.SetMapZoomLevel(v)
+		ltc.map_zoom_level = &v
 	}
-	if _, ok := ltc.mutation.Index(); !ok {
+	if ltc.index == nil {
 		v := locationtype.DefaultIndex
-		ltc.mutation.SetIndex(v)
+		ltc.index = &v
 	}
-	var (
-		err  error
-		node *LocationType
-	)
-	if len(ltc.hooks) == 0 {
-		node, err = ltc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LocationTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ltc.mutation = mutation
-			node, err = ltc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(ltc.hooks); i > 0; i-- {
-			mut = ltc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, ltc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return ltc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -233,63 +232,63 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 			},
 		}
 	)
-	if value, ok := ltc.mutation.CreateTime(); ok {
+	if value := ltc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldCreateTime,
 		})
-		lt.CreateTime = value
+		lt.CreateTime = *value
 	}
-	if value, ok := ltc.mutation.UpdateTime(); ok {
+	if value := ltc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldUpdateTime,
 		})
-		lt.UpdateTime = value
+		lt.UpdateTime = *value
 	}
-	if value, ok := ltc.mutation.Site(); ok {
+	if value := ltc.site; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldSite,
 		})
-		lt.Site = value
+		lt.Site = *value
 	}
-	if value, ok := ltc.mutation.Name(); ok {
+	if value := ltc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldName,
 		})
-		lt.Name = value
+		lt.Name = *value
 	}
-	if value, ok := ltc.mutation.MapType(); ok {
+	if value := ltc.map_type; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldMapType,
 		})
-		lt.MapType = value
+		lt.MapType = *value
 	}
-	if value, ok := ltc.mutation.MapZoomLevel(); ok {
+	if value := ltc.map_zoom_level; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
 		})
-		lt.MapZoomLevel = value
+		lt.MapZoomLevel = *value
 	}
-	if value, ok := ltc.mutation.Index(); ok {
+	if value := ltc.index; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldIndex,
 		})
-		lt.Index = value
+		lt.Index = *value
 	}
-	if nodes := ltc.mutation.LocationsIDs(); len(nodes) > 0 {
+	if nodes := ltc.locations; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -303,12 +302,12 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ltc.mutation.PropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := ltc.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -322,12 +321,12 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ltc.mutation.SurveyTemplateCategoriesIDs(); len(nodes) > 0 {
+	if nodes := ltc.survey_template_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -341,7 +340,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

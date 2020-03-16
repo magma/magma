@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,9 +22,15 @@ import (
 // ServiceTypeUpdate is the builder for updating ServiceType entities.
 type ServiceTypeUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *ServiceTypeMutation
-	predicates []predicate.ServiceType
+
+	update_time          *time.Time
+	name                 *string
+	has_customer         *bool
+	services             map[int]struct{}
+	property_types       map[int]struct{}
+	removedServices      map[int]struct{}
+	removedPropertyTypes map[int]struct{}
+	predicates           []predicate.ServiceType
 }
 
 // Where adds a new predicate for the builder.
@@ -35,13 +41,13 @@ func (stu *ServiceTypeUpdate) Where(ps ...predicate.ServiceType) *ServiceTypeUpd
 
 // SetName sets the name field.
 func (stu *ServiceTypeUpdate) SetName(s string) *ServiceTypeUpdate {
-	stu.mutation.SetName(s)
+	stu.name = &s
 	return stu
 }
 
 // SetHasCustomer sets the has_customer field.
 func (stu *ServiceTypeUpdate) SetHasCustomer(b bool) *ServiceTypeUpdate {
-	stu.mutation.SetHasCustomer(b)
+	stu.has_customer = &b
 	return stu
 }
 
@@ -55,7 +61,12 @@ func (stu *ServiceTypeUpdate) SetNillableHasCustomer(b *bool) *ServiceTypeUpdate
 
 // AddServiceIDs adds the services edge to Service by ids.
 func (stu *ServiceTypeUpdate) AddServiceIDs(ids ...int) *ServiceTypeUpdate {
-	stu.mutation.AddServiceIDs(ids...)
+	if stu.services == nil {
+		stu.services = make(map[int]struct{})
+	}
+	for i := range ids {
+		stu.services[ids[i]] = struct{}{}
+	}
 	return stu
 }
 
@@ -70,7 +81,12 @@ func (stu *ServiceTypeUpdate) AddServices(s ...*Service) *ServiceTypeUpdate {
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (stu *ServiceTypeUpdate) AddPropertyTypeIDs(ids ...int) *ServiceTypeUpdate {
-	stu.mutation.AddPropertyTypeIDs(ids...)
+	if stu.property_types == nil {
+		stu.property_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		stu.property_types[ids[i]] = struct{}{}
+	}
 	return stu
 }
 
@@ -85,7 +101,12 @@ func (stu *ServiceTypeUpdate) AddPropertyTypes(p ...*PropertyType) *ServiceTypeU
 
 // RemoveServiceIDs removes the services edge to Service by ids.
 func (stu *ServiceTypeUpdate) RemoveServiceIDs(ids ...int) *ServiceTypeUpdate {
-	stu.mutation.RemoveServiceIDs(ids...)
+	if stu.removedServices == nil {
+		stu.removedServices = make(map[int]struct{})
+	}
+	for i := range ids {
+		stu.removedServices[ids[i]] = struct{}{}
+	}
 	return stu
 }
 
@@ -100,7 +121,12 @@ func (stu *ServiceTypeUpdate) RemoveServices(s ...*Service) *ServiceTypeUpdate {
 
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (stu *ServiceTypeUpdate) RemovePropertyTypeIDs(ids ...int) *ServiceTypeUpdate {
-	stu.mutation.RemovePropertyTypeIDs(ids...)
+	if stu.removedPropertyTypes == nil {
+		stu.removedPropertyTypes = make(map[int]struct{})
+	}
+	for i := range ids {
+		stu.removedPropertyTypes[ids[i]] = struct{}{}
+	}
 	return stu
 }
 
@@ -115,35 +141,11 @@ func (stu *ServiceTypeUpdate) RemovePropertyTypes(p ...*PropertyType) *ServiceTy
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (stu *ServiceTypeUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := stu.mutation.UpdateTime(); !ok {
+	if stu.update_time == nil {
 		v := servicetype.UpdateDefaultUpdateTime()
-		stu.mutation.SetUpdateTime(v)
+		stu.update_time = &v
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(stu.hooks) == 0 {
-		affected, err = stu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ServiceTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			stu.mutation = mutation
-			affected, err = stu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(stu.hooks); i > 0; i-- {
-			mut = stu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, stu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return stu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -186,28 +188,28 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := stu.mutation.UpdateTime(); ok {
+	if value := stu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: servicetype.FieldUpdateTime,
 		})
 	}
-	if value, ok := stu.mutation.Name(); ok {
+	if value := stu.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: servicetype.FieldName,
 		})
 	}
-	if value, ok := stu.mutation.HasCustomer(); ok {
+	if value := stu.has_customer; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: servicetype.FieldHasCustomer,
 		})
 	}
-	if nodes := stu.mutation.RemovedServicesIDs(); len(nodes) > 0 {
+	if nodes := stu.removedServices; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -221,12 +223,12 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := stu.mutation.ServicesIDs(); len(nodes) > 0 {
+	if nodes := stu.services; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -240,12 +242,12 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := stu.mutation.RemovedPropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := stu.removedPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -259,12 +261,12 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := stu.mutation.PropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := stu.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -278,7 +280,7 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -297,19 +299,26 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ServiceTypeUpdateOne is the builder for updating a single ServiceType entity.
 type ServiceTypeUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *ServiceTypeMutation
+	id int
+
+	update_time          *time.Time
+	name                 *string
+	has_customer         *bool
+	services             map[int]struct{}
+	property_types       map[int]struct{}
+	removedServices      map[int]struct{}
+	removedPropertyTypes map[int]struct{}
 }
 
 // SetName sets the name field.
 func (stuo *ServiceTypeUpdateOne) SetName(s string) *ServiceTypeUpdateOne {
-	stuo.mutation.SetName(s)
+	stuo.name = &s
 	return stuo
 }
 
 // SetHasCustomer sets the has_customer field.
 func (stuo *ServiceTypeUpdateOne) SetHasCustomer(b bool) *ServiceTypeUpdateOne {
-	stuo.mutation.SetHasCustomer(b)
+	stuo.has_customer = &b
 	return stuo
 }
 
@@ -323,7 +332,12 @@ func (stuo *ServiceTypeUpdateOne) SetNillableHasCustomer(b *bool) *ServiceTypeUp
 
 // AddServiceIDs adds the services edge to Service by ids.
 func (stuo *ServiceTypeUpdateOne) AddServiceIDs(ids ...int) *ServiceTypeUpdateOne {
-	stuo.mutation.AddServiceIDs(ids...)
+	if stuo.services == nil {
+		stuo.services = make(map[int]struct{})
+	}
+	for i := range ids {
+		stuo.services[ids[i]] = struct{}{}
+	}
 	return stuo
 }
 
@@ -338,7 +352,12 @@ func (stuo *ServiceTypeUpdateOne) AddServices(s ...*Service) *ServiceTypeUpdateO
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (stuo *ServiceTypeUpdateOne) AddPropertyTypeIDs(ids ...int) *ServiceTypeUpdateOne {
-	stuo.mutation.AddPropertyTypeIDs(ids...)
+	if stuo.property_types == nil {
+		stuo.property_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		stuo.property_types[ids[i]] = struct{}{}
+	}
 	return stuo
 }
 
@@ -353,7 +372,12 @@ func (stuo *ServiceTypeUpdateOne) AddPropertyTypes(p ...*PropertyType) *ServiceT
 
 // RemoveServiceIDs removes the services edge to Service by ids.
 func (stuo *ServiceTypeUpdateOne) RemoveServiceIDs(ids ...int) *ServiceTypeUpdateOne {
-	stuo.mutation.RemoveServiceIDs(ids...)
+	if stuo.removedServices == nil {
+		stuo.removedServices = make(map[int]struct{})
+	}
+	for i := range ids {
+		stuo.removedServices[ids[i]] = struct{}{}
+	}
 	return stuo
 }
 
@@ -368,7 +392,12 @@ func (stuo *ServiceTypeUpdateOne) RemoveServices(s ...*Service) *ServiceTypeUpda
 
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (stuo *ServiceTypeUpdateOne) RemovePropertyTypeIDs(ids ...int) *ServiceTypeUpdateOne {
-	stuo.mutation.RemovePropertyTypeIDs(ids...)
+	if stuo.removedPropertyTypes == nil {
+		stuo.removedPropertyTypes = make(map[int]struct{})
+	}
+	for i := range ids {
+		stuo.removedPropertyTypes[ids[i]] = struct{}{}
+	}
 	return stuo
 }
 
@@ -383,35 +412,11 @@ func (stuo *ServiceTypeUpdateOne) RemovePropertyTypes(p ...*PropertyType) *Servi
 
 // Save executes the query and returns the updated entity.
 func (stuo *ServiceTypeUpdateOne) Save(ctx context.Context) (*ServiceType, error) {
-	if _, ok := stuo.mutation.UpdateTime(); !ok {
+	if stuo.update_time == nil {
 		v := servicetype.UpdateDefaultUpdateTime()
-		stuo.mutation.SetUpdateTime(v)
+		stuo.update_time = &v
 	}
-
-	var (
-		err  error
-		node *ServiceType
-	)
-	if len(stuo.hooks) == 0 {
-		node, err = stuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ServiceTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			stuo.mutation = mutation
-			node, err = stuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(stuo.hooks); i > 0; i-- {
-			mut = stuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, stuo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return stuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -442,38 +447,34 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 			Table:   servicetype.Table,
 			Columns: servicetype.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  stuo.id,
 				Type:   field.TypeInt,
 				Column: servicetype.FieldID,
 			},
 		},
 	}
-	id, ok := stuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing ServiceType.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := stuo.mutation.UpdateTime(); ok {
+	if value := stuo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: servicetype.FieldUpdateTime,
 		})
 	}
-	if value, ok := stuo.mutation.Name(); ok {
+	if value := stuo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: servicetype.FieldName,
 		})
 	}
-	if value, ok := stuo.mutation.HasCustomer(); ok {
+	if value := stuo.has_customer; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: servicetype.FieldHasCustomer,
 		})
 	}
-	if nodes := stuo.mutation.RemovedServicesIDs(); len(nodes) > 0 {
+	if nodes := stuo.removedServices; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -487,12 +488,12 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := stuo.mutation.ServicesIDs(); len(nodes) > 0 {
+	if nodes := stuo.services; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -506,12 +507,12 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := stuo.mutation.RemovedPropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := stuo.removedPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -525,12 +526,12 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := stuo.mutation.PropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := stuo.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -544,7 +545,7 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

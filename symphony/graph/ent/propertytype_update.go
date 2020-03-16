@@ -8,7 +8,8 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -27,9 +28,58 @@ import (
 // PropertyTypeUpdate is the builder for updating PropertyType entities.
 type PropertyTypeUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *PropertyTypeMutation
-	predicates []predicate.PropertyType
+
+	update_time                  *time.Time
+	_type                        *string
+	name                         *string
+	index                        *int
+	addindex                     *int
+	clearindex                   bool
+	category                     *string
+	clearcategory                bool
+	int_val                      *int
+	addint_val                   *int
+	clearint_val                 bool
+	bool_val                     *bool
+	clearbool_val                bool
+	float_val                    *float64
+	addfloat_val                 *float64
+	clearfloat_val               bool
+	latitude_val                 *float64
+	addlatitude_val              *float64
+	clearlatitude_val            bool
+	longitude_val                *float64
+	addlongitude_val             *float64
+	clearlongitude_val           bool
+	string_val                   *string
+	clearstring_val              bool
+	range_from_val               *float64
+	addrange_from_val            *float64
+	clearrange_from_val          bool
+	range_to_val                 *float64
+	addrange_to_val              *float64
+	clearrange_to_val            bool
+	is_instance_property         *bool
+	editable                     *bool
+	mandatory                    *bool
+	deleted                      *bool
+	properties                   map[int]struct{}
+	location_type                map[int]struct{}
+	equipment_port_type          map[int]struct{}
+	link_equipment_port_type     map[int]struct{}
+	equipment_type               map[int]struct{}
+	service_type                 map[int]struct{}
+	work_order_type              map[int]struct{}
+	project_type                 map[int]struct{}
+	removedProperties            map[int]struct{}
+	clearedLocationType          bool
+	clearedEquipmentPortType     bool
+	clearedLinkEquipmentPortType bool
+	clearedEquipmentType         bool
+	clearedServiceType           bool
+	clearedWorkOrderType         bool
+	clearedProjectType           bool
+	predicates                   []predicate.PropertyType
 }
 
 // Where adds a new predicate for the builder.
@@ -40,20 +90,20 @@ func (ptu *PropertyTypeUpdate) Where(ps ...predicate.PropertyType) *PropertyType
 
 // SetType sets the type field.
 func (ptu *PropertyTypeUpdate) SetType(s string) *PropertyTypeUpdate {
-	ptu.mutation.SetType(s)
+	ptu._type = &s
 	return ptu
 }
 
 // SetName sets the name field.
 func (ptu *PropertyTypeUpdate) SetName(s string) *PropertyTypeUpdate {
-	ptu.mutation.SetName(s)
+	ptu.name = &s
 	return ptu
 }
 
 // SetIndex sets the index field.
 func (ptu *PropertyTypeUpdate) SetIndex(i int) *PropertyTypeUpdate {
-	ptu.mutation.ResetIndex()
-	ptu.mutation.SetIndex(i)
+	ptu.index = &i
+	ptu.addindex = nil
 	return ptu
 }
 
@@ -67,19 +117,24 @@ func (ptu *PropertyTypeUpdate) SetNillableIndex(i *int) *PropertyTypeUpdate {
 
 // AddIndex adds i to index.
 func (ptu *PropertyTypeUpdate) AddIndex(i int) *PropertyTypeUpdate {
-	ptu.mutation.AddIndex(i)
+	if ptu.addindex == nil {
+		ptu.addindex = &i
+	} else {
+		*ptu.addindex += i
+	}
 	return ptu
 }
 
 // ClearIndex clears the value of index.
 func (ptu *PropertyTypeUpdate) ClearIndex() *PropertyTypeUpdate {
-	ptu.mutation.ClearIndex()
+	ptu.index = nil
+	ptu.clearindex = true
 	return ptu
 }
 
 // SetCategory sets the category field.
 func (ptu *PropertyTypeUpdate) SetCategory(s string) *PropertyTypeUpdate {
-	ptu.mutation.SetCategory(s)
+	ptu.category = &s
 	return ptu
 }
 
@@ -93,14 +148,15 @@ func (ptu *PropertyTypeUpdate) SetNillableCategory(s *string) *PropertyTypeUpdat
 
 // ClearCategory clears the value of category.
 func (ptu *PropertyTypeUpdate) ClearCategory() *PropertyTypeUpdate {
-	ptu.mutation.ClearCategory()
+	ptu.category = nil
+	ptu.clearcategory = true
 	return ptu
 }
 
 // SetIntVal sets the int_val field.
 func (ptu *PropertyTypeUpdate) SetIntVal(i int) *PropertyTypeUpdate {
-	ptu.mutation.ResetIntVal()
-	ptu.mutation.SetIntVal(i)
+	ptu.int_val = &i
+	ptu.addint_val = nil
 	return ptu
 }
 
@@ -114,19 +170,24 @@ func (ptu *PropertyTypeUpdate) SetNillableIntVal(i *int) *PropertyTypeUpdate {
 
 // AddIntVal adds i to int_val.
 func (ptu *PropertyTypeUpdate) AddIntVal(i int) *PropertyTypeUpdate {
-	ptu.mutation.AddIntVal(i)
+	if ptu.addint_val == nil {
+		ptu.addint_val = &i
+	} else {
+		*ptu.addint_val += i
+	}
 	return ptu
 }
 
 // ClearIntVal clears the value of int_val.
 func (ptu *PropertyTypeUpdate) ClearIntVal() *PropertyTypeUpdate {
-	ptu.mutation.ClearIntVal()
+	ptu.int_val = nil
+	ptu.clearint_val = true
 	return ptu
 }
 
 // SetBoolVal sets the bool_val field.
 func (ptu *PropertyTypeUpdate) SetBoolVal(b bool) *PropertyTypeUpdate {
-	ptu.mutation.SetBoolVal(b)
+	ptu.bool_val = &b
 	return ptu
 }
 
@@ -140,14 +201,15 @@ func (ptu *PropertyTypeUpdate) SetNillableBoolVal(b *bool) *PropertyTypeUpdate {
 
 // ClearBoolVal clears the value of bool_val.
 func (ptu *PropertyTypeUpdate) ClearBoolVal() *PropertyTypeUpdate {
-	ptu.mutation.ClearBoolVal()
+	ptu.bool_val = nil
+	ptu.clearbool_val = true
 	return ptu
 }
 
 // SetFloatVal sets the float_val field.
 func (ptu *PropertyTypeUpdate) SetFloatVal(f float64) *PropertyTypeUpdate {
-	ptu.mutation.ResetFloatVal()
-	ptu.mutation.SetFloatVal(f)
+	ptu.float_val = &f
+	ptu.addfloat_val = nil
 	return ptu
 }
 
@@ -161,20 +223,25 @@ func (ptu *PropertyTypeUpdate) SetNillableFloatVal(f *float64) *PropertyTypeUpda
 
 // AddFloatVal adds f to float_val.
 func (ptu *PropertyTypeUpdate) AddFloatVal(f float64) *PropertyTypeUpdate {
-	ptu.mutation.AddFloatVal(f)
+	if ptu.addfloat_val == nil {
+		ptu.addfloat_val = &f
+	} else {
+		*ptu.addfloat_val += f
+	}
 	return ptu
 }
 
 // ClearFloatVal clears the value of float_val.
 func (ptu *PropertyTypeUpdate) ClearFloatVal() *PropertyTypeUpdate {
-	ptu.mutation.ClearFloatVal()
+	ptu.float_val = nil
+	ptu.clearfloat_val = true
 	return ptu
 }
 
 // SetLatitudeVal sets the latitude_val field.
 func (ptu *PropertyTypeUpdate) SetLatitudeVal(f float64) *PropertyTypeUpdate {
-	ptu.mutation.ResetLatitudeVal()
-	ptu.mutation.SetLatitudeVal(f)
+	ptu.latitude_val = &f
+	ptu.addlatitude_val = nil
 	return ptu
 }
 
@@ -188,20 +255,25 @@ func (ptu *PropertyTypeUpdate) SetNillableLatitudeVal(f *float64) *PropertyTypeU
 
 // AddLatitudeVal adds f to latitude_val.
 func (ptu *PropertyTypeUpdate) AddLatitudeVal(f float64) *PropertyTypeUpdate {
-	ptu.mutation.AddLatitudeVal(f)
+	if ptu.addlatitude_val == nil {
+		ptu.addlatitude_val = &f
+	} else {
+		*ptu.addlatitude_val += f
+	}
 	return ptu
 }
 
 // ClearLatitudeVal clears the value of latitude_val.
 func (ptu *PropertyTypeUpdate) ClearLatitudeVal() *PropertyTypeUpdate {
-	ptu.mutation.ClearLatitudeVal()
+	ptu.latitude_val = nil
+	ptu.clearlatitude_val = true
 	return ptu
 }
 
 // SetLongitudeVal sets the longitude_val field.
 func (ptu *PropertyTypeUpdate) SetLongitudeVal(f float64) *PropertyTypeUpdate {
-	ptu.mutation.ResetLongitudeVal()
-	ptu.mutation.SetLongitudeVal(f)
+	ptu.longitude_val = &f
+	ptu.addlongitude_val = nil
 	return ptu
 }
 
@@ -215,19 +287,24 @@ func (ptu *PropertyTypeUpdate) SetNillableLongitudeVal(f *float64) *PropertyType
 
 // AddLongitudeVal adds f to longitude_val.
 func (ptu *PropertyTypeUpdate) AddLongitudeVal(f float64) *PropertyTypeUpdate {
-	ptu.mutation.AddLongitudeVal(f)
+	if ptu.addlongitude_val == nil {
+		ptu.addlongitude_val = &f
+	} else {
+		*ptu.addlongitude_val += f
+	}
 	return ptu
 }
 
 // ClearLongitudeVal clears the value of longitude_val.
 func (ptu *PropertyTypeUpdate) ClearLongitudeVal() *PropertyTypeUpdate {
-	ptu.mutation.ClearLongitudeVal()
+	ptu.longitude_val = nil
+	ptu.clearlongitude_val = true
 	return ptu
 }
 
 // SetStringVal sets the string_val field.
 func (ptu *PropertyTypeUpdate) SetStringVal(s string) *PropertyTypeUpdate {
-	ptu.mutation.SetStringVal(s)
+	ptu.string_val = &s
 	return ptu
 }
 
@@ -241,14 +318,15 @@ func (ptu *PropertyTypeUpdate) SetNillableStringVal(s *string) *PropertyTypeUpda
 
 // ClearStringVal clears the value of string_val.
 func (ptu *PropertyTypeUpdate) ClearStringVal() *PropertyTypeUpdate {
-	ptu.mutation.ClearStringVal()
+	ptu.string_val = nil
+	ptu.clearstring_val = true
 	return ptu
 }
 
 // SetRangeFromVal sets the range_from_val field.
 func (ptu *PropertyTypeUpdate) SetRangeFromVal(f float64) *PropertyTypeUpdate {
-	ptu.mutation.ResetRangeFromVal()
-	ptu.mutation.SetRangeFromVal(f)
+	ptu.range_from_val = &f
+	ptu.addrange_from_val = nil
 	return ptu
 }
 
@@ -262,20 +340,25 @@ func (ptu *PropertyTypeUpdate) SetNillableRangeFromVal(f *float64) *PropertyType
 
 // AddRangeFromVal adds f to range_from_val.
 func (ptu *PropertyTypeUpdate) AddRangeFromVal(f float64) *PropertyTypeUpdate {
-	ptu.mutation.AddRangeFromVal(f)
+	if ptu.addrange_from_val == nil {
+		ptu.addrange_from_val = &f
+	} else {
+		*ptu.addrange_from_val += f
+	}
 	return ptu
 }
 
 // ClearRangeFromVal clears the value of range_from_val.
 func (ptu *PropertyTypeUpdate) ClearRangeFromVal() *PropertyTypeUpdate {
-	ptu.mutation.ClearRangeFromVal()
+	ptu.range_from_val = nil
+	ptu.clearrange_from_val = true
 	return ptu
 }
 
 // SetRangeToVal sets the range_to_val field.
 func (ptu *PropertyTypeUpdate) SetRangeToVal(f float64) *PropertyTypeUpdate {
-	ptu.mutation.ResetRangeToVal()
-	ptu.mutation.SetRangeToVal(f)
+	ptu.range_to_val = &f
+	ptu.addrange_to_val = nil
 	return ptu
 }
 
@@ -289,19 +372,24 @@ func (ptu *PropertyTypeUpdate) SetNillableRangeToVal(f *float64) *PropertyTypeUp
 
 // AddRangeToVal adds f to range_to_val.
 func (ptu *PropertyTypeUpdate) AddRangeToVal(f float64) *PropertyTypeUpdate {
-	ptu.mutation.AddRangeToVal(f)
+	if ptu.addrange_to_val == nil {
+		ptu.addrange_to_val = &f
+	} else {
+		*ptu.addrange_to_val += f
+	}
 	return ptu
 }
 
 // ClearRangeToVal clears the value of range_to_val.
 func (ptu *PropertyTypeUpdate) ClearRangeToVal() *PropertyTypeUpdate {
-	ptu.mutation.ClearRangeToVal()
+	ptu.range_to_val = nil
+	ptu.clearrange_to_val = true
 	return ptu
 }
 
 // SetIsInstanceProperty sets the is_instance_property field.
 func (ptu *PropertyTypeUpdate) SetIsInstanceProperty(b bool) *PropertyTypeUpdate {
-	ptu.mutation.SetIsInstanceProperty(b)
+	ptu.is_instance_property = &b
 	return ptu
 }
 
@@ -315,7 +403,7 @@ func (ptu *PropertyTypeUpdate) SetNillableIsInstanceProperty(b *bool) *PropertyT
 
 // SetEditable sets the editable field.
 func (ptu *PropertyTypeUpdate) SetEditable(b bool) *PropertyTypeUpdate {
-	ptu.mutation.SetEditable(b)
+	ptu.editable = &b
 	return ptu
 }
 
@@ -329,7 +417,7 @@ func (ptu *PropertyTypeUpdate) SetNillableEditable(b *bool) *PropertyTypeUpdate 
 
 // SetMandatory sets the mandatory field.
 func (ptu *PropertyTypeUpdate) SetMandatory(b bool) *PropertyTypeUpdate {
-	ptu.mutation.SetMandatory(b)
+	ptu.mandatory = &b
 	return ptu
 }
 
@@ -343,7 +431,7 @@ func (ptu *PropertyTypeUpdate) SetNillableMandatory(b *bool) *PropertyTypeUpdate
 
 // SetDeleted sets the deleted field.
 func (ptu *PropertyTypeUpdate) SetDeleted(b bool) *PropertyTypeUpdate {
-	ptu.mutation.SetDeleted(b)
+	ptu.deleted = &b
 	return ptu
 }
 
@@ -357,7 +445,12 @@ func (ptu *PropertyTypeUpdate) SetNillableDeleted(b *bool) *PropertyTypeUpdate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptu *PropertyTypeUpdate) AddPropertyIDs(ids ...int) *PropertyTypeUpdate {
-	ptu.mutation.AddPropertyIDs(ids...)
+	if ptu.properties == nil {
+		ptu.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptu.properties[ids[i]] = struct{}{}
+	}
 	return ptu
 }
 
@@ -372,7 +465,10 @@ func (ptu *PropertyTypeUpdate) AddProperties(p ...*Property) *PropertyTypeUpdate
 
 // SetLocationTypeID sets the location_type edge to LocationType by id.
 func (ptu *PropertyTypeUpdate) SetLocationTypeID(id int) *PropertyTypeUpdate {
-	ptu.mutation.SetLocationTypeID(id)
+	if ptu.location_type == nil {
+		ptu.location_type = make(map[int]struct{})
+	}
+	ptu.location_type[id] = struct{}{}
 	return ptu
 }
 
@@ -391,7 +487,10 @@ func (ptu *PropertyTypeUpdate) SetLocationType(l *LocationType) *PropertyTypeUpd
 
 // SetEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id.
 func (ptu *PropertyTypeUpdate) SetEquipmentPortTypeID(id int) *PropertyTypeUpdate {
-	ptu.mutation.SetEquipmentPortTypeID(id)
+	if ptu.equipment_port_type == nil {
+		ptu.equipment_port_type = make(map[int]struct{})
+	}
+	ptu.equipment_port_type[id] = struct{}{}
 	return ptu
 }
 
@@ -410,7 +509,10 @@ func (ptu *PropertyTypeUpdate) SetEquipmentPortType(e *EquipmentPortType) *Prope
 
 // SetLinkEquipmentPortTypeID sets the link_equipment_port_type edge to EquipmentPortType by id.
 func (ptu *PropertyTypeUpdate) SetLinkEquipmentPortTypeID(id int) *PropertyTypeUpdate {
-	ptu.mutation.SetLinkEquipmentPortTypeID(id)
+	if ptu.link_equipment_port_type == nil {
+		ptu.link_equipment_port_type = make(map[int]struct{})
+	}
+	ptu.link_equipment_port_type[id] = struct{}{}
 	return ptu
 }
 
@@ -429,7 +531,10 @@ func (ptu *PropertyTypeUpdate) SetLinkEquipmentPortType(e *EquipmentPortType) *P
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
 func (ptu *PropertyTypeUpdate) SetEquipmentTypeID(id int) *PropertyTypeUpdate {
-	ptu.mutation.SetEquipmentTypeID(id)
+	if ptu.equipment_type == nil {
+		ptu.equipment_type = make(map[int]struct{})
+	}
+	ptu.equipment_type[id] = struct{}{}
 	return ptu
 }
 
@@ -448,7 +553,10 @@ func (ptu *PropertyTypeUpdate) SetEquipmentType(e *EquipmentType) *PropertyTypeU
 
 // SetServiceTypeID sets the service_type edge to ServiceType by id.
 func (ptu *PropertyTypeUpdate) SetServiceTypeID(id int) *PropertyTypeUpdate {
-	ptu.mutation.SetServiceTypeID(id)
+	if ptu.service_type == nil {
+		ptu.service_type = make(map[int]struct{})
+	}
+	ptu.service_type[id] = struct{}{}
 	return ptu
 }
 
@@ -467,7 +575,10 @@ func (ptu *PropertyTypeUpdate) SetServiceType(s *ServiceType) *PropertyTypeUpdat
 
 // SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
 func (ptu *PropertyTypeUpdate) SetWorkOrderTypeID(id int) *PropertyTypeUpdate {
-	ptu.mutation.SetWorkOrderTypeID(id)
+	if ptu.work_order_type == nil {
+		ptu.work_order_type = make(map[int]struct{})
+	}
+	ptu.work_order_type[id] = struct{}{}
 	return ptu
 }
 
@@ -486,7 +597,10 @@ func (ptu *PropertyTypeUpdate) SetWorkOrderType(w *WorkOrderType) *PropertyTypeU
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
 func (ptu *PropertyTypeUpdate) SetProjectTypeID(id int) *PropertyTypeUpdate {
-	ptu.mutation.SetProjectTypeID(id)
+	if ptu.project_type == nil {
+		ptu.project_type = make(map[int]struct{})
+	}
+	ptu.project_type[id] = struct{}{}
 	return ptu
 }
 
@@ -505,7 +619,12 @@ func (ptu *PropertyTypeUpdate) SetProjectType(p *ProjectType) *PropertyTypeUpdat
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (ptu *PropertyTypeUpdate) RemovePropertyIDs(ids ...int) *PropertyTypeUpdate {
-	ptu.mutation.RemovePropertyIDs(ids...)
+	if ptu.removedProperties == nil {
+		ptu.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptu.removedProperties[ids[i]] = struct{}{}
+	}
 	return ptu
 }
 
@@ -520,77 +639,74 @@ func (ptu *PropertyTypeUpdate) RemoveProperties(p ...*Property) *PropertyTypeUpd
 
 // ClearLocationType clears the location_type edge to LocationType.
 func (ptu *PropertyTypeUpdate) ClearLocationType() *PropertyTypeUpdate {
-	ptu.mutation.ClearLocationType()
+	ptu.clearedLocationType = true
 	return ptu
 }
 
 // ClearEquipmentPortType clears the equipment_port_type edge to EquipmentPortType.
 func (ptu *PropertyTypeUpdate) ClearEquipmentPortType() *PropertyTypeUpdate {
-	ptu.mutation.ClearEquipmentPortType()
+	ptu.clearedEquipmentPortType = true
 	return ptu
 }
 
 // ClearLinkEquipmentPortType clears the link_equipment_port_type edge to EquipmentPortType.
 func (ptu *PropertyTypeUpdate) ClearLinkEquipmentPortType() *PropertyTypeUpdate {
-	ptu.mutation.ClearLinkEquipmentPortType()
+	ptu.clearedLinkEquipmentPortType = true
 	return ptu
 }
 
 // ClearEquipmentType clears the equipment_type edge to EquipmentType.
 func (ptu *PropertyTypeUpdate) ClearEquipmentType() *PropertyTypeUpdate {
-	ptu.mutation.ClearEquipmentType()
+	ptu.clearedEquipmentType = true
 	return ptu
 }
 
 // ClearServiceType clears the service_type edge to ServiceType.
 func (ptu *PropertyTypeUpdate) ClearServiceType() *PropertyTypeUpdate {
-	ptu.mutation.ClearServiceType()
+	ptu.clearedServiceType = true
 	return ptu
 }
 
 // ClearWorkOrderType clears the work_order_type edge to WorkOrderType.
 func (ptu *PropertyTypeUpdate) ClearWorkOrderType() *PropertyTypeUpdate {
-	ptu.mutation.ClearWorkOrderType()
+	ptu.clearedWorkOrderType = true
 	return ptu
 }
 
 // ClearProjectType clears the project_type edge to ProjectType.
 func (ptu *PropertyTypeUpdate) ClearProjectType() *PropertyTypeUpdate {
-	ptu.mutation.ClearProjectType()
+	ptu.clearedProjectType = true
 	return ptu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (ptu *PropertyTypeUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := ptu.mutation.UpdateTime(); !ok {
+	if ptu.update_time == nil {
 		v := propertytype.UpdateDefaultUpdateTime()
-		ptu.mutation.SetUpdateTime(v)
+		ptu.update_time = &v
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(ptu.hooks) == 0 {
-		affected, err = ptu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PropertyTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ptu.mutation = mutation
-			affected, err = ptu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(ptu.hooks); i > 0; i-- {
-			mut = ptu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, ptu.mutation); err != nil {
-			return 0, err
-		}
+	if len(ptu.location_type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"location_type\"")
 	}
-	return affected, err
+	if len(ptu.equipment_port_type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"equipment_port_type\"")
+	}
+	if len(ptu.link_equipment_port_type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"link_equipment_port_type\"")
+	}
+	if len(ptu.equipment_type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"equipment_type\"")
+	}
+	if len(ptu.service_type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"service_type\"")
+	}
+	if len(ptu.work_order_type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"work_order_type\"")
+	}
+	if len(ptu.project_type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"project_type\"")
+	}
+	return ptu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -633,235 +749,235 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := ptu.mutation.UpdateTime(); ok {
+	if value := ptu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldUpdateTime,
 		})
 	}
-	if value, ok := ptu.mutation.GetType(); ok {
+	if value := ptu._type; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldType,
 		})
 	}
-	if value, ok := ptu.mutation.Name(); ok {
+	if value := ptu.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldName,
 		})
 	}
-	if value, ok := ptu.mutation.Index(); ok {
+	if value := ptu.index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldIndex,
 		})
 	}
-	if value, ok := ptu.mutation.AddedIndex(); ok {
+	if value := ptu.addindex; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldIndex,
 		})
 	}
-	if ptu.mutation.IndexCleared() {
+	if ptu.clearindex {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: propertytype.FieldIndex,
 		})
 	}
-	if value, ok := ptu.mutation.Category(); ok {
+	if value := ptu.category; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldCategory,
 		})
 	}
-	if ptu.mutation.CategoryCleared() {
+	if ptu.clearcategory {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: propertytype.FieldCategory,
 		})
 	}
-	if value, ok := ptu.mutation.IntVal(); ok {
+	if value := ptu.int_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldIntVal,
 		})
 	}
-	if value, ok := ptu.mutation.AddedIntVal(); ok {
+	if value := ptu.addint_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldIntVal,
 		})
 	}
-	if ptu.mutation.IntValCleared() {
+	if ptu.clearint_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: propertytype.FieldIntVal,
 		})
 	}
-	if value, ok := ptu.mutation.BoolVal(); ok {
+	if value := ptu.bool_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldBoolVal,
 		})
 	}
-	if ptu.mutation.BoolValCleared() {
+	if ptu.clearbool_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: propertytype.FieldBoolVal,
 		})
 	}
-	if value, ok := ptu.mutation.FloatVal(); ok {
+	if value := ptu.float_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
-	if value, ok := ptu.mutation.AddedFloatVal(); ok {
+	if value := ptu.addfloat_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
-	if ptu.mutation.FloatValCleared() {
+	if ptu.clearfloat_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
-	if value, ok := ptu.mutation.LatitudeVal(); ok {
+	if value := ptu.latitude_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
-	if value, ok := ptu.mutation.AddedLatitudeVal(); ok {
+	if value := ptu.addlatitude_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
-	if ptu.mutation.LatitudeValCleared() {
+	if ptu.clearlatitude_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
-	if value, ok := ptu.mutation.LongitudeVal(); ok {
+	if value := ptu.longitude_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
-	if value, ok := ptu.mutation.AddedLongitudeVal(); ok {
+	if value := ptu.addlongitude_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
-	if ptu.mutation.LongitudeValCleared() {
+	if ptu.clearlongitude_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
-	if value, ok := ptu.mutation.StringVal(); ok {
+	if value := ptu.string_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldStringVal,
 		})
 	}
-	if ptu.mutation.StringValCleared() {
+	if ptu.clearstring_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: propertytype.FieldStringVal,
 		})
 	}
-	if value, ok := ptu.mutation.RangeFromVal(); ok {
+	if value := ptu.range_from_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
-	if value, ok := ptu.mutation.AddedRangeFromVal(); ok {
+	if value := ptu.addrange_from_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
-	if ptu.mutation.RangeFromValCleared() {
+	if ptu.clearrange_from_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
-	if value, ok := ptu.mutation.RangeToVal(); ok {
+	if value := ptu.range_to_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
-	if value, ok := ptu.mutation.AddedRangeToVal(); ok {
+	if value := ptu.addrange_to_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
-	if ptu.mutation.RangeToValCleared() {
+	if ptu.clearrange_to_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
-	if value, ok := ptu.mutation.IsInstanceProperty(); ok {
+	if value := ptu.is_instance_property; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldIsInstanceProperty,
 		})
 	}
-	if value, ok := ptu.mutation.Editable(); ok {
+	if value := ptu.editable; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldEditable,
 		})
 	}
-	if value, ok := ptu.mutation.Mandatory(); ok {
+	if value := ptu.mandatory; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldMandatory,
 		})
 	}
-	if value, ok := ptu.mutation.Deleted(); ok {
+	if value := ptu.deleted; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldDeleted,
 		})
 	}
-	if nodes := ptu.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := ptu.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -875,12 +991,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := ptu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -894,12 +1010,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptu.mutation.LocationTypeCleared() {
+	if ptu.clearedLocationType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -915,7 +1031,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.LocationTypeIDs(); len(nodes) > 0 {
+	if nodes := ptu.location_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -929,12 +1045,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptu.mutation.EquipmentPortTypeCleared() {
+	if ptu.clearedEquipmentPortType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -950,7 +1066,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.EquipmentPortTypeIDs(); len(nodes) > 0 {
+	if nodes := ptu.equipment_port_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -964,12 +1080,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptu.mutation.LinkEquipmentPortTypeCleared() {
+	if ptu.clearedLinkEquipmentPortType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -985,7 +1101,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.LinkEquipmentPortTypeIDs(); len(nodes) > 0 {
+	if nodes := ptu.link_equipment_port_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -999,12 +1115,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptu.mutation.EquipmentTypeCleared() {
+	if ptu.clearedEquipmentType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1020,7 +1136,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.EquipmentTypeIDs(); len(nodes) > 0 {
+	if nodes := ptu.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1034,12 +1150,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptu.mutation.ServiceTypeCleared() {
+	if ptu.clearedServiceType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1055,7 +1171,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.ServiceTypeIDs(); len(nodes) > 0 {
+	if nodes := ptu.service_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1069,12 +1185,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptu.mutation.WorkOrderTypeCleared() {
+	if ptu.clearedWorkOrderType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1090,7 +1206,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.WorkOrderTypeIDs(); len(nodes) > 0 {
+	if nodes := ptu.work_order_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1104,12 +1220,12 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptu.mutation.ProjectTypeCleared() {
+	if ptu.clearedProjectType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1125,7 +1241,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.ProjectTypeIDs(); len(nodes) > 0 {
+	if nodes := ptu.project_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1139,7 +1255,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -1158,26 +1274,76 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // PropertyTypeUpdateOne is the builder for updating a single PropertyType entity.
 type PropertyTypeUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *PropertyTypeMutation
+	id int
+
+	update_time                  *time.Time
+	_type                        *string
+	name                         *string
+	index                        *int
+	addindex                     *int
+	clearindex                   bool
+	category                     *string
+	clearcategory                bool
+	int_val                      *int
+	addint_val                   *int
+	clearint_val                 bool
+	bool_val                     *bool
+	clearbool_val                bool
+	float_val                    *float64
+	addfloat_val                 *float64
+	clearfloat_val               bool
+	latitude_val                 *float64
+	addlatitude_val              *float64
+	clearlatitude_val            bool
+	longitude_val                *float64
+	addlongitude_val             *float64
+	clearlongitude_val           bool
+	string_val                   *string
+	clearstring_val              bool
+	range_from_val               *float64
+	addrange_from_val            *float64
+	clearrange_from_val          bool
+	range_to_val                 *float64
+	addrange_to_val              *float64
+	clearrange_to_val            bool
+	is_instance_property         *bool
+	editable                     *bool
+	mandatory                    *bool
+	deleted                      *bool
+	properties                   map[int]struct{}
+	location_type                map[int]struct{}
+	equipment_port_type          map[int]struct{}
+	link_equipment_port_type     map[int]struct{}
+	equipment_type               map[int]struct{}
+	service_type                 map[int]struct{}
+	work_order_type              map[int]struct{}
+	project_type                 map[int]struct{}
+	removedProperties            map[int]struct{}
+	clearedLocationType          bool
+	clearedEquipmentPortType     bool
+	clearedLinkEquipmentPortType bool
+	clearedEquipmentType         bool
+	clearedServiceType           bool
+	clearedWorkOrderType         bool
+	clearedProjectType           bool
 }
 
 // SetType sets the type field.
 func (ptuo *PropertyTypeUpdateOne) SetType(s string) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetType(s)
+	ptuo._type = &s
 	return ptuo
 }
 
 // SetName sets the name field.
 func (ptuo *PropertyTypeUpdateOne) SetName(s string) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetName(s)
+	ptuo.name = &s
 	return ptuo
 }
 
 // SetIndex sets the index field.
 func (ptuo *PropertyTypeUpdateOne) SetIndex(i int) *PropertyTypeUpdateOne {
-	ptuo.mutation.ResetIndex()
-	ptuo.mutation.SetIndex(i)
+	ptuo.index = &i
+	ptuo.addindex = nil
 	return ptuo
 }
 
@@ -1191,19 +1357,24 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableIndex(i *int) *PropertyTypeUpdateO
 
 // AddIndex adds i to index.
 func (ptuo *PropertyTypeUpdateOne) AddIndex(i int) *PropertyTypeUpdateOne {
-	ptuo.mutation.AddIndex(i)
+	if ptuo.addindex == nil {
+		ptuo.addindex = &i
+	} else {
+		*ptuo.addindex += i
+	}
 	return ptuo
 }
 
 // ClearIndex clears the value of index.
 func (ptuo *PropertyTypeUpdateOne) ClearIndex() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearIndex()
+	ptuo.index = nil
+	ptuo.clearindex = true
 	return ptuo
 }
 
 // SetCategory sets the category field.
 func (ptuo *PropertyTypeUpdateOne) SetCategory(s string) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetCategory(s)
+	ptuo.category = &s
 	return ptuo
 }
 
@@ -1217,14 +1388,15 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableCategory(s *string) *PropertyTypeU
 
 // ClearCategory clears the value of category.
 func (ptuo *PropertyTypeUpdateOne) ClearCategory() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearCategory()
+	ptuo.category = nil
+	ptuo.clearcategory = true
 	return ptuo
 }
 
 // SetIntVal sets the int_val field.
 func (ptuo *PropertyTypeUpdateOne) SetIntVal(i int) *PropertyTypeUpdateOne {
-	ptuo.mutation.ResetIntVal()
-	ptuo.mutation.SetIntVal(i)
+	ptuo.int_val = &i
+	ptuo.addint_val = nil
 	return ptuo
 }
 
@@ -1238,19 +1410,24 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableIntVal(i *int) *PropertyTypeUpdate
 
 // AddIntVal adds i to int_val.
 func (ptuo *PropertyTypeUpdateOne) AddIntVal(i int) *PropertyTypeUpdateOne {
-	ptuo.mutation.AddIntVal(i)
+	if ptuo.addint_val == nil {
+		ptuo.addint_val = &i
+	} else {
+		*ptuo.addint_val += i
+	}
 	return ptuo
 }
 
 // ClearIntVal clears the value of int_val.
 func (ptuo *PropertyTypeUpdateOne) ClearIntVal() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearIntVal()
+	ptuo.int_val = nil
+	ptuo.clearint_val = true
 	return ptuo
 }
 
 // SetBoolVal sets the bool_val field.
 func (ptuo *PropertyTypeUpdateOne) SetBoolVal(b bool) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetBoolVal(b)
+	ptuo.bool_val = &b
 	return ptuo
 }
 
@@ -1264,14 +1441,15 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableBoolVal(b *bool) *PropertyTypeUpda
 
 // ClearBoolVal clears the value of bool_val.
 func (ptuo *PropertyTypeUpdateOne) ClearBoolVal() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearBoolVal()
+	ptuo.bool_val = nil
+	ptuo.clearbool_val = true
 	return ptuo
 }
 
 // SetFloatVal sets the float_val field.
 func (ptuo *PropertyTypeUpdateOne) SetFloatVal(f float64) *PropertyTypeUpdateOne {
-	ptuo.mutation.ResetFloatVal()
-	ptuo.mutation.SetFloatVal(f)
+	ptuo.float_val = &f
+	ptuo.addfloat_val = nil
 	return ptuo
 }
 
@@ -1285,20 +1463,25 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableFloatVal(f *float64) *PropertyType
 
 // AddFloatVal adds f to float_val.
 func (ptuo *PropertyTypeUpdateOne) AddFloatVal(f float64) *PropertyTypeUpdateOne {
-	ptuo.mutation.AddFloatVal(f)
+	if ptuo.addfloat_val == nil {
+		ptuo.addfloat_val = &f
+	} else {
+		*ptuo.addfloat_val += f
+	}
 	return ptuo
 }
 
 // ClearFloatVal clears the value of float_val.
 func (ptuo *PropertyTypeUpdateOne) ClearFloatVal() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearFloatVal()
+	ptuo.float_val = nil
+	ptuo.clearfloat_val = true
 	return ptuo
 }
 
 // SetLatitudeVal sets the latitude_val field.
 func (ptuo *PropertyTypeUpdateOne) SetLatitudeVal(f float64) *PropertyTypeUpdateOne {
-	ptuo.mutation.ResetLatitudeVal()
-	ptuo.mutation.SetLatitudeVal(f)
+	ptuo.latitude_val = &f
+	ptuo.addlatitude_val = nil
 	return ptuo
 }
 
@@ -1312,20 +1495,25 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableLatitudeVal(f *float64) *PropertyT
 
 // AddLatitudeVal adds f to latitude_val.
 func (ptuo *PropertyTypeUpdateOne) AddLatitudeVal(f float64) *PropertyTypeUpdateOne {
-	ptuo.mutation.AddLatitudeVal(f)
+	if ptuo.addlatitude_val == nil {
+		ptuo.addlatitude_val = &f
+	} else {
+		*ptuo.addlatitude_val += f
+	}
 	return ptuo
 }
 
 // ClearLatitudeVal clears the value of latitude_val.
 func (ptuo *PropertyTypeUpdateOne) ClearLatitudeVal() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearLatitudeVal()
+	ptuo.latitude_val = nil
+	ptuo.clearlatitude_val = true
 	return ptuo
 }
 
 // SetLongitudeVal sets the longitude_val field.
 func (ptuo *PropertyTypeUpdateOne) SetLongitudeVal(f float64) *PropertyTypeUpdateOne {
-	ptuo.mutation.ResetLongitudeVal()
-	ptuo.mutation.SetLongitudeVal(f)
+	ptuo.longitude_val = &f
+	ptuo.addlongitude_val = nil
 	return ptuo
 }
 
@@ -1339,19 +1527,24 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableLongitudeVal(f *float64) *Property
 
 // AddLongitudeVal adds f to longitude_val.
 func (ptuo *PropertyTypeUpdateOne) AddLongitudeVal(f float64) *PropertyTypeUpdateOne {
-	ptuo.mutation.AddLongitudeVal(f)
+	if ptuo.addlongitude_val == nil {
+		ptuo.addlongitude_val = &f
+	} else {
+		*ptuo.addlongitude_val += f
+	}
 	return ptuo
 }
 
 // ClearLongitudeVal clears the value of longitude_val.
 func (ptuo *PropertyTypeUpdateOne) ClearLongitudeVal() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearLongitudeVal()
+	ptuo.longitude_val = nil
+	ptuo.clearlongitude_val = true
 	return ptuo
 }
 
 // SetStringVal sets the string_val field.
 func (ptuo *PropertyTypeUpdateOne) SetStringVal(s string) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetStringVal(s)
+	ptuo.string_val = &s
 	return ptuo
 }
 
@@ -1365,14 +1558,15 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableStringVal(s *string) *PropertyType
 
 // ClearStringVal clears the value of string_val.
 func (ptuo *PropertyTypeUpdateOne) ClearStringVal() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearStringVal()
+	ptuo.string_val = nil
+	ptuo.clearstring_val = true
 	return ptuo
 }
 
 // SetRangeFromVal sets the range_from_val field.
 func (ptuo *PropertyTypeUpdateOne) SetRangeFromVal(f float64) *PropertyTypeUpdateOne {
-	ptuo.mutation.ResetRangeFromVal()
-	ptuo.mutation.SetRangeFromVal(f)
+	ptuo.range_from_val = &f
+	ptuo.addrange_from_val = nil
 	return ptuo
 }
 
@@ -1386,20 +1580,25 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableRangeFromVal(f *float64) *Property
 
 // AddRangeFromVal adds f to range_from_val.
 func (ptuo *PropertyTypeUpdateOne) AddRangeFromVal(f float64) *PropertyTypeUpdateOne {
-	ptuo.mutation.AddRangeFromVal(f)
+	if ptuo.addrange_from_val == nil {
+		ptuo.addrange_from_val = &f
+	} else {
+		*ptuo.addrange_from_val += f
+	}
 	return ptuo
 }
 
 // ClearRangeFromVal clears the value of range_from_val.
 func (ptuo *PropertyTypeUpdateOne) ClearRangeFromVal() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearRangeFromVal()
+	ptuo.range_from_val = nil
+	ptuo.clearrange_from_val = true
 	return ptuo
 }
 
 // SetRangeToVal sets the range_to_val field.
 func (ptuo *PropertyTypeUpdateOne) SetRangeToVal(f float64) *PropertyTypeUpdateOne {
-	ptuo.mutation.ResetRangeToVal()
-	ptuo.mutation.SetRangeToVal(f)
+	ptuo.range_to_val = &f
+	ptuo.addrange_to_val = nil
 	return ptuo
 }
 
@@ -1413,19 +1612,24 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableRangeToVal(f *float64) *PropertyTy
 
 // AddRangeToVal adds f to range_to_val.
 func (ptuo *PropertyTypeUpdateOne) AddRangeToVal(f float64) *PropertyTypeUpdateOne {
-	ptuo.mutation.AddRangeToVal(f)
+	if ptuo.addrange_to_val == nil {
+		ptuo.addrange_to_val = &f
+	} else {
+		*ptuo.addrange_to_val += f
+	}
 	return ptuo
 }
 
 // ClearRangeToVal clears the value of range_to_val.
 func (ptuo *PropertyTypeUpdateOne) ClearRangeToVal() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearRangeToVal()
+	ptuo.range_to_val = nil
+	ptuo.clearrange_to_val = true
 	return ptuo
 }
 
 // SetIsInstanceProperty sets the is_instance_property field.
 func (ptuo *PropertyTypeUpdateOne) SetIsInstanceProperty(b bool) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetIsInstanceProperty(b)
+	ptuo.is_instance_property = &b
 	return ptuo
 }
 
@@ -1439,7 +1643,7 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableIsInstanceProperty(b *bool) *Prope
 
 // SetEditable sets the editable field.
 func (ptuo *PropertyTypeUpdateOne) SetEditable(b bool) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetEditable(b)
+	ptuo.editable = &b
 	return ptuo
 }
 
@@ -1453,7 +1657,7 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableEditable(b *bool) *PropertyTypeUpd
 
 // SetMandatory sets the mandatory field.
 func (ptuo *PropertyTypeUpdateOne) SetMandatory(b bool) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetMandatory(b)
+	ptuo.mandatory = &b
 	return ptuo
 }
 
@@ -1467,7 +1671,7 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableMandatory(b *bool) *PropertyTypeUp
 
 // SetDeleted sets the deleted field.
 func (ptuo *PropertyTypeUpdateOne) SetDeleted(b bool) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetDeleted(b)
+	ptuo.deleted = &b
 	return ptuo
 }
 
@@ -1481,7 +1685,12 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableDeleted(b *bool) *PropertyTypeUpda
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptuo *PropertyTypeUpdateOne) AddPropertyIDs(ids ...int) *PropertyTypeUpdateOne {
-	ptuo.mutation.AddPropertyIDs(ids...)
+	if ptuo.properties == nil {
+		ptuo.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptuo.properties[ids[i]] = struct{}{}
+	}
 	return ptuo
 }
 
@@ -1496,7 +1705,10 @@ func (ptuo *PropertyTypeUpdateOne) AddProperties(p ...*Property) *PropertyTypeUp
 
 // SetLocationTypeID sets the location_type edge to LocationType by id.
 func (ptuo *PropertyTypeUpdateOne) SetLocationTypeID(id int) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetLocationTypeID(id)
+	if ptuo.location_type == nil {
+		ptuo.location_type = make(map[int]struct{})
+	}
+	ptuo.location_type[id] = struct{}{}
 	return ptuo
 }
 
@@ -1515,7 +1727,10 @@ func (ptuo *PropertyTypeUpdateOne) SetLocationType(l *LocationType) *PropertyTyp
 
 // SetEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id.
 func (ptuo *PropertyTypeUpdateOne) SetEquipmentPortTypeID(id int) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetEquipmentPortTypeID(id)
+	if ptuo.equipment_port_type == nil {
+		ptuo.equipment_port_type = make(map[int]struct{})
+	}
+	ptuo.equipment_port_type[id] = struct{}{}
 	return ptuo
 }
 
@@ -1534,7 +1749,10 @@ func (ptuo *PropertyTypeUpdateOne) SetEquipmentPortType(e *EquipmentPortType) *P
 
 // SetLinkEquipmentPortTypeID sets the link_equipment_port_type edge to EquipmentPortType by id.
 func (ptuo *PropertyTypeUpdateOne) SetLinkEquipmentPortTypeID(id int) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetLinkEquipmentPortTypeID(id)
+	if ptuo.link_equipment_port_type == nil {
+		ptuo.link_equipment_port_type = make(map[int]struct{})
+	}
+	ptuo.link_equipment_port_type[id] = struct{}{}
 	return ptuo
 }
 
@@ -1553,7 +1771,10 @@ func (ptuo *PropertyTypeUpdateOne) SetLinkEquipmentPortType(e *EquipmentPortType
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
 func (ptuo *PropertyTypeUpdateOne) SetEquipmentTypeID(id int) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetEquipmentTypeID(id)
+	if ptuo.equipment_type == nil {
+		ptuo.equipment_type = make(map[int]struct{})
+	}
+	ptuo.equipment_type[id] = struct{}{}
 	return ptuo
 }
 
@@ -1572,7 +1793,10 @@ func (ptuo *PropertyTypeUpdateOne) SetEquipmentType(e *EquipmentType) *PropertyT
 
 // SetServiceTypeID sets the service_type edge to ServiceType by id.
 func (ptuo *PropertyTypeUpdateOne) SetServiceTypeID(id int) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetServiceTypeID(id)
+	if ptuo.service_type == nil {
+		ptuo.service_type = make(map[int]struct{})
+	}
+	ptuo.service_type[id] = struct{}{}
 	return ptuo
 }
 
@@ -1591,7 +1815,10 @@ func (ptuo *PropertyTypeUpdateOne) SetServiceType(s *ServiceType) *PropertyTypeU
 
 // SetWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id.
 func (ptuo *PropertyTypeUpdateOne) SetWorkOrderTypeID(id int) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetWorkOrderTypeID(id)
+	if ptuo.work_order_type == nil {
+		ptuo.work_order_type = make(map[int]struct{})
+	}
+	ptuo.work_order_type[id] = struct{}{}
 	return ptuo
 }
 
@@ -1610,7 +1837,10 @@ func (ptuo *PropertyTypeUpdateOne) SetWorkOrderType(w *WorkOrderType) *PropertyT
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
 func (ptuo *PropertyTypeUpdateOne) SetProjectTypeID(id int) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetProjectTypeID(id)
+	if ptuo.project_type == nil {
+		ptuo.project_type = make(map[int]struct{})
+	}
+	ptuo.project_type[id] = struct{}{}
 	return ptuo
 }
 
@@ -1629,7 +1859,12 @@ func (ptuo *PropertyTypeUpdateOne) SetProjectType(p *ProjectType) *PropertyTypeU
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (ptuo *PropertyTypeUpdateOne) RemovePropertyIDs(ids ...int) *PropertyTypeUpdateOne {
-	ptuo.mutation.RemovePropertyIDs(ids...)
+	if ptuo.removedProperties == nil {
+		ptuo.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptuo.removedProperties[ids[i]] = struct{}{}
+	}
 	return ptuo
 }
 
@@ -1644,77 +1879,74 @@ func (ptuo *PropertyTypeUpdateOne) RemoveProperties(p ...*Property) *PropertyTyp
 
 // ClearLocationType clears the location_type edge to LocationType.
 func (ptuo *PropertyTypeUpdateOne) ClearLocationType() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearLocationType()
+	ptuo.clearedLocationType = true
 	return ptuo
 }
 
 // ClearEquipmentPortType clears the equipment_port_type edge to EquipmentPortType.
 func (ptuo *PropertyTypeUpdateOne) ClearEquipmentPortType() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearEquipmentPortType()
+	ptuo.clearedEquipmentPortType = true
 	return ptuo
 }
 
 // ClearLinkEquipmentPortType clears the link_equipment_port_type edge to EquipmentPortType.
 func (ptuo *PropertyTypeUpdateOne) ClearLinkEquipmentPortType() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearLinkEquipmentPortType()
+	ptuo.clearedLinkEquipmentPortType = true
 	return ptuo
 }
 
 // ClearEquipmentType clears the equipment_type edge to EquipmentType.
 func (ptuo *PropertyTypeUpdateOne) ClearEquipmentType() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearEquipmentType()
+	ptuo.clearedEquipmentType = true
 	return ptuo
 }
 
 // ClearServiceType clears the service_type edge to ServiceType.
 func (ptuo *PropertyTypeUpdateOne) ClearServiceType() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearServiceType()
+	ptuo.clearedServiceType = true
 	return ptuo
 }
 
 // ClearWorkOrderType clears the work_order_type edge to WorkOrderType.
 func (ptuo *PropertyTypeUpdateOne) ClearWorkOrderType() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearWorkOrderType()
+	ptuo.clearedWorkOrderType = true
 	return ptuo
 }
 
 // ClearProjectType clears the project_type edge to ProjectType.
 func (ptuo *PropertyTypeUpdateOne) ClearProjectType() *PropertyTypeUpdateOne {
-	ptuo.mutation.ClearProjectType()
+	ptuo.clearedProjectType = true
 	return ptuo
 }
 
 // Save executes the query and returns the updated entity.
 func (ptuo *PropertyTypeUpdateOne) Save(ctx context.Context) (*PropertyType, error) {
-	if _, ok := ptuo.mutation.UpdateTime(); !ok {
+	if ptuo.update_time == nil {
 		v := propertytype.UpdateDefaultUpdateTime()
-		ptuo.mutation.SetUpdateTime(v)
+		ptuo.update_time = &v
 	}
-
-	var (
-		err  error
-		node *PropertyType
-	)
-	if len(ptuo.hooks) == 0 {
-		node, err = ptuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PropertyTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ptuo.mutation = mutation
-			node, err = ptuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(ptuo.hooks); i > 0; i-- {
-			mut = ptuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, ptuo.mutation); err != nil {
-			return nil, err
-		}
+	if len(ptuo.location_type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"location_type\"")
 	}
-	return node, err
+	if len(ptuo.equipment_port_type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_port_type\"")
+	}
+	if len(ptuo.link_equipment_port_type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"link_equipment_port_type\"")
+	}
+	if len(ptuo.equipment_type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_type\"")
+	}
+	if len(ptuo.service_type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"service_type\"")
+	}
+	if len(ptuo.work_order_type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"work_order_type\"")
+	}
+	if len(ptuo.project_type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"project_type\"")
+	}
+	return ptuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1745,245 +1977,241 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Table:   propertytype.Table,
 			Columns: propertytype.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  ptuo.id,
 				Type:   field.TypeInt,
 				Column: propertytype.FieldID,
 			},
 		},
 	}
-	id, ok := ptuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing PropertyType.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := ptuo.mutation.UpdateTime(); ok {
+	if value := ptuo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldUpdateTime,
 		})
 	}
-	if value, ok := ptuo.mutation.GetType(); ok {
+	if value := ptuo._type; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldType,
 		})
 	}
-	if value, ok := ptuo.mutation.Name(); ok {
+	if value := ptuo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldName,
 		})
 	}
-	if value, ok := ptuo.mutation.Index(); ok {
+	if value := ptuo.index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldIndex,
 		})
 	}
-	if value, ok := ptuo.mutation.AddedIndex(); ok {
+	if value := ptuo.addindex; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldIndex,
 		})
 	}
-	if ptuo.mutation.IndexCleared() {
+	if ptuo.clearindex {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: propertytype.FieldIndex,
 		})
 	}
-	if value, ok := ptuo.mutation.Category(); ok {
+	if value := ptuo.category; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldCategory,
 		})
 	}
-	if ptuo.mutation.CategoryCleared() {
+	if ptuo.clearcategory {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: propertytype.FieldCategory,
 		})
 	}
-	if value, ok := ptuo.mutation.IntVal(); ok {
+	if value := ptuo.int_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldIntVal,
 		})
 	}
-	if value, ok := ptuo.mutation.AddedIntVal(); ok {
+	if value := ptuo.addint_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldIntVal,
 		})
 	}
-	if ptuo.mutation.IntValCleared() {
+	if ptuo.clearint_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: propertytype.FieldIntVal,
 		})
 	}
-	if value, ok := ptuo.mutation.BoolVal(); ok {
+	if value := ptuo.bool_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldBoolVal,
 		})
 	}
-	if ptuo.mutation.BoolValCleared() {
+	if ptuo.clearbool_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: propertytype.FieldBoolVal,
 		})
 	}
-	if value, ok := ptuo.mutation.FloatVal(); ok {
+	if value := ptuo.float_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
-	if value, ok := ptuo.mutation.AddedFloatVal(); ok {
+	if value := ptuo.addfloat_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
-	if ptuo.mutation.FloatValCleared() {
+	if ptuo.clearfloat_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldFloatVal,
 		})
 	}
-	if value, ok := ptuo.mutation.LatitudeVal(); ok {
+	if value := ptuo.latitude_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
-	if value, ok := ptuo.mutation.AddedLatitudeVal(); ok {
+	if value := ptuo.addlatitude_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
-	if ptuo.mutation.LatitudeValCleared() {
+	if ptuo.clearlatitude_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldLatitudeVal,
 		})
 	}
-	if value, ok := ptuo.mutation.LongitudeVal(); ok {
+	if value := ptuo.longitude_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
-	if value, ok := ptuo.mutation.AddedLongitudeVal(); ok {
+	if value := ptuo.addlongitude_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
-	if ptuo.mutation.LongitudeValCleared() {
+	if ptuo.clearlongitude_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldLongitudeVal,
 		})
 	}
-	if value, ok := ptuo.mutation.StringVal(); ok {
+	if value := ptuo.string_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldStringVal,
 		})
 	}
-	if ptuo.mutation.StringValCleared() {
+	if ptuo.clearstring_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: propertytype.FieldStringVal,
 		})
 	}
-	if value, ok := ptuo.mutation.RangeFromVal(); ok {
+	if value := ptuo.range_from_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
-	if value, ok := ptuo.mutation.AddedRangeFromVal(); ok {
+	if value := ptuo.addrange_from_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
-	if ptuo.mutation.RangeFromValCleared() {
+	if ptuo.clearrange_from_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldRangeFromVal,
 		})
 	}
-	if value, ok := ptuo.mutation.RangeToVal(); ok {
+	if value := ptuo.range_to_val; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
-	if value, ok := ptuo.mutation.AddedRangeToVal(); ok {
+	if value := ptuo.addrange_to_val; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
-	if ptuo.mutation.RangeToValCleared() {
+	if ptuo.clearrange_to_val {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: propertytype.FieldRangeToVal,
 		})
 	}
-	if value, ok := ptuo.mutation.IsInstanceProperty(); ok {
+	if value := ptuo.is_instance_property; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldIsInstanceProperty,
 		})
 	}
-	if value, ok := ptuo.mutation.Editable(); ok {
+	if value := ptuo.editable; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldEditable,
 		})
 	}
-	if value, ok := ptuo.mutation.Mandatory(); ok {
+	if value := ptuo.mandatory; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldMandatory,
 		})
 	}
-	if value, ok := ptuo.mutation.Deleted(); ok {
+	if value := ptuo.deleted; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: propertytype.FieldDeleted,
 		})
 	}
-	if nodes := ptuo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := ptuo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1997,12 +2225,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := ptuo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2016,12 +2244,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptuo.mutation.LocationTypeCleared() {
+	if ptuo.clearedLocationType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2037,7 +2265,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.LocationTypeIDs(); len(nodes) > 0 {
+	if nodes := ptuo.location_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2051,12 +2279,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptuo.mutation.EquipmentPortTypeCleared() {
+	if ptuo.clearedEquipmentPortType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2072,7 +2300,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.EquipmentPortTypeIDs(); len(nodes) > 0 {
+	if nodes := ptuo.equipment_port_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2086,12 +2314,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptuo.mutation.LinkEquipmentPortTypeCleared() {
+	if ptuo.clearedLinkEquipmentPortType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2107,7 +2335,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.LinkEquipmentPortTypeIDs(); len(nodes) > 0 {
+	if nodes := ptuo.link_equipment_port_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2121,12 +2349,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptuo.mutation.EquipmentTypeCleared() {
+	if ptuo.clearedEquipmentType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2142,7 +2370,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.EquipmentTypeIDs(); len(nodes) > 0 {
+	if nodes := ptuo.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2156,12 +2384,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptuo.mutation.ServiceTypeCleared() {
+	if ptuo.clearedServiceType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2177,7 +2405,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.ServiceTypeIDs(); len(nodes) > 0 {
+	if nodes := ptuo.service_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2191,12 +2419,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptuo.mutation.WorkOrderTypeCleared() {
+	if ptuo.clearedWorkOrderType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2212,7 +2440,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.WorkOrderTypeIDs(); len(nodes) > 0 {
+	if nodes := ptuo.work_order_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2226,12 +2454,12 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ptuo.mutation.ProjectTypeCleared() {
+	if ptuo.clearedProjectType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2247,7 +2475,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.ProjectTypeIDs(); len(nodes) > 0 {
+	if nodes := ptuo.project_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2261,7 +2489,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

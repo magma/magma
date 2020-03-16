@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -21,13 +20,16 @@ import (
 // CheckListCategoryCreate is the builder for creating a CheckListCategory entity.
 type CheckListCategoryCreate struct {
 	config
-	mutation *CheckListCategoryMutation
-	hooks    []Hook
+	create_time      *time.Time
+	update_time      *time.Time
+	title            *string
+	description      *string
+	check_list_items map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (clcc *CheckListCategoryCreate) SetCreateTime(t time.Time) *CheckListCategoryCreate {
-	clcc.mutation.SetCreateTime(t)
+	clcc.create_time = &t
 	return clcc
 }
 
@@ -41,7 +43,7 @@ func (clcc *CheckListCategoryCreate) SetNillableCreateTime(t *time.Time) *CheckL
 
 // SetUpdateTime sets the update_time field.
 func (clcc *CheckListCategoryCreate) SetUpdateTime(t time.Time) *CheckListCategoryCreate {
-	clcc.mutation.SetUpdateTime(t)
+	clcc.update_time = &t
 	return clcc
 }
 
@@ -55,13 +57,13 @@ func (clcc *CheckListCategoryCreate) SetNillableUpdateTime(t *time.Time) *CheckL
 
 // SetTitle sets the title field.
 func (clcc *CheckListCategoryCreate) SetTitle(s string) *CheckListCategoryCreate {
-	clcc.mutation.SetTitle(s)
+	clcc.title = &s
 	return clcc
 }
 
 // SetDescription sets the description field.
 func (clcc *CheckListCategoryCreate) SetDescription(s string) *CheckListCategoryCreate {
-	clcc.mutation.SetDescription(s)
+	clcc.description = &s
 	return clcc
 }
 
@@ -75,7 +77,12 @@ func (clcc *CheckListCategoryCreate) SetNillableDescription(s *string) *CheckLis
 
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
 func (clcc *CheckListCategoryCreate) AddCheckListItemIDs(ids ...int) *CheckListCategoryCreate {
-	clcc.mutation.AddCheckListItemIDs(ids...)
+	if clcc.check_list_items == nil {
+		clcc.check_list_items = make(map[int]struct{})
+	}
+	for i := range ids {
+		clcc.check_list_items[ids[i]] = struct{}{}
+	}
 	return clcc
 }
 
@@ -90,41 +97,18 @@ func (clcc *CheckListCategoryCreate) AddCheckListItems(c ...*CheckListItem) *Che
 
 // Save creates the CheckListCategory in the database.
 func (clcc *CheckListCategoryCreate) Save(ctx context.Context) (*CheckListCategory, error) {
-	if _, ok := clcc.mutation.CreateTime(); !ok {
+	if clcc.create_time == nil {
 		v := checklistcategory.DefaultCreateTime()
-		clcc.mutation.SetCreateTime(v)
+		clcc.create_time = &v
 	}
-	if _, ok := clcc.mutation.UpdateTime(); !ok {
+	if clcc.update_time == nil {
 		v := checklistcategory.DefaultUpdateTime()
-		clcc.mutation.SetUpdateTime(v)
+		clcc.update_time = &v
 	}
-	if _, ok := clcc.mutation.Title(); !ok {
+	if clcc.title == nil {
 		return nil, errors.New("ent: missing required field \"title\"")
 	}
-	var (
-		err  error
-		node *CheckListCategory
-	)
-	if len(clcc.hooks) == 0 {
-		node, err = clcc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CheckListCategoryMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			clcc.mutation = mutation
-			node, err = clcc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(clcc.hooks); i > 0; i-- {
-			mut = clcc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, clcc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return clcc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -147,39 +131,39 @@ func (clcc *CheckListCategoryCreate) sqlSave(ctx context.Context) (*CheckListCat
 			},
 		}
 	)
-	if value, ok := clcc.mutation.CreateTime(); ok {
+	if value := clcc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: checklistcategory.FieldCreateTime,
 		})
-		clc.CreateTime = value
+		clc.CreateTime = *value
 	}
-	if value, ok := clcc.mutation.UpdateTime(); ok {
+	if value := clcc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: checklistcategory.FieldUpdateTime,
 		})
-		clc.UpdateTime = value
+		clc.UpdateTime = *value
 	}
-	if value, ok := clcc.mutation.Title(); ok {
+	if value := clcc.title; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: checklistcategory.FieldTitle,
 		})
-		clc.Title = value
+		clc.Title = *value
 	}
-	if value, ok := clcc.mutation.Description(); ok {
+	if value := clcc.description; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: checklistcategory.FieldDescription,
 		})
-		clc.Description = value
+		clc.Description = *value
 	}
-	if nodes := clcc.mutation.CheckListItemsIDs(); len(nodes) > 0 {
+	if nodes := clcc.check_list_items; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -193,7 +177,7 @@ func (clcc *CheckListCategoryCreate) sqlSave(ctx context.Context) (*CheckListCat
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

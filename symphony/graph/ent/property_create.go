@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -28,13 +27,32 @@ import (
 // PropertyCreate is the builder for creating a Property entity.
 type PropertyCreate struct {
 	config
-	mutation *PropertyMutation
-	hooks    []Hook
+	create_time     *time.Time
+	update_time     *time.Time
+	int_val         *int
+	bool_val        *bool
+	float_val       *float64
+	latitude_val    *float64
+	longitude_val   *float64
+	range_from_val  *float64
+	range_to_val    *float64
+	string_val      *string
+	_type           map[int]struct{}
+	location        map[int]struct{}
+	equipment       map[int]struct{}
+	service         map[int]struct{}
+	equipment_port  map[int]struct{}
+	link            map[int]struct{}
+	work_order      map[int]struct{}
+	project         map[int]struct{}
+	equipment_value map[int]struct{}
+	location_value  map[int]struct{}
+	service_value   map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (pc *PropertyCreate) SetCreateTime(t time.Time) *PropertyCreate {
-	pc.mutation.SetCreateTime(t)
+	pc.create_time = &t
 	return pc
 }
 
@@ -48,7 +66,7 @@ func (pc *PropertyCreate) SetNillableCreateTime(t *time.Time) *PropertyCreate {
 
 // SetUpdateTime sets the update_time field.
 func (pc *PropertyCreate) SetUpdateTime(t time.Time) *PropertyCreate {
-	pc.mutation.SetUpdateTime(t)
+	pc.update_time = &t
 	return pc
 }
 
@@ -62,7 +80,7 @@ func (pc *PropertyCreate) SetNillableUpdateTime(t *time.Time) *PropertyCreate {
 
 // SetIntVal sets the int_val field.
 func (pc *PropertyCreate) SetIntVal(i int) *PropertyCreate {
-	pc.mutation.SetIntVal(i)
+	pc.int_val = &i
 	return pc
 }
 
@@ -76,7 +94,7 @@ func (pc *PropertyCreate) SetNillableIntVal(i *int) *PropertyCreate {
 
 // SetBoolVal sets the bool_val field.
 func (pc *PropertyCreate) SetBoolVal(b bool) *PropertyCreate {
-	pc.mutation.SetBoolVal(b)
+	pc.bool_val = &b
 	return pc
 }
 
@@ -90,7 +108,7 @@ func (pc *PropertyCreate) SetNillableBoolVal(b *bool) *PropertyCreate {
 
 // SetFloatVal sets the float_val field.
 func (pc *PropertyCreate) SetFloatVal(f float64) *PropertyCreate {
-	pc.mutation.SetFloatVal(f)
+	pc.float_val = &f
 	return pc
 }
 
@@ -104,7 +122,7 @@ func (pc *PropertyCreate) SetNillableFloatVal(f *float64) *PropertyCreate {
 
 // SetLatitudeVal sets the latitude_val field.
 func (pc *PropertyCreate) SetLatitudeVal(f float64) *PropertyCreate {
-	pc.mutation.SetLatitudeVal(f)
+	pc.latitude_val = &f
 	return pc
 }
 
@@ -118,7 +136,7 @@ func (pc *PropertyCreate) SetNillableLatitudeVal(f *float64) *PropertyCreate {
 
 // SetLongitudeVal sets the longitude_val field.
 func (pc *PropertyCreate) SetLongitudeVal(f float64) *PropertyCreate {
-	pc.mutation.SetLongitudeVal(f)
+	pc.longitude_val = &f
 	return pc
 }
 
@@ -132,7 +150,7 @@ func (pc *PropertyCreate) SetNillableLongitudeVal(f *float64) *PropertyCreate {
 
 // SetRangeFromVal sets the range_from_val field.
 func (pc *PropertyCreate) SetRangeFromVal(f float64) *PropertyCreate {
-	pc.mutation.SetRangeFromVal(f)
+	pc.range_from_val = &f
 	return pc
 }
 
@@ -146,7 +164,7 @@ func (pc *PropertyCreate) SetNillableRangeFromVal(f *float64) *PropertyCreate {
 
 // SetRangeToVal sets the range_to_val field.
 func (pc *PropertyCreate) SetRangeToVal(f float64) *PropertyCreate {
-	pc.mutation.SetRangeToVal(f)
+	pc.range_to_val = &f
 	return pc
 }
 
@@ -160,7 +178,7 @@ func (pc *PropertyCreate) SetNillableRangeToVal(f *float64) *PropertyCreate {
 
 // SetStringVal sets the string_val field.
 func (pc *PropertyCreate) SetStringVal(s string) *PropertyCreate {
-	pc.mutation.SetStringVal(s)
+	pc.string_val = &s
 	return pc
 }
 
@@ -174,7 +192,10 @@ func (pc *PropertyCreate) SetNillableStringVal(s *string) *PropertyCreate {
 
 // SetTypeID sets the type edge to PropertyType by id.
 func (pc *PropertyCreate) SetTypeID(id int) *PropertyCreate {
-	pc.mutation.SetTypeID(id)
+	if pc._type == nil {
+		pc._type = make(map[int]struct{})
+	}
+	pc._type[id] = struct{}{}
 	return pc
 }
 
@@ -185,7 +206,10 @@ func (pc *PropertyCreate) SetType(p *PropertyType) *PropertyCreate {
 
 // SetLocationID sets the location edge to Location by id.
 func (pc *PropertyCreate) SetLocationID(id int) *PropertyCreate {
-	pc.mutation.SetLocationID(id)
+	if pc.location == nil {
+		pc.location = make(map[int]struct{})
+	}
+	pc.location[id] = struct{}{}
 	return pc
 }
 
@@ -204,7 +228,10 @@ func (pc *PropertyCreate) SetLocation(l *Location) *PropertyCreate {
 
 // SetEquipmentID sets the equipment edge to Equipment by id.
 func (pc *PropertyCreate) SetEquipmentID(id int) *PropertyCreate {
-	pc.mutation.SetEquipmentID(id)
+	if pc.equipment == nil {
+		pc.equipment = make(map[int]struct{})
+	}
+	pc.equipment[id] = struct{}{}
 	return pc
 }
 
@@ -223,7 +250,10 @@ func (pc *PropertyCreate) SetEquipment(e *Equipment) *PropertyCreate {
 
 // SetServiceID sets the service edge to Service by id.
 func (pc *PropertyCreate) SetServiceID(id int) *PropertyCreate {
-	pc.mutation.SetServiceID(id)
+	if pc.service == nil {
+		pc.service = make(map[int]struct{})
+	}
+	pc.service[id] = struct{}{}
 	return pc
 }
 
@@ -242,7 +272,10 @@ func (pc *PropertyCreate) SetService(s *Service) *PropertyCreate {
 
 // SetEquipmentPortID sets the equipment_port edge to EquipmentPort by id.
 func (pc *PropertyCreate) SetEquipmentPortID(id int) *PropertyCreate {
-	pc.mutation.SetEquipmentPortID(id)
+	if pc.equipment_port == nil {
+		pc.equipment_port = make(map[int]struct{})
+	}
+	pc.equipment_port[id] = struct{}{}
 	return pc
 }
 
@@ -261,7 +294,10 @@ func (pc *PropertyCreate) SetEquipmentPort(e *EquipmentPort) *PropertyCreate {
 
 // SetLinkID sets the link edge to Link by id.
 func (pc *PropertyCreate) SetLinkID(id int) *PropertyCreate {
-	pc.mutation.SetLinkID(id)
+	if pc.link == nil {
+		pc.link = make(map[int]struct{})
+	}
+	pc.link[id] = struct{}{}
 	return pc
 }
 
@@ -280,7 +316,10 @@ func (pc *PropertyCreate) SetLink(l *Link) *PropertyCreate {
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (pc *PropertyCreate) SetWorkOrderID(id int) *PropertyCreate {
-	pc.mutation.SetWorkOrderID(id)
+	if pc.work_order == nil {
+		pc.work_order = make(map[int]struct{})
+	}
+	pc.work_order[id] = struct{}{}
 	return pc
 }
 
@@ -299,7 +338,10 @@ func (pc *PropertyCreate) SetWorkOrder(w *WorkOrder) *PropertyCreate {
 
 // SetProjectID sets the project edge to Project by id.
 func (pc *PropertyCreate) SetProjectID(id int) *PropertyCreate {
-	pc.mutation.SetProjectID(id)
+	if pc.project == nil {
+		pc.project = make(map[int]struct{})
+	}
+	pc.project[id] = struct{}{}
 	return pc
 }
 
@@ -318,7 +360,10 @@ func (pc *PropertyCreate) SetProject(p *Project) *PropertyCreate {
 
 // SetEquipmentValueID sets the equipment_value edge to Equipment by id.
 func (pc *PropertyCreate) SetEquipmentValueID(id int) *PropertyCreate {
-	pc.mutation.SetEquipmentValueID(id)
+	if pc.equipment_value == nil {
+		pc.equipment_value = make(map[int]struct{})
+	}
+	pc.equipment_value[id] = struct{}{}
 	return pc
 }
 
@@ -337,7 +382,10 @@ func (pc *PropertyCreate) SetEquipmentValue(e *Equipment) *PropertyCreate {
 
 // SetLocationValueID sets the location_value edge to Location by id.
 func (pc *PropertyCreate) SetLocationValueID(id int) *PropertyCreate {
-	pc.mutation.SetLocationValueID(id)
+	if pc.location_value == nil {
+		pc.location_value = make(map[int]struct{})
+	}
+	pc.location_value[id] = struct{}{}
 	return pc
 }
 
@@ -356,7 +404,10 @@ func (pc *PropertyCreate) SetLocationValue(l *Location) *PropertyCreate {
 
 // SetServiceValueID sets the service_value edge to Service by id.
 func (pc *PropertyCreate) SetServiceValueID(id int) *PropertyCreate {
-	pc.mutation.SetServiceValueID(id)
+	if pc.service_value == nil {
+		pc.service_value = make(map[int]struct{})
+	}
+	pc.service_value[id] = struct{}{}
 	return pc
 }
 
@@ -375,41 +426,51 @@ func (pc *PropertyCreate) SetServiceValue(s *Service) *PropertyCreate {
 
 // Save creates the Property in the database.
 func (pc *PropertyCreate) Save(ctx context.Context) (*Property, error) {
-	if _, ok := pc.mutation.CreateTime(); !ok {
+	if pc.create_time == nil {
 		v := property.DefaultCreateTime()
-		pc.mutation.SetCreateTime(v)
+		pc.create_time = &v
 	}
-	if _, ok := pc.mutation.UpdateTime(); !ok {
+	if pc.update_time == nil {
 		v := property.DefaultUpdateTime()
-		pc.mutation.SetUpdateTime(v)
+		pc.update_time = &v
 	}
-	if _, ok := pc.mutation.TypeID(); !ok {
+	if len(pc._type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
+	}
+	if pc._type == nil {
 		return nil, errors.New("ent: missing required edge \"type\"")
 	}
-	var (
-		err  error
-		node *Property
-	)
-	if len(pc.hooks) == 0 {
-		node, err = pc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PropertyMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			pc.mutation = mutation
-			node, err = pc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(pc.hooks); i > 0; i-- {
-			mut = pc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, pc.mutation); err != nil {
-			return nil, err
-		}
+	if len(pc.location) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
 	}
-	return node, err
+	if len(pc.equipment) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment\"")
+	}
+	if len(pc.service) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"service\"")
+	}
+	if len(pc.equipment_port) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_port\"")
+	}
+	if len(pc.link) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"link\"")
+	}
+	if len(pc.work_order) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"work_order\"")
+	}
+	if len(pc.project) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"project\"")
+	}
+	if len(pc.equipment_value) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_value\"")
+	}
+	if len(pc.location_value) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"location_value\"")
+	}
+	if len(pc.service_value) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"service_value\"")
+	}
+	return pc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -432,87 +493,87 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			},
 		}
 	)
-	if value, ok := pc.mutation.CreateTime(); ok {
+	if value := pc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: property.FieldCreateTime,
 		})
-		pr.CreateTime = value
+		pr.CreateTime = *value
 	}
-	if value, ok := pc.mutation.UpdateTime(); ok {
+	if value := pc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: property.FieldUpdateTime,
 		})
-		pr.UpdateTime = value
+		pr.UpdateTime = *value
 	}
-	if value, ok := pc.mutation.IntVal(); ok {
+	if value := pc.int_val; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: property.FieldIntVal,
 		})
-		pr.IntVal = value
+		pr.IntVal = *value
 	}
-	if value, ok := pc.mutation.BoolVal(); ok {
+	if value := pc.bool_val; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: property.FieldBoolVal,
 		})
-		pr.BoolVal = value
+		pr.BoolVal = *value
 	}
-	if value, ok := pc.mutation.FloatVal(); ok {
+	if value := pc.float_val; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: property.FieldFloatVal,
 		})
-		pr.FloatVal = value
+		pr.FloatVal = *value
 	}
-	if value, ok := pc.mutation.LatitudeVal(); ok {
+	if value := pc.latitude_val; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: property.FieldLatitudeVal,
 		})
-		pr.LatitudeVal = value
+		pr.LatitudeVal = *value
 	}
-	if value, ok := pc.mutation.LongitudeVal(); ok {
+	if value := pc.longitude_val; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: property.FieldLongitudeVal,
 		})
-		pr.LongitudeVal = value
+		pr.LongitudeVal = *value
 	}
-	if value, ok := pc.mutation.RangeFromVal(); ok {
+	if value := pc.range_from_val; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: property.FieldRangeFromVal,
 		})
-		pr.RangeFromVal = value
+		pr.RangeFromVal = *value
 	}
-	if value, ok := pc.mutation.RangeToVal(); ok {
+	if value := pc.range_to_val; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: property.FieldRangeToVal,
 		})
-		pr.RangeToVal = value
+		pr.RangeToVal = *value
 	}
-	if value, ok := pc.mutation.StringVal(); ok {
+	if value := pc.string_val; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: property.FieldStringVal,
 		})
-		pr.StringVal = value
+		pr.StringVal = *value
 	}
-	if nodes := pc.mutation.TypeIDs(); len(nodes) > 0 {
+	if nodes := pc._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -526,12 +587,12 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.LocationIDs(); len(nodes) > 0 {
+	if nodes := pc.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -545,12 +606,12 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.EquipmentIDs(); len(nodes) > 0 {
+	if nodes := pc.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -564,12 +625,12 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.ServiceIDs(); len(nodes) > 0 {
+	if nodes := pc.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -583,12 +644,12 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.EquipmentPortIDs(); len(nodes) > 0 {
+	if nodes := pc.equipment_port; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -602,12 +663,12 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.LinkIDs(); len(nodes) > 0 {
+	if nodes := pc.link; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -621,12 +682,12 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.WorkOrderIDs(); len(nodes) > 0 {
+	if nodes := pc.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -640,12 +701,12 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.ProjectIDs(); len(nodes) > 0 {
+	if nodes := pc.project; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -659,12 +720,12 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.EquipmentValueIDs(); len(nodes) > 0 {
+	if nodes := pc.equipment_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -678,12 +739,12 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.LocationValueIDs(); len(nodes) > 0 {
+	if nodes := pc.location_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -697,12 +758,12 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.ServiceValueIDs(); len(nodes) > 0 {
+	if nodes := pc.service_value; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -716,7 +777,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

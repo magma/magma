@@ -9,6 +9,7 @@ package ent
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -23,9 +24,18 @@ import (
 // ProjectTypeUpdate is the builder for updating ProjectType entities.
 type ProjectTypeUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *ProjectTypeMutation
-	predicates []predicate.ProjectType
+
+	update_time       *time.Time
+	name              *string
+	description       *string
+	cleardescription  bool
+	projects          map[int]struct{}
+	properties        map[int]struct{}
+	work_orders       map[int]struct{}
+	removedProjects   map[int]struct{}
+	removedProperties map[int]struct{}
+	removedWorkOrders map[int]struct{}
+	predicates        []predicate.ProjectType
 }
 
 // Where adds a new predicate for the builder.
@@ -36,13 +46,13 @@ func (ptu *ProjectTypeUpdate) Where(ps ...predicate.ProjectType) *ProjectTypeUpd
 
 // SetName sets the name field.
 func (ptu *ProjectTypeUpdate) SetName(s string) *ProjectTypeUpdate {
-	ptu.mutation.SetName(s)
+	ptu.name = &s
 	return ptu
 }
 
 // SetDescription sets the description field.
 func (ptu *ProjectTypeUpdate) SetDescription(s string) *ProjectTypeUpdate {
-	ptu.mutation.SetDescription(s)
+	ptu.description = &s
 	return ptu
 }
 
@@ -56,13 +66,19 @@ func (ptu *ProjectTypeUpdate) SetNillableDescription(s *string) *ProjectTypeUpda
 
 // ClearDescription clears the value of description.
 func (ptu *ProjectTypeUpdate) ClearDescription() *ProjectTypeUpdate {
-	ptu.mutation.ClearDescription()
+	ptu.description = nil
+	ptu.cleardescription = true
 	return ptu
 }
 
 // AddProjectIDs adds the projects edge to Project by ids.
 func (ptu *ProjectTypeUpdate) AddProjectIDs(ids ...int) *ProjectTypeUpdate {
-	ptu.mutation.AddProjectIDs(ids...)
+	if ptu.projects == nil {
+		ptu.projects = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptu.projects[ids[i]] = struct{}{}
+	}
 	return ptu
 }
 
@@ -77,7 +93,12 @@ func (ptu *ProjectTypeUpdate) AddProjects(p ...*Project) *ProjectTypeUpdate {
 
 // AddPropertyIDs adds the properties edge to PropertyType by ids.
 func (ptu *ProjectTypeUpdate) AddPropertyIDs(ids ...int) *ProjectTypeUpdate {
-	ptu.mutation.AddPropertyIDs(ids...)
+	if ptu.properties == nil {
+		ptu.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptu.properties[ids[i]] = struct{}{}
+	}
 	return ptu
 }
 
@@ -92,7 +113,12 @@ func (ptu *ProjectTypeUpdate) AddProperties(p ...*PropertyType) *ProjectTypeUpda
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrderDefinition by ids.
 func (ptu *ProjectTypeUpdate) AddWorkOrderIDs(ids ...int) *ProjectTypeUpdate {
-	ptu.mutation.AddWorkOrderIDs(ids...)
+	if ptu.work_orders == nil {
+		ptu.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptu.work_orders[ids[i]] = struct{}{}
+	}
 	return ptu
 }
 
@@ -107,7 +133,12 @@ func (ptu *ProjectTypeUpdate) AddWorkOrders(w ...*WorkOrderDefinition) *ProjectT
 
 // RemoveProjectIDs removes the projects edge to Project by ids.
 func (ptu *ProjectTypeUpdate) RemoveProjectIDs(ids ...int) *ProjectTypeUpdate {
-	ptu.mutation.RemoveProjectIDs(ids...)
+	if ptu.removedProjects == nil {
+		ptu.removedProjects = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptu.removedProjects[ids[i]] = struct{}{}
+	}
 	return ptu
 }
 
@@ -122,7 +153,12 @@ func (ptu *ProjectTypeUpdate) RemoveProjects(p ...*Project) *ProjectTypeUpdate {
 
 // RemovePropertyIDs removes the properties edge to PropertyType by ids.
 func (ptu *ProjectTypeUpdate) RemovePropertyIDs(ids ...int) *ProjectTypeUpdate {
-	ptu.mutation.RemovePropertyIDs(ids...)
+	if ptu.removedProperties == nil {
+		ptu.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptu.removedProperties[ids[i]] = struct{}{}
+	}
 	return ptu
 }
 
@@ -137,7 +173,12 @@ func (ptu *ProjectTypeUpdate) RemoveProperties(p ...*PropertyType) *ProjectTypeU
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrderDefinition by ids.
 func (ptu *ProjectTypeUpdate) RemoveWorkOrderIDs(ids ...int) *ProjectTypeUpdate {
-	ptu.mutation.RemoveWorkOrderIDs(ids...)
+	if ptu.removedWorkOrders == nil {
+		ptu.removedWorkOrders = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptu.removedWorkOrders[ids[i]] = struct{}{}
+	}
 	return ptu
 }
 
@@ -152,40 +193,16 @@ func (ptu *ProjectTypeUpdate) RemoveWorkOrders(w ...*WorkOrderDefinition) *Proje
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (ptu *ProjectTypeUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := ptu.mutation.UpdateTime(); !ok {
+	if ptu.update_time == nil {
 		v := projecttype.UpdateDefaultUpdateTime()
-		ptu.mutation.SetUpdateTime(v)
+		ptu.update_time = &v
 	}
-	if v, ok := ptu.mutation.Name(); ok {
-		if err := projecttype.NameValidator(v); err != nil {
+	if ptu.name != nil {
+		if err := projecttype.NameValidator(*ptu.name); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(ptu.hooks) == 0 {
-		affected, err = ptu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProjectTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ptu.mutation = mutation
-			affected, err = ptu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(ptu.hooks); i > 0; i-- {
-			mut = ptu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, ptu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return ptu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -228,34 +245,34 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := ptu.mutation.UpdateTime(); ok {
+	if value := ptu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: projecttype.FieldUpdateTime,
 		})
 	}
-	if value, ok := ptu.mutation.Name(); ok {
+	if value := ptu.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: projecttype.FieldName,
 		})
 	}
-	if value, ok := ptu.mutation.Description(); ok {
+	if value := ptu.description; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: projecttype.FieldDescription,
 		})
 	}
-	if ptu.mutation.DescriptionCleared() {
+	if ptu.cleardescription {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: projecttype.FieldDescription,
 		})
 	}
-	if nodes := ptu.mutation.RemovedProjectsIDs(); len(nodes) > 0 {
+	if nodes := ptu.removedProjects; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -269,12 +286,12 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.ProjectsIDs(); len(nodes) > 0 {
+	if nodes := ptu.projects; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -288,12 +305,12 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := ptu.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := ptu.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -307,12 +324,12 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := ptu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -326,12 +343,12 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := ptu.mutation.RemovedWorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := ptu.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -345,12 +362,12 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptu.mutation.WorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := ptu.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -364,7 +381,7 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -383,19 +400,29 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ProjectTypeUpdateOne is the builder for updating a single ProjectType entity.
 type ProjectTypeUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *ProjectTypeMutation
+	id int
+
+	update_time       *time.Time
+	name              *string
+	description       *string
+	cleardescription  bool
+	projects          map[int]struct{}
+	properties        map[int]struct{}
+	work_orders       map[int]struct{}
+	removedProjects   map[int]struct{}
+	removedProperties map[int]struct{}
+	removedWorkOrders map[int]struct{}
 }
 
 // SetName sets the name field.
 func (ptuo *ProjectTypeUpdateOne) SetName(s string) *ProjectTypeUpdateOne {
-	ptuo.mutation.SetName(s)
+	ptuo.name = &s
 	return ptuo
 }
 
 // SetDescription sets the description field.
 func (ptuo *ProjectTypeUpdateOne) SetDescription(s string) *ProjectTypeUpdateOne {
-	ptuo.mutation.SetDescription(s)
+	ptuo.description = &s
 	return ptuo
 }
 
@@ -409,13 +436,19 @@ func (ptuo *ProjectTypeUpdateOne) SetNillableDescription(s *string) *ProjectType
 
 // ClearDescription clears the value of description.
 func (ptuo *ProjectTypeUpdateOne) ClearDescription() *ProjectTypeUpdateOne {
-	ptuo.mutation.ClearDescription()
+	ptuo.description = nil
+	ptuo.cleardescription = true
 	return ptuo
 }
 
 // AddProjectIDs adds the projects edge to Project by ids.
 func (ptuo *ProjectTypeUpdateOne) AddProjectIDs(ids ...int) *ProjectTypeUpdateOne {
-	ptuo.mutation.AddProjectIDs(ids...)
+	if ptuo.projects == nil {
+		ptuo.projects = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptuo.projects[ids[i]] = struct{}{}
+	}
 	return ptuo
 }
 
@@ -430,7 +463,12 @@ func (ptuo *ProjectTypeUpdateOne) AddProjects(p ...*Project) *ProjectTypeUpdateO
 
 // AddPropertyIDs adds the properties edge to PropertyType by ids.
 func (ptuo *ProjectTypeUpdateOne) AddPropertyIDs(ids ...int) *ProjectTypeUpdateOne {
-	ptuo.mutation.AddPropertyIDs(ids...)
+	if ptuo.properties == nil {
+		ptuo.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptuo.properties[ids[i]] = struct{}{}
+	}
 	return ptuo
 }
 
@@ -445,7 +483,12 @@ func (ptuo *ProjectTypeUpdateOne) AddProperties(p ...*PropertyType) *ProjectType
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrderDefinition by ids.
 func (ptuo *ProjectTypeUpdateOne) AddWorkOrderIDs(ids ...int) *ProjectTypeUpdateOne {
-	ptuo.mutation.AddWorkOrderIDs(ids...)
+	if ptuo.work_orders == nil {
+		ptuo.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptuo.work_orders[ids[i]] = struct{}{}
+	}
 	return ptuo
 }
 
@@ -460,7 +503,12 @@ func (ptuo *ProjectTypeUpdateOne) AddWorkOrders(w ...*WorkOrderDefinition) *Proj
 
 // RemoveProjectIDs removes the projects edge to Project by ids.
 func (ptuo *ProjectTypeUpdateOne) RemoveProjectIDs(ids ...int) *ProjectTypeUpdateOne {
-	ptuo.mutation.RemoveProjectIDs(ids...)
+	if ptuo.removedProjects == nil {
+		ptuo.removedProjects = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptuo.removedProjects[ids[i]] = struct{}{}
+	}
 	return ptuo
 }
 
@@ -475,7 +523,12 @@ func (ptuo *ProjectTypeUpdateOne) RemoveProjects(p ...*Project) *ProjectTypeUpda
 
 // RemovePropertyIDs removes the properties edge to PropertyType by ids.
 func (ptuo *ProjectTypeUpdateOne) RemovePropertyIDs(ids ...int) *ProjectTypeUpdateOne {
-	ptuo.mutation.RemovePropertyIDs(ids...)
+	if ptuo.removedProperties == nil {
+		ptuo.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptuo.removedProperties[ids[i]] = struct{}{}
+	}
 	return ptuo
 }
 
@@ -490,7 +543,12 @@ func (ptuo *ProjectTypeUpdateOne) RemoveProperties(p ...*PropertyType) *ProjectT
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrderDefinition by ids.
 func (ptuo *ProjectTypeUpdateOne) RemoveWorkOrderIDs(ids ...int) *ProjectTypeUpdateOne {
-	ptuo.mutation.RemoveWorkOrderIDs(ids...)
+	if ptuo.removedWorkOrders == nil {
+		ptuo.removedWorkOrders = make(map[int]struct{})
+	}
+	for i := range ids {
+		ptuo.removedWorkOrders[ids[i]] = struct{}{}
+	}
 	return ptuo
 }
 
@@ -505,40 +563,16 @@ func (ptuo *ProjectTypeUpdateOne) RemoveWorkOrders(w ...*WorkOrderDefinition) *P
 
 // Save executes the query and returns the updated entity.
 func (ptuo *ProjectTypeUpdateOne) Save(ctx context.Context) (*ProjectType, error) {
-	if _, ok := ptuo.mutation.UpdateTime(); !ok {
+	if ptuo.update_time == nil {
 		v := projecttype.UpdateDefaultUpdateTime()
-		ptuo.mutation.SetUpdateTime(v)
+		ptuo.update_time = &v
 	}
-	if v, ok := ptuo.mutation.Name(); ok {
-		if err := projecttype.NameValidator(v); err != nil {
+	if ptuo.name != nil {
+		if err := projecttype.NameValidator(*ptuo.name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-
-	var (
-		err  error
-		node *ProjectType
-	)
-	if len(ptuo.hooks) == 0 {
-		node, err = ptuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProjectTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ptuo.mutation = mutation
-			node, err = ptuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(ptuo.hooks); i > 0; i-- {
-			mut = ptuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, ptuo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return ptuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -569,44 +603,40 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 			Table:   projecttype.Table,
 			Columns: projecttype.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  ptuo.id,
 				Type:   field.TypeInt,
 				Column: projecttype.FieldID,
 			},
 		},
 	}
-	id, ok := ptuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing ProjectType.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := ptuo.mutation.UpdateTime(); ok {
+	if value := ptuo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: projecttype.FieldUpdateTime,
 		})
 	}
-	if value, ok := ptuo.mutation.Name(); ok {
+	if value := ptuo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: projecttype.FieldName,
 		})
 	}
-	if value, ok := ptuo.mutation.Description(); ok {
+	if value := ptuo.description; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: projecttype.FieldDescription,
 		})
 	}
-	if ptuo.mutation.DescriptionCleared() {
+	if ptuo.cleardescription {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: projecttype.FieldDescription,
 		})
 	}
-	if nodes := ptuo.mutation.RemovedProjectsIDs(); len(nodes) > 0 {
+	if nodes := ptuo.removedProjects; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -620,12 +650,12 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.ProjectsIDs(); len(nodes) > 0 {
+	if nodes := ptuo.projects; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -639,12 +669,12 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := ptuo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := ptuo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -658,12 +688,12 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := ptuo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -677,12 +707,12 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := ptuo.mutation.RemovedWorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := ptuo.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -696,12 +726,12 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ptuo.mutation.WorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := ptuo.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -715,7 +745,7 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

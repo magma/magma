@@ -8,33 +8,26 @@ package service
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the service type in the database.
 	Label = "service"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName       = "name"        // FieldExternalID holds the string denoting the external_id vertex property in the database.
-	FieldExternalID = "external_id" // FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus     = "status"
-
-	// EdgeType holds the string denoting the type edge name in mutations.
-	EdgeType = "type"
-	// EdgeDownstream holds the string denoting the downstream edge name in mutations.
-	EdgeDownstream = "downstream"
-	// EdgeUpstream holds the string denoting the upstream edge name in mutations.
-	EdgeUpstream = "upstream"
-	// EdgeProperties holds the string denoting the properties edge name in mutations.
-	EdgeProperties = "properties"
-	// EdgeLinks holds the string denoting the links edge name in mutations.
-	EdgeLinks = "links"
-	// EdgeCustomer holds the string denoting the customer edge name in mutations.
-	EdgeCustomer = "customer"
-	// EdgeEndpoints holds the string denoting the endpoints edge name in mutations.
-	EdgeEndpoints = "endpoints"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name vertex property in the database.
+	FieldName = "name"
+	// FieldExternalID holds the string denoting the external_id vertex property in the database.
+	FieldExternalID = "external_id"
+	// FieldStatus holds the string denoting the status vertex property in the database.
+	FieldStatus = "status"
 
 	// Table holds the table name of the service in the database.
 	Table = "services"
@@ -106,14 +99,31 @@ var (
 )
 
 var (
+	mixin       = schema.Service{}.Mixin()
+	mixinFields = [...][]ent.Field{
+		mixin[0].Fields(),
+	}
+	fields = schema.Service{}.Fields()
+
+	// descCreateTime is the schema descriptor for create_time field.
+	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime func() time.Time
+	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
+
+	// descUpdateTime is the schema descriptor for update_time field.
+	descUpdateTime = mixinFields[0][1].Descriptor()
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime func() time.Time
+	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime func() time.Time
+	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
+
+	// descName is the schema descriptor for name field.
+	descName = fields[0].Descriptor()
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
+	NameValidator = descName.Validators[0].(func(string) error)
+
+	// descExternalID is the schema descriptor for external_id field.
+	descExternalID = fields[1].Descriptor()
 	// ExternalIDValidator is a validator for the "external_id" field. It is called by the builders before save.
-	ExternalIDValidator func(string) error
+	ExternalIDValidator = descExternalID.Validators[0].(func(string) error)
 )

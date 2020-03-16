@@ -9,6 +9,7 @@ package ent
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,9 +21,17 @@ import (
 // TenantUpdate is the builder for updating Tenant entities.
 type TenantUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *TenantMutation
-	predicates []predicate.Tenant
+
+	updated_at    *time.Time
+	name          *string
+	domains       *[]string
+	networks      *[]string
+	tabs          *[]string
+	cleartabs     bool
+	SSOCert       *string
+	SSOEntryPoint *string
+	SSOIssuer     *string
+	predicates    []predicate.Tenant
 }
 
 // Where adds a new predicate for the builder.
@@ -33,37 +42,38 @@ func (tu *TenantUpdate) Where(ps ...predicate.Tenant) *TenantUpdate {
 
 // SetName sets the name field.
 func (tu *TenantUpdate) SetName(s string) *TenantUpdate {
-	tu.mutation.SetName(s)
+	tu.name = &s
 	return tu
 }
 
 // SetDomains sets the domains field.
 func (tu *TenantUpdate) SetDomains(s []string) *TenantUpdate {
-	tu.mutation.SetDomains(s)
+	tu.domains = &s
 	return tu
 }
 
 // SetNetworks sets the networks field.
 func (tu *TenantUpdate) SetNetworks(s []string) *TenantUpdate {
-	tu.mutation.SetNetworks(s)
+	tu.networks = &s
 	return tu
 }
 
 // SetTabs sets the tabs field.
 func (tu *TenantUpdate) SetTabs(s []string) *TenantUpdate {
-	tu.mutation.SetTabs(s)
+	tu.tabs = &s
 	return tu
 }
 
 // ClearTabs clears the value of tabs.
 func (tu *TenantUpdate) ClearTabs() *TenantUpdate {
-	tu.mutation.ClearTabs()
+	tu.tabs = nil
+	tu.cleartabs = true
 	return tu
 }
 
 // SetSSOCert sets the SSOCert field.
 func (tu *TenantUpdate) SetSSOCert(s string) *TenantUpdate {
-	tu.mutation.SetSSOCert(s)
+	tu.SSOCert = &s
 	return tu
 }
 
@@ -77,7 +87,7 @@ func (tu *TenantUpdate) SetNillableSSOCert(s *string) *TenantUpdate {
 
 // SetSSOEntryPoint sets the SSOEntryPoint field.
 func (tu *TenantUpdate) SetSSOEntryPoint(s string) *TenantUpdate {
-	tu.mutation.SetSSOEntryPoint(s)
+	tu.SSOEntryPoint = &s
 	return tu
 }
 
@@ -91,7 +101,7 @@ func (tu *TenantUpdate) SetNillableSSOEntryPoint(s *string) *TenantUpdate {
 
 // SetSSOIssuer sets the SSOIssuer field.
 func (tu *TenantUpdate) SetSSOIssuer(s string) *TenantUpdate {
-	tu.mutation.SetSSOIssuer(s)
+	tu.SSOIssuer = &s
 	return tu
 }
 
@@ -105,39 +115,16 @@ func (tu *TenantUpdate) SetNillableSSOIssuer(s *string) *TenantUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (tu *TenantUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := tu.mutation.UpdatedAt(); !ok {
+	if tu.updated_at == nil {
 		v := tenant.UpdateDefaultUpdatedAt()
-		tu.mutation.SetUpdatedAt(v)
+		tu.updated_at = &v
 	}
-	if v, ok := tu.mutation.Name(); ok {
-		if err := tenant.NameValidator(v); err != nil {
+	if tu.name != nil {
+		if err := tenant.NameValidator(*tu.name); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	var (
-		err      error
-		affected int
-	)
-	if len(tu.hooks) == 0 {
-		affected, err = tu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TenantMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			tu.mutation = mutation
-			affected, err = tu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(tu.hooks); i > 0; i-- {
-			mut = tu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, tu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return tu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -180,65 +167,65 @@ func (tu *TenantUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := tu.mutation.UpdatedAt(); ok {
+	if value := tu.updated_at; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldUpdatedAt,
 		})
 	}
-	if value, ok := tu.mutation.Name(); ok {
+	if value := tu.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldName,
 		})
 	}
-	if value, ok := tu.mutation.Domains(); ok {
+	if value := tu.domains; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldDomains,
 		})
 	}
-	if value, ok := tu.mutation.Networks(); ok {
+	if value := tu.networks; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldNetworks,
 		})
 	}
-	if value, ok := tu.mutation.Tabs(); ok {
+	if value := tu.tabs; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldTabs,
 		})
 	}
-	if tu.mutation.TabsCleared() {
+	if tu.cleartabs {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: tenant.FieldTabs,
 		})
 	}
-	if value, ok := tu.mutation.SSOCert(); ok {
+	if value := tu.SSOCert; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldSSOCert,
 		})
 	}
-	if value, ok := tu.mutation.SSOEntryPoint(); ok {
+	if value := tu.SSOEntryPoint; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldSSOEntryPoint,
 		})
 	}
-	if value, ok := tu.mutation.SSOIssuer(); ok {
+	if value := tu.SSOIssuer; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldSSOIssuer,
 		})
 	}
@@ -256,43 +243,53 @@ func (tu *TenantUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // TenantUpdateOne is the builder for updating a single Tenant entity.
 type TenantUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *TenantMutation
+	id int
+
+	updated_at    *time.Time
+	name          *string
+	domains       *[]string
+	networks      *[]string
+	tabs          *[]string
+	cleartabs     bool
+	SSOCert       *string
+	SSOEntryPoint *string
+	SSOIssuer     *string
 }
 
 // SetName sets the name field.
 func (tuo *TenantUpdateOne) SetName(s string) *TenantUpdateOne {
-	tuo.mutation.SetName(s)
+	tuo.name = &s
 	return tuo
 }
 
 // SetDomains sets the domains field.
 func (tuo *TenantUpdateOne) SetDomains(s []string) *TenantUpdateOne {
-	tuo.mutation.SetDomains(s)
+	tuo.domains = &s
 	return tuo
 }
 
 // SetNetworks sets the networks field.
 func (tuo *TenantUpdateOne) SetNetworks(s []string) *TenantUpdateOne {
-	tuo.mutation.SetNetworks(s)
+	tuo.networks = &s
 	return tuo
 }
 
 // SetTabs sets the tabs field.
 func (tuo *TenantUpdateOne) SetTabs(s []string) *TenantUpdateOne {
-	tuo.mutation.SetTabs(s)
+	tuo.tabs = &s
 	return tuo
 }
 
 // ClearTabs clears the value of tabs.
 func (tuo *TenantUpdateOne) ClearTabs() *TenantUpdateOne {
-	tuo.mutation.ClearTabs()
+	tuo.tabs = nil
+	tuo.cleartabs = true
 	return tuo
 }
 
 // SetSSOCert sets the SSOCert field.
 func (tuo *TenantUpdateOne) SetSSOCert(s string) *TenantUpdateOne {
-	tuo.mutation.SetSSOCert(s)
+	tuo.SSOCert = &s
 	return tuo
 }
 
@@ -306,7 +303,7 @@ func (tuo *TenantUpdateOne) SetNillableSSOCert(s *string) *TenantUpdateOne {
 
 // SetSSOEntryPoint sets the SSOEntryPoint field.
 func (tuo *TenantUpdateOne) SetSSOEntryPoint(s string) *TenantUpdateOne {
-	tuo.mutation.SetSSOEntryPoint(s)
+	tuo.SSOEntryPoint = &s
 	return tuo
 }
 
@@ -320,7 +317,7 @@ func (tuo *TenantUpdateOne) SetNillableSSOEntryPoint(s *string) *TenantUpdateOne
 
 // SetSSOIssuer sets the SSOIssuer field.
 func (tuo *TenantUpdateOne) SetSSOIssuer(s string) *TenantUpdateOne {
-	tuo.mutation.SetSSOIssuer(s)
+	tuo.SSOIssuer = &s
 	return tuo
 }
 
@@ -334,39 +331,16 @@ func (tuo *TenantUpdateOne) SetNillableSSOIssuer(s *string) *TenantUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (tuo *TenantUpdateOne) Save(ctx context.Context) (*Tenant, error) {
-	if _, ok := tuo.mutation.UpdatedAt(); !ok {
+	if tuo.updated_at == nil {
 		v := tenant.UpdateDefaultUpdatedAt()
-		tuo.mutation.SetUpdatedAt(v)
+		tuo.updated_at = &v
 	}
-	if v, ok := tuo.mutation.Name(); ok {
-		if err := tenant.NameValidator(v); err != nil {
+	if tuo.name != nil {
+		if err := tenant.NameValidator(*tuo.name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	var (
-		err  error
-		node *Tenant
-	)
-	if len(tuo.hooks) == 0 {
-		node, err = tuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TenantMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			tuo.mutation = mutation
-			node, err = tuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(tuo.hooks); i > 0; i-- {
-			mut = tuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, tuo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return tuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -397,75 +371,71 @@ func (tuo *TenantUpdateOne) sqlSave(ctx context.Context) (t *Tenant, err error) 
 			Table:   tenant.Table,
 			Columns: tenant.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  tuo.id,
 				Type:   field.TypeInt,
 				Column: tenant.FieldID,
 			},
 		},
 	}
-	id, ok := tuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing Tenant.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := tuo.mutation.UpdatedAt(); ok {
+	if value := tuo.updated_at; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldUpdatedAt,
 		})
 	}
-	if value, ok := tuo.mutation.Name(); ok {
+	if value := tuo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldName,
 		})
 	}
-	if value, ok := tuo.mutation.Domains(); ok {
+	if value := tuo.domains; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldDomains,
 		})
 	}
-	if value, ok := tuo.mutation.Networks(); ok {
+	if value := tuo.networks; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldNetworks,
 		})
 	}
-	if value, ok := tuo.mutation.Tabs(); ok {
+	if value := tuo.tabs; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldTabs,
 		})
 	}
-	if tuo.mutation.TabsCleared() {
+	if tuo.cleartabs {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: tenant.FieldTabs,
 		})
 	}
-	if value, ok := tuo.mutation.SSOCert(); ok {
+	if value := tuo.SSOCert; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldSSOCert,
 		})
 	}
-	if value, ok := tuo.mutation.SSOEntryPoint(); ok {
+	if value := tuo.SSOEntryPoint; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldSSOEntryPoint,
 		})
 	}
-	if value, ok := tuo.mutation.SSOIssuer(); ok {
+	if value := tuo.SSOIssuer; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldSSOIssuer,
 		})
 	}

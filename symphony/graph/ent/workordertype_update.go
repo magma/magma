@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -25,9 +25,22 @@ import (
 // WorkOrderTypeUpdate is the builder for updating WorkOrderType entities.
 type WorkOrderTypeUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *WorkOrderTypeMutation
-	predicates []predicate.WorkOrderType
+
+	update_time                 *time.Time
+	name                        *string
+	description                 *string
+	cleardescription            bool
+	work_orders                 map[int]struct{}
+	property_types              map[int]struct{}
+	definitions                 map[int]struct{}
+	check_list_categories       map[int]struct{}
+	check_list_definitions      map[int]struct{}
+	removedWorkOrders           map[int]struct{}
+	removedPropertyTypes        map[int]struct{}
+	removedDefinitions          map[int]struct{}
+	removedCheckListCategories  map[int]struct{}
+	removedCheckListDefinitions map[int]struct{}
+	predicates                  []predicate.WorkOrderType
 }
 
 // Where adds a new predicate for the builder.
@@ -38,13 +51,13 @@ func (wotu *WorkOrderTypeUpdate) Where(ps ...predicate.WorkOrderType) *WorkOrder
 
 // SetName sets the name field.
 func (wotu *WorkOrderTypeUpdate) SetName(s string) *WorkOrderTypeUpdate {
-	wotu.mutation.SetName(s)
+	wotu.name = &s
 	return wotu
 }
 
 // SetDescription sets the description field.
 func (wotu *WorkOrderTypeUpdate) SetDescription(s string) *WorkOrderTypeUpdate {
-	wotu.mutation.SetDescription(s)
+	wotu.description = &s
 	return wotu
 }
 
@@ -58,13 +71,19 @@ func (wotu *WorkOrderTypeUpdate) SetNillableDescription(s *string) *WorkOrderTyp
 
 // ClearDescription clears the value of description.
 func (wotu *WorkOrderTypeUpdate) ClearDescription() *WorkOrderTypeUpdate {
-	wotu.mutation.ClearDescription()
+	wotu.description = nil
+	wotu.cleardescription = true
 	return wotu
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (wotu *WorkOrderTypeUpdate) AddWorkOrderIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.AddWorkOrderIDs(ids...)
+	if wotu.work_orders == nil {
+		wotu.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotu.work_orders[ids[i]] = struct{}{}
+	}
 	return wotu
 }
 
@@ -79,7 +98,12 @@ func (wotu *WorkOrderTypeUpdate) AddWorkOrders(w ...*WorkOrder) *WorkOrderTypeUp
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (wotu *WorkOrderTypeUpdate) AddPropertyTypeIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.AddPropertyTypeIDs(ids...)
+	if wotu.property_types == nil {
+		wotu.property_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotu.property_types[ids[i]] = struct{}{}
+	}
 	return wotu
 }
 
@@ -94,7 +118,12 @@ func (wotu *WorkOrderTypeUpdate) AddPropertyTypes(p ...*PropertyType) *WorkOrder
 
 // AddDefinitionIDs adds the definitions edge to WorkOrderDefinition by ids.
 func (wotu *WorkOrderTypeUpdate) AddDefinitionIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.AddDefinitionIDs(ids...)
+	if wotu.definitions == nil {
+		wotu.definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotu.definitions[ids[i]] = struct{}{}
+	}
 	return wotu
 }
 
@@ -109,7 +138,12 @@ func (wotu *WorkOrderTypeUpdate) AddDefinitions(w ...*WorkOrderDefinition) *Work
 
 // AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
 func (wotu *WorkOrderTypeUpdate) AddCheckListCategoryIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.AddCheckListCategoryIDs(ids...)
+	if wotu.check_list_categories == nil {
+		wotu.check_list_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotu.check_list_categories[ids[i]] = struct{}{}
+	}
 	return wotu
 }
 
@@ -124,7 +158,12 @@ func (wotu *WorkOrderTypeUpdate) AddCheckListCategories(c ...*CheckListCategory)
 
 // AddCheckListDefinitionIDs adds the check_list_definitions edge to CheckListItemDefinition by ids.
 func (wotu *WorkOrderTypeUpdate) AddCheckListDefinitionIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.AddCheckListDefinitionIDs(ids...)
+	if wotu.check_list_definitions == nil {
+		wotu.check_list_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotu.check_list_definitions[ids[i]] = struct{}{}
+	}
 	return wotu
 }
 
@@ -139,7 +178,12 @@ func (wotu *WorkOrderTypeUpdate) AddCheckListDefinitions(c ...*CheckListItemDefi
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
 func (wotu *WorkOrderTypeUpdate) RemoveWorkOrderIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.RemoveWorkOrderIDs(ids...)
+	if wotu.removedWorkOrders == nil {
+		wotu.removedWorkOrders = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotu.removedWorkOrders[ids[i]] = struct{}{}
+	}
 	return wotu
 }
 
@@ -154,7 +198,12 @@ func (wotu *WorkOrderTypeUpdate) RemoveWorkOrders(w ...*WorkOrder) *WorkOrderTyp
 
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (wotu *WorkOrderTypeUpdate) RemovePropertyTypeIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.RemovePropertyTypeIDs(ids...)
+	if wotu.removedPropertyTypes == nil {
+		wotu.removedPropertyTypes = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotu.removedPropertyTypes[ids[i]] = struct{}{}
+	}
 	return wotu
 }
 
@@ -169,7 +218,12 @@ func (wotu *WorkOrderTypeUpdate) RemovePropertyTypes(p ...*PropertyType) *WorkOr
 
 // RemoveDefinitionIDs removes the definitions edge to WorkOrderDefinition by ids.
 func (wotu *WorkOrderTypeUpdate) RemoveDefinitionIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.RemoveDefinitionIDs(ids...)
+	if wotu.removedDefinitions == nil {
+		wotu.removedDefinitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotu.removedDefinitions[ids[i]] = struct{}{}
+	}
 	return wotu
 }
 
@@ -184,7 +238,12 @@ func (wotu *WorkOrderTypeUpdate) RemoveDefinitions(w ...*WorkOrderDefinition) *W
 
 // RemoveCheckListCategoryIDs removes the check_list_categories edge to CheckListCategory by ids.
 func (wotu *WorkOrderTypeUpdate) RemoveCheckListCategoryIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.RemoveCheckListCategoryIDs(ids...)
+	if wotu.removedCheckListCategories == nil {
+		wotu.removedCheckListCategories = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotu.removedCheckListCategories[ids[i]] = struct{}{}
+	}
 	return wotu
 }
 
@@ -199,7 +258,12 @@ func (wotu *WorkOrderTypeUpdate) RemoveCheckListCategories(c ...*CheckListCatego
 
 // RemoveCheckListDefinitionIDs removes the check_list_definitions edge to CheckListItemDefinition by ids.
 func (wotu *WorkOrderTypeUpdate) RemoveCheckListDefinitionIDs(ids ...int) *WorkOrderTypeUpdate {
-	wotu.mutation.RemoveCheckListDefinitionIDs(ids...)
+	if wotu.removedCheckListDefinitions == nil {
+		wotu.removedCheckListDefinitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotu.removedCheckListDefinitions[ids[i]] = struct{}{}
+	}
 	return wotu
 }
 
@@ -214,35 +278,11 @@ func (wotu *WorkOrderTypeUpdate) RemoveCheckListDefinitions(c ...*CheckListItemD
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (wotu *WorkOrderTypeUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := wotu.mutation.UpdateTime(); !ok {
+	if wotu.update_time == nil {
 		v := workordertype.UpdateDefaultUpdateTime()
-		wotu.mutation.SetUpdateTime(v)
+		wotu.update_time = &v
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(wotu.hooks) == 0 {
-		affected, err = wotu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WorkOrderTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wotu.mutation = mutation
-			affected, err = wotu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(wotu.hooks); i > 0; i-- {
-			mut = wotu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, wotu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return wotu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -285,34 +325,34 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 		}
 	}
-	if value, ok := wotu.mutation.UpdateTime(); ok {
+	if value := wotu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workordertype.FieldUpdateTime,
 		})
 	}
-	if value, ok := wotu.mutation.Name(); ok {
+	if value := wotu.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workordertype.FieldName,
 		})
 	}
-	if value, ok := wotu.mutation.Description(); ok {
+	if value := wotu.description; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workordertype.FieldDescription,
 		})
 	}
-	if wotu.mutation.DescriptionCleared() {
+	if wotu.cleardescription {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: workordertype.FieldDescription,
 		})
 	}
-	if nodes := wotu.mutation.RemovedWorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := wotu.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -326,12 +366,12 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotu.mutation.WorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := wotu.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -345,12 +385,12 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wotu.mutation.RemovedPropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := wotu.removedPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -364,12 +404,12 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotu.mutation.PropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := wotu.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -383,12 +423,12 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wotu.mutation.RemovedDefinitionsIDs(); len(nodes) > 0 {
+	if nodes := wotu.removedDefinitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -402,12 +442,12 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotu.mutation.DefinitionsIDs(); len(nodes) > 0 {
+	if nodes := wotu.definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -421,12 +461,12 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wotu.mutation.RemovedCheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wotu.removedCheckListCategories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -440,12 +480,12 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotu.mutation.CheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wotu.check_list_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -459,12 +499,12 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wotu.mutation.RemovedCheckListDefinitionsIDs(); len(nodes) > 0 {
+	if nodes := wotu.removedCheckListDefinitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -478,12 +518,12 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotu.mutation.CheckListDefinitionsIDs(); len(nodes) > 0 {
+	if nodes := wotu.check_list_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -497,7 +537,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -516,19 +556,33 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 // WorkOrderTypeUpdateOne is the builder for updating a single WorkOrderType entity.
 type WorkOrderTypeUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *WorkOrderTypeMutation
+	id int
+
+	update_time                 *time.Time
+	name                        *string
+	description                 *string
+	cleardescription            bool
+	work_orders                 map[int]struct{}
+	property_types              map[int]struct{}
+	definitions                 map[int]struct{}
+	check_list_categories       map[int]struct{}
+	check_list_definitions      map[int]struct{}
+	removedWorkOrders           map[int]struct{}
+	removedPropertyTypes        map[int]struct{}
+	removedDefinitions          map[int]struct{}
+	removedCheckListCategories  map[int]struct{}
+	removedCheckListDefinitions map[int]struct{}
 }
 
 // SetName sets the name field.
 func (wotuo *WorkOrderTypeUpdateOne) SetName(s string) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.SetName(s)
+	wotuo.name = &s
 	return wotuo
 }
 
 // SetDescription sets the description field.
 func (wotuo *WorkOrderTypeUpdateOne) SetDescription(s string) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.SetDescription(s)
+	wotuo.description = &s
 	return wotuo
 }
 
@@ -542,13 +596,19 @@ func (wotuo *WorkOrderTypeUpdateOne) SetNillableDescription(s *string) *WorkOrde
 
 // ClearDescription clears the value of description.
 func (wotuo *WorkOrderTypeUpdateOne) ClearDescription() *WorkOrderTypeUpdateOne {
-	wotuo.mutation.ClearDescription()
+	wotuo.description = nil
+	wotuo.cleardescription = true
 	return wotuo
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (wotuo *WorkOrderTypeUpdateOne) AddWorkOrderIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.AddWorkOrderIDs(ids...)
+	if wotuo.work_orders == nil {
+		wotuo.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotuo.work_orders[ids[i]] = struct{}{}
+	}
 	return wotuo
 }
 
@@ -563,7 +623,12 @@ func (wotuo *WorkOrderTypeUpdateOne) AddWorkOrders(w ...*WorkOrder) *WorkOrderTy
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (wotuo *WorkOrderTypeUpdateOne) AddPropertyTypeIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.AddPropertyTypeIDs(ids...)
+	if wotuo.property_types == nil {
+		wotuo.property_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotuo.property_types[ids[i]] = struct{}{}
+	}
 	return wotuo
 }
 
@@ -578,7 +643,12 @@ func (wotuo *WorkOrderTypeUpdateOne) AddPropertyTypes(p ...*PropertyType) *WorkO
 
 // AddDefinitionIDs adds the definitions edge to WorkOrderDefinition by ids.
 func (wotuo *WorkOrderTypeUpdateOne) AddDefinitionIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.AddDefinitionIDs(ids...)
+	if wotuo.definitions == nil {
+		wotuo.definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotuo.definitions[ids[i]] = struct{}{}
+	}
 	return wotuo
 }
 
@@ -593,7 +663,12 @@ func (wotuo *WorkOrderTypeUpdateOne) AddDefinitions(w ...*WorkOrderDefinition) *
 
 // AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
 func (wotuo *WorkOrderTypeUpdateOne) AddCheckListCategoryIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.AddCheckListCategoryIDs(ids...)
+	if wotuo.check_list_categories == nil {
+		wotuo.check_list_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotuo.check_list_categories[ids[i]] = struct{}{}
+	}
 	return wotuo
 }
 
@@ -608,7 +683,12 @@ func (wotuo *WorkOrderTypeUpdateOne) AddCheckListCategories(c ...*CheckListCateg
 
 // AddCheckListDefinitionIDs adds the check_list_definitions edge to CheckListItemDefinition by ids.
 func (wotuo *WorkOrderTypeUpdateOne) AddCheckListDefinitionIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.AddCheckListDefinitionIDs(ids...)
+	if wotuo.check_list_definitions == nil {
+		wotuo.check_list_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotuo.check_list_definitions[ids[i]] = struct{}{}
+	}
 	return wotuo
 }
 
@@ -623,7 +703,12 @@ func (wotuo *WorkOrderTypeUpdateOne) AddCheckListDefinitions(c ...*CheckListItem
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
 func (wotuo *WorkOrderTypeUpdateOne) RemoveWorkOrderIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.RemoveWorkOrderIDs(ids...)
+	if wotuo.removedWorkOrders == nil {
+		wotuo.removedWorkOrders = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotuo.removedWorkOrders[ids[i]] = struct{}{}
+	}
 	return wotuo
 }
 
@@ -638,7 +723,12 @@ func (wotuo *WorkOrderTypeUpdateOne) RemoveWorkOrders(w ...*WorkOrder) *WorkOrde
 
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (wotuo *WorkOrderTypeUpdateOne) RemovePropertyTypeIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.RemovePropertyTypeIDs(ids...)
+	if wotuo.removedPropertyTypes == nil {
+		wotuo.removedPropertyTypes = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotuo.removedPropertyTypes[ids[i]] = struct{}{}
+	}
 	return wotuo
 }
 
@@ -653,7 +743,12 @@ func (wotuo *WorkOrderTypeUpdateOne) RemovePropertyTypes(p ...*PropertyType) *Wo
 
 // RemoveDefinitionIDs removes the definitions edge to WorkOrderDefinition by ids.
 func (wotuo *WorkOrderTypeUpdateOne) RemoveDefinitionIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.RemoveDefinitionIDs(ids...)
+	if wotuo.removedDefinitions == nil {
+		wotuo.removedDefinitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotuo.removedDefinitions[ids[i]] = struct{}{}
+	}
 	return wotuo
 }
 
@@ -668,7 +763,12 @@ func (wotuo *WorkOrderTypeUpdateOne) RemoveDefinitions(w ...*WorkOrderDefinition
 
 // RemoveCheckListCategoryIDs removes the check_list_categories edge to CheckListCategory by ids.
 func (wotuo *WorkOrderTypeUpdateOne) RemoveCheckListCategoryIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.RemoveCheckListCategoryIDs(ids...)
+	if wotuo.removedCheckListCategories == nil {
+		wotuo.removedCheckListCategories = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotuo.removedCheckListCategories[ids[i]] = struct{}{}
+	}
 	return wotuo
 }
 
@@ -683,7 +783,12 @@ func (wotuo *WorkOrderTypeUpdateOne) RemoveCheckListCategories(c ...*CheckListCa
 
 // RemoveCheckListDefinitionIDs removes the check_list_definitions edge to CheckListItemDefinition by ids.
 func (wotuo *WorkOrderTypeUpdateOne) RemoveCheckListDefinitionIDs(ids ...int) *WorkOrderTypeUpdateOne {
-	wotuo.mutation.RemoveCheckListDefinitionIDs(ids...)
+	if wotuo.removedCheckListDefinitions == nil {
+		wotuo.removedCheckListDefinitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotuo.removedCheckListDefinitions[ids[i]] = struct{}{}
+	}
 	return wotuo
 }
 
@@ -698,35 +803,11 @@ func (wotuo *WorkOrderTypeUpdateOne) RemoveCheckListDefinitions(c ...*CheckListI
 
 // Save executes the query and returns the updated entity.
 func (wotuo *WorkOrderTypeUpdateOne) Save(ctx context.Context) (*WorkOrderType, error) {
-	if _, ok := wotuo.mutation.UpdateTime(); !ok {
+	if wotuo.update_time == nil {
 		v := workordertype.UpdateDefaultUpdateTime()
-		wotuo.mutation.SetUpdateTime(v)
+		wotuo.update_time = &v
 	}
-
-	var (
-		err  error
-		node *WorkOrderType
-	)
-	if len(wotuo.hooks) == 0 {
-		node, err = wotuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WorkOrderTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wotuo.mutation = mutation
-			node, err = wotuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(wotuo.hooks); i > 0; i-- {
-			mut = wotuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, wotuo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return wotuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -757,44 +838,40 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 			Table:   workordertype.Table,
 			Columns: workordertype.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  wotuo.id,
 				Type:   field.TypeInt,
 				Column: workordertype.FieldID,
 			},
 		},
 	}
-	id, ok := wotuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing WorkOrderType.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := wotuo.mutation.UpdateTime(); ok {
+	if value := wotuo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workordertype.FieldUpdateTime,
 		})
 	}
-	if value, ok := wotuo.mutation.Name(); ok {
+	if value := wotuo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workordertype.FieldName,
 		})
 	}
-	if value, ok := wotuo.mutation.Description(); ok {
+	if value := wotuo.description; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workordertype.FieldDescription,
 		})
 	}
-	if wotuo.mutation.DescriptionCleared() {
+	if wotuo.cleardescription {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: workordertype.FieldDescription,
 		})
 	}
-	if nodes := wotuo.mutation.RemovedWorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := wotuo.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -808,12 +885,12 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotuo.mutation.WorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := wotuo.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -827,12 +904,12 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wotuo.mutation.RemovedPropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := wotuo.removedPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -846,12 +923,12 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotuo.mutation.PropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := wotuo.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -865,12 +942,12 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wotuo.mutation.RemovedDefinitionsIDs(); len(nodes) > 0 {
+	if nodes := wotuo.removedDefinitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -884,12 +961,12 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotuo.mutation.DefinitionsIDs(); len(nodes) > 0 {
+	if nodes := wotuo.definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -903,12 +980,12 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wotuo.mutation.RemovedCheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wotuo.removedCheckListCategories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -922,12 +999,12 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotuo.mutation.CheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wotuo.check_list_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -941,12 +1018,12 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wotuo.mutation.RemovedCheckListDefinitionsIDs(); len(nodes) > 0 {
+	if nodes := wotuo.removedCheckListDefinitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -960,12 +1037,12 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wotuo.mutation.CheckListDefinitionsIDs(); len(nodes) > 0 {
+	if nodes := wotuo.check_list_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -979,7 +1056,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

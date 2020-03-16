@@ -8,45 +8,30 @@ package location
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the location type in the database.
 	Label = "location"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID               = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime       = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime       = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName             = "name"        // FieldExternalID holds the string denoting the external_id vertex property in the database.
-	FieldExternalID       = "external_id" // FieldLatitude holds the string denoting the latitude vertex property in the database.
-	FieldLatitude         = "latitude"    // FieldLongitude holds the string denoting the longitude vertex property in the database.
-	FieldLongitude        = "longitude"   // FieldSiteSurveyNeeded holds the string denoting the site_survey_needed vertex property in the database.
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name vertex property in the database.
+	FieldName = "name"
+	// FieldExternalID holds the string denoting the external_id vertex property in the database.
+	FieldExternalID = "external_id"
+	// FieldLatitude holds the string denoting the latitude vertex property in the database.
+	FieldLatitude = "latitude"
+	// FieldLongitude holds the string denoting the longitude vertex property in the database.
+	FieldLongitude = "longitude"
+	// FieldSiteSurveyNeeded holds the string denoting the site_survey_needed vertex property in the database.
 	FieldSiteSurveyNeeded = "site_survey_needed"
-
-	// EdgeType holds the string denoting the type edge name in mutations.
-	EdgeType = "type"
-	// EdgeParent holds the string denoting the parent edge name in mutations.
-	EdgeParent = "parent"
-	// EdgeChildren holds the string denoting the children edge name in mutations.
-	EdgeChildren = "children"
-	// EdgeFiles holds the string denoting the files edge name in mutations.
-	EdgeFiles = "files"
-	// EdgeHyperlinks holds the string denoting the hyperlinks edge name in mutations.
-	EdgeHyperlinks = "hyperlinks"
-	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
-	EdgeEquipment = "equipment"
-	// EdgeProperties holds the string denoting the properties edge name in mutations.
-	EdgeProperties = "properties"
-	// EdgeSurvey holds the string denoting the survey edge name in mutations.
-	EdgeSurvey = "survey"
-	// EdgeWifiScan holds the string denoting the wifi_scan edge name in mutations.
-	EdgeWifiScan = "wifi_scan"
-	// EdgeCellScan holds the string denoting the cell_scan edge name in mutations.
-	EdgeCellScan = "cell_scan"
-	// EdgeWorkOrders holds the string denoting the work_orders edge name in mutations.
-	EdgeWorkOrders = "work_orders"
-	// EdgeFloorPlans holds the string denoting the floor_plans edge name in mutations.
-	EdgeFloorPlans = "floor_plans"
 
 	// Table holds the table name of the location in the database.
 	Table = "locations"
@@ -149,22 +134,45 @@ var ForeignKeys = []string{
 }
 
 var (
+	mixin       = schema.Location{}.Mixin()
+	mixinFields = [...][]ent.Field{
+		mixin[0].Fields(),
+	}
+	fields = schema.Location{}.Fields()
+
+	// descCreateTime is the schema descriptor for create_time field.
+	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime func() time.Time
+	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
+
+	// descUpdateTime is the schema descriptor for update_time field.
+	descUpdateTime = mixinFields[0][1].Descriptor()
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime func() time.Time
+	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime func() time.Time
+	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
+
+	// descName is the schema descriptor for name field.
+	descName = fields[0].Descriptor()
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
+	NameValidator = descName.Validators[0].(func(string) error)
+
+	// descLatitude is the schema descriptor for latitude field.
+	descLatitude = fields[2].Descriptor()
 	// DefaultLatitude holds the default value on creation for the latitude field.
-	DefaultLatitude float64
+	DefaultLatitude = descLatitude.Default.(float64)
 	// LatitudeValidator is a validator for the "latitude" field. It is called by the builders before save.
-	LatitudeValidator func(float64) error
+	LatitudeValidator = descLatitude.Validators[0].(func(float64) error)
+
+	// descLongitude is the schema descriptor for longitude field.
+	descLongitude = fields[3].Descriptor()
 	// DefaultLongitude holds the default value on creation for the longitude field.
-	DefaultLongitude float64
+	DefaultLongitude = descLongitude.Default.(float64)
 	// LongitudeValidator is a validator for the "longitude" field. It is called by the builders before save.
-	LongitudeValidator func(float64) error
+	LongitudeValidator = descLongitude.Validators[0].(func(float64) error)
+
+	// descSiteSurveyNeeded is the schema descriptor for site_survey_needed field.
+	descSiteSurveyNeeded = fields[4].Descriptor()
 	// DefaultSiteSurveyNeeded holds the default value on creation for the site_survey_needed field.
-	DefaultSiteSurveyNeeded bool
+	DefaultSiteSurveyNeeded = descSiteSurveyNeeded.Default.(bool)
 )

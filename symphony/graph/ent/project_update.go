@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -26,9 +27,24 @@ import (
 // ProjectUpdate is the builder for updating Project entities.
 type ProjectUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *ProjectMutation
-	predicates []predicate.Project
+
+	update_time       *time.Time
+	name              *string
+	description       *string
+	cleardescription  bool
+	creator           *string
+	clearcreator      bool
+	_type             map[int]struct{}
+	location          map[int]struct{}
+	comments          map[int]struct{}
+	work_orders       map[int]struct{}
+	properties        map[int]struct{}
+	clearedType       bool
+	clearedLocation   bool
+	removedComments   map[int]struct{}
+	removedWorkOrders map[int]struct{}
+	removedProperties map[int]struct{}
+	predicates        []predicate.Project
 }
 
 // Where adds a new predicate for the builder.
@@ -39,13 +55,13 @@ func (pu *ProjectUpdate) Where(ps ...predicate.Project) *ProjectUpdate {
 
 // SetName sets the name field.
 func (pu *ProjectUpdate) SetName(s string) *ProjectUpdate {
-	pu.mutation.SetName(s)
+	pu.name = &s
 	return pu
 }
 
 // SetDescription sets the description field.
 func (pu *ProjectUpdate) SetDescription(s string) *ProjectUpdate {
-	pu.mutation.SetDescription(s)
+	pu.description = &s
 	return pu
 }
 
@@ -59,13 +75,14 @@ func (pu *ProjectUpdate) SetNillableDescription(s *string) *ProjectUpdate {
 
 // ClearDescription clears the value of description.
 func (pu *ProjectUpdate) ClearDescription() *ProjectUpdate {
-	pu.mutation.ClearDescription()
+	pu.description = nil
+	pu.cleardescription = true
 	return pu
 }
 
 // SetCreator sets the creator field.
 func (pu *ProjectUpdate) SetCreator(s string) *ProjectUpdate {
-	pu.mutation.SetCreator(s)
+	pu.creator = &s
 	return pu
 }
 
@@ -79,13 +96,17 @@ func (pu *ProjectUpdate) SetNillableCreator(s *string) *ProjectUpdate {
 
 // ClearCreator clears the value of creator.
 func (pu *ProjectUpdate) ClearCreator() *ProjectUpdate {
-	pu.mutation.ClearCreator()
+	pu.creator = nil
+	pu.clearcreator = true
 	return pu
 }
 
 // SetTypeID sets the type edge to ProjectType by id.
 func (pu *ProjectUpdate) SetTypeID(id int) *ProjectUpdate {
-	pu.mutation.SetTypeID(id)
+	if pu._type == nil {
+		pu._type = make(map[int]struct{})
+	}
+	pu._type[id] = struct{}{}
 	return pu
 }
 
@@ -96,7 +117,10 @@ func (pu *ProjectUpdate) SetType(p *ProjectType) *ProjectUpdate {
 
 // SetLocationID sets the location edge to Location by id.
 func (pu *ProjectUpdate) SetLocationID(id int) *ProjectUpdate {
-	pu.mutation.SetLocationID(id)
+	if pu.location == nil {
+		pu.location = make(map[int]struct{})
+	}
+	pu.location[id] = struct{}{}
 	return pu
 }
 
@@ -115,7 +139,12 @@ func (pu *ProjectUpdate) SetLocation(l *Location) *ProjectUpdate {
 
 // AddCommentIDs adds the comments edge to Comment by ids.
 func (pu *ProjectUpdate) AddCommentIDs(ids ...int) *ProjectUpdate {
-	pu.mutation.AddCommentIDs(ids...)
+	if pu.comments == nil {
+		pu.comments = make(map[int]struct{})
+	}
+	for i := range ids {
+		pu.comments[ids[i]] = struct{}{}
+	}
 	return pu
 }
 
@@ -130,7 +159,12 @@ func (pu *ProjectUpdate) AddComments(c ...*Comment) *ProjectUpdate {
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (pu *ProjectUpdate) AddWorkOrderIDs(ids ...int) *ProjectUpdate {
-	pu.mutation.AddWorkOrderIDs(ids...)
+	if pu.work_orders == nil {
+		pu.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		pu.work_orders[ids[i]] = struct{}{}
+	}
 	return pu
 }
 
@@ -145,7 +179,12 @@ func (pu *ProjectUpdate) AddWorkOrders(w ...*WorkOrder) *ProjectUpdate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (pu *ProjectUpdate) AddPropertyIDs(ids ...int) *ProjectUpdate {
-	pu.mutation.AddPropertyIDs(ids...)
+	if pu.properties == nil {
+		pu.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		pu.properties[ids[i]] = struct{}{}
+	}
 	return pu
 }
 
@@ -160,19 +199,24 @@ func (pu *ProjectUpdate) AddProperties(p ...*Property) *ProjectUpdate {
 
 // ClearType clears the type edge to ProjectType.
 func (pu *ProjectUpdate) ClearType() *ProjectUpdate {
-	pu.mutation.ClearType()
+	pu.clearedType = true
 	return pu
 }
 
 // ClearLocation clears the location edge to Location.
 func (pu *ProjectUpdate) ClearLocation() *ProjectUpdate {
-	pu.mutation.ClearLocation()
+	pu.clearedLocation = true
 	return pu
 }
 
 // RemoveCommentIDs removes the comments edge to Comment by ids.
 func (pu *ProjectUpdate) RemoveCommentIDs(ids ...int) *ProjectUpdate {
-	pu.mutation.RemoveCommentIDs(ids...)
+	if pu.removedComments == nil {
+		pu.removedComments = make(map[int]struct{})
+	}
+	for i := range ids {
+		pu.removedComments[ids[i]] = struct{}{}
+	}
 	return pu
 }
 
@@ -187,7 +231,12 @@ func (pu *ProjectUpdate) RemoveComments(c ...*Comment) *ProjectUpdate {
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
 func (pu *ProjectUpdate) RemoveWorkOrderIDs(ids ...int) *ProjectUpdate {
-	pu.mutation.RemoveWorkOrderIDs(ids...)
+	if pu.removedWorkOrders == nil {
+		pu.removedWorkOrders = make(map[int]struct{})
+	}
+	for i := range ids {
+		pu.removedWorkOrders[ids[i]] = struct{}{}
+	}
 	return pu
 }
 
@@ -202,7 +251,12 @@ func (pu *ProjectUpdate) RemoveWorkOrders(w ...*WorkOrder) *ProjectUpdate {
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (pu *ProjectUpdate) RemovePropertyIDs(ids ...int) *ProjectUpdate {
-	pu.mutation.RemovePropertyIDs(ids...)
+	if pu.removedProperties == nil {
+		pu.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		pu.removedProperties[ids[i]] = struct{}{}
+	}
 	return pu
 }
 
@@ -217,44 +271,25 @@ func (pu *ProjectUpdate) RemoveProperties(p ...*Property) *ProjectUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (pu *ProjectUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := pu.mutation.UpdateTime(); !ok {
+	if pu.update_time == nil {
 		v := project.UpdateDefaultUpdateTime()
-		pu.mutation.SetUpdateTime(v)
+		pu.update_time = &v
 	}
-	if v, ok := pu.mutation.Name(); ok {
-		if err := project.NameValidator(v); err != nil {
+	if pu.name != nil {
+		if err := project.NameValidator(*pu.name); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-
-	if _, ok := pu.mutation.TypeID(); pu.mutation.TypeCleared() && !ok {
+	if len(pu._type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"type\"")
+	}
+	if pu.clearedType && pu._type == nil {
 		return 0, errors.New("ent: clearing a unique edge \"type\"")
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(pu.hooks) == 0 {
-		affected, err = pu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProjectMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			pu.mutation = mutation
-			affected, err = pu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(pu.hooks); i > 0; i-- {
-			mut = pu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, pu.mutation); err != nil {
-			return 0, err
-		}
+	if len(pu.location) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"location\"")
 	}
-	return affected, err
+	return pu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -297,47 +332,47 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := pu.mutation.UpdateTime(); ok {
+	if value := pu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldUpdateTime,
 		})
 	}
-	if value, ok := pu.mutation.Name(); ok {
+	if value := pu.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldName,
 		})
 	}
-	if value, ok := pu.mutation.Description(); ok {
+	if value := pu.description; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldDescription,
 		})
 	}
-	if pu.mutation.DescriptionCleared() {
+	if pu.cleardescription {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: project.FieldDescription,
 		})
 	}
-	if value, ok := pu.mutation.Creator(); ok {
+	if value := pu.creator; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldCreator,
 		})
 	}
-	if pu.mutation.CreatorCleared() {
+	if pu.clearcreator {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: project.FieldCreator,
 		})
 	}
-	if pu.mutation.TypeCleared() {
+	if pu.clearedType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -353,7 +388,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.TypeIDs(); len(nodes) > 0 {
+	if nodes := pu._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -367,12 +402,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if pu.mutation.LocationCleared() {
+	if pu.clearedLocation {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -388,7 +423,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.LocationIDs(); len(nodes) > 0 {
+	if nodes := pu.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -402,12 +437,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := pu.mutation.RemovedCommentsIDs(); len(nodes) > 0 {
+	if nodes := pu.removedComments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -421,12 +456,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.CommentsIDs(); len(nodes) > 0 {
+	if nodes := pu.comments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -440,12 +475,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := pu.mutation.RemovedWorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := pu.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -459,12 +494,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.WorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := pu.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -478,12 +513,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := pu.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := pu.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -497,12 +532,12 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := pu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -516,7 +551,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -535,19 +570,35 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ProjectUpdateOne is the builder for updating a single Project entity.
 type ProjectUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *ProjectMutation
+	id int
+
+	update_time       *time.Time
+	name              *string
+	description       *string
+	cleardescription  bool
+	creator           *string
+	clearcreator      bool
+	_type             map[int]struct{}
+	location          map[int]struct{}
+	comments          map[int]struct{}
+	work_orders       map[int]struct{}
+	properties        map[int]struct{}
+	clearedType       bool
+	clearedLocation   bool
+	removedComments   map[int]struct{}
+	removedWorkOrders map[int]struct{}
+	removedProperties map[int]struct{}
 }
 
 // SetName sets the name field.
 func (puo *ProjectUpdateOne) SetName(s string) *ProjectUpdateOne {
-	puo.mutation.SetName(s)
+	puo.name = &s
 	return puo
 }
 
 // SetDescription sets the description field.
 func (puo *ProjectUpdateOne) SetDescription(s string) *ProjectUpdateOne {
-	puo.mutation.SetDescription(s)
+	puo.description = &s
 	return puo
 }
 
@@ -561,13 +612,14 @@ func (puo *ProjectUpdateOne) SetNillableDescription(s *string) *ProjectUpdateOne
 
 // ClearDescription clears the value of description.
 func (puo *ProjectUpdateOne) ClearDescription() *ProjectUpdateOne {
-	puo.mutation.ClearDescription()
+	puo.description = nil
+	puo.cleardescription = true
 	return puo
 }
 
 // SetCreator sets the creator field.
 func (puo *ProjectUpdateOne) SetCreator(s string) *ProjectUpdateOne {
-	puo.mutation.SetCreator(s)
+	puo.creator = &s
 	return puo
 }
 
@@ -581,13 +633,17 @@ func (puo *ProjectUpdateOne) SetNillableCreator(s *string) *ProjectUpdateOne {
 
 // ClearCreator clears the value of creator.
 func (puo *ProjectUpdateOne) ClearCreator() *ProjectUpdateOne {
-	puo.mutation.ClearCreator()
+	puo.creator = nil
+	puo.clearcreator = true
 	return puo
 }
 
 // SetTypeID sets the type edge to ProjectType by id.
 func (puo *ProjectUpdateOne) SetTypeID(id int) *ProjectUpdateOne {
-	puo.mutation.SetTypeID(id)
+	if puo._type == nil {
+		puo._type = make(map[int]struct{})
+	}
+	puo._type[id] = struct{}{}
 	return puo
 }
 
@@ -598,7 +654,10 @@ func (puo *ProjectUpdateOne) SetType(p *ProjectType) *ProjectUpdateOne {
 
 // SetLocationID sets the location edge to Location by id.
 func (puo *ProjectUpdateOne) SetLocationID(id int) *ProjectUpdateOne {
-	puo.mutation.SetLocationID(id)
+	if puo.location == nil {
+		puo.location = make(map[int]struct{})
+	}
+	puo.location[id] = struct{}{}
 	return puo
 }
 
@@ -617,7 +676,12 @@ func (puo *ProjectUpdateOne) SetLocation(l *Location) *ProjectUpdateOne {
 
 // AddCommentIDs adds the comments edge to Comment by ids.
 func (puo *ProjectUpdateOne) AddCommentIDs(ids ...int) *ProjectUpdateOne {
-	puo.mutation.AddCommentIDs(ids...)
+	if puo.comments == nil {
+		puo.comments = make(map[int]struct{})
+	}
+	for i := range ids {
+		puo.comments[ids[i]] = struct{}{}
+	}
 	return puo
 }
 
@@ -632,7 +696,12 @@ func (puo *ProjectUpdateOne) AddComments(c ...*Comment) *ProjectUpdateOne {
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (puo *ProjectUpdateOne) AddWorkOrderIDs(ids ...int) *ProjectUpdateOne {
-	puo.mutation.AddWorkOrderIDs(ids...)
+	if puo.work_orders == nil {
+		puo.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		puo.work_orders[ids[i]] = struct{}{}
+	}
 	return puo
 }
 
@@ -647,7 +716,12 @@ func (puo *ProjectUpdateOne) AddWorkOrders(w ...*WorkOrder) *ProjectUpdateOne {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (puo *ProjectUpdateOne) AddPropertyIDs(ids ...int) *ProjectUpdateOne {
-	puo.mutation.AddPropertyIDs(ids...)
+	if puo.properties == nil {
+		puo.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		puo.properties[ids[i]] = struct{}{}
+	}
 	return puo
 }
 
@@ -662,19 +736,24 @@ func (puo *ProjectUpdateOne) AddProperties(p ...*Property) *ProjectUpdateOne {
 
 // ClearType clears the type edge to ProjectType.
 func (puo *ProjectUpdateOne) ClearType() *ProjectUpdateOne {
-	puo.mutation.ClearType()
+	puo.clearedType = true
 	return puo
 }
 
 // ClearLocation clears the location edge to Location.
 func (puo *ProjectUpdateOne) ClearLocation() *ProjectUpdateOne {
-	puo.mutation.ClearLocation()
+	puo.clearedLocation = true
 	return puo
 }
 
 // RemoveCommentIDs removes the comments edge to Comment by ids.
 func (puo *ProjectUpdateOne) RemoveCommentIDs(ids ...int) *ProjectUpdateOne {
-	puo.mutation.RemoveCommentIDs(ids...)
+	if puo.removedComments == nil {
+		puo.removedComments = make(map[int]struct{})
+	}
+	for i := range ids {
+		puo.removedComments[ids[i]] = struct{}{}
+	}
 	return puo
 }
 
@@ -689,7 +768,12 @@ func (puo *ProjectUpdateOne) RemoveComments(c ...*Comment) *ProjectUpdateOne {
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
 func (puo *ProjectUpdateOne) RemoveWorkOrderIDs(ids ...int) *ProjectUpdateOne {
-	puo.mutation.RemoveWorkOrderIDs(ids...)
+	if puo.removedWorkOrders == nil {
+		puo.removedWorkOrders = make(map[int]struct{})
+	}
+	for i := range ids {
+		puo.removedWorkOrders[ids[i]] = struct{}{}
+	}
 	return puo
 }
 
@@ -704,7 +788,12 @@ func (puo *ProjectUpdateOne) RemoveWorkOrders(w ...*WorkOrder) *ProjectUpdateOne
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (puo *ProjectUpdateOne) RemovePropertyIDs(ids ...int) *ProjectUpdateOne {
-	puo.mutation.RemovePropertyIDs(ids...)
+	if puo.removedProperties == nil {
+		puo.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		puo.removedProperties[ids[i]] = struct{}{}
+	}
 	return puo
 }
 
@@ -719,44 +808,25 @@ func (puo *ProjectUpdateOne) RemoveProperties(p ...*Property) *ProjectUpdateOne 
 
 // Save executes the query and returns the updated entity.
 func (puo *ProjectUpdateOne) Save(ctx context.Context) (*Project, error) {
-	if _, ok := puo.mutation.UpdateTime(); !ok {
+	if puo.update_time == nil {
 		v := project.UpdateDefaultUpdateTime()
-		puo.mutation.SetUpdateTime(v)
+		puo.update_time = &v
 	}
-	if v, ok := puo.mutation.Name(); ok {
-		if err := project.NameValidator(v); err != nil {
+	if puo.name != nil {
+		if err := project.NameValidator(*puo.name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-
-	if _, ok := puo.mutation.TypeID(); puo.mutation.TypeCleared() && !ok {
+	if len(puo._type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
+	}
+	if puo.clearedType && puo._type == nil {
 		return nil, errors.New("ent: clearing a unique edge \"type\"")
 	}
-
-	var (
-		err  error
-		node *Project
-	)
-	if len(puo.hooks) == 0 {
-		node, err = puo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProjectMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			puo.mutation = mutation
-			node, err = puo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(puo.hooks); i > 0; i-- {
-			mut = puo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, puo.mutation); err != nil {
-			return nil, err
-		}
+	if len(puo.location) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
 	}
-	return node, err
+	return puo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -787,57 +857,53 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Table:   project.Table,
 			Columns: project.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  puo.id,
 				Type:   field.TypeInt,
 				Column: project.FieldID,
 			},
 		},
 	}
-	id, ok := puo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing Project.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := puo.mutation.UpdateTime(); ok {
+	if value := puo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldUpdateTime,
 		})
 	}
-	if value, ok := puo.mutation.Name(); ok {
+	if value := puo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldName,
 		})
 	}
-	if value, ok := puo.mutation.Description(); ok {
+	if value := puo.description; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldDescription,
 		})
 	}
-	if puo.mutation.DescriptionCleared() {
+	if puo.cleardescription {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: project.FieldDescription,
 		})
 	}
-	if value, ok := puo.mutation.Creator(); ok {
+	if value := puo.creator; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldCreator,
 		})
 	}
-	if puo.mutation.CreatorCleared() {
+	if puo.clearcreator {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: project.FieldCreator,
 		})
 	}
-	if puo.mutation.TypeCleared() {
+	if puo.clearedType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -853,7 +919,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.TypeIDs(); len(nodes) > 0 {
+	if nodes := puo._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -867,12 +933,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if puo.mutation.LocationCleared() {
+	if puo.clearedLocation {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -888,7 +954,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.LocationIDs(); len(nodes) > 0 {
+	if nodes := puo.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -902,12 +968,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := puo.mutation.RemovedCommentsIDs(); len(nodes) > 0 {
+	if nodes := puo.removedComments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -921,12 +987,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.CommentsIDs(); len(nodes) > 0 {
+	if nodes := puo.comments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -940,12 +1006,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := puo.mutation.RemovedWorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := puo.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -959,12 +1025,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.WorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := puo.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -978,12 +1044,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := puo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := puo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -997,12 +1063,12 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := puo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1016,7 +1082,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

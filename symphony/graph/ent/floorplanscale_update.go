@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,9 +20,19 @@ import (
 // FloorPlanScaleUpdate is the builder for updating FloorPlanScale entities.
 type FloorPlanScaleUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *FloorPlanScaleMutation
-	predicates []predicate.FloorPlanScale
+
+	update_time           *time.Time
+	reference_point1_x    *int
+	addreference_point1_x *int
+	reference_point1_y    *int
+	addreference_point1_y *int
+	reference_point2_x    *int
+	addreference_point2_x *int
+	reference_point2_y    *int
+	addreference_point2_y *int
+	scale_in_meters       *float64
+	addscale_in_meters    *float64
+	predicates            []predicate.FloorPlanScale
 }
 
 // Where adds a new predicate for the builder.
@@ -33,99 +43,96 @@ func (fpsu *FloorPlanScaleUpdate) Where(ps ...predicate.FloorPlanScale) *FloorPl
 
 // SetReferencePoint1X sets the reference_point1_x field.
 func (fpsu *FloorPlanScaleUpdate) SetReferencePoint1X(i int) *FloorPlanScaleUpdate {
-	fpsu.mutation.ResetReferencePoint1X()
-	fpsu.mutation.SetReferencePoint1X(i)
+	fpsu.reference_point1_x = &i
+	fpsu.addreference_point1_x = nil
 	return fpsu
 }
 
 // AddReferencePoint1X adds i to reference_point1_x.
 func (fpsu *FloorPlanScaleUpdate) AddReferencePoint1X(i int) *FloorPlanScaleUpdate {
-	fpsu.mutation.AddReferencePoint1X(i)
+	if fpsu.addreference_point1_x == nil {
+		fpsu.addreference_point1_x = &i
+	} else {
+		*fpsu.addreference_point1_x += i
+	}
 	return fpsu
 }
 
 // SetReferencePoint1Y sets the reference_point1_y field.
 func (fpsu *FloorPlanScaleUpdate) SetReferencePoint1Y(i int) *FloorPlanScaleUpdate {
-	fpsu.mutation.ResetReferencePoint1Y()
-	fpsu.mutation.SetReferencePoint1Y(i)
+	fpsu.reference_point1_y = &i
+	fpsu.addreference_point1_y = nil
 	return fpsu
 }
 
 // AddReferencePoint1Y adds i to reference_point1_y.
 func (fpsu *FloorPlanScaleUpdate) AddReferencePoint1Y(i int) *FloorPlanScaleUpdate {
-	fpsu.mutation.AddReferencePoint1Y(i)
+	if fpsu.addreference_point1_y == nil {
+		fpsu.addreference_point1_y = &i
+	} else {
+		*fpsu.addreference_point1_y += i
+	}
 	return fpsu
 }
 
 // SetReferencePoint2X sets the reference_point2_x field.
 func (fpsu *FloorPlanScaleUpdate) SetReferencePoint2X(i int) *FloorPlanScaleUpdate {
-	fpsu.mutation.ResetReferencePoint2X()
-	fpsu.mutation.SetReferencePoint2X(i)
+	fpsu.reference_point2_x = &i
+	fpsu.addreference_point2_x = nil
 	return fpsu
 }
 
 // AddReferencePoint2X adds i to reference_point2_x.
 func (fpsu *FloorPlanScaleUpdate) AddReferencePoint2X(i int) *FloorPlanScaleUpdate {
-	fpsu.mutation.AddReferencePoint2X(i)
+	if fpsu.addreference_point2_x == nil {
+		fpsu.addreference_point2_x = &i
+	} else {
+		*fpsu.addreference_point2_x += i
+	}
 	return fpsu
 }
 
 // SetReferencePoint2Y sets the reference_point2_y field.
 func (fpsu *FloorPlanScaleUpdate) SetReferencePoint2Y(i int) *FloorPlanScaleUpdate {
-	fpsu.mutation.ResetReferencePoint2Y()
-	fpsu.mutation.SetReferencePoint2Y(i)
+	fpsu.reference_point2_y = &i
+	fpsu.addreference_point2_y = nil
 	return fpsu
 }
 
 // AddReferencePoint2Y adds i to reference_point2_y.
 func (fpsu *FloorPlanScaleUpdate) AddReferencePoint2Y(i int) *FloorPlanScaleUpdate {
-	fpsu.mutation.AddReferencePoint2Y(i)
+	if fpsu.addreference_point2_y == nil {
+		fpsu.addreference_point2_y = &i
+	} else {
+		*fpsu.addreference_point2_y += i
+	}
 	return fpsu
 }
 
 // SetScaleInMeters sets the scale_in_meters field.
 func (fpsu *FloorPlanScaleUpdate) SetScaleInMeters(f float64) *FloorPlanScaleUpdate {
-	fpsu.mutation.ResetScaleInMeters()
-	fpsu.mutation.SetScaleInMeters(f)
+	fpsu.scale_in_meters = &f
+	fpsu.addscale_in_meters = nil
 	return fpsu
 }
 
 // AddScaleInMeters adds f to scale_in_meters.
 func (fpsu *FloorPlanScaleUpdate) AddScaleInMeters(f float64) *FloorPlanScaleUpdate {
-	fpsu.mutation.AddScaleInMeters(f)
+	if fpsu.addscale_in_meters == nil {
+		fpsu.addscale_in_meters = &f
+	} else {
+		*fpsu.addscale_in_meters += f
+	}
 	return fpsu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (fpsu *FloorPlanScaleUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := fpsu.mutation.UpdateTime(); !ok {
+	if fpsu.update_time == nil {
 		v := floorplanscale.UpdateDefaultUpdateTime()
-		fpsu.mutation.SetUpdateTime(v)
+		fpsu.update_time = &v
 	}
-	var (
-		err      error
-		affected int
-	)
-	if len(fpsu.hooks) == 0 {
-		affected, err = fpsu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FloorPlanScaleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			fpsu.mutation = mutation
-			affected, err = fpsu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(fpsu.hooks); i > 0; i-- {
-			mut = fpsu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, fpsu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return fpsu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -168,80 +175,80 @@ func (fpsu *FloorPlanScaleUpdate) sqlSave(ctx context.Context) (n int, err error
 			}
 		}
 	}
-	if value, ok := fpsu.mutation.UpdateTime(); ok {
+	if value := fpsu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldUpdateTime,
 		})
 	}
-	if value, ok := fpsu.mutation.ReferencePoint1X(); ok {
+	if value := fpsu.reference_point1_x; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1X,
 		})
 	}
-	if value, ok := fpsu.mutation.AddedReferencePoint1X(); ok {
+	if value := fpsu.addreference_point1_x; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1X,
 		})
 	}
-	if value, ok := fpsu.mutation.ReferencePoint1Y(); ok {
+	if value := fpsu.reference_point1_y; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1Y,
 		})
 	}
-	if value, ok := fpsu.mutation.AddedReferencePoint1Y(); ok {
+	if value := fpsu.addreference_point1_y; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1Y,
 		})
 	}
-	if value, ok := fpsu.mutation.ReferencePoint2X(); ok {
+	if value := fpsu.reference_point2_x; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2X,
 		})
 	}
-	if value, ok := fpsu.mutation.AddedReferencePoint2X(); ok {
+	if value := fpsu.addreference_point2_x; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2X,
 		})
 	}
-	if value, ok := fpsu.mutation.ReferencePoint2Y(); ok {
+	if value := fpsu.reference_point2_y; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2Y,
 		})
 	}
-	if value, ok := fpsu.mutation.AddedReferencePoint2Y(); ok {
+	if value := fpsu.addreference_point2_y; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2Y,
 		})
 	}
-	if value, ok := fpsu.mutation.ScaleInMeters(); ok {
+	if value := fpsu.scale_in_meters; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldScaleInMeters,
 		})
 	}
-	if value, ok := fpsu.mutation.AddedScaleInMeters(); ok {
+	if value := fpsu.addscale_in_meters; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldScaleInMeters,
 		})
 	}
@@ -259,105 +266,113 @@ func (fpsu *FloorPlanScaleUpdate) sqlSave(ctx context.Context) (n int, err error
 // FloorPlanScaleUpdateOne is the builder for updating a single FloorPlanScale entity.
 type FloorPlanScaleUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *FloorPlanScaleMutation
+	id int
+
+	update_time           *time.Time
+	reference_point1_x    *int
+	addreference_point1_x *int
+	reference_point1_y    *int
+	addreference_point1_y *int
+	reference_point2_x    *int
+	addreference_point2_x *int
+	reference_point2_y    *int
+	addreference_point2_y *int
+	scale_in_meters       *float64
+	addscale_in_meters    *float64
 }
 
 // SetReferencePoint1X sets the reference_point1_x field.
 func (fpsuo *FloorPlanScaleUpdateOne) SetReferencePoint1X(i int) *FloorPlanScaleUpdateOne {
-	fpsuo.mutation.ResetReferencePoint1X()
-	fpsuo.mutation.SetReferencePoint1X(i)
+	fpsuo.reference_point1_x = &i
+	fpsuo.addreference_point1_x = nil
 	return fpsuo
 }
 
 // AddReferencePoint1X adds i to reference_point1_x.
 func (fpsuo *FloorPlanScaleUpdateOne) AddReferencePoint1X(i int) *FloorPlanScaleUpdateOne {
-	fpsuo.mutation.AddReferencePoint1X(i)
+	if fpsuo.addreference_point1_x == nil {
+		fpsuo.addreference_point1_x = &i
+	} else {
+		*fpsuo.addreference_point1_x += i
+	}
 	return fpsuo
 }
 
 // SetReferencePoint1Y sets the reference_point1_y field.
 func (fpsuo *FloorPlanScaleUpdateOne) SetReferencePoint1Y(i int) *FloorPlanScaleUpdateOne {
-	fpsuo.mutation.ResetReferencePoint1Y()
-	fpsuo.mutation.SetReferencePoint1Y(i)
+	fpsuo.reference_point1_y = &i
+	fpsuo.addreference_point1_y = nil
 	return fpsuo
 }
 
 // AddReferencePoint1Y adds i to reference_point1_y.
 func (fpsuo *FloorPlanScaleUpdateOne) AddReferencePoint1Y(i int) *FloorPlanScaleUpdateOne {
-	fpsuo.mutation.AddReferencePoint1Y(i)
+	if fpsuo.addreference_point1_y == nil {
+		fpsuo.addreference_point1_y = &i
+	} else {
+		*fpsuo.addreference_point1_y += i
+	}
 	return fpsuo
 }
 
 // SetReferencePoint2X sets the reference_point2_x field.
 func (fpsuo *FloorPlanScaleUpdateOne) SetReferencePoint2X(i int) *FloorPlanScaleUpdateOne {
-	fpsuo.mutation.ResetReferencePoint2X()
-	fpsuo.mutation.SetReferencePoint2X(i)
+	fpsuo.reference_point2_x = &i
+	fpsuo.addreference_point2_x = nil
 	return fpsuo
 }
 
 // AddReferencePoint2X adds i to reference_point2_x.
 func (fpsuo *FloorPlanScaleUpdateOne) AddReferencePoint2X(i int) *FloorPlanScaleUpdateOne {
-	fpsuo.mutation.AddReferencePoint2X(i)
+	if fpsuo.addreference_point2_x == nil {
+		fpsuo.addreference_point2_x = &i
+	} else {
+		*fpsuo.addreference_point2_x += i
+	}
 	return fpsuo
 }
 
 // SetReferencePoint2Y sets the reference_point2_y field.
 func (fpsuo *FloorPlanScaleUpdateOne) SetReferencePoint2Y(i int) *FloorPlanScaleUpdateOne {
-	fpsuo.mutation.ResetReferencePoint2Y()
-	fpsuo.mutation.SetReferencePoint2Y(i)
+	fpsuo.reference_point2_y = &i
+	fpsuo.addreference_point2_y = nil
 	return fpsuo
 }
 
 // AddReferencePoint2Y adds i to reference_point2_y.
 func (fpsuo *FloorPlanScaleUpdateOne) AddReferencePoint2Y(i int) *FloorPlanScaleUpdateOne {
-	fpsuo.mutation.AddReferencePoint2Y(i)
+	if fpsuo.addreference_point2_y == nil {
+		fpsuo.addreference_point2_y = &i
+	} else {
+		*fpsuo.addreference_point2_y += i
+	}
 	return fpsuo
 }
 
 // SetScaleInMeters sets the scale_in_meters field.
 func (fpsuo *FloorPlanScaleUpdateOne) SetScaleInMeters(f float64) *FloorPlanScaleUpdateOne {
-	fpsuo.mutation.ResetScaleInMeters()
-	fpsuo.mutation.SetScaleInMeters(f)
+	fpsuo.scale_in_meters = &f
+	fpsuo.addscale_in_meters = nil
 	return fpsuo
 }
 
 // AddScaleInMeters adds f to scale_in_meters.
 func (fpsuo *FloorPlanScaleUpdateOne) AddScaleInMeters(f float64) *FloorPlanScaleUpdateOne {
-	fpsuo.mutation.AddScaleInMeters(f)
+	if fpsuo.addscale_in_meters == nil {
+		fpsuo.addscale_in_meters = &f
+	} else {
+		*fpsuo.addscale_in_meters += f
+	}
 	return fpsuo
 }
 
 // Save executes the query and returns the updated entity.
 func (fpsuo *FloorPlanScaleUpdateOne) Save(ctx context.Context) (*FloorPlanScale, error) {
-	if _, ok := fpsuo.mutation.UpdateTime(); !ok {
+	if fpsuo.update_time == nil {
 		v := floorplanscale.UpdateDefaultUpdateTime()
-		fpsuo.mutation.SetUpdateTime(v)
+		fpsuo.update_time = &v
 	}
-	var (
-		err  error
-		node *FloorPlanScale
-	)
-	if len(fpsuo.hooks) == 0 {
-		node, err = fpsuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FloorPlanScaleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			fpsuo.mutation = mutation
-			node, err = fpsuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(fpsuo.hooks); i > 0; i-- {
-			mut = fpsuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, fpsuo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return fpsuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -388,90 +403,86 @@ func (fpsuo *FloorPlanScaleUpdateOne) sqlSave(ctx context.Context) (fps *FloorPl
 			Table:   floorplanscale.Table,
 			Columns: floorplanscale.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  fpsuo.id,
 				Type:   field.TypeInt,
 				Column: floorplanscale.FieldID,
 			},
 		},
 	}
-	id, ok := fpsuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing FloorPlanScale.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := fpsuo.mutation.UpdateTime(); ok {
+	if value := fpsuo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldUpdateTime,
 		})
 	}
-	if value, ok := fpsuo.mutation.ReferencePoint1X(); ok {
+	if value := fpsuo.reference_point1_x; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1X,
 		})
 	}
-	if value, ok := fpsuo.mutation.AddedReferencePoint1X(); ok {
+	if value := fpsuo.addreference_point1_x; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1X,
 		})
 	}
-	if value, ok := fpsuo.mutation.ReferencePoint1Y(); ok {
+	if value := fpsuo.reference_point1_y; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1Y,
 		})
 	}
-	if value, ok := fpsuo.mutation.AddedReferencePoint1Y(); ok {
+	if value := fpsuo.addreference_point1_y; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint1Y,
 		})
 	}
-	if value, ok := fpsuo.mutation.ReferencePoint2X(); ok {
+	if value := fpsuo.reference_point2_x; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2X,
 		})
 	}
-	if value, ok := fpsuo.mutation.AddedReferencePoint2X(); ok {
+	if value := fpsuo.addreference_point2_x; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2X,
 		})
 	}
-	if value, ok := fpsuo.mutation.ReferencePoint2Y(); ok {
+	if value := fpsuo.reference_point2_y; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2Y,
 		})
 	}
-	if value, ok := fpsuo.mutation.AddedReferencePoint2Y(); ok {
+	if value := fpsuo.addreference_point2_y; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldReferencePoint2Y,
 		})
 	}
-	if value, ok := fpsuo.mutation.ScaleInMeters(); ok {
+	if value := fpsuo.scale_in_meters; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldScaleInMeters,
 		})
 	}
-	if value, ok := fpsuo.mutation.AddedScaleInMeters(); ok {
+	if value := fpsuo.addscale_in_meters; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: floorplanscale.FieldScaleInMeters,
 		})
 	}

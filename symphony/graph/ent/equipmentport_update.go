@@ -9,7 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -26,9 +26,19 @@ import (
 // EquipmentPortUpdate is the builder for updating EquipmentPort entities.
 type EquipmentPortUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *EquipmentPortMutation
-	predicates []predicate.EquipmentPort
+
+	update_time       *time.Time
+	definition        map[int]struct{}
+	parent            map[int]struct{}
+	link              map[int]struct{}
+	properties        map[int]struct{}
+	endpoints         map[int]struct{}
+	clearedDefinition bool
+	clearedParent     bool
+	clearedLink       bool
+	removedProperties map[int]struct{}
+	removedEndpoints  map[int]struct{}
+	predicates        []predicate.EquipmentPort
 }
 
 // Where adds a new predicate for the builder.
@@ -39,7 +49,10 @@ func (epu *EquipmentPortUpdate) Where(ps ...predicate.EquipmentPort) *EquipmentP
 
 // SetDefinitionID sets the definition edge to EquipmentPortDefinition by id.
 func (epu *EquipmentPortUpdate) SetDefinitionID(id int) *EquipmentPortUpdate {
-	epu.mutation.SetDefinitionID(id)
+	if epu.definition == nil {
+		epu.definition = make(map[int]struct{})
+	}
+	epu.definition[id] = struct{}{}
 	return epu
 }
 
@@ -50,7 +63,10 @@ func (epu *EquipmentPortUpdate) SetDefinition(e *EquipmentPortDefinition) *Equip
 
 // SetParentID sets the parent edge to Equipment by id.
 func (epu *EquipmentPortUpdate) SetParentID(id int) *EquipmentPortUpdate {
-	epu.mutation.SetParentID(id)
+	if epu.parent == nil {
+		epu.parent = make(map[int]struct{})
+	}
+	epu.parent[id] = struct{}{}
 	return epu
 }
 
@@ -69,7 +85,10 @@ func (epu *EquipmentPortUpdate) SetParent(e *Equipment) *EquipmentPortUpdate {
 
 // SetLinkID sets the link edge to Link by id.
 func (epu *EquipmentPortUpdate) SetLinkID(id int) *EquipmentPortUpdate {
-	epu.mutation.SetLinkID(id)
+	if epu.link == nil {
+		epu.link = make(map[int]struct{})
+	}
+	epu.link[id] = struct{}{}
 	return epu
 }
 
@@ -88,7 +107,12 @@ func (epu *EquipmentPortUpdate) SetLink(l *Link) *EquipmentPortUpdate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (epu *EquipmentPortUpdate) AddPropertyIDs(ids ...int) *EquipmentPortUpdate {
-	epu.mutation.AddPropertyIDs(ids...)
+	if epu.properties == nil {
+		epu.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		epu.properties[ids[i]] = struct{}{}
+	}
 	return epu
 }
 
@@ -103,7 +127,12 @@ func (epu *EquipmentPortUpdate) AddProperties(p ...*Property) *EquipmentPortUpda
 
 // AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
 func (epu *EquipmentPortUpdate) AddEndpointIDs(ids ...int) *EquipmentPortUpdate {
-	epu.mutation.AddEndpointIDs(ids...)
+	if epu.endpoints == nil {
+		epu.endpoints = make(map[int]struct{})
+	}
+	for i := range ids {
+		epu.endpoints[ids[i]] = struct{}{}
+	}
 	return epu
 }
 
@@ -118,25 +147,30 @@ func (epu *EquipmentPortUpdate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentPo
 
 // ClearDefinition clears the definition edge to EquipmentPortDefinition.
 func (epu *EquipmentPortUpdate) ClearDefinition() *EquipmentPortUpdate {
-	epu.mutation.ClearDefinition()
+	epu.clearedDefinition = true
 	return epu
 }
 
 // ClearParent clears the parent edge to Equipment.
 func (epu *EquipmentPortUpdate) ClearParent() *EquipmentPortUpdate {
-	epu.mutation.ClearParent()
+	epu.clearedParent = true
 	return epu
 }
 
 // ClearLink clears the link edge to Link.
 func (epu *EquipmentPortUpdate) ClearLink() *EquipmentPortUpdate {
-	epu.mutation.ClearLink()
+	epu.clearedLink = true
 	return epu
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (epu *EquipmentPortUpdate) RemovePropertyIDs(ids ...int) *EquipmentPortUpdate {
-	epu.mutation.RemovePropertyIDs(ids...)
+	if epu.removedProperties == nil {
+		epu.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		epu.removedProperties[ids[i]] = struct{}{}
+	}
 	return epu
 }
 
@@ -151,7 +185,12 @@ func (epu *EquipmentPortUpdate) RemoveProperties(p ...*Property) *EquipmentPortU
 
 // RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
 func (epu *EquipmentPortUpdate) RemoveEndpointIDs(ids ...int) *EquipmentPortUpdate {
-	epu.mutation.RemoveEndpointIDs(ids...)
+	if epu.removedEndpoints == nil {
+		epu.removedEndpoints = make(map[int]struct{})
+	}
+	for i := range ids {
+		epu.removedEndpoints[ids[i]] = struct{}{}
+	}
 	return epu
 }
 
@@ -166,39 +205,23 @@ func (epu *EquipmentPortUpdate) RemoveEndpoints(s ...*ServiceEndpoint) *Equipmen
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (epu *EquipmentPortUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := epu.mutation.UpdateTime(); !ok {
+	if epu.update_time == nil {
 		v := equipmentport.UpdateDefaultUpdateTime()
-		epu.mutation.SetUpdateTime(v)
+		epu.update_time = &v
 	}
-
-	if _, ok := epu.mutation.DefinitionID(); epu.mutation.DefinitionCleared() && !ok {
+	if len(epu.definition) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"definition\"")
+	}
+	if epu.clearedDefinition && epu.definition == nil {
 		return 0, errors.New("ent: clearing a unique edge \"definition\"")
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(epu.hooks) == 0 {
-		affected, err = epu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EquipmentPortMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			epu.mutation = mutation
-			affected, err = epu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(epu.hooks); i > 0; i-- {
-			mut = epu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, epu.mutation); err != nil {
-			return 0, err
-		}
+	if len(epu.parent) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"parent\"")
 	}
-	return affected, err
+	if len(epu.link) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"link\"")
+	}
+	return epu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -241,14 +264,14 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			}
 		}
 	}
-	if value, ok := epu.mutation.UpdateTime(); ok {
+	if value := epu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentport.FieldUpdateTime,
 		})
 	}
-	if epu.mutation.DefinitionCleared() {
+	if epu.clearedDefinition {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -264,7 +287,7 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epu.mutation.DefinitionIDs(); len(nodes) > 0 {
+	if nodes := epu.definition; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -278,12 +301,12 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epu.mutation.ParentCleared() {
+	if epu.clearedParent {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -299,7 +322,7 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epu.mutation.ParentIDs(); len(nodes) > 0 {
+	if nodes := epu.parent; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -313,12 +336,12 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epu.mutation.LinkCleared() {
+	if epu.clearedLink {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -334,7 +357,7 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epu.mutation.LinkIDs(); len(nodes) > 0 {
+	if nodes := epu.link; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -348,12 +371,12 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := epu.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := epu.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -367,12 +390,12 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epu.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := epu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -386,12 +409,12 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := epu.mutation.RemovedEndpointsIDs(); len(nodes) > 0 {
+	if nodes := epu.removedEndpoints; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -405,12 +428,12 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epu.mutation.EndpointsIDs(); len(nodes) > 0 {
+	if nodes := epu.endpoints; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -424,7 +447,7 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -443,13 +466,27 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 // EquipmentPortUpdateOne is the builder for updating a single EquipmentPort entity.
 type EquipmentPortUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *EquipmentPortMutation
+	id int
+
+	update_time       *time.Time
+	definition        map[int]struct{}
+	parent            map[int]struct{}
+	link              map[int]struct{}
+	properties        map[int]struct{}
+	endpoints         map[int]struct{}
+	clearedDefinition bool
+	clearedParent     bool
+	clearedLink       bool
+	removedProperties map[int]struct{}
+	removedEndpoints  map[int]struct{}
 }
 
 // SetDefinitionID sets the definition edge to EquipmentPortDefinition by id.
 func (epuo *EquipmentPortUpdateOne) SetDefinitionID(id int) *EquipmentPortUpdateOne {
-	epuo.mutation.SetDefinitionID(id)
+	if epuo.definition == nil {
+		epuo.definition = make(map[int]struct{})
+	}
+	epuo.definition[id] = struct{}{}
 	return epuo
 }
 
@@ -460,7 +497,10 @@ func (epuo *EquipmentPortUpdateOne) SetDefinition(e *EquipmentPortDefinition) *E
 
 // SetParentID sets the parent edge to Equipment by id.
 func (epuo *EquipmentPortUpdateOne) SetParentID(id int) *EquipmentPortUpdateOne {
-	epuo.mutation.SetParentID(id)
+	if epuo.parent == nil {
+		epuo.parent = make(map[int]struct{})
+	}
+	epuo.parent[id] = struct{}{}
 	return epuo
 }
 
@@ -479,7 +519,10 @@ func (epuo *EquipmentPortUpdateOne) SetParent(e *Equipment) *EquipmentPortUpdate
 
 // SetLinkID sets the link edge to Link by id.
 func (epuo *EquipmentPortUpdateOne) SetLinkID(id int) *EquipmentPortUpdateOne {
-	epuo.mutation.SetLinkID(id)
+	if epuo.link == nil {
+		epuo.link = make(map[int]struct{})
+	}
+	epuo.link[id] = struct{}{}
 	return epuo
 }
 
@@ -498,7 +541,12 @@ func (epuo *EquipmentPortUpdateOne) SetLink(l *Link) *EquipmentPortUpdateOne {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (epuo *EquipmentPortUpdateOne) AddPropertyIDs(ids ...int) *EquipmentPortUpdateOne {
-	epuo.mutation.AddPropertyIDs(ids...)
+	if epuo.properties == nil {
+		epuo.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		epuo.properties[ids[i]] = struct{}{}
+	}
 	return epuo
 }
 
@@ -513,7 +561,12 @@ func (epuo *EquipmentPortUpdateOne) AddProperties(p ...*Property) *EquipmentPort
 
 // AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
 func (epuo *EquipmentPortUpdateOne) AddEndpointIDs(ids ...int) *EquipmentPortUpdateOne {
-	epuo.mutation.AddEndpointIDs(ids...)
+	if epuo.endpoints == nil {
+		epuo.endpoints = make(map[int]struct{})
+	}
+	for i := range ids {
+		epuo.endpoints[ids[i]] = struct{}{}
+	}
 	return epuo
 }
 
@@ -528,25 +581,30 @@ func (epuo *EquipmentPortUpdateOne) AddEndpoints(s ...*ServiceEndpoint) *Equipme
 
 // ClearDefinition clears the definition edge to EquipmentPortDefinition.
 func (epuo *EquipmentPortUpdateOne) ClearDefinition() *EquipmentPortUpdateOne {
-	epuo.mutation.ClearDefinition()
+	epuo.clearedDefinition = true
 	return epuo
 }
 
 // ClearParent clears the parent edge to Equipment.
 func (epuo *EquipmentPortUpdateOne) ClearParent() *EquipmentPortUpdateOne {
-	epuo.mutation.ClearParent()
+	epuo.clearedParent = true
 	return epuo
 }
 
 // ClearLink clears the link edge to Link.
 func (epuo *EquipmentPortUpdateOne) ClearLink() *EquipmentPortUpdateOne {
-	epuo.mutation.ClearLink()
+	epuo.clearedLink = true
 	return epuo
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (epuo *EquipmentPortUpdateOne) RemovePropertyIDs(ids ...int) *EquipmentPortUpdateOne {
-	epuo.mutation.RemovePropertyIDs(ids...)
+	if epuo.removedProperties == nil {
+		epuo.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		epuo.removedProperties[ids[i]] = struct{}{}
+	}
 	return epuo
 }
 
@@ -561,7 +619,12 @@ func (epuo *EquipmentPortUpdateOne) RemoveProperties(p ...*Property) *EquipmentP
 
 // RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
 func (epuo *EquipmentPortUpdateOne) RemoveEndpointIDs(ids ...int) *EquipmentPortUpdateOne {
-	epuo.mutation.RemoveEndpointIDs(ids...)
+	if epuo.removedEndpoints == nil {
+		epuo.removedEndpoints = make(map[int]struct{})
+	}
+	for i := range ids {
+		epuo.removedEndpoints[ids[i]] = struct{}{}
+	}
 	return epuo
 }
 
@@ -576,39 +639,23 @@ func (epuo *EquipmentPortUpdateOne) RemoveEndpoints(s ...*ServiceEndpoint) *Equi
 
 // Save executes the query and returns the updated entity.
 func (epuo *EquipmentPortUpdateOne) Save(ctx context.Context) (*EquipmentPort, error) {
-	if _, ok := epuo.mutation.UpdateTime(); !ok {
+	if epuo.update_time == nil {
 		v := equipmentport.UpdateDefaultUpdateTime()
-		epuo.mutation.SetUpdateTime(v)
+		epuo.update_time = &v
 	}
-
-	if _, ok := epuo.mutation.DefinitionID(); epuo.mutation.DefinitionCleared() && !ok {
+	if len(epuo.definition) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"definition\"")
+	}
+	if epuo.clearedDefinition && epuo.definition == nil {
 		return nil, errors.New("ent: clearing a unique edge \"definition\"")
 	}
-
-	var (
-		err  error
-		node *EquipmentPort
-	)
-	if len(epuo.hooks) == 0 {
-		node, err = epuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EquipmentPortMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			epuo.mutation = mutation
-			node, err = epuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(epuo.hooks); i > 0; i-- {
-			mut = epuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, epuo.mutation); err != nil {
-			return nil, err
-		}
+	if len(epuo.parent) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"parent\"")
 	}
-	return node, err
+	if len(epuo.link) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"link\"")
+	}
+	return epuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -639,24 +686,20 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			Table:   equipmentport.Table,
 			Columns: equipmentport.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  epuo.id,
 				Type:   field.TypeInt,
 				Column: equipmentport.FieldID,
 			},
 		},
 	}
-	id, ok := epuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing EquipmentPort.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := epuo.mutation.UpdateTime(); ok {
+	if value := epuo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentport.FieldUpdateTime,
 		})
 	}
-	if epuo.mutation.DefinitionCleared() {
+	if epuo.clearedDefinition {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -672,7 +715,7 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epuo.mutation.DefinitionIDs(); len(nodes) > 0 {
+	if nodes := epuo.definition; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -686,12 +729,12 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epuo.mutation.ParentCleared() {
+	if epuo.clearedParent {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -707,7 +750,7 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epuo.mutation.ParentIDs(); len(nodes) > 0 {
+	if nodes := epuo.parent; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -721,12 +764,12 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epuo.mutation.LinkCleared() {
+	if epuo.clearedLink {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -742,7 +785,7 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epuo.mutation.LinkIDs(); len(nodes) > 0 {
+	if nodes := epuo.link; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -756,12 +799,12 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := epuo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := epuo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -775,12 +818,12 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epuo.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := epuo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -794,12 +837,12 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := epuo.mutation.RemovedEndpointsIDs(); len(nodes) > 0 {
+	if nodes := epuo.removedEndpoints; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -813,12 +856,12 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epuo.mutation.EndpointsIDs(); len(nodes) > 0 {
+	if nodes := epuo.endpoints; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -832,7 +875,7 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

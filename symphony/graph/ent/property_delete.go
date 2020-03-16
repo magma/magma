@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,8 +19,6 @@ import (
 // PropertyDelete is the builder for deleting a Property entity.
 type PropertyDelete struct {
 	config
-	hooks      []Hook
-	mutation   *PropertyMutation
 	predicates []predicate.Property
 }
 
@@ -33,30 +30,7 @@ func (pd *PropertyDelete) Where(ps ...predicate.Property) *PropertyDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (pd *PropertyDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(pd.hooks) == 0 {
-		affected, err = pd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PropertyMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			pd.mutation = mutation
-			affected, err = pd.sqlExec(ctx)
-			return affected, err
-		})
-		for i := len(pd.hooks); i > 0; i-- {
-			mut = pd.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, pd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return pd.sqlExec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

@@ -8,50 +8,40 @@ package workorder
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the workorder type in the database.
 	Label = "work_order"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID           = "id"            // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime   = "create_time"   // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime   = "update_time"   // FieldName holds the string denoting the name vertex property in the database.
-	FieldName         = "name"          // FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus       = "status"        // FieldPriority holds the string denoting the priority vertex property in the database.
-	FieldPriority     = "priority"      // FieldDescription holds the string denoting the description vertex property in the database.
-	FieldDescription  = "description"   // FieldOwnerName holds the string denoting the owner_name vertex property in the database.
-	FieldOwnerName    = "owner_name"    // FieldInstallDate holds the string denoting the install_date vertex property in the database.
-	FieldInstallDate  = "install_date"  // FieldCreationDate holds the string denoting the creation_date vertex property in the database.
-	FieldCreationDate = "creation_date" // FieldAssignee holds the string denoting the assignee vertex property in the database.
-	FieldAssignee     = "assignee"      // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex        = "index"         // FieldCloseDate holds the string denoting the close_date vertex property in the database.
-	FieldCloseDate    = "close_date"
-
-	// EdgeType holds the string denoting the type edge name in mutations.
-	EdgeType = "type"
-	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
-	EdgeEquipment = "equipment"
-	// EdgeLinks holds the string denoting the links edge name in mutations.
-	EdgeLinks = "links"
-	// EdgeFiles holds the string denoting the files edge name in mutations.
-	EdgeFiles = "files"
-	// EdgeHyperlinks holds the string denoting the hyperlinks edge name in mutations.
-	EdgeHyperlinks = "hyperlinks"
-	// EdgeLocation holds the string denoting the location edge name in mutations.
-	EdgeLocation = "location"
-	// EdgeComments holds the string denoting the comments edge name in mutations.
-	EdgeComments = "comments"
-	// EdgeProperties holds the string denoting the properties edge name in mutations.
-	EdgeProperties = "properties"
-	// EdgeCheckListCategories holds the string denoting the check_list_categories edge name in mutations.
-	EdgeCheckListCategories = "check_list_categories"
-	// EdgeCheckListItems holds the string denoting the check_list_items edge name in mutations.
-	EdgeCheckListItems = "check_list_items"
-	// EdgeTechnician holds the string denoting the technician edge name in mutations.
-	EdgeTechnician = "technician"
-	// EdgeProject holds the string denoting the project edge name in mutations.
-	EdgeProject = "project"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name vertex property in the database.
+	FieldName = "name"
+	// FieldStatus holds the string denoting the status vertex property in the database.
+	FieldStatus = "status"
+	// FieldPriority holds the string denoting the priority vertex property in the database.
+	FieldPriority = "priority"
+	// FieldDescription holds the string denoting the description vertex property in the database.
+	FieldDescription = "description"
+	// FieldOwnerName holds the string denoting the owner_name vertex property in the database.
+	FieldOwnerName = "owner_name"
+	// FieldInstallDate holds the string denoting the install_date vertex property in the database.
+	FieldInstallDate = "install_date"
+	// FieldCreationDate holds the string denoting the creation_date vertex property in the database.
+	FieldCreationDate = "creation_date"
+	// FieldAssignee holds the string denoting the assignee vertex property in the database.
+	FieldAssignee = "assignee"
+	// FieldIndex holds the string denoting the index vertex property in the database.
+	FieldIndex = "index"
+	// FieldCloseDate holds the string denoting the close_date vertex property in the database.
+	FieldCloseDate = "close_date"
 
 	// Table holds the table name of the workorder in the database.
 	Table = "work_orders"
@@ -167,16 +157,36 @@ var ForeignKeys = []string{
 }
 
 var (
+	mixin       = schema.WorkOrder{}.Mixin()
+	mixinFields = [...][]ent.Field{
+		mixin[0].Fields(),
+	}
+	fields = schema.WorkOrder{}.Fields()
+
+	// descCreateTime is the schema descriptor for create_time field.
+	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime func() time.Time
+	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
+
+	// descUpdateTime is the schema descriptor for update_time field.
+	descUpdateTime = mixinFields[0][1].Descriptor()
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime func() time.Time
+	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime func() time.Time
+	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
+
+	// descName is the schema descriptor for name field.
+	descName = fields[0].Descriptor()
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
+	NameValidator = descName.Validators[0].(func(string) error)
+
+	// descStatus is the schema descriptor for status field.
+	descStatus = fields[1].Descriptor()
 	// DefaultStatus holds the default value on creation for the status field.
-	DefaultStatus string
+	DefaultStatus = descStatus.Default.(string)
+
+	// descPriority is the schema descriptor for priority field.
+	descPriority = fields[2].Descriptor()
 	// DefaultPriority holds the default value on creation for the priority field.
-	DefaultPriority string
+	DefaultPriority = descPriority.Default.(string)
 )

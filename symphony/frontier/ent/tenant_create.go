@@ -20,13 +20,20 @@ import (
 // TenantCreate is the builder for creating a Tenant entity.
 type TenantCreate struct {
 	config
-	mutation *TenantMutation
-	hooks    []Hook
+	created_at    *time.Time
+	updated_at    *time.Time
+	name          *string
+	domains       *[]string
+	networks      *[]string
+	tabs          *[]string
+	SSOCert       *string
+	SSOEntryPoint *string
+	SSOIssuer     *string
 }
 
 // SetCreatedAt sets the created_at field.
 func (tc *TenantCreate) SetCreatedAt(t time.Time) *TenantCreate {
-	tc.mutation.SetCreatedAt(t)
+	tc.created_at = &t
 	return tc
 }
 
@@ -40,7 +47,7 @@ func (tc *TenantCreate) SetNillableCreatedAt(t *time.Time) *TenantCreate {
 
 // SetUpdatedAt sets the updated_at field.
 func (tc *TenantCreate) SetUpdatedAt(t time.Time) *TenantCreate {
-	tc.mutation.SetUpdatedAt(t)
+	tc.updated_at = &t
 	return tc
 }
 
@@ -54,31 +61,31 @@ func (tc *TenantCreate) SetNillableUpdatedAt(t *time.Time) *TenantCreate {
 
 // SetName sets the name field.
 func (tc *TenantCreate) SetName(s string) *TenantCreate {
-	tc.mutation.SetName(s)
+	tc.name = &s
 	return tc
 }
 
 // SetDomains sets the domains field.
 func (tc *TenantCreate) SetDomains(s []string) *TenantCreate {
-	tc.mutation.SetDomains(s)
+	tc.domains = &s
 	return tc
 }
 
 // SetNetworks sets the networks field.
 func (tc *TenantCreate) SetNetworks(s []string) *TenantCreate {
-	tc.mutation.SetNetworks(s)
+	tc.networks = &s
 	return tc
 }
 
 // SetTabs sets the tabs field.
 func (tc *TenantCreate) SetTabs(s []string) *TenantCreate {
-	tc.mutation.SetTabs(s)
+	tc.tabs = &s
 	return tc
 }
 
 // SetSSOCert sets the SSOCert field.
 func (tc *TenantCreate) SetSSOCert(s string) *TenantCreate {
-	tc.mutation.SetSSOCert(s)
+	tc.SSOCert = &s
 	return tc
 }
 
@@ -92,7 +99,7 @@ func (tc *TenantCreate) SetNillableSSOCert(s *string) *TenantCreate {
 
 // SetSSOEntryPoint sets the SSOEntryPoint field.
 func (tc *TenantCreate) SetSSOEntryPoint(s string) *TenantCreate {
-	tc.mutation.SetSSOEntryPoint(s)
+	tc.SSOEntryPoint = &s
 	return tc
 }
 
@@ -106,7 +113,7 @@ func (tc *TenantCreate) SetNillableSSOEntryPoint(s *string) *TenantCreate {
 
 // SetSSOIssuer sets the SSOIssuer field.
 func (tc *TenantCreate) SetSSOIssuer(s string) *TenantCreate {
-	tc.mutation.SetSSOIssuer(s)
+	tc.SSOIssuer = &s
 	return tc
 }
 
@@ -120,64 +127,39 @@ func (tc *TenantCreate) SetNillableSSOIssuer(s *string) *TenantCreate {
 
 // Save creates the Tenant in the database.
 func (tc *TenantCreate) Save(ctx context.Context) (*Tenant, error) {
-	if _, ok := tc.mutation.CreatedAt(); !ok {
+	if tc.created_at == nil {
 		v := tenant.DefaultCreatedAt()
-		tc.mutation.SetCreatedAt(v)
+		tc.created_at = &v
 	}
-	if _, ok := tc.mutation.UpdatedAt(); !ok {
+	if tc.updated_at == nil {
 		v := tenant.DefaultUpdatedAt()
-		tc.mutation.SetUpdatedAt(v)
+		tc.updated_at = &v
 	}
-	if _, ok := tc.mutation.Name(); !ok {
+	if tc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if v, ok := tc.mutation.Name(); ok {
-		if err := tenant.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
-		}
+	if err := tenant.NameValidator(*tc.name); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 	}
-	if _, ok := tc.mutation.Domains(); !ok {
+	if tc.domains == nil {
 		return nil, errors.New("ent: missing required field \"domains\"")
 	}
-	if _, ok := tc.mutation.Networks(); !ok {
+	if tc.networks == nil {
 		return nil, errors.New("ent: missing required field \"networks\"")
 	}
-	if _, ok := tc.mutation.SSOCert(); !ok {
+	if tc.SSOCert == nil {
 		v := tenant.DefaultSSOCert
-		tc.mutation.SetSSOCert(v)
+		tc.SSOCert = &v
 	}
-	if _, ok := tc.mutation.SSOEntryPoint(); !ok {
+	if tc.SSOEntryPoint == nil {
 		v := tenant.DefaultSSOEntryPoint
-		tc.mutation.SetSSOEntryPoint(v)
+		tc.SSOEntryPoint = &v
 	}
-	if _, ok := tc.mutation.SSOIssuer(); !ok {
+	if tc.SSOIssuer == nil {
 		v := tenant.DefaultSSOIssuer
-		tc.mutation.SetSSOIssuer(v)
+		tc.SSOIssuer = &v
 	}
-	var (
-		err  error
-		node *Tenant
-	)
-	if len(tc.hooks) == 0 {
-		node, err = tc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TenantMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			tc.mutation = mutation
-			node, err = tc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(tc.hooks); i > 0; i-- {
-			mut = tc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, tc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return tc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -200,77 +182,77 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 			},
 		}
 	)
-	if value, ok := tc.mutation.CreatedAt(); ok {
+	if value := tc.created_at; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldCreatedAt,
 		})
-		t.CreatedAt = value
+		t.CreatedAt = *value
 	}
-	if value, ok := tc.mutation.UpdatedAt(); ok {
+	if value := tc.updated_at; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldUpdatedAt,
 		})
-		t.UpdatedAt = value
+		t.UpdatedAt = *value
 	}
-	if value, ok := tc.mutation.Name(); ok {
+	if value := tc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldName,
 		})
-		t.Name = value
+		t.Name = *value
 	}
-	if value, ok := tc.mutation.Domains(); ok {
+	if value := tc.domains; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldDomains,
 		})
-		t.Domains = value
+		t.Domains = *value
 	}
-	if value, ok := tc.mutation.Networks(); ok {
+	if value := tc.networks; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldNetworks,
 		})
-		t.Networks = value
+		t.Networks = *value
 	}
-	if value, ok := tc.mutation.Tabs(); ok {
+	if value := tc.tabs; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldTabs,
 		})
-		t.Tabs = value
+		t.Tabs = *value
 	}
-	if value, ok := tc.mutation.SSOCert(); ok {
+	if value := tc.SSOCert; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldSSOCert,
 		})
-		t.SSOCert = value
+		t.SSOCert = *value
 	}
-	if value, ok := tc.mutation.SSOEntryPoint(); ok {
+	if value := tc.SSOEntryPoint; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldSSOEntryPoint,
 		})
-		t.SSOEntryPoint = value
+		t.SSOEntryPoint = *value
 	}
-	if value, ok := tc.mutation.SSOIssuer(); ok {
+	if value := tc.SSOIssuer; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: tenant.FieldSSOIssuer,
 		})
-		t.SSOIssuer = value
+		t.SSOIssuer = *value
 	}
 	if err := sqlgraph.CreateNode(ctx, tc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

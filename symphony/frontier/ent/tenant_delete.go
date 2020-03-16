@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,8 +19,6 @@ import (
 // TenantDelete is the builder for deleting a Tenant entity.
 type TenantDelete struct {
 	config
-	hooks      []Hook
-	mutation   *TenantMutation
 	predicates []predicate.Tenant
 }
 
@@ -33,30 +30,7 @@ func (td *TenantDelete) Where(ps ...predicate.Tenant) *TenantDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (td *TenantDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(td.hooks) == 0 {
-		affected, err = td.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TenantMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			td.mutation = mutation
-			affected, err = td.sqlExec(ctx)
-			return affected, err
-		})
-		for i := len(td.hooks); i > 0; i-- {
-			mut = td.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, td.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return td.sqlExec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

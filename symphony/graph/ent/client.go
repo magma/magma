@@ -154,56 +154,53 @@ type Client struct {
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}}
-	cfg.options(opts...)
-	client := &Client{config: cfg}
-	client.init()
-	return client
-}
-
-func (c *Client) init() {
-	c.Schema = migrate.NewSchema(c.driver)
-	c.ActionsRule = NewActionsRuleClient(c.config)
-	c.CheckListCategory = NewCheckListCategoryClient(c.config)
-	c.CheckListItem = NewCheckListItemClient(c.config)
-	c.CheckListItemDefinition = NewCheckListItemDefinitionClient(c.config)
-	c.Comment = NewCommentClient(c.config)
-	c.Customer = NewCustomerClient(c.config)
-	c.Equipment = NewEquipmentClient(c.config)
-	c.EquipmentCategory = NewEquipmentCategoryClient(c.config)
-	c.EquipmentPort = NewEquipmentPortClient(c.config)
-	c.EquipmentPortDefinition = NewEquipmentPortDefinitionClient(c.config)
-	c.EquipmentPortType = NewEquipmentPortTypeClient(c.config)
-	c.EquipmentPosition = NewEquipmentPositionClient(c.config)
-	c.EquipmentPositionDefinition = NewEquipmentPositionDefinitionClient(c.config)
-	c.EquipmentType = NewEquipmentTypeClient(c.config)
-	c.File = NewFileClient(c.config)
-	c.FloorPlan = NewFloorPlanClient(c.config)
-	c.FloorPlanReferencePoint = NewFloorPlanReferencePointClient(c.config)
-	c.FloorPlanScale = NewFloorPlanScaleClient(c.config)
-	c.Hyperlink = NewHyperlinkClient(c.config)
-	c.Link = NewLinkClient(c.config)
-	c.Location = NewLocationClient(c.config)
-	c.LocationType = NewLocationTypeClient(c.config)
-	c.Project = NewProjectClient(c.config)
-	c.ProjectType = NewProjectTypeClient(c.config)
-	c.Property = NewPropertyClient(c.config)
-	c.PropertyType = NewPropertyTypeClient(c.config)
-	c.ReportFilter = NewReportFilterClient(c.config)
-	c.Service = NewServiceClient(c.config)
-	c.ServiceEndpoint = NewServiceEndpointClient(c.config)
-	c.ServiceType = NewServiceTypeClient(c.config)
-	c.Survey = NewSurveyClient(c.config)
-	c.SurveyCellScan = NewSurveyCellScanClient(c.config)
-	c.SurveyQuestion = NewSurveyQuestionClient(c.config)
-	c.SurveyTemplateCategory = NewSurveyTemplateCategoryClient(c.config)
-	c.SurveyTemplateQuestion = NewSurveyTemplateQuestionClient(c.config)
-	c.SurveyWiFiScan = NewSurveyWiFiScanClient(c.config)
-	c.Technician = NewTechnicianClient(c.config)
-	c.User = NewUserClient(c.config)
-	c.WorkOrder = NewWorkOrderClient(c.config)
-	c.WorkOrderDefinition = NewWorkOrderDefinitionClient(c.config)
-	c.WorkOrderType = NewWorkOrderTypeClient(c.config)
+	c := config{log: log.Println}
+	c.options(opts...)
+	return &Client{
+		config:                      c,
+		Schema:                      migrate.NewSchema(c.driver),
+		ActionsRule:                 NewActionsRuleClient(c),
+		CheckListCategory:           NewCheckListCategoryClient(c),
+		CheckListItem:               NewCheckListItemClient(c),
+		CheckListItemDefinition:     NewCheckListItemDefinitionClient(c),
+		Comment:                     NewCommentClient(c),
+		Customer:                    NewCustomerClient(c),
+		Equipment:                   NewEquipmentClient(c),
+		EquipmentCategory:           NewEquipmentCategoryClient(c),
+		EquipmentPort:               NewEquipmentPortClient(c),
+		EquipmentPortDefinition:     NewEquipmentPortDefinitionClient(c),
+		EquipmentPortType:           NewEquipmentPortTypeClient(c),
+		EquipmentPosition:           NewEquipmentPositionClient(c),
+		EquipmentPositionDefinition: NewEquipmentPositionDefinitionClient(c),
+		EquipmentType:               NewEquipmentTypeClient(c),
+		File:                        NewFileClient(c),
+		FloorPlan:                   NewFloorPlanClient(c),
+		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(c),
+		FloorPlanScale:              NewFloorPlanScaleClient(c),
+		Hyperlink:                   NewHyperlinkClient(c),
+		Link:                        NewLinkClient(c),
+		Location:                    NewLocationClient(c),
+		LocationType:                NewLocationTypeClient(c),
+		Project:                     NewProjectClient(c),
+		ProjectType:                 NewProjectTypeClient(c),
+		Property:                    NewPropertyClient(c),
+		PropertyType:                NewPropertyTypeClient(c),
+		ReportFilter:                NewReportFilterClient(c),
+		Service:                     NewServiceClient(c),
+		ServiceEndpoint:             NewServiceEndpointClient(c),
+		ServiceType:                 NewServiceTypeClient(c),
+		Survey:                      NewSurveyClient(c),
+		SurveyCellScan:              NewSurveyCellScanClient(c),
+		SurveyQuestion:              NewSurveyQuestionClient(c),
+		SurveyTemplateCategory:      NewSurveyTemplateCategoryClient(c),
+		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(c),
+		SurveyWiFiScan:              NewSurveyWiFiScanClient(c),
+		Technician:                  NewTechnicianClient(c),
+		User:                        NewUserClient(c),
+		WorkOrder:                   NewWorkOrderClient(c),
+		WorkOrderDefinition:         NewWorkOrderDefinitionClient(c),
+		WorkOrderType:               NewWorkOrderTypeClient(c),
+	}
 }
 
 // Open opens a connection to the database specified by the driver name and a
@@ -231,7 +228,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ent: starting a transaction: %v", err)
 	}
-	cfg := config{driver: tx, log: c.log, debug: c.debug, hooks: c.hooks}
+	cfg := config{driver: tx, log: c.log, debug: c.debug}
 	return &Tx{
 		config:                      cfg,
 		ActionsRule:                 NewActionsRuleClient(cfg),
@@ -289,61 +286,57 @@ func (c *Client) Debug() *Client {
 	if c.debug {
 		return c
 	}
-	cfg := config{driver: dialect.Debug(c.driver, c.log), log: c.log, debug: true, hooks: c.hooks}
-	client := &Client{config: cfg}
-	client.init()
-	return client
+	cfg := config{driver: dialect.Debug(c.driver, c.log), log: c.log, debug: true}
+	return &Client{
+		config:                      cfg,
+		Schema:                      migrate.NewSchema(cfg.driver),
+		ActionsRule:                 NewActionsRuleClient(cfg),
+		CheckListCategory:           NewCheckListCategoryClient(cfg),
+		CheckListItem:               NewCheckListItemClient(cfg),
+		CheckListItemDefinition:     NewCheckListItemDefinitionClient(cfg),
+		Comment:                     NewCommentClient(cfg),
+		Customer:                    NewCustomerClient(cfg),
+		Equipment:                   NewEquipmentClient(cfg),
+		EquipmentCategory:           NewEquipmentCategoryClient(cfg),
+		EquipmentPort:               NewEquipmentPortClient(cfg),
+		EquipmentPortDefinition:     NewEquipmentPortDefinitionClient(cfg),
+		EquipmentPortType:           NewEquipmentPortTypeClient(cfg),
+		EquipmentPosition:           NewEquipmentPositionClient(cfg),
+		EquipmentPositionDefinition: NewEquipmentPositionDefinitionClient(cfg),
+		EquipmentType:               NewEquipmentTypeClient(cfg),
+		File:                        NewFileClient(cfg),
+		FloorPlan:                   NewFloorPlanClient(cfg),
+		FloorPlanReferencePoint:     NewFloorPlanReferencePointClient(cfg),
+		FloorPlanScale:              NewFloorPlanScaleClient(cfg),
+		Hyperlink:                   NewHyperlinkClient(cfg),
+		Link:                        NewLinkClient(cfg),
+		Location:                    NewLocationClient(cfg),
+		LocationType:                NewLocationTypeClient(cfg),
+		Project:                     NewProjectClient(cfg),
+		ProjectType:                 NewProjectTypeClient(cfg),
+		Property:                    NewPropertyClient(cfg),
+		PropertyType:                NewPropertyTypeClient(cfg),
+		ReportFilter:                NewReportFilterClient(cfg),
+		Service:                     NewServiceClient(cfg),
+		ServiceEndpoint:             NewServiceEndpointClient(cfg),
+		ServiceType:                 NewServiceTypeClient(cfg),
+		Survey:                      NewSurveyClient(cfg),
+		SurveyCellScan:              NewSurveyCellScanClient(cfg),
+		SurveyQuestion:              NewSurveyQuestionClient(cfg),
+		SurveyTemplateCategory:      NewSurveyTemplateCategoryClient(cfg),
+		SurveyTemplateQuestion:      NewSurveyTemplateQuestionClient(cfg),
+		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
+		Technician:                  NewTechnicianClient(cfg),
+		User:                        NewUserClient(cfg),
+		WorkOrder:                   NewWorkOrderClient(cfg),
+		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
+		WorkOrderType:               NewWorkOrderTypeClient(cfg),
+	}
 }
 
 // Close closes the database connection and prevents new queries from starting.
 func (c *Client) Close() error {
 	return c.driver.Close()
-}
-
-// Use adds the mutation hooks to all the entity clients.
-// In order to add hooks to a specific client, call: `client.Node.Use(...)`.
-func (c *Client) Use(hooks ...Hook) {
-	c.ActionsRule.Use(hooks...)
-	c.CheckListCategory.Use(hooks...)
-	c.CheckListItem.Use(hooks...)
-	c.CheckListItemDefinition.Use(hooks...)
-	c.Comment.Use(hooks...)
-	c.Customer.Use(hooks...)
-	c.Equipment.Use(hooks...)
-	c.EquipmentCategory.Use(hooks...)
-	c.EquipmentPort.Use(hooks...)
-	c.EquipmentPortDefinition.Use(hooks...)
-	c.EquipmentPortType.Use(hooks...)
-	c.EquipmentPosition.Use(hooks...)
-	c.EquipmentPositionDefinition.Use(hooks...)
-	c.EquipmentType.Use(hooks...)
-	c.File.Use(hooks...)
-	c.FloorPlan.Use(hooks...)
-	c.FloorPlanReferencePoint.Use(hooks...)
-	c.FloorPlanScale.Use(hooks...)
-	c.Hyperlink.Use(hooks...)
-	c.Link.Use(hooks...)
-	c.Location.Use(hooks...)
-	c.LocationType.Use(hooks...)
-	c.Project.Use(hooks...)
-	c.ProjectType.Use(hooks...)
-	c.Property.Use(hooks...)
-	c.PropertyType.Use(hooks...)
-	c.ReportFilter.Use(hooks...)
-	c.Service.Use(hooks...)
-	c.ServiceEndpoint.Use(hooks...)
-	c.ServiceType.Use(hooks...)
-	c.Survey.Use(hooks...)
-	c.SurveyCellScan.Use(hooks...)
-	c.SurveyQuestion.Use(hooks...)
-	c.SurveyTemplateCategory.Use(hooks...)
-	c.SurveyTemplateQuestion.Use(hooks...)
-	c.SurveyWiFiScan.Use(hooks...)
-	c.Technician.Use(hooks...)
-	c.User.Use(hooks...)
-	c.WorkOrder.Use(hooks...)
-	c.WorkOrderDefinition.Use(hooks...)
-	c.WorkOrderType.Use(hooks...)
 }
 
 // ActionsRuleClient is a client for the ActionsRule schema.
@@ -356,22 +349,14 @@ func NewActionsRuleClient(c config) *ActionsRuleClient {
 	return &ActionsRuleClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `actionsrule.Hooks(f(g(h())))`.
-func (c *ActionsRuleClient) Use(hooks ...Hook) {
-	c.hooks.ActionsRule = append(c.hooks.ActionsRule, hooks...)
-}
-
 // Create returns a create builder for ActionsRule.
 func (c *ActionsRuleClient) Create() *ActionsRuleCreate {
-	mutation := newActionsRuleMutation(c.config, OpCreate)
-	return &ActionsRuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ActionsRuleCreate{config: c.config}
 }
 
 // Update returns an update builder for ActionsRule.
 func (c *ActionsRuleClient) Update() *ActionsRuleUpdate {
-	mutation := newActionsRuleMutation(c.config, OpUpdate)
-	return &ActionsRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ActionsRuleUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -381,15 +366,12 @@ func (c *ActionsRuleClient) UpdateOne(ar *ActionsRule) *ActionsRuleUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ActionsRuleClient) UpdateOneID(id int) *ActionsRuleUpdateOne {
-	mutation := newActionsRuleMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &ActionsRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ActionsRuleUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for ActionsRule.
 func (c *ActionsRuleClient) Delete() *ActionsRuleDelete {
-	mutation := newActionsRuleMutation(c.config, OpDelete)
-	return &ActionsRuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ActionsRuleDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -399,10 +381,7 @@ func (c *ActionsRuleClient) DeleteOne(ar *ActionsRule) *ActionsRuleDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *ActionsRuleClient) DeleteOneID(id int) *ActionsRuleDeleteOne {
-	builder := c.Delete().Where(actionsrule.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ActionsRuleDeleteOne{builder}
+	return &ActionsRuleDeleteOne{c.Delete().Where(actionsrule.ID(id))}
 }
 
 // Create returns a query builder for ActionsRule.
@@ -424,11 +403,6 @@ func (c *ActionsRuleClient) GetX(ctx context.Context, id int) *ActionsRule {
 	return ar
 }
 
-// Hooks returns the client hooks.
-func (c *ActionsRuleClient) Hooks() []Hook {
-	return c.hooks.ActionsRule
-}
-
 // CheckListCategoryClient is a client for the CheckListCategory schema.
 type CheckListCategoryClient struct {
 	config
@@ -439,22 +413,14 @@ func NewCheckListCategoryClient(c config) *CheckListCategoryClient {
 	return &CheckListCategoryClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `checklistcategory.Hooks(f(g(h())))`.
-func (c *CheckListCategoryClient) Use(hooks ...Hook) {
-	c.hooks.CheckListCategory = append(c.hooks.CheckListCategory, hooks...)
-}
-
 // Create returns a create builder for CheckListCategory.
 func (c *CheckListCategoryClient) Create() *CheckListCategoryCreate {
-	mutation := newCheckListCategoryMutation(c.config, OpCreate)
-	return &CheckListCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListCategoryCreate{config: c.config}
 }
 
 // Update returns an update builder for CheckListCategory.
 func (c *CheckListCategoryClient) Update() *CheckListCategoryUpdate {
-	mutation := newCheckListCategoryMutation(c.config, OpUpdate)
-	return &CheckListCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListCategoryUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -464,15 +430,12 @@ func (c *CheckListCategoryClient) UpdateOne(clc *CheckListCategory) *CheckListCa
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CheckListCategoryClient) UpdateOneID(id int) *CheckListCategoryUpdateOne {
-	mutation := newCheckListCategoryMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &CheckListCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListCategoryUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for CheckListCategory.
 func (c *CheckListCategoryClient) Delete() *CheckListCategoryDelete {
-	mutation := newCheckListCategoryMutation(c.config, OpDelete)
-	return &CheckListCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListCategoryDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -482,10 +445,7 @@ func (c *CheckListCategoryClient) DeleteOne(clc *CheckListCategory) *CheckListCa
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *CheckListCategoryClient) DeleteOneID(id int) *CheckListCategoryDeleteOne {
-	builder := c.Delete().Where(checklistcategory.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &CheckListCategoryDeleteOne{builder}
+	return &CheckListCategoryDeleteOne{c.Delete().Where(checklistcategory.ID(id))}
 }
 
 // Create returns a query builder for CheckListCategory.
@@ -521,11 +481,6 @@ func (c *CheckListCategoryClient) QueryCheckListItems(clc *CheckListCategory) *C
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *CheckListCategoryClient) Hooks() []Hook {
-	return c.hooks.CheckListCategory
-}
-
 // CheckListItemClient is a client for the CheckListItem schema.
 type CheckListItemClient struct {
 	config
@@ -536,22 +491,14 @@ func NewCheckListItemClient(c config) *CheckListItemClient {
 	return &CheckListItemClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `checklistitem.Hooks(f(g(h())))`.
-func (c *CheckListItemClient) Use(hooks ...Hook) {
-	c.hooks.CheckListItem = append(c.hooks.CheckListItem, hooks...)
-}
-
 // Create returns a create builder for CheckListItem.
 func (c *CheckListItemClient) Create() *CheckListItemCreate {
-	mutation := newCheckListItemMutation(c.config, OpCreate)
-	return &CheckListItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListItemCreate{config: c.config}
 }
 
 // Update returns an update builder for CheckListItem.
 func (c *CheckListItemClient) Update() *CheckListItemUpdate {
-	mutation := newCheckListItemMutation(c.config, OpUpdate)
-	return &CheckListItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListItemUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -561,15 +508,12 @@ func (c *CheckListItemClient) UpdateOne(cli *CheckListItem) *CheckListItemUpdate
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CheckListItemClient) UpdateOneID(id int) *CheckListItemUpdateOne {
-	mutation := newCheckListItemMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &CheckListItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListItemUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for CheckListItem.
 func (c *CheckListItemClient) Delete() *CheckListItemDelete {
-	mutation := newCheckListItemMutation(c.config, OpDelete)
-	return &CheckListItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListItemDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -579,10 +523,7 @@ func (c *CheckListItemClient) DeleteOne(cli *CheckListItem) *CheckListItemDelete
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *CheckListItemClient) DeleteOneID(id int) *CheckListItemDeleteOne {
-	builder := c.Delete().Where(checklistitem.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &CheckListItemDeleteOne{builder}
+	return &CheckListItemDeleteOne{c.Delete().Where(checklistitem.ID(id))}
 }
 
 // Create returns a query builder for CheckListItem.
@@ -618,11 +559,6 @@ func (c *CheckListItemClient) QueryWorkOrder(cli *CheckListItem) *WorkOrderQuery
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *CheckListItemClient) Hooks() []Hook {
-	return c.hooks.CheckListItem
-}
-
 // CheckListItemDefinitionClient is a client for the CheckListItemDefinition schema.
 type CheckListItemDefinitionClient struct {
 	config
@@ -633,22 +569,14 @@ func NewCheckListItemDefinitionClient(c config) *CheckListItemDefinitionClient {
 	return &CheckListItemDefinitionClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `checklistitemdefinition.Hooks(f(g(h())))`.
-func (c *CheckListItemDefinitionClient) Use(hooks ...Hook) {
-	c.hooks.CheckListItemDefinition = append(c.hooks.CheckListItemDefinition, hooks...)
-}
-
 // Create returns a create builder for CheckListItemDefinition.
 func (c *CheckListItemDefinitionClient) Create() *CheckListItemDefinitionCreate {
-	mutation := newCheckListItemDefinitionMutation(c.config, OpCreate)
-	return &CheckListItemDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListItemDefinitionCreate{config: c.config}
 }
 
 // Update returns an update builder for CheckListItemDefinition.
 func (c *CheckListItemDefinitionClient) Update() *CheckListItemDefinitionUpdate {
-	mutation := newCheckListItemDefinitionMutation(c.config, OpUpdate)
-	return &CheckListItemDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListItemDefinitionUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -658,15 +586,12 @@ func (c *CheckListItemDefinitionClient) UpdateOne(clid *CheckListItemDefinition)
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CheckListItemDefinitionClient) UpdateOneID(id int) *CheckListItemDefinitionUpdateOne {
-	mutation := newCheckListItemDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &CheckListItemDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListItemDefinitionUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for CheckListItemDefinition.
 func (c *CheckListItemDefinitionClient) Delete() *CheckListItemDefinitionDelete {
-	mutation := newCheckListItemDefinitionMutation(c.config, OpDelete)
-	return &CheckListItemDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CheckListItemDefinitionDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -676,10 +601,7 @@ func (c *CheckListItemDefinitionClient) DeleteOne(clid *CheckListItemDefinition)
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *CheckListItemDefinitionClient) DeleteOneID(id int) *CheckListItemDefinitionDeleteOne {
-	builder := c.Delete().Where(checklistitemdefinition.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &CheckListItemDefinitionDeleteOne{builder}
+	return &CheckListItemDefinitionDeleteOne{c.Delete().Where(checklistitemdefinition.ID(id))}
 }
 
 // Create returns a query builder for CheckListItemDefinition.
@@ -715,11 +637,6 @@ func (c *CheckListItemDefinitionClient) QueryWorkOrderType(clid *CheckListItemDe
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *CheckListItemDefinitionClient) Hooks() []Hook {
-	return c.hooks.CheckListItemDefinition
-}
-
 // CommentClient is a client for the Comment schema.
 type CommentClient struct {
 	config
@@ -730,22 +647,14 @@ func NewCommentClient(c config) *CommentClient {
 	return &CommentClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `comment.Hooks(f(g(h())))`.
-func (c *CommentClient) Use(hooks ...Hook) {
-	c.hooks.Comment = append(c.hooks.Comment, hooks...)
-}
-
 // Create returns a create builder for Comment.
 func (c *CommentClient) Create() *CommentCreate {
-	mutation := newCommentMutation(c.config, OpCreate)
-	return &CommentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CommentCreate{config: c.config}
 }
 
 // Update returns an update builder for Comment.
 func (c *CommentClient) Update() *CommentUpdate {
-	mutation := newCommentMutation(c.config, OpUpdate)
-	return &CommentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CommentUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -755,15 +664,12 @@ func (c *CommentClient) UpdateOne(co *Comment) *CommentUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CommentClient) UpdateOneID(id int) *CommentUpdateOne {
-	mutation := newCommentMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &CommentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CommentUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Comment.
 func (c *CommentClient) Delete() *CommentDelete {
-	mutation := newCommentMutation(c.config, OpDelete)
-	return &CommentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CommentDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -773,10 +679,7 @@ func (c *CommentClient) DeleteOne(co *Comment) *CommentDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *CommentClient) DeleteOneID(id int) *CommentDeleteOne {
-	builder := c.Delete().Where(comment.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &CommentDeleteOne{builder}
+	return &CommentDeleteOne{c.Delete().Where(comment.ID(id))}
 }
 
 // Create returns a query builder for Comment.
@@ -798,11 +701,6 @@ func (c *CommentClient) GetX(ctx context.Context, id int) *Comment {
 	return co
 }
 
-// Hooks returns the client hooks.
-func (c *CommentClient) Hooks() []Hook {
-	return c.hooks.Comment
-}
-
 // CustomerClient is a client for the Customer schema.
 type CustomerClient struct {
 	config
@@ -813,22 +711,14 @@ func NewCustomerClient(c config) *CustomerClient {
 	return &CustomerClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `customer.Hooks(f(g(h())))`.
-func (c *CustomerClient) Use(hooks ...Hook) {
-	c.hooks.Customer = append(c.hooks.Customer, hooks...)
-}
-
 // Create returns a create builder for Customer.
 func (c *CustomerClient) Create() *CustomerCreate {
-	mutation := newCustomerMutation(c.config, OpCreate)
-	return &CustomerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CustomerCreate{config: c.config}
 }
 
 // Update returns an update builder for Customer.
 func (c *CustomerClient) Update() *CustomerUpdate {
-	mutation := newCustomerMutation(c.config, OpUpdate)
-	return &CustomerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CustomerUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -838,15 +728,12 @@ func (c *CustomerClient) UpdateOne(cu *Customer) *CustomerUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *CustomerClient) UpdateOneID(id int) *CustomerUpdateOne {
-	mutation := newCustomerMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &CustomerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CustomerUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Customer.
 func (c *CustomerClient) Delete() *CustomerDelete {
-	mutation := newCustomerMutation(c.config, OpDelete)
-	return &CustomerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &CustomerDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -856,10 +743,7 @@ func (c *CustomerClient) DeleteOne(cu *Customer) *CustomerDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *CustomerClient) DeleteOneID(id int) *CustomerDeleteOne {
-	builder := c.Delete().Where(customer.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &CustomerDeleteOne{builder}
+	return &CustomerDeleteOne{c.Delete().Where(customer.ID(id))}
 }
 
 // Create returns a query builder for Customer.
@@ -895,11 +779,6 @@ func (c *CustomerClient) QueryServices(cu *Customer) *ServiceQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *CustomerClient) Hooks() []Hook {
-	return c.hooks.Customer
-}
-
 // EquipmentClient is a client for the Equipment schema.
 type EquipmentClient struct {
 	config
@@ -910,22 +789,14 @@ func NewEquipmentClient(c config) *EquipmentClient {
 	return &EquipmentClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `equipment.Hooks(f(g(h())))`.
-func (c *EquipmentClient) Use(hooks ...Hook) {
-	c.hooks.Equipment = append(c.hooks.Equipment, hooks...)
-}
-
 // Create returns a create builder for Equipment.
 func (c *EquipmentClient) Create() *EquipmentCreate {
-	mutation := newEquipmentMutation(c.config, OpCreate)
-	return &EquipmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentCreate{config: c.config}
 }
 
 // Update returns an update builder for Equipment.
 func (c *EquipmentClient) Update() *EquipmentUpdate {
-	mutation := newEquipmentMutation(c.config, OpUpdate)
-	return &EquipmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -935,15 +806,12 @@ func (c *EquipmentClient) UpdateOne(e *Equipment) *EquipmentUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentClient) UpdateOneID(id int) *EquipmentUpdateOne {
-	mutation := newEquipmentMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &EquipmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Equipment.
 func (c *EquipmentClient) Delete() *EquipmentDelete {
-	mutation := newEquipmentMutation(c.config, OpDelete)
-	return &EquipmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -953,10 +821,7 @@ func (c *EquipmentClient) DeleteOne(e *Equipment) *EquipmentDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *EquipmentClient) DeleteOneID(id int) *EquipmentDeleteOne {
-	builder := c.Delete().Where(equipment.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &EquipmentDeleteOne{builder}
+	return &EquipmentDeleteOne{c.Delete().Where(equipment.ID(id))}
 }
 
 // Create returns a query builder for Equipment.
@@ -1104,11 +969,6 @@ func (c *EquipmentClient) QueryHyperlinks(e *Equipment) *HyperlinkQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *EquipmentClient) Hooks() []Hook {
-	return c.hooks.Equipment
-}
-
 // EquipmentCategoryClient is a client for the EquipmentCategory schema.
 type EquipmentCategoryClient struct {
 	config
@@ -1119,22 +979,14 @@ func NewEquipmentCategoryClient(c config) *EquipmentCategoryClient {
 	return &EquipmentCategoryClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `equipmentcategory.Hooks(f(g(h())))`.
-func (c *EquipmentCategoryClient) Use(hooks ...Hook) {
-	c.hooks.EquipmentCategory = append(c.hooks.EquipmentCategory, hooks...)
-}
-
 // Create returns a create builder for EquipmentCategory.
 func (c *EquipmentCategoryClient) Create() *EquipmentCategoryCreate {
-	mutation := newEquipmentCategoryMutation(c.config, OpCreate)
-	return &EquipmentCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentCategoryCreate{config: c.config}
 }
 
 // Update returns an update builder for EquipmentCategory.
 func (c *EquipmentCategoryClient) Update() *EquipmentCategoryUpdate {
-	mutation := newEquipmentCategoryMutation(c.config, OpUpdate)
-	return &EquipmentCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentCategoryUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -1144,15 +996,12 @@ func (c *EquipmentCategoryClient) UpdateOne(ec *EquipmentCategory) *EquipmentCat
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentCategoryClient) UpdateOneID(id int) *EquipmentCategoryUpdateOne {
-	mutation := newEquipmentCategoryMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &EquipmentCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentCategoryUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for EquipmentCategory.
 func (c *EquipmentCategoryClient) Delete() *EquipmentCategoryDelete {
-	mutation := newEquipmentCategoryMutation(c.config, OpDelete)
-	return &EquipmentCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentCategoryDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -1162,10 +1011,7 @@ func (c *EquipmentCategoryClient) DeleteOne(ec *EquipmentCategory) *EquipmentCat
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *EquipmentCategoryClient) DeleteOneID(id int) *EquipmentCategoryDeleteOne {
-	builder := c.Delete().Where(equipmentcategory.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &EquipmentCategoryDeleteOne{builder}
+	return &EquipmentCategoryDeleteOne{c.Delete().Where(equipmentcategory.ID(id))}
 }
 
 // Create returns a query builder for EquipmentCategory.
@@ -1201,11 +1047,6 @@ func (c *EquipmentCategoryClient) QueryTypes(ec *EquipmentCategory) *EquipmentTy
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *EquipmentCategoryClient) Hooks() []Hook {
-	return c.hooks.EquipmentCategory
-}
-
 // EquipmentPortClient is a client for the EquipmentPort schema.
 type EquipmentPortClient struct {
 	config
@@ -1216,22 +1057,14 @@ func NewEquipmentPortClient(c config) *EquipmentPortClient {
 	return &EquipmentPortClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `equipmentport.Hooks(f(g(h())))`.
-func (c *EquipmentPortClient) Use(hooks ...Hook) {
-	c.hooks.EquipmentPort = append(c.hooks.EquipmentPort, hooks...)
-}
-
 // Create returns a create builder for EquipmentPort.
 func (c *EquipmentPortClient) Create() *EquipmentPortCreate {
-	mutation := newEquipmentPortMutation(c.config, OpCreate)
-	return &EquipmentPortCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortCreate{config: c.config}
 }
 
 // Update returns an update builder for EquipmentPort.
 func (c *EquipmentPortClient) Update() *EquipmentPortUpdate {
-	mutation := newEquipmentPortMutation(c.config, OpUpdate)
-	return &EquipmentPortUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -1241,15 +1074,12 @@ func (c *EquipmentPortClient) UpdateOne(ep *EquipmentPort) *EquipmentPortUpdateO
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPortClient) UpdateOneID(id int) *EquipmentPortUpdateOne {
-	mutation := newEquipmentPortMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &EquipmentPortUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for EquipmentPort.
 func (c *EquipmentPortClient) Delete() *EquipmentPortDelete {
-	mutation := newEquipmentPortMutation(c.config, OpDelete)
-	return &EquipmentPortDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -1259,10 +1089,7 @@ func (c *EquipmentPortClient) DeleteOne(ep *EquipmentPort) *EquipmentPortDeleteO
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *EquipmentPortClient) DeleteOneID(id int) *EquipmentPortDeleteOne {
-	builder := c.Delete().Where(equipmentport.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &EquipmentPortDeleteOne{builder}
+	return &EquipmentPortDeleteOne{c.Delete().Where(equipmentport.ID(id))}
 }
 
 // Create returns a query builder for EquipmentPort.
@@ -1354,11 +1181,6 @@ func (c *EquipmentPortClient) QueryEndpoints(ep *EquipmentPort) *ServiceEndpoint
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *EquipmentPortClient) Hooks() []Hook {
-	return c.hooks.EquipmentPort
-}
-
 // EquipmentPortDefinitionClient is a client for the EquipmentPortDefinition schema.
 type EquipmentPortDefinitionClient struct {
 	config
@@ -1369,22 +1191,14 @@ func NewEquipmentPortDefinitionClient(c config) *EquipmentPortDefinitionClient {
 	return &EquipmentPortDefinitionClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `equipmentportdefinition.Hooks(f(g(h())))`.
-func (c *EquipmentPortDefinitionClient) Use(hooks ...Hook) {
-	c.hooks.EquipmentPortDefinition = append(c.hooks.EquipmentPortDefinition, hooks...)
-}
-
 // Create returns a create builder for EquipmentPortDefinition.
 func (c *EquipmentPortDefinitionClient) Create() *EquipmentPortDefinitionCreate {
-	mutation := newEquipmentPortDefinitionMutation(c.config, OpCreate)
-	return &EquipmentPortDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortDefinitionCreate{config: c.config}
 }
 
 // Update returns an update builder for EquipmentPortDefinition.
 func (c *EquipmentPortDefinitionClient) Update() *EquipmentPortDefinitionUpdate {
-	mutation := newEquipmentPortDefinitionMutation(c.config, OpUpdate)
-	return &EquipmentPortDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortDefinitionUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -1394,15 +1208,12 @@ func (c *EquipmentPortDefinitionClient) UpdateOne(epd *EquipmentPortDefinition) 
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPortDefinitionClient) UpdateOneID(id int) *EquipmentPortDefinitionUpdateOne {
-	mutation := newEquipmentPortDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &EquipmentPortDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortDefinitionUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for EquipmentPortDefinition.
 func (c *EquipmentPortDefinitionClient) Delete() *EquipmentPortDefinitionDelete {
-	mutation := newEquipmentPortDefinitionMutation(c.config, OpDelete)
-	return &EquipmentPortDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortDefinitionDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -1412,10 +1223,7 @@ func (c *EquipmentPortDefinitionClient) DeleteOne(epd *EquipmentPortDefinition) 
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *EquipmentPortDefinitionClient) DeleteOneID(id int) *EquipmentPortDefinitionDeleteOne {
-	builder := c.Delete().Where(equipmentportdefinition.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &EquipmentPortDefinitionDeleteOne{builder}
+	return &EquipmentPortDefinitionDeleteOne{c.Delete().Where(equipmentportdefinition.ID(id))}
 }
 
 // Create returns a query builder for EquipmentPortDefinition.
@@ -1479,11 +1287,6 @@ func (c *EquipmentPortDefinitionClient) QueryEquipmentType(epd *EquipmentPortDef
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *EquipmentPortDefinitionClient) Hooks() []Hook {
-	return c.hooks.EquipmentPortDefinition
-}
-
 // EquipmentPortTypeClient is a client for the EquipmentPortType schema.
 type EquipmentPortTypeClient struct {
 	config
@@ -1494,22 +1297,14 @@ func NewEquipmentPortTypeClient(c config) *EquipmentPortTypeClient {
 	return &EquipmentPortTypeClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `equipmentporttype.Hooks(f(g(h())))`.
-func (c *EquipmentPortTypeClient) Use(hooks ...Hook) {
-	c.hooks.EquipmentPortType = append(c.hooks.EquipmentPortType, hooks...)
-}
-
 // Create returns a create builder for EquipmentPortType.
 func (c *EquipmentPortTypeClient) Create() *EquipmentPortTypeCreate {
-	mutation := newEquipmentPortTypeMutation(c.config, OpCreate)
-	return &EquipmentPortTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortTypeCreate{config: c.config}
 }
 
 // Update returns an update builder for EquipmentPortType.
 func (c *EquipmentPortTypeClient) Update() *EquipmentPortTypeUpdate {
-	mutation := newEquipmentPortTypeMutation(c.config, OpUpdate)
-	return &EquipmentPortTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortTypeUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -1519,15 +1314,12 @@ func (c *EquipmentPortTypeClient) UpdateOne(ept *EquipmentPortType) *EquipmentPo
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPortTypeClient) UpdateOneID(id int) *EquipmentPortTypeUpdateOne {
-	mutation := newEquipmentPortTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &EquipmentPortTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortTypeUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for EquipmentPortType.
 func (c *EquipmentPortTypeClient) Delete() *EquipmentPortTypeDelete {
-	mutation := newEquipmentPortTypeMutation(c.config, OpDelete)
-	return &EquipmentPortTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPortTypeDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -1537,10 +1329,7 @@ func (c *EquipmentPortTypeClient) DeleteOne(ept *EquipmentPortType) *EquipmentPo
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *EquipmentPortTypeClient) DeleteOneID(id int) *EquipmentPortTypeDeleteOne {
-	builder := c.Delete().Where(equipmentporttype.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &EquipmentPortTypeDeleteOne{builder}
+	return &EquipmentPortTypeDeleteOne{c.Delete().Where(equipmentporttype.ID(id))}
 }
 
 // Create returns a query builder for EquipmentPortType.
@@ -1604,11 +1393,6 @@ func (c *EquipmentPortTypeClient) QueryPortDefinitions(ept *EquipmentPortType) *
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *EquipmentPortTypeClient) Hooks() []Hook {
-	return c.hooks.EquipmentPortType
-}
-
 // EquipmentPositionClient is a client for the EquipmentPosition schema.
 type EquipmentPositionClient struct {
 	config
@@ -1619,22 +1403,14 @@ func NewEquipmentPositionClient(c config) *EquipmentPositionClient {
 	return &EquipmentPositionClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `equipmentposition.Hooks(f(g(h())))`.
-func (c *EquipmentPositionClient) Use(hooks ...Hook) {
-	c.hooks.EquipmentPosition = append(c.hooks.EquipmentPosition, hooks...)
-}
-
 // Create returns a create builder for EquipmentPosition.
 func (c *EquipmentPositionClient) Create() *EquipmentPositionCreate {
-	mutation := newEquipmentPositionMutation(c.config, OpCreate)
-	return &EquipmentPositionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPositionCreate{config: c.config}
 }
 
 // Update returns an update builder for EquipmentPosition.
 func (c *EquipmentPositionClient) Update() *EquipmentPositionUpdate {
-	mutation := newEquipmentPositionMutation(c.config, OpUpdate)
-	return &EquipmentPositionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPositionUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -1644,15 +1420,12 @@ func (c *EquipmentPositionClient) UpdateOne(ep *EquipmentPosition) *EquipmentPos
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPositionClient) UpdateOneID(id int) *EquipmentPositionUpdateOne {
-	mutation := newEquipmentPositionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &EquipmentPositionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPositionUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for EquipmentPosition.
 func (c *EquipmentPositionClient) Delete() *EquipmentPositionDelete {
-	mutation := newEquipmentPositionMutation(c.config, OpDelete)
-	return &EquipmentPositionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPositionDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -1662,10 +1435,7 @@ func (c *EquipmentPositionClient) DeleteOne(ep *EquipmentPosition) *EquipmentPos
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *EquipmentPositionClient) DeleteOneID(id int) *EquipmentPositionDeleteOne {
-	builder := c.Delete().Where(equipmentposition.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &EquipmentPositionDeleteOne{builder}
+	return &EquipmentPositionDeleteOne{c.Delete().Where(equipmentposition.ID(id))}
 }
 
 // Create returns a query builder for EquipmentPosition.
@@ -1729,11 +1499,6 @@ func (c *EquipmentPositionClient) QueryAttachment(ep *EquipmentPosition) *Equipm
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *EquipmentPositionClient) Hooks() []Hook {
-	return c.hooks.EquipmentPosition
-}
-
 // EquipmentPositionDefinitionClient is a client for the EquipmentPositionDefinition schema.
 type EquipmentPositionDefinitionClient struct {
 	config
@@ -1744,22 +1509,14 @@ func NewEquipmentPositionDefinitionClient(c config) *EquipmentPositionDefinition
 	return &EquipmentPositionDefinitionClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `equipmentpositiondefinition.Hooks(f(g(h())))`.
-func (c *EquipmentPositionDefinitionClient) Use(hooks ...Hook) {
-	c.hooks.EquipmentPositionDefinition = append(c.hooks.EquipmentPositionDefinition, hooks...)
-}
-
 // Create returns a create builder for EquipmentPositionDefinition.
 func (c *EquipmentPositionDefinitionClient) Create() *EquipmentPositionDefinitionCreate {
-	mutation := newEquipmentPositionDefinitionMutation(c.config, OpCreate)
-	return &EquipmentPositionDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPositionDefinitionCreate{config: c.config}
 }
 
 // Update returns an update builder for EquipmentPositionDefinition.
 func (c *EquipmentPositionDefinitionClient) Update() *EquipmentPositionDefinitionUpdate {
-	mutation := newEquipmentPositionDefinitionMutation(c.config, OpUpdate)
-	return &EquipmentPositionDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPositionDefinitionUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -1769,15 +1526,12 @@ func (c *EquipmentPositionDefinitionClient) UpdateOne(epd *EquipmentPositionDefi
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentPositionDefinitionClient) UpdateOneID(id int) *EquipmentPositionDefinitionUpdateOne {
-	mutation := newEquipmentPositionDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &EquipmentPositionDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPositionDefinitionUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for EquipmentPositionDefinition.
 func (c *EquipmentPositionDefinitionClient) Delete() *EquipmentPositionDefinitionDelete {
-	mutation := newEquipmentPositionDefinitionMutation(c.config, OpDelete)
-	return &EquipmentPositionDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentPositionDefinitionDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -1787,10 +1541,7 @@ func (c *EquipmentPositionDefinitionClient) DeleteOne(epd *EquipmentPositionDefi
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *EquipmentPositionDefinitionClient) DeleteOneID(id int) *EquipmentPositionDefinitionDeleteOne {
-	builder := c.Delete().Where(equipmentpositiondefinition.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &EquipmentPositionDefinitionDeleteOne{builder}
+	return &EquipmentPositionDefinitionDeleteOne{c.Delete().Where(equipmentpositiondefinition.ID(id))}
 }
 
 // Create returns a query builder for EquipmentPositionDefinition.
@@ -1840,11 +1591,6 @@ func (c *EquipmentPositionDefinitionClient) QueryEquipmentType(epd *EquipmentPos
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *EquipmentPositionDefinitionClient) Hooks() []Hook {
-	return c.hooks.EquipmentPositionDefinition
-}
-
 // EquipmentTypeClient is a client for the EquipmentType schema.
 type EquipmentTypeClient struct {
 	config
@@ -1855,22 +1601,14 @@ func NewEquipmentTypeClient(c config) *EquipmentTypeClient {
 	return &EquipmentTypeClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `equipmenttype.Hooks(f(g(h())))`.
-func (c *EquipmentTypeClient) Use(hooks ...Hook) {
-	c.hooks.EquipmentType = append(c.hooks.EquipmentType, hooks...)
-}
-
 // Create returns a create builder for EquipmentType.
 func (c *EquipmentTypeClient) Create() *EquipmentTypeCreate {
-	mutation := newEquipmentTypeMutation(c.config, OpCreate)
-	return &EquipmentTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentTypeCreate{config: c.config}
 }
 
 // Update returns an update builder for EquipmentType.
 func (c *EquipmentTypeClient) Update() *EquipmentTypeUpdate {
-	mutation := newEquipmentTypeMutation(c.config, OpUpdate)
-	return &EquipmentTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentTypeUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -1880,15 +1618,12 @@ func (c *EquipmentTypeClient) UpdateOne(et *EquipmentType) *EquipmentTypeUpdateO
 
 // UpdateOneID returns an update builder for the given id.
 func (c *EquipmentTypeClient) UpdateOneID(id int) *EquipmentTypeUpdateOne {
-	mutation := newEquipmentTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &EquipmentTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentTypeUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for EquipmentType.
 func (c *EquipmentTypeClient) Delete() *EquipmentTypeDelete {
-	mutation := newEquipmentTypeMutation(c.config, OpDelete)
-	return &EquipmentTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &EquipmentTypeDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -1898,10 +1633,7 @@ func (c *EquipmentTypeClient) DeleteOne(et *EquipmentType) *EquipmentTypeDeleteO
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *EquipmentTypeClient) DeleteOneID(id int) *EquipmentTypeDeleteOne {
-	builder := c.Delete().Where(equipmenttype.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &EquipmentTypeDeleteOne{builder}
+	return &EquipmentTypeDeleteOne{c.Delete().Where(equipmenttype.ID(id))}
 }
 
 // Create returns a query builder for EquipmentType.
@@ -1993,11 +1725,6 @@ func (c *EquipmentTypeClient) QueryCategory(et *EquipmentType) *EquipmentCategor
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *EquipmentTypeClient) Hooks() []Hook {
-	return c.hooks.EquipmentType
-}
-
 // FileClient is a client for the File schema.
 type FileClient struct {
 	config
@@ -2008,22 +1735,14 @@ func NewFileClient(c config) *FileClient {
 	return &FileClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `file.Hooks(f(g(h())))`.
-func (c *FileClient) Use(hooks ...Hook) {
-	c.hooks.File = append(c.hooks.File, hooks...)
-}
-
 // Create returns a create builder for File.
 func (c *FileClient) Create() *FileCreate {
-	mutation := newFileMutation(c.config, OpCreate)
-	return &FileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FileCreate{config: c.config}
 }
 
 // Update returns an update builder for File.
 func (c *FileClient) Update() *FileUpdate {
-	mutation := newFileMutation(c.config, OpUpdate)
-	return &FileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FileUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -2033,15 +1752,12 @@ func (c *FileClient) UpdateOne(f *File) *FileUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FileClient) UpdateOneID(id int) *FileUpdateOne {
-	mutation := newFileMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &FileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FileUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for File.
 func (c *FileClient) Delete() *FileDelete {
-	mutation := newFileMutation(c.config, OpDelete)
-	return &FileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FileDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -2051,10 +1767,7 @@ func (c *FileClient) DeleteOne(f *File) *FileDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *FileClient) DeleteOneID(id int) *FileDeleteOne {
-	builder := c.Delete().Where(file.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &FileDeleteOne{builder}
+	return &FileDeleteOne{c.Delete().Where(file.ID(id))}
 }
 
 // Create returns a query builder for File.
@@ -2076,11 +1789,6 @@ func (c *FileClient) GetX(ctx context.Context, id int) *File {
 	return f
 }
 
-// Hooks returns the client hooks.
-func (c *FileClient) Hooks() []Hook {
-	return c.hooks.File
-}
-
 // FloorPlanClient is a client for the FloorPlan schema.
 type FloorPlanClient struct {
 	config
@@ -2091,22 +1799,14 @@ func NewFloorPlanClient(c config) *FloorPlanClient {
 	return &FloorPlanClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `floorplan.Hooks(f(g(h())))`.
-func (c *FloorPlanClient) Use(hooks ...Hook) {
-	c.hooks.FloorPlan = append(c.hooks.FloorPlan, hooks...)
-}
-
 // Create returns a create builder for FloorPlan.
 func (c *FloorPlanClient) Create() *FloorPlanCreate {
-	mutation := newFloorPlanMutation(c.config, OpCreate)
-	return &FloorPlanCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanCreate{config: c.config}
 }
 
 // Update returns an update builder for FloorPlan.
 func (c *FloorPlanClient) Update() *FloorPlanUpdate {
-	mutation := newFloorPlanMutation(c.config, OpUpdate)
-	return &FloorPlanUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -2116,15 +1816,12 @@ func (c *FloorPlanClient) UpdateOne(fp *FloorPlan) *FloorPlanUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FloorPlanClient) UpdateOneID(id int) *FloorPlanUpdateOne {
-	mutation := newFloorPlanMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &FloorPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for FloorPlan.
 func (c *FloorPlanClient) Delete() *FloorPlanDelete {
-	mutation := newFloorPlanMutation(c.config, OpDelete)
-	return &FloorPlanDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -2134,10 +1831,7 @@ func (c *FloorPlanClient) DeleteOne(fp *FloorPlan) *FloorPlanDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *FloorPlanClient) DeleteOneID(id int) *FloorPlanDeleteOne {
-	builder := c.Delete().Where(floorplan.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &FloorPlanDeleteOne{builder}
+	return &FloorPlanDeleteOne{c.Delete().Where(floorplan.ID(id))}
 }
 
 // Create returns a query builder for FloorPlan.
@@ -2215,11 +1909,6 @@ func (c *FloorPlanClient) QueryImage(fp *FloorPlan) *FileQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *FloorPlanClient) Hooks() []Hook {
-	return c.hooks.FloorPlan
-}
-
 // FloorPlanReferencePointClient is a client for the FloorPlanReferencePoint schema.
 type FloorPlanReferencePointClient struct {
 	config
@@ -2230,22 +1919,14 @@ func NewFloorPlanReferencePointClient(c config) *FloorPlanReferencePointClient {
 	return &FloorPlanReferencePointClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `floorplanreferencepoint.Hooks(f(g(h())))`.
-func (c *FloorPlanReferencePointClient) Use(hooks ...Hook) {
-	c.hooks.FloorPlanReferencePoint = append(c.hooks.FloorPlanReferencePoint, hooks...)
-}
-
 // Create returns a create builder for FloorPlanReferencePoint.
 func (c *FloorPlanReferencePointClient) Create() *FloorPlanReferencePointCreate {
-	mutation := newFloorPlanReferencePointMutation(c.config, OpCreate)
-	return &FloorPlanReferencePointCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanReferencePointCreate{config: c.config}
 }
 
 // Update returns an update builder for FloorPlanReferencePoint.
 func (c *FloorPlanReferencePointClient) Update() *FloorPlanReferencePointUpdate {
-	mutation := newFloorPlanReferencePointMutation(c.config, OpUpdate)
-	return &FloorPlanReferencePointUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanReferencePointUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -2255,15 +1936,12 @@ func (c *FloorPlanReferencePointClient) UpdateOne(fprp *FloorPlanReferencePoint)
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FloorPlanReferencePointClient) UpdateOneID(id int) *FloorPlanReferencePointUpdateOne {
-	mutation := newFloorPlanReferencePointMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &FloorPlanReferencePointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanReferencePointUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for FloorPlanReferencePoint.
 func (c *FloorPlanReferencePointClient) Delete() *FloorPlanReferencePointDelete {
-	mutation := newFloorPlanReferencePointMutation(c.config, OpDelete)
-	return &FloorPlanReferencePointDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanReferencePointDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -2273,10 +1951,7 @@ func (c *FloorPlanReferencePointClient) DeleteOne(fprp *FloorPlanReferencePoint)
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *FloorPlanReferencePointClient) DeleteOneID(id int) *FloorPlanReferencePointDeleteOne {
-	builder := c.Delete().Where(floorplanreferencepoint.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &FloorPlanReferencePointDeleteOne{builder}
+	return &FloorPlanReferencePointDeleteOne{c.Delete().Where(floorplanreferencepoint.ID(id))}
 }
 
 // Create returns a query builder for FloorPlanReferencePoint.
@@ -2298,11 +1973,6 @@ func (c *FloorPlanReferencePointClient) GetX(ctx context.Context, id int) *Floor
 	return fprp
 }
 
-// Hooks returns the client hooks.
-func (c *FloorPlanReferencePointClient) Hooks() []Hook {
-	return c.hooks.FloorPlanReferencePoint
-}
-
 // FloorPlanScaleClient is a client for the FloorPlanScale schema.
 type FloorPlanScaleClient struct {
 	config
@@ -2313,22 +1983,14 @@ func NewFloorPlanScaleClient(c config) *FloorPlanScaleClient {
 	return &FloorPlanScaleClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `floorplanscale.Hooks(f(g(h())))`.
-func (c *FloorPlanScaleClient) Use(hooks ...Hook) {
-	c.hooks.FloorPlanScale = append(c.hooks.FloorPlanScale, hooks...)
-}
-
 // Create returns a create builder for FloorPlanScale.
 func (c *FloorPlanScaleClient) Create() *FloorPlanScaleCreate {
-	mutation := newFloorPlanScaleMutation(c.config, OpCreate)
-	return &FloorPlanScaleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanScaleCreate{config: c.config}
 }
 
 // Update returns an update builder for FloorPlanScale.
 func (c *FloorPlanScaleClient) Update() *FloorPlanScaleUpdate {
-	mutation := newFloorPlanScaleMutation(c.config, OpUpdate)
-	return &FloorPlanScaleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanScaleUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -2338,15 +2000,12 @@ func (c *FloorPlanScaleClient) UpdateOne(fps *FloorPlanScale) *FloorPlanScaleUpd
 
 // UpdateOneID returns an update builder for the given id.
 func (c *FloorPlanScaleClient) UpdateOneID(id int) *FloorPlanScaleUpdateOne {
-	mutation := newFloorPlanScaleMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &FloorPlanScaleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanScaleUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for FloorPlanScale.
 func (c *FloorPlanScaleClient) Delete() *FloorPlanScaleDelete {
-	mutation := newFloorPlanScaleMutation(c.config, OpDelete)
-	return &FloorPlanScaleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &FloorPlanScaleDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -2356,10 +2015,7 @@ func (c *FloorPlanScaleClient) DeleteOne(fps *FloorPlanScale) *FloorPlanScaleDel
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *FloorPlanScaleClient) DeleteOneID(id int) *FloorPlanScaleDeleteOne {
-	builder := c.Delete().Where(floorplanscale.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &FloorPlanScaleDeleteOne{builder}
+	return &FloorPlanScaleDeleteOne{c.Delete().Where(floorplanscale.ID(id))}
 }
 
 // Create returns a query builder for FloorPlanScale.
@@ -2381,11 +2037,6 @@ func (c *FloorPlanScaleClient) GetX(ctx context.Context, id int) *FloorPlanScale
 	return fps
 }
 
-// Hooks returns the client hooks.
-func (c *FloorPlanScaleClient) Hooks() []Hook {
-	return c.hooks.FloorPlanScale
-}
-
 // HyperlinkClient is a client for the Hyperlink schema.
 type HyperlinkClient struct {
 	config
@@ -2396,22 +2047,14 @@ func NewHyperlinkClient(c config) *HyperlinkClient {
 	return &HyperlinkClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `hyperlink.Hooks(f(g(h())))`.
-func (c *HyperlinkClient) Use(hooks ...Hook) {
-	c.hooks.Hyperlink = append(c.hooks.Hyperlink, hooks...)
-}
-
 // Create returns a create builder for Hyperlink.
 func (c *HyperlinkClient) Create() *HyperlinkCreate {
-	mutation := newHyperlinkMutation(c.config, OpCreate)
-	return &HyperlinkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &HyperlinkCreate{config: c.config}
 }
 
 // Update returns an update builder for Hyperlink.
 func (c *HyperlinkClient) Update() *HyperlinkUpdate {
-	mutation := newHyperlinkMutation(c.config, OpUpdate)
-	return &HyperlinkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &HyperlinkUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -2421,15 +2064,12 @@ func (c *HyperlinkClient) UpdateOne(h *Hyperlink) *HyperlinkUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *HyperlinkClient) UpdateOneID(id int) *HyperlinkUpdateOne {
-	mutation := newHyperlinkMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &HyperlinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &HyperlinkUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Hyperlink.
 func (c *HyperlinkClient) Delete() *HyperlinkDelete {
-	mutation := newHyperlinkMutation(c.config, OpDelete)
-	return &HyperlinkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &HyperlinkDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -2439,10 +2079,7 @@ func (c *HyperlinkClient) DeleteOne(h *Hyperlink) *HyperlinkDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *HyperlinkClient) DeleteOneID(id int) *HyperlinkDeleteOne {
-	builder := c.Delete().Where(hyperlink.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &HyperlinkDeleteOne{builder}
+	return &HyperlinkDeleteOne{c.Delete().Where(hyperlink.ID(id))}
 }
 
 // Create returns a query builder for Hyperlink.
@@ -2464,11 +2101,6 @@ func (c *HyperlinkClient) GetX(ctx context.Context, id int) *Hyperlink {
 	return h
 }
 
-// Hooks returns the client hooks.
-func (c *HyperlinkClient) Hooks() []Hook {
-	return c.hooks.Hyperlink
-}
-
 // LinkClient is a client for the Link schema.
 type LinkClient struct {
 	config
@@ -2479,22 +2111,14 @@ func NewLinkClient(c config) *LinkClient {
 	return &LinkClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `link.Hooks(f(g(h())))`.
-func (c *LinkClient) Use(hooks ...Hook) {
-	c.hooks.Link = append(c.hooks.Link, hooks...)
-}
-
 // Create returns a create builder for Link.
 func (c *LinkClient) Create() *LinkCreate {
-	mutation := newLinkMutation(c.config, OpCreate)
-	return &LinkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LinkCreate{config: c.config}
 }
 
 // Update returns an update builder for Link.
 func (c *LinkClient) Update() *LinkUpdate {
-	mutation := newLinkMutation(c.config, OpUpdate)
-	return &LinkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LinkUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -2504,15 +2128,12 @@ func (c *LinkClient) UpdateOne(l *Link) *LinkUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *LinkClient) UpdateOneID(id int) *LinkUpdateOne {
-	mutation := newLinkMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &LinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LinkUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Link.
 func (c *LinkClient) Delete() *LinkDelete {
-	mutation := newLinkMutation(c.config, OpDelete)
-	return &LinkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LinkDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -2522,10 +2143,7 @@ func (c *LinkClient) DeleteOne(l *Link) *LinkDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *LinkClient) DeleteOneID(id int) *LinkDeleteOne {
-	builder := c.Delete().Where(link.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &LinkDeleteOne{builder}
+	return &LinkDeleteOne{c.Delete().Where(link.ID(id))}
 }
 
 // Create returns a query builder for Link.
@@ -2603,11 +2221,6 @@ func (c *LinkClient) QueryService(l *Link) *ServiceQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *LinkClient) Hooks() []Hook {
-	return c.hooks.Link
-}
-
 // LocationClient is a client for the Location schema.
 type LocationClient struct {
 	config
@@ -2618,22 +2231,14 @@ func NewLocationClient(c config) *LocationClient {
 	return &LocationClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `location.Hooks(f(g(h())))`.
-func (c *LocationClient) Use(hooks ...Hook) {
-	c.hooks.Location = append(c.hooks.Location, hooks...)
-}
-
 // Create returns a create builder for Location.
 func (c *LocationClient) Create() *LocationCreate {
-	mutation := newLocationMutation(c.config, OpCreate)
-	return &LocationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LocationCreate{config: c.config}
 }
 
 // Update returns an update builder for Location.
 func (c *LocationClient) Update() *LocationUpdate {
-	mutation := newLocationMutation(c.config, OpUpdate)
-	return &LocationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LocationUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -2643,15 +2248,12 @@ func (c *LocationClient) UpdateOne(l *Location) *LocationUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *LocationClient) UpdateOneID(id int) *LocationUpdateOne {
-	mutation := newLocationMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &LocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LocationUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Location.
 func (c *LocationClient) Delete() *LocationDelete {
-	mutation := newLocationMutation(c.config, OpDelete)
-	return &LocationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LocationDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -2661,10 +2263,7 @@ func (c *LocationClient) DeleteOne(l *Location) *LocationDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *LocationClient) DeleteOneID(id int) *LocationDeleteOne {
-	builder := c.Delete().Where(location.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &LocationDeleteOne{builder}
+	return &LocationDeleteOne{c.Delete().Where(location.ID(id))}
 }
 
 // Create returns a query builder for Location.
@@ -2854,11 +2453,6 @@ func (c *LocationClient) QueryFloorPlans(l *Location) *FloorPlanQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *LocationClient) Hooks() []Hook {
-	return c.hooks.Location
-}
-
 // LocationTypeClient is a client for the LocationType schema.
 type LocationTypeClient struct {
 	config
@@ -2869,22 +2463,14 @@ func NewLocationTypeClient(c config) *LocationTypeClient {
 	return &LocationTypeClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `locationtype.Hooks(f(g(h())))`.
-func (c *LocationTypeClient) Use(hooks ...Hook) {
-	c.hooks.LocationType = append(c.hooks.LocationType, hooks...)
-}
-
 // Create returns a create builder for LocationType.
 func (c *LocationTypeClient) Create() *LocationTypeCreate {
-	mutation := newLocationTypeMutation(c.config, OpCreate)
-	return &LocationTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LocationTypeCreate{config: c.config}
 }
 
 // Update returns an update builder for LocationType.
 func (c *LocationTypeClient) Update() *LocationTypeUpdate {
-	mutation := newLocationTypeMutation(c.config, OpUpdate)
-	return &LocationTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LocationTypeUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -2894,15 +2480,12 @@ func (c *LocationTypeClient) UpdateOne(lt *LocationType) *LocationTypeUpdateOne 
 
 // UpdateOneID returns an update builder for the given id.
 func (c *LocationTypeClient) UpdateOneID(id int) *LocationTypeUpdateOne {
-	mutation := newLocationTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &LocationTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LocationTypeUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for LocationType.
 func (c *LocationTypeClient) Delete() *LocationTypeDelete {
-	mutation := newLocationTypeMutation(c.config, OpDelete)
-	return &LocationTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &LocationTypeDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -2912,10 +2495,7 @@ func (c *LocationTypeClient) DeleteOne(lt *LocationType) *LocationTypeDeleteOne 
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *LocationTypeClient) DeleteOneID(id int) *LocationTypeDeleteOne {
-	builder := c.Delete().Where(locationtype.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &LocationTypeDeleteOne{builder}
+	return &LocationTypeDeleteOne{c.Delete().Where(locationtype.ID(id))}
 }
 
 // Create returns a query builder for LocationType.
@@ -2979,11 +2559,6 @@ func (c *LocationTypeClient) QuerySurveyTemplateCategories(lt *LocationType) *Su
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *LocationTypeClient) Hooks() []Hook {
-	return c.hooks.LocationType
-}
-
 // ProjectClient is a client for the Project schema.
 type ProjectClient struct {
 	config
@@ -2994,22 +2569,14 @@ func NewProjectClient(c config) *ProjectClient {
 	return &ProjectClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `project.Hooks(f(g(h())))`.
-func (c *ProjectClient) Use(hooks ...Hook) {
-	c.hooks.Project = append(c.hooks.Project, hooks...)
-}
-
 // Create returns a create builder for Project.
 func (c *ProjectClient) Create() *ProjectCreate {
-	mutation := newProjectMutation(c.config, OpCreate)
-	return &ProjectCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ProjectCreate{config: c.config}
 }
 
 // Update returns an update builder for Project.
 func (c *ProjectClient) Update() *ProjectUpdate {
-	mutation := newProjectMutation(c.config, OpUpdate)
-	return &ProjectUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ProjectUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -3019,15 +2586,12 @@ func (c *ProjectClient) UpdateOne(pr *Project) *ProjectUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ProjectClient) UpdateOneID(id int) *ProjectUpdateOne {
-	mutation := newProjectMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ProjectUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Project.
 func (c *ProjectClient) Delete() *ProjectDelete {
-	mutation := newProjectMutation(c.config, OpDelete)
-	return &ProjectDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ProjectDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -3037,10 +2601,7 @@ func (c *ProjectClient) DeleteOne(pr *Project) *ProjectDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *ProjectClient) DeleteOneID(id int) *ProjectDeleteOne {
-	builder := c.Delete().Where(project.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ProjectDeleteOne{builder}
+	return &ProjectDeleteOne{c.Delete().Where(project.ID(id))}
 }
 
 // Create returns a query builder for Project.
@@ -3132,11 +2693,6 @@ func (c *ProjectClient) QueryProperties(pr *Project) *PropertyQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *ProjectClient) Hooks() []Hook {
-	return c.hooks.Project
-}
-
 // ProjectTypeClient is a client for the ProjectType schema.
 type ProjectTypeClient struct {
 	config
@@ -3147,22 +2703,14 @@ func NewProjectTypeClient(c config) *ProjectTypeClient {
 	return &ProjectTypeClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `projecttype.Hooks(f(g(h())))`.
-func (c *ProjectTypeClient) Use(hooks ...Hook) {
-	c.hooks.ProjectType = append(c.hooks.ProjectType, hooks...)
-}
-
 // Create returns a create builder for ProjectType.
 func (c *ProjectTypeClient) Create() *ProjectTypeCreate {
-	mutation := newProjectTypeMutation(c.config, OpCreate)
-	return &ProjectTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ProjectTypeCreate{config: c.config}
 }
 
 // Update returns an update builder for ProjectType.
 func (c *ProjectTypeClient) Update() *ProjectTypeUpdate {
-	mutation := newProjectTypeMutation(c.config, OpUpdate)
-	return &ProjectTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ProjectTypeUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -3172,15 +2720,12 @@ func (c *ProjectTypeClient) UpdateOne(pt *ProjectType) *ProjectTypeUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ProjectTypeClient) UpdateOneID(id int) *ProjectTypeUpdateOne {
-	mutation := newProjectTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &ProjectTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ProjectTypeUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for ProjectType.
 func (c *ProjectTypeClient) Delete() *ProjectTypeDelete {
-	mutation := newProjectTypeMutation(c.config, OpDelete)
-	return &ProjectTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ProjectTypeDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -3190,10 +2735,7 @@ func (c *ProjectTypeClient) DeleteOne(pt *ProjectType) *ProjectTypeDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *ProjectTypeClient) DeleteOneID(id int) *ProjectTypeDeleteOne {
-	builder := c.Delete().Where(projecttype.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ProjectTypeDeleteOne{builder}
+	return &ProjectTypeDeleteOne{c.Delete().Where(projecttype.ID(id))}
 }
 
 // Create returns a query builder for ProjectType.
@@ -3257,11 +2799,6 @@ func (c *ProjectTypeClient) QueryWorkOrders(pt *ProjectType) *WorkOrderDefinitio
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *ProjectTypeClient) Hooks() []Hook {
-	return c.hooks.ProjectType
-}
-
 // PropertyClient is a client for the Property schema.
 type PropertyClient struct {
 	config
@@ -3272,22 +2809,14 @@ func NewPropertyClient(c config) *PropertyClient {
 	return &PropertyClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `property.Hooks(f(g(h())))`.
-func (c *PropertyClient) Use(hooks ...Hook) {
-	c.hooks.Property = append(c.hooks.Property, hooks...)
-}
-
 // Create returns a create builder for Property.
 func (c *PropertyClient) Create() *PropertyCreate {
-	mutation := newPropertyMutation(c.config, OpCreate)
-	return &PropertyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &PropertyCreate{config: c.config}
 }
 
 // Update returns an update builder for Property.
 func (c *PropertyClient) Update() *PropertyUpdate {
-	mutation := newPropertyMutation(c.config, OpUpdate)
-	return &PropertyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &PropertyUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -3297,15 +2826,12 @@ func (c *PropertyClient) UpdateOne(pr *Property) *PropertyUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *PropertyClient) UpdateOneID(id int) *PropertyUpdateOne {
-	mutation := newPropertyMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &PropertyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &PropertyUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Property.
 func (c *PropertyClient) Delete() *PropertyDelete {
-	mutation := newPropertyMutation(c.config, OpDelete)
-	return &PropertyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &PropertyDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -3315,10 +2841,7 @@ func (c *PropertyClient) DeleteOne(pr *Property) *PropertyDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *PropertyClient) DeleteOneID(id int) *PropertyDeleteOne {
-	builder := c.Delete().Where(property.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &PropertyDeleteOne{builder}
+	return &PropertyDeleteOne{c.Delete().Where(property.ID(id))}
 }
 
 // Create returns a query builder for Property.
@@ -3494,11 +3017,6 @@ func (c *PropertyClient) QueryServiceValue(pr *Property) *ServiceQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *PropertyClient) Hooks() []Hook {
-	return c.hooks.Property
-}
-
 // PropertyTypeClient is a client for the PropertyType schema.
 type PropertyTypeClient struct {
 	config
@@ -3509,22 +3027,14 @@ func NewPropertyTypeClient(c config) *PropertyTypeClient {
 	return &PropertyTypeClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `propertytype.Hooks(f(g(h())))`.
-func (c *PropertyTypeClient) Use(hooks ...Hook) {
-	c.hooks.PropertyType = append(c.hooks.PropertyType, hooks...)
-}
-
 // Create returns a create builder for PropertyType.
 func (c *PropertyTypeClient) Create() *PropertyTypeCreate {
-	mutation := newPropertyTypeMutation(c.config, OpCreate)
-	return &PropertyTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &PropertyTypeCreate{config: c.config}
 }
 
 // Update returns an update builder for PropertyType.
 func (c *PropertyTypeClient) Update() *PropertyTypeUpdate {
-	mutation := newPropertyTypeMutation(c.config, OpUpdate)
-	return &PropertyTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &PropertyTypeUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -3534,15 +3044,12 @@ func (c *PropertyTypeClient) UpdateOne(pt *PropertyType) *PropertyTypeUpdateOne 
 
 // UpdateOneID returns an update builder for the given id.
 func (c *PropertyTypeClient) UpdateOneID(id int) *PropertyTypeUpdateOne {
-	mutation := newPropertyTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &PropertyTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &PropertyTypeUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for PropertyType.
 func (c *PropertyTypeClient) Delete() *PropertyTypeDelete {
-	mutation := newPropertyTypeMutation(c.config, OpDelete)
-	return &PropertyTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &PropertyTypeDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -3552,10 +3059,7 @@ func (c *PropertyTypeClient) DeleteOne(pt *PropertyType) *PropertyTypeDeleteOne 
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *PropertyTypeClient) DeleteOneID(id int) *PropertyTypeDeleteOne {
-	builder := c.Delete().Where(propertytype.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &PropertyTypeDeleteOne{builder}
+	return &PropertyTypeDeleteOne{c.Delete().Where(propertytype.ID(id))}
 }
 
 // Create returns a query builder for PropertyType.
@@ -3689,11 +3193,6 @@ func (c *PropertyTypeClient) QueryProjectType(pt *PropertyType) *ProjectTypeQuer
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *PropertyTypeClient) Hooks() []Hook {
-	return c.hooks.PropertyType
-}
-
 // ReportFilterClient is a client for the ReportFilter schema.
 type ReportFilterClient struct {
 	config
@@ -3704,22 +3203,14 @@ func NewReportFilterClient(c config) *ReportFilterClient {
 	return &ReportFilterClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `reportfilter.Hooks(f(g(h())))`.
-func (c *ReportFilterClient) Use(hooks ...Hook) {
-	c.hooks.ReportFilter = append(c.hooks.ReportFilter, hooks...)
-}
-
 // Create returns a create builder for ReportFilter.
 func (c *ReportFilterClient) Create() *ReportFilterCreate {
-	mutation := newReportFilterMutation(c.config, OpCreate)
-	return &ReportFilterCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ReportFilterCreate{config: c.config}
 }
 
 // Update returns an update builder for ReportFilter.
 func (c *ReportFilterClient) Update() *ReportFilterUpdate {
-	mutation := newReportFilterMutation(c.config, OpUpdate)
-	return &ReportFilterUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ReportFilterUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -3729,15 +3220,12 @@ func (c *ReportFilterClient) UpdateOne(rf *ReportFilter) *ReportFilterUpdateOne 
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ReportFilterClient) UpdateOneID(id int) *ReportFilterUpdateOne {
-	mutation := newReportFilterMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &ReportFilterUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ReportFilterUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for ReportFilter.
 func (c *ReportFilterClient) Delete() *ReportFilterDelete {
-	mutation := newReportFilterMutation(c.config, OpDelete)
-	return &ReportFilterDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ReportFilterDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -3747,10 +3235,7 @@ func (c *ReportFilterClient) DeleteOne(rf *ReportFilter) *ReportFilterDeleteOne 
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *ReportFilterClient) DeleteOneID(id int) *ReportFilterDeleteOne {
-	builder := c.Delete().Where(reportfilter.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ReportFilterDeleteOne{builder}
+	return &ReportFilterDeleteOne{c.Delete().Where(reportfilter.ID(id))}
 }
 
 // Create returns a query builder for ReportFilter.
@@ -3772,11 +3257,6 @@ func (c *ReportFilterClient) GetX(ctx context.Context, id int) *ReportFilter {
 	return rf
 }
 
-// Hooks returns the client hooks.
-func (c *ReportFilterClient) Hooks() []Hook {
-	return c.hooks.ReportFilter
-}
-
 // ServiceClient is a client for the Service schema.
 type ServiceClient struct {
 	config
@@ -3787,22 +3267,14 @@ func NewServiceClient(c config) *ServiceClient {
 	return &ServiceClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `service.Hooks(f(g(h())))`.
-func (c *ServiceClient) Use(hooks ...Hook) {
-	c.hooks.Service = append(c.hooks.Service, hooks...)
-}
-
 // Create returns a create builder for Service.
 func (c *ServiceClient) Create() *ServiceCreate {
-	mutation := newServiceMutation(c.config, OpCreate)
-	return &ServiceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceCreate{config: c.config}
 }
 
 // Update returns an update builder for Service.
 func (c *ServiceClient) Update() *ServiceUpdate {
-	mutation := newServiceMutation(c.config, OpUpdate)
-	return &ServiceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -3812,15 +3284,12 @@ func (c *ServiceClient) UpdateOne(s *Service) *ServiceUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ServiceClient) UpdateOneID(id int) *ServiceUpdateOne {
-	mutation := newServiceMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &ServiceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Service.
 func (c *ServiceClient) Delete() *ServiceDelete {
-	mutation := newServiceMutation(c.config, OpDelete)
-	return &ServiceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -3830,10 +3299,7 @@ func (c *ServiceClient) DeleteOne(s *Service) *ServiceDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *ServiceClient) DeleteOneID(id int) *ServiceDeleteOne {
-	builder := c.Delete().Where(service.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ServiceDeleteOne{builder}
+	return &ServiceDeleteOne{c.Delete().Where(service.ID(id))}
 }
 
 // Create returns a query builder for Service.
@@ -3953,11 +3419,6 @@ func (c *ServiceClient) QueryEndpoints(s *Service) *ServiceEndpointQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *ServiceClient) Hooks() []Hook {
-	return c.hooks.Service
-}
-
 // ServiceEndpointClient is a client for the ServiceEndpoint schema.
 type ServiceEndpointClient struct {
 	config
@@ -3968,22 +3429,14 @@ func NewServiceEndpointClient(c config) *ServiceEndpointClient {
 	return &ServiceEndpointClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `serviceendpoint.Hooks(f(g(h())))`.
-func (c *ServiceEndpointClient) Use(hooks ...Hook) {
-	c.hooks.ServiceEndpoint = append(c.hooks.ServiceEndpoint, hooks...)
-}
-
 // Create returns a create builder for ServiceEndpoint.
 func (c *ServiceEndpointClient) Create() *ServiceEndpointCreate {
-	mutation := newServiceEndpointMutation(c.config, OpCreate)
-	return &ServiceEndpointCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceEndpointCreate{config: c.config}
 }
 
 // Update returns an update builder for ServiceEndpoint.
 func (c *ServiceEndpointClient) Update() *ServiceEndpointUpdate {
-	mutation := newServiceEndpointMutation(c.config, OpUpdate)
-	return &ServiceEndpointUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceEndpointUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -3993,15 +3446,12 @@ func (c *ServiceEndpointClient) UpdateOne(se *ServiceEndpoint) *ServiceEndpointU
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ServiceEndpointClient) UpdateOneID(id int) *ServiceEndpointUpdateOne {
-	mutation := newServiceEndpointMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &ServiceEndpointUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceEndpointUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for ServiceEndpoint.
 func (c *ServiceEndpointClient) Delete() *ServiceEndpointDelete {
-	mutation := newServiceEndpointMutation(c.config, OpDelete)
-	return &ServiceEndpointDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceEndpointDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -4011,10 +3461,7 @@ func (c *ServiceEndpointClient) DeleteOne(se *ServiceEndpoint) *ServiceEndpointD
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *ServiceEndpointClient) DeleteOneID(id int) *ServiceEndpointDeleteOne {
-	builder := c.Delete().Where(serviceendpoint.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ServiceEndpointDeleteOne{builder}
+	return &ServiceEndpointDeleteOne{c.Delete().Where(serviceendpoint.ID(id))}
 }
 
 // Create returns a query builder for ServiceEndpoint.
@@ -4064,11 +3511,6 @@ func (c *ServiceEndpointClient) QueryService(se *ServiceEndpoint) *ServiceQuery 
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *ServiceEndpointClient) Hooks() []Hook {
-	return c.hooks.ServiceEndpoint
-}
-
 // ServiceTypeClient is a client for the ServiceType schema.
 type ServiceTypeClient struct {
 	config
@@ -4079,22 +3521,14 @@ func NewServiceTypeClient(c config) *ServiceTypeClient {
 	return &ServiceTypeClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `servicetype.Hooks(f(g(h())))`.
-func (c *ServiceTypeClient) Use(hooks ...Hook) {
-	c.hooks.ServiceType = append(c.hooks.ServiceType, hooks...)
-}
-
 // Create returns a create builder for ServiceType.
 func (c *ServiceTypeClient) Create() *ServiceTypeCreate {
-	mutation := newServiceTypeMutation(c.config, OpCreate)
-	return &ServiceTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceTypeCreate{config: c.config}
 }
 
 // Update returns an update builder for ServiceType.
 func (c *ServiceTypeClient) Update() *ServiceTypeUpdate {
-	mutation := newServiceTypeMutation(c.config, OpUpdate)
-	return &ServiceTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceTypeUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -4104,15 +3538,12 @@ func (c *ServiceTypeClient) UpdateOne(st *ServiceType) *ServiceTypeUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *ServiceTypeClient) UpdateOneID(id int) *ServiceTypeUpdateOne {
-	mutation := newServiceTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &ServiceTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceTypeUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for ServiceType.
 func (c *ServiceTypeClient) Delete() *ServiceTypeDelete {
-	mutation := newServiceTypeMutation(c.config, OpDelete)
-	return &ServiceTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &ServiceTypeDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -4122,10 +3553,7 @@ func (c *ServiceTypeClient) DeleteOne(st *ServiceType) *ServiceTypeDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *ServiceTypeClient) DeleteOneID(id int) *ServiceTypeDeleteOne {
-	builder := c.Delete().Where(servicetype.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &ServiceTypeDeleteOne{builder}
+	return &ServiceTypeDeleteOne{c.Delete().Where(servicetype.ID(id))}
 }
 
 // Create returns a query builder for ServiceType.
@@ -4175,11 +3603,6 @@ func (c *ServiceTypeClient) QueryPropertyTypes(st *ServiceType) *PropertyTypeQue
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *ServiceTypeClient) Hooks() []Hook {
-	return c.hooks.ServiceType
-}
-
 // SurveyClient is a client for the Survey schema.
 type SurveyClient struct {
 	config
@@ -4190,22 +3613,14 @@ func NewSurveyClient(c config) *SurveyClient {
 	return &SurveyClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `survey.Hooks(f(g(h())))`.
-func (c *SurveyClient) Use(hooks ...Hook) {
-	c.hooks.Survey = append(c.hooks.Survey, hooks...)
-}
-
 // Create returns a create builder for Survey.
 func (c *SurveyClient) Create() *SurveyCreate {
-	mutation := newSurveyMutation(c.config, OpCreate)
-	return &SurveyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyCreate{config: c.config}
 }
 
 // Update returns an update builder for Survey.
 func (c *SurveyClient) Update() *SurveyUpdate {
-	mutation := newSurveyMutation(c.config, OpUpdate)
-	return &SurveyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -4215,15 +3630,12 @@ func (c *SurveyClient) UpdateOne(s *Survey) *SurveyUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyClient) UpdateOneID(id int) *SurveyUpdateOne {
-	mutation := newSurveyMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &SurveyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Survey.
 func (c *SurveyClient) Delete() *SurveyDelete {
-	mutation := newSurveyMutation(c.config, OpDelete)
-	return &SurveyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -4233,10 +3645,7 @@ func (c *SurveyClient) DeleteOne(s *Survey) *SurveyDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *SurveyClient) DeleteOneID(id int) *SurveyDeleteOne {
-	builder := c.Delete().Where(survey.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SurveyDeleteOne{builder}
+	return &SurveyDeleteOne{c.Delete().Where(survey.ID(id))}
 }
 
 // Create returns a query builder for Survey.
@@ -4300,11 +3709,6 @@ func (c *SurveyClient) QueryQuestions(s *Survey) *SurveyQuestionQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *SurveyClient) Hooks() []Hook {
-	return c.hooks.Survey
-}
-
 // SurveyCellScanClient is a client for the SurveyCellScan schema.
 type SurveyCellScanClient struct {
 	config
@@ -4315,22 +3719,14 @@ func NewSurveyCellScanClient(c config) *SurveyCellScanClient {
 	return &SurveyCellScanClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `surveycellscan.Hooks(f(g(h())))`.
-func (c *SurveyCellScanClient) Use(hooks ...Hook) {
-	c.hooks.SurveyCellScan = append(c.hooks.SurveyCellScan, hooks...)
-}
-
 // Create returns a create builder for SurveyCellScan.
 func (c *SurveyCellScanClient) Create() *SurveyCellScanCreate {
-	mutation := newSurveyCellScanMutation(c.config, OpCreate)
-	return &SurveyCellScanCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyCellScanCreate{config: c.config}
 }
 
 // Update returns an update builder for SurveyCellScan.
 func (c *SurveyCellScanClient) Update() *SurveyCellScanUpdate {
-	mutation := newSurveyCellScanMutation(c.config, OpUpdate)
-	return &SurveyCellScanUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyCellScanUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -4340,15 +3736,12 @@ func (c *SurveyCellScanClient) UpdateOne(scs *SurveyCellScan) *SurveyCellScanUpd
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyCellScanClient) UpdateOneID(id int) *SurveyCellScanUpdateOne {
-	mutation := newSurveyCellScanMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &SurveyCellScanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyCellScanUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for SurveyCellScan.
 func (c *SurveyCellScanClient) Delete() *SurveyCellScanDelete {
-	mutation := newSurveyCellScanMutation(c.config, OpDelete)
-	return &SurveyCellScanDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyCellScanDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -4358,10 +3751,7 @@ func (c *SurveyCellScanClient) DeleteOne(scs *SurveyCellScan) *SurveyCellScanDel
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *SurveyCellScanClient) DeleteOneID(id int) *SurveyCellScanDeleteOne {
-	builder := c.Delete().Where(surveycellscan.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SurveyCellScanDeleteOne{builder}
+	return &SurveyCellScanDeleteOne{c.Delete().Where(surveycellscan.ID(id))}
 }
 
 // Create returns a query builder for SurveyCellScan.
@@ -4411,11 +3801,6 @@ func (c *SurveyCellScanClient) QueryLocation(scs *SurveyCellScan) *LocationQuery
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *SurveyCellScanClient) Hooks() []Hook {
-	return c.hooks.SurveyCellScan
-}
-
 // SurveyQuestionClient is a client for the SurveyQuestion schema.
 type SurveyQuestionClient struct {
 	config
@@ -4426,22 +3811,14 @@ func NewSurveyQuestionClient(c config) *SurveyQuestionClient {
 	return &SurveyQuestionClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `surveyquestion.Hooks(f(g(h())))`.
-func (c *SurveyQuestionClient) Use(hooks ...Hook) {
-	c.hooks.SurveyQuestion = append(c.hooks.SurveyQuestion, hooks...)
-}
-
 // Create returns a create builder for SurveyQuestion.
 func (c *SurveyQuestionClient) Create() *SurveyQuestionCreate {
-	mutation := newSurveyQuestionMutation(c.config, OpCreate)
-	return &SurveyQuestionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyQuestionCreate{config: c.config}
 }
 
 // Update returns an update builder for SurveyQuestion.
 func (c *SurveyQuestionClient) Update() *SurveyQuestionUpdate {
-	mutation := newSurveyQuestionMutation(c.config, OpUpdate)
-	return &SurveyQuestionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyQuestionUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -4451,15 +3828,12 @@ func (c *SurveyQuestionClient) UpdateOne(sq *SurveyQuestion) *SurveyQuestionUpda
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyQuestionClient) UpdateOneID(id int) *SurveyQuestionUpdateOne {
-	mutation := newSurveyQuestionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &SurveyQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyQuestionUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for SurveyQuestion.
 func (c *SurveyQuestionClient) Delete() *SurveyQuestionDelete {
-	mutation := newSurveyQuestionMutation(c.config, OpDelete)
-	return &SurveyQuestionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyQuestionDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -4469,10 +3843,7 @@ func (c *SurveyQuestionClient) DeleteOne(sq *SurveyQuestion) *SurveyQuestionDele
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *SurveyQuestionClient) DeleteOneID(id int) *SurveyQuestionDeleteOne {
-	builder := c.Delete().Where(surveyquestion.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SurveyQuestionDeleteOne{builder}
+	return &SurveyQuestionDeleteOne{c.Delete().Where(surveyquestion.ID(id))}
 }
 
 // Create returns a query builder for SurveyQuestion.
@@ -4550,11 +3921,6 @@ func (c *SurveyQuestionClient) QueryPhotoData(sq *SurveyQuestion) *FileQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *SurveyQuestionClient) Hooks() []Hook {
-	return c.hooks.SurveyQuestion
-}
-
 // SurveyTemplateCategoryClient is a client for the SurveyTemplateCategory schema.
 type SurveyTemplateCategoryClient struct {
 	config
@@ -4565,22 +3931,14 @@ func NewSurveyTemplateCategoryClient(c config) *SurveyTemplateCategoryClient {
 	return &SurveyTemplateCategoryClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `surveytemplatecategory.Hooks(f(g(h())))`.
-func (c *SurveyTemplateCategoryClient) Use(hooks ...Hook) {
-	c.hooks.SurveyTemplateCategory = append(c.hooks.SurveyTemplateCategory, hooks...)
-}
-
 // Create returns a create builder for SurveyTemplateCategory.
 func (c *SurveyTemplateCategoryClient) Create() *SurveyTemplateCategoryCreate {
-	mutation := newSurveyTemplateCategoryMutation(c.config, OpCreate)
-	return &SurveyTemplateCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyTemplateCategoryCreate{config: c.config}
 }
 
 // Update returns an update builder for SurveyTemplateCategory.
 func (c *SurveyTemplateCategoryClient) Update() *SurveyTemplateCategoryUpdate {
-	mutation := newSurveyTemplateCategoryMutation(c.config, OpUpdate)
-	return &SurveyTemplateCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyTemplateCategoryUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -4590,15 +3948,12 @@ func (c *SurveyTemplateCategoryClient) UpdateOne(stc *SurveyTemplateCategory) *S
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyTemplateCategoryClient) UpdateOneID(id int) *SurveyTemplateCategoryUpdateOne {
-	mutation := newSurveyTemplateCategoryMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &SurveyTemplateCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyTemplateCategoryUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for SurveyTemplateCategory.
 func (c *SurveyTemplateCategoryClient) Delete() *SurveyTemplateCategoryDelete {
-	mutation := newSurveyTemplateCategoryMutation(c.config, OpDelete)
-	return &SurveyTemplateCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyTemplateCategoryDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -4608,10 +3963,7 @@ func (c *SurveyTemplateCategoryClient) DeleteOne(stc *SurveyTemplateCategory) *S
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *SurveyTemplateCategoryClient) DeleteOneID(id int) *SurveyTemplateCategoryDeleteOne {
-	builder := c.Delete().Where(surveytemplatecategory.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SurveyTemplateCategoryDeleteOne{builder}
+	return &SurveyTemplateCategoryDeleteOne{c.Delete().Where(surveytemplatecategory.ID(id))}
 }
 
 // Create returns a query builder for SurveyTemplateCategory.
@@ -4647,11 +3999,6 @@ func (c *SurveyTemplateCategoryClient) QuerySurveyTemplateQuestions(stc *SurveyT
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *SurveyTemplateCategoryClient) Hooks() []Hook {
-	return c.hooks.SurveyTemplateCategory
-}
-
 // SurveyTemplateQuestionClient is a client for the SurveyTemplateQuestion schema.
 type SurveyTemplateQuestionClient struct {
 	config
@@ -4662,22 +4009,14 @@ func NewSurveyTemplateQuestionClient(c config) *SurveyTemplateQuestionClient {
 	return &SurveyTemplateQuestionClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `surveytemplatequestion.Hooks(f(g(h())))`.
-func (c *SurveyTemplateQuestionClient) Use(hooks ...Hook) {
-	c.hooks.SurveyTemplateQuestion = append(c.hooks.SurveyTemplateQuestion, hooks...)
-}
-
 // Create returns a create builder for SurveyTemplateQuestion.
 func (c *SurveyTemplateQuestionClient) Create() *SurveyTemplateQuestionCreate {
-	mutation := newSurveyTemplateQuestionMutation(c.config, OpCreate)
-	return &SurveyTemplateQuestionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyTemplateQuestionCreate{config: c.config}
 }
 
 // Update returns an update builder for SurveyTemplateQuestion.
 func (c *SurveyTemplateQuestionClient) Update() *SurveyTemplateQuestionUpdate {
-	mutation := newSurveyTemplateQuestionMutation(c.config, OpUpdate)
-	return &SurveyTemplateQuestionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyTemplateQuestionUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -4687,15 +4026,12 @@ func (c *SurveyTemplateQuestionClient) UpdateOne(stq *SurveyTemplateQuestion) *S
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyTemplateQuestionClient) UpdateOneID(id int) *SurveyTemplateQuestionUpdateOne {
-	mutation := newSurveyTemplateQuestionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &SurveyTemplateQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyTemplateQuestionUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for SurveyTemplateQuestion.
 func (c *SurveyTemplateQuestionClient) Delete() *SurveyTemplateQuestionDelete {
-	mutation := newSurveyTemplateQuestionMutation(c.config, OpDelete)
-	return &SurveyTemplateQuestionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyTemplateQuestionDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -4705,10 +4041,7 @@ func (c *SurveyTemplateQuestionClient) DeleteOne(stq *SurveyTemplateQuestion) *S
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *SurveyTemplateQuestionClient) DeleteOneID(id int) *SurveyTemplateQuestionDeleteOne {
-	builder := c.Delete().Where(surveytemplatequestion.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SurveyTemplateQuestionDeleteOne{builder}
+	return &SurveyTemplateQuestionDeleteOne{c.Delete().Where(surveytemplatequestion.ID(id))}
 }
 
 // Create returns a query builder for SurveyTemplateQuestion.
@@ -4744,11 +4077,6 @@ func (c *SurveyTemplateQuestionClient) QueryCategory(stq *SurveyTemplateQuestion
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *SurveyTemplateQuestionClient) Hooks() []Hook {
-	return c.hooks.SurveyTemplateQuestion
-}
-
 // SurveyWiFiScanClient is a client for the SurveyWiFiScan schema.
 type SurveyWiFiScanClient struct {
 	config
@@ -4759,22 +4087,14 @@ func NewSurveyWiFiScanClient(c config) *SurveyWiFiScanClient {
 	return &SurveyWiFiScanClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `surveywifiscan.Hooks(f(g(h())))`.
-func (c *SurveyWiFiScanClient) Use(hooks ...Hook) {
-	c.hooks.SurveyWiFiScan = append(c.hooks.SurveyWiFiScan, hooks...)
-}
-
 // Create returns a create builder for SurveyWiFiScan.
 func (c *SurveyWiFiScanClient) Create() *SurveyWiFiScanCreate {
-	mutation := newSurveyWiFiScanMutation(c.config, OpCreate)
-	return &SurveyWiFiScanCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyWiFiScanCreate{config: c.config}
 }
 
 // Update returns an update builder for SurveyWiFiScan.
 func (c *SurveyWiFiScanClient) Update() *SurveyWiFiScanUpdate {
-	mutation := newSurveyWiFiScanMutation(c.config, OpUpdate)
-	return &SurveyWiFiScanUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyWiFiScanUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -4784,15 +4104,12 @@ func (c *SurveyWiFiScanClient) UpdateOne(swfs *SurveyWiFiScan) *SurveyWiFiScanUp
 
 // UpdateOneID returns an update builder for the given id.
 func (c *SurveyWiFiScanClient) UpdateOneID(id int) *SurveyWiFiScanUpdateOne {
-	mutation := newSurveyWiFiScanMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &SurveyWiFiScanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyWiFiScanUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for SurveyWiFiScan.
 func (c *SurveyWiFiScanClient) Delete() *SurveyWiFiScanDelete {
-	mutation := newSurveyWiFiScanMutation(c.config, OpDelete)
-	return &SurveyWiFiScanDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &SurveyWiFiScanDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -4802,10 +4119,7 @@ func (c *SurveyWiFiScanClient) DeleteOne(swfs *SurveyWiFiScan) *SurveyWiFiScanDe
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *SurveyWiFiScanClient) DeleteOneID(id int) *SurveyWiFiScanDeleteOne {
-	builder := c.Delete().Where(surveywifiscan.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &SurveyWiFiScanDeleteOne{builder}
+	return &SurveyWiFiScanDeleteOne{c.Delete().Where(surveywifiscan.ID(id))}
 }
 
 // Create returns a query builder for SurveyWiFiScan.
@@ -4855,11 +4169,6 @@ func (c *SurveyWiFiScanClient) QueryLocation(swfs *SurveyWiFiScan) *LocationQuer
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *SurveyWiFiScanClient) Hooks() []Hook {
-	return c.hooks.SurveyWiFiScan
-}
-
 // TechnicianClient is a client for the Technician schema.
 type TechnicianClient struct {
 	config
@@ -4870,22 +4179,14 @@ func NewTechnicianClient(c config) *TechnicianClient {
 	return &TechnicianClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `technician.Hooks(f(g(h())))`.
-func (c *TechnicianClient) Use(hooks ...Hook) {
-	c.hooks.Technician = append(c.hooks.Technician, hooks...)
-}
-
 // Create returns a create builder for Technician.
 func (c *TechnicianClient) Create() *TechnicianCreate {
-	mutation := newTechnicianMutation(c.config, OpCreate)
-	return &TechnicianCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TechnicianCreate{config: c.config}
 }
 
 // Update returns an update builder for Technician.
 func (c *TechnicianClient) Update() *TechnicianUpdate {
-	mutation := newTechnicianMutation(c.config, OpUpdate)
-	return &TechnicianUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TechnicianUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -4895,15 +4196,12 @@ func (c *TechnicianClient) UpdateOne(t *Technician) *TechnicianUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *TechnicianClient) UpdateOneID(id int) *TechnicianUpdateOne {
-	mutation := newTechnicianMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &TechnicianUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TechnicianUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Technician.
 func (c *TechnicianClient) Delete() *TechnicianDelete {
-	mutation := newTechnicianMutation(c.config, OpDelete)
-	return &TechnicianDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TechnicianDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -4913,10 +4211,7 @@ func (c *TechnicianClient) DeleteOne(t *Technician) *TechnicianDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *TechnicianClient) DeleteOneID(id int) *TechnicianDeleteOne {
-	builder := c.Delete().Where(technician.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &TechnicianDeleteOne{builder}
+	return &TechnicianDeleteOne{c.Delete().Where(technician.ID(id))}
 }
 
 // Create returns a query builder for Technician.
@@ -4952,11 +4247,6 @@ func (c *TechnicianClient) QueryWorkOrders(t *Technician) *WorkOrderQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *TechnicianClient) Hooks() []Hook {
-	return c.hooks.Technician
-}
-
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -4967,22 +4257,14 @@ func NewUserClient(c config) *UserClient {
 	return &UserClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `user.Hooks(f(g(h())))`.
-func (c *UserClient) Use(hooks ...Hook) {
-	c.hooks.User = append(c.hooks.User, hooks...)
-}
-
 // Create returns a create builder for User.
 func (c *UserClient) Create() *UserCreate {
-	mutation := newUserMutation(c.config, OpCreate)
-	return &UserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &UserCreate{config: c.config}
 }
 
 // Update returns an update builder for User.
 func (c *UserClient) Update() *UserUpdate {
-	mutation := newUserMutation(c.config, OpUpdate)
-	return &UserUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &UserUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -4992,15 +4274,12 @@ func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
-	mutation := newUserMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &UserUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for User.
 func (c *UserClient) Delete() *UserDelete {
-	mutation := newUserMutation(c.config, OpDelete)
-	return &UserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &UserDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -5010,10 +4289,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
-	builder := c.Delete().Where(user.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &UserDeleteOne{builder}
+	return &UserDeleteOne{c.Delete().Where(user.ID(id))}
 }
 
 // Create returns a query builder for User.
@@ -5049,11 +4325,6 @@ func (c *UserClient) QueryProfilePhoto(u *User) *FileQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *UserClient) Hooks() []Hook {
-	return c.hooks.User
-}
-
 // WorkOrderClient is a client for the WorkOrder schema.
 type WorkOrderClient struct {
 	config
@@ -5064,22 +4335,14 @@ func NewWorkOrderClient(c config) *WorkOrderClient {
 	return &WorkOrderClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `workorder.Hooks(f(g(h())))`.
-func (c *WorkOrderClient) Use(hooks ...Hook) {
-	c.hooks.WorkOrder = append(c.hooks.WorkOrder, hooks...)
-}
-
 // Create returns a create builder for WorkOrder.
 func (c *WorkOrderClient) Create() *WorkOrderCreate {
-	mutation := newWorkOrderMutation(c.config, OpCreate)
-	return &WorkOrderCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderCreate{config: c.config}
 }
 
 // Update returns an update builder for WorkOrder.
 func (c *WorkOrderClient) Update() *WorkOrderUpdate {
-	mutation := newWorkOrderMutation(c.config, OpUpdate)
-	return &WorkOrderUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -5089,15 +4352,12 @@ func (c *WorkOrderClient) UpdateOne(wo *WorkOrder) *WorkOrderUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *WorkOrderClient) UpdateOneID(id int) *WorkOrderUpdateOne {
-	mutation := newWorkOrderMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &WorkOrderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for WorkOrder.
 func (c *WorkOrderClient) Delete() *WorkOrderDelete {
-	mutation := newWorkOrderMutation(c.config, OpDelete)
-	return &WorkOrderDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -5107,10 +4367,7 @@ func (c *WorkOrderClient) DeleteOne(wo *WorkOrder) *WorkOrderDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *WorkOrderClient) DeleteOneID(id int) *WorkOrderDeleteOne {
-	builder := c.Delete().Where(workorder.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &WorkOrderDeleteOne{builder}
+	return &WorkOrderDeleteOne{c.Delete().Where(workorder.ID(id))}
 }
 
 // Create returns a query builder for WorkOrder.
@@ -5300,11 +4557,6 @@ func (c *WorkOrderClient) QueryProject(wo *WorkOrder) *ProjectQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *WorkOrderClient) Hooks() []Hook {
-	return c.hooks.WorkOrder
-}
-
 // WorkOrderDefinitionClient is a client for the WorkOrderDefinition schema.
 type WorkOrderDefinitionClient struct {
 	config
@@ -5315,22 +4567,14 @@ func NewWorkOrderDefinitionClient(c config) *WorkOrderDefinitionClient {
 	return &WorkOrderDefinitionClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `workorderdefinition.Hooks(f(g(h())))`.
-func (c *WorkOrderDefinitionClient) Use(hooks ...Hook) {
-	c.hooks.WorkOrderDefinition = append(c.hooks.WorkOrderDefinition, hooks...)
-}
-
 // Create returns a create builder for WorkOrderDefinition.
 func (c *WorkOrderDefinitionClient) Create() *WorkOrderDefinitionCreate {
-	mutation := newWorkOrderDefinitionMutation(c.config, OpCreate)
-	return &WorkOrderDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderDefinitionCreate{config: c.config}
 }
 
 // Update returns an update builder for WorkOrderDefinition.
 func (c *WorkOrderDefinitionClient) Update() *WorkOrderDefinitionUpdate {
-	mutation := newWorkOrderDefinitionMutation(c.config, OpUpdate)
-	return &WorkOrderDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderDefinitionUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -5340,15 +4584,12 @@ func (c *WorkOrderDefinitionClient) UpdateOne(wod *WorkOrderDefinition) *WorkOrd
 
 // UpdateOneID returns an update builder for the given id.
 func (c *WorkOrderDefinitionClient) UpdateOneID(id int) *WorkOrderDefinitionUpdateOne {
-	mutation := newWorkOrderDefinitionMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &WorkOrderDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderDefinitionUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for WorkOrderDefinition.
 func (c *WorkOrderDefinitionClient) Delete() *WorkOrderDefinitionDelete {
-	mutation := newWorkOrderDefinitionMutation(c.config, OpDelete)
-	return &WorkOrderDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderDefinitionDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -5358,10 +4599,7 @@ func (c *WorkOrderDefinitionClient) DeleteOne(wod *WorkOrderDefinition) *WorkOrd
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *WorkOrderDefinitionClient) DeleteOneID(id int) *WorkOrderDefinitionDeleteOne {
-	builder := c.Delete().Where(workorderdefinition.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &WorkOrderDefinitionDeleteOne{builder}
+	return &WorkOrderDefinitionDeleteOne{c.Delete().Where(workorderdefinition.ID(id))}
 }
 
 // Create returns a query builder for WorkOrderDefinition.
@@ -5411,11 +4649,6 @@ func (c *WorkOrderDefinitionClient) QueryProjectType(wod *WorkOrderDefinition) *
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *WorkOrderDefinitionClient) Hooks() []Hook {
-	return c.hooks.WorkOrderDefinition
-}
-
 // WorkOrderTypeClient is a client for the WorkOrderType schema.
 type WorkOrderTypeClient struct {
 	config
@@ -5426,22 +4659,14 @@ func NewWorkOrderTypeClient(c config) *WorkOrderTypeClient {
 	return &WorkOrderTypeClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `workordertype.Hooks(f(g(h())))`.
-func (c *WorkOrderTypeClient) Use(hooks ...Hook) {
-	c.hooks.WorkOrderType = append(c.hooks.WorkOrderType, hooks...)
-}
-
 // Create returns a create builder for WorkOrderType.
 func (c *WorkOrderTypeClient) Create() *WorkOrderTypeCreate {
-	mutation := newWorkOrderTypeMutation(c.config, OpCreate)
-	return &WorkOrderTypeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderTypeCreate{config: c.config}
 }
 
 // Update returns an update builder for WorkOrderType.
 func (c *WorkOrderTypeClient) Update() *WorkOrderTypeUpdate {
-	mutation := newWorkOrderTypeMutation(c.config, OpUpdate)
-	return &WorkOrderTypeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderTypeUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -5451,15 +4676,12 @@ func (c *WorkOrderTypeClient) UpdateOne(wot *WorkOrderType) *WorkOrderTypeUpdate
 
 // UpdateOneID returns an update builder for the given id.
 func (c *WorkOrderTypeClient) UpdateOneID(id int) *WorkOrderTypeUpdateOne {
-	mutation := newWorkOrderTypeMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &WorkOrderTypeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderTypeUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for WorkOrderType.
 func (c *WorkOrderTypeClient) Delete() *WorkOrderTypeDelete {
-	mutation := newWorkOrderTypeMutation(c.config, OpDelete)
-	return &WorkOrderTypeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &WorkOrderTypeDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -5469,10 +4691,7 @@ func (c *WorkOrderTypeClient) DeleteOne(wot *WorkOrderType) *WorkOrderTypeDelete
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *WorkOrderTypeClient) DeleteOneID(id int) *WorkOrderTypeDeleteOne {
-	builder := c.Delete().Where(workordertype.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &WorkOrderTypeDeleteOne{builder}
+	return &WorkOrderTypeDeleteOne{c.Delete().Where(workordertype.ID(id))}
 }
 
 // Create returns a query builder for WorkOrderType.
@@ -5562,9 +4781,4 @@ func (c *WorkOrderTypeClient) QueryCheckListDefinitions(wot *WorkOrderType) *Che
 	query.sql = sqlgraph.Neighbors(wot.driver.Dialect(), step)
 
 	return query
-}
-
-// Hooks returns the client hooks.
-func (c *WorkOrderTypeClient) Hooks() []Hook {
-	return c.hooks.WorkOrderType
 }

@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -23,9 +23,24 @@ import (
 // LocationTypeUpdate is the builder for updating LocationType entities.
 type LocationTypeUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *LocationTypeMutation
-	predicates []predicate.LocationType
+
+	update_time                     *time.Time
+	site                            *bool
+	name                            *string
+	map_type                        *string
+	clearmap_type                   bool
+	map_zoom_level                  *int
+	addmap_zoom_level               *int
+	clearmap_zoom_level             bool
+	index                           *int
+	addindex                        *int
+	locations                       map[int]struct{}
+	property_types                  map[int]struct{}
+	survey_template_categories      map[int]struct{}
+	removedLocations                map[int]struct{}
+	removedPropertyTypes            map[int]struct{}
+	removedSurveyTemplateCategories map[int]struct{}
+	predicates                      []predicate.LocationType
 }
 
 // Where adds a new predicate for the builder.
@@ -36,7 +51,7 @@ func (ltu *LocationTypeUpdate) Where(ps ...predicate.LocationType) *LocationType
 
 // SetSite sets the site field.
 func (ltu *LocationTypeUpdate) SetSite(b bool) *LocationTypeUpdate {
-	ltu.mutation.SetSite(b)
+	ltu.site = &b
 	return ltu
 }
 
@@ -50,13 +65,13 @@ func (ltu *LocationTypeUpdate) SetNillableSite(b *bool) *LocationTypeUpdate {
 
 // SetName sets the name field.
 func (ltu *LocationTypeUpdate) SetName(s string) *LocationTypeUpdate {
-	ltu.mutation.SetName(s)
+	ltu.name = &s
 	return ltu
 }
 
 // SetMapType sets the map_type field.
 func (ltu *LocationTypeUpdate) SetMapType(s string) *LocationTypeUpdate {
-	ltu.mutation.SetMapType(s)
+	ltu.map_type = &s
 	return ltu
 }
 
@@ -70,14 +85,15 @@ func (ltu *LocationTypeUpdate) SetNillableMapType(s *string) *LocationTypeUpdate
 
 // ClearMapType clears the value of map_type.
 func (ltu *LocationTypeUpdate) ClearMapType() *LocationTypeUpdate {
-	ltu.mutation.ClearMapType()
+	ltu.map_type = nil
+	ltu.clearmap_type = true
 	return ltu
 }
 
 // SetMapZoomLevel sets the map_zoom_level field.
 func (ltu *LocationTypeUpdate) SetMapZoomLevel(i int) *LocationTypeUpdate {
-	ltu.mutation.ResetMapZoomLevel()
-	ltu.mutation.SetMapZoomLevel(i)
+	ltu.map_zoom_level = &i
+	ltu.addmap_zoom_level = nil
 	return ltu
 }
 
@@ -91,20 +107,25 @@ func (ltu *LocationTypeUpdate) SetNillableMapZoomLevel(i *int) *LocationTypeUpda
 
 // AddMapZoomLevel adds i to map_zoom_level.
 func (ltu *LocationTypeUpdate) AddMapZoomLevel(i int) *LocationTypeUpdate {
-	ltu.mutation.AddMapZoomLevel(i)
+	if ltu.addmap_zoom_level == nil {
+		ltu.addmap_zoom_level = &i
+	} else {
+		*ltu.addmap_zoom_level += i
+	}
 	return ltu
 }
 
 // ClearMapZoomLevel clears the value of map_zoom_level.
 func (ltu *LocationTypeUpdate) ClearMapZoomLevel() *LocationTypeUpdate {
-	ltu.mutation.ClearMapZoomLevel()
+	ltu.map_zoom_level = nil
+	ltu.clearmap_zoom_level = true
 	return ltu
 }
 
 // SetIndex sets the index field.
 func (ltu *LocationTypeUpdate) SetIndex(i int) *LocationTypeUpdate {
-	ltu.mutation.ResetIndex()
-	ltu.mutation.SetIndex(i)
+	ltu.index = &i
+	ltu.addindex = nil
 	return ltu
 }
 
@@ -118,13 +139,22 @@ func (ltu *LocationTypeUpdate) SetNillableIndex(i *int) *LocationTypeUpdate {
 
 // AddIndex adds i to index.
 func (ltu *LocationTypeUpdate) AddIndex(i int) *LocationTypeUpdate {
-	ltu.mutation.AddIndex(i)
+	if ltu.addindex == nil {
+		ltu.addindex = &i
+	} else {
+		*ltu.addindex += i
+	}
 	return ltu
 }
 
 // AddLocationIDs adds the locations edge to Location by ids.
 func (ltu *LocationTypeUpdate) AddLocationIDs(ids ...int) *LocationTypeUpdate {
-	ltu.mutation.AddLocationIDs(ids...)
+	if ltu.locations == nil {
+		ltu.locations = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltu.locations[ids[i]] = struct{}{}
+	}
 	return ltu
 }
 
@@ -139,7 +169,12 @@ func (ltu *LocationTypeUpdate) AddLocations(l ...*Location) *LocationTypeUpdate 
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (ltu *LocationTypeUpdate) AddPropertyTypeIDs(ids ...int) *LocationTypeUpdate {
-	ltu.mutation.AddPropertyTypeIDs(ids...)
+	if ltu.property_types == nil {
+		ltu.property_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltu.property_types[ids[i]] = struct{}{}
+	}
 	return ltu
 }
 
@@ -154,7 +189,12 @@ func (ltu *LocationTypeUpdate) AddPropertyTypes(p ...*PropertyType) *LocationTyp
 
 // AddSurveyTemplateCategoryIDs adds the survey_template_categories edge to SurveyTemplateCategory by ids.
 func (ltu *LocationTypeUpdate) AddSurveyTemplateCategoryIDs(ids ...int) *LocationTypeUpdate {
-	ltu.mutation.AddSurveyTemplateCategoryIDs(ids...)
+	if ltu.survey_template_categories == nil {
+		ltu.survey_template_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltu.survey_template_categories[ids[i]] = struct{}{}
+	}
 	return ltu
 }
 
@@ -169,7 +209,12 @@ func (ltu *LocationTypeUpdate) AddSurveyTemplateCategories(s ...*SurveyTemplateC
 
 // RemoveLocationIDs removes the locations edge to Location by ids.
 func (ltu *LocationTypeUpdate) RemoveLocationIDs(ids ...int) *LocationTypeUpdate {
-	ltu.mutation.RemoveLocationIDs(ids...)
+	if ltu.removedLocations == nil {
+		ltu.removedLocations = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltu.removedLocations[ids[i]] = struct{}{}
+	}
 	return ltu
 }
 
@@ -184,7 +229,12 @@ func (ltu *LocationTypeUpdate) RemoveLocations(l ...*Location) *LocationTypeUpda
 
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (ltu *LocationTypeUpdate) RemovePropertyTypeIDs(ids ...int) *LocationTypeUpdate {
-	ltu.mutation.RemovePropertyTypeIDs(ids...)
+	if ltu.removedPropertyTypes == nil {
+		ltu.removedPropertyTypes = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltu.removedPropertyTypes[ids[i]] = struct{}{}
+	}
 	return ltu
 }
 
@@ -199,7 +249,12 @@ func (ltu *LocationTypeUpdate) RemovePropertyTypes(p ...*PropertyType) *Location
 
 // RemoveSurveyTemplateCategoryIDs removes the survey_template_categories edge to SurveyTemplateCategory by ids.
 func (ltu *LocationTypeUpdate) RemoveSurveyTemplateCategoryIDs(ids ...int) *LocationTypeUpdate {
-	ltu.mutation.RemoveSurveyTemplateCategoryIDs(ids...)
+	if ltu.removedSurveyTemplateCategories == nil {
+		ltu.removedSurveyTemplateCategories = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltu.removedSurveyTemplateCategories[ids[i]] = struct{}{}
+	}
 	return ltu
 }
 
@@ -214,35 +269,11 @@ func (ltu *LocationTypeUpdate) RemoveSurveyTemplateCategories(s ...*SurveyTempla
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (ltu *LocationTypeUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := ltu.mutation.UpdateTime(); !ok {
+	if ltu.update_time == nil {
 		v := locationtype.UpdateDefaultUpdateTime()
-		ltu.mutation.SetUpdateTime(v)
+		ltu.update_time = &v
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(ltu.hooks) == 0 {
-		affected, err = ltu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LocationTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ltu.mutation = mutation
-			affected, err = ltu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(ltu.hooks); i > 0; i-- {
-			mut = ltu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, ltu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return ltu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -285,75 +316,75 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := ltu.mutation.UpdateTime(); ok {
+	if value := ltu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldUpdateTime,
 		})
 	}
-	if value, ok := ltu.mutation.Site(); ok {
+	if value := ltu.site; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldSite,
 		})
 	}
-	if value, ok := ltu.mutation.Name(); ok {
+	if value := ltu.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldName,
 		})
 	}
-	if value, ok := ltu.mutation.MapType(); ok {
+	if value := ltu.map_type; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldMapType,
 		})
 	}
-	if ltu.mutation.MapTypeCleared() {
+	if ltu.clearmap_type {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: locationtype.FieldMapType,
 		})
 	}
-	if value, ok := ltu.mutation.MapZoomLevel(); ok {
+	if value := ltu.map_zoom_level; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
-	if value, ok := ltu.mutation.AddedMapZoomLevel(); ok {
+	if value := ltu.addmap_zoom_level; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
-	if ltu.mutation.MapZoomLevelCleared() {
+	if ltu.clearmap_zoom_level {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
-	if value, ok := ltu.mutation.Index(); ok {
+	if value := ltu.index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldIndex,
 		})
 	}
-	if value, ok := ltu.mutation.AddedIndex(); ok {
+	if value := ltu.addindex; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldIndex,
 		})
 	}
-	if nodes := ltu.mutation.RemovedLocationsIDs(); len(nodes) > 0 {
+	if nodes := ltu.removedLocations; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -367,12 +398,12 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ltu.mutation.LocationsIDs(); len(nodes) > 0 {
+	if nodes := ltu.locations; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -386,12 +417,12 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := ltu.mutation.RemovedPropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := ltu.removedPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -405,12 +436,12 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ltu.mutation.PropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := ltu.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -424,12 +455,12 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := ltu.mutation.RemovedSurveyTemplateCategoriesIDs(); len(nodes) > 0 {
+	if nodes := ltu.removedSurveyTemplateCategories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -443,12 +474,12 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ltu.mutation.SurveyTemplateCategoriesIDs(); len(nodes) > 0 {
+	if nodes := ltu.survey_template_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -462,7 +493,7 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -481,13 +512,29 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // LocationTypeUpdateOne is the builder for updating a single LocationType entity.
 type LocationTypeUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *LocationTypeMutation
+	id int
+
+	update_time                     *time.Time
+	site                            *bool
+	name                            *string
+	map_type                        *string
+	clearmap_type                   bool
+	map_zoom_level                  *int
+	addmap_zoom_level               *int
+	clearmap_zoom_level             bool
+	index                           *int
+	addindex                        *int
+	locations                       map[int]struct{}
+	property_types                  map[int]struct{}
+	survey_template_categories      map[int]struct{}
+	removedLocations                map[int]struct{}
+	removedPropertyTypes            map[int]struct{}
+	removedSurveyTemplateCategories map[int]struct{}
 }
 
 // SetSite sets the site field.
 func (ltuo *LocationTypeUpdateOne) SetSite(b bool) *LocationTypeUpdateOne {
-	ltuo.mutation.SetSite(b)
+	ltuo.site = &b
 	return ltuo
 }
 
@@ -501,13 +548,13 @@ func (ltuo *LocationTypeUpdateOne) SetNillableSite(b *bool) *LocationTypeUpdateO
 
 // SetName sets the name field.
 func (ltuo *LocationTypeUpdateOne) SetName(s string) *LocationTypeUpdateOne {
-	ltuo.mutation.SetName(s)
+	ltuo.name = &s
 	return ltuo
 }
 
 // SetMapType sets the map_type field.
 func (ltuo *LocationTypeUpdateOne) SetMapType(s string) *LocationTypeUpdateOne {
-	ltuo.mutation.SetMapType(s)
+	ltuo.map_type = &s
 	return ltuo
 }
 
@@ -521,14 +568,15 @@ func (ltuo *LocationTypeUpdateOne) SetNillableMapType(s *string) *LocationTypeUp
 
 // ClearMapType clears the value of map_type.
 func (ltuo *LocationTypeUpdateOne) ClearMapType() *LocationTypeUpdateOne {
-	ltuo.mutation.ClearMapType()
+	ltuo.map_type = nil
+	ltuo.clearmap_type = true
 	return ltuo
 }
 
 // SetMapZoomLevel sets the map_zoom_level field.
 func (ltuo *LocationTypeUpdateOne) SetMapZoomLevel(i int) *LocationTypeUpdateOne {
-	ltuo.mutation.ResetMapZoomLevel()
-	ltuo.mutation.SetMapZoomLevel(i)
+	ltuo.map_zoom_level = &i
+	ltuo.addmap_zoom_level = nil
 	return ltuo
 }
 
@@ -542,20 +590,25 @@ func (ltuo *LocationTypeUpdateOne) SetNillableMapZoomLevel(i *int) *LocationType
 
 // AddMapZoomLevel adds i to map_zoom_level.
 func (ltuo *LocationTypeUpdateOne) AddMapZoomLevel(i int) *LocationTypeUpdateOne {
-	ltuo.mutation.AddMapZoomLevel(i)
+	if ltuo.addmap_zoom_level == nil {
+		ltuo.addmap_zoom_level = &i
+	} else {
+		*ltuo.addmap_zoom_level += i
+	}
 	return ltuo
 }
 
 // ClearMapZoomLevel clears the value of map_zoom_level.
 func (ltuo *LocationTypeUpdateOne) ClearMapZoomLevel() *LocationTypeUpdateOne {
-	ltuo.mutation.ClearMapZoomLevel()
+	ltuo.map_zoom_level = nil
+	ltuo.clearmap_zoom_level = true
 	return ltuo
 }
 
 // SetIndex sets the index field.
 func (ltuo *LocationTypeUpdateOne) SetIndex(i int) *LocationTypeUpdateOne {
-	ltuo.mutation.ResetIndex()
-	ltuo.mutation.SetIndex(i)
+	ltuo.index = &i
+	ltuo.addindex = nil
 	return ltuo
 }
 
@@ -569,13 +622,22 @@ func (ltuo *LocationTypeUpdateOne) SetNillableIndex(i *int) *LocationTypeUpdateO
 
 // AddIndex adds i to index.
 func (ltuo *LocationTypeUpdateOne) AddIndex(i int) *LocationTypeUpdateOne {
-	ltuo.mutation.AddIndex(i)
+	if ltuo.addindex == nil {
+		ltuo.addindex = &i
+	} else {
+		*ltuo.addindex += i
+	}
 	return ltuo
 }
 
 // AddLocationIDs adds the locations edge to Location by ids.
 func (ltuo *LocationTypeUpdateOne) AddLocationIDs(ids ...int) *LocationTypeUpdateOne {
-	ltuo.mutation.AddLocationIDs(ids...)
+	if ltuo.locations == nil {
+		ltuo.locations = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltuo.locations[ids[i]] = struct{}{}
+	}
 	return ltuo
 }
 
@@ -590,7 +652,12 @@ func (ltuo *LocationTypeUpdateOne) AddLocations(l ...*Location) *LocationTypeUpd
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (ltuo *LocationTypeUpdateOne) AddPropertyTypeIDs(ids ...int) *LocationTypeUpdateOne {
-	ltuo.mutation.AddPropertyTypeIDs(ids...)
+	if ltuo.property_types == nil {
+		ltuo.property_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltuo.property_types[ids[i]] = struct{}{}
+	}
 	return ltuo
 }
 
@@ -605,7 +672,12 @@ func (ltuo *LocationTypeUpdateOne) AddPropertyTypes(p ...*PropertyType) *Locatio
 
 // AddSurveyTemplateCategoryIDs adds the survey_template_categories edge to SurveyTemplateCategory by ids.
 func (ltuo *LocationTypeUpdateOne) AddSurveyTemplateCategoryIDs(ids ...int) *LocationTypeUpdateOne {
-	ltuo.mutation.AddSurveyTemplateCategoryIDs(ids...)
+	if ltuo.survey_template_categories == nil {
+		ltuo.survey_template_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltuo.survey_template_categories[ids[i]] = struct{}{}
+	}
 	return ltuo
 }
 
@@ -620,7 +692,12 @@ func (ltuo *LocationTypeUpdateOne) AddSurveyTemplateCategories(s ...*SurveyTempl
 
 // RemoveLocationIDs removes the locations edge to Location by ids.
 func (ltuo *LocationTypeUpdateOne) RemoveLocationIDs(ids ...int) *LocationTypeUpdateOne {
-	ltuo.mutation.RemoveLocationIDs(ids...)
+	if ltuo.removedLocations == nil {
+		ltuo.removedLocations = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltuo.removedLocations[ids[i]] = struct{}{}
+	}
 	return ltuo
 }
 
@@ -635,7 +712,12 @@ func (ltuo *LocationTypeUpdateOne) RemoveLocations(l ...*Location) *LocationType
 
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (ltuo *LocationTypeUpdateOne) RemovePropertyTypeIDs(ids ...int) *LocationTypeUpdateOne {
-	ltuo.mutation.RemovePropertyTypeIDs(ids...)
+	if ltuo.removedPropertyTypes == nil {
+		ltuo.removedPropertyTypes = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltuo.removedPropertyTypes[ids[i]] = struct{}{}
+	}
 	return ltuo
 }
 
@@ -650,7 +732,12 @@ func (ltuo *LocationTypeUpdateOne) RemovePropertyTypes(p ...*PropertyType) *Loca
 
 // RemoveSurveyTemplateCategoryIDs removes the survey_template_categories edge to SurveyTemplateCategory by ids.
 func (ltuo *LocationTypeUpdateOne) RemoveSurveyTemplateCategoryIDs(ids ...int) *LocationTypeUpdateOne {
-	ltuo.mutation.RemoveSurveyTemplateCategoryIDs(ids...)
+	if ltuo.removedSurveyTemplateCategories == nil {
+		ltuo.removedSurveyTemplateCategories = make(map[int]struct{})
+	}
+	for i := range ids {
+		ltuo.removedSurveyTemplateCategories[ids[i]] = struct{}{}
+	}
 	return ltuo
 }
 
@@ -665,35 +752,11 @@ func (ltuo *LocationTypeUpdateOne) RemoveSurveyTemplateCategories(s ...*SurveyTe
 
 // Save executes the query and returns the updated entity.
 func (ltuo *LocationTypeUpdateOne) Save(ctx context.Context) (*LocationType, error) {
-	if _, ok := ltuo.mutation.UpdateTime(); !ok {
+	if ltuo.update_time == nil {
 		v := locationtype.UpdateDefaultUpdateTime()
-		ltuo.mutation.SetUpdateTime(v)
+		ltuo.update_time = &v
 	}
-
-	var (
-		err  error
-		node *LocationType
-	)
-	if len(ltuo.hooks) == 0 {
-		node, err = ltuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LocationTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ltuo.mutation = mutation
-			node, err = ltuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(ltuo.hooks); i > 0; i-- {
-			mut = ltuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, ltuo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return ltuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -724,85 +787,81 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 			Table:   locationtype.Table,
 			Columns: locationtype.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  ltuo.id,
 				Type:   field.TypeInt,
 				Column: locationtype.FieldID,
 			},
 		},
 	}
-	id, ok := ltuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing LocationType.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := ltuo.mutation.UpdateTime(); ok {
+	if value := ltuo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldUpdateTime,
 		})
 	}
-	if value, ok := ltuo.mutation.Site(); ok {
+	if value := ltuo.site; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldSite,
 		})
 	}
-	if value, ok := ltuo.mutation.Name(); ok {
+	if value := ltuo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldName,
 		})
 	}
-	if value, ok := ltuo.mutation.MapType(); ok {
+	if value := ltuo.map_type; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldMapType,
 		})
 	}
-	if ltuo.mutation.MapTypeCleared() {
+	if ltuo.clearmap_type {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: locationtype.FieldMapType,
 		})
 	}
-	if value, ok := ltuo.mutation.MapZoomLevel(); ok {
+	if value := ltuo.map_zoom_level; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
-	if value, ok := ltuo.mutation.AddedMapZoomLevel(); ok {
+	if value := ltuo.addmap_zoom_level; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
-	if ltuo.mutation.MapZoomLevelCleared() {
+	if ltuo.clearmap_zoom_level {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: locationtype.FieldMapZoomLevel,
 		})
 	}
-	if value, ok := ltuo.mutation.Index(); ok {
+	if value := ltuo.index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldIndex,
 		})
 	}
-	if value, ok := ltuo.mutation.AddedIndex(); ok {
+	if value := ltuo.addindex; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: locationtype.FieldIndex,
 		})
 	}
-	if nodes := ltuo.mutation.RemovedLocationsIDs(); len(nodes) > 0 {
+	if nodes := ltuo.removedLocations; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -816,12 +875,12 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ltuo.mutation.LocationsIDs(); len(nodes) > 0 {
+	if nodes := ltuo.locations; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -835,12 +894,12 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := ltuo.mutation.RemovedPropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := ltuo.removedPropertyTypes; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -854,12 +913,12 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ltuo.mutation.PropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := ltuo.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -873,12 +932,12 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := ltuo.mutation.RemovedSurveyTemplateCategoriesIDs(); len(nodes) > 0 {
+	if nodes := ltuo.removedSurveyTemplateCategories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -892,12 +951,12 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ltuo.mutation.SurveyTemplateCategoriesIDs(); len(nodes) > 0 {
+	if nodes := ltuo.survey_template_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -911,7 +970,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

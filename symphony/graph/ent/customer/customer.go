@@ -8,20 +8,24 @@ package customer
 
 import (
 	"time"
+
+	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the customer type in the database.
 	Label = "customer"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName       = "name"        // FieldExternalID holds the string denoting the external_id vertex property in the database.
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name vertex property in the database.
+	FieldName = "name"
+	// FieldExternalID holds the string denoting the external_id vertex property in the database.
 	FieldExternalID = "external_id"
-
-	// EdgeServices holds the string denoting the services edge name in mutations.
-	EdgeServices = "services"
 
 	// Table holds the table name of the customer in the database.
 	Table = "customers"
@@ -48,14 +52,31 @@ var (
 )
 
 var (
+	mixin       = schema.Customer{}.Mixin()
+	mixinFields = [...][]ent.Field{
+		mixin[0].Fields(),
+	}
+	fields = schema.Customer{}.Fields()
+
+	// descCreateTime is the schema descriptor for create_time field.
+	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime func() time.Time
+	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
+
+	// descUpdateTime is the schema descriptor for update_time field.
+	descUpdateTime = mixinFields[0][1].Descriptor()
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime func() time.Time
+	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime func() time.Time
+	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
+
+	// descName is the schema descriptor for name field.
+	descName = fields[0].Descriptor()
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
+	NameValidator = descName.Validators[0].(func(string) error)
+
+	// descExternalID is the schema descriptor for external_id field.
+	descExternalID = fields[1].Descriptor()
 	// ExternalIDValidator is a validator for the "external_id" field. It is called by the builders before save.
-	ExternalIDValidator func(string) error
+	ExternalIDValidator = descExternalID.Validators[0].(func(string) error)
 )

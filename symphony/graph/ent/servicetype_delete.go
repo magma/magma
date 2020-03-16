@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,8 +19,6 @@ import (
 // ServiceTypeDelete is the builder for deleting a ServiceType entity.
 type ServiceTypeDelete struct {
 	config
-	hooks      []Hook
-	mutation   *ServiceTypeMutation
 	predicates []predicate.ServiceType
 }
 
@@ -33,30 +30,7 @@ func (std *ServiceTypeDelete) Where(ps ...predicate.ServiceType) *ServiceTypeDel
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (std *ServiceTypeDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(std.hooks) == 0 {
-		affected, err = std.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ServiceTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			std.mutation = mutation
-			affected, err = std.sqlExec(ctx)
-			return affected, err
-		})
-		for i := len(std.hooks); i > 0; i-- {
-			mut = std.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, std.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return std.sqlExec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

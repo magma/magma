@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,13 +21,26 @@ import (
 // SurveyWiFiScanCreate is the builder for creating a SurveyWiFiScan entity.
 type SurveyWiFiScanCreate struct {
 	config
-	mutation *SurveyWiFiScanMutation
-	hooks    []Hook
+	create_time     *time.Time
+	update_time     *time.Time
+	ssid            *string
+	bssid           *string
+	timestamp       *time.Time
+	frequency       *int
+	channel         *int
+	band            *string
+	channel_width   *int
+	capabilities    *string
+	strength        *int
+	latitude        *float64
+	longitude       *float64
+	survey_question map[int]struct{}
+	location        map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (swfsc *SurveyWiFiScanCreate) SetCreateTime(t time.Time) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetCreateTime(t)
+	swfsc.create_time = &t
 	return swfsc
 }
 
@@ -42,7 +54,7 @@ func (swfsc *SurveyWiFiScanCreate) SetNillableCreateTime(t *time.Time) *SurveyWi
 
 // SetUpdateTime sets the update_time field.
 func (swfsc *SurveyWiFiScanCreate) SetUpdateTime(t time.Time) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetUpdateTime(t)
+	swfsc.update_time = &t
 	return swfsc
 }
 
@@ -56,7 +68,7 @@ func (swfsc *SurveyWiFiScanCreate) SetNillableUpdateTime(t *time.Time) *SurveyWi
 
 // SetSsid sets the ssid field.
 func (swfsc *SurveyWiFiScanCreate) SetSsid(s string) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetSsid(s)
+	swfsc.ssid = &s
 	return swfsc
 }
 
@@ -70,31 +82,31 @@ func (swfsc *SurveyWiFiScanCreate) SetNillableSsid(s *string) *SurveyWiFiScanCre
 
 // SetBssid sets the bssid field.
 func (swfsc *SurveyWiFiScanCreate) SetBssid(s string) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetBssid(s)
+	swfsc.bssid = &s
 	return swfsc
 }
 
 // SetTimestamp sets the timestamp field.
 func (swfsc *SurveyWiFiScanCreate) SetTimestamp(t time.Time) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetTimestamp(t)
+	swfsc.timestamp = &t
 	return swfsc
 }
 
 // SetFrequency sets the frequency field.
 func (swfsc *SurveyWiFiScanCreate) SetFrequency(i int) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetFrequency(i)
+	swfsc.frequency = &i
 	return swfsc
 }
 
 // SetChannel sets the channel field.
 func (swfsc *SurveyWiFiScanCreate) SetChannel(i int) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetChannel(i)
+	swfsc.channel = &i
 	return swfsc
 }
 
 // SetBand sets the band field.
 func (swfsc *SurveyWiFiScanCreate) SetBand(s string) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetBand(s)
+	swfsc.band = &s
 	return swfsc
 }
 
@@ -108,7 +120,7 @@ func (swfsc *SurveyWiFiScanCreate) SetNillableBand(s *string) *SurveyWiFiScanCre
 
 // SetChannelWidth sets the channel_width field.
 func (swfsc *SurveyWiFiScanCreate) SetChannelWidth(i int) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetChannelWidth(i)
+	swfsc.channel_width = &i
 	return swfsc
 }
 
@@ -122,7 +134,7 @@ func (swfsc *SurveyWiFiScanCreate) SetNillableChannelWidth(i *int) *SurveyWiFiSc
 
 // SetCapabilities sets the capabilities field.
 func (swfsc *SurveyWiFiScanCreate) SetCapabilities(s string) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetCapabilities(s)
+	swfsc.capabilities = &s
 	return swfsc
 }
 
@@ -136,13 +148,13 @@ func (swfsc *SurveyWiFiScanCreate) SetNillableCapabilities(s *string) *SurveyWiF
 
 // SetStrength sets the strength field.
 func (swfsc *SurveyWiFiScanCreate) SetStrength(i int) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetStrength(i)
+	swfsc.strength = &i
 	return swfsc
 }
 
 // SetLatitude sets the latitude field.
 func (swfsc *SurveyWiFiScanCreate) SetLatitude(f float64) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetLatitude(f)
+	swfsc.latitude = &f
 	return swfsc
 }
 
@@ -156,7 +168,7 @@ func (swfsc *SurveyWiFiScanCreate) SetNillableLatitude(f *float64) *SurveyWiFiSc
 
 // SetLongitude sets the longitude field.
 func (swfsc *SurveyWiFiScanCreate) SetLongitude(f float64) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetLongitude(f)
+	swfsc.longitude = &f
 	return swfsc
 }
 
@@ -170,7 +182,10 @@ func (swfsc *SurveyWiFiScanCreate) SetNillableLongitude(f *float64) *SurveyWiFiS
 
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (swfsc *SurveyWiFiScanCreate) SetSurveyQuestionID(id int) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetSurveyQuestionID(id)
+	if swfsc.survey_question == nil {
+		swfsc.survey_question = make(map[int]struct{})
+	}
+	swfsc.survey_question[id] = struct{}{}
 	return swfsc
 }
 
@@ -189,7 +204,10 @@ func (swfsc *SurveyWiFiScanCreate) SetSurveyQuestion(s *SurveyQuestion) *SurveyW
 
 // SetLocationID sets the location edge to Location by id.
 func (swfsc *SurveyWiFiScanCreate) SetLocationID(id int) *SurveyWiFiScanCreate {
-	swfsc.mutation.SetLocationID(id)
+	if swfsc.location == nil {
+		swfsc.location = make(map[int]struct{})
+	}
+	swfsc.location[id] = struct{}{}
 	return swfsc
 }
 
@@ -208,53 +226,36 @@ func (swfsc *SurveyWiFiScanCreate) SetLocation(l *Location) *SurveyWiFiScanCreat
 
 // Save creates the SurveyWiFiScan in the database.
 func (swfsc *SurveyWiFiScanCreate) Save(ctx context.Context) (*SurveyWiFiScan, error) {
-	if _, ok := swfsc.mutation.CreateTime(); !ok {
+	if swfsc.create_time == nil {
 		v := surveywifiscan.DefaultCreateTime()
-		swfsc.mutation.SetCreateTime(v)
+		swfsc.create_time = &v
 	}
-	if _, ok := swfsc.mutation.UpdateTime(); !ok {
+	if swfsc.update_time == nil {
 		v := surveywifiscan.DefaultUpdateTime()
-		swfsc.mutation.SetUpdateTime(v)
+		swfsc.update_time = &v
 	}
-	if _, ok := swfsc.mutation.Bssid(); !ok {
+	if swfsc.bssid == nil {
 		return nil, errors.New("ent: missing required field \"bssid\"")
 	}
-	if _, ok := swfsc.mutation.Timestamp(); !ok {
+	if swfsc.timestamp == nil {
 		return nil, errors.New("ent: missing required field \"timestamp\"")
 	}
-	if _, ok := swfsc.mutation.Frequency(); !ok {
+	if swfsc.frequency == nil {
 		return nil, errors.New("ent: missing required field \"frequency\"")
 	}
-	if _, ok := swfsc.mutation.Channel(); !ok {
+	if swfsc.channel == nil {
 		return nil, errors.New("ent: missing required field \"channel\"")
 	}
-	if _, ok := swfsc.mutation.Strength(); !ok {
+	if swfsc.strength == nil {
 		return nil, errors.New("ent: missing required field \"strength\"")
 	}
-	var (
-		err  error
-		node *SurveyWiFiScan
-	)
-	if len(swfsc.hooks) == 0 {
-		node, err = swfsc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SurveyWiFiScanMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			swfsc.mutation = mutation
-			node, err = swfsc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(swfsc.hooks); i > 0; i-- {
-			mut = swfsc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, swfsc.mutation); err != nil {
-			return nil, err
-		}
+	if len(swfsc.survey_question) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"survey_question\"")
 	}
-	return node, err
+	if len(swfsc.location) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
+	}
+	return swfsc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -277,111 +278,111 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 			},
 		}
 	)
-	if value, ok := swfsc.mutation.CreateTime(); ok {
+	if value := swfsc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldCreateTime,
 		})
-		swfs.CreateTime = value
+		swfs.CreateTime = *value
 	}
-	if value, ok := swfsc.mutation.UpdateTime(); ok {
+	if value := swfsc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldUpdateTime,
 		})
-		swfs.UpdateTime = value
+		swfs.UpdateTime = *value
 	}
-	if value, ok := swfsc.mutation.Ssid(); ok {
+	if value := swfsc.ssid; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldSsid,
 		})
-		swfs.Ssid = value
+		swfs.Ssid = *value
 	}
-	if value, ok := swfsc.mutation.Bssid(); ok {
+	if value := swfsc.bssid; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldBssid,
 		})
-		swfs.Bssid = value
+		swfs.Bssid = *value
 	}
-	if value, ok := swfsc.mutation.Timestamp(); ok {
+	if value := swfsc.timestamp; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldTimestamp,
 		})
-		swfs.Timestamp = value
+		swfs.Timestamp = *value
 	}
-	if value, ok := swfsc.mutation.Frequency(); ok {
+	if value := swfsc.frequency; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldFrequency,
 		})
-		swfs.Frequency = value
+		swfs.Frequency = *value
 	}
-	if value, ok := swfsc.mutation.Channel(); ok {
+	if value := swfsc.channel; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldChannel,
 		})
-		swfs.Channel = value
+		swfs.Channel = *value
 	}
-	if value, ok := swfsc.mutation.Band(); ok {
+	if value := swfsc.band; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldBand,
 		})
-		swfs.Band = value
+		swfs.Band = *value
 	}
-	if value, ok := swfsc.mutation.ChannelWidth(); ok {
+	if value := swfsc.channel_width; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldChannelWidth,
 		})
-		swfs.ChannelWidth = value
+		swfs.ChannelWidth = *value
 	}
-	if value, ok := swfsc.mutation.Capabilities(); ok {
+	if value := swfsc.capabilities; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldCapabilities,
 		})
-		swfs.Capabilities = value
+		swfs.Capabilities = *value
 	}
-	if value, ok := swfsc.mutation.Strength(); ok {
+	if value := swfsc.strength; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldStrength,
 		})
-		swfs.Strength = value
+		swfs.Strength = *value
 	}
-	if value, ok := swfsc.mutation.Latitude(); ok {
+	if value := swfsc.latitude; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldLatitude,
 		})
-		swfs.Latitude = value
+		swfs.Latitude = *value
 	}
-	if value, ok := swfsc.mutation.Longitude(); ok {
+	if value := swfsc.longitude; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveywifiscan.FieldLongitude,
 		})
-		swfs.Longitude = value
+		swfs.Longitude = *value
 	}
-	if nodes := swfsc.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
+	if nodes := swfsc.survey_question; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -395,12 +396,12 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := swfsc.mutation.LocationIDs(); len(nodes) > 0 {
+	if nodes := swfsc.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -414,7 +415,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

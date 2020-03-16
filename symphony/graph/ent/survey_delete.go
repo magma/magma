@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,8 +19,6 @@ import (
 // SurveyDelete is the builder for deleting a Survey entity.
 type SurveyDelete struct {
 	config
-	hooks      []Hook
-	mutation   *SurveyMutation
 	predicates []predicate.Survey
 }
 
@@ -33,30 +30,7 @@ func (sd *SurveyDelete) Where(ps ...predicate.Survey) *SurveyDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (sd *SurveyDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(sd.hooks) == 0 {
-		affected, err = sd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SurveyMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			sd.mutation = mutation
-			affected, err = sd.sqlExec(ctx)
-			return affected, err
-		})
-		for i := len(sd.hooks); i > 0; i-- {
-			mut = sd.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, sd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return sd.sqlExec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

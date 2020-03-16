@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,13 +19,15 @@ import (
 // CommentCreate is the builder for creating a Comment entity.
 type CommentCreate struct {
 	config
-	mutation *CommentMutation
-	hooks    []Hook
+	create_time *time.Time
+	update_time *time.Time
+	author_name *string
+	text        *string
 }
 
 // SetCreateTime sets the create_time field.
 func (cc *CommentCreate) SetCreateTime(t time.Time) *CommentCreate {
-	cc.mutation.SetCreateTime(t)
+	cc.create_time = &t
 	return cc
 }
 
@@ -40,7 +41,7 @@ func (cc *CommentCreate) SetNillableCreateTime(t *time.Time) *CommentCreate {
 
 // SetUpdateTime sets the update_time field.
 func (cc *CommentCreate) SetUpdateTime(t time.Time) *CommentCreate {
-	cc.mutation.SetUpdateTime(t)
+	cc.update_time = &t
 	return cc
 }
 
@@ -54,56 +55,33 @@ func (cc *CommentCreate) SetNillableUpdateTime(t *time.Time) *CommentCreate {
 
 // SetAuthorName sets the author_name field.
 func (cc *CommentCreate) SetAuthorName(s string) *CommentCreate {
-	cc.mutation.SetAuthorName(s)
+	cc.author_name = &s
 	return cc
 }
 
 // SetText sets the text field.
 func (cc *CommentCreate) SetText(s string) *CommentCreate {
-	cc.mutation.SetText(s)
+	cc.text = &s
 	return cc
 }
 
 // Save creates the Comment in the database.
 func (cc *CommentCreate) Save(ctx context.Context) (*Comment, error) {
-	if _, ok := cc.mutation.CreateTime(); !ok {
+	if cc.create_time == nil {
 		v := comment.DefaultCreateTime()
-		cc.mutation.SetCreateTime(v)
+		cc.create_time = &v
 	}
-	if _, ok := cc.mutation.UpdateTime(); !ok {
+	if cc.update_time == nil {
 		v := comment.DefaultUpdateTime()
-		cc.mutation.SetUpdateTime(v)
+		cc.update_time = &v
 	}
-	if _, ok := cc.mutation.AuthorName(); !ok {
+	if cc.author_name == nil {
 		return nil, errors.New("ent: missing required field \"author_name\"")
 	}
-	if _, ok := cc.mutation.Text(); !ok {
+	if cc.text == nil {
 		return nil, errors.New("ent: missing required field \"text\"")
 	}
-	var (
-		err  error
-		node *Comment
-	)
-	if len(cc.hooks) == 0 {
-		node, err = cc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CommentMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			cc.mutation = mutation
-			node, err = cc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(cc.hooks); i > 0; i-- {
-			mut = cc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, cc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return cc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -126,37 +104,37 @@ func (cc *CommentCreate) sqlSave(ctx context.Context) (*Comment, error) {
 			},
 		}
 	)
-	if value, ok := cc.mutation.CreateTime(); ok {
+	if value := cc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: comment.FieldCreateTime,
 		})
-		c.CreateTime = value
+		c.CreateTime = *value
 	}
-	if value, ok := cc.mutation.UpdateTime(); ok {
+	if value := cc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: comment.FieldUpdateTime,
 		})
-		c.UpdateTime = value
+		c.UpdateTime = *value
 	}
-	if value, ok := cc.mutation.AuthorName(); ok {
+	if value := cc.author_name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: comment.FieldAuthorName,
 		})
-		c.AuthorName = value
+		c.AuthorName = *value
 	}
-	if value, ok := cc.mutation.Text(); ok {
+	if value := cc.text; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: comment.FieldText,
 		})
-		c.Text = value
+		c.Text = *value
 	}
 	if err := sqlgraph.CreateNode(ctx, cc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -21,13 +20,16 @@ import (
 // SurveyTemplateCategoryCreate is the builder for creating a SurveyTemplateCategory entity.
 type SurveyTemplateCategoryCreate struct {
 	config
-	mutation *SurveyTemplateCategoryMutation
-	hooks    []Hook
+	create_time               *time.Time
+	update_time               *time.Time
+	category_title            *string
+	category_description      *string
+	survey_template_questions map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (stcc *SurveyTemplateCategoryCreate) SetCreateTime(t time.Time) *SurveyTemplateCategoryCreate {
-	stcc.mutation.SetCreateTime(t)
+	stcc.create_time = &t
 	return stcc
 }
 
@@ -41,7 +43,7 @@ func (stcc *SurveyTemplateCategoryCreate) SetNillableCreateTime(t *time.Time) *S
 
 // SetUpdateTime sets the update_time field.
 func (stcc *SurveyTemplateCategoryCreate) SetUpdateTime(t time.Time) *SurveyTemplateCategoryCreate {
-	stcc.mutation.SetUpdateTime(t)
+	stcc.update_time = &t
 	return stcc
 }
 
@@ -55,19 +57,24 @@ func (stcc *SurveyTemplateCategoryCreate) SetNillableUpdateTime(t *time.Time) *S
 
 // SetCategoryTitle sets the category_title field.
 func (stcc *SurveyTemplateCategoryCreate) SetCategoryTitle(s string) *SurveyTemplateCategoryCreate {
-	stcc.mutation.SetCategoryTitle(s)
+	stcc.category_title = &s
 	return stcc
 }
 
 // SetCategoryDescription sets the category_description field.
 func (stcc *SurveyTemplateCategoryCreate) SetCategoryDescription(s string) *SurveyTemplateCategoryCreate {
-	stcc.mutation.SetCategoryDescription(s)
+	stcc.category_description = &s
 	return stcc
 }
 
 // AddSurveyTemplateQuestionIDs adds the survey_template_questions edge to SurveyTemplateQuestion by ids.
 func (stcc *SurveyTemplateCategoryCreate) AddSurveyTemplateQuestionIDs(ids ...int) *SurveyTemplateCategoryCreate {
-	stcc.mutation.AddSurveyTemplateQuestionIDs(ids...)
+	if stcc.survey_template_questions == nil {
+		stcc.survey_template_questions = make(map[int]struct{})
+	}
+	for i := range ids {
+		stcc.survey_template_questions[ids[i]] = struct{}{}
+	}
 	return stcc
 }
 
@@ -82,44 +89,21 @@ func (stcc *SurveyTemplateCategoryCreate) AddSurveyTemplateQuestions(s ...*Surve
 
 // Save creates the SurveyTemplateCategory in the database.
 func (stcc *SurveyTemplateCategoryCreate) Save(ctx context.Context) (*SurveyTemplateCategory, error) {
-	if _, ok := stcc.mutation.CreateTime(); !ok {
+	if stcc.create_time == nil {
 		v := surveytemplatecategory.DefaultCreateTime()
-		stcc.mutation.SetCreateTime(v)
+		stcc.create_time = &v
 	}
-	if _, ok := stcc.mutation.UpdateTime(); !ok {
+	if stcc.update_time == nil {
 		v := surveytemplatecategory.DefaultUpdateTime()
-		stcc.mutation.SetUpdateTime(v)
+		stcc.update_time = &v
 	}
-	if _, ok := stcc.mutation.CategoryTitle(); !ok {
+	if stcc.category_title == nil {
 		return nil, errors.New("ent: missing required field \"category_title\"")
 	}
-	if _, ok := stcc.mutation.CategoryDescription(); !ok {
+	if stcc.category_description == nil {
 		return nil, errors.New("ent: missing required field \"category_description\"")
 	}
-	var (
-		err  error
-		node *SurveyTemplateCategory
-	)
-	if len(stcc.hooks) == 0 {
-		node, err = stcc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SurveyTemplateCategoryMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			stcc.mutation = mutation
-			node, err = stcc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(stcc.hooks); i > 0; i-- {
-			mut = stcc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, stcc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return stcc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -142,39 +126,39 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 			},
 		}
 	)
-	if value, ok := stcc.mutation.CreateTime(); ok {
+	if value := stcc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveytemplatecategory.FieldCreateTime,
 		})
-		stc.CreateTime = value
+		stc.CreateTime = *value
 	}
-	if value, ok := stcc.mutation.UpdateTime(); ok {
+	if value := stcc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveytemplatecategory.FieldUpdateTime,
 		})
-		stc.UpdateTime = value
+		stc.UpdateTime = *value
 	}
-	if value, ok := stcc.mutation.CategoryTitle(); ok {
+	if value := stcc.category_title; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveytemplatecategory.FieldCategoryTitle,
 		})
-		stc.CategoryTitle = value
+		stc.CategoryTitle = *value
 	}
-	if value, ok := stcc.mutation.CategoryDescription(); ok {
+	if value := stcc.category_description; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveytemplatecategory.FieldCategoryDescription,
 		})
-		stc.CategoryDescription = value
+		stc.CategoryDescription = *value
 	}
-	if nodes := stcc.mutation.SurveyTemplateQuestionsIDs(); len(nodes) > 0 {
+	if nodes := stcc.survey_template_questions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -188,7 +172,7 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

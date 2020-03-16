@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -26,9 +25,59 @@ import (
 // SurveyQuestionUpdate is the builder for updating SurveyQuestion entities.
 type SurveyQuestionUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *SurveyQuestionMutation
-	predicates []predicate.SurveyQuestion
+
+	update_time            *time.Time
+	form_name              *string
+	clearform_name         bool
+	form_description       *string
+	clearform_description  bool
+	form_index             *int
+	addform_index          *int
+	question_type          *string
+	clearquestion_type     bool
+	question_format        *string
+	clearquestion_format   bool
+	question_text          *string
+	clearquestion_text     bool
+	question_index         *int
+	addquestion_index      *int
+	bool_data              *bool
+	clearbool_data         bool
+	email_data             *string
+	clearemail_data        bool
+	latitude               *float64
+	addlatitude            *float64
+	clearlatitude          bool
+	longitude              *float64
+	addlongitude           *float64
+	clearlongitude         bool
+	location_accuracy      *float64
+	addlocation_accuracy   *float64
+	clearlocation_accuracy bool
+	altitude               *float64
+	addaltitude            *float64
+	clearaltitude          bool
+	phone_data             *string
+	clearphone_data        bool
+	text_data              *string
+	cleartext_data         bool
+	float_data             *float64
+	addfloat_data          *float64
+	clearfloat_data        bool
+	int_data               *int
+	addint_data            *int
+	clearint_data          bool
+	date_data              *time.Time
+	cleardate_data         bool
+	survey                 map[int]struct{}
+	wifi_scan              map[int]struct{}
+	cell_scan              map[int]struct{}
+	photo_data             map[int]struct{}
+	clearedSurvey          bool
+	removedWifiScan        map[int]struct{}
+	removedCellScan        map[int]struct{}
+	removedPhotoData       map[int]struct{}
+	predicates             []predicate.SurveyQuestion
 }
 
 // Where adds a new predicate for the builder.
@@ -39,7 +88,7 @@ func (squ *SurveyQuestionUpdate) Where(ps ...predicate.SurveyQuestion) *SurveyQu
 
 // SetFormName sets the form_name field.
 func (squ *SurveyQuestionUpdate) SetFormName(s string) *SurveyQuestionUpdate {
-	squ.mutation.SetFormName(s)
+	squ.form_name = &s
 	return squ
 }
 
@@ -53,13 +102,14 @@ func (squ *SurveyQuestionUpdate) SetNillableFormName(s *string) *SurveyQuestionU
 
 // ClearFormName clears the value of form_name.
 func (squ *SurveyQuestionUpdate) ClearFormName() *SurveyQuestionUpdate {
-	squ.mutation.ClearFormName()
+	squ.form_name = nil
+	squ.clearform_name = true
 	return squ
 }
 
 // SetFormDescription sets the form_description field.
 func (squ *SurveyQuestionUpdate) SetFormDescription(s string) *SurveyQuestionUpdate {
-	squ.mutation.SetFormDescription(s)
+	squ.form_description = &s
 	return squ
 }
 
@@ -73,26 +123,31 @@ func (squ *SurveyQuestionUpdate) SetNillableFormDescription(s *string) *SurveyQu
 
 // ClearFormDescription clears the value of form_description.
 func (squ *SurveyQuestionUpdate) ClearFormDescription() *SurveyQuestionUpdate {
-	squ.mutation.ClearFormDescription()
+	squ.form_description = nil
+	squ.clearform_description = true
 	return squ
 }
 
 // SetFormIndex sets the form_index field.
 func (squ *SurveyQuestionUpdate) SetFormIndex(i int) *SurveyQuestionUpdate {
-	squ.mutation.ResetFormIndex()
-	squ.mutation.SetFormIndex(i)
+	squ.form_index = &i
+	squ.addform_index = nil
 	return squ
 }
 
 // AddFormIndex adds i to form_index.
 func (squ *SurveyQuestionUpdate) AddFormIndex(i int) *SurveyQuestionUpdate {
-	squ.mutation.AddFormIndex(i)
+	if squ.addform_index == nil {
+		squ.addform_index = &i
+	} else {
+		*squ.addform_index += i
+	}
 	return squ
 }
 
 // SetQuestionType sets the question_type field.
 func (squ *SurveyQuestionUpdate) SetQuestionType(s string) *SurveyQuestionUpdate {
-	squ.mutation.SetQuestionType(s)
+	squ.question_type = &s
 	return squ
 }
 
@@ -106,13 +161,14 @@ func (squ *SurveyQuestionUpdate) SetNillableQuestionType(s *string) *SurveyQuest
 
 // ClearQuestionType clears the value of question_type.
 func (squ *SurveyQuestionUpdate) ClearQuestionType() *SurveyQuestionUpdate {
-	squ.mutation.ClearQuestionType()
+	squ.question_type = nil
+	squ.clearquestion_type = true
 	return squ
 }
 
 // SetQuestionFormat sets the question_format field.
 func (squ *SurveyQuestionUpdate) SetQuestionFormat(s string) *SurveyQuestionUpdate {
-	squ.mutation.SetQuestionFormat(s)
+	squ.question_format = &s
 	return squ
 }
 
@@ -126,13 +182,14 @@ func (squ *SurveyQuestionUpdate) SetNillableQuestionFormat(s *string) *SurveyQue
 
 // ClearQuestionFormat clears the value of question_format.
 func (squ *SurveyQuestionUpdate) ClearQuestionFormat() *SurveyQuestionUpdate {
-	squ.mutation.ClearQuestionFormat()
+	squ.question_format = nil
+	squ.clearquestion_format = true
 	return squ
 }
 
 // SetQuestionText sets the question_text field.
 func (squ *SurveyQuestionUpdate) SetQuestionText(s string) *SurveyQuestionUpdate {
-	squ.mutation.SetQuestionText(s)
+	squ.question_text = &s
 	return squ
 }
 
@@ -146,26 +203,31 @@ func (squ *SurveyQuestionUpdate) SetNillableQuestionText(s *string) *SurveyQuest
 
 // ClearQuestionText clears the value of question_text.
 func (squ *SurveyQuestionUpdate) ClearQuestionText() *SurveyQuestionUpdate {
-	squ.mutation.ClearQuestionText()
+	squ.question_text = nil
+	squ.clearquestion_text = true
 	return squ
 }
 
 // SetQuestionIndex sets the question_index field.
 func (squ *SurveyQuestionUpdate) SetQuestionIndex(i int) *SurveyQuestionUpdate {
-	squ.mutation.ResetQuestionIndex()
-	squ.mutation.SetQuestionIndex(i)
+	squ.question_index = &i
+	squ.addquestion_index = nil
 	return squ
 }
 
 // AddQuestionIndex adds i to question_index.
 func (squ *SurveyQuestionUpdate) AddQuestionIndex(i int) *SurveyQuestionUpdate {
-	squ.mutation.AddQuestionIndex(i)
+	if squ.addquestion_index == nil {
+		squ.addquestion_index = &i
+	} else {
+		*squ.addquestion_index += i
+	}
 	return squ
 }
 
 // SetBoolData sets the bool_data field.
 func (squ *SurveyQuestionUpdate) SetBoolData(b bool) *SurveyQuestionUpdate {
-	squ.mutation.SetBoolData(b)
+	squ.bool_data = &b
 	return squ
 }
 
@@ -179,13 +241,14 @@ func (squ *SurveyQuestionUpdate) SetNillableBoolData(b *bool) *SurveyQuestionUpd
 
 // ClearBoolData clears the value of bool_data.
 func (squ *SurveyQuestionUpdate) ClearBoolData() *SurveyQuestionUpdate {
-	squ.mutation.ClearBoolData()
+	squ.bool_data = nil
+	squ.clearbool_data = true
 	return squ
 }
 
 // SetEmailData sets the email_data field.
 func (squ *SurveyQuestionUpdate) SetEmailData(s string) *SurveyQuestionUpdate {
-	squ.mutation.SetEmailData(s)
+	squ.email_data = &s
 	return squ
 }
 
@@ -199,14 +262,15 @@ func (squ *SurveyQuestionUpdate) SetNillableEmailData(s *string) *SurveyQuestion
 
 // ClearEmailData clears the value of email_data.
 func (squ *SurveyQuestionUpdate) ClearEmailData() *SurveyQuestionUpdate {
-	squ.mutation.ClearEmailData()
+	squ.email_data = nil
+	squ.clearemail_data = true
 	return squ
 }
 
 // SetLatitude sets the latitude field.
 func (squ *SurveyQuestionUpdate) SetLatitude(f float64) *SurveyQuestionUpdate {
-	squ.mutation.ResetLatitude()
-	squ.mutation.SetLatitude(f)
+	squ.latitude = &f
+	squ.addlatitude = nil
 	return squ
 }
 
@@ -220,20 +284,25 @@ func (squ *SurveyQuestionUpdate) SetNillableLatitude(f *float64) *SurveyQuestion
 
 // AddLatitude adds f to latitude.
 func (squ *SurveyQuestionUpdate) AddLatitude(f float64) *SurveyQuestionUpdate {
-	squ.mutation.AddLatitude(f)
+	if squ.addlatitude == nil {
+		squ.addlatitude = &f
+	} else {
+		*squ.addlatitude += f
+	}
 	return squ
 }
 
 // ClearLatitude clears the value of latitude.
 func (squ *SurveyQuestionUpdate) ClearLatitude() *SurveyQuestionUpdate {
-	squ.mutation.ClearLatitude()
+	squ.latitude = nil
+	squ.clearlatitude = true
 	return squ
 }
 
 // SetLongitude sets the longitude field.
 func (squ *SurveyQuestionUpdate) SetLongitude(f float64) *SurveyQuestionUpdate {
-	squ.mutation.ResetLongitude()
-	squ.mutation.SetLongitude(f)
+	squ.longitude = &f
+	squ.addlongitude = nil
 	return squ
 }
 
@@ -247,20 +316,25 @@ func (squ *SurveyQuestionUpdate) SetNillableLongitude(f *float64) *SurveyQuestio
 
 // AddLongitude adds f to longitude.
 func (squ *SurveyQuestionUpdate) AddLongitude(f float64) *SurveyQuestionUpdate {
-	squ.mutation.AddLongitude(f)
+	if squ.addlongitude == nil {
+		squ.addlongitude = &f
+	} else {
+		*squ.addlongitude += f
+	}
 	return squ
 }
 
 // ClearLongitude clears the value of longitude.
 func (squ *SurveyQuestionUpdate) ClearLongitude() *SurveyQuestionUpdate {
-	squ.mutation.ClearLongitude()
+	squ.longitude = nil
+	squ.clearlongitude = true
 	return squ
 }
 
 // SetLocationAccuracy sets the location_accuracy field.
 func (squ *SurveyQuestionUpdate) SetLocationAccuracy(f float64) *SurveyQuestionUpdate {
-	squ.mutation.ResetLocationAccuracy()
-	squ.mutation.SetLocationAccuracy(f)
+	squ.location_accuracy = &f
+	squ.addlocation_accuracy = nil
 	return squ
 }
 
@@ -274,20 +348,25 @@ func (squ *SurveyQuestionUpdate) SetNillableLocationAccuracy(f *float64) *Survey
 
 // AddLocationAccuracy adds f to location_accuracy.
 func (squ *SurveyQuestionUpdate) AddLocationAccuracy(f float64) *SurveyQuestionUpdate {
-	squ.mutation.AddLocationAccuracy(f)
+	if squ.addlocation_accuracy == nil {
+		squ.addlocation_accuracy = &f
+	} else {
+		*squ.addlocation_accuracy += f
+	}
 	return squ
 }
 
 // ClearLocationAccuracy clears the value of location_accuracy.
 func (squ *SurveyQuestionUpdate) ClearLocationAccuracy() *SurveyQuestionUpdate {
-	squ.mutation.ClearLocationAccuracy()
+	squ.location_accuracy = nil
+	squ.clearlocation_accuracy = true
 	return squ
 }
 
 // SetAltitude sets the altitude field.
 func (squ *SurveyQuestionUpdate) SetAltitude(f float64) *SurveyQuestionUpdate {
-	squ.mutation.ResetAltitude()
-	squ.mutation.SetAltitude(f)
+	squ.altitude = &f
+	squ.addaltitude = nil
 	return squ
 }
 
@@ -301,19 +380,24 @@ func (squ *SurveyQuestionUpdate) SetNillableAltitude(f *float64) *SurveyQuestion
 
 // AddAltitude adds f to altitude.
 func (squ *SurveyQuestionUpdate) AddAltitude(f float64) *SurveyQuestionUpdate {
-	squ.mutation.AddAltitude(f)
+	if squ.addaltitude == nil {
+		squ.addaltitude = &f
+	} else {
+		*squ.addaltitude += f
+	}
 	return squ
 }
 
 // ClearAltitude clears the value of altitude.
 func (squ *SurveyQuestionUpdate) ClearAltitude() *SurveyQuestionUpdate {
-	squ.mutation.ClearAltitude()
+	squ.altitude = nil
+	squ.clearaltitude = true
 	return squ
 }
 
 // SetPhoneData sets the phone_data field.
 func (squ *SurveyQuestionUpdate) SetPhoneData(s string) *SurveyQuestionUpdate {
-	squ.mutation.SetPhoneData(s)
+	squ.phone_data = &s
 	return squ
 }
 
@@ -327,13 +411,14 @@ func (squ *SurveyQuestionUpdate) SetNillablePhoneData(s *string) *SurveyQuestion
 
 // ClearPhoneData clears the value of phone_data.
 func (squ *SurveyQuestionUpdate) ClearPhoneData() *SurveyQuestionUpdate {
-	squ.mutation.ClearPhoneData()
+	squ.phone_data = nil
+	squ.clearphone_data = true
 	return squ
 }
 
 // SetTextData sets the text_data field.
 func (squ *SurveyQuestionUpdate) SetTextData(s string) *SurveyQuestionUpdate {
-	squ.mutation.SetTextData(s)
+	squ.text_data = &s
 	return squ
 }
 
@@ -347,14 +432,15 @@ func (squ *SurveyQuestionUpdate) SetNillableTextData(s *string) *SurveyQuestionU
 
 // ClearTextData clears the value of text_data.
 func (squ *SurveyQuestionUpdate) ClearTextData() *SurveyQuestionUpdate {
-	squ.mutation.ClearTextData()
+	squ.text_data = nil
+	squ.cleartext_data = true
 	return squ
 }
 
 // SetFloatData sets the float_data field.
 func (squ *SurveyQuestionUpdate) SetFloatData(f float64) *SurveyQuestionUpdate {
-	squ.mutation.ResetFloatData()
-	squ.mutation.SetFloatData(f)
+	squ.float_data = &f
+	squ.addfloat_data = nil
 	return squ
 }
 
@@ -368,20 +454,25 @@ func (squ *SurveyQuestionUpdate) SetNillableFloatData(f *float64) *SurveyQuestio
 
 // AddFloatData adds f to float_data.
 func (squ *SurveyQuestionUpdate) AddFloatData(f float64) *SurveyQuestionUpdate {
-	squ.mutation.AddFloatData(f)
+	if squ.addfloat_data == nil {
+		squ.addfloat_data = &f
+	} else {
+		*squ.addfloat_data += f
+	}
 	return squ
 }
 
 // ClearFloatData clears the value of float_data.
 func (squ *SurveyQuestionUpdate) ClearFloatData() *SurveyQuestionUpdate {
-	squ.mutation.ClearFloatData()
+	squ.float_data = nil
+	squ.clearfloat_data = true
 	return squ
 }
 
 // SetIntData sets the int_data field.
 func (squ *SurveyQuestionUpdate) SetIntData(i int) *SurveyQuestionUpdate {
-	squ.mutation.ResetIntData()
-	squ.mutation.SetIntData(i)
+	squ.int_data = &i
+	squ.addint_data = nil
 	return squ
 }
 
@@ -395,19 +486,24 @@ func (squ *SurveyQuestionUpdate) SetNillableIntData(i *int) *SurveyQuestionUpdat
 
 // AddIntData adds i to int_data.
 func (squ *SurveyQuestionUpdate) AddIntData(i int) *SurveyQuestionUpdate {
-	squ.mutation.AddIntData(i)
+	if squ.addint_data == nil {
+		squ.addint_data = &i
+	} else {
+		*squ.addint_data += i
+	}
 	return squ
 }
 
 // ClearIntData clears the value of int_data.
 func (squ *SurveyQuestionUpdate) ClearIntData() *SurveyQuestionUpdate {
-	squ.mutation.ClearIntData()
+	squ.int_data = nil
+	squ.clearint_data = true
 	return squ
 }
 
 // SetDateData sets the date_data field.
 func (squ *SurveyQuestionUpdate) SetDateData(t time.Time) *SurveyQuestionUpdate {
-	squ.mutation.SetDateData(t)
+	squ.date_data = &t
 	return squ
 }
 
@@ -421,13 +517,17 @@ func (squ *SurveyQuestionUpdate) SetNillableDateData(t *time.Time) *SurveyQuesti
 
 // ClearDateData clears the value of date_data.
 func (squ *SurveyQuestionUpdate) ClearDateData() *SurveyQuestionUpdate {
-	squ.mutation.ClearDateData()
+	squ.date_data = nil
+	squ.cleardate_data = true
 	return squ
 }
 
 // SetSurveyID sets the survey edge to Survey by id.
 func (squ *SurveyQuestionUpdate) SetSurveyID(id int) *SurveyQuestionUpdate {
-	squ.mutation.SetSurveyID(id)
+	if squ.survey == nil {
+		squ.survey = make(map[int]struct{})
+	}
+	squ.survey[id] = struct{}{}
 	return squ
 }
 
@@ -438,7 +538,12 @@ func (squ *SurveyQuestionUpdate) SetSurvey(s *Survey) *SurveyQuestionUpdate {
 
 // AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
 func (squ *SurveyQuestionUpdate) AddWifiScanIDs(ids ...int) *SurveyQuestionUpdate {
-	squ.mutation.AddWifiScanIDs(ids...)
+	if squ.wifi_scan == nil {
+		squ.wifi_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		squ.wifi_scan[ids[i]] = struct{}{}
+	}
 	return squ
 }
 
@@ -453,7 +558,12 @@ func (squ *SurveyQuestionUpdate) AddWifiScan(s ...*SurveyWiFiScan) *SurveyQuesti
 
 // AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
 func (squ *SurveyQuestionUpdate) AddCellScanIDs(ids ...int) *SurveyQuestionUpdate {
-	squ.mutation.AddCellScanIDs(ids...)
+	if squ.cell_scan == nil {
+		squ.cell_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		squ.cell_scan[ids[i]] = struct{}{}
+	}
 	return squ
 }
 
@@ -468,7 +578,12 @@ func (squ *SurveyQuestionUpdate) AddCellScan(s ...*SurveyCellScan) *SurveyQuesti
 
 // AddPhotoDatumIDs adds the photo_data edge to File by ids.
 func (squ *SurveyQuestionUpdate) AddPhotoDatumIDs(ids ...int) *SurveyQuestionUpdate {
-	squ.mutation.AddPhotoDatumIDs(ids...)
+	if squ.photo_data == nil {
+		squ.photo_data = make(map[int]struct{})
+	}
+	for i := range ids {
+		squ.photo_data[ids[i]] = struct{}{}
+	}
 	return squ
 }
 
@@ -483,13 +598,18 @@ func (squ *SurveyQuestionUpdate) AddPhotoData(f ...*File) *SurveyQuestionUpdate 
 
 // ClearSurvey clears the survey edge to Survey.
 func (squ *SurveyQuestionUpdate) ClearSurvey() *SurveyQuestionUpdate {
-	squ.mutation.ClearSurvey()
+	squ.clearedSurvey = true
 	return squ
 }
 
 // RemoveWifiScanIDs removes the wifi_scan edge to SurveyWiFiScan by ids.
 func (squ *SurveyQuestionUpdate) RemoveWifiScanIDs(ids ...int) *SurveyQuestionUpdate {
-	squ.mutation.RemoveWifiScanIDs(ids...)
+	if squ.removedWifiScan == nil {
+		squ.removedWifiScan = make(map[int]struct{})
+	}
+	for i := range ids {
+		squ.removedWifiScan[ids[i]] = struct{}{}
+	}
 	return squ
 }
 
@@ -504,7 +624,12 @@ func (squ *SurveyQuestionUpdate) RemoveWifiScan(s ...*SurveyWiFiScan) *SurveyQue
 
 // RemoveCellScanIDs removes the cell_scan edge to SurveyCellScan by ids.
 func (squ *SurveyQuestionUpdate) RemoveCellScanIDs(ids ...int) *SurveyQuestionUpdate {
-	squ.mutation.RemoveCellScanIDs(ids...)
+	if squ.removedCellScan == nil {
+		squ.removedCellScan = make(map[int]struct{})
+	}
+	for i := range ids {
+		squ.removedCellScan[ids[i]] = struct{}{}
+	}
 	return squ
 }
 
@@ -519,7 +644,12 @@ func (squ *SurveyQuestionUpdate) RemoveCellScan(s ...*SurveyCellScan) *SurveyQue
 
 // RemovePhotoDatumIDs removes the photo_data edge to File by ids.
 func (squ *SurveyQuestionUpdate) RemovePhotoDatumIDs(ids ...int) *SurveyQuestionUpdate {
-	squ.mutation.RemovePhotoDatumIDs(ids...)
+	if squ.removedPhotoData == nil {
+		squ.removedPhotoData = make(map[int]struct{})
+	}
+	for i := range ids {
+		squ.removedPhotoData[ids[i]] = struct{}{}
+	}
 	return squ
 }
 
@@ -534,39 +664,17 @@ func (squ *SurveyQuestionUpdate) RemovePhotoData(f ...*File) *SurveyQuestionUpda
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (squ *SurveyQuestionUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := squ.mutation.UpdateTime(); !ok {
+	if squ.update_time == nil {
 		v := surveyquestion.UpdateDefaultUpdateTime()
-		squ.mutation.SetUpdateTime(v)
+		squ.update_time = &v
 	}
-
-	if _, ok := squ.mutation.SurveyID(); squ.mutation.SurveyCleared() && !ok {
+	if len(squ.survey) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"survey\"")
+	}
+	if squ.clearedSurvey && squ.survey == nil {
 		return 0, errors.New("ent: clearing a unique edge \"survey\"")
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(squ.hooks) == 0 {
-		affected, err = squ.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SurveyQuestionMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			squ.mutation = mutation
-			affected, err = squ.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(squ.hooks); i > 0; i-- {
-			mut = squ.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, squ.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return squ.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -609,292 +717,292 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 		}
 	}
-	if value, ok := squ.mutation.UpdateTime(); ok {
+	if value := squ.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldUpdateTime,
 		})
 	}
-	if value, ok := squ.mutation.FormName(); ok {
+	if value := squ.form_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFormName,
 		})
 	}
-	if squ.mutation.FormNameCleared() {
+	if squ.clearform_name {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldFormName,
 		})
 	}
-	if value, ok := squ.mutation.FormDescription(); ok {
+	if value := squ.form_description; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFormDescription,
 		})
 	}
-	if squ.mutation.FormDescriptionCleared() {
+	if squ.clearform_description {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldFormDescription,
 		})
 	}
-	if value, ok := squ.mutation.FormIndex(); ok {
+	if value := squ.form_index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFormIndex,
 		})
 	}
-	if value, ok := squ.mutation.AddedFormIndex(); ok {
+	if value := squ.addform_index; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFormIndex,
 		})
 	}
-	if value, ok := squ.mutation.QuestionType(); ok {
+	if value := squ.question_type; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldQuestionType,
 		})
 	}
-	if squ.mutation.QuestionTypeCleared() {
+	if squ.clearquestion_type {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldQuestionType,
 		})
 	}
-	if value, ok := squ.mutation.QuestionFormat(); ok {
+	if value := squ.question_format; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldQuestionFormat,
 		})
 	}
-	if squ.mutation.QuestionFormatCleared() {
+	if squ.clearquestion_format {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldQuestionFormat,
 		})
 	}
-	if value, ok := squ.mutation.QuestionText(); ok {
+	if value := squ.question_text; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldQuestionText,
 		})
 	}
-	if squ.mutation.QuestionTextCleared() {
+	if squ.clearquestion_text {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldQuestionText,
 		})
 	}
-	if value, ok := squ.mutation.QuestionIndex(); ok {
+	if value := squ.question_index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldQuestionIndex,
 		})
 	}
-	if value, ok := squ.mutation.AddedQuestionIndex(); ok {
+	if value := squ.addquestion_index; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldQuestionIndex,
 		})
 	}
-	if value, ok := squ.mutation.BoolData(); ok {
+	if value := squ.bool_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldBoolData,
 		})
 	}
-	if squ.mutation.BoolDataCleared() {
+	if squ.clearbool_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: surveyquestion.FieldBoolData,
 		})
 	}
-	if value, ok := squ.mutation.EmailData(); ok {
+	if value := squ.email_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldEmailData,
 		})
 	}
-	if squ.mutation.EmailDataCleared() {
+	if squ.clearemail_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldEmailData,
 		})
 	}
-	if value, ok := squ.mutation.Latitude(); ok {
+	if value := squ.latitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLatitude,
 		})
 	}
-	if value, ok := squ.mutation.AddedLatitude(); ok {
+	if value := squ.addlatitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLatitude,
 		})
 	}
-	if squ.mutation.LatitudeCleared() {
+	if squ.clearlatitude {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveyquestion.FieldLatitude,
 		})
 	}
-	if value, ok := squ.mutation.Longitude(); ok {
+	if value := squ.longitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLongitude,
 		})
 	}
-	if value, ok := squ.mutation.AddedLongitude(); ok {
+	if value := squ.addlongitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLongitude,
 		})
 	}
-	if squ.mutation.LongitudeCleared() {
+	if squ.clearlongitude {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveyquestion.FieldLongitude,
 		})
 	}
-	if value, ok := squ.mutation.LocationAccuracy(); ok {
+	if value := squ.location_accuracy; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLocationAccuracy,
 		})
 	}
-	if value, ok := squ.mutation.AddedLocationAccuracy(); ok {
+	if value := squ.addlocation_accuracy; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLocationAccuracy,
 		})
 	}
-	if squ.mutation.LocationAccuracyCleared() {
+	if squ.clearlocation_accuracy {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveyquestion.FieldLocationAccuracy,
 		})
 	}
-	if value, ok := squ.mutation.Altitude(); ok {
+	if value := squ.altitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldAltitude,
 		})
 	}
-	if value, ok := squ.mutation.AddedAltitude(); ok {
+	if value := squ.addaltitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldAltitude,
 		})
 	}
-	if squ.mutation.AltitudeCleared() {
+	if squ.clearaltitude {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveyquestion.FieldAltitude,
 		})
 	}
-	if value, ok := squ.mutation.PhoneData(); ok {
+	if value := squ.phone_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldPhoneData,
 		})
 	}
-	if squ.mutation.PhoneDataCleared() {
+	if squ.clearphone_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldPhoneData,
 		})
 	}
-	if value, ok := squ.mutation.TextData(); ok {
+	if value := squ.text_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldTextData,
 		})
 	}
-	if squ.mutation.TextDataCleared() {
+	if squ.cleartext_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldTextData,
 		})
 	}
-	if value, ok := squ.mutation.FloatData(); ok {
+	if value := squ.float_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFloatData,
 		})
 	}
-	if value, ok := squ.mutation.AddedFloatData(); ok {
+	if value := squ.addfloat_data; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFloatData,
 		})
 	}
-	if squ.mutation.FloatDataCleared() {
+	if squ.clearfloat_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveyquestion.FieldFloatData,
 		})
 	}
-	if value, ok := squ.mutation.IntData(); ok {
+	if value := squ.int_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldIntData,
 		})
 	}
-	if value, ok := squ.mutation.AddedIntData(); ok {
+	if value := squ.addint_data; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldIntData,
 		})
 	}
-	if squ.mutation.IntDataCleared() {
+	if squ.clearint_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveyquestion.FieldIntData,
 		})
 	}
-	if value, ok := squ.mutation.DateData(); ok {
+	if value := squ.date_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldDateData,
 		})
 	}
-	if squ.mutation.DateDataCleared() {
+	if squ.cleardate_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: surveyquestion.FieldDateData,
 		})
 	}
-	if squ.mutation.SurveyCleared() {
+	if squ.clearedSurvey {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -910,7 +1018,7 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := squ.mutation.SurveyIDs(); len(nodes) > 0 {
+	if nodes := squ.survey; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -924,12 +1032,12 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := squ.mutation.RemovedWifiScanIDs(); len(nodes) > 0 {
+	if nodes := squ.removedWifiScan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -943,12 +1051,12 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := squ.mutation.WifiScanIDs(); len(nodes) > 0 {
+	if nodes := squ.wifi_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -962,12 +1070,12 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := squ.mutation.RemovedCellScanIDs(); len(nodes) > 0 {
+	if nodes := squ.removedCellScan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -981,12 +1089,12 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := squ.mutation.CellScanIDs(); len(nodes) > 0 {
+	if nodes := squ.cell_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1000,12 +1108,12 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := squ.mutation.RemovedPhotoDataIDs(); len(nodes) > 0 {
+	if nodes := squ.removedPhotoData; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1019,12 +1127,12 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := squ.mutation.PhotoDataIDs(); len(nodes) > 0 {
+	if nodes := squ.photo_data; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1038,7 +1146,7 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -1057,13 +1165,64 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 // SurveyQuestionUpdateOne is the builder for updating a single SurveyQuestion entity.
 type SurveyQuestionUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *SurveyQuestionMutation
+	id int
+
+	update_time            *time.Time
+	form_name              *string
+	clearform_name         bool
+	form_description       *string
+	clearform_description  bool
+	form_index             *int
+	addform_index          *int
+	question_type          *string
+	clearquestion_type     bool
+	question_format        *string
+	clearquestion_format   bool
+	question_text          *string
+	clearquestion_text     bool
+	question_index         *int
+	addquestion_index      *int
+	bool_data              *bool
+	clearbool_data         bool
+	email_data             *string
+	clearemail_data        bool
+	latitude               *float64
+	addlatitude            *float64
+	clearlatitude          bool
+	longitude              *float64
+	addlongitude           *float64
+	clearlongitude         bool
+	location_accuracy      *float64
+	addlocation_accuracy   *float64
+	clearlocation_accuracy bool
+	altitude               *float64
+	addaltitude            *float64
+	clearaltitude          bool
+	phone_data             *string
+	clearphone_data        bool
+	text_data              *string
+	cleartext_data         bool
+	float_data             *float64
+	addfloat_data          *float64
+	clearfloat_data        bool
+	int_data               *int
+	addint_data            *int
+	clearint_data          bool
+	date_data              *time.Time
+	cleardate_data         bool
+	survey                 map[int]struct{}
+	wifi_scan              map[int]struct{}
+	cell_scan              map[int]struct{}
+	photo_data             map[int]struct{}
+	clearedSurvey          bool
+	removedWifiScan        map[int]struct{}
+	removedCellScan        map[int]struct{}
+	removedPhotoData       map[int]struct{}
 }
 
 // SetFormName sets the form_name field.
 func (squo *SurveyQuestionUpdateOne) SetFormName(s string) *SurveyQuestionUpdateOne {
-	squo.mutation.SetFormName(s)
+	squo.form_name = &s
 	return squo
 }
 
@@ -1077,13 +1236,14 @@ func (squo *SurveyQuestionUpdateOne) SetNillableFormName(s *string) *SurveyQuest
 
 // ClearFormName clears the value of form_name.
 func (squo *SurveyQuestionUpdateOne) ClearFormName() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearFormName()
+	squo.form_name = nil
+	squo.clearform_name = true
 	return squo
 }
 
 // SetFormDescription sets the form_description field.
 func (squo *SurveyQuestionUpdateOne) SetFormDescription(s string) *SurveyQuestionUpdateOne {
-	squo.mutation.SetFormDescription(s)
+	squo.form_description = &s
 	return squo
 }
 
@@ -1097,26 +1257,31 @@ func (squo *SurveyQuestionUpdateOne) SetNillableFormDescription(s *string) *Surv
 
 // ClearFormDescription clears the value of form_description.
 func (squo *SurveyQuestionUpdateOne) ClearFormDescription() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearFormDescription()
+	squo.form_description = nil
+	squo.clearform_description = true
 	return squo
 }
 
 // SetFormIndex sets the form_index field.
 func (squo *SurveyQuestionUpdateOne) SetFormIndex(i int) *SurveyQuestionUpdateOne {
-	squo.mutation.ResetFormIndex()
-	squo.mutation.SetFormIndex(i)
+	squo.form_index = &i
+	squo.addform_index = nil
 	return squo
 }
 
 // AddFormIndex adds i to form_index.
 func (squo *SurveyQuestionUpdateOne) AddFormIndex(i int) *SurveyQuestionUpdateOne {
-	squo.mutation.AddFormIndex(i)
+	if squo.addform_index == nil {
+		squo.addform_index = &i
+	} else {
+		*squo.addform_index += i
+	}
 	return squo
 }
 
 // SetQuestionType sets the question_type field.
 func (squo *SurveyQuestionUpdateOne) SetQuestionType(s string) *SurveyQuestionUpdateOne {
-	squo.mutation.SetQuestionType(s)
+	squo.question_type = &s
 	return squo
 }
 
@@ -1130,13 +1295,14 @@ func (squo *SurveyQuestionUpdateOne) SetNillableQuestionType(s *string) *SurveyQ
 
 // ClearQuestionType clears the value of question_type.
 func (squo *SurveyQuestionUpdateOne) ClearQuestionType() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearQuestionType()
+	squo.question_type = nil
+	squo.clearquestion_type = true
 	return squo
 }
 
 // SetQuestionFormat sets the question_format field.
 func (squo *SurveyQuestionUpdateOne) SetQuestionFormat(s string) *SurveyQuestionUpdateOne {
-	squo.mutation.SetQuestionFormat(s)
+	squo.question_format = &s
 	return squo
 }
 
@@ -1150,13 +1316,14 @@ func (squo *SurveyQuestionUpdateOne) SetNillableQuestionFormat(s *string) *Surve
 
 // ClearQuestionFormat clears the value of question_format.
 func (squo *SurveyQuestionUpdateOne) ClearQuestionFormat() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearQuestionFormat()
+	squo.question_format = nil
+	squo.clearquestion_format = true
 	return squo
 }
 
 // SetQuestionText sets the question_text field.
 func (squo *SurveyQuestionUpdateOne) SetQuestionText(s string) *SurveyQuestionUpdateOne {
-	squo.mutation.SetQuestionText(s)
+	squo.question_text = &s
 	return squo
 }
 
@@ -1170,26 +1337,31 @@ func (squo *SurveyQuestionUpdateOne) SetNillableQuestionText(s *string) *SurveyQ
 
 // ClearQuestionText clears the value of question_text.
 func (squo *SurveyQuestionUpdateOne) ClearQuestionText() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearQuestionText()
+	squo.question_text = nil
+	squo.clearquestion_text = true
 	return squo
 }
 
 // SetQuestionIndex sets the question_index field.
 func (squo *SurveyQuestionUpdateOne) SetQuestionIndex(i int) *SurveyQuestionUpdateOne {
-	squo.mutation.ResetQuestionIndex()
-	squo.mutation.SetQuestionIndex(i)
+	squo.question_index = &i
+	squo.addquestion_index = nil
 	return squo
 }
 
 // AddQuestionIndex adds i to question_index.
 func (squo *SurveyQuestionUpdateOne) AddQuestionIndex(i int) *SurveyQuestionUpdateOne {
-	squo.mutation.AddQuestionIndex(i)
+	if squo.addquestion_index == nil {
+		squo.addquestion_index = &i
+	} else {
+		*squo.addquestion_index += i
+	}
 	return squo
 }
 
 // SetBoolData sets the bool_data field.
 func (squo *SurveyQuestionUpdateOne) SetBoolData(b bool) *SurveyQuestionUpdateOne {
-	squo.mutation.SetBoolData(b)
+	squo.bool_data = &b
 	return squo
 }
 
@@ -1203,13 +1375,14 @@ func (squo *SurveyQuestionUpdateOne) SetNillableBoolData(b *bool) *SurveyQuestio
 
 // ClearBoolData clears the value of bool_data.
 func (squo *SurveyQuestionUpdateOne) ClearBoolData() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearBoolData()
+	squo.bool_data = nil
+	squo.clearbool_data = true
 	return squo
 }
 
 // SetEmailData sets the email_data field.
 func (squo *SurveyQuestionUpdateOne) SetEmailData(s string) *SurveyQuestionUpdateOne {
-	squo.mutation.SetEmailData(s)
+	squo.email_data = &s
 	return squo
 }
 
@@ -1223,14 +1396,15 @@ func (squo *SurveyQuestionUpdateOne) SetNillableEmailData(s *string) *SurveyQues
 
 // ClearEmailData clears the value of email_data.
 func (squo *SurveyQuestionUpdateOne) ClearEmailData() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearEmailData()
+	squo.email_data = nil
+	squo.clearemail_data = true
 	return squo
 }
 
 // SetLatitude sets the latitude field.
 func (squo *SurveyQuestionUpdateOne) SetLatitude(f float64) *SurveyQuestionUpdateOne {
-	squo.mutation.ResetLatitude()
-	squo.mutation.SetLatitude(f)
+	squo.latitude = &f
+	squo.addlatitude = nil
 	return squo
 }
 
@@ -1244,20 +1418,25 @@ func (squo *SurveyQuestionUpdateOne) SetNillableLatitude(f *float64) *SurveyQues
 
 // AddLatitude adds f to latitude.
 func (squo *SurveyQuestionUpdateOne) AddLatitude(f float64) *SurveyQuestionUpdateOne {
-	squo.mutation.AddLatitude(f)
+	if squo.addlatitude == nil {
+		squo.addlatitude = &f
+	} else {
+		*squo.addlatitude += f
+	}
 	return squo
 }
 
 // ClearLatitude clears the value of latitude.
 func (squo *SurveyQuestionUpdateOne) ClearLatitude() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearLatitude()
+	squo.latitude = nil
+	squo.clearlatitude = true
 	return squo
 }
 
 // SetLongitude sets the longitude field.
 func (squo *SurveyQuestionUpdateOne) SetLongitude(f float64) *SurveyQuestionUpdateOne {
-	squo.mutation.ResetLongitude()
-	squo.mutation.SetLongitude(f)
+	squo.longitude = &f
+	squo.addlongitude = nil
 	return squo
 }
 
@@ -1271,20 +1450,25 @@ func (squo *SurveyQuestionUpdateOne) SetNillableLongitude(f *float64) *SurveyQue
 
 // AddLongitude adds f to longitude.
 func (squo *SurveyQuestionUpdateOne) AddLongitude(f float64) *SurveyQuestionUpdateOne {
-	squo.mutation.AddLongitude(f)
+	if squo.addlongitude == nil {
+		squo.addlongitude = &f
+	} else {
+		*squo.addlongitude += f
+	}
 	return squo
 }
 
 // ClearLongitude clears the value of longitude.
 func (squo *SurveyQuestionUpdateOne) ClearLongitude() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearLongitude()
+	squo.longitude = nil
+	squo.clearlongitude = true
 	return squo
 }
 
 // SetLocationAccuracy sets the location_accuracy field.
 func (squo *SurveyQuestionUpdateOne) SetLocationAccuracy(f float64) *SurveyQuestionUpdateOne {
-	squo.mutation.ResetLocationAccuracy()
-	squo.mutation.SetLocationAccuracy(f)
+	squo.location_accuracy = &f
+	squo.addlocation_accuracy = nil
 	return squo
 }
 
@@ -1298,20 +1482,25 @@ func (squo *SurveyQuestionUpdateOne) SetNillableLocationAccuracy(f *float64) *Su
 
 // AddLocationAccuracy adds f to location_accuracy.
 func (squo *SurveyQuestionUpdateOne) AddLocationAccuracy(f float64) *SurveyQuestionUpdateOne {
-	squo.mutation.AddLocationAccuracy(f)
+	if squo.addlocation_accuracy == nil {
+		squo.addlocation_accuracy = &f
+	} else {
+		*squo.addlocation_accuracy += f
+	}
 	return squo
 }
 
 // ClearLocationAccuracy clears the value of location_accuracy.
 func (squo *SurveyQuestionUpdateOne) ClearLocationAccuracy() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearLocationAccuracy()
+	squo.location_accuracy = nil
+	squo.clearlocation_accuracy = true
 	return squo
 }
 
 // SetAltitude sets the altitude field.
 func (squo *SurveyQuestionUpdateOne) SetAltitude(f float64) *SurveyQuestionUpdateOne {
-	squo.mutation.ResetAltitude()
-	squo.mutation.SetAltitude(f)
+	squo.altitude = &f
+	squo.addaltitude = nil
 	return squo
 }
 
@@ -1325,19 +1514,24 @@ func (squo *SurveyQuestionUpdateOne) SetNillableAltitude(f *float64) *SurveyQues
 
 // AddAltitude adds f to altitude.
 func (squo *SurveyQuestionUpdateOne) AddAltitude(f float64) *SurveyQuestionUpdateOne {
-	squo.mutation.AddAltitude(f)
+	if squo.addaltitude == nil {
+		squo.addaltitude = &f
+	} else {
+		*squo.addaltitude += f
+	}
 	return squo
 }
 
 // ClearAltitude clears the value of altitude.
 func (squo *SurveyQuestionUpdateOne) ClearAltitude() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearAltitude()
+	squo.altitude = nil
+	squo.clearaltitude = true
 	return squo
 }
 
 // SetPhoneData sets the phone_data field.
 func (squo *SurveyQuestionUpdateOne) SetPhoneData(s string) *SurveyQuestionUpdateOne {
-	squo.mutation.SetPhoneData(s)
+	squo.phone_data = &s
 	return squo
 }
 
@@ -1351,13 +1545,14 @@ func (squo *SurveyQuestionUpdateOne) SetNillablePhoneData(s *string) *SurveyQues
 
 // ClearPhoneData clears the value of phone_data.
 func (squo *SurveyQuestionUpdateOne) ClearPhoneData() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearPhoneData()
+	squo.phone_data = nil
+	squo.clearphone_data = true
 	return squo
 }
 
 // SetTextData sets the text_data field.
 func (squo *SurveyQuestionUpdateOne) SetTextData(s string) *SurveyQuestionUpdateOne {
-	squo.mutation.SetTextData(s)
+	squo.text_data = &s
 	return squo
 }
 
@@ -1371,14 +1566,15 @@ func (squo *SurveyQuestionUpdateOne) SetNillableTextData(s *string) *SurveyQuest
 
 // ClearTextData clears the value of text_data.
 func (squo *SurveyQuestionUpdateOne) ClearTextData() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearTextData()
+	squo.text_data = nil
+	squo.cleartext_data = true
 	return squo
 }
 
 // SetFloatData sets the float_data field.
 func (squo *SurveyQuestionUpdateOne) SetFloatData(f float64) *SurveyQuestionUpdateOne {
-	squo.mutation.ResetFloatData()
-	squo.mutation.SetFloatData(f)
+	squo.float_data = &f
+	squo.addfloat_data = nil
 	return squo
 }
 
@@ -1392,20 +1588,25 @@ func (squo *SurveyQuestionUpdateOne) SetNillableFloatData(f *float64) *SurveyQue
 
 // AddFloatData adds f to float_data.
 func (squo *SurveyQuestionUpdateOne) AddFloatData(f float64) *SurveyQuestionUpdateOne {
-	squo.mutation.AddFloatData(f)
+	if squo.addfloat_data == nil {
+		squo.addfloat_data = &f
+	} else {
+		*squo.addfloat_data += f
+	}
 	return squo
 }
 
 // ClearFloatData clears the value of float_data.
 func (squo *SurveyQuestionUpdateOne) ClearFloatData() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearFloatData()
+	squo.float_data = nil
+	squo.clearfloat_data = true
 	return squo
 }
 
 // SetIntData sets the int_data field.
 func (squo *SurveyQuestionUpdateOne) SetIntData(i int) *SurveyQuestionUpdateOne {
-	squo.mutation.ResetIntData()
-	squo.mutation.SetIntData(i)
+	squo.int_data = &i
+	squo.addint_data = nil
 	return squo
 }
 
@@ -1419,19 +1620,24 @@ func (squo *SurveyQuestionUpdateOne) SetNillableIntData(i *int) *SurveyQuestionU
 
 // AddIntData adds i to int_data.
 func (squo *SurveyQuestionUpdateOne) AddIntData(i int) *SurveyQuestionUpdateOne {
-	squo.mutation.AddIntData(i)
+	if squo.addint_data == nil {
+		squo.addint_data = &i
+	} else {
+		*squo.addint_data += i
+	}
 	return squo
 }
 
 // ClearIntData clears the value of int_data.
 func (squo *SurveyQuestionUpdateOne) ClearIntData() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearIntData()
+	squo.int_data = nil
+	squo.clearint_data = true
 	return squo
 }
 
 // SetDateData sets the date_data field.
 func (squo *SurveyQuestionUpdateOne) SetDateData(t time.Time) *SurveyQuestionUpdateOne {
-	squo.mutation.SetDateData(t)
+	squo.date_data = &t
 	return squo
 }
 
@@ -1445,13 +1651,17 @@ func (squo *SurveyQuestionUpdateOne) SetNillableDateData(t *time.Time) *SurveyQu
 
 // ClearDateData clears the value of date_data.
 func (squo *SurveyQuestionUpdateOne) ClearDateData() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearDateData()
+	squo.date_data = nil
+	squo.cleardate_data = true
 	return squo
 }
 
 // SetSurveyID sets the survey edge to Survey by id.
 func (squo *SurveyQuestionUpdateOne) SetSurveyID(id int) *SurveyQuestionUpdateOne {
-	squo.mutation.SetSurveyID(id)
+	if squo.survey == nil {
+		squo.survey = make(map[int]struct{})
+	}
+	squo.survey[id] = struct{}{}
 	return squo
 }
 
@@ -1462,7 +1672,12 @@ func (squo *SurveyQuestionUpdateOne) SetSurvey(s *Survey) *SurveyQuestionUpdateO
 
 // AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
 func (squo *SurveyQuestionUpdateOne) AddWifiScanIDs(ids ...int) *SurveyQuestionUpdateOne {
-	squo.mutation.AddWifiScanIDs(ids...)
+	if squo.wifi_scan == nil {
+		squo.wifi_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		squo.wifi_scan[ids[i]] = struct{}{}
+	}
 	return squo
 }
 
@@ -1477,7 +1692,12 @@ func (squo *SurveyQuestionUpdateOne) AddWifiScan(s ...*SurveyWiFiScan) *SurveyQu
 
 // AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
 func (squo *SurveyQuestionUpdateOne) AddCellScanIDs(ids ...int) *SurveyQuestionUpdateOne {
-	squo.mutation.AddCellScanIDs(ids...)
+	if squo.cell_scan == nil {
+		squo.cell_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		squo.cell_scan[ids[i]] = struct{}{}
+	}
 	return squo
 }
 
@@ -1492,7 +1712,12 @@ func (squo *SurveyQuestionUpdateOne) AddCellScan(s ...*SurveyCellScan) *SurveyQu
 
 // AddPhotoDatumIDs adds the photo_data edge to File by ids.
 func (squo *SurveyQuestionUpdateOne) AddPhotoDatumIDs(ids ...int) *SurveyQuestionUpdateOne {
-	squo.mutation.AddPhotoDatumIDs(ids...)
+	if squo.photo_data == nil {
+		squo.photo_data = make(map[int]struct{})
+	}
+	for i := range ids {
+		squo.photo_data[ids[i]] = struct{}{}
+	}
 	return squo
 }
 
@@ -1507,13 +1732,18 @@ func (squo *SurveyQuestionUpdateOne) AddPhotoData(f ...*File) *SurveyQuestionUpd
 
 // ClearSurvey clears the survey edge to Survey.
 func (squo *SurveyQuestionUpdateOne) ClearSurvey() *SurveyQuestionUpdateOne {
-	squo.mutation.ClearSurvey()
+	squo.clearedSurvey = true
 	return squo
 }
 
 // RemoveWifiScanIDs removes the wifi_scan edge to SurveyWiFiScan by ids.
 func (squo *SurveyQuestionUpdateOne) RemoveWifiScanIDs(ids ...int) *SurveyQuestionUpdateOne {
-	squo.mutation.RemoveWifiScanIDs(ids...)
+	if squo.removedWifiScan == nil {
+		squo.removedWifiScan = make(map[int]struct{})
+	}
+	for i := range ids {
+		squo.removedWifiScan[ids[i]] = struct{}{}
+	}
 	return squo
 }
 
@@ -1528,7 +1758,12 @@ func (squo *SurveyQuestionUpdateOne) RemoveWifiScan(s ...*SurveyWiFiScan) *Surve
 
 // RemoveCellScanIDs removes the cell_scan edge to SurveyCellScan by ids.
 func (squo *SurveyQuestionUpdateOne) RemoveCellScanIDs(ids ...int) *SurveyQuestionUpdateOne {
-	squo.mutation.RemoveCellScanIDs(ids...)
+	if squo.removedCellScan == nil {
+		squo.removedCellScan = make(map[int]struct{})
+	}
+	for i := range ids {
+		squo.removedCellScan[ids[i]] = struct{}{}
+	}
 	return squo
 }
 
@@ -1543,7 +1778,12 @@ func (squo *SurveyQuestionUpdateOne) RemoveCellScan(s ...*SurveyCellScan) *Surve
 
 // RemovePhotoDatumIDs removes the photo_data edge to File by ids.
 func (squo *SurveyQuestionUpdateOne) RemovePhotoDatumIDs(ids ...int) *SurveyQuestionUpdateOne {
-	squo.mutation.RemovePhotoDatumIDs(ids...)
+	if squo.removedPhotoData == nil {
+		squo.removedPhotoData = make(map[int]struct{})
+	}
+	for i := range ids {
+		squo.removedPhotoData[ids[i]] = struct{}{}
+	}
 	return squo
 }
 
@@ -1558,39 +1798,17 @@ func (squo *SurveyQuestionUpdateOne) RemovePhotoData(f ...*File) *SurveyQuestion
 
 // Save executes the query and returns the updated entity.
 func (squo *SurveyQuestionUpdateOne) Save(ctx context.Context) (*SurveyQuestion, error) {
-	if _, ok := squo.mutation.UpdateTime(); !ok {
+	if squo.update_time == nil {
 		v := surveyquestion.UpdateDefaultUpdateTime()
-		squo.mutation.SetUpdateTime(v)
+		squo.update_time = &v
 	}
-
-	if _, ok := squo.mutation.SurveyID(); squo.mutation.SurveyCleared() && !ok {
+	if len(squo.survey) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"survey\"")
+	}
+	if squo.clearedSurvey && squo.survey == nil {
 		return nil, errors.New("ent: clearing a unique edge \"survey\"")
 	}
-
-	var (
-		err  error
-		node *SurveyQuestion
-	)
-	if len(squo.hooks) == 0 {
-		node, err = squo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*SurveyQuestionMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			squo.mutation = mutation
-			node, err = squo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(squo.hooks); i > 0; i-- {
-			mut = squo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, squo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return squo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1621,302 +1839,298 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 			Table:   surveyquestion.Table,
 			Columns: surveyquestion.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  squo.id,
 				Type:   field.TypeInt,
 				Column: surveyquestion.FieldID,
 			},
 		},
 	}
-	id, ok := squo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing SurveyQuestion.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := squo.mutation.UpdateTime(); ok {
+	if value := squo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldUpdateTime,
 		})
 	}
-	if value, ok := squo.mutation.FormName(); ok {
+	if value := squo.form_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFormName,
 		})
 	}
-	if squo.mutation.FormNameCleared() {
+	if squo.clearform_name {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldFormName,
 		})
 	}
-	if value, ok := squo.mutation.FormDescription(); ok {
+	if value := squo.form_description; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFormDescription,
 		})
 	}
-	if squo.mutation.FormDescriptionCleared() {
+	if squo.clearform_description {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldFormDescription,
 		})
 	}
-	if value, ok := squo.mutation.FormIndex(); ok {
+	if value := squo.form_index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFormIndex,
 		})
 	}
-	if value, ok := squo.mutation.AddedFormIndex(); ok {
+	if value := squo.addform_index; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFormIndex,
 		})
 	}
-	if value, ok := squo.mutation.QuestionType(); ok {
+	if value := squo.question_type; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldQuestionType,
 		})
 	}
-	if squo.mutation.QuestionTypeCleared() {
+	if squo.clearquestion_type {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldQuestionType,
 		})
 	}
-	if value, ok := squo.mutation.QuestionFormat(); ok {
+	if value := squo.question_format; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldQuestionFormat,
 		})
 	}
-	if squo.mutation.QuestionFormatCleared() {
+	if squo.clearquestion_format {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldQuestionFormat,
 		})
 	}
-	if value, ok := squo.mutation.QuestionText(); ok {
+	if value := squo.question_text; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldQuestionText,
 		})
 	}
-	if squo.mutation.QuestionTextCleared() {
+	if squo.clearquestion_text {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldQuestionText,
 		})
 	}
-	if value, ok := squo.mutation.QuestionIndex(); ok {
+	if value := squo.question_index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldQuestionIndex,
 		})
 	}
-	if value, ok := squo.mutation.AddedQuestionIndex(); ok {
+	if value := squo.addquestion_index; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldQuestionIndex,
 		})
 	}
-	if value, ok := squo.mutation.BoolData(); ok {
+	if value := squo.bool_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldBoolData,
 		})
 	}
-	if squo.mutation.BoolDataCleared() {
+	if squo.clearbool_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: surveyquestion.FieldBoolData,
 		})
 	}
-	if value, ok := squo.mutation.EmailData(); ok {
+	if value := squo.email_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldEmailData,
 		})
 	}
-	if squo.mutation.EmailDataCleared() {
+	if squo.clearemail_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldEmailData,
 		})
 	}
-	if value, ok := squo.mutation.Latitude(); ok {
+	if value := squo.latitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLatitude,
 		})
 	}
-	if value, ok := squo.mutation.AddedLatitude(); ok {
+	if value := squo.addlatitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLatitude,
 		})
 	}
-	if squo.mutation.LatitudeCleared() {
+	if squo.clearlatitude {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveyquestion.FieldLatitude,
 		})
 	}
-	if value, ok := squo.mutation.Longitude(); ok {
+	if value := squo.longitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLongitude,
 		})
 	}
-	if value, ok := squo.mutation.AddedLongitude(); ok {
+	if value := squo.addlongitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLongitude,
 		})
 	}
-	if squo.mutation.LongitudeCleared() {
+	if squo.clearlongitude {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveyquestion.FieldLongitude,
 		})
 	}
-	if value, ok := squo.mutation.LocationAccuracy(); ok {
+	if value := squo.location_accuracy; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLocationAccuracy,
 		})
 	}
-	if value, ok := squo.mutation.AddedLocationAccuracy(); ok {
+	if value := squo.addlocation_accuracy; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldLocationAccuracy,
 		})
 	}
-	if squo.mutation.LocationAccuracyCleared() {
+	if squo.clearlocation_accuracy {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveyquestion.FieldLocationAccuracy,
 		})
 	}
-	if value, ok := squo.mutation.Altitude(); ok {
+	if value := squo.altitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldAltitude,
 		})
 	}
-	if value, ok := squo.mutation.AddedAltitude(); ok {
+	if value := squo.addaltitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldAltitude,
 		})
 	}
-	if squo.mutation.AltitudeCleared() {
+	if squo.clearaltitude {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveyquestion.FieldAltitude,
 		})
 	}
-	if value, ok := squo.mutation.PhoneData(); ok {
+	if value := squo.phone_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldPhoneData,
 		})
 	}
-	if squo.mutation.PhoneDataCleared() {
+	if squo.clearphone_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldPhoneData,
 		})
 	}
-	if value, ok := squo.mutation.TextData(); ok {
+	if value := squo.text_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldTextData,
 		})
 	}
-	if squo.mutation.TextDataCleared() {
+	if squo.cleartext_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveyquestion.FieldTextData,
 		})
 	}
-	if value, ok := squo.mutation.FloatData(); ok {
+	if value := squo.float_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFloatData,
 		})
 	}
-	if value, ok := squo.mutation.AddedFloatData(); ok {
+	if value := squo.addfloat_data; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldFloatData,
 		})
 	}
-	if squo.mutation.FloatDataCleared() {
+	if squo.clearfloat_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveyquestion.FieldFloatData,
 		})
 	}
-	if value, ok := squo.mutation.IntData(); ok {
+	if value := squo.int_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldIntData,
 		})
 	}
-	if value, ok := squo.mutation.AddedIntData(); ok {
+	if value := squo.addint_data; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldIntData,
 		})
 	}
-	if squo.mutation.IntDataCleared() {
+	if squo.clearint_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveyquestion.FieldIntData,
 		})
 	}
-	if value, ok := squo.mutation.DateData(); ok {
+	if value := squo.date_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: surveyquestion.FieldDateData,
 		})
 	}
-	if squo.mutation.DateDataCleared() {
+	if squo.cleardate_data {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: surveyquestion.FieldDateData,
 		})
 	}
-	if squo.mutation.SurveyCleared() {
+	if squo.clearedSurvey {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1932,7 +2146,7 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := squo.mutation.SurveyIDs(); len(nodes) > 0 {
+	if nodes := squo.survey; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1946,12 +2160,12 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := squo.mutation.RemovedWifiScanIDs(); len(nodes) > 0 {
+	if nodes := squo.removedWifiScan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1965,12 +2179,12 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := squo.mutation.WifiScanIDs(); len(nodes) > 0 {
+	if nodes := squo.wifi_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1984,12 +2198,12 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := squo.mutation.RemovedCellScanIDs(); len(nodes) > 0 {
+	if nodes := squo.removedCellScan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2003,12 +2217,12 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := squo.mutation.CellScanIDs(); len(nodes) > 0 {
+	if nodes := squo.cell_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2022,12 +2236,12 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := squo.mutation.RemovedPhotoDataIDs(); len(nodes) > 0 {
+	if nodes := squo.removedPhotoData; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2041,12 +2255,12 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := squo.mutation.PhotoDataIDs(); len(nodes) > 0 {
+	if nodes := squo.photo_data; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2060,7 +2274,7 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

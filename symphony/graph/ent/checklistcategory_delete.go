@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,8 +19,6 @@ import (
 // CheckListCategoryDelete is the builder for deleting a CheckListCategory entity.
 type CheckListCategoryDelete struct {
 	config
-	hooks      []Hook
-	mutation   *CheckListCategoryMutation
 	predicates []predicate.CheckListCategory
 }
 
@@ -33,30 +30,7 @@ func (clcd *CheckListCategoryDelete) Where(ps ...predicate.CheckListCategory) *C
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (clcd *CheckListCategoryDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(clcd.hooks) == 0 {
-		affected, err = clcd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CheckListCategoryMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			clcd.mutation = mutation
-			affected, err = clcd.sqlExec(ctx)
-			return affected, err
-		})
-		for i := len(clcd.hooks); i > 0; i-- {
-			mut = clcd.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, clcd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return clcd.sqlExec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

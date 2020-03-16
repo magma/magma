@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,8 +19,6 @@ import (
 // LocationTypeDelete is the builder for deleting a LocationType entity.
 type LocationTypeDelete struct {
 	config
-	hooks      []Hook
-	mutation   *LocationTypeMutation
 	predicates []predicate.LocationType
 }
 
@@ -33,30 +30,7 @@ func (ltd *LocationTypeDelete) Where(ps ...predicate.LocationType) *LocationType
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ltd *LocationTypeDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ltd.hooks) == 0 {
-		affected, err = ltd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LocationTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ltd.mutation = mutation
-			affected, err = ltd.sqlExec(ctx)
-			return affected, err
-		})
-		for i := len(ltd.hooks); i > 0; i-- {
-			mut = ltd.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, ltd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return ltd.sqlExec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

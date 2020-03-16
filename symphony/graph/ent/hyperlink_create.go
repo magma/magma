@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,13 +19,16 @@ import (
 // HyperlinkCreate is the builder for creating a Hyperlink entity.
 type HyperlinkCreate struct {
 	config
-	mutation *HyperlinkMutation
-	hooks    []Hook
+	create_time *time.Time
+	update_time *time.Time
+	url         *string
+	name        *string
+	category    *string
 }
 
 // SetCreateTime sets the create_time field.
 func (hc *HyperlinkCreate) SetCreateTime(t time.Time) *HyperlinkCreate {
-	hc.mutation.SetCreateTime(t)
+	hc.create_time = &t
 	return hc
 }
 
@@ -40,7 +42,7 @@ func (hc *HyperlinkCreate) SetNillableCreateTime(t *time.Time) *HyperlinkCreate 
 
 // SetUpdateTime sets the update_time field.
 func (hc *HyperlinkCreate) SetUpdateTime(t time.Time) *HyperlinkCreate {
-	hc.mutation.SetUpdateTime(t)
+	hc.update_time = &t
 	return hc
 }
 
@@ -54,13 +56,13 @@ func (hc *HyperlinkCreate) SetNillableUpdateTime(t *time.Time) *HyperlinkCreate 
 
 // SetURL sets the url field.
 func (hc *HyperlinkCreate) SetURL(s string) *HyperlinkCreate {
-	hc.mutation.SetURL(s)
+	hc.url = &s
 	return hc
 }
 
 // SetName sets the name field.
 func (hc *HyperlinkCreate) SetName(s string) *HyperlinkCreate {
-	hc.mutation.SetName(s)
+	hc.name = &s
 	return hc
 }
 
@@ -74,7 +76,7 @@ func (hc *HyperlinkCreate) SetNillableName(s *string) *HyperlinkCreate {
 
 // SetCategory sets the category field.
 func (hc *HyperlinkCreate) SetCategory(s string) *HyperlinkCreate {
-	hc.mutation.SetCategory(s)
+	hc.category = &s
 	return hc
 }
 
@@ -88,41 +90,18 @@ func (hc *HyperlinkCreate) SetNillableCategory(s *string) *HyperlinkCreate {
 
 // Save creates the Hyperlink in the database.
 func (hc *HyperlinkCreate) Save(ctx context.Context) (*Hyperlink, error) {
-	if _, ok := hc.mutation.CreateTime(); !ok {
+	if hc.create_time == nil {
 		v := hyperlink.DefaultCreateTime()
-		hc.mutation.SetCreateTime(v)
+		hc.create_time = &v
 	}
-	if _, ok := hc.mutation.UpdateTime(); !ok {
+	if hc.update_time == nil {
 		v := hyperlink.DefaultUpdateTime()
-		hc.mutation.SetUpdateTime(v)
+		hc.update_time = &v
 	}
-	if _, ok := hc.mutation.URL(); !ok {
+	if hc.url == nil {
 		return nil, errors.New("ent: missing required field \"url\"")
 	}
-	var (
-		err  error
-		node *Hyperlink
-	)
-	if len(hc.hooks) == 0 {
-		node, err = hc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*HyperlinkMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			hc.mutation = mutation
-			node, err = hc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(hc.hooks); i > 0; i-- {
-			mut = hc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, hc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return hc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -145,45 +124,45 @@ func (hc *HyperlinkCreate) sqlSave(ctx context.Context) (*Hyperlink, error) {
 			},
 		}
 	)
-	if value, ok := hc.mutation.CreateTime(); ok {
+	if value := hc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: hyperlink.FieldCreateTime,
 		})
-		h.CreateTime = value
+		h.CreateTime = *value
 	}
-	if value, ok := hc.mutation.UpdateTime(); ok {
+	if value := hc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: hyperlink.FieldUpdateTime,
 		})
-		h.UpdateTime = value
+		h.UpdateTime = *value
 	}
-	if value, ok := hc.mutation.URL(); ok {
+	if value := hc.url; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: hyperlink.FieldURL,
 		})
-		h.URL = value
+		h.URL = *value
 	}
-	if value, ok := hc.mutation.Name(); ok {
+	if value := hc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: hyperlink.FieldName,
 		})
-		h.Name = value
+		h.Name = *value
 	}
-	if value, ok := hc.mutation.Category(); ok {
+	if value := hc.category; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: hyperlink.FieldCategory,
 		})
-		h.Category = value
+		h.Category = *value
 	}
 	if err := sqlgraph.CreateNode(ctx, hc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

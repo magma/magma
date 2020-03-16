@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -31,9 +32,42 @@ import (
 // LocationUpdate is the builder for updating Location entities.
 type LocationUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *LocationMutation
-	predicates []predicate.Location
+
+	update_time             *time.Time
+	name                    *string
+	external_id             *string
+	clearexternal_id        bool
+	latitude                *float64
+	addlatitude             *float64
+	longitude               *float64
+	addlongitude            *float64
+	site_survey_needed      *bool
+	clearsite_survey_needed bool
+	_type                   map[int]struct{}
+	parent                  map[int]struct{}
+	children                map[int]struct{}
+	files                   map[int]struct{}
+	hyperlinks              map[int]struct{}
+	equipment               map[int]struct{}
+	properties              map[int]struct{}
+	survey                  map[int]struct{}
+	wifi_scan               map[int]struct{}
+	cell_scan               map[int]struct{}
+	work_orders             map[int]struct{}
+	floor_plans             map[int]struct{}
+	clearedType             bool
+	clearedParent           bool
+	removedChildren         map[int]struct{}
+	removedFiles            map[int]struct{}
+	removedHyperlinks       map[int]struct{}
+	removedEquipment        map[int]struct{}
+	removedProperties       map[int]struct{}
+	removedSurvey           map[int]struct{}
+	removedWifiScan         map[int]struct{}
+	removedCellScan         map[int]struct{}
+	removedWorkOrders       map[int]struct{}
+	removedFloorPlans       map[int]struct{}
+	predicates              []predicate.Location
 }
 
 // Where adds a new predicate for the builder.
@@ -44,13 +78,13 @@ func (lu *LocationUpdate) Where(ps ...predicate.Location) *LocationUpdate {
 
 // SetName sets the name field.
 func (lu *LocationUpdate) SetName(s string) *LocationUpdate {
-	lu.mutation.SetName(s)
+	lu.name = &s
 	return lu
 }
 
 // SetExternalID sets the external_id field.
 func (lu *LocationUpdate) SetExternalID(s string) *LocationUpdate {
-	lu.mutation.SetExternalID(s)
+	lu.external_id = &s
 	return lu
 }
 
@@ -64,14 +98,15 @@ func (lu *LocationUpdate) SetNillableExternalID(s *string) *LocationUpdate {
 
 // ClearExternalID clears the value of external_id.
 func (lu *LocationUpdate) ClearExternalID() *LocationUpdate {
-	lu.mutation.ClearExternalID()
+	lu.external_id = nil
+	lu.clearexternal_id = true
 	return lu
 }
 
 // SetLatitude sets the latitude field.
 func (lu *LocationUpdate) SetLatitude(f float64) *LocationUpdate {
-	lu.mutation.ResetLatitude()
-	lu.mutation.SetLatitude(f)
+	lu.latitude = &f
+	lu.addlatitude = nil
 	return lu
 }
 
@@ -85,14 +120,18 @@ func (lu *LocationUpdate) SetNillableLatitude(f *float64) *LocationUpdate {
 
 // AddLatitude adds f to latitude.
 func (lu *LocationUpdate) AddLatitude(f float64) *LocationUpdate {
-	lu.mutation.AddLatitude(f)
+	if lu.addlatitude == nil {
+		lu.addlatitude = &f
+	} else {
+		*lu.addlatitude += f
+	}
 	return lu
 }
 
 // SetLongitude sets the longitude field.
 func (lu *LocationUpdate) SetLongitude(f float64) *LocationUpdate {
-	lu.mutation.ResetLongitude()
-	lu.mutation.SetLongitude(f)
+	lu.longitude = &f
+	lu.addlongitude = nil
 	return lu
 }
 
@@ -106,13 +145,17 @@ func (lu *LocationUpdate) SetNillableLongitude(f *float64) *LocationUpdate {
 
 // AddLongitude adds f to longitude.
 func (lu *LocationUpdate) AddLongitude(f float64) *LocationUpdate {
-	lu.mutation.AddLongitude(f)
+	if lu.addlongitude == nil {
+		lu.addlongitude = &f
+	} else {
+		*lu.addlongitude += f
+	}
 	return lu
 }
 
 // SetSiteSurveyNeeded sets the site_survey_needed field.
 func (lu *LocationUpdate) SetSiteSurveyNeeded(b bool) *LocationUpdate {
-	lu.mutation.SetSiteSurveyNeeded(b)
+	lu.site_survey_needed = &b
 	return lu
 }
 
@@ -126,13 +169,17 @@ func (lu *LocationUpdate) SetNillableSiteSurveyNeeded(b *bool) *LocationUpdate {
 
 // ClearSiteSurveyNeeded clears the value of site_survey_needed.
 func (lu *LocationUpdate) ClearSiteSurveyNeeded() *LocationUpdate {
-	lu.mutation.ClearSiteSurveyNeeded()
+	lu.site_survey_needed = nil
+	lu.clearsite_survey_needed = true
 	return lu
 }
 
 // SetTypeID sets the type edge to LocationType by id.
 func (lu *LocationUpdate) SetTypeID(id int) *LocationUpdate {
-	lu.mutation.SetTypeID(id)
+	if lu._type == nil {
+		lu._type = make(map[int]struct{})
+	}
+	lu._type[id] = struct{}{}
 	return lu
 }
 
@@ -143,7 +190,10 @@ func (lu *LocationUpdate) SetType(l *LocationType) *LocationUpdate {
 
 // SetParentID sets the parent edge to Location by id.
 func (lu *LocationUpdate) SetParentID(id int) *LocationUpdate {
-	lu.mutation.SetParentID(id)
+	if lu.parent == nil {
+		lu.parent = make(map[int]struct{})
+	}
+	lu.parent[id] = struct{}{}
 	return lu
 }
 
@@ -162,7 +212,12 @@ func (lu *LocationUpdate) SetParent(l *Location) *LocationUpdate {
 
 // AddChildIDs adds the children edge to Location by ids.
 func (lu *LocationUpdate) AddChildIDs(ids ...int) *LocationUpdate {
-	lu.mutation.AddChildIDs(ids...)
+	if lu.children == nil {
+		lu.children = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.children[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -177,7 +232,12 @@ func (lu *LocationUpdate) AddChildren(l ...*Location) *LocationUpdate {
 
 // AddFileIDs adds the files edge to File by ids.
 func (lu *LocationUpdate) AddFileIDs(ids ...int) *LocationUpdate {
-	lu.mutation.AddFileIDs(ids...)
+	if lu.files == nil {
+		lu.files = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.files[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -192,7 +252,12 @@ func (lu *LocationUpdate) AddFiles(f ...*File) *LocationUpdate {
 
 // AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
 func (lu *LocationUpdate) AddHyperlinkIDs(ids ...int) *LocationUpdate {
-	lu.mutation.AddHyperlinkIDs(ids...)
+	if lu.hyperlinks == nil {
+		lu.hyperlinks = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.hyperlinks[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -207,7 +272,12 @@ func (lu *LocationUpdate) AddHyperlinks(h ...*Hyperlink) *LocationUpdate {
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
 func (lu *LocationUpdate) AddEquipmentIDs(ids ...int) *LocationUpdate {
-	lu.mutation.AddEquipmentIDs(ids...)
+	if lu.equipment == nil {
+		lu.equipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.equipment[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -222,7 +292,12 @@ func (lu *LocationUpdate) AddEquipment(e ...*Equipment) *LocationUpdate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (lu *LocationUpdate) AddPropertyIDs(ids ...int) *LocationUpdate {
-	lu.mutation.AddPropertyIDs(ids...)
+	if lu.properties == nil {
+		lu.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.properties[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -237,7 +312,12 @@ func (lu *LocationUpdate) AddProperties(p ...*Property) *LocationUpdate {
 
 // AddSurveyIDs adds the survey edge to Survey by ids.
 func (lu *LocationUpdate) AddSurveyIDs(ids ...int) *LocationUpdate {
-	lu.mutation.AddSurveyIDs(ids...)
+	if lu.survey == nil {
+		lu.survey = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.survey[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -252,7 +332,12 @@ func (lu *LocationUpdate) AddSurvey(s ...*Survey) *LocationUpdate {
 
 // AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
 func (lu *LocationUpdate) AddWifiScanIDs(ids ...int) *LocationUpdate {
-	lu.mutation.AddWifiScanIDs(ids...)
+	if lu.wifi_scan == nil {
+		lu.wifi_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.wifi_scan[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -267,7 +352,12 @@ func (lu *LocationUpdate) AddWifiScan(s ...*SurveyWiFiScan) *LocationUpdate {
 
 // AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
 func (lu *LocationUpdate) AddCellScanIDs(ids ...int) *LocationUpdate {
-	lu.mutation.AddCellScanIDs(ids...)
+	if lu.cell_scan == nil {
+		lu.cell_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.cell_scan[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -282,7 +372,12 @@ func (lu *LocationUpdate) AddCellScan(s ...*SurveyCellScan) *LocationUpdate {
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (lu *LocationUpdate) AddWorkOrderIDs(ids ...int) *LocationUpdate {
-	lu.mutation.AddWorkOrderIDs(ids...)
+	if lu.work_orders == nil {
+		lu.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.work_orders[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -297,7 +392,12 @@ func (lu *LocationUpdate) AddWorkOrders(w ...*WorkOrder) *LocationUpdate {
 
 // AddFloorPlanIDs adds the floor_plans edge to FloorPlan by ids.
 func (lu *LocationUpdate) AddFloorPlanIDs(ids ...int) *LocationUpdate {
-	lu.mutation.AddFloorPlanIDs(ids...)
+	if lu.floor_plans == nil {
+		lu.floor_plans = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.floor_plans[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -312,19 +412,24 @@ func (lu *LocationUpdate) AddFloorPlans(f ...*FloorPlan) *LocationUpdate {
 
 // ClearType clears the type edge to LocationType.
 func (lu *LocationUpdate) ClearType() *LocationUpdate {
-	lu.mutation.ClearType()
+	lu.clearedType = true
 	return lu
 }
 
 // ClearParent clears the parent edge to Location.
 func (lu *LocationUpdate) ClearParent() *LocationUpdate {
-	lu.mutation.ClearParent()
+	lu.clearedParent = true
 	return lu
 }
 
 // RemoveChildIDs removes the children edge to Location by ids.
 func (lu *LocationUpdate) RemoveChildIDs(ids ...int) *LocationUpdate {
-	lu.mutation.RemoveChildIDs(ids...)
+	if lu.removedChildren == nil {
+		lu.removedChildren = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.removedChildren[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -339,7 +444,12 @@ func (lu *LocationUpdate) RemoveChildren(l ...*Location) *LocationUpdate {
 
 // RemoveFileIDs removes the files edge to File by ids.
 func (lu *LocationUpdate) RemoveFileIDs(ids ...int) *LocationUpdate {
-	lu.mutation.RemoveFileIDs(ids...)
+	if lu.removedFiles == nil {
+		lu.removedFiles = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.removedFiles[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -354,7 +464,12 @@ func (lu *LocationUpdate) RemoveFiles(f ...*File) *LocationUpdate {
 
 // RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
 func (lu *LocationUpdate) RemoveHyperlinkIDs(ids ...int) *LocationUpdate {
-	lu.mutation.RemoveHyperlinkIDs(ids...)
+	if lu.removedHyperlinks == nil {
+		lu.removedHyperlinks = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.removedHyperlinks[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -369,7 +484,12 @@ func (lu *LocationUpdate) RemoveHyperlinks(h ...*Hyperlink) *LocationUpdate {
 
 // RemoveEquipmentIDs removes the equipment edge to Equipment by ids.
 func (lu *LocationUpdate) RemoveEquipmentIDs(ids ...int) *LocationUpdate {
-	lu.mutation.RemoveEquipmentIDs(ids...)
+	if lu.removedEquipment == nil {
+		lu.removedEquipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.removedEquipment[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -384,7 +504,12 @@ func (lu *LocationUpdate) RemoveEquipment(e ...*Equipment) *LocationUpdate {
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (lu *LocationUpdate) RemovePropertyIDs(ids ...int) *LocationUpdate {
-	lu.mutation.RemovePropertyIDs(ids...)
+	if lu.removedProperties == nil {
+		lu.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.removedProperties[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -399,7 +524,12 @@ func (lu *LocationUpdate) RemoveProperties(p ...*Property) *LocationUpdate {
 
 // RemoveSurveyIDs removes the survey edge to Survey by ids.
 func (lu *LocationUpdate) RemoveSurveyIDs(ids ...int) *LocationUpdate {
-	lu.mutation.RemoveSurveyIDs(ids...)
+	if lu.removedSurvey == nil {
+		lu.removedSurvey = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.removedSurvey[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -414,7 +544,12 @@ func (lu *LocationUpdate) RemoveSurvey(s ...*Survey) *LocationUpdate {
 
 // RemoveWifiScanIDs removes the wifi_scan edge to SurveyWiFiScan by ids.
 func (lu *LocationUpdate) RemoveWifiScanIDs(ids ...int) *LocationUpdate {
-	lu.mutation.RemoveWifiScanIDs(ids...)
+	if lu.removedWifiScan == nil {
+		lu.removedWifiScan = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.removedWifiScan[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -429,7 +564,12 @@ func (lu *LocationUpdate) RemoveWifiScan(s ...*SurveyWiFiScan) *LocationUpdate {
 
 // RemoveCellScanIDs removes the cell_scan edge to SurveyCellScan by ids.
 func (lu *LocationUpdate) RemoveCellScanIDs(ids ...int) *LocationUpdate {
-	lu.mutation.RemoveCellScanIDs(ids...)
+	if lu.removedCellScan == nil {
+		lu.removedCellScan = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.removedCellScan[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -444,7 +584,12 @@ func (lu *LocationUpdate) RemoveCellScan(s ...*SurveyCellScan) *LocationUpdate {
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
 func (lu *LocationUpdate) RemoveWorkOrderIDs(ids ...int) *LocationUpdate {
-	lu.mutation.RemoveWorkOrderIDs(ids...)
+	if lu.removedWorkOrders == nil {
+		lu.removedWorkOrders = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.removedWorkOrders[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -459,7 +604,12 @@ func (lu *LocationUpdate) RemoveWorkOrders(w ...*WorkOrder) *LocationUpdate {
 
 // RemoveFloorPlanIDs removes the floor_plans edge to FloorPlan by ids.
 func (lu *LocationUpdate) RemoveFloorPlanIDs(ids ...int) *LocationUpdate {
-	lu.mutation.RemoveFloorPlanIDs(ids...)
+	if lu.removedFloorPlans == nil {
+		lu.removedFloorPlans = make(map[int]struct{})
+	}
+	for i := range ids {
+		lu.removedFloorPlans[ids[i]] = struct{}{}
+	}
 	return lu
 }
 
@@ -474,54 +624,35 @@ func (lu *LocationUpdate) RemoveFloorPlans(f ...*FloorPlan) *LocationUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (lu *LocationUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := lu.mutation.UpdateTime(); !ok {
+	if lu.update_time == nil {
 		v := location.UpdateDefaultUpdateTime()
-		lu.mutation.SetUpdateTime(v)
+		lu.update_time = &v
 	}
-	if v, ok := lu.mutation.Name(); ok {
-		if err := location.NameValidator(v); err != nil {
+	if lu.name != nil {
+		if err := location.NameValidator(*lu.name); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if v, ok := lu.mutation.Latitude(); ok {
-		if err := location.LatitudeValidator(v); err != nil {
+	if lu.latitude != nil {
+		if err := location.LatitudeValidator(*lu.latitude); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"latitude\": %v", err)
 		}
 	}
-	if v, ok := lu.mutation.Longitude(); ok {
-		if err := location.LongitudeValidator(v); err != nil {
+	if lu.longitude != nil {
+		if err := location.LongitudeValidator(*lu.longitude); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"longitude\": %v", err)
 		}
 	}
-
-	if _, ok := lu.mutation.TypeID(); lu.mutation.TypeCleared() && !ok {
+	if len(lu._type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"type\"")
+	}
+	if lu.clearedType && lu._type == nil {
 		return 0, errors.New("ent: clearing a unique edge \"type\"")
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(lu.hooks) == 0 {
-		affected, err = lu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LocationMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			lu.mutation = mutation
-			affected, err = lu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(lu.hooks); i > 0; i-- {
-			mut = lu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, lu.mutation); err != nil {
-			return 0, err
-		}
+	if len(lu.parent) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"parent\"")
 	}
-	return affected, err
+	return lu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -564,75 +695,75 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := lu.mutation.UpdateTime(); ok {
+	if value := lu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldUpdateTime,
 		})
 	}
-	if value, ok := lu.mutation.Name(); ok {
+	if value := lu.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldName,
 		})
 	}
-	if value, ok := lu.mutation.ExternalID(); ok {
+	if value := lu.external_id; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldExternalID,
 		})
 	}
-	if lu.mutation.ExternalIDCleared() {
+	if lu.clearexternal_id {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: location.FieldExternalID,
 		})
 	}
-	if value, ok := lu.mutation.Latitude(); ok {
+	if value := lu.latitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldLatitude,
 		})
 	}
-	if value, ok := lu.mutation.AddedLatitude(); ok {
+	if value := lu.addlatitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldLatitude,
 		})
 	}
-	if value, ok := lu.mutation.Longitude(); ok {
+	if value := lu.longitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldLongitude,
 		})
 	}
-	if value, ok := lu.mutation.AddedLongitude(); ok {
+	if value := lu.addlongitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldLongitude,
 		})
 	}
-	if value, ok := lu.mutation.SiteSurveyNeeded(); ok {
+	if value := lu.site_survey_needed; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldSiteSurveyNeeded,
 		})
 	}
-	if lu.mutation.SiteSurveyNeededCleared() {
+	if lu.clearsite_survey_needed {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: location.FieldSiteSurveyNeeded,
 		})
 	}
-	if lu.mutation.TypeCleared() {
+	if lu.clearedType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -648,7 +779,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.TypeIDs(); len(nodes) > 0 {
+	if nodes := lu._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -662,12 +793,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if lu.mutation.ParentCleared() {
+	if lu.clearedParent {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -683,7 +814,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.ParentIDs(); len(nodes) > 0 {
+	if nodes := lu.parent; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -697,12 +828,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.mutation.RemovedChildrenIDs(); len(nodes) > 0 {
+	if nodes := lu.removedChildren; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -716,12 +847,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.ChildrenIDs(); len(nodes) > 0 {
+	if nodes := lu.children; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -735,12 +866,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.mutation.RemovedFilesIDs(); len(nodes) > 0 {
+	if nodes := lu.removedFiles; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -754,12 +885,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.FilesIDs(); len(nodes) > 0 {
+	if nodes := lu.files; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -773,12 +904,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.mutation.RemovedHyperlinksIDs(); len(nodes) > 0 {
+	if nodes := lu.removedHyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -792,12 +923,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.HyperlinksIDs(); len(nodes) > 0 {
+	if nodes := lu.hyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -811,12 +942,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.mutation.RemovedEquipmentIDs(); len(nodes) > 0 {
+	if nodes := lu.removedEquipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -830,12 +961,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.EquipmentIDs(); len(nodes) > 0 {
+	if nodes := lu.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -849,12 +980,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := lu.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -868,12 +999,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := lu.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -887,12 +1018,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.mutation.RemovedSurveyIDs(); len(nodes) > 0 {
+	if nodes := lu.removedSurvey; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -906,12 +1037,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.SurveyIDs(); len(nodes) > 0 {
+	if nodes := lu.survey; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -925,12 +1056,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.mutation.RemovedWifiScanIDs(); len(nodes) > 0 {
+	if nodes := lu.removedWifiScan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -944,12 +1075,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.WifiScanIDs(); len(nodes) > 0 {
+	if nodes := lu.wifi_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -963,12 +1094,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.mutation.RemovedCellScanIDs(); len(nodes) > 0 {
+	if nodes := lu.removedCellScan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -982,12 +1113,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.CellScanIDs(); len(nodes) > 0 {
+	if nodes := lu.cell_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1001,12 +1132,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.mutation.RemovedWorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := lu.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1020,12 +1151,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.WorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := lu.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1039,12 +1170,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.mutation.RemovedFloorPlansIDs(); len(nodes) > 0 {
+	if nodes := lu.removedFloorPlans; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1058,12 +1189,12 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.mutation.FloorPlansIDs(); len(nodes) > 0 {
+	if nodes := lu.floor_plans; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1077,7 +1208,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -1096,19 +1227,53 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // LocationUpdateOne is the builder for updating a single Location entity.
 type LocationUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *LocationMutation
+	id int
+
+	update_time             *time.Time
+	name                    *string
+	external_id             *string
+	clearexternal_id        bool
+	latitude                *float64
+	addlatitude             *float64
+	longitude               *float64
+	addlongitude            *float64
+	site_survey_needed      *bool
+	clearsite_survey_needed bool
+	_type                   map[int]struct{}
+	parent                  map[int]struct{}
+	children                map[int]struct{}
+	files                   map[int]struct{}
+	hyperlinks              map[int]struct{}
+	equipment               map[int]struct{}
+	properties              map[int]struct{}
+	survey                  map[int]struct{}
+	wifi_scan               map[int]struct{}
+	cell_scan               map[int]struct{}
+	work_orders             map[int]struct{}
+	floor_plans             map[int]struct{}
+	clearedType             bool
+	clearedParent           bool
+	removedChildren         map[int]struct{}
+	removedFiles            map[int]struct{}
+	removedHyperlinks       map[int]struct{}
+	removedEquipment        map[int]struct{}
+	removedProperties       map[int]struct{}
+	removedSurvey           map[int]struct{}
+	removedWifiScan         map[int]struct{}
+	removedCellScan         map[int]struct{}
+	removedWorkOrders       map[int]struct{}
+	removedFloorPlans       map[int]struct{}
 }
 
 // SetName sets the name field.
 func (luo *LocationUpdateOne) SetName(s string) *LocationUpdateOne {
-	luo.mutation.SetName(s)
+	luo.name = &s
 	return luo
 }
 
 // SetExternalID sets the external_id field.
 func (luo *LocationUpdateOne) SetExternalID(s string) *LocationUpdateOne {
-	luo.mutation.SetExternalID(s)
+	luo.external_id = &s
 	return luo
 }
 
@@ -1122,14 +1287,15 @@ func (luo *LocationUpdateOne) SetNillableExternalID(s *string) *LocationUpdateOn
 
 // ClearExternalID clears the value of external_id.
 func (luo *LocationUpdateOne) ClearExternalID() *LocationUpdateOne {
-	luo.mutation.ClearExternalID()
+	luo.external_id = nil
+	luo.clearexternal_id = true
 	return luo
 }
 
 // SetLatitude sets the latitude field.
 func (luo *LocationUpdateOne) SetLatitude(f float64) *LocationUpdateOne {
-	luo.mutation.ResetLatitude()
-	luo.mutation.SetLatitude(f)
+	luo.latitude = &f
+	luo.addlatitude = nil
 	return luo
 }
 
@@ -1143,14 +1309,18 @@ func (luo *LocationUpdateOne) SetNillableLatitude(f *float64) *LocationUpdateOne
 
 // AddLatitude adds f to latitude.
 func (luo *LocationUpdateOne) AddLatitude(f float64) *LocationUpdateOne {
-	luo.mutation.AddLatitude(f)
+	if luo.addlatitude == nil {
+		luo.addlatitude = &f
+	} else {
+		*luo.addlatitude += f
+	}
 	return luo
 }
 
 // SetLongitude sets the longitude field.
 func (luo *LocationUpdateOne) SetLongitude(f float64) *LocationUpdateOne {
-	luo.mutation.ResetLongitude()
-	luo.mutation.SetLongitude(f)
+	luo.longitude = &f
+	luo.addlongitude = nil
 	return luo
 }
 
@@ -1164,13 +1334,17 @@ func (luo *LocationUpdateOne) SetNillableLongitude(f *float64) *LocationUpdateOn
 
 // AddLongitude adds f to longitude.
 func (luo *LocationUpdateOne) AddLongitude(f float64) *LocationUpdateOne {
-	luo.mutation.AddLongitude(f)
+	if luo.addlongitude == nil {
+		luo.addlongitude = &f
+	} else {
+		*luo.addlongitude += f
+	}
 	return luo
 }
 
 // SetSiteSurveyNeeded sets the site_survey_needed field.
 func (luo *LocationUpdateOne) SetSiteSurveyNeeded(b bool) *LocationUpdateOne {
-	luo.mutation.SetSiteSurveyNeeded(b)
+	luo.site_survey_needed = &b
 	return luo
 }
 
@@ -1184,13 +1358,17 @@ func (luo *LocationUpdateOne) SetNillableSiteSurveyNeeded(b *bool) *LocationUpda
 
 // ClearSiteSurveyNeeded clears the value of site_survey_needed.
 func (luo *LocationUpdateOne) ClearSiteSurveyNeeded() *LocationUpdateOne {
-	luo.mutation.ClearSiteSurveyNeeded()
+	luo.site_survey_needed = nil
+	luo.clearsite_survey_needed = true
 	return luo
 }
 
 // SetTypeID sets the type edge to LocationType by id.
 func (luo *LocationUpdateOne) SetTypeID(id int) *LocationUpdateOne {
-	luo.mutation.SetTypeID(id)
+	if luo._type == nil {
+		luo._type = make(map[int]struct{})
+	}
+	luo._type[id] = struct{}{}
 	return luo
 }
 
@@ -1201,7 +1379,10 @@ func (luo *LocationUpdateOne) SetType(l *LocationType) *LocationUpdateOne {
 
 // SetParentID sets the parent edge to Location by id.
 func (luo *LocationUpdateOne) SetParentID(id int) *LocationUpdateOne {
-	luo.mutation.SetParentID(id)
+	if luo.parent == nil {
+		luo.parent = make(map[int]struct{})
+	}
+	luo.parent[id] = struct{}{}
 	return luo
 }
 
@@ -1220,7 +1401,12 @@ func (luo *LocationUpdateOne) SetParent(l *Location) *LocationUpdateOne {
 
 // AddChildIDs adds the children edge to Location by ids.
 func (luo *LocationUpdateOne) AddChildIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.AddChildIDs(ids...)
+	if luo.children == nil {
+		luo.children = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.children[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1235,7 +1421,12 @@ func (luo *LocationUpdateOne) AddChildren(l ...*Location) *LocationUpdateOne {
 
 // AddFileIDs adds the files edge to File by ids.
 func (luo *LocationUpdateOne) AddFileIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.AddFileIDs(ids...)
+	if luo.files == nil {
+		luo.files = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.files[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1250,7 +1441,12 @@ func (luo *LocationUpdateOne) AddFiles(f ...*File) *LocationUpdateOne {
 
 // AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
 func (luo *LocationUpdateOne) AddHyperlinkIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.AddHyperlinkIDs(ids...)
+	if luo.hyperlinks == nil {
+		luo.hyperlinks = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.hyperlinks[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1265,7 +1461,12 @@ func (luo *LocationUpdateOne) AddHyperlinks(h ...*Hyperlink) *LocationUpdateOne 
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
 func (luo *LocationUpdateOne) AddEquipmentIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.AddEquipmentIDs(ids...)
+	if luo.equipment == nil {
+		luo.equipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.equipment[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1280,7 +1481,12 @@ func (luo *LocationUpdateOne) AddEquipment(e ...*Equipment) *LocationUpdateOne {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (luo *LocationUpdateOne) AddPropertyIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.AddPropertyIDs(ids...)
+	if luo.properties == nil {
+		luo.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.properties[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1295,7 +1501,12 @@ func (luo *LocationUpdateOne) AddProperties(p ...*Property) *LocationUpdateOne {
 
 // AddSurveyIDs adds the survey edge to Survey by ids.
 func (luo *LocationUpdateOne) AddSurveyIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.AddSurveyIDs(ids...)
+	if luo.survey == nil {
+		luo.survey = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.survey[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1310,7 +1521,12 @@ func (luo *LocationUpdateOne) AddSurvey(s ...*Survey) *LocationUpdateOne {
 
 // AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
 func (luo *LocationUpdateOne) AddWifiScanIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.AddWifiScanIDs(ids...)
+	if luo.wifi_scan == nil {
+		luo.wifi_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.wifi_scan[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1325,7 +1541,12 @@ func (luo *LocationUpdateOne) AddWifiScan(s ...*SurveyWiFiScan) *LocationUpdateO
 
 // AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
 func (luo *LocationUpdateOne) AddCellScanIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.AddCellScanIDs(ids...)
+	if luo.cell_scan == nil {
+		luo.cell_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.cell_scan[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1340,7 +1561,12 @@ func (luo *LocationUpdateOne) AddCellScan(s ...*SurveyCellScan) *LocationUpdateO
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (luo *LocationUpdateOne) AddWorkOrderIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.AddWorkOrderIDs(ids...)
+	if luo.work_orders == nil {
+		luo.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.work_orders[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1355,7 +1581,12 @@ func (luo *LocationUpdateOne) AddWorkOrders(w ...*WorkOrder) *LocationUpdateOne 
 
 // AddFloorPlanIDs adds the floor_plans edge to FloorPlan by ids.
 func (luo *LocationUpdateOne) AddFloorPlanIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.AddFloorPlanIDs(ids...)
+	if luo.floor_plans == nil {
+		luo.floor_plans = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.floor_plans[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1370,19 +1601,24 @@ func (luo *LocationUpdateOne) AddFloorPlans(f ...*FloorPlan) *LocationUpdateOne 
 
 // ClearType clears the type edge to LocationType.
 func (luo *LocationUpdateOne) ClearType() *LocationUpdateOne {
-	luo.mutation.ClearType()
+	luo.clearedType = true
 	return luo
 }
 
 // ClearParent clears the parent edge to Location.
 func (luo *LocationUpdateOne) ClearParent() *LocationUpdateOne {
-	luo.mutation.ClearParent()
+	luo.clearedParent = true
 	return luo
 }
 
 // RemoveChildIDs removes the children edge to Location by ids.
 func (luo *LocationUpdateOne) RemoveChildIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.RemoveChildIDs(ids...)
+	if luo.removedChildren == nil {
+		luo.removedChildren = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.removedChildren[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1397,7 +1633,12 @@ func (luo *LocationUpdateOne) RemoveChildren(l ...*Location) *LocationUpdateOne 
 
 // RemoveFileIDs removes the files edge to File by ids.
 func (luo *LocationUpdateOne) RemoveFileIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.RemoveFileIDs(ids...)
+	if luo.removedFiles == nil {
+		luo.removedFiles = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.removedFiles[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1412,7 +1653,12 @@ func (luo *LocationUpdateOne) RemoveFiles(f ...*File) *LocationUpdateOne {
 
 // RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
 func (luo *LocationUpdateOne) RemoveHyperlinkIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.RemoveHyperlinkIDs(ids...)
+	if luo.removedHyperlinks == nil {
+		luo.removedHyperlinks = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.removedHyperlinks[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1427,7 +1673,12 @@ func (luo *LocationUpdateOne) RemoveHyperlinks(h ...*Hyperlink) *LocationUpdateO
 
 // RemoveEquipmentIDs removes the equipment edge to Equipment by ids.
 func (luo *LocationUpdateOne) RemoveEquipmentIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.RemoveEquipmentIDs(ids...)
+	if luo.removedEquipment == nil {
+		luo.removedEquipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.removedEquipment[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1442,7 +1693,12 @@ func (luo *LocationUpdateOne) RemoveEquipment(e ...*Equipment) *LocationUpdateOn
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (luo *LocationUpdateOne) RemovePropertyIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.RemovePropertyIDs(ids...)
+	if luo.removedProperties == nil {
+		luo.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.removedProperties[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1457,7 +1713,12 @@ func (luo *LocationUpdateOne) RemoveProperties(p ...*Property) *LocationUpdateOn
 
 // RemoveSurveyIDs removes the survey edge to Survey by ids.
 func (luo *LocationUpdateOne) RemoveSurveyIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.RemoveSurveyIDs(ids...)
+	if luo.removedSurvey == nil {
+		luo.removedSurvey = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.removedSurvey[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1472,7 +1733,12 @@ func (luo *LocationUpdateOne) RemoveSurvey(s ...*Survey) *LocationUpdateOne {
 
 // RemoveWifiScanIDs removes the wifi_scan edge to SurveyWiFiScan by ids.
 func (luo *LocationUpdateOne) RemoveWifiScanIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.RemoveWifiScanIDs(ids...)
+	if luo.removedWifiScan == nil {
+		luo.removedWifiScan = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.removedWifiScan[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1487,7 +1753,12 @@ func (luo *LocationUpdateOne) RemoveWifiScan(s ...*SurveyWiFiScan) *LocationUpda
 
 // RemoveCellScanIDs removes the cell_scan edge to SurveyCellScan by ids.
 func (luo *LocationUpdateOne) RemoveCellScanIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.RemoveCellScanIDs(ids...)
+	if luo.removedCellScan == nil {
+		luo.removedCellScan = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.removedCellScan[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1502,7 +1773,12 @@ func (luo *LocationUpdateOne) RemoveCellScan(s ...*SurveyCellScan) *LocationUpda
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
 func (luo *LocationUpdateOne) RemoveWorkOrderIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.RemoveWorkOrderIDs(ids...)
+	if luo.removedWorkOrders == nil {
+		luo.removedWorkOrders = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.removedWorkOrders[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1517,7 +1793,12 @@ func (luo *LocationUpdateOne) RemoveWorkOrders(w ...*WorkOrder) *LocationUpdateO
 
 // RemoveFloorPlanIDs removes the floor_plans edge to FloorPlan by ids.
 func (luo *LocationUpdateOne) RemoveFloorPlanIDs(ids ...int) *LocationUpdateOne {
-	luo.mutation.RemoveFloorPlanIDs(ids...)
+	if luo.removedFloorPlans == nil {
+		luo.removedFloorPlans = make(map[int]struct{})
+	}
+	for i := range ids {
+		luo.removedFloorPlans[ids[i]] = struct{}{}
+	}
 	return luo
 }
 
@@ -1532,54 +1813,35 @@ func (luo *LocationUpdateOne) RemoveFloorPlans(f ...*FloorPlan) *LocationUpdateO
 
 // Save executes the query and returns the updated entity.
 func (luo *LocationUpdateOne) Save(ctx context.Context) (*Location, error) {
-	if _, ok := luo.mutation.UpdateTime(); !ok {
+	if luo.update_time == nil {
 		v := location.UpdateDefaultUpdateTime()
-		luo.mutation.SetUpdateTime(v)
+		luo.update_time = &v
 	}
-	if v, ok := luo.mutation.Name(); ok {
-		if err := location.NameValidator(v); err != nil {
+	if luo.name != nil {
+		if err := location.NameValidator(*luo.name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if v, ok := luo.mutation.Latitude(); ok {
-		if err := location.LatitudeValidator(v); err != nil {
+	if luo.latitude != nil {
+		if err := location.LatitudeValidator(*luo.latitude); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"latitude\": %v", err)
 		}
 	}
-	if v, ok := luo.mutation.Longitude(); ok {
-		if err := location.LongitudeValidator(v); err != nil {
+	if luo.longitude != nil {
+		if err := location.LongitudeValidator(*luo.longitude); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"longitude\": %v", err)
 		}
 	}
-
-	if _, ok := luo.mutation.TypeID(); luo.mutation.TypeCleared() && !ok {
+	if len(luo._type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
+	}
+	if luo.clearedType && luo._type == nil {
 		return nil, errors.New("ent: clearing a unique edge \"type\"")
 	}
-
-	var (
-		err  error
-		node *Location
-	)
-	if len(luo.hooks) == 0 {
-		node, err = luo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LocationMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			luo.mutation = mutation
-			node, err = luo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(luo.hooks); i > 0; i-- {
-			mut = luo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, luo.mutation); err != nil {
-			return nil, err
-		}
+	if len(luo.parent) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"parent\"")
 	}
-	return node, err
+	return luo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1610,85 +1872,81 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 			Table:   location.Table,
 			Columns: location.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  luo.id,
 				Type:   field.TypeInt,
 				Column: location.FieldID,
 			},
 		},
 	}
-	id, ok := luo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing Location.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := luo.mutation.UpdateTime(); ok {
+	if value := luo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldUpdateTime,
 		})
 	}
-	if value, ok := luo.mutation.Name(); ok {
+	if value := luo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldName,
 		})
 	}
-	if value, ok := luo.mutation.ExternalID(); ok {
+	if value := luo.external_id; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldExternalID,
 		})
 	}
-	if luo.mutation.ExternalIDCleared() {
+	if luo.clearexternal_id {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: location.FieldExternalID,
 		})
 	}
-	if value, ok := luo.mutation.Latitude(); ok {
+	if value := luo.latitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldLatitude,
 		})
 	}
-	if value, ok := luo.mutation.AddedLatitude(); ok {
+	if value := luo.addlatitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldLatitude,
 		})
 	}
-	if value, ok := luo.mutation.Longitude(); ok {
+	if value := luo.longitude; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldLongitude,
 		})
 	}
-	if value, ok := luo.mutation.AddedLongitude(); ok {
+	if value := luo.addlongitude; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldLongitude,
 		})
 	}
-	if value, ok := luo.mutation.SiteSurveyNeeded(); ok {
+	if value := luo.site_survey_needed; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  value,
+			Value:  *value,
 			Column: location.FieldSiteSurveyNeeded,
 		})
 	}
-	if luo.mutation.SiteSurveyNeededCleared() {
+	if luo.clearsite_survey_needed {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: location.FieldSiteSurveyNeeded,
 		})
 	}
-	if luo.mutation.TypeCleared() {
+	if luo.clearedType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1704,7 +1962,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.TypeIDs(); len(nodes) > 0 {
+	if nodes := luo._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1718,12 +1976,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if luo.mutation.ParentCleared() {
+	if luo.clearedParent {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1739,7 +1997,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.ParentIDs(); len(nodes) > 0 {
+	if nodes := luo.parent; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1753,12 +2011,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.mutation.RemovedChildrenIDs(); len(nodes) > 0 {
+	if nodes := luo.removedChildren; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1772,12 +2030,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.ChildrenIDs(); len(nodes) > 0 {
+	if nodes := luo.children; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1791,12 +2049,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.mutation.RemovedFilesIDs(); len(nodes) > 0 {
+	if nodes := luo.removedFiles; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1810,12 +2068,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.FilesIDs(); len(nodes) > 0 {
+	if nodes := luo.files; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1829,12 +2087,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.mutation.RemovedHyperlinksIDs(); len(nodes) > 0 {
+	if nodes := luo.removedHyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1848,12 +2106,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.HyperlinksIDs(); len(nodes) > 0 {
+	if nodes := luo.hyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1867,12 +2125,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.mutation.RemovedEquipmentIDs(); len(nodes) > 0 {
+	if nodes := luo.removedEquipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1886,12 +2144,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.EquipmentIDs(); len(nodes) > 0 {
+	if nodes := luo.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1905,12 +2163,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := luo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1924,12 +2182,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := luo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1943,12 +2201,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.mutation.RemovedSurveyIDs(); len(nodes) > 0 {
+	if nodes := luo.removedSurvey; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1962,12 +2220,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.SurveyIDs(); len(nodes) > 0 {
+	if nodes := luo.survey; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1981,12 +2239,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.mutation.RemovedWifiScanIDs(); len(nodes) > 0 {
+	if nodes := luo.removedWifiScan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2000,12 +2258,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.WifiScanIDs(); len(nodes) > 0 {
+	if nodes := luo.wifi_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2019,12 +2277,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.mutation.RemovedCellScanIDs(); len(nodes) > 0 {
+	if nodes := luo.removedCellScan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2038,12 +2296,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.CellScanIDs(); len(nodes) > 0 {
+	if nodes := luo.cell_scan; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2057,12 +2315,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.mutation.RemovedWorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := luo.removedWorkOrders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2076,12 +2334,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.WorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := luo.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2095,12 +2353,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.mutation.RemovedFloorPlansIDs(); len(nodes) > 0 {
+	if nodes := luo.removedFloorPlans; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2114,12 +2372,12 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.mutation.FloorPlansIDs(); len(nodes) > 0 {
+	if nodes := luo.floor_plans; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -2133,7 +2391,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

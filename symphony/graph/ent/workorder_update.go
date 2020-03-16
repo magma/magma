@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -33,9 +34,49 @@ import (
 // WorkOrderUpdate is the builder for updating WorkOrder entities.
 type WorkOrderUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *WorkOrderMutation
-	predicates []predicate.WorkOrder
+
+	update_time                *time.Time
+	name                       *string
+	status                     *string
+	priority                   *string
+	description                *string
+	cleardescription           bool
+	owner_name                 *string
+	install_date               *time.Time
+	clearinstall_date          bool
+	creation_date              *time.Time
+	assignee                   *string
+	clearassignee              bool
+	index                      *int
+	addindex                   *int
+	clearindex                 bool
+	close_date                 *time.Time
+	clearclose_date            bool
+	_type                      map[int]struct{}
+	equipment                  map[int]struct{}
+	links                      map[int]struct{}
+	files                      map[int]struct{}
+	hyperlinks                 map[int]struct{}
+	location                   map[int]struct{}
+	comments                   map[int]struct{}
+	properties                 map[int]struct{}
+	check_list_categories      map[int]struct{}
+	check_list_items           map[int]struct{}
+	technician                 map[int]struct{}
+	project                    map[int]struct{}
+	clearedType                bool
+	removedEquipment           map[int]struct{}
+	removedLinks               map[int]struct{}
+	removedFiles               map[int]struct{}
+	removedHyperlinks          map[int]struct{}
+	clearedLocation            bool
+	removedComments            map[int]struct{}
+	removedProperties          map[int]struct{}
+	removedCheckListCategories map[int]struct{}
+	removedCheckListItems      map[int]struct{}
+	clearedTechnician          bool
+	clearedProject             bool
+	predicates                 []predicate.WorkOrder
 }
 
 // Where adds a new predicate for the builder.
@@ -46,13 +87,13 @@ func (wou *WorkOrderUpdate) Where(ps ...predicate.WorkOrder) *WorkOrderUpdate {
 
 // SetName sets the name field.
 func (wou *WorkOrderUpdate) SetName(s string) *WorkOrderUpdate {
-	wou.mutation.SetName(s)
+	wou.name = &s
 	return wou
 }
 
 // SetStatus sets the status field.
 func (wou *WorkOrderUpdate) SetStatus(s string) *WorkOrderUpdate {
-	wou.mutation.SetStatus(s)
+	wou.status = &s
 	return wou
 }
 
@@ -66,7 +107,7 @@ func (wou *WorkOrderUpdate) SetNillableStatus(s *string) *WorkOrderUpdate {
 
 // SetPriority sets the priority field.
 func (wou *WorkOrderUpdate) SetPriority(s string) *WorkOrderUpdate {
-	wou.mutation.SetPriority(s)
+	wou.priority = &s
 	return wou
 }
 
@@ -80,7 +121,7 @@ func (wou *WorkOrderUpdate) SetNillablePriority(s *string) *WorkOrderUpdate {
 
 // SetDescription sets the description field.
 func (wou *WorkOrderUpdate) SetDescription(s string) *WorkOrderUpdate {
-	wou.mutation.SetDescription(s)
+	wou.description = &s
 	return wou
 }
 
@@ -94,19 +135,20 @@ func (wou *WorkOrderUpdate) SetNillableDescription(s *string) *WorkOrderUpdate {
 
 // ClearDescription clears the value of description.
 func (wou *WorkOrderUpdate) ClearDescription() *WorkOrderUpdate {
-	wou.mutation.ClearDescription()
+	wou.description = nil
+	wou.cleardescription = true
 	return wou
 }
 
 // SetOwnerName sets the owner_name field.
 func (wou *WorkOrderUpdate) SetOwnerName(s string) *WorkOrderUpdate {
-	wou.mutation.SetOwnerName(s)
+	wou.owner_name = &s
 	return wou
 }
 
 // SetInstallDate sets the install_date field.
 func (wou *WorkOrderUpdate) SetInstallDate(t time.Time) *WorkOrderUpdate {
-	wou.mutation.SetInstallDate(t)
+	wou.install_date = &t
 	return wou
 }
 
@@ -120,19 +162,20 @@ func (wou *WorkOrderUpdate) SetNillableInstallDate(t *time.Time) *WorkOrderUpdat
 
 // ClearInstallDate clears the value of install_date.
 func (wou *WorkOrderUpdate) ClearInstallDate() *WorkOrderUpdate {
-	wou.mutation.ClearInstallDate()
+	wou.install_date = nil
+	wou.clearinstall_date = true
 	return wou
 }
 
 // SetCreationDate sets the creation_date field.
 func (wou *WorkOrderUpdate) SetCreationDate(t time.Time) *WorkOrderUpdate {
-	wou.mutation.SetCreationDate(t)
+	wou.creation_date = &t
 	return wou
 }
 
 // SetAssignee sets the assignee field.
 func (wou *WorkOrderUpdate) SetAssignee(s string) *WorkOrderUpdate {
-	wou.mutation.SetAssignee(s)
+	wou.assignee = &s
 	return wou
 }
 
@@ -146,14 +189,15 @@ func (wou *WorkOrderUpdate) SetNillableAssignee(s *string) *WorkOrderUpdate {
 
 // ClearAssignee clears the value of assignee.
 func (wou *WorkOrderUpdate) ClearAssignee() *WorkOrderUpdate {
-	wou.mutation.ClearAssignee()
+	wou.assignee = nil
+	wou.clearassignee = true
 	return wou
 }
 
 // SetIndex sets the index field.
 func (wou *WorkOrderUpdate) SetIndex(i int) *WorkOrderUpdate {
-	wou.mutation.ResetIndex()
-	wou.mutation.SetIndex(i)
+	wou.index = &i
+	wou.addindex = nil
 	return wou
 }
 
@@ -167,19 +211,24 @@ func (wou *WorkOrderUpdate) SetNillableIndex(i *int) *WorkOrderUpdate {
 
 // AddIndex adds i to index.
 func (wou *WorkOrderUpdate) AddIndex(i int) *WorkOrderUpdate {
-	wou.mutation.AddIndex(i)
+	if wou.addindex == nil {
+		wou.addindex = &i
+	} else {
+		*wou.addindex += i
+	}
 	return wou
 }
 
 // ClearIndex clears the value of index.
 func (wou *WorkOrderUpdate) ClearIndex() *WorkOrderUpdate {
-	wou.mutation.ClearIndex()
+	wou.index = nil
+	wou.clearindex = true
 	return wou
 }
 
 // SetCloseDate sets the close_date field.
 func (wou *WorkOrderUpdate) SetCloseDate(t time.Time) *WorkOrderUpdate {
-	wou.mutation.SetCloseDate(t)
+	wou.close_date = &t
 	return wou
 }
 
@@ -193,13 +242,17 @@ func (wou *WorkOrderUpdate) SetNillableCloseDate(t *time.Time) *WorkOrderUpdate 
 
 // ClearCloseDate clears the value of close_date.
 func (wou *WorkOrderUpdate) ClearCloseDate() *WorkOrderUpdate {
-	wou.mutation.ClearCloseDate()
+	wou.close_date = nil
+	wou.clearclose_date = true
 	return wou
 }
 
 // SetTypeID sets the type edge to WorkOrderType by id.
 func (wou *WorkOrderUpdate) SetTypeID(id int) *WorkOrderUpdate {
-	wou.mutation.SetTypeID(id)
+	if wou._type == nil {
+		wou._type = make(map[int]struct{})
+	}
+	wou._type[id] = struct{}{}
 	return wou
 }
 
@@ -218,7 +271,12 @@ func (wou *WorkOrderUpdate) SetType(w *WorkOrderType) *WorkOrderUpdate {
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
 func (wou *WorkOrderUpdate) AddEquipmentIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.AddEquipmentIDs(ids...)
+	if wou.equipment == nil {
+		wou.equipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.equipment[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -233,7 +291,12 @@ func (wou *WorkOrderUpdate) AddEquipment(e ...*Equipment) *WorkOrderUpdate {
 
 // AddLinkIDs adds the links edge to Link by ids.
 func (wou *WorkOrderUpdate) AddLinkIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.AddLinkIDs(ids...)
+	if wou.links == nil {
+		wou.links = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.links[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -248,7 +311,12 @@ func (wou *WorkOrderUpdate) AddLinks(l ...*Link) *WorkOrderUpdate {
 
 // AddFileIDs adds the files edge to File by ids.
 func (wou *WorkOrderUpdate) AddFileIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.AddFileIDs(ids...)
+	if wou.files == nil {
+		wou.files = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.files[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -263,7 +331,12 @@ func (wou *WorkOrderUpdate) AddFiles(f ...*File) *WorkOrderUpdate {
 
 // AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
 func (wou *WorkOrderUpdate) AddHyperlinkIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.AddHyperlinkIDs(ids...)
+	if wou.hyperlinks == nil {
+		wou.hyperlinks = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.hyperlinks[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -278,7 +351,10 @@ func (wou *WorkOrderUpdate) AddHyperlinks(h ...*Hyperlink) *WorkOrderUpdate {
 
 // SetLocationID sets the location edge to Location by id.
 func (wou *WorkOrderUpdate) SetLocationID(id int) *WorkOrderUpdate {
-	wou.mutation.SetLocationID(id)
+	if wou.location == nil {
+		wou.location = make(map[int]struct{})
+	}
+	wou.location[id] = struct{}{}
 	return wou
 }
 
@@ -297,7 +373,12 @@ func (wou *WorkOrderUpdate) SetLocation(l *Location) *WorkOrderUpdate {
 
 // AddCommentIDs adds the comments edge to Comment by ids.
 func (wou *WorkOrderUpdate) AddCommentIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.AddCommentIDs(ids...)
+	if wou.comments == nil {
+		wou.comments = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.comments[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -312,7 +393,12 @@ func (wou *WorkOrderUpdate) AddComments(c ...*Comment) *WorkOrderUpdate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (wou *WorkOrderUpdate) AddPropertyIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.AddPropertyIDs(ids...)
+	if wou.properties == nil {
+		wou.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.properties[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -327,7 +413,12 @@ func (wou *WorkOrderUpdate) AddProperties(p ...*Property) *WorkOrderUpdate {
 
 // AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
 func (wou *WorkOrderUpdate) AddCheckListCategoryIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.AddCheckListCategoryIDs(ids...)
+	if wou.check_list_categories == nil {
+		wou.check_list_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.check_list_categories[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -342,7 +433,12 @@ func (wou *WorkOrderUpdate) AddCheckListCategories(c ...*CheckListCategory) *Wor
 
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
 func (wou *WorkOrderUpdate) AddCheckListItemIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.AddCheckListItemIDs(ids...)
+	if wou.check_list_items == nil {
+		wou.check_list_items = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.check_list_items[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -357,7 +453,10 @@ func (wou *WorkOrderUpdate) AddCheckListItems(c ...*CheckListItem) *WorkOrderUpd
 
 // SetTechnicianID sets the technician edge to Technician by id.
 func (wou *WorkOrderUpdate) SetTechnicianID(id int) *WorkOrderUpdate {
-	wou.mutation.SetTechnicianID(id)
+	if wou.technician == nil {
+		wou.technician = make(map[int]struct{})
+	}
+	wou.technician[id] = struct{}{}
 	return wou
 }
 
@@ -376,7 +475,10 @@ func (wou *WorkOrderUpdate) SetTechnician(t *Technician) *WorkOrderUpdate {
 
 // SetProjectID sets the project edge to Project by id.
 func (wou *WorkOrderUpdate) SetProjectID(id int) *WorkOrderUpdate {
-	wou.mutation.SetProjectID(id)
+	if wou.project == nil {
+		wou.project = make(map[int]struct{})
+	}
+	wou.project[id] = struct{}{}
 	return wou
 }
 
@@ -395,13 +497,18 @@ func (wou *WorkOrderUpdate) SetProject(p *Project) *WorkOrderUpdate {
 
 // ClearType clears the type edge to WorkOrderType.
 func (wou *WorkOrderUpdate) ClearType() *WorkOrderUpdate {
-	wou.mutation.ClearType()
+	wou.clearedType = true
 	return wou
 }
 
 // RemoveEquipmentIDs removes the equipment edge to Equipment by ids.
 func (wou *WorkOrderUpdate) RemoveEquipmentIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.RemoveEquipmentIDs(ids...)
+	if wou.removedEquipment == nil {
+		wou.removedEquipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.removedEquipment[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -416,7 +523,12 @@ func (wou *WorkOrderUpdate) RemoveEquipment(e ...*Equipment) *WorkOrderUpdate {
 
 // RemoveLinkIDs removes the links edge to Link by ids.
 func (wou *WorkOrderUpdate) RemoveLinkIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.RemoveLinkIDs(ids...)
+	if wou.removedLinks == nil {
+		wou.removedLinks = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.removedLinks[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -431,7 +543,12 @@ func (wou *WorkOrderUpdate) RemoveLinks(l ...*Link) *WorkOrderUpdate {
 
 // RemoveFileIDs removes the files edge to File by ids.
 func (wou *WorkOrderUpdate) RemoveFileIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.RemoveFileIDs(ids...)
+	if wou.removedFiles == nil {
+		wou.removedFiles = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.removedFiles[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -446,7 +563,12 @@ func (wou *WorkOrderUpdate) RemoveFiles(f ...*File) *WorkOrderUpdate {
 
 // RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
 func (wou *WorkOrderUpdate) RemoveHyperlinkIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.RemoveHyperlinkIDs(ids...)
+	if wou.removedHyperlinks == nil {
+		wou.removedHyperlinks = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.removedHyperlinks[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -461,13 +583,18 @@ func (wou *WorkOrderUpdate) RemoveHyperlinks(h ...*Hyperlink) *WorkOrderUpdate {
 
 // ClearLocation clears the location edge to Location.
 func (wou *WorkOrderUpdate) ClearLocation() *WorkOrderUpdate {
-	wou.mutation.ClearLocation()
+	wou.clearedLocation = true
 	return wou
 }
 
 // RemoveCommentIDs removes the comments edge to Comment by ids.
 func (wou *WorkOrderUpdate) RemoveCommentIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.RemoveCommentIDs(ids...)
+	if wou.removedComments == nil {
+		wou.removedComments = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.removedComments[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -482,7 +609,12 @@ func (wou *WorkOrderUpdate) RemoveComments(c ...*Comment) *WorkOrderUpdate {
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (wou *WorkOrderUpdate) RemovePropertyIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.RemovePropertyIDs(ids...)
+	if wou.removedProperties == nil {
+		wou.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.removedProperties[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -497,7 +629,12 @@ func (wou *WorkOrderUpdate) RemoveProperties(p ...*Property) *WorkOrderUpdate {
 
 // RemoveCheckListCategoryIDs removes the check_list_categories edge to CheckListCategory by ids.
 func (wou *WorkOrderUpdate) RemoveCheckListCategoryIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.RemoveCheckListCategoryIDs(ids...)
+	if wou.removedCheckListCategories == nil {
+		wou.removedCheckListCategories = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.removedCheckListCategories[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -512,7 +649,12 @@ func (wou *WorkOrderUpdate) RemoveCheckListCategories(c ...*CheckListCategory) *
 
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
 func (wou *WorkOrderUpdate) RemoveCheckListItemIDs(ids ...int) *WorkOrderUpdate {
-	wou.mutation.RemoveCheckListItemIDs(ids...)
+	if wou.removedCheckListItems == nil {
+		wou.removedCheckListItems = make(map[int]struct{})
+	}
+	for i := range ids {
+		wou.removedCheckListItems[ids[i]] = struct{}{}
+	}
 	return wou
 }
 
@@ -527,52 +669,40 @@ func (wou *WorkOrderUpdate) RemoveCheckListItems(c ...*CheckListItem) *WorkOrder
 
 // ClearTechnician clears the technician edge to Technician.
 func (wou *WorkOrderUpdate) ClearTechnician() *WorkOrderUpdate {
-	wou.mutation.ClearTechnician()
+	wou.clearedTechnician = true
 	return wou
 }
 
 // ClearProject clears the project edge to Project.
 func (wou *WorkOrderUpdate) ClearProject() *WorkOrderUpdate {
-	wou.mutation.ClearProject()
+	wou.clearedProject = true
 	return wou
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (wou *WorkOrderUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := wou.mutation.UpdateTime(); !ok {
+	if wou.update_time == nil {
 		v := workorder.UpdateDefaultUpdateTime()
-		wou.mutation.SetUpdateTime(v)
+		wou.update_time = &v
 	}
-	if v, ok := wou.mutation.Name(); ok {
-		if err := workorder.NameValidator(v); err != nil {
+	if wou.name != nil {
+		if err := workorder.NameValidator(*wou.name); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(wou.hooks) == 0 {
-		affected, err = wou.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WorkOrderMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wou.mutation = mutation
-			affected, err = wou.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(wou.hooks); i > 0; i-- {
-			mut = wou.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, wou.mutation); err != nil {
-			return 0, err
-		}
+	if len(wou._type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"type\"")
 	}
-	return affected, err
+	if len(wou.location) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"location\"")
+	}
+	if len(wou.technician) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"technician\"")
+	}
+	if len(wou.project) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"project\"")
+	}
+	return wou.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -615,121 +745,121 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := wou.mutation.UpdateTime(); ok {
+	if value := wou.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldUpdateTime,
 		})
 	}
-	if value, ok := wou.mutation.Name(); ok {
+	if value := wou.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldName,
 		})
 	}
-	if value, ok := wou.mutation.Status(); ok {
+	if value := wou.status; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldStatus,
 		})
 	}
-	if value, ok := wou.mutation.Priority(); ok {
+	if value := wou.priority; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldPriority,
 		})
 	}
-	if value, ok := wou.mutation.Description(); ok {
+	if value := wou.description; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldDescription,
 		})
 	}
-	if wou.mutation.DescriptionCleared() {
+	if wou.cleardescription {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: workorder.FieldDescription,
 		})
 	}
-	if value, ok := wou.mutation.OwnerName(); ok {
+	if value := wou.owner_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldOwnerName,
 		})
 	}
-	if value, ok := wou.mutation.InstallDate(); ok {
+	if value := wou.install_date; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldInstallDate,
 		})
 	}
-	if wou.mutation.InstallDateCleared() {
+	if wou.clearinstall_date {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: workorder.FieldInstallDate,
 		})
 	}
-	if value, ok := wou.mutation.CreationDate(); ok {
+	if value := wou.creation_date; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldCreationDate,
 		})
 	}
-	if value, ok := wou.mutation.Assignee(); ok {
+	if value := wou.assignee; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldAssignee,
 		})
 	}
-	if wou.mutation.AssigneeCleared() {
+	if wou.clearassignee {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: workorder.FieldAssignee,
 		})
 	}
-	if value, ok := wou.mutation.Index(); ok {
+	if value := wou.index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldIndex,
 		})
 	}
-	if value, ok := wou.mutation.AddedIndex(); ok {
+	if value := wou.addindex; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldIndex,
 		})
 	}
-	if wou.mutation.IndexCleared() {
+	if wou.clearindex {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: workorder.FieldIndex,
 		})
 	}
-	if value, ok := wou.mutation.CloseDate(); ok {
+	if value := wou.close_date; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldCloseDate,
 		})
 	}
-	if wou.mutation.CloseDateCleared() {
+	if wou.clearclose_date {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: workorder.FieldCloseDate,
 		})
 	}
-	if wou.mutation.TypeCleared() {
+	if wou.clearedType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -745,7 +875,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.TypeIDs(); len(nodes) > 0 {
+	if nodes := wou._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -759,12 +889,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wou.mutation.RemovedEquipmentIDs(); len(nodes) > 0 {
+	if nodes := wou.removedEquipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -778,12 +908,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.EquipmentIDs(); len(nodes) > 0 {
+	if nodes := wou.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -797,12 +927,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wou.mutation.RemovedLinksIDs(); len(nodes) > 0 {
+	if nodes := wou.removedLinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -816,12 +946,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.LinksIDs(); len(nodes) > 0 {
+	if nodes := wou.links; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -835,12 +965,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wou.mutation.RemovedFilesIDs(); len(nodes) > 0 {
+	if nodes := wou.removedFiles; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -854,12 +984,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.FilesIDs(); len(nodes) > 0 {
+	if nodes := wou.files; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -873,12 +1003,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wou.mutation.RemovedHyperlinksIDs(); len(nodes) > 0 {
+	if nodes := wou.removedHyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -892,12 +1022,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.HyperlinksIDs(); len(nodes) > 0 {
+	if nodes := wou.hyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -911,12 +1041,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if wou.mutation.LocationCleared() {
+	if wou.clearedLocation {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -932,7 +1062,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.LocationIDs(); len(nodes) > 0 {
+	if nodes := wou.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -946,12 +1076,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wou.mutation.RemovedCommentsIDs(); len(nodes) > 0 {
+	if nodes := wou.removedComments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -965,12 +1095,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.CommentsIDs(); len(nodes) > 0 {
+	if nodes := wou.comments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -984,12 +1114,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wou.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := wou.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1003,12 +1133,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := wou.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1022,12 +1152,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wou.mutation.RemovedCheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wou.removedCheckListCategories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1041,12 +1171,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.CheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wou.check_list_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1060,12 +1190,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wou.mutation.RemovedCheckListItemsIDs(); len(nodes) > 0 {
+	if nodes := wou.removedCheckListItems; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1079,12 +1209,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.CheckListItemsIDs(); len(nodes) > 0 {
+	if nodes := wou.check_list_items; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1098,12 +1228,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if wou.mutation.TechnicianCleared() {
+	if wou.clearedTechnician {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1119,7 +1249,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.TechnicianIDs(); len(nodes) > 0 {
+	if nodes := wou.technician; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1133,12 +1263,12 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if wou.mutation.ProjectCleared() {
+	if wou.clearedProject {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1154,7 +1284,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wou.mutation.ProjectIDs(); len(nodes) > 0 {
+	if nodes := wou.project; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1168,7 +1298,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -1187,19 +1317,60 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // WorkOrderUpdateOne is the builder for updating a single WorkOrder entity.
 type WorkOrderUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *WorkOrderMutation
+	id int
+
+	update_time                *time.Time
+	name                       *string
+	status                     *string
+	priority                   *string
+	description                *string
+	cleardescription           bool
+	owner_name                 *string
+	install_date               *time.Time
+	clearinstall_date          bool
+	creation_date              *time.Time
+	assignee                   *string
+	clearassignee              bool
+	index                      *int
+	addindex                   *int
+	clearindex                 bool
+	close_date                 *time.Time
+	clearclose_date            bool
+	_type                      map[int]struct{}
+	equipment                  map[int]struct{}
+	links                      map[int]struct{}
+	files                      map[int]struct{}
+	hyperlinks                 map[int]struct{}
+	location                   map[int]struct{}
+	comments                   map[int]struct{}
+	properties                 map[int]struct{}
+	check_list_categories      map[int]struct{}
+	check_list_items           map[int]struct{}
+	technician                 map[int]struct{}
+	project                    map[int]struct{}
+	clearedType                bool
+	removedEquipment           map[int]struct{}
+	removedLinks               map[int]struct{}
+	removedFiles               map[int]struct{}
+	removedHyperlinks          map[int]struct{}
+	clearedLocation            bool
+	removedComments            map[int]struct{}
+	removedProperties          map[int]struct{}
+	removedCheckListCategories map[int]struct{}
+	removedCheckListItems      map[int]struct{}
+	clearedTechnician          bool
+	clearedProject             bool
 }
 
 // SetName sets the name field.
 func (wouo *WorkOrderUpdateOne) SetName(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetName(s)
+	wouo.name = &s
 	return wouo
 }
 
 // SetStatus sets the status field.
 func (wouo *WorkOrderUpdateOne) SetStatus(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetStatus(s)
+	wouo.status = &s
 	return wouo
 }
 
@@ -1213,7 +1384,7 @@ func (wouo *WorkOrderUpdateOne) SetNillableStatus(s *string) *WorkOrderUpdateOne
 
 // SetPriority sets the priority field.
 func (wouo *WorkOrderUpdateOne) SetPriority(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetPriority(s)
+	wouo.priority = &s
 	return wouo
 }
 
@@ -1227,7 +1398,7 @@ func (wouo *WorkOrderUpdateOne) SetNillablePriority(s *string) *WorkOrderUpdateO
 
 // SetDescription sets the description field.
 func (wouo *WorkOrderUpdateOne) SetDescription(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetDescription(s)
+	wouo.description = &s
 	return wouo
 }
 
@@ -1241,19 +1412,20 @@ func (wouo *WorkOrderUpdateOne) SetNillableDescription(s *string) *WorkOrderUpda
 
 // ClearDescription clears the value of description.
 func (wouo *WorkOrderUpdateOne) ClearDescription() *WorkOrderUpdateOne {
-	wouo.mutation.ClearDescription()
+	wouo.description = nil
+	wouo.cleardescription = true
 	return wouo
 }
 
 // SetOwnerName sets the owner_name field.
 func (wouo *WorkOrderUpdateOne) SetOwnerName(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetOwnerName(s)
+	wouo.owner_name = &s
 	return wouo
 }
 
 // SetInstallDate sets the install_date field.
 func (wouo *WorkOrderUpdateOne) SetInstallDate(t time.Time) *WorkOrderUpdateOne {
-	wouo.mutation.SetInstallDate(t)
+	wouo.install_date = &t
 	return wouo
 }
 
@@ -1267,19 +1439,20 @@ func (wouo *WorkOrderUpdateOne) SetNillableInstallDate(t *time.Time) *WorkOrderU
 
 // ClearInstallDate clears the value of install_date.
 func (wouo *WorkOrderUpdateOne) ClearInstallDate() *WorkOrderUpdateOne {
-	wouo.mutation.ClearInstallDate()
+	wouo.install_date = nil
+	wouo.clearinstall_date = true
 	return wouo
 }
 
 // SetCreationDate sets the creation_date field.
 func (wouo *WorkOrderUpdateOne) SetCreationDate(t time.Time) *WorkOrderUpdateOne {
-	wouo.mutation.SetCreationDate(t)
+	wouo.creation_date = &t
 	return wouo
 }
 
 // SetAssignee sets the assignee field.
 func (wouo *WorkOrderUpdateOne) SetAssignee(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetAssignee(s)
+	wouo.assignee = &s
 	return wouo
 }
 
@@ -1293,14 +1466,15 @@ func (wouo *WorkOrderUpdateOne) SetNillableAssignee(s *string) *WorkOrderUpdateO
 
 // ClearAssignee clears the value of assignee.
 func (wouo *WorkOrderUpdateOne) ClearAssignee() *WorkOrderUpdateOne {
-	wouo.mutation.ClearAssignee()
+	wouo.assignee = nil
+	wouo.clearassignee = true
 	return wouo
 }
 
 // SetIndex sets the index field.
 func (wouo *WorkOrderUpdateOne) SetIndex(i int) *WorkOrderUpdateOne {
-	wouo.mutation.ResetIndex()
-	wouo.mutation.SetIndex(i)
+	wouo.index = &i
+	wouo.addindex = nil
 	return wouo
 }
 
@@ -1314,19 +1488,24 @@ func (wouo *WorkOrderUpdateOne) SetNillableIndex(i *int) *WorkOrderUpdateOne {
 
 // AddIndex adds i to index.
 func (wouo *WorkOrderUpdateOne) AddIndex(i int) *WorkOrderUpdateOne {
-	wouo.mutation.AddIndex(i)
+	if wouo.addindex == nil {
+		wouo.addindex = &i
+	} else {
+		*wouo.addindex += i
+	}
 	return wouo
 }
 
 // ClearIndex clears the value of index.
 func (wouo *WorkOrderUpdateOne) ClearIndex() *WorkOrderUpdateOne {
-	wouo.mutation.ClearIndex()
+	wouo.index = nil
+	wouo.clearindex = true
 	return wouo
 }
 
 // SetCloseDate sets the close_date field.
 func (wouo *WorkOrderUpdateOne) SetCloseDate(t time.Time) *WorkOrderUpdateOne {
-	wouo.mutation.SetCloseDate(t)
+	wouo.close_date = &t
 	return wouo
 }
 
@@ -1340,13 +1519,17 @@ func (wouo *WorkOrderUpdateOne) SetNillableCloseDate(t *time.Time) *WorkOrderUpd
 
 // ClearCloseDate clears the value of close_date.
 func (wouo *WorkOrderUpdateOne) ClearCloseDate() *WorkOrderUpdateOne {
-	wouo.mutation.ClearCloseDate()
+	wouo.close_date = nil
+	wouo.clearclose_date = true
 	return wouo
 }
 
 // SetTypeID sets the type edge to WorkOrderType by id.
 func (wouo *WorkOrderUpdateOne) SetTypeID(id int) *WorkOrderUpdateOne {
-	wouo.mutation.SetTypeID(id)
+	if wouo._type == nil {
+		wouo._type = make(map[int]struct{})
+	}
+	wouo._type[id] = struct{}{}
 	return wouo
 }
 
@@ -1365,7 +1548,12 @@ func (wouo *WorkOrderUpdateOne) SetType(w *WorkOrderType) *WorkOrderUpdateOne {
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
 func (wouo *WorkOrderUpdateOne) AddEquipmentIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.AddEquipmentIDs(ids...)
+	if wouo.equipment == nil {
+		wouo.equipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.equipment[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1380,7 +1568,12 @@ func (wouo *WorkOrderUpdateOne) AddEquipment(e ...*Equipment) *WorkOrderUpdateOn
 
 // AddLinkIDs adds the links edge to Link by ids.
 func (wouo *WorkOrderUpdateOne) AddLinkIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.AddLinkIDs(ids...)
+	if wouo.links == nil {
+		wouo.links = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.links[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1395,7 +1588,12 @@ func (wouo *WorkOrderUpdateOne) AddLinks(l ...*Link) *WorkOrderUpdateOne {
 
 // AddFileIDs adds the files edge to File by ids.
 func (wouo *WorkOrderUpdateOne) AddFileIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.AddFileIDs(ids...)
+	if wouo.files == nil {
+		wouo.files = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.files[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1410,7 +1608,12 @@ func (wouo *WorkOrderUpdateOne) AddFiles(f ...*File) *WorkOrderUpdateOne {
 
 // AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
 func (wouo *WorkOrderUpdateOne) AddHyperlinkIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.AddHyperlinkIDs(ids...)
+	if wouo.hyperlinks == nil {
+		wouo.hyperlinks = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.hyperlinks[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1425,7 +1628,10 @@ func (wouo *WorkOrderUpdateOne) AddHyperlinks(h ...*Hyperlink) *WorkOrderUpdateO
 
 // SetLocationID sets the location edge to Location by id.
 func (wouo *WorkOrderUpdateOne) SetLocationID(id int) *WorkOrderUpdateOne {
-	wouo.mutation.SetLocationID(id)
+	if wouo.location == nil {
+		wouo.location = make(map[int]struct{})
+	}
+	wouo.location[id] = struct{}{}
 	return wouo
 }
 
@@ -1444,7 +1650,12 @@ func (wouo *WorkOrderUpdateOne) SetLocation(l *Location) *WorkOrderUpdateOne {
 
 // AddCommentIDs adds the comments edge to Comment by ids.
 func (wouo *WorkOrderUpdateOne) AddCommentIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.AddCommentIDs(ids...)
+	if wouo.comments == nil {
+		wouo.comments = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.comments[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1459,7 +1670,12 @@ func (wouo *WorkOrderUpdateOne) AddComments(c ...*Comment) *WorkOrderUpdateOne {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (wouo *WorkOrderUpdateOne) AddPropertyIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.AddPropertyIDs(ids...)
+	if wouo.properties == nil {
+		wouo.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.properties[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1474,7 +1690,12 @@ func (wouo *WorkOrderUpdateOne) AddProperties(p ...*Property) *WorkOrderUpdateOn
 
 // AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
 func (wouo *WorkOrderUpdateOne) AddCheckListCategoryIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.AddCheckListCategoryIDs(ids...)
+	if wouo.check_list_categories == nil {
+		wouo.check_list_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.check_list_categories[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1489,7 +1710,12 @@ func (wouo *WorkOrderUpdateOne) AddCheckListCategories(c ...*CheckListCategory) 
 
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
 func (wouo *WorkOrderUpdateOne) AddCheckListItemIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.AddCheckListItemIDs(ids...)
+	if wouo.check_list_items == nil {
+		wouo.check_list_items = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.check_list_items[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1504,7 +1730,10 @@ func (wouo *WorkOrderUpdateOne) AddCheckListItems(c ...*CheckListItem) *WorkOrde
 
 // SetTechnicianID sets the technician edge to Technician by id.
 func (wouo *WorkOrderUpdateOne) SetTechnicianID(id int) *WorkOrderUpdateOne {
-	wouo.mutation.SetTechnicianID(id)
+	if wouo.technician == nil {
+		wouo.technician = make(map[int]struct{})
+	}
+	wouo.technician[id] = struct{}{}
 	return wouo
 }
 
@@ -1523,7 +1752,10 @@ func (wouo *WorkOrderUpdateOne) SetTechnician(t *Technician) *WorkOrderUpdateOne
 
 // SetProjectID sets the project edge to Project by id.
 func (wouo *WorkOrderUpdateOne) SetProjectID(id int) *WorkOrderUpdateOne {
-	wouo.mutation.SetProjectID(id)
+	if wouo.project == nil {
+		wouo.project = make(map[int]struct{})
+	}
+	wouo.project[id] = struct{}{}
 	return wouo
 }
 
@@ -1542,13 +1774,18 @@ func (wouo *WorkOrderUpdateOne) SetProject(p *Project) *WorkOrderUpdateOne {
 
 // ClearType clears the type edge to WorkOrderType.
 func (wouo *WorkOrderUpdateOne) ClearType() *WorkOrderUpdateOne {
-	wouo.mutation.ClearType()
+	wouo.clearedType = true
 	return wouo
 }
 
 // RemoveEquipmentIDs removes the equipment edge to Equipment by ids.
 func (wouo *WorkOrderUpdateOne) RemoveEquipmentIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.RemoveEquipmentIDs(ids...)
+	if wouo.removedEquipment == nil {
+		wouo.removedEquipment = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.removedEquipment[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1563,7 +1800,12 @@ func (wouo *WorkOrderUpdateOne) RemoveEquipment(e ...*Equipment) *WorkOrderUpdat
 
 // RemoveLinkIDs removes the links edge to Link by ids.
 func (wouo *WorkOrderUpdateOne) RemoveLinkIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.RemoveLinkIDs(ids...)
+	if wouo.removedLinks == nil {
+		wouo.removedLinks = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.removedLinks[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1578,7 +1820,12 @@ func (wouo *WorkOrderUpdateOne) RemoveLinks(l ...*Link) *WorkOrderUpdateOne {
 
 // RemoveFileIDs removes the files edge to File by ids.
 func (wouo *WorkOrderUpdateOne) RemoveFileIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.RemoveFileIDs(ids...)
+	if wouo.removedFiles == nil {
+		wouo.removedFiles = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.removedFiles[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1593,7 +1840,12 @@ func (wouo *WorkOrderUpdateOne) RemoveFiles(f ...*File) *WorkOrderUpdateOne {
 
 // RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
 func (wouo *WorkOrderUpdateOne) RemoveHyperlinkIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.RemoveHyperlinkIDs(ids...)
+	if wouo.removedHyperlinks == nil {
+		wouo.removedHyperlinks = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.removedHyperlinks[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1608,13 +1860,18 @@ func (wouo *WorkOrderUpdateOne) RemoveHyperlinks(h ...*Hyperlink) *WorkOrderUpda
 
 // ClearLocation clears the location edge to Location.
 func (wouo *WorkOrderUpdateOne) ClearLocation() *WorkOrderUpdateOne {
-	wouo.mutation.ClearLocation()
+	wouo.clearedLocation = true
 	return wouo
 }
 
 // RemoveCommentIDs removes the comments edge to Comment by ids.
 func (wouo *WorkOrderUpdateOne) RemoveCommentIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.RemoveCommentIDs(ids...)
+	if wouo.removedComments == nil {
+		wouo.removedComments = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.removedComments[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1629,7 +1886,12 @@ func (wouo *WorkOrderUpdateOne) RemoveComments(c ...*Comment) *WorkOrderUpdateOn
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (wouo *WorkOrderUpdateOne) RemovePropertyIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.RemovePropertyIDs(ids...)
+	if wouo.removedProperties == nil {
+		wouo.removedProperties = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.removedProperties[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1644,7 +1906,12 @@ func (wouo *WorkOrderUpdateOne) RemoveProperties(p ...*Property) *WorkOrderUpdat
 
 // RemoveCheckListCategoryIDs removes the check_list_categories edge to CheckListCategory by ids.
 func (wouo *WorkOrderUpdateOne) RemoveCheckListCategoryIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.RemoveCheckListCategoryIDs(ids...)
+	if wouo.removedCheckListCategories == nil {
+		wouo.removedCheckListCategories = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.removedCheckListCategories[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1659,7 +1926,12 @@ func (wouo *WorkOrderUpdateOne) RemoveCheckListCategories(c ...*CheckListCategor
 
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
 func (wouo *WorkOrderUpdateOne) RemoveCheckListItemIDs(ids ...int) *WorkOrderUpdateOne {
-	wouo.mutation.RemoveCheckListItemIDs(ids...)
+	if wouo.removedCheckListItems == nil {
+		wouo.removedCheckListItems = make(map[int]struct{})
+	}
+	for i := range ids {
+		wouo.removedCheckListItems[ids[i]] = struct{}{}
+	}
 	return wouo
 }
 
@@ -1674,52 +1946,40 @@ func (wouo *WorkOrderUpdateOne) RemoveCheckListItems(c ...*CheckListItem) *WorkO
 
 // ClearTechnician clears the technician edge to Technician.
 func (wouo *WorkOrderUpdateOne) ClearTechnician() *WorkOrderUpdateOne {
-	wouo.mutation.ClearTechnician()
+	wouo.clearedTechnician = true
 	return wouo
 }
 
 // ClearProject clears the project edge to Project.
 func (wouo *WorkOrderUpdateOne) ClearProject() *WorkOrderUpdateOne {
-	wouo.mutation.ClearProject()
+	wouo.clearedProject = true
 	return wouo
 }
 
 // Save executes the query and returns the updated entity.
 func (wouo *WorkOrderUpdateOne) Save(ctx context.Context) (*WorkOrder, error) {
-	if _, ok := wouo.mutation.UpdateTime(); !ok {
+	if wouo.update_time == nil {
 		v := workorder.UpdateDefaultUpdateTime()
-		wouo.mutation.SetUpdateTime(v)
+		wouo.update_time = &v
 	}
-	if v, ok := wouo.mutation.Name(); ok {
-		if err := workorder.NameValidator(v); err != nil {
+	if wouo.name != nil {
+		if err := workorder.NameValidator(*wouo.name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-
-	var (
-		err  error
-		node *WorkOrder
-	)
-	if len(wouo.hooks) == 0 {
-		node, err = wouo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WorkOrderMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wouo.mutation = mutation
-			node, err = wouo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(wouo.hooks); i > 0; i-- {
-			mut = wouo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, wouo.mutation); err != nil {
-			return nil, err
-		}
+	if len(wouo._type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
 	}
-	return node, err
+	if len(wouo.location) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
+	}
+	if len(wouo.technician) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"technician\"")
+	}
+	if len(wouo.project) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"project\"")
+	}
+	return wouo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1750,131 +2010,127 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 			Table:   workorder.Table,
 			Columns: workorder.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  wouo.id,
 				Type:   field.TypeInt,
 				Column: workorder.FieldID,
 			},
 		},
 	}
-	id, ok := wouo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing WorkOrder.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := wouo.mutation.UpdateTime(); ok {
+	if value := wouo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldUpdateTime,
 		})
 	}
-	if value, ok := wouo.mutation.Name(); ok {
+	if value := wouo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldName,
 		})
 	}
-	if value, ok := wouo.mutation.Status(); ok {
+	if value := wouo.status; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldStatus,
 		})
 	}
-	if value, ok := wouo.mutation.Priority(); ok {
+	if value := wouo.priority; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldPriority,
 		})
 	}
-	if value, ok := wouo.mutation.Description(); ok {
+	if value := wouo.description; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldDescription,
 		})
 	}
-	if wouo.mutation.DescriptionCleared() {
+	if wouo.cleardescription {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: workorder.FieldDescription,
 		})
 	}
-	if value, ok := wouo.mutation.OwnerName(); ok {
+	if value := wouo.owner_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldOwnerName,
 		})
 	}
-	if value, ok := wouo.mutation.InstallDate(); ok {
+	if value := wouo.install_date; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldInstallDate,
 		})
 	}
-	if wouo.mutation.InstallDateCleared() {
+	if wouo.clearinstall_date {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: workorder.FieldInstallDate,
 		})
 	}
-	if value, ok := wouo.mutation.CreationDate(); ok {
+	if value := wouo.creation_date; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldCreationDate,
 		})
 	}
-	if value, ok := wouo.mutation.Assignee(); ok {
+	if value := wouo.assignee; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldAssignee,
 		})
 	}
-	if wouo.mutation.AssigneeCleared() {
+	if wouo.clearassignee {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: workorder.FieldAssignee,
 		})
 	}
-	if value, ok := wouo.mutation.Index(); ok {
+	if value := wouo.index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldIndex,
 		})
 	}
-	if value, ok := wouo.mutation.AddedIndex(); ok {
+	if value := wouo.addindex; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldIndex,
 		})
 	}
-	if wouo.mutation.IndexCleared() {
+	if wouo.clearindex {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: workorder.FieldIndex,
 		})
 	}
-	if value, ok := wouo.mutation.CloseDate(); ok {
+	if value := wouo.close_date; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workorder.FieldCloseDate,
 		})
 	}
-	if wouo.mutation.CloseDateCleared() {
+	if wouo.clearclose_date {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: workorder.FieldCloseDate,
 		})
 	}
-	if wouo.mutation.TypeCleared() {
+	if wouo.clearedType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1890,7 +2146,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.TypeIDs(); len(nodes) > 0 {
+	if nodes := wouo._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1904,12 +2160,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wouo.mutation.RemovedEquipmentIDs(); len(nodes) > 0 {
+	if nodes := wouo.removedEquipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1923,12 +2179,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.EquipmentIDs(); len(nodes) > 0 {
+	if nodes := wouo.equipment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1942,12 +2198,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wouo.mutation.RemovedLinksIDs(); len(nodes) > 0 {
+	if nodes := wouo.removedLinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1961,12 +2217,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.LinksIDs(); len(nodes) > 0 {
+	if nodes := wouo.links; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -1980,12 +2236,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wouo.mutation.RemovedFilesIDs(); len(nodes) > 0 {
+	if nodes := wouo.removedFiles; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1999,12 +2255,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.FilesIDs(); len(nodes) > 0 {
+	if nodes := wouo.files; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2018,12 +2274,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wouo.mutation.RemovedHyperlinksIDs(); len(nodes) > 0 {
+	if nodes := wouo.removedHyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2037,12 +2293,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.HyperlinksIDs(); len(nodes) > 0 {
+	if nodes := wouo.hyperlinks; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2056,12 +2312,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if wouo.mutation.LocationCleared() {
+	if wouo.clearedLocation {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -2077,7 +2333,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.LocationIDs(); len(nodes) > 0 {
+	if nodes := wouo.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -2091,12 +2347,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wouo.mutation.RemovedCommentsIDs(); len(nodes) > 0 {
+	if nodes := wouo.removedComments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2110,12 +2366,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.CommentsIDs(); len(nodes) > 0 {
+	if nodes := wouo.comments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2129,12 +2385,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wouo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
+	if nodes := wouo.removedProperties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2148,12 +2404,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := wouo.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2167,12 +2423,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wouo.mutation.RemovedCheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wouo.removedCheckListCategories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2186,12 +2442,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.CheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wouo.check_list_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2205,12 +2461,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := wouo.mutation.RemovedCheckListItemsIDs(); len(nodes) > 0 {
+	if nodes := wouo.removedCheckListItems; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2224,12 +2480,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.CheckListItemsIDs(); len(nodes) > 0 {
+	if nodes := wouo.check_list_items; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -2243,12 +2499,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if wouo.mutation.TechnicianCleared() {
+	if wouo.clearedTechnician {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -2264,7 +2520,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.TechnicianIDs(); len(nodes) > 0 {
+	if nodes := wouo.technician; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -2278,12 +2534,12 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if wouo.mutation.ProjectCleared() {
+	if wouo.clearedProject {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2299,7 +2555,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := wouo.mutation.ProjectIDs(); len(nodes) > 0 {
+	if nodes := wouo.project; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -2313,7 +2569,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

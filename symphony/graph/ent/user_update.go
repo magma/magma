@@ -8,7 +8,9 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -21,9 +23,20 @@ import (
 // UserUpdate is the builder for updating User entities.
 type UserUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *UserMutation
-	predicates []predicate.User
+
+	update_time *time.Time
+
+	first_name          *string
+	clearfirst_name     bool
+	last_name           *string
+	clearlast_name      bool
+	email               *string
+	clearemail          bool
+	status              *user.Status
+	role                *user.Role
+	profile_photo       map[int]struct{}
+	clearedProfilePhoto bool
+	predicates          []predicate.User
 }
 
 // Where adds a new predicate for the builder.
@@ -34,7 +47,7 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 
 // SetFirstName sets the first_name field.
 func (uu *UserUpdate) SetFirstName(s string) *UserUpdate {
-	uu.mutation.SetFirstName(s)
+	uu.first_name = &s
 	return uu
 }
 
@@ -48,13 +61,14 @@ func (uu *UserUpdate) SetNillableFirstName(s *string) *UserUpdate {
 
 // ClearFirstName clears the value of first_name.
 func (uu *UserUpdate) ClearFirstName() *UserUpdate {
-	uu.mutation.ClearFirstName()
+	uu.first_name = nil
+	uu.clearfirst_name = true
 	return uu
 }
 
 // SetLastName sets the last_name field.
 func (uu *UserUpdate) SetLastName(s string) *UserUpdate {
-	uu.mutation.SetLastName(s)
+	uu.last_name = &s
 	return uu
 }
 
@@ -68,13 +82,14 @@ func (uu *UserUpdate) SetNillableLastName(s *string) *UserUpdate {
 
 // ClearLastName clears the value of last_name.
 func (uu *UserUpdate) ClearLastName() *UserUpdate {
-	uu.mutation.ClearLastName()
+	uu.last_name = nil
+	uu.clearlast_name = true
 	return uu
 }
 
 // SetEmail sets the email field.
 func (uu *UserUpdate) SetEmail(s string) *UserUpdate {
-	uu.mutation.SetEmail(s)
+	uu.email = &s
 	return uu
 }
 
@@ -88,13 +103,14 @@ func (uu *UserUpdate) SetNillableEmail(s *string) *UserUpdate {
 
 // ClearEmail clears the value of email.
 func (uu *UserUpdate) ClearEmail() *UserUpdate {
-	uu.mutation.ClearEmail()
+	uu.email = nil
+	uu.clearemail = true
 	return uu
 }
 
 // SetStatus sets the status field.
 func (uu *UserUpdate) SetStatus(u user.Status) *UserUpdate {
-	uu.mutation.SetStatus(u)
+	uu.status = &u
 	return uu
 }
 
@@ -108,7 +124,7 @@ func (uu *UserUpdate) SetNillableStatus(u *user.Status) *UserUpdate {
 
 // SetRole sets the role field.
 func (uu *UserUpdate) SetRole(u user.Role) *UserUpdate {
-	uu.mutation.SetRole(u)
+	uu.role = &u
 	return uu
 }
 
@@ -122,7 +138,10 @@ func (uu *UserUpdate) SetNillableRole(u *user.Role) *UserUpdate {
 
 // SetProfilePhotoID sets the profile_photo edge to File by id.
 func (uu *UserUpdate) SetProfilePhotoID(id int) *UserUpdate {
-	uu.mutation.SetProfilePhotoID(id)
+	if uu.profile_photo == nil {
+		uu.profile_photo = make(map[int]struct{})
+	}
+	uu.profile_photo[id] = struct{}{}
 	return uu
 }
 
@@ -141,66 +160,45 @@ func (uu *UserUpdate) SetProfilePhoto(f *File) *UserUpdate {
 
 // ClearProfilePhoto clears the profile_photo edge to File.
 func (uu *UserUpdate) ClearProfilePhoto() *UserUpdate {
-	uu.mutation.ClearProfilePhoto()
+	uu.clearedProfilePhoto = true
 	return uu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := uu.mutation.UpdateTime(); !ok {
+	if uu.update_time == nil {
 		v := user.UpdateDefaultUpdateTime()
-		uu.mutation.SetUpdateTime(v)
+		uu.update_time = &v
 	}
-	if v, ok := uu.mutation.FirstName(); ok {
-		if err := user.FirstNameValidator(v); err != nil {
+	if uu.first_name != nil {
+		if err := user.FirstNameValidator(*uu.first_name); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"first_name\": %v", err)
 		}
 	}
-	if v, ok := uu.mutation.LastName(); ok {
-		if err := user.LastNameValidator(v); err != nil {
+	if uu.last_name != nil {
+		if err := user.LastNameValidator(*uu.last_name); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"last_name\": %v", err)
 		}
 	}
-	if v, ok := uu.mutation.Email(); ok {
-		if err := user.EmailValidator(v); err != nil {
+	if uu.email != nil {
+		if err := user.EmailValidator(*uu.email); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
-	if v, ok := uu.mutation.Status(); ok {
-		if err := user.StatusValidator(v); err != nil {
+	if uu.status != nil {
+		if err := user.StatusValidator(*uu.status); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
 		}
 	}
-	if v, ok := uu.mutation.Role(); ok {
-		if err := user.RoleValidator(v); err != nil {
+	if uu.role != nil {
+		if err := user.RoleValidator(*uu.role); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
 		}
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(uu.hooks) == 0 {
-		affected, err = uu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*UserMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			uu.mutation = mutation
-			affected, err = uu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(uu.hooks); i > 0; i-- {
-			mut = uu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, uu.mutation); err != nil {
-			return 0, err
-		}
+	if len(uu.profile_photo) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"profile_photo\"")
 	}
-	return affected, err
+	return uu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -243,67 +241,67 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := uu.mutation.UpdateTime(); ok {
+	if value := uu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldUpdateTime,
 		})
 	}
-	if value, ok := uu.mutation.FirstName(); ok {
+	if value := uu.first_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldFirstName,
 		})
 	}
-	if uu.mutation.FirstNameCleared() {
+	if uu.clearfirst_name {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldFirstName,
 		})
 	}
-	if value, ok := uu.mutation.LastName(); ok {
+	if value := uu.last_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldLastName,
 		})
 	}
-	if uu.mutation.LastNameCleared() {
+	if uu.clearlast_name {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldLastName,
 		})
 	}
-	if value, ok := uu.mutation.Email(); ok {
+	if value := uu.email; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldEmail,
 		})
 	}
-	if uu.mutation.EmailCleared() {
+	if uu.clearemail {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldEmail,
 		})
 	}
-	if value, ok := uu.mutation.Status(); ok {
+	if value := uu.status; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldStatus,
 		})
 	}
-	if value, ok := uu.mutation.Role(); ok {
+	if value := uu.role; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldRole,
 		})
 	}
-	if uu.mutation.ProfilePhotoCleared() {
+	if uu.clearedProfilePhoto {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -319,7 +317,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.ProfilePhotoIDs(); len(nodes) > 0 {
+	if nodes := uu.profile_photo; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -333,7 +331,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -352,13 +350,25 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // UserUpdateOne is the builder for updating a single User entity.
 type UserUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *UserMutation
+	id int
+
+	update_time *time.Time
+
+	first_name          *string
+	clearfirst_name     bool
+	last_name           *string
+	clearlast_name      bool
+	email               *string
+	clearemail          bool
+	status              *user.Status
+	role                *user.Role
+	profile_photo       map[int]struct{}
+	clearedProfilePhoto bool
 }
 
 // SetFirstName sets the first_name field.
 func (uuo *UserUpdateOne) SetFirstName(s string) *UserUpdateOne {
-	uuo.mutation.SetFirstName(s)
+	uuo.first_name = &s
 	return uuo
 }
 
@@ -372,13 +382,14 @@ func (uuo *UserUpdateOne) SetNillableFirstName(s *string) *UserUpdateOne {
 
 // ClearFirstName clears the value of first_name.
 func (uuo *UserUpdateOne) ClearFirstName() *UserUpdateOne {
-	uuo.mutation.ClearFirstName()
+	uuo.first_name = nil
+	uuo.clearfirst_name = true
 	return uuo
 }
 
 // SetLastName sets the last_name field.
 func (uuo *UserUpdateOne) SetLastName(s string) *UserUpdateOne {
-	uuo.mutation.SetLastName(s)
+	uuo.last_name = &s
 	return uuo
 }
 
@@ -392,13 +403,14 @@ func (uuo *UserUpdateOne) SetNillableLastName(s *string) *UserUpdateOne {
 
 // ClearLastName clears the value of last_name.
 func (uuo *UserUpdateOne) ClearLastName() *UserUpdateOne {
-	uuo.mutation.ClearLastName()
+	uuo.last_name = nil
+	uuo.clearlast_name = true
 	return uuo
 }
 
 // SetEmail sets the email field.
 func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
-	uuo.mutation.SetEmail(s)
+	uuo.email = &s
 	return uuo
 }
 
@@ -412,13 +424,14 @@ func (uuo *UserUpdateOne) SetNillableEmail(s *string) *UserUpdateOne {
 
 // ClearEmail clears the value of email.
 func (uuo *UserUpdateOne) ClearEmail() *UserUpdateOne {
-	uuo.mutation.ClearEmail()
+	uuo.email = nil
+	uuo.clearemail = true
 	return uuo
 }
 
 // SetStatus sets the status field.
 func (uuo *UserUpdateOne) SetStatus(u user.Status) *UserUpdateOne {
-	uuo.mutation.SetStatus(u)
+	uuo.status = &u
 	return uuo
 }
 
@@ -432,7 +445,7 @@ func (uuo *UserUpdateOne) SetNillableStatus(u *user.Status) *UserUpdateOne {
 
 // SetRole sets the role field.
 func (uuo *UserUpdateOne) SetRole(u user.Role) *UserUpdateOne {
-	uuo.mutation.SetRole(u)
+	uuo.role = &u
 	return uuo
 }
 
@@ -446,7 +459,10 @@ func (uuo *UserUpdateOne) SetNillableRole(u *user.Role) *UserUpdateOne {
 
 // SetProfilePhotoID sets the profile_photo edge to File by id.
 func (uuo *UserUpdateOne) SetProfilePhotoID(id int) *UserUpdateOne {
-	uuo.mutation.SetProfilePhotoID(id)
+	if uuo.profile_photo == nil {
+		uuo.profile_photo = make(map[int]struct{})
+	}
+	uuo.profile_photo[id] = struct{}{}
 	return uuo
 }
 
@@ -465,66 +481,45 @@ func (uuo *UserUpdateOne) SetProfilePhoto(f *File) *UserUpdateOne {
 
 // ClearProfilePhoto clears the profile_photo edge to File.
 func (uuo *UserUpdateOne) ClearProfilePhoto() *UserUpdateOne {
-	uuo.mutation.ClearProfilePhoto()
+	uuo.clearedProfilePhoto = true
 	return uuo
 }
 
 // Save executes the query and returns the updated entity.
 func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	if _, ok := uuo.mutation.UpdateTime(); !ok {
+	if uuo.update_time == nil {
 		v := user.UpdateDefaultUpdateTime()
-		uuo.mutation.SetUpdateTime(v)
+		uuo.update_time = &v
 	}
-	if v, ok := uuo.mutation.FirstName(); ok {
-		if err := user.FirstNameValidator(v); err != nil {
+	if uuo.first_name != nil {
+		if err := user.FirstNameValidator(*uuo.first_name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"first_name\": %v", err)
 		}
 	}
-	if v, ok := uuo.mutation.LastName(); ok {
-		if err := user.LastNameValidator(v); err != nil {
+	if uuo.last_name != nil {
+		if err := user.LastNameValidator(*uuo.last_name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"last_name\": %v", err)
 		}
 	}
-	if v, ok := uuo.mutation.Email(); ok {
-		if err := user.EmailValidator(v); err != nil {
+	if uuo.email != nil {
+		if err := user.EmailValidator(*uuo.email); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
-	if v, ok := uuo.mutation.Status(); ok {
-		if err := user.StatusValidator(v); err != nil {
+	if uuo.status != nil {
+		if err := user.StatusValidator(*uuo.status); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
 		}
 	}
-	if v, ok := uuo.mutation.Role(); ok {
-		if err := user.RoleValidator(v); err != nil {
+	if uuo.role != nil {
+		if err := user.RoleValidator(*uuo.role); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
 		}
 	}
-
-	var (
-		err  error
-		node *User
-	)
-	if len(uuo.hooks) == 0 {
-		node, err = uuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*UserMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			uuo.mutation = mutation
-			node, err = uuo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(uuo.hooks); i > 0; i-- {
-			mut = uuo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, uuo.mutation); err != nil {
-			return nil, err
-		}
+	if len(uuo.profile_photo) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"profile_photo\"")
 	}
-	return node, err
+	return uuo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -555,77 +550,73 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 			Table:   user.Table,
 			Columns: user.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  uuo.id,
 				Type:   field.TypeInt,
 				Column: user.FieldID,
 			},
 		},
 	}
-	id, ok := uuo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing User.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := uuo.mutation.UpdateTime(); ok {
+	if value := uuo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldUpdateTime,
 		})
 	}
-	if value, ok := uuo.mutation.FirstName(); ok {
+	if value := uuo.first_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldFirstName,
 		})
 	}
-	if uuo.mutation.FirstNameCleared() {
+	if uuo.clearfirst_name {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldFirstName,
 		})
 	}
-	if value, ok := uuo.mutation.LastName(); ok {
+	if value := uuo.last_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldLastName,
 		})
 	}
-	if uuo.mutation.LastNameCleared() {
+	if uuo.clearlast_name {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldLastName,
 		})
 	}
-	if value, ok := uuo.mutation.Email(); ok {
+	if value := uuo.email; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldEmail,
 		})
 	}
-	if uuo.mutation.EmailCleared() {
+	if uuo.clearemail {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldEmail,
 		})
 	}
-	if value, ok := uuo.mutation.Status(); ok {
+	if value := uuo.status; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldStatus,
 		})
 	}
-	if value, ok := uuo.mutation.Role(); ok {
+	if value := uuo.role; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  value,
+			Value:  *value,
 			Column: user.FieldRole,
 		})
 	}
-	if uuo.mutation.ProfilePhotoCleared() {
+	if uuo.clearedProfilePhoto {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -641,7 +632,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.ProfilePhotoIDs(); len(nodes) > 0 {
+	if nodes := uuo.profile_photo; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -655,7 +646,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

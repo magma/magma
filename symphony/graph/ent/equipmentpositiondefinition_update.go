@@ -8,7 +8,8 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,9 +23,19 @@ import (
 // EquipmentPositionDefinitionUpdate is the builder for updating EquipmentPositionDefinition entities.
 type EquipmentPositionDefinitionUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *EquipmentPositionDefinitionMutation
-	predicates []predicate.EquipmentPositionDefinition
+
+	update_time           *time.Time
+	name                  *string
+	index                 *int
+	addindex              *int
+	clearindex            bool
+	visibility_label      *string
+	clearvisibility_label bool
+	positions             map[int]struct{}
+	equipment_type        map[int]struct{}
+	removedPositions      map[int]struct{}
+	clearedEquipmentType  bool
+	predicates            []predicate.EquipmentPositionDefinition
 }
 
 // Where adds a new predicate for the builder.
@@ -35,14 +46,14 @@ func (epdu *EquipmentPositionDefinitionUpdate) Where(ps ...predicate.EquipmentPo
 
 // SetName sets the name field.
 func (epdu *EquipmentPositionDefinitionUpdate) SetName(s string) *EquipmentPositionDefinitionUpdate {
-	epdu.mutation.SetName(s)
+	epdu.name = &s
 	return epdu
 }
 
 // SetIndex sets the index field.
 func (epdu *EquipmentPositionDefinitionUpdate) SetIndex(i int) *EquipmentPositionDefinitionUpdate {
-	epdu.mutation.ResetIndex()
-	epdu.mutation.SetIndex(i)
+	epdu.index = &i
+	epdu.addindex = nil
 	return epdu
 }
 
@@ -56,19 +67,24 @@ func (epdu *EquipmentPositionDefinitionUpdate) SetNillableIndex(i *int) *Equipme
 
 // AddIndex adds i to index.
 func (epdu *EquipmentPositionDefinitionUpdate) AddIndex(i int) *EquipmentPositionDefinitionUpdate {
-	epdu.mutation.AddIndex(i)
+	if epdu.addindex == nil {
+		epdu.addindex = &i
+	} else {
+		*epdu.addindex += i
+	}
 	return epdu
 }
 
 // ClearIndex clears the value of index.
 func (epdu *EquipmentPositionDefinitionUpdate) ClearIndex() *EquipmentPositionDefinitionUpdate {
-	epdu.mutation.ClearIndex()
+	epdu.index = nil
+	epdu.clearindex = true
 	return epdu
 }
 
 // SetVisibilityLabel sets the visibility_label field.
 func (epdu *EquipmentPositionDefinitionUpdate) SetVisibilityLabel(s string) *EquipmentPositionDefinitionUpdate {
-	epdu.mutation.SetVisibilityLabel(s)
+	epdu.visibility_label = &s
 	return epdu
 }
 
@@ -82,13 +98,19 @@ func (epdu *EquipmentPositionDefinitionUpdate) SetNillableVisibilityLabel(s *str
 
 // ClearVisibilityLabel clears the value of visibility_label.
 func (epdu *EquipmentPositionDefinitionUpdate) ClearVisibilityLabel() *EquipmentPositionDefinitionUpdate {
-	epdu.mutation.ClearVisibilityLabel()
+	epdu.visibility_label = nil
+	epdu.clearvisibility_label = true
 	return epdu
 }
 
 // AddPositionIDs adds the positions edge to EquipmentPosition by ids.
 func (epdu *EquipmentPositionDefinitionUpdate) AddPositionIDs(ids ...int) *EquipmentPositionDefinitionUpdate {
-	epdu.mutation.AddPositionIDs(ids...)
+	if epdu.positions == nil {
+		epdu.positions = make(map[int]struct{})
+	}
+	for i := range ids {
+		epdu.positions[ids[i]] = struct{}{}
+	}
 	return epdu
 }
 
@@ -103,7 +125,10 @@ func (epdu *EquipmentPositionDefinitionUpdate) AddPositions(e ...*EquipmentPosit
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
 func (epdu *EquipmentPositionDefinitionUpdate) SetEquipmentTypeID(id int) *EquipmentPositionDefinitionUpdate {
-	epdu.mutation.SetEquipmentTypeID(id)
+	if epdu.equipment_type == nil {
+		epdu.equipment_type = make(map[int]struct{})
+	}
+	epdu.equipment_type[id] = struct{}{}
 	return epdu
 }
 
@@ -122,7 +147,12 @@ func (epdu *EquipmentPositionDefinitionUpdate) SetEquipmentType(e *EquipmentType
 
 // RemovePositionIDs removes the positions edge to EquipmentPosition by ids.
 func (epdu *EquipmentPositionDefinitionUpdate) RemovePositionIDs(ids ...int) *EquipmentPositionDefinitionUpdate {
-	epdu.mutation.RemovePositionIDs(ids...)
+	if epdu.removedPositions == nil {
+		epdu.removedPositions = make(map[int]struct{})
+	}
+	for i := range ids {
+		epdu.removedPositions[ids[i]] = struct{}{}
+	}
 	return epdu
 }
 
@@ -137,41 +167,20 @@ func (epdu *EquipmentPositionDefinitionUpdate) RemovePositions(e ...*EquipmentPo
 
 // ClearEquipmentType clears the equipment_type edge to EquipmentType.
 func (epdu *EquipmentPositionDefinitionUpdate) ClearEquipmentType() *EquipmentPositionDefinitionUpdate {
-	epdu.mutation.ClearEquipmentType()
+	epdu.clearedEquipmentType = true
 	return epdu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (epdu *EquipmentPositionDefinitionUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := epdu.mutation.UpdateTime(); !ok {
+	if epdu.update_time == nil {
 		v := equipmentpositiondefinition.UpdateDefaultUpdateTime()
-		epdu.mutation.SetUpdateTime(v)
+		epdu.update_time = &v
 	}
-
-	var (
-		err      error
-		affected int
-	)
-	if len(epdu.hooks) == 0 {
-		affected, err = epdu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EquipmentPositionDefinitionMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			epdu.mutation = mutation
-			affected, err = epdu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(epdu.hooks); i > 0; i-- {
-			mut = epdu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, epdu.mutation); err != nil {
-			return 0, err
-		}
+	if len(epdu.equipment_type) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"equipment_type\"")
 	}
-	return affected, err
+	return epdu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -214,54 +223,54 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 			}
 		}
 	}
-	if value, ok := epdu.mutation.UpdateTime(); ok {
+	if value := epdu.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldUpdateTime,
 		})
 	}
-	if value, ok := epdu.mutation.Name(); ok {
+	if value := epdu.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldName,
 		})
 	}
-	if value, ok := epdu.mutation.Index(); ok {
+	if value := epdu.index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
-	if value, ok := epdu.mutation.AddedIndex(); ok {
+	if value := epdu.addindex; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
-	if epdu.mutation.IndexCleared() {
+	if epdu.clearindex {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
-	if value, ok := epdu.mutation.VisibilityLabel(); ok {
+	if value := epdu.visibility_label; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldVisibilityLabel,
 		})
 	}
-	if epdu.mutation.VisibilityLabelCleared() {
+	if epdu.clearvisibility_label {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipmentpositiondefinition.FieldVisibilityLabel,
 		})
 	}
-	if nodes := epdu.mutation.RemovedPositionsIDs(); len(nodes) > 0 {
+	if nodes := epdu.removedPositions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -275,12 +284,12 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epdu.mutation.PositionsIDs(); len(nodes) > 0 {
+	if nodes := epdu.positions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -294,12 +303,12 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epdu.mutation.EquipmentTypeCleared() {
+	if epdu.clearedEquipmentType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -315,7 +324,7 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epdu.mutation.EquipmentTypeIDs(); len(nodes) > 0 {
+	if nodes := epdu.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -329,7 +338,7 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -348,20 +357,31 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 // EquipmentPositionDefinitionUpdateOne is the builder for updating a single EquipmentPositionDefinition entity.
 type EquipmentPositionDefinitionUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *EquipmentPositionDefinitionMutation
+	id int
+
+	update_time           *time.Time
+	name                  *string
+	index                 *int
+	addindex              *int
+	clearindex            bool
+	visibility_label      *string
+	clearvisibility_label bool
+	positions             map[int]struct{}
+	equipment_type        map[int]struct{}
+	removedPositions      map[int]struct{}
+	clearedEquipmentType  bool
 }
 
 // SetName sets the name field.
 func (epduo *EquipmentPositionDefinitionUpdateOne) SetName(s string) *EquipmentPositionDefinitionUpdateOne {
-	epduo.mutation.SetName(s)
+	epduo.name = &s
 	return epduo
 }
 
 // SetIndex sets the index field.
 func (epduo *EquipmentPositionDefinitionUpdateOne) SetIndex(i int) *EquipmentPositionDefinitionUpdateOne {
-	epduo.mutation.ResetIndex()
-	epduo.mutation.SetIndex(i)
+	epduo.index = &i
+	epduo.addindex = nil
 	return epduo
 }
 
@@ -375,19 +395,24 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) SetNillableIndex(i *int) *Equ
 
 // AddIndex adds i to index.
 func (epduo *EquipmentPositionDefinitionUpdateOne) AddIndex(i int) *EquipmentPositionDefinitionUpdateOne {
-	epduo.mutation.AddIndex(i)
+	if epduo.addindex == nil {
+		epduo.addindex = &i
+	} else {
+		*epduo.addindex += i
+	}
 	return epduo
 }
 
 // ClearIndex clears the value of index.
 func (epduo *EquipmentPositionDefinitionUpdateOne) ClearIndex() *EquipmentPositionDefinitionUpdateOne {
-	epduo.mutation.ClearIndex()
+	epduo.index = nil
+	epduo.clearindex = true
 	return epduo
 }
 
 // SetVisibilityLabel sets the visibility_label field.
 func (epduo *EquipmentPositionDefinitionUpdateOne) SetVisibilityLabel(s string) *EquipmentPositionDefinitionUpdateOne {
-	epduo.mutation.SetVisibilityLabel(s)
+	epduo.visibility_label = &s
 	return epduo
 }
 
@@ -401,13 +426,19 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) SetNillableVisibilityLabel(s 
 
 // ClearVisibilityLabel clears the value of visibility_label.
 func (epduo *EquipmentPositionDefinitionUpdateOne) ClearVisibilityLabel() *EquipmentPositionDefinitionUpdateOne {
-	epduo.mutation.ClearVisibilityLabel()
+	epduo.visibility_label = nil
+	epduo.clearvisibility_label = true
 	return epduo
 }
 
 // AddPositionIDs adds the positions edge to EquipmentPosition by ids.
 func (epduo *EquipmentPositionDefinitionUpdateOne) AddPositionIDs(ids ...int) *EquipmentPositionDefinitionUpdateOne {
-	epduo.mutation.AddPositionIDs(ids...)
+	if epduo.positions == nil {
+		epduo.positions = make(map[int]struct{})
+	}
+	for i := range ids {
+		epduo.positions[ids[i]] = struct{}{}
+	}
 	return epduo
 }
 
@@ -422,7 +453,10 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) AddPositions(e ...*EquipmentP
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
 func (epduo *EquipmentPositionDefinitionUpdateOne) SetEquipmentTypeID(id int) *EquipmentPositionDefinitionUpdateOne {
-	epduo.mutation.SetEquipmentTypeID(id)
+	if epduo.equipment_type == nil {
+		epduo.equipment_type = make(map[int]struct{})
+	}
+	epduo.equipment_type[id] = struct{}{}
 	return epduo
 }
 
@@ -441,7 +475,12 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) SetEquipmentType(e *Equipment
 
 // RemovePositionIDs removes the positions edge to EquipmentPosition by ids.
 func (epduo *EquipmentPositionDefinitionUpdateOne) RemovePositionIDs(ids ...int) *EquipmentPositionDefinitionUpdateOne {
-	epduo.mutation.RemovePositionIDs(ids...)
+	if epduo.removedPositions == nil {
+		epduo.removedPositions = make(map[int]struct{})
+	}
+	for i := range ids {
+		epduo.removedPositions[ids[i]] = struct{}{}
+	}
 	return epduo
 }
 
@@ -456,41 +495,20 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) RemovePositions(e ...*Equipme
 
 // ClearEquipmentType clears the equipment_type edge to EquipmentType.
 func (epduo *EquipmentPositionDefinitionUpdateOne) ClearEquipmentType() *EquipmentPositionDefinitionUpdateOne {
-	epduo.mutation.ClearEquipmentType()
+	epduo.clearedEquipmentType = true
 	return epduo
 }
 
 // Save executes the query and returns the updated entity.
 func (epduo *EquipmentPositionDefinitionUpdateOne) Save(ctx context.Context) (*EquipmentPositionDefinition, error) {
-	if _, ok := epduo.mutation.UpdateTime(); !ok {
+	if epduo.update_time == nil {
 		v := equipmentpositiondefinition.UpdateDefaultUpdateTime()
-		epduo.mutation.SetUpdateTime(v)
+		epduo.update_time = &v
 	}
-
-	var (
-		err  error
-		node *EquipmentPositionDefinition
-	)
-	if len(epduo.hooks) == 0 {
-		node, err = epduo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EquipmentPositionDefinitionMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			epduo.mutation = mutation
-			node, err = epduo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(epduo.hooks); i > 0; i-- {
-			mut = epduo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, epduo.mutation); err != nil {
-			return nil, err
-		}
+	if len(epduo.equipment_type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_type\"")
 	}
-	return node, err
+	return epduo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -521,64 +539,60 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 			Table:   equipmentpositiondefinition.Table,
 			Columns: equipmentpositiondefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  epduo.id,
 				Type:   field.TypeInt,
 				Column: equipmentpositiondefinition.FieldID,
 			},
 		},
 	}
-	id, ok := epduo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing EquipmentPositionDefinition.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := epduo.mutation.UpdateTime(); ok {
+	if value := epduo.update_time; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldUpdateTime,
 		})
 	}
-	if value, ok := epduo.mutation.Name(); ok {
+	if value := epduo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldName,
 		})
 	}
-	if value, ok := epduo.mutation.Index(); ok {
+	if value := epduo.index; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
-	if value, ok := epduo.mutation.AddedIndex(); ok {
+	if value := epduo.addindex; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
-	if epduo.mutation.IndexCleared() {
+	if epduo.clearindex {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
 	}
-	if value, ok := epduo.mutation.VisibilityLabel(); ok {
+	if value := epduo.visibility_label; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldVisibilityLabel,
 		})
 	}
-	if epduo.mutation.VisibilityLabelCleared() {
+	if epduo.clearvisibility_label {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipmentpositiondefinition.FieldVisibilityLabel,
 		})
 	}
-	if nodes := epduo.mutation.RemovedPositionsIDs(); len(nodes) > 0 {
+	if nodes := epduo.removedPositions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -592,12 +606,12 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epduo.mutation.PositionsIDs(); len(nodes) > 0 {
+	if nodes := epduo.positions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -611,12 +625,12 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epduo.mutation.EquipmentTypeCleared() {
+	if epduo.clearedEquipmentType {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -632,7 +646,7 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epduo.mutation.EquipmentTypeIDs(); len(nodes) > 0 {
+	if nodes := epduo.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -646,7 +660,7 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

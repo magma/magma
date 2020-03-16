@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,8 +19,6 @@ import (
 // FloorPlanScaleDelete is the builder for deleting a FloorPlanScale entity.
 type FloorPlanScaleDelete struct {
 	config
-	hooks      []Hook
-	mutation   *FloorPlanScaleMutation
 	predicates []predicate.FloorPlanScale
 }
 
@@ -33,30 +30,7 @@ func (fpsd *FloorPlanScaleDelete) Where(ps ...predicate.FloorPlanScale) *FloorPl
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (fpsd *FloorPlanScaleDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(fpsd.hooks) == 0 {
-		affected, err = fpsd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*FloorPlanScaleMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			fpsd.mutation = mutation
-			affected, err = fpsd.sqlExec(ctx)
-			return affected, err
-		})
-		for i := len(fpsd.hooks); i > 0; i-- {
-			mut = fpsd.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, fpsd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return fpsd.sqlExec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

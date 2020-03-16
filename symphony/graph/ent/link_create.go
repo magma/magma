@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -23,13 +23,18 @@ import (
 // LinkCreate is the builder for creating a Link entity.
 type LinkCreate struct {
 	config
-	mutation *LinkMutation
-	hooks    []Hook
+	create_time  *time.Time
+	update_time  *time.Time
+	future_state *string
+	ports        map[int]struct{}
+	work_order   map[int]struct{}
+	properties   map[int]struct{}
+	service      map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (lc *LinkCreate) SetCreateTime(t time.Time) *LinkCreate {
-	lc.mutation.SetCreateTime(t)
+	lc.create_time = &t
 	return lc
 }
 
@@ -43,7 +48,7 @@ func (lc *LinkCreate) SetNillableCreateTime(t *time.Time) *LinkCreate {
 
 // SetUpdateTime sets the update_time field.
 func (lc *LinkCreate) SetUpdateTime(t time.Time) *LinkCreate {
-	lc.mutation.SetUpdateTime(t)
+	lc.update_time = &t
 	return lc
 }
 
@@ -57,7 +62,7 @@ func (lc *LinkCreate) SetNillableUpdateTime(t *time.Time) *LinkCreate {
 
 // SetFutureState sets the future_state field.
 func (lc *LinkCreate) SetFutureState(s string) *LinkCreate {
-	lc.mutation.SetFutureState(s)
+	lc.future_state = &s
 	return lc
 }
 
@@ -71,7 +76,12 @@ func (lc *LinkCreate) SetNillableFutureState(s *string) *LinkCreate {
 
 // AddPortIDs adds the ports edge to EquipmentPort by ids.
 func (lc *LinkCreate) AddPortIDs(ids ...int) *LinkCreate {
-	lc.mutation.AddPortIDs(ids...)
+	if lc.ports == nil {
+		lc.ports = make(map[int]struct{})
+	}
+	for i := range ids {
+		lc.ports[ids[i]] = struct{}{}
+	}
 	return lc
 }
 
@@ -86,7 +96,10 @@ func (lc *LinkCreate) AddPorts(e ...*EquipmentPort) *LinkCreate {
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (lc *LinkCreate) SetWorkOrderID(id int) *LinkCreate {
-	lc.mutation.SetWorkOrderID(id)
+	if lc.work_order == nil {
+		lc.work_order = make(map[int]struct{})
+	}
+	lc.work_order[id] = struct{}{}
 	return lc
 }
 
@@ -105,7 +118,12 @@ func (lc *LinkCreate) SetWorkOrder(w *WorkOrder) *LinkCreate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (lc *LinkCreate) AddPropertyIDs(ids ...int) *LinkCreate {
-	lc.mutation.AddPropertyIDs(ids...)
+	if lc.properties == nil {
+		lc.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		lc.properties[ids[i]] = struct{}{}
+	}
 	return lc
 }
 
@@ -120,7 +138,12 @@ func (lc *LinkCreate) AddProperties(p ...*Property) *LinkCreate {
 
 // AddServiceIDs adds the service edge to Service by ids.
 func (lc *LinkCreate) AddServiceIDs(ids ...int) *LinkCreate {
-	lc.mutation.AddServiceIDs(ids...)
+	if lc.service == nil {
+		lc.service = make(map[int]struct{})
+	}
+	for i := range ids {
+		lc.service[ids[i]] = struct{}{}
+	}
 	return lc
 }
 
@@ -135,38 +158,18 @@ func (lc *LinkCreate) AddService(s ...*Service) *LinkCreate {
 
 // Save creates the Link in the database.
 func (lc *LinkCreate) Save(ctx context.Context) (*Link, error) {
-	if _, ok := lc.mutation.CreateTime(); !ok {
+	if lc.create_time == nil {
 		v := link.DefaultCreateTime()
-		lc.mutation.SetCreateTime(v)
+		lc.create_time = &v
 	}
-	if _, ok := lc.mutation.UpdateTime(); !ok {
+	if lc.update_time == nil {
 		v := link.DefaultUpdateTime()
-		lc.mutation.SetUpdateTime(v)
+		lc.update_time = &v
 	}
-	var (
-		err  error
-		node *Link
-	)
-	if len(lc.hooks) == 0 {
-		node, err = lc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*LinkMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			lc.mutation = mutation
-			node, err = lc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(lc.hooks); i > 0; i-- {
-			mut = lc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, lc.mutation); err != nil {
-			return nil, err
-		}
+	if len(lc.work_order) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"work_order\"")
 	}
-	return node, err
+	return lc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -189,31 +192,31 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 			},
 		}
 	)
-	if value, ok := lc.mutation.CreateTime(); ok {
+	if value := lc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: link.FieldCreateTime,
 		})
-		l.CreateTime = value
+		l.CreateTime = *value
 	}
-	if value, ok := lc.mutation.UpdateTime(); ok {
+	if value := lc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: link.FieldUpdateTime,
 		})
-		l.UpdateTime = value
+		l.UpdateTime = *value
 	}
-	if value, ok := lc.mutation.FutureState(); ok {
+	if value := lc.future_state; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: link.FieldFutureState,
 		})
-		l.FutureState = value
+		l.FutureState = *value
 	}
-	if nodes := lc.mutation.PortsIDs(); len(nodes) > 0 {
+	if nodes := lc.ports; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -227,12 +230,12 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.mutation.WorkOrderIDs(); len(nodes) > 0 {
+	if nodes := lc.work_order; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -246,12 +249,12 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := lc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -265,12 +268,12 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.mutation.ServiceIDs(); len(nodes) > 0 {
+	if nodes := lc.service; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -284,7 +287,7 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

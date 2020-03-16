@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -21,13 +20,15 @@ import (
 // EquipmentCategoryCreate is the builder for creating a EquipmentCategory entity.
 type EquipmentCategoryCreate struct {
 	config
-	mutation *EquipmentCategoryMutation
-	hooks    []Hook
+	create_time *time.Time
+	update_time *time.Time
+	name        *string
+	types       map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (ecc *EquipmentCategoryCreate) SetCreateTime(t time.Time) *EquipmentCategoryCreate {
-	ecc.mutation.SetCreateTime(t)
+	ecc.create_time = &t
 	return ecc
 }
 
@@ -41,7 +42,7 @@ func (ecc *EquipmentCategoryCreate) SetNillableCreateTime(t *time.Time) *Equipme
 
 // SetUpdateTime sets the update_time field.
 func (ecc *EquipmentCategoryCreate) SetUpdateTime(t time.Time) *EquipmentCategoryCreate {
-	ecc.mutation.SetUpdateTime(t)
+	ecc.update_time = &t
 	return ecc
 }
 
@@ -55,13 +56,18 @@ func (ecc *EquipmentCategoryCreate) SetNillableUpdateTime(t *time.Time) *Equipme
 
 // SetName sets the name field.
 func (ecc *EquipmentCategoryCreate) SetName(s string) *EquipmentCategoryCreate {
-	ecc.mutation.SetName(s)
+	ecc.name = &s
 	return ecc
 }
 
 // AddTypeIDs adds the types edge to EquipmentType by ids.
 func (ecc *EquipmentCategoryCreate) AddTypeIDs(ids ...int) *EquipmentCategoryCreate {
-	ecc.mutation.AddTypeIDs(ids...)
+	if ecc.types == nil {
+		ecc.types = make(map[int]struct{})
+	}
+	for i := range ids {
+		ecc.types[ids[i]] = struct{}{}
+	}
 	return ecc
 }
 
@@ -76,41 +82,18 @@ func (ecc *EquipmentCategoryCreate) AddTypes(e ...*EquipmentType) *EquipmentCate
 
 // Save creates the EquipmentCategory in the database.
 func (ecc *EquipmentCategoryCreate) Save(ctx context.Context) (*EquipmentCategory, error) {
-	if _, ok := ecc.mutation.CreateTime(); !ok {
+	if ecc.create_time == nil {
 		v := equipmentcategory.DefaultCreateTime()
-		ecc.mutation.SetCreateTime(v)
+		ecc.create_time = &v
 	}
-	if _, ok := ecc.mutation.UpdateTime(); !ok {
+	if ecc.update_time == nil {
 		v := equipmentcategory.DefaultUpdateTime()
-		ecc.mutation.SetUpdateTime(v)
+		ecc.update_time = &v
 	}
-	if _, ok := ecc.mutation.Name(); !ok {
+	if ecc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	var (
-		err  error
-		node *EquipmentCategory
-	)
-	if len(ecc.hooks) == 0 {
-		node, err = ecc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EquipmentCategoryMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ecc.mutation = mutation
-			node, err = ecc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(ecc.hooks); i > 0; i-- {
-			mut = ecc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, ecc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return ecc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -133,31 +116,31 @@ func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCate
 			},
 		}
 	)
-	if value, ok := ecc.mutation.CreateTime(); ok {
+	if value := ecc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentcategory.FieldCreateTime,
 		})
-		ec.CreateTime = value
+		ec.CreateTime = *value
 	}
-	if value, ok := ecc.mutation.UpdateTime(); ok {
+	if value := ecc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentcategory.FieldUpdateTime,
 		})
-		ec.UpdateTime = value
+		ec.UpdateTime = *value
 	}
-	if value, ok := ecc.mutation.Name(); ok {
+	if value := ecc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentcategory.FieldName,
 		})
-		ec.Name = value
+		ec.Name = *value
 	}
-	if nodes := ecc.mutation.TypesIDs(); len(nodes) > 0 {
+	if nodes := ecc.types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -171,7 +154,7 @@ func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCate
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

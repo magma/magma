@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,13 +21,18 @@ import (
 // EquipmentPositionDefinitionCreate is the builder for creating a EquipmentPositionDefinition entity.
 type EquipmentPositionDefinitionCreate struct {
 	config
-	mutation *EquipmentPositionDefinitionMutation
-	hooks    []Hook
+	create_time      *time.Time
+	update_time      *time.Time
+	name             *string
+	index            *int
+	visibility_label *string
+	positions        map[int]struct{}
+	equipment_type   map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (epdc *EquipmentPositionDefinitionCreate) SetCreateTime(t time.Time) *EquipmentPositionDefinitionCreate {
-	epdc.mutation.SetCreateTime(t)
+	epdc.create_time = &t
 	return epdc
 }
 
@@ -42,7 +46,7 @@ func (epdc *EquipmentPositionDefinitionCreate) SetNillableCreateTime(t *time.Tim
 
 // SetUpdateTime sets the update_time field.
 func (epdc *EquipmentPositionDefinitionCreate) SetUpdateTime(t time.Time) *EquipmentPositionDefinitionCreate {
-	epdc.mutation.SetUpdateTime(t)
+	epdc.update_time = &t
 	return epdc
 }
 
@@ -56,13 +60,13 @@ func (epdc *EquipmentPositionDefinitionCreate) SetNillableUpdateTime(t *time.Tim
 
 // SetName sets the name field.
 func (epdc *EquipmentPositionDefinitionCreate) SetName(s string) *EquipmentPositionDefinitionCreate {
-	epdc.mutation.SetName(s)
+	epdc.name = &s
 	return epdc
 }
 
 // SetIndex sets the index field.
 func (epdc *EquipmentPositionDefinitionCreate) SetIndex(i int) *EquipmentPositionDefinitionCreate {
-	epdc.mutation.SetIndex(i)
+	epdc.index = &i
 	return epdc
 }
 
@@ -76,7 +80,7 @@ func (epdc *EquipmentPositionDefinitionCreate) SetNillableIndex(i *int) *Equipme
 
 // SetVisibilityLabel sets the visibility_label field.
 func (epdc *EquipmentPositionDefinitionCreate) SetVisibilityLabel(s string) *EquipmentPositionDefinitionCreate {
-	epdc.mutation.SetVisibilityLabel(s)
+	epdc.visibility_label = &s
 	return epdc
 }
 
@@ -90,7 +94,12 @@ func (epdc *EquipmentPositionDefinitionCreate) SetNillableVisibilityLabel(s *str
 
 // AddPositionIDs adds the positions edge to EquipmentPosition by ids.
 func (epdc *EquipmentPositionDefinitionCreate) AddPositionIDs(ids ...int) *EquipmentPositionDefinitionCreate {
-	epdc.mutation.AddPositionIDs(ids...)
+	if epdc.positions == nil {
+		epdc.positions = make(map[int]struct{})
+	}
+	for i := range ids {
+		epdc.positions[ids[i]] = struct{}{}
+	}
 	return epdc
 }
 
@@ -105,7 +114,10 @@ func (epdc *EquipmentPositionDefinitionCreate) AddPositions(e ...*EquipmentPosit
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
 func (epdc *EquipmentPositionDefinitionCreate) SetEquipmentTypeID(id int) *EquipmentPositionDefinitionCreate {
-	epdc.mutation.SetEquipmentTypeID(id)
+	if epdc.equipment_type == nil {
+		epdc.equipment_type = make(map[int]struct{})
+	}
+	epdc.equipment_type[id] = struct{}{}
 	return epdc
 }
 
@@ -124,41 +136,21 @@ func (epdc *EquipmentPositionDefinitionCreate) SetEquipmentType(e *EquipmentType
 
 // Save creates the EquipmentPositionDefinition in the database.
 func (epdc *EquipmentPositionDefinitionCreate) Save(ctx context.Context) (*EquipmentPositionDefinition, error) {
-	if _, ok := epdc.mutation.CreateTime(); !ok {
+	if epdc.create_time == nil {
 		v := equipmentpositiondefinition.DefaultCreateTime()
-		epdc.mutation.SetCreateTime(v)
+		epdc.create_time = &v
 	}
-	if _, ok := epdc.mutation.UpdateTime(); !ok {
+	if epdc.update_time == nil {
 		v := equipmentpositiondefinition.DefaultUpdateTime()
-		epdc.mutation.SetUpdateTime(v)
+		epdc.update_time = &v
 	}
-	if _, ok := epdc.mutation.Name(); !ok {
+	if epdc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	var (
-		err  error
-		node *EquipmentPositionDefinition
-	)
-	if len(epdc.hooks) == 0 {
-		node, err = epdc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EquipmentPositionDefinitionMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			epdc.mutation = mutation
-			node, err = epdc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(epdc.hooks); i > 0; i-- {
-			mut = epdc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, epdc.mutation); err != nil {
-			return nil, err
-		}
+	if len(epdc.equipment_type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_type\"")
 	}
-	return node, err
+	return epdc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -181,47 +173,47 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 			},
 		}
 	)
-	if value, ok := epdc.mutation.CreateTime(); ok {
+	if value := epdc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldCreateTime,
 		})
-		epd.CreateTime = value
+		epd.CreateTime = *value
 	}
-	if value, ok := epdc.mutation.UpdateTime(); ok {
+	if value := epdc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldUpdateTime,
 		})
-		epd.UpdateTime = value
+		epd.UpdateTime = *value
 	}
-	if value, ok := epdc.mutation.Name(); ok {
+	if value := epdc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldName,
 		})
-		epd.Name = value
+		epd.Name = *value
 	}
-	if value, ok := epdc.mutation.Index(); ok {
+	if value := epdc.index; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldIndex,
 		})
-		epd.Index = value
+		epd.Index = *value
 	}
-	if value, ok := epdc.mutation.VisibilityLabel(); ok {
+	if value := epdc.visibility_label; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentpositiondefinition.FieldVisibilityLabel,
 		})
-		epd.VisibilityLabel = value
+		epd.VisibilityLabel = *value
 	}
-	if nodes := epdc.mutation.PositionsIDs(); len(nodes) > 0 {
+	if nodes := epdc.positions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -235,12 +227,12 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := epdc.mutation.EquipmentTypeIDs(); len(nodes) > 0 {
+	if nodes := epdc.equipment_type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -254,7 +246,7 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

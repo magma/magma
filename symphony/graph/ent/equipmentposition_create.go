@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,13 +21,16 @@ import (
 // EquipmentPositionCreate is the builder for creating a EquipmentPosition entity.
 type EquipmentPositionCreate struct {
 	config
-	mutation *EquipmentPositionMutation
-	hooks    []Hook
+	create_time *time.Time
+	update_time *time.Time
+	definition  map[int]struct{}
+	parent      map[int]struct{}
+	attachment  map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (epc *EquipmentPositionCreate) SetCreateTime(t time.Time) *EquipmentPositionCreate {
-	epc.mutation.SetCreateTime(t)
+	epc.create_time = &t
 	return epc
 }
 
@@ -42,7 +44,7 @@ func (epc *EquipmentPositionCreate) SetNillableCreateTime(t *time.Time) *Equipme
 
 // SetUpdateTime sets the update_time field.
 func (epc *EquipmentPositionCreate) SetUpdateTime(t time.Time) *EquipmentPositionCreate {
-	epc.mutation.SetUpdateTime(t)
+	epc.update_time = &t
 	return epc
 }
 
@@ -56,7 +58,10 @@ func (epc *EquipmentPositionCreate) SetNillableUpdateTime(t *time.Time) *Equipme
 
 // SetDefinitionID sets the definition edge to EquipmentPositionDefinition by id.
 func (epc *EquipmentPositionCreate) SetDefinitionID(id int) *EquipmentPositionCreate {
-	epc.mutation.SetDefinitionID(id)
+	if epc.definition == nil {
+		epc.definition = make(map[int]struct{})
+	}
+	epc.definition[id] = struct{}{}
 	return epc
 }
 
@@ -67,7 +72,10 @@ func (epc *EquipmentPositionCreate) SetDefinition(e *EquipmentPositionDefinition
 
 // SetParentID sets the parent edge to Equipment by id.
 func (epc *EquipmentPositionCreate) SetParentID(id int) *EquipmentPositionCreate {
-	epc.mutation.SetParentID(id)
+	if epc.parent == nil {
+		epc.parent = make(map[int]struct{})
+	}
+	epc.parent[id] = struct{}{}
 	return epc
 }
 
@@ -86,7 +94,10 @@ func (epc *EquipmentPositionCreate) SetParent(e *Equipment) *EquipmentPositionCr
 
 // SetAttachmentID sets the attachment edge to Equipment by id.
 func (epc *EquipmentPositionCreate) SetAttachmentID(id int) *EquipmentPositionCreate {
-	epc.mutation.SetAttachmentID(id)
+	if epc.attachment == nil {
+		epc.attachment = make(map[int]struct{})
+	}
+	epc.attachment[id] = struct{}{}
 	return epc
 }
 
@@ -105,41 +116,27 @@ func (epc *EquipmentPositionCreate) SetAttachment(e *Equipment) *EquipmentPositi
 
 // Save creates the EquipmentPosition in the database.
 func (epc *EquipmentPositionCreate) Save(ctx context.Context) (*EquipmentPosition, error) {
-	if _, ok := epc.mutation.CreateTime(); !ok {
+	if epc.create_time == nil {
 		v := equipmentposition.DefaultCreateTime()
-		epc.mutation.SetCreateTime(v)
+		epc.create_time = &v
 	}
-	if _, ok := epc.mutation.UpdateTime(); !ok {
+	if epc.update_time == nil {
 		v := equipmentposition.DefaultUpdateTime()
-		epc.mutation.SetUpdateTime(v)
+		epc.update_time = &v
 	}
-	if _, ok := epc.mutation.DefinitionID(); !ok {
+	if len(epc.definition) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"definition\"")
+	}
+	if epc.definition == nil {
 		return nil, errors.New("ent: missing required edge \"definition\"")
 	}
-	var (
-		err  error
-		node *EquipmentPosition
-	)
-	if len(epc.hooks) == 0 {
-		node, err = epc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*EquipmentPositionMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			epc.mutation = mutation
-			node, err = epc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(epc.hooks); i > 0; i-- {
-			mut = epc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, epc.mutation); err != nil {
-			return nil, err
-		}
+	if len(epc.parent) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"parent\"")
 	}
-	return node, err
+	if len(epc.attachment) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"attachment\"")
+	}
+	return epc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -162,23 +159,23 @@ func (epc *EquipmentPositionCreate) sqlSave(ctx context.Context) (*EquipmentPosi
 			},
 		}
 	)
-	if value, ok := epc.mutation.CreateTime(); ok {
+	if value := epc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentposition.FieldCreateTime,
 		})
-		ep.CreateTime = value
+		ep.CreateTime = *value
 	}
-	if value, ok := epc.mutation.UpdateTime(); ok {
+	if value := epc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: equipmentposition.FieldUpdateTime,
 		})
-		ep.UpdateTime = value
+		ep.UpdateTime = *value
 	}
-	if nodes := epc.mutation.DefinitionIDs(); len(nodes) > 0 {
+	if nodes := epc.definition; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -192,12 +189,12 @@ func (epc *EquipmentPositionCreate) sqlSave(ctx context.Context) (*EquipmentPosi
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := epc.mutation.ParentIDs(); len(nodes) > 0 {
+	if nodes := epc.parent; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -211,12 +208,12 @@ func (epc *EquipmentPositionCreate) sqlSave(ctx context.Context) (*EquipmentPosi
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := epc.mutation.AttachmentIDs(); len(nodes) > 0 {
+	if nodes := epc.attachment; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -230,7 +227,7 @@ func (epc *EquipmentPositionCreate) sqlSave(ctx context.Context) (*EquipmentPosi
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

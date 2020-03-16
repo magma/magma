@@ -25,13 +25,21 @@ import (
 // ProjectCreate is the builder for creating a Project entity.
 type ProjectCreate struct {
 	config
-	mutation *ProjectMutation
-	hooks    []Hook
+	create_time *time.Time
+	update_time *time.Time
+	name        *string
+	description *string
+	creator     *string
+	_type       map[int]struct{}
+	location    map[int]struct{}
+	comments    map[int]struct{}
+	work_orders map[int]struct{}
+	properties  map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (pc *ProjectCreate) SetCreateTime(t time.Time) *ProjectCreate {
-	pc.mutation.SetCreateTime(t)
+	pc.create_time = &t
 	return pc
 }
 
@@ -45,7 +53,7 @@ func (pc *ProjectCreate) SetNillableCreateTime(t *time.Time) *ProjectCreate {
 
 // SetUpdateTime sets the update_time field.
 func (pc *ProjectCreate) SetUpdateTime(t time.Time) *ProjectCreate {
-	pc.mutation.SetUpdateTime(t)
+	pc.update_time = &t
 	return pc
 }
 
@@ -59,13 +67,13 @@ func (pc *ProjectCreate) SetNillableUpdateTime(t *time.Time) *ProjectCreate {
 
 // SetName sets the name field.
 func (pc *ProjectCreate) SetName(s string) *ProjectCreate {
-	pc.mutation.SetName(s)
+	pc.name = &s
 	return pc
 }
 
 // SetDescription sets the description field.
 func (pc *ProjectCreate) SetDescription(s string) *ProjectCreate {
-	pc.mutation.SetDescription(s)
+	pc.description = &s
 	return pc
 }
 
@@ -79,7 +87,7 @@ func (pc *ProjectCreate) SetNillableDescription(s *string) *ProjectCreate {
 
 // SetCreator sets the creator field.
 func (pc *ProjectCreate) SetCreator(s string) *ProjectCreate {
-	pc.mutation.SetCreator(s)
+	pc.creator = &s
 	return pc
 }
 
@@ -93,7 +101,10 @@ func (pc *ProjectCreate) SetNillableCreator(s *string) *ProjectCreate {
 
 // SetTypeID sets the type edge to ProjectType by id.
 func (pc *ProjectCreate) SetTypeID(id int) *ProjectCreate {
-	pc.mutation.SetTypeID(id)
+	if pc._type == nil {
+		pc._type = make(map[int]struct{})
+	}
+	pc._type[id] = struct{}{}
 	return pc
 }
 
@@ -104,7 +115,10 @@ func (pc *ProjectCreate) SetType(p *ProjectType) *ProjectCreate {
 
 // SetLocationID sets the location edge to Location by id.
 func (pc *ProjectCreate) SetLocationID(id int) *ProjectCreate {
-	pc.mutation.SetLocationID(id)
+	if pc.location == nil {
+		pc.location = make(map[int]struct{})
+	}
+	pc.location[id] = struct{}{}
 	return pc
 }
 
@@ -123,7 +137,12 @@ func (pc *ProjectCreate) SetLocation(l *Location) *ProjectCreate {
 
 // AddCommentIDs adds the comments edge to Comment by ids.
 func (pc *ProjectCreate) AddCommentIDs(ids ...int) *ProjectCreate {
-	pc.mutation.AddCommentIDs(ids...)
+	if pc.comments == nil {
+		pc.comments = make(map[int]struct{})
+	}
+	for i := range ids {
+		pc.comments[ids[i]] = struct{}{}
+	}
 	return pc
 }
 
@@ -138,7 +157,12 @@ func (pc *ProjectCreate) AddComments(c ...*Comment) *ProjectCreate {
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (pc *ProjectCreate) AddWorkOrderIDs(ids ...int) *ProjectCreate {
-	pc.mutation.AddWorkOrderIDs(ids...)
+	if pc.work_orders == nil {
+		pc.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		pc.work_orders[ids[i]] = struct{}{}
+	}
 	return pc
 }
 
@@ -153,7 +177,12 @@ func (pc *ProjectCreate) AddWorkOrders(w ...*WorkOrder) *ProjectCreate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (pc *ProjectCreate) AddPropertyIDs(ids ...int) *ProjectCreate {
-	pc.mutation.AddPropertyIDs(ids...)
+	if pc.properties == nil {
+		pc.properties = make(map[int]struct{})
+	}
+	for i := range ids {
+		pc.properties[ids[i]] = struct{}{}
+	}
 	return pc
 }
 
@@ -168,49 +197,30 @@ func (pc *ProjectCreate) AddProperties(p ...*Property) *ProjectCreate {
 
 // Save creates the Project in the database.
 func (pc *ProjectCreate) Save(ctx context.Context) (*Project, error) {
-	if _, ok := pc.mutation.CreateTime(); !ok {
+	if pc.create_time == nil {
 		v := project.DefaultCreateTime()
-		pc.mutation.SetCreateTime(v)
+		pc.create_time = &v
 	}
-	if _, ok := pc.mutation.UpdateTime(); !ok {
+	if pc.update_time == nil {
 		v := project.DefaultUpdateTime()
-		pc.mutation.SetUpdateTime(v)
+		pc.update_time = &v
 	}
-	if _, ok := pc.mutation.Name(); !ok {
+	if pc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if v, ok := pc.mutation.Name(); ok {
-		if err := project.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
-		}
+	if err := project.NameValidator(*pc.name); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 	}
-	if _, ok := pc.mutation.TypeID(); !ok {
+	if len(pc._type) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
+	}
+	if pc._type == nil {
 		return nil, errors.New("ent: missing required edge \"type\"")
 	}
-	var (
-		err  error
-		node *Project
-	)
-	if len(pc.hooks) == 0 {
-		node, err = pc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProjectMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			pc.mutation = mutation
-			node, err = pc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(pc.hooks); i > 0; i-- {
-			mut = pc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, pc.mutation); err != nil {
-			return nil, err
-		}
+	if len(pc.location) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
 	}
-	return node, err
+	return pc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -233,47 +243,47 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			},
 		}
 	)
-	if value, ok := pc.mutation.CreateTime(); ok {
+	if value := pc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldCreateTime,
 		})
-		pr.CreateTime = value
+		pr.CreateTime = *value
 	}
-	if value, ok := pc.mutation.UpdateTime(); ok {
+	if value := pc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldUpdateTime,
 		})
-		pr.UpdateTime = value
+		pr.UpdateTime = *value
 	}
-	if value, ok := pc.mutation.Name(); ok {
+	if value := pc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldName,
 		})
-		pr.Name = value
+		pr.Name = *value
 	}
-	if value, ok := pc.mutation.Description(); ok {
+	if value := pc.description; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldDescription,
 		})
-		pr.Description = &value
+		pr.Description = value
 	}
-	if value, ok := pc.mutation.Creator(); ok {
+	if value := pc.creator; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: project.FieldCreator,
 		})
-		pr.Creator = &value
+		pr.Creator = value
 	}
-	if nodes := pc.mutation.TypeIDs(); len(nodes) > 0 {
+	if nodes := pc._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -287,12 +297,12 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.LocationIDs(); len(nodes) > 0 {
+	if nodes := pc.location; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -306,12 +316,12 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.CommentsIDs(); len(nodes) > 0 {
+	if nodes := pc.comments; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -325,12 +335,12 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.WorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := pc.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -344,12 +354,12 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.mutation.PropertiesIDs(); len(nodes) > 0 {
+	if nodes := pc.properties; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -363,7 +373,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

@@ -7,6 +7,14 @@
 package migrate
 
 import (
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
+	"github.com/facebookincubator/symphony/graph/ent/servicetype"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
+
 	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/ent/schema/field"
 )
@@ -633,9 +641,9 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "external_id", Type: field.TypeString, Unique: true, Nullable: true},
-		{Name: "latitude", Type: field.TypeFloat64},
-		{Name: "longitude", Type: field.TypeFloat64},
-		{Name: "site_survey_needed", Type: field.TypeBool, Nullable: true},
+		{Name: "latitude", Type: field.TypeFloat64, Default: location.DefaultLatitude},
+		{Name: "longitude", Type: field.TypeFloat64, Default: location.DefaultLongitude},
+		{Name: "site_survey_needed", Type: field.TypeBool, Nullable: true, Default: location.DefaultSiteSurveyNeeded},
 		{Name: "location_type", Type: field.TypeInt, Nullable: true},
 		{Name: "location_children", Type: field.TypeInt, Nullable: true},
 	}
@@ -673,11 +681,11 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "site", Type: field.TypeBool},
+		{Name: "site", Type: field.TypeBool, Default: locationtype.DefaultSite},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "map_type", Type: field.TypeString, Nullable: true},
-		{Name: "map_zoom_level", Type: field.TypeInt, Nullable: true, Default: 7},
-		{Name: "index", Type: field.TypeInt},
+		{Name: "map_zoom_level", Type: field.TypeInt, Nullable: true, Default: locationtype.DefaultMapZoomLevel},
+		{Name: "index", Type: field.TypeInt, Default: locationtype.DefaultIndex},
 	}
 	// LocationTypesTable holds the schema information for the "location_types" table.
 	LocationTypesTable = &schema.Table{
@@ -868,10 +876,10 @@ var (
 		{Name: "string_val", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "range_from_val", Type: field.TypeFloat64, Nullable: true},
 		{Name: "range_to_val", Type: field.TypeFloat64, Nullable: true},
-		{Name: "is_instance_property", Type: field.TypeBool, Default: true},
-		{Name: "editable", Type: field.TypeBool, Default: true},
-		{Name: "mandatory", Type: field.TypeBool},
-		{Name: "deleted", Type: field.TypeBool},
+		{Name: "is_instance_property", Type: field.TypeBool, Default: propertytype.DefaultIsInstanceProperty},
+		{Name: "editable", Type: field.TypeBool, Default: propertytype.DefaultEditable},
+		{Name: "mandatory", Type: field.TypeBool, Default: propertytype.DefaultMandatory},
+		{Name: "deleted", Type: field.TypeBool, Default: propertytype.DefaultDeleted},
 		{Name: "equipment_port_type_property_types", Type: field.TypeInt, Nullable: true},
 		{Name: "equipment_port_type_link_property_types", Type: field.TypeInt, Nullable: true},
 		{Name: "equipment_type_property_types", Type: field.TypeInt, Nullable: true},
@@ -971,7 +979,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "entity", Type: field.TypeEnum, Enums: []string{"WORK_ORDER", "PORT", "EQUIPMENT", "LINK", "LOCATION", "SERVICE"}},
-		{Name: "filters", Type: field.TypeString, Size: 2147483647, Default: "[]"},
+		{Name: "filters", Type: field.TypeString, Size: 2147483647, Default: reportfilter.DefaultFilters},
 	}
 	// ReportFiltersTable holds the schema information for the "report_filters" table.
 	ReportFiltersTable = &schema.Table{
@@ -1042,7 +1050,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Unique: true},
-		{Name: "has_customer", Type: field.TypeBool},
+		{Name: "has_customer", Type: field.TypeBool, Default: servicetype.DefaultHasCustomer},
 	}
 	// ServiceTypesTable holds the schema information for the "service_types" table.
 	ServiceTypesTable = &schema.Table{
@@ -1297,8 +1305,8 @@ var (
 		{Name: "first_name", Type: field.TypeString, Nullable: true},
 		{Name: "last_name", Type: field.TypeString, Nullable: true},
 		{Name: "email", Type: field.TypeString, Nullable: true},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DEACTIVATED"}, Default: "ACTIVE"},
-		{Name: "role", Type: field.TypeEnum, Enums: []string{"USER", "ADMIN", "OWNER"}, Default: "USER"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DEACTIVATED"}, Default: user.DefaultStatus},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"USER", "ADMIN", "OWNER"}, Default: user.DefaultRole},
 		{Name: "user_profile_photo", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -1322,8 +1330,8 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "status", Type: field.TypeString, Default: "PLANNED"},
-		{Name: "priority", Type: field.TypeString, Default: "NONE"},
+		{Name: "status", Type: field.TypeString, Default: workorder.DefaultStatus},
+		{Name: "priority", Type: field.TypeString, Default: workorder.DefaultPriority},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "owner_name", Type: field.TypeString},
 		{Name: "install_date", Type: field.TypeTime, Nullable: true},

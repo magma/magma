@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,8 +19,6 @@ import (
 // WorkOrderTypeDelete is the builder for deleting a WorkOrderType entity.
 type WorkOrderTypeDelete struct {
 	config
-	hooks      []Hook
-	mutation   *WorkOrderTypeMutation
 	predicates []predicate.WorkOrderType
 }
 
@@ -33,30 +30,7 @@ func (wotd *WorkOrderTypeDelete) Where(ps ...predicate.WorkOrderType) *WorkOrder
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (wotd *WorkOrderTypeDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(wotd.hooks) == 0 {
-		affected, err = wotd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WorkOrderTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wotd.mutation = mutation
-			affected, err = wotd.sqlExec(ctx)
-			return affected, err
-		})
-		for i := len(wotd.hooks); i > 0; i-- {
-			mut = wotd.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, wotd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return wotd.sqlExec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

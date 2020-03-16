@@ -40,19 +40,16 @@ type Client struct {
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}}
-	cfg.options(opts...)
-	client := &Client{config: cfg}
-	client.init()
-	return client
-}
-
-func (c *Client) init() {
-	c.Schema = migrate.NewSchema(c.driver)
-	c.AuditLog = NewAuditLogClient(c.config)
-	c.Tenant = NewTenantClient(c.config)
-	c.Token = NewTokenClient(c.config)
-	c.User = NewUserClient(c.config)
+	c := config{log: log.Println}
+	c.options(opts...)
+	return &Client{
+		config:   c,
+		Schema:   migrate.NewSchema(c.driver),
+		AuditLog: NewAuditLogClient(c),
+		Tenant:   NewTenantClient(c),
+		Token:    NewTokenClient(c),
+		User:     NewUserClient(c),
+	}
 }
 
 // Open opens a connection to the database specified by the driver name and a
@@ -80,7 +77,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ent: starting a transaction: %v", err)
 	}
-	cfg := config{driver: tx, log: c.log, debug: c.debug, hooks: c.hooks}
+	cfg := config{driver: tx, log: c.log, debug: c.debug}
 	return &Tx{
 		config:   cfg,
 		AuditLog: NewAuditLogClient(cfg),
@@ -101,24 +98,20 @@ func (c *Client) Debug() *Client {
 	if c.debug {
 		return c
 	}
-	cfg := config{driver: dialect.Debug(c.driver, c.log), log: c.log, debug: true, hooks: c.hooks}
-	client := &Client{config: cfg}
-	client.init()
-	return client
+	cfg := config{driver: dialect.Debug(c.driver, c.log), log: c.log, debug: true}
+	return &Client{
+		config:   cfg,
+		Schema:   migrate.NewSchema(cfg.driver),
+		AuditLog: NewAuditLogClient(cfg),
+		Tenant:   NewTenantClient(cfg),
+		Token:    NewTokenClient(cfg),
+		User:     NewUserClient(cfg),
+	}
 }
 
 // Close closes the database connection and prevents new queries from starting.
 func (c *Client) Close() error {
 	return c.driver.Close()
-}
-
-// Use adds the mutation hooks to all the entity clients.
-// In order to add hooks to a specific client, call: `client.Node.Use(...)`.
-func (c *Client) Use(hooks ...Hook) {
-	c.AuditLog.Use(hooks...)
-	c.Tenant.Use(hooks...)
-	c.Token.Use(hooks...)
-	c.User.Use(hooks...)
 }
 
 // AuditLogClient is a client for the AuditLog schema.
@@ -131,22 +124,14 @@ func NewAuditLogClient(c config) *AuditLogClient {
 	return &AuditLogClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `auditlog.Hooks(f(g(h())))`.
-func (c *AuditLogClient) Use(hooks ...Hook) {
-	c.hooks.AuditLog = append(c.hooks.AuditLog, hooks...)
-}
-
 // Create returns a create builder for AuditLog.
 func (c *AuditLogClient) Create() *AuditLogCreate {
-	mutation := newAuditLogMutation(c.config, OpCreate)
-	return &AuditLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &AuditLogCreate{config: c.config}
 }
 
 // Update returns an update builder for AuditLog.
 func (c *AuditLogClient) Update() *AuditLogUpdate {
-	mutation := newAuditLogMutation(c.config, OpUpdate)
-	return &AuditLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &AuditLogUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -156,15 +141,12 @@ func (c *AuditLogClient) UpdateOne(al *AuditLog) *AuditLogUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *AuditLogClient) UpdateOneID(id int) *AuditLogUpdateOne {
-	mutation := newAuditLogMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &AuditLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &AuditLogUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for AuditLog.
 func (c *AuditLogClient) Delete() *AuditLogDelete {
-	mutation := newAuditLogMutation(c.config, OpDelete)
-	return &AuditLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &AuditLogDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -174,10 +156,7 @@ func (c *AuditLogClient) DeleteOne(al *AuditLog) *AuditLogDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *AuditLogClient) DeleteOneID(id int) *AuditLogDeleteOne {
-	builder := c.Delete().Where(auditlog.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &AuditLogDeleteOne{builder}
+	return &AuditLogDeleteOne{c.Delete().Where(auditlog.ID(id))}
 }
 
 // Create returns a query builder for AuditLog.
@@ -199,11 +178,6 @@ func (c *AuditLogClient) GetX(ctx context.Context, id int) *AuditLog {
 	return al
 }
 
-// Hooks returns the client hooks.
-func (c *AuditLogClient) Hooks() []Hook {
-	return c.hooks.AuditLog
-}
-
 // TenantClient is a client for the Tenant schema.
 type TenantClient struct {
 	config
@@ -214,22 +188,14 @@ func NewTenantClient(c config) *TenantClient {
 	return &TenantClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `tenant.Hooks(f(g(h())))`.
-func (c *TenantClient) Use(hooks ...Hook) {
-	c.hooks.Tenant = append(c.hooks.Tenant, hooks...)
-}
-
 // Create returns a create builder for Tenant.
 func (c *TenantClient) Create() *TenantCreate {
-	mutation := newTenantMutation(c.config, OpCreate)
-	return &TenantCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TenantCreate{config: c.config}
 }
 
 // Update returns an update builder for Tenant.
 func (c *TenantClient) Update() *TenantUpdate {
-	mutation := newTenantMutation(c.config, OpUpdate)
-	return &TenantUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TenantUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -239,15 +205,12 @@ func (c *TenantClient) UpdateOne(t *Tenant) *TenantUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *TenantClient) UpdateOneID(id int) *TenantUpdateOne {
-	mutation := newTenantMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &TenantUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TenantUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Tenant.
 func (c *TenantClient) Delete() *TenantDelete {
-	mutation := newTenantMutation(c.config, OpDelete)
-	return &TenantDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TenantDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -257,10 +220,7 @@ func (c *TenantClient) DeleteOne(t *Tenant) *TenantDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *TenantClient) DeleteOneID(id int) *TenantDeleteOne {
-	builder := c.Delete().Where(tenant.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &TenantDeleteOne{builder}
+	return &TenantDeleteOne{c.Delete().Where(tenant.ID(id))}
 }
 
 // Create returns a query builder for Tenant.
@@ -282,11 +242,6 @@ func (c *TenantClient) GetX(ctx context.Context, id int) *Tenant {
 	return t
 }
 
-// Hooks returns the client hooks.
-func (c *TenantClient) Hooks() []Hook {
-	return c.hooks.Tenant
-}
-
 // TokenClient is a client for the Token schema.
 type TokenClient struct {
 	config
@@ -297,22 +252,14 @@ func NewTokenClient(c config) *TokenClient {
 	return &TokenClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `token.Hooks(f(g(h())))`.
-func (c *TokenClient) Use(hooks ...Hook) {
-	c.hooks.Token = append(c.hooks.Token, hooks...)
-}
-
 // Create returns a create builder for Token.
 func (c *TokenClient) Create() *TokenCreate {
-	mutation := newTokenMutation(c.config, OpCreate)
-	return &TokenCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TokenCreate{config: c.config}
 }
 
 // Update returns an update builder for Token.
 func (c *TokenClient) Update() *TokenUpdate {
-	mutation := newTokenMutation(c.config, OpUpdate)
-	return &TokenUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TokenUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -322,15 +269,12 @@ func (c *TokenClient) UpdateOne(t *Token) *TokenUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *TokenClient) UpdateOneID(id int) *TokenUpdateOne {
-	mutation := newTokenMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &TokenUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TokenUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for Token.
 func (c *TokenClient) Delete() *TokenDelete {
-	mutation := newTokenMutation(c.config, OpDelete)
-	return &TokenDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &TokenDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -340,10 +284,7 @@ func (c *TokenClient) DeleteOne(t *Token) *TokenDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *TokenClient) DeleteOneID(id int) *TokenDeleteOne {
-	builder := c.Delete().Where(token.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &TokenDeleteOne{builder}
+	return &TokenDeleteOne{c.Delete().Where(token.ID(id))}
 }
 
 // Create returns a query builder for Token.
@@ -379,11 +320,6 @@ func (c *TokenClient) QueryUser(t *Token) *UserQuery {
 	return query
 }
 
-// Hooks returns the client hooks.
-func (c *TokenClient) Hooks() []Hook {
-	return c.hooks.Token
-}
-
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -394,22 +330,14 @@ func NewUserClient(c config) *UserClient {
 	return &UserClient{config: c}
 }
 
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `user.Hooks(f(g(h())))`.
-func (c *UserClient) Use(hooks ...Hook) {
-	c.hooks.User = append(c.hooks.User, hooks...)
-}
-
 // Create returns a create builder for User.
 func (c *UserClient) Create() *UserCreate {
-	mutation := newUserMutation(c.config, OpCreate)
-	return &UserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &UserCreate{config: c.config}
 }
 
 // Update returns an update builder for User.
 func (c *UserClient) Update() *UserUpdate {
-	mutation := newUserMutation(c.config, OpUpdate)
-	return &UserUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &UserUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
@@ -419,15 +347,12 @@ func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
 
 // UpdateOneID returns an update builder for the given id.
 func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
-	mutation := newUserMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &UserUpdateOne{config: c.config, id: id}
 }
 
 // Delete returns a delete builder for User.
 func (c *UserClient) Delete() *UserDelete {
-	mutation := newUserMutation(c.config, OpDelete)
-	return &UserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+	return &UserDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
@@ -437,10 +362,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 
 // DeleteOneID returns a delete builder for the given id.
 func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
-	builder := c.Delete().Where(user.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &UserDeleteOne{builder}
+	return &UserDeleteOne{c.Delete().Where(user.ID(id))}
 }
 
 // Create returns a query builder for User.
@@ -474,9 +396,4 @@ func (c *UserClient) QueryTokens(u *User) *TokenQuery {
 	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
 
 	return query
-}
-
-// Hooks returns the client hooks.
-func (c *UserClient) Hooks() []Hook {
-	return c.hooks.User
 }

@@ -23,8 +23,8 @@ type Todo struct {
 	Text string `json:"text,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
-	Edges         TodoEdges `json:"edges"`
-	todo_children *int
+	Edges     TodoEdges `json:"edges"`
+	parent_id *int
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -72,7 +72,7 @@ func (*Todo) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Todo) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // todo_children
+		&sql.NullInt64{}, // parent_id
 	}
 }
 
@@ -96,10 +96,10 @@ func (t *Todo) assignValues(values ...interface{}) error {
 	values = values[1:]
 	if len(values) == len(todo.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field todo_children", value)
+			return fmt.Errorf("unexpected type %T for edge-field parent_id", value)
 		} else if value.Valid {
-			t.todo_children = new(int)
-			*t.todo_children = int(value.Int64)
+			t.parent_id = new(int)
+			*t.parent_id = int(value.Int64)
 		}
 	}
 	return nil
@@ -107,19 +107,19 @@ func (t *Todo) assignValues(values ...interface{}) error {
 
 // QueryParent queries the parent edge of the Todo.
 func (t *Todo) QueryParent() *TodoQuery {
-	return (&TodoClient{config: t.config}).QueryParent(t)
+	return (&TodoClient{t.config}).QueryParent(t)
 }
 
 // QueryChildren queries the children edge of the Todo.
 func (t *Todo) QueryChildren() *TodoQuery {
-	return (&TodoClient{config: t.config}).QueryChildren(t)
+	return (&TodoClient{t.config}).QueryChildren(t)
 }
 
 // Update returns a builder for updating this Todo.
 // Note that, you need to call Todo.Unwrap() before calling this method, if this Todo
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Todo) Update() *TodoUpdateOne {
-	return (&TodoClient{config: t.config}).UpdateOne(t)
+	return (&TodoClient{t.config}).UpdateOne(t)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

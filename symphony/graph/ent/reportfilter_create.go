@@ -20,13 +20,16 @@ import (
 // ReportFilterCreate is the builder for creating a ReportFilter entity.
 type ReportFilterCreate struct {
 	config
-	mutation *ReportFilterMutation
-	hooks    []Hook
+	create_time *time.Time
+	update_time *time.Time
+	name        *string
+	entity      *reportfilter.Entity
+	filters     *string
 }
 
 // SetCreateTime sets the create_time field.
 func (rfc *ReportFilterCreate) SetCreateTime(t time.Time) *ReportFilterCreate {
-	rfc.mutation.SetCreateTime(t)
+	rfc.create_time = &t
 	return rfc
 }
 
@@ -40,7 +43,7 @@ func (rfc *ReportFilterCreate) SetNillableCreateTime(t *time.Time) *ReportFilter
 
 // SetUpdateTime sets the update_time field.
 func (rfc *ReportFilterCreate) SetUpdateTime(t time.Time) *ReportFilterCreate {
-	rfc.mutation.SetUpdateTime(t)
+	rfc.update_time = &t
 	return rfc
 }
 
@@ -54,19 +57,19 @@ func (rfc *ReportFilterCreate) SetNillableUpdateTime(t *time.Time) *ReportFilter
 
 // SetName sets the name field.
 func (rfc *ReportFilterCreate) SetName(s string) *ReportFilterCreate {
-	rfc.mutation.SetName(s)
+	rfc.name = &s
 	return rfc
 }
 
 // SetEntity sets the entity field.
 func (rfc *ReportFilterCreate) SetEntity(r reportfilter.Entity) *ReportFilterCreate {
-	rfc.mutation.SetEntity(r)
+	rfc.entity = &r
 	return rfc
 }
 
 // SetFilters sets the filters field.
 func (rfc *ReportFilterCreate) SetFilters(s string) *ReportFilterCreate {
-	rfc.mutation.SetFilters(s)
+	rfc.filters = &s
 	return rfc
 }
 
@@ -80,58 +83,31 @@ func (rfc *ReportFilterCreate) SetNillableFilters(s *string) *ReportFilterCreate
 
 // Save creates the ReportFilter in the database.
 func (rfc *ReportFilterCreate) Save(ctx context.Context) (*ReportFilter, error) {
-	if _, ok := rfc.mutation.CreateTime(); !ok {
+	if rfc.create_time == nil {
 		v := reportfilter.DefaultCreateTime()
-		rfc.mutation.SetCreateTime(v)
+		rfc.create_time = &v
 	}
-	if _, ok := rfc.mutation.UpdateTime(); !ok {
+	if rfc.update_time == nil {
 		v := reportfilter.DefaultUpdateTime()
-		rfc.mutation.SetUpdateTime(v)
+		rfc.update_time = &v
 	}
-	if _, ok := rfc.mutation.Name(); !ok {
+	if rfc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if v, ok := rfc.mutation.Name(); ok {
-		if err := reportfilter.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
-		}
+	if err := reportfilter.NameValidator(*rfc.name); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 	}
-	if _, ok := rfc.mutation.Entity(); !ok {
+	if rfc.entity == nil {
 		return nil, errors.New("ent: missing required field \"entity\"")
 	}
-	if v, ok := rfc.mutation.Entity(); ok {
-		if err := reportfilter.EntityValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"entity\": %v", err)
-		}
+	if err := reportfilter.EntityValidator(*rfc.entity); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"entity\": %v", err)
 	}
-	if _, ok := rfc.mutation.Filters(); !ok {
+	if rfc.filters == nil {
 		v := reportfilter.DefaultFilters
-		rfc.mutation.SetFilters(v)
+		rfc.filters = &v
 	}
-	var (
-		err  error
-		node *ReportFilter
-	)
-	if len(rfc.hooks) == 0 {
-		node, err = rfc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ReportFilterMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			rfc.mutation = mutation
-			node, err = rfc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(rfc.hooks); i > 0; i-- {
-			mut = rfc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, rfc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return rfc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -154,45 +130,45 @@ func (rfc *ReportFilterCreate) sqlSave(ctx context.Context) (*ReportFilter, erro
 			},
 		}
 	)
-	if value, ok := rfc.mutation.CreateTime(); ok {
+	if value := rfc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: reportfilter.FieldCreateTime,
 		})
-		rf.CreateTime = value
+		rf.CreateTime = *value
 	}
-	if value, ok := rfc.mutation.UpdateTime(); ok {
+	if value := rfc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: reportfilter.FieldUpdateTime,
 		})
-		rf.UpdateTime = value
+		rf.UpdateTime = *value
 	}
-	if value, ok := rfc.mutation.Name(); ok {
+	if value := rfc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: reportfilter.FieldName,
 		})
-		rf.Name = value
+		rf.Name = *value
 	}
-	if value, ok := rfc.mutation.Entity(); ok {
+	if value := rfc.entity; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  value,
+			Value:  *value,
 			Column: reportfilter.FieldEntity,
 		})
-		rf.Entity = value
+		rf.Entity = *value
 	}
-	if value, ok := rfc.mutation.Filters(); ok {
+	if value := rfc.filters; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: reportfilter.FieldFilters,
 		})
-		rf.Filters = value
+		rf.Filters = *value
 	}
 	if err := sqlgraph.CreateNode(ctx, rfc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

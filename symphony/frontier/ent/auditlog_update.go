@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,9 +20,21 @@ import (
 // AuditLogUpdate is the builder for updating AuditLog entities.
 type AuditLogUpdate struct {
 	config
-	hooks      []Hook
-	mutation   *AuditLogMutation
-	predicates []predicate.AuditLog
+
+	updated_at          *time.Time
+	acting_user_id      *int
+	addacting_user_id   *int
+	organization        *string
+	mutation_type       *string
+	object_id           *string
+	object_type         *string
+	object_display_name *string
+	mutation_data       *map[string]string
+	url                 *string
+	ip_address          *string
+	status              *string
+	status_code         *string
+	predicates          []predicate.AuditLog
 }
 
 // Where adds a new predicate for the builder.
@@ -33,107 +45,88 @@ func (alu *AuditLogUpdate) Where(ps ...predicate.AuditLog) *AuditLogUpdate {
 
 // SetActingUserID sets the acting_user_id field.
 func (alu *AuditLogUpdate) SetActingUserID(i int) *AuditLogUpdate {
-	alu.mutation.ResetActingUserID()
-	alu.mutation.SetActingUserID(i)
+	alu.acting_user_id = &i
+	alu.addacting_user_id = nil
 	return alu
 }
 
 // AddActingUserID adds i to acting_user_id.
 func (alu *AuditLogUpdate) AddActingUserID(i int) *AuditLogUpdate {
-	alu.mutation.AddActingUserID(i)
+	if alu.addacting_user_id == nil {
+		alu.addacting_user_id = &i
+	} else {
+		*alu.addacting_user_id += i
+	}
 	return alu
 }
 
 // SetOrganization sets the organization field.
 func (alu *AuditLogUpdate) SetOrganization(s string) *AuditLogUpdate {
-	alu.mutation.SetOrganization(s)
+	alu.organization = &s
 	return alu
 }
 
 // SetMutationType sets the mutation_type field.
 func (alu *AuditLogUpdate) SetMutationType(s string) *AuditLogUpdate {
-	alu.mutation.SetMutationType(s)
+	alu.mutation_type = &s
 	return alu
 }
 
 // SetObjectID sets the object_id field.
 func (alu *AuditLogUpdate) SetObjectID(s string) *AuditLogUpdate {
-	alu.mutation.SetObjectID(s)
+	alu.object_id = &s
 	return alu
 }
 
 // SetObjectType sets the object_type field.
 func (alu *AuditLogUpdate) SetObjectType(s string) *AuditLogUpdate {
-	alu.mutation.SetObjectType(s)
+	alu.object_type = &s
 	return alu
 }
 
 // SetObjectDisplayName sets the object_display_name field.
 func (alu *AuditLogUpdate) SetObjectDisplayName(s string) *AuditLogUpdate {
-	alu.mutation.SetObjectDisplayName(s)
+	alu.object_display_name = &s
 	return alu
 }
 
 // SetMutationData sets the mutation_data field.
 func (alu *AuditLogUpdate) SetMutationData(m map[string]string) *AuditLogUpdate {
-	alu.mutation.SetMutationData(m)
+	alu.mutation_data = &m
 	return alu
 }
 
 // SetURL sets the url field.
 func (alu *AuditLogUpdate) SetURL(s string) *AuditLogUpdate {
-	alu.mutation.SetURL(s)
+	alu.url = &s
 	return alu
 }
 
 // SetIPAddress sets the ip_address field.
 func (alu *AuditLogUpdate) SetIPAddress(s string) *AuditLogUpdate {
-	alu.mutation.SetIPAddress(s)
+	alu.ip_address = &s
 	return alu
 }
 
 // SetStatus sets the status field.
 func (alu *AuditLogUpdate) SetStatus(s string) *AuditLogUpdate {
-	alu.mutation.SetStatus(s)
+	alu.status = &s
 	return alu
 }
 
 // SetStatusCode sets the status_code field.
 func (alu *AuditLogUpdate) SetStatusCode(s string) *AuditLogUpdate {
-	alu.mutation.SetStatusCode(s)
+	alu.status_code = &s
 	return alu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (alu *AuditLogUpdate) Save(ctx context.Context) (int, error) {
-	if _, ok := alu.mutation.UpdatedAt(); !ok {
+	if alu.updated_at == nil {
 		v := auditlog.UpdateDefaultUpdatedAt()
-		alu.mutation.SetUpdatedAt(v)
+		alu.updated_at = &v
 	}
-	var (
-		err      error
-		affected int
-	)
-	if len(alu.hooks) == 0 {
-		affected, err = alu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AuditLogMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			alu.mutation = mutation
-			affected, err = alu.sqlSave(ctx)
-			return affected, err
-		})
-		for i := len(alu.hooks); i > 0; i-- {
-			mut = alu.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, alu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return alu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -176,94 +169,94 @@ func (alu *AuditLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := alu.mutation.UpdatedAt(); ok {
+	if value := alu.updated_at; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldUpdatedAt,
 		})
 	}
-	if value, ok := alu.mutation.ActingUserID(); ok {
+	if value := alu.acting_user_id; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldActingUserID,
 		})
 	}
-	if value, ok := alu.mutation.AddedActingUserID(); ok {
+	if value := alu.addacting_user_id; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldActingUserID,
 		})
 	}
-	if value, ok := alu.mutation.Organization(); ok {
+	if value := alu.organization; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldOrganization,
 		})
 	}
-	if value, ok := alu.mutation.MutationType(); ok {
+	if value := alu.mutation_type; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldMutationType,
 		})
 	}
-	if value, ok := alu.mutation.ObjectID(); ok {
+	if value := alu.object_id; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldObjectID,
 		})
 	}
-	if value, ok := alu.mutation.ObjectType(); ok {
+	if value := alu.object_type; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldObjectType,
 		})
 	}
-	if value, ok := alu.mutation.ObjectDisplayName(); ok {
+	if value := alu.object_display_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldObjectDisplayName,
 		})
 	}
-	if value, ok := alu.mutation.MutationData(); ok {
+	if value := alu.mutation_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldMutationData,
 		})
 	}
-	if value, ok := alu.mutation.URL(); ok {
+	if value := alu.url; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldURL,
 		})
 	}
-	if value, ok := alu.mutation.IPAddress(); ok {
+	if value := alu.ip_address; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldIPAddress,
 		})
 	}
-	if value, ok := alu.mutation.Status(); ok {
+	if value := alu.status; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldStatus,
 		})
 	}
-	if value, ok := alu.mutation.StatusCode(); ok {
+	if value := alu.status_code; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldStatusCode,
 		})
 	}
@@ -281,113 +274,107 @@ func (alu *AuditLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // AuditLogUpdateOne is the builder for updating a single AuditLog entity.
 type AuditLogUpdateOne struct {
 	config
-	hooks    []Hook
-	mutation *AuditLogMutation
+	id int
+
+	updated_at          *time.Time
+	acting_user_id      *int
+	addacting_user_id   *int
+	organization        *string
+	mutation_type       *string
+	object_id           *string
+	object_type         *string
+	object_display_name *string
+	mutation_data       *map[string]string
+	url                 *string
+	ip_address          *string
+	status              *string
+	status_code         *string
 }
 
 // SetActingUserID sets the acting_user_id field.
 func (aluo *AuditLogUpdateOne) SetActingUserID(i int) *AuditLogUpdateOne {
-	aluo.mutation.ResetActingUserID()
-	aluo.mutation.SetActingUserID(i)
+	aluo.acting_user_id = &i
+	aluo.addacting_user_id = nil
 	return aluo
 }
 
 // AddActingUserID adds i to acting_user_id.
 func (aluo *AuditLogUpdateOne) AddActingUserID(i int) *AuditLogUpdateOne {
-	aluo.mutation.AddActingUserID(i)
+	if aluo.addacting_user_id == nil {
+		aluo.addacting_user_id = &i
+	} else {
+		*aluo.addacting_user_id += i
+	}
 	return aluo
 }
 
 // SetOrganization sets the organization field.
 func (aluo *AuditLogUpdateOne) SetOrganization(s string) *AuditLogUpdateOne {
-	aluo.mutation.SetOrganization(s)
+	aluo.organization = &s
 	return aluo
 }
 
 // SetMutationType sets the mutation_type field.
 func (aluo *AuditLogUpdateOne) SetMutationType(s string) *AuditLogUpdateOne {
-	aluo.mutation.SetMutationType(s)
+	aluo.mutation_type = &s
 	return aluo
 }
 
 // SetObjectID sets the object_id field.
 func (aluo *AuditLogUpdateOne) SetObjectID(s string) *AuditLogUpdateOne {
-	aluo.mutation.SetObjectID(s)
+	aluo.object_id = &s
 	return aluo
 }
 
 // SetObjectType sets the object_type field.
 func (aluo *AuditLogUpdateOne) SetObjectType(s string) *AuditLogUpdateOne {
-	aluo.mutation.SetObjectType(s)
+	aluo.object_type = &s
 	return aluo
 }
 
 // SetObjectDisplayName sets the object_display_name field.
 func (aluo *AuditLogUpdateOne) SetObjectDisplayName(s string) *AuditLogUpdateOne {
-	aluo.mutation.SetObjectDisplayName(s)
+	aluo.object_display_name = &s
 	return aluo
 }
 
 // SetMutationData sets the mutation_data field.
 func (aluo *AuditLogUpdateOne) SetMutationData(m map[string]string) *AuditLogUpdateOne {
-	aluo.mutation.SetMutationData(m)
+	aluo.mutation_data = &m
 	return aluo
 }
 
 // SetURL sets the url field.
 func (aluo *AuditLogUpdateOne) SetURL(s string) *AuditLogUpdateOne {
-	aluo.mutation.SetURL(s)
+	aluo.url = &s
 	return aluo
 }
 
 // SetIPAddress sets the ip_address field.
 func (aluo *AuditLogUpdateOne) SetIPAddress(s string) *AuditLogUpdateOne {
-	aluo.mutation.SetIPAddress(s)
+	aluo.ip_address = &s
 	return aluo
 }
 
 // SetStatus sets the status field.
 func (aluo *AuditLogUpdateOne) SetStatus(s string) *AuditLogUpdateOne {
-	aluo.mutation.SetStatus(s)
+	aluo.status = &s
 	return aluo
 }
 
 // SetStatusCode sets the status_code field.
 func (aluo *AuditLogUpdateOne) SetStatusCode(s string) *AuditLogUpdateOne {
-	aluo.mutation.SetStatusCode(s)
+	aluo.status_code = &s
 	return aluo
 }
 
 // Save executes the query and returns the updated entity.
 func (aluo *AuditLogUpdateOne) Save(ctx context.Context) (*AuditLog, error) {
-	if _, ok := aluo.mutation.UpdatedAt(); !ok {
+	if aluo.updated_at == nil {
 		v := auditlog.UpdateDefaultUpdatedAt()
-		aluo.mutation.SetUpdatedAt(v)
+		aluo.updated_at = &v
 	}
-	var (
-		err  error
-		node *AuditLog
-	)
-	if len(aluo.hooks) == 0 {
-		node, err = aluo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*AuditLogMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			aluo.mutation = mutation
-			node, err = aluo.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(aluo.hooks); i > 0; i-- {
-			mut = aluo.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, aluo.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return aluo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -418,104 +405,100 @@ func (aluo *AuditLogUpdateOne) sqlSave(ctx context.Context) (al *AuditLog, err e
 			Table:   auditlog.Table,
 			Columns: auditlog.Columns,
 			ID: &sqlgraph.FieldSpec{
+				Value:  aluo.id,
 				Type:   field.TypeInt,
 				Column: auditlog.FieldID,
 			},
 		},
 	}
-	id, ok := aluo.mutation.ID()
-	if !ok {
-		return nil, fmt.Errorf("missing AuditLog.ID for update")
-	}
-	_spec.Node.ID.Value = id
-	if value, ok := aluo.mutation.UpdatedAt(); ok {
+	if value := aluo.updated_at; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldUpdatedAt,
 		})
 	}
-	if value, ok := aluo.mutation.ActingUserID(); ok {
+	if value := aluo.acting_user_id; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldActingUserID,
 		})
 	}
-	if value, ok := aluo.mutation.AddedActingUserID(); ok {
+	if value := aluo.addacting_user_id; value != nil {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldActingUserID,
 		})
 	}
-	if value, ok := aluo.mutation.Organization(); ok {
+	if value := aluo.organization; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldOrganization,
 		})
 	}
-	if value, ok := aluo.mutation.MutationType(); ok {
+	if value := aluo.mutation_type; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldMutationType,
 		})
 	}
-	if value, ok := aluo.mutation.ObjectID(); ok {
+	if value := aluo.object_id; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldObjectID,
 		})
 	}
-	if value, ok := aluo.mutation.ObjectType(); ok {
+	if value := aluo.object_type; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldObjectType,
 		})
 	}
-	if value, ok := aluo.mutation.ObjectDisplayName(); ok {
+	if value := aluo.object_display_name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldObjectDisplayName,
 		})
 	}
-	if value, ok := aluo.mutation.MutationData(); ok {
+	if value := aluo.mutation_data; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldMutationData,
 		})
 	}
-	if value, ok := aluo.mutation.URL(); ok {
+	if value := aluo.url; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldURL,
 		})
 	}
-	if value, ok := aluo.mutation.IPAddress(); ok {
+	if value := aluo.ip_address; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldIPAddress,
 		})
 	}
-	if value, ok := aluo.mutation.Status(); ok {
+	if value := aluo.status; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldStatus,
 		})
 	}
-	if value, ok := aluo.mutation.StatusCode(); ok {
+	if value := aluo.status_code; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: auditlog.FieldStatusCode,
 		})
 	}

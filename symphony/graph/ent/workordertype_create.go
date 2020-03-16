@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -25,13 +24,20 @@ import (
 // WorkOrderTypeCreate is the builder for creating a WorkOrderType entity.
 type WorkOrderTypeCreate struct {
 	config
-	mutation *WorkOrderTypeMutation
-	hooks    []Hook
+	create_time            *time.Time
+	update_time            *time.Time
+	name                   *string
+	description            *string
+	work_orders            map[int]struct{}
+	property_types         map[int]struct{}
+	definitions            map[int]struct{}
+	check_list_categories  map[int]struct{}
+	check_list_definitions map[int]struct{}
 }
 
 // SetCreateTime sets the create_time field.
 func (wotc *WorkOrderTypeCreate) SetCreateTime(t time.Time) *WorkOrderTypeCreate {
-	wotc.mutation.SetCreateTime(t)
+	wotc.create_time = &t
 	return wotc
 }
 
@@ -45,7 +51,7 @@ func (wotc *WorkOrderTypeCreate) SetNillableCreateTime(t *time.Time) *WorkOrderT
 
 // SetUpdateTime sets the update_time field.
 func (wotc *WorkOrderTypeCreate) SetUpdateTime(t time.Time) *WorkOrderTypeCreate {
-	wotc.mutation.SetUpdateTime(t)
+	wotc.update_time = &t
 	return wotc
 }
 
@@ -59,13 +65,13 @@ func (wotc *WorkOrderTypeCreate) SetNillableUpdateTime(t *time.Time) *WorkOrderT
 
 // SetName sets the name field.
 func (wotc *WorkOrderTypeCreate) SetName(s string) *WorkOrderTypeCreate {
-	wotc.mutation.SetName(s)
+	wotc.name = &s
 	return wotc
 }
 
 // SetDescription sets the description field.
 func (wotc *WorkOrderTypeCreate) SetDescription(s string) *WorkOrderTypeCreate {
-	wotc.mutation.SetDescription(s)
+	wotc.description = &s
 	return wotc
 }
 
@@ -79,7 +85,12 @@ func (wotc *WorkOrderTypeCreate) SetNillableDescription(s *string) *WorkOrderTyp
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (wotc *WorkOrderTypeCreate) AddWorkOrderIDs(ids ...int) *WorkOrderTypeCreate {
-	wotc.mutation.AddWorkOrderIDs(ids...)
+	if wotc.work_orders == nil {
+		wotc.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotc.work_orders[ids[i]] = struct{}{}
+	}
 	return wotc
 }
 
@@ -94,7 +105,12 @@ func (wotc *WorkOrderTypeCreate) AddWorkOrders(w ...*WorkOrder) *WorkOrderTypeCr
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (wotc *WorkOrderTypeCreate) AddPropertyTypeIDs(ids ...int) *WorkOrderTypeCreate {
-	wotc.mutation.AddPropertyTypeIDs(ids...)
+	if wotc.property_types == nil {
+		wotc.property_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotc.property_types[ids[i]] = struct{}{}
+	}
 	return wotc
 }
 
@@ -109,7 +125,12 @@ func (wotc *WorkOrderTypeCreate) AddPropertyTypes(p ...*PropertyType) *WorkOrder
 
 // AddDefinitionIDs adds the definitions edge to WorkOrderDefinition by ids.
 func (wotc *WorkOrderTypeCreate) AddDefinitionIDs(ids ...int) *WorkOrderTypeCreate {
-	wotc.mutation.AddDefinitionIDs(ids...)
+	if wotc.definitions == nil {
+		wotc.definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotc.definitions[ids[i]] = struct{}{}
+	}
 	return wotc
 }
 
@@ -124,7 +145,12 @@ func (wotc *WorkOrderTypeCreate) AddDefinitions(w ...*WorkOrderDefinition) *Work
 
 // AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
 func (wotc *WorkOrderTypeCreate) AddCheckListCategoryIDs(ids ...int) *WorkOrderTypeCreate {
-	wotc.mutation.AddCheckListCategoryIDs(ids...)
+	if wotc.check_list_categories == nil {
+		wotc.check_list_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotc.check_list_categories[ids[i]] = struct{}{}
+	}
 	return wotc
 }
 
@@ -139,7 +165,12 @@ func (wotc *WorkOrderTypeCreate) AddCheckListCategories(c ...*CheckListCategory)
 
 // AddCheckListDefinitionIDs adds the check_list_definitions edge to CheckListItemDefinition by ids.
 func (wotc *WorkOrderTypeCreate) AddCheckListDefinitionIDs(ids ...int) *WorkOrderTypeCreate {
-	wotc.mutation.AddCheckListDefinitionIDs(ids...)
+	if wotc.check_list_definitions == nil {
+		wotc.check_list_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		wotc.check_list_definitions[ids[i]] = struct{}{}
+	}
 	return wotc
 }
 
@@ -154,41 +185,18 @@ func (wotc *WorkOrderTypeCreate) AddCheckListDefinitions(c ...*CheckListItemDefi
 
 // Save creates the WorkOrderType in the database.
 func (wotc *WorkOrderTypeCreate) Save(ctx context.Context) (*WorkOrderType, error) {
-	if _, ok := wotc.mutation.CreateTime(); !ok {
+	if wotc.create_time == nil {
 		v := workordertype.DefaultCreateTime()
-		wotc.mutation.SetCreateTime(v)
+		wotc.create_time = &v
 	}
-	if _, ok := wotc.mutation.UpdateTime(); !ok {
+	if wotc.update_time == nil {
 		v := workordertype.DefaultUpdateTime()
-		wotc.mutation.SetUpdateTime(v)
+		wotc.update_time = &v
 	}
-	if _, ok := wotc.mutation.Name(); !ok {
+	if wotc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	var (
-		err  error
-		node *WorkOrderType
-	)
-	if len(wotc.hooks) == 0 {
-		node, err = wotc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WorkOrderTypeMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wotc.mutation = mutation
-			node, err = wotc.sqlSave(ctx)
-			return node, err
-		})
-		for i := len(wotc.hooks); i > 0; i-- {
-			mut = wotc.hooks[i-1](mut)
-		}
-		if _, err := mut.Mutate(ctx, wotc.mutation); err != nil {
-			return nil, err
-		}
-	}
-	return node, err
+	return wotc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -211,39 +219,39 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 			},
 		}
 	)
-	if value, ok := wotc.mutation.CreateTime(); ok {
+	if value := wotc.create_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workordertype.FieldCreateTime,
 		})
-		wot.CreateTime = value
+		wot.CreateTime = *value
 	}
-	if value, ok := wotc.mutation.UpdateTime(); ok {
+	if value := wotc.update_time; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  value,
+			Value:  *value,
 			Column: workordertype.FieldUpdateTime,
 		})
-		wot.UpdateTime = value
+		wot.UpdateTime = *value
 	}
-	if value, ok := wotc.mutation.Name(); ok {
+	if value := wotc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workordertype.FieldName,
 		})
-		wot.Name = value
+		wot.Name = *value
 	}
-	if value, ok := wotc.mutation.Description(); ok {
+	if value := wotc.description; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  value,
+			Value:  *value,
 			Column: workordertype.FieldDescription,
 		})
-		wot.Description = value
+		wot.Description = *value
 	}
-	if nodes := wotc.mutation.WorkOrdersIDs(); len(nodes) > 0 {
+	if nodes := wotc.work_orders; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -257,12 +265,12 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := wotc.mutation.PropertyTypesIDs(); len(nodes) > 0 {
+	if nodes := wotc.property_types; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -276,12 +284,12 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := wotc.mutation.DefinitionsIDs(); len(nodes) > 0 {
+	if nodes := wotc.definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -295,12 +303,12 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := wotc.mutation.CheckListCategoriesIDs(); len(nodes) > 0 {
+	if nodes := wotc.check_list_categories; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -314,12 +322,12 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := wotc.mutation.CheckListDefinitionsIDs(); len(nodes) > 0 {
+	if nodes := wotc.check_list_definitions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -333,7 +341,7 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 				},
 			},
 		}
-		for _, k := range nodes {
+		for k, _ := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
