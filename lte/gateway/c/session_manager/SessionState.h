@@ -24,6 +24,8 @@ namespace magma {
  */
 class SessionState {
  public:
+  static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
+
   struct QoSInfo {
     bool enabled;
     uint32_t qci;
@@ -91,7 +93,8 @@ class SessionState {
   void add_used_credit(
     const std::string& rule_id,
     uint64_t used_tx,
-    uint64_t used_rx);
+    uint64_t used_rx,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   /**
    * get_updates collects updates and adds them to a UpdateSessionRequest
@@ -102,7 +105,8 @@ class SessionState {
    */
   void get_updates(
     UpdateSessionRequest& update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out);
+    std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   /**
    * start_termination starts the termination process for the session.
@@ -113,13 +117,15 @@ class SessionState {
    * termination
    */
   void start_termination(
-    std::function<void(SessionTerminateRequest)> on_termination_callback);
+    std::function<void(SessionTerminateRequest)> on_termination_callback,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   /**
    * mark_as_awaiting_termination transitions the session state from
    * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
    */
-  void mark_as_awaiting_termination();
+  void mark_as_awaiting_termination(
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   /**
    * can_complete_termination returns whether the termination for the session
@@ -138,7 +144,8 @@ class SessionState {
    * termination, this function should only be called when
    * can_complete_termination returns true.
    */
-  void complete_termination();
+  void complete_termination(
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   ChargingCreditPool& get_charging_pool();
 
@@ -174,12 +181,15 @@ class SessionState {
 
   bool qos_enabled() const;
 
-  void set_tgpp_context(const magma::lte::TgppContext& tgpp_context);
+  void set_tgpp_context(
+    const magma::lte::TgppContext& tgpp_context,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
   void set_subscriber_quota_state(
-    const magma::lte::SubscriberQuotaUpdate_Type state);
+    const magma::lte::SubscriberQuotaUpdate_Type state,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   bool active_monitored_rules_exist();
 
@@ -200,13 +210,22 @@ class SessionState {
 
   bool is_static_rule_installed(const std::string& rule_id);
 
-  void insert_dynamic_rule(const PolicyRule& rule);
+  void insert_dynamic_rule(
+    const PolicyRule& rule,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
-  void activate_static_rule(const std::string& rule_id);
+  void activate_static_rule(
+    const std::string& rule_id,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
-  bool remove_dynamic_rule(const std::string& rule_id, PolicyRule *rule_out);
+  bool remove_dynamic_rule(
+    const std::string& rule_id,
+    PolicyRule *rule_out,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
-  bool deactivate_static_rule(const std::string& rule_id);
+  bool deactivate_static_rule(
+    const std::string& rule_id,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   DynamicRuleStore& get_dynamic_rules();
 
@@ -280,7 +299,8 @@ class SessionState {
    */
   void get_updates_from_charging_pool(
     UpdateSessionRequest& update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out);
+    std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   /**
    * For this session, add the UsageMonitoringUpdateRequest to the
@@ -291,7 +311,8 @@ class SessionState {
    */
   void get_updates_from_monitor_pool(
     UpdateSessionRequest& update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out);
+    std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 };
 
 } // namespace magma

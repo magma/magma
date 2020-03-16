@@ -148,6 +148,7 @@ struct SessionStateUpdateCriteria {
   std::unordered_map<std::string, StoredMonitor> monitor_credit_to_install;
   std::unordered_map<std::string, SessionCreditUpdateCriteria> monitor_credit_map;
   TgppContext updated_tgpp_context;
+  magma::lte::SubscriberQuotaUpdate_Type updated_subscriber_quota_state;
 };
 
 SessionStateUpdateCriteria get_default_update_criteria();
