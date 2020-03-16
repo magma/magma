@@ -32,7 +32,7 @@ const (
 )
 
 func TestAuthenticateOcsCreditExhaustedWithCRRU(t *testing.T) {
-	fmt.Printf("Running TestAuthenticateOcsCreditExhaustedWithCRRU...\n")
+	fmt.Printf("\nRunning TestAuthenticateOcsCreditExhaustedWithCRRU...\n")
 
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
