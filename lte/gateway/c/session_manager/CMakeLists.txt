@@ -108,6 +108,7 @@ add_library(SESSION_MANAGER
     CreditPool.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
+    StoredState.cpp
     StoredState.h
     SessionStore.cpp
     SessionStore.h
