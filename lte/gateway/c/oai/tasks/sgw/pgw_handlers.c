@@ -99,12 +99,11 @@ static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(
 
 void handle_s5_create_session_request(
   spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p,
   teid_t context_teid,
   ebi_t eps_bearer_id)
 {
   OAILOG_FUNC_IN(LOG_PGW_APP);
-  s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p = NULL;
-  hashtable_rc_t hash_rc = HASH_TABLE_OK;
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
   s5_create_session_response_t s5_response = {0};
   struct in_addr inaddr;
@@ -117,12 +116,8 @@ void handle_s5_create_session_request(
     "EPS bearer id %u\n",
     context_teid,
     eps_bearer_id);
-  hash_rc = hashtable_ts_get(
-    spgw_state->sgw_state.s11_bearer_context_information,
-    context_teid,
-    (void**) &new_bearer_ctxt_info_p);
 
-  if (HASH_TABLE_OK != hash_rc) {
+  if (!new_bearer_ctxt_info_p) {
     OAILOG_ERROR(
       LOG_PGW_APP,
       "Failed to fetch sgw bearer context from the received context "
@@ -259,7 +254,7 @@ void handle_s5_create_session_request(
       &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
       &session_data);
     pcef_create_session(
-      imsi, ip_str, &session_data, sgi_create_endpoint_resp, session_req);
+      spgw_state, imsi, ip_str, &session_data, sgi_create_endpoint_resp, session_req, new_bearer_ctxt_info_p);
     OAILOG_FUNC_OUT(LOG_PGW_APP);
   }
 err:
@@ -274,7 +269,8 @@ err:
     "EPS Bearer Id = %u\n",
     s5_response.context_teid,
     s5_response.eps_bearer_id);
-  handle_s5_create_session_response(s5_response);
+  handle_s5_create_session_response(
+    spgw_state, new_bearer_ctxt_info_p, s5_response);
   OAILOG_FUNC_OUT(LOG_PGW_APP);
 }
 
@@ -440,7 +436,7 @@ static void _get_session_req_data(
 
   inet_ntop(
     AF_INET,
-    &spgw_state->sgw_state.sgw_ip_address_S1u_S12_S4_up,
+    &spgw_state->sgw_ip_address_S1u_S12_S4_up,
     data->sgw_ip,
     INET_ADDRSTRLEN);
 
@@ -480,7 +476,8 @@ int spgw_handle_nw_initiated_bearer_actv_req(
     bearer_req_p->lbi,
     imsi64);
 
-  hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
+  // TODO: Revisit this if UE context struct manages multiple PDN connections
+  hashtblP = get_spgw_ue_state();
   if (!hashtblP) {
     OAILOG_ERROR(
       LOG_SPGW_APP, "No s11_bearer_context_information hash table found \n");
@@ -589,7 +586,7 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
     "Received nw_initiated_deactv_bearer_req from SPGW service \n");
   print_bearer_ids_helper(bearer_req_p->ebi, bearer_req_p->no_of_bearers);
 
-  hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
+  hashtblP = get_spgw_ue_state();
   if (hashtblP == NULL) {
     OAILOG_ERROR(
       LOG_SPGW_APP, "No s11_bearer_context_information hash table is found\n");
@@ -819,7 +816,7 @@ static int _spgw_build_and_send_s11_create_bearer_request(
 
   // TODO - IPv6 address
   s11_actv_bearer_request->s1_u_sgw_fteid.ipv4_address.s_addr =
-    spgw_state->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr;
+    spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr;
   message_p->ittiMsgHeader.imsi =
     spgw_ctxt_p->sgw_eps_bearer_context_information.imsi64;
   OAILOG_INFO(
@@ -866,7 +863,7 @@ static int _create_temporary_dedicated_bearer_context(
 
   eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type = IPv4;
   eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.address.ipv4_address.s_addr =
-    spgw_state->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr;
+    spgw_state->sgw_ip_address_S1u_S12_S4_up.s_addr;
   // DL TFT
   memcpy(
     &eps_bearer_ctxt_p->tft,

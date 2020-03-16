@@ -22,11 +22,13 @@
 #include "spgw_state.h"
 
 #include <cstdlib>
+#include <conversions.h>
 
 extern "C" {
 #include "assertions.h"
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
+#include "sgw_context_manager.h"
 }
 
 #include "spgw_state_manager.h"
@@ -44,6 +46,15 @@ spgw_state_t* get_spgw_state(bool read_from_db)
   return SpgwStateManager::getInstance().get_state(read_from_db);
 }
 
+hash_table_ts_t* get_spgw_ue_state()
+{
+  return SpgwStateManager::getInstance().get_ue_state_ht();
+}
+
+int read_spgw_ue_state_db() {
+  return SpgwStateManager::getInstance().read_ue_state_from_db();
+}
+
 void spgw_state_exit()
 {
   SpgwStateManager::getInstance().free_state();
@@ -54,12 +65,22 @@ void put_spgw_state()
   SpgwStateManager::getInstance().write_state_to_db();
 }
 
-void put_spgw_imsi_map() {
-  SpgwStateManager::getInstance().put_spgw_imsi_map();
+void put_spgw_ue_state(spgw_state_t* spgw_state, imsi64_t imsi64)
+{
+  uint64_t teid;
+  hashtable_uint64_ts_get(
+    spgw_state->imsi_teid_htbl, (const hash_key_t) imsi64, &teid);
+  auto spgw_ctxt = sgw_cm_get_spgw_context(teid);
+  if(spgw_ctxt) {
+    auto imsi_str = SpgwStateManager::getInstance().get_imsi_str(imsi64);
+    SpgwStateManager::getInstance().write_ue_state_to_db(spgw_ctxt, imsi_str);
+  }
 }
 
-spgw_imsi_map_t* get_spgw_imsi_map() {
-  return SpgwStateManager::getInstance().get_spgw_imsi_map();
+void delete_spgw_ue_state(imsi64_t imsi64) {
+  // Parsing IMSI with fixed digits length
+  auto imsi_str = SpgwStateManager::getInstance().get_imsi_str(imsi64);
+  SpgwStateManager::getInstance().clear_ue_state_db(imsi_str);
 }
 
 void sgw_free_s11_bearer_context_information(

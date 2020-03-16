@@ -30,7 +30,10 @@
 #ifndef FILE_SPGW_TYPES_SEEN
 #define FILE_SPGW_TYPES_SEEN
 
+#include "3gpp_23.401.h"
+#include "ip_forward_messages_types.h"
 #include "sgw_ie_defs.h"
+#include "gtpv1u_types.h"
 
 typedef struct s5_create_session_request_s {
   teid_t context_teid; ///< local SGW S11 Tunnel Endpoint Identifier
@@ -56,6 +59,32 @@ typedef struct s5_nw_init_actv_bearer_request_s {
   protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
 } s5_nw_init_actv_bearer_request_t;
 
+// Data entry for SGW UE context
+typedef struct s_plus_p_gw_eps_bearer_context_information_s {
+  sgw_eps_bearer_context_information_t sgw_eps_bearer_context_information;
+  pgw_eps_bearer_context_information_t pgw_eps_bearer_context_information;
+} s_plus_p_gw_eps_bearer_context_information_t;
+
+// Data entry for s11teid2mme
+typedef struct mme_sgw_tunnel_s {
+  uint32_t local_teid;  ///< Local tunnel endpoint Identifier
+  uint32_t remote_teid; ///< Remote tunnel endpoint Identifier
+} mme_sgw_tunnel_t;
+
+// AGW-wide state for SPGW task
+typedef struct spgw_state_s {
+  STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;
+  hash_table_ts_t* deactivated_predefined_pcc_rules;
+  hash_table_ts_t* predefined_pcc_rules;
+  gtpv1u_data_t gtpv1u_data;
+  teid_t tunnel_id;
+  uint32_t gtpv1u_teid;
+  struct in_addr sgw_ip_address_S1u_S12_S4_up;
+  hash_table_uint64_ts_t* imsi_teid_htbl;
+} spgw_state_t;
+
 void handle_s5_create_session_response(
-  s5_create_session_response_t bearer_resp);
+  spgw_state_t* state,
+  s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p,
+  s5_create_session_response_t session_resp);
 #endif /* FILE_SPGW_TYPES_SEEN */

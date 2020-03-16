@@ -30,42 +30,8 @@ extern "C" {
 #include "hashtable.h"
 
 #include "gtpv1u_types.h"
-#include "sgw_types.h"
+#include "spgw_types.h"
 #include "spgw_config.h"
-
-typedef struct sgw_state_s {
-  struct in_addr sgw_ip_address_S1u_S12_S4_up;
-
-  // Maps teid (as uint32 key) to mme_sgw_tunnel
-  hash_table_ts_t* s11teid2mme;
-  // Maps teid (as uint32 key) to s11_eps_bearer_context_information
-  hash_table_ts_t* s11_bearer_context_information;
-
-  gtpv1u_data_t gtpv1u_data;
-
-  teid_t tunnel_id;
-
-  uint32_t gtpv1u_teid;
-
-} sgw_state_t;
-
-typedef struct pgw_state_s {
-  STAILQ_HEAD(ipv4_list_free_s, ipv4_list_elm_s) ipv4_list_free;
-  STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;
-  hash_table_ts_t* deactivated_predefined_pcc_rules;
-  hash_table_ts_t* predefined_pcc_rules;
-} pgw_state_t;
-
-typedef struct spgw_state_s {
-  sgw_state_t sgw_state;
-  pgw_state_t pgw_state;
-} spgw_state_t;
-
-// SPGW IMSI to tunnel ID map
-// TODO: Revisit once SGW/PGW merge is done
-typedef struct spgw_imsi_map_s {
-  hash_table_uint64_ts_t* imsi_teid5_htbl; // imsi => teid5
-} spgw_imsi_map_t;
 
 // Initializes SGW state struct when task process starts.
 int spgw_state_init(bool persist_state, const spgw_config_t* spgw_config_p);
@@ -76,10 +42,30 @@ spgw_state_t *get_spgw_state(bool read_from_db);
 // Function that writes the spgw_state struct into db.
 void put_spgw_state(void);
 
-// Converts spgw_imsi_map ptr to proto and writes it to db
-void put_spgw_imsi_map(void);
-// Returns a pointer to spgw_imsi_map
-spgw_imsi_map_t* get_spgw_imsi_map(void);
+/**
+ * Returns pointer to SPGW UE state
+ * @return hashtable_ts_t struct with SPGW UE context structs as data
+ */
+hash_table_ts_t* get_spgw_ue_state(void);
+
+/**
+ * Populates SPGW UE hashtable from db
+ * @return response code
+ */
+int read_spgw_ue_state_db(void);
+
+/**
+ * Saves an UE context state to db
+ * @param s11_bearer_context_info SPGW ue context pointer
+ * @param imsi64
+ */
+void put_spgw_ue_state(spgw_state_t* spgw_state, imsi64_t imsi64);
+
+/**
+ * Removes entry for SPGW UE state in db
+ * @param imsi64
+ */
+void delete_spgw_ue_state(imsi64_t imsi64);
 
 /**
  * Callback function for s11_bearer_context_information hashtable freefunc
