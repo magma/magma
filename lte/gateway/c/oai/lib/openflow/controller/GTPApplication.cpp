@@ -40,9 +40,11 @@ const std::string GTPApplication::GTP_PORT_MAC = "02:00:00:00:00:01";
 
 GTPApplication::GTPApplication(
   const std::string &uplink_mac,
-  uint32_t gtp_port_num):
+  uint32_t gtp_port_num,
+  uint32_t mtr_port_num):
   uplink_mac_(uplink_mac),
-  gtp_port_num_(gtp_port_num)
+  gtp_port_num_(gtp_port_num),
+  mtr_port_num_(mtr_port_num)
 {
 }
 

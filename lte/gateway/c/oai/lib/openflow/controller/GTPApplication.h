@@ -33,7 +33,10 @@ namespace openflow {
  */
 class GTPApplication : public Application {
  public:
-  GTPApplication(const std::string &uplink_mac, uint32_t gtp_port_num);
+  GTPApplication(
+    const std::string& uplink_mac,
+    uint32_t gtp_port_num,
+    uint32_t mtr_port_num);
 
  private:
   /**
@@ -123,6 +126,7 @@ class GTPApplication : public Application {
 
   const std::string uplink_mac_;
   const uint32_t gtp_port_num_;
+  const uint32_t mtr_port_num_;
   /* cookie is added to identify the rules enforced for the flow controller
    * Initialising with 1
    */
