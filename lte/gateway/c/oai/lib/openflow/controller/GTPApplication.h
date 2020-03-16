@@ -64,7 +64,8 @@ class GTPApplication : public Application {
    */
   void add_downlink_tunnel_flow(
     const AddGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
 
   /*
    * Remove uplink tunnel flow on disconnect
@@ -80,14 +81,16 @@ class GTPApplication : public Application {
    */
   void delete_downlink_tunnel_flow(
     const DeleteGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
   /*
    * Discard downlink data received for UE IP during UE suspended state
    * @param ev - HandleDataOnGTPTunnelEvent containing ue ip, and inbound tei
    */
   void discard_downlink_tunnel_flow(
     const HandleDataOnGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
   /*
    * Discard uplink data received for sgw-S1U-teid during UE suspended state
    * @param ev - HandleDataOnGTPTunnelEvent containing ue ip, and inbound tei
@@ -102,7 +105,8 @@ class GTPApplication : public Application {
    */
   void forward_downlink_tunnel_flow(
     const HandleDataOnGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
   /*
    * Remove the rule inserted to discard data for UE in suspended state
    * And Forward data existing rule
@@ -126,6 +130,7 @@ class GTPApplication : public Application {
 
   const std::string uplink_mac_;
   const uint32_t gtp_port_num_;
+  // Internal port number for monitoring service
   const uint32_t mtr_port_num_;
   /* cookie is added to identify the rules enforced for the flow controller
    * Initialising with 1
