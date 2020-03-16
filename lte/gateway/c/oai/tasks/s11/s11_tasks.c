@@ -129,9 +129,9 @@ s11_mme_ulp_process_stack_req_cb (
           //ret = s11_mme_handle_update_bearer_request (&s11_mme_stack_handle, pUlpApi);
        //   break;
 
-        case NW_GTP_DELETE_BEARER_REQ:
-          ret = s11_mme_handle_delete_bearer_request (&s11_mme_stack_handle, pUlpApi);
-          break;
+        //case NW_GTP_DELETE_BEARER_REQ:
+          //ret = s11_mme_handle_delete_bearer_request (&s11_mme_stack_handle, pUlpApi);
+          //break;
 
         case NW_GTP_DOWNLINK_DATA_NOTIFICATION:
           ret = s11_mme_handle_downlink_data_notification (&s11_mme_stack_handle, pUlpApi);
