@@ -117,6 +117,7 @@ struct StoredSessionState {
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;
   std::vector<PolicyRule> dynamic_rules;
+  std::vector<PolicyRule> gy_dynamic_rules;
   uint32_t request_number;
 };
 

@@ -50,6 +50,7 @@ class SessionState {
     std::string ip_addr;
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
+    std::vector<PolicyRule> gy_dynamic_rules;
   };
 
  public:
@@ -202,13 +203,19 @@ class SessionState {
 
   void insert_dynamic_rule(const PolicyRule& rule);
 
+  void insert_gy_dynamic_rule(const PolicyRule& rule);
+
   void activate_static_rule(const std::string& rule_id);
 
   bool remove_dynamic_rule(const std::string& rule_id, PolicyRule *rule_out);
 
+  bool remove_gy_dynamic_rule(const std::string& rule_id, PolicyRule *rule_out);
+
   bool deactivate_static_rule(const std::string& rule_id);
 
   DynamicRuleStore& get_dynamic_rules();
+
+  DynamicRuleStore& get_gy_dynamic_rules();
 
   uint32_t total_monitored_rules_count();
 
@@ -267,8 +274,10 @@ class SessionState {
   StaticRuleStore& static_rules_;
   // Static rules that are currently installed for the session
   std::vector<std::string> active_static_rules_;
-  // Dynamic rules that are currently installed for the session
+  // Dynamic GX rules that are currently installed for the session
   DynamicRuleStore dynamic_rules_;
+  // Dynamic GY rules that are currently installed for the session
+  DynamicRuleStore gy_dynamic_rules_;
 
  private:
   /**
