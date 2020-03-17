@@ -14,6 +14,14 @@ import type {
   FilterEntity,
   FilterOperator,
 } from '../mutations/__generated__/AddReportFilterMutation.graphql';
+import type {
+  DeleteReportFilterMutationResponse,
+  DeleteReportFilterMutationVariables,
+} from '../mutations/__generated__/DeleteReportFilterMutation.graphql';
+import type {
+  EditReportFilterMutationResponse,
+  EditReportFilterMutationVariables,
+} from '../mutations/__generated__/EditReportFilterMutation.graphql';
 import type {FiltersQuery} from './comparison_view/ComparisonViewTypes';
 import type {MutationCallbacks} from '../mutations/MutationCallbacks.js';
 import type {WithSnackbarProps} from 'notistack';
@@ -25,7 +33,10 @@ import BookmarksIcon from '@material-ui/icons/Bookmarks';
 import BookmarksOutlinedIcon from '@material-ui/icons/BookmarksOutlined';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import DeleteReportFilterMutation from '../mutations/DeleteReportFilterMutation';
 import DialogActions from '@material-ui/core/DialogActions';
+import EditReportFilterMutation from '../mutations/EditReportFilterMutation';
 import Popover from '@material-ui/core/Popover';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Strings from '../common/CommonStrings';
@@ -35,6 +46,7 @@ import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '../../../../fbcnms-packages/fbcnms-ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useEffect} from 'react';
 import {usePowerSearch} from './power_search/PowerSearchContext';
 import {withSnackbar} from 'notistack';
 
@@ -59,10 +71,12 @@ const useStyles = makeStyles(() => ({
   },
   dialogActions: {
     padding: '8px 0px 0px 0px',
+    display: 'flex',
+    justifyContent: 'space-between',
   },
   popup: {
     backgroundColor: 'white',
-    width: '350px',
+    width: '320px',
     padding: '16px 16px',
   },
   text: {
@@ -76,49 +90,32 @@ type Props = WithSnackbarProps & {
 
 const FilterBookmark = (props: Props) => {
   const classes = useStyles();
+  const {bookmark, setBookmark} = usePowerSearch();
+
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [name, setName] = React.useState('');
   const [saving, setSaving] = React.useState(false);
 
-  const powerSearchContext = usePowerSearch();
+  useEffect(() => {
+    setName(bookmark?.name ?? '');
+  }, [bookmark]);
 
   const handleClick = event => {
     setAnchorEl(event.currentTarget);
   };
 
   const handleClose = () => {
-    setName('');
+    setSaving(false);
     setAnchorEl(null);
   };
-  const open = Boolean(anchorEl);
 
-  const saveFilter = () => {
+  const saveBookmark = () => {
     saveFilterReport();
-    powerSearchContext.setBookmark(name);
     handleClose();
   };
 
-  const toOperator = (op: string): FilterOperator => {
-    switch (op) {
-      case 'is':
-        return 'IS';
-      case 'contains':
-        return 'CONTAINS';
-      case 'date_greater_than':
-        return 'DATE_GREATER_THAN';
-      case 'date_less_than':
-        return 'DATE_LESS_THAN';
-      case 'is_not_one_of':
-        return 'IS_NOT_ONE_OF';
-      case 'is_one_of':
-        return 'IS_ONE_OF';
-    }
-    throw new Error(`Operator ${op} is not supported`);
-  };
-
-  const saveFilterReport = () => {
-    setSaving(true);
-    const filterInput = props.filters.map(f => {
+  const filtersQueryToFilterInput = (filterQuery: FiltersQuery) => {
+    return filterQuery.map(f => {
       if (
         f.propertyValue &&
         (!f.propertyValue?.name || !f.propertyValue?.type)
@@ -142,6 +139,103 @@ const FilterBookmark = (props: Props) => {
           : null,
       };
     });
+  };
+
+  const toOperator = (op: string): FilterOperator => {
+    switch (op) {
+      case 'is':
+        return 'IS';
+      case 'contains':
+        return 'CONTAINS';
+      case 'date_greater_than':
+        return 'DATE_GREATER_THAN';
+      case 'date_less_than':
+        return 'DATE_LESS_THAN';
+      case 'is_not_one_of':
+        return 'IS_NOT_ONE_OF';
+      case 'is_one_of':
+        return 'IS_ONE_OF';
+    }
+    throw new Error(`Operator ${op} is not supported`);
+  };
+
+  const removeBookmark = () => {
+    setSaving(true);
+    const variables: DeleteReportFilterMutationVariables = {
+      id: nullthrows(bookmark?.id),
+    };
+    const callbacks: MutationCallbacks<DeleteReportFilterMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          props.enqueueSnackbar(errors[0].message, {
+            children: key => (
+              <SnackbarItem
+                id={key}
+                message={errors[0].message}
+                variant="error"
+              />
+            ),
+          });
+        }
+        handleClose();
+        setBookmark(null);
+      },
+      onError: (error: Error) => {
+        props.enqueueSnackbar(error.message, {
+          children: key => (
+            <SnackbarItem id={key} message={error.message} variant="error" />
+          ),
+        });
+        handleClose();
+        setBookmark(null);
+      },
+    };
+    DeleteReportFilterMutation(variables, callbacks);
+  };
+
+  const editBookmark = () => {
+    setSaving(true);
+    const variables: EditReportFilterMutationVariables = {
+      input: {
+        name: name,
+        id: nullthrows(bookmark?.id),
+      },
+    };
+    const callbacks: MutationCallbacks<EditReportFilterMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          props.enqueueSnackbar(errors[0].message, {
+            children: key => (
+              <SnackbarItem
+                id={key}
+                message={errors[0].message}
+                variant="error"
+              />
+            ),
+          });
+        }
+        handleClose();
+        setBookmark({
+          id: response.editReportFilter.id,
+          name: response.editReportFilter.name,
+        });
+      },
+      onError: (error: Error) => {
+        handleClose();
+        setBookmark(null);
+        props.enqueueSnackbar(error.message, {
+          children: key => (
+            <SnackbarItem id={key} message={error.message} variant="error" />
+          ),
+        });
+      },
+    };
+    EditReportFilterMutation(variables, callbacks);
+  };
+
+  const saveFilterReport = () => {
+    setSaving(true);
+    const filterInput = filtersQueryToFilterInput(props.filters);
     const variables: AddReportFilterMutationVariables = {
       input: {
         name: name,
@@ -163,9 +257,14 @@ const FilterBookmark = (props: Props) => {
             ),
           });
         }
+        setBookmark({
+          id: response.addReportFilter.id,
+          name: response.addReportFilter.name,
+        });
       },
       onError: (error: Error) => {
         setSaving(false);
+        setBookmark(null);
         props.enqueueSnackbar(error.message, {
           children: key => (
             <SnackbarItem id={key} message={error.message} variant="error" />
@@ -175,26 +274,26 @@ const FilterBookmark = (props: Props) => {
     };
     AddReportFilterMutation(variables, callbacks);
   };
-
+  const isBookmark = bookmark != null;
   return (
     <>
-      <Button variant="text" skin="gray">
-        {powerSearchContext.bookmarkName != null ? (
-          <BookmarksIcon
-            className={classes.filledBookmarkButton}
-            color="inherit"
-            onClick={handleClick}
-          />
-        ) : (
-          <BookmarksOutlinedIcon
-            className={classes.bookmarkButton}
-            color="inherit"
-            onClick={handleClick}
-          />
-        )}
-      </Button>
+      <div onClick={handleClick}>
+        <Button variant="text" skin="gray">
+          {isBookmark ? (
+            <BookmarksIcon
+              className={classes.filledBookmarkButton}
+              color="inherit"
+            />
+          ) : (
+            <BookmarksOutlinedIcon
+              className={classes.bookmarkButton}
+              color="inherit"
+            />
+          )}
+        </Button>
+      </div>
       <Popover
-        open={open}
+        open={Boolean(anchorEl)}
         anchorEl={anchorEl}
         onClose={handleClose}
         anchorOrigin={{
@@ -217,17 +316,32 @@ const FilterBookmark = (props: Props) => {
               </div>
               <TextInput
                 type="string"
-                placeholder={`${fbt('Bookmark name', '')}`}
+                placeholder={isBookmark ? name : `${fbt('Bookmark name', '')}`}
                 onChange={({target}) => setName(target.value)}
                 value={name}
               />
               <DialogActions classes={{root: classes.dialogActions}}>
-                <Button onClick={handleClose} skin="regular">
-                  {Strings.common.cancelButton}
-                </Button>
-                <Button disabled={name == ''} onClick={saveFilter}>
-                  {Strings.common.saveButton}
-                </Button>
+                {isBookmark ? (
+                  <Button variant="text" skin="gray" onClick={removeBookmark}>
+                    <DeleteOutlineIcon />
+                  </Button>
+                ) : (
+                  <div />
+                )}
+                <div>
+                  <Button onClick={handleClose} skin="regular">
+                    {Strings.common.cancelButton}
+                  </Button>
+                  {isBookmark ? (
+                    <Button disabled={name.trim() == ''} onClick={editBookmark}>
+                      {Strings.common.saveButton}
+                    </Button>
+                  ) : (
+                    <Button disabled={name.trim() == ''} onClick={saveBookmark}>
+                      {Strings.common.createButton}
+                    </Button>
+                  )}
+                </div>
               </DialogActions>
             </div>
           )}

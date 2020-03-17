@@ -2954,3 +2954,15 @@ func (r mutationResolver) EditReportFilter(ctx context.Context, input models.Edi
 		SetName(input.Name).
 		Save(ctx)
 }
+
+func (r mutationResolver) DeleteReportFilter(ctx context.Context, id int) (bool, error) {
+	client := r.ClientFrom(ctx).ReportFilter
+	rf, err := client.Get(ctx, id)
+	if err != nil {
+		return false, errors.Wrapf(err, "querying report filter: id=%q", id)
+	}
+	if err := client.DeleteOne(rf).Exec(ctx); err != nil {
+		return false, errors.Wrapf(err, "deleting report filter: id=%q", id)
+	}
+	return true, nil
+}

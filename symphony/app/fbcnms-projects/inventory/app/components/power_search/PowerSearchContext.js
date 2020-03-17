@@ -9,15 +9,21 @@
  */
 
 import React from 'react';
+import emptyFunction from '../../../../../fbcnms-packages/fbcnms-util/emptyFunction';
+
+export type Bookmark = {
+  id: string,
+  name: string,
+};
 
 export type PowerSearchContextValue = {
-  bookmarkName: ?string,
-  setBookmark: string => void,
+  bookmark: ?Bookmark,
+  setBookmark: (?Bookmark) => void,
 };
 
 const PowerSearchContext = React.createContext<PowerSearchContextValue>({
-  bookmarkName: null,
-  setBookmark: () => {},
+  bookmark: null,
+  setBookmark: emptyFunction,
 });
 
 export function usePowerSearch() {

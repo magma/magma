@@ -2269,6 +2269,7 @@ type Mutation {
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
+  deleteReportFilter(id: ID!): Boolean!
 }
 
 type Subscription {
