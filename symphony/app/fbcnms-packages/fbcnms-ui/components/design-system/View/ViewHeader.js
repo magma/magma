@@ -140,7 +140,14 @@ const ViewHeader = (props: FullViewHeaderProps) => {
         )}
         {actionButtons != null && (
           <FormValidationContextProvider>
-            <div className={classes.actionButtons}>
+            <div
+              className={classNames(
+                classes.actionButtons,
+                classes.collapsablePart,
+                {
+                  [classes.collapsed]: showMinimal,
+                },
+              )}>
               {actionButtons.map((actionButton, index) => {
                 const {
                   ignorePermissions,
