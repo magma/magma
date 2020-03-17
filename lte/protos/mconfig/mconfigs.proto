@@ -97,6 +97,11 @@ message PipelineD {
       uint32 key = 2;
     }
     repeated AllowedGrePeer allowed_gre_peers = 9;
+    message IPDRExportDst {
+      string ip = 1;
+      uint32 port = 2;
+    }
+    IPDRExportDst ipdr_export_dst = 10;
     // DEPRECATED
     // repeated string apps = 4;
 }
