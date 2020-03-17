@@ -15,6 +15,7 @@ class GraphqlClient:
         self,
         graphql_endpoint_address: str,
         session: requests.Session,
+        client_name: str,
         reporter: Reporter = DUMMY_REPORTER,
     ) -> None:
 
@@ -41,6 +42,7 @@ class GraphqlClient:
                 headers={
                     "Accept": "application/json",
                     "Content-Type": "application/json",
+                    "User-Agent": client_name,
                 },
             ),
             fetch_schema_from_transport=True,

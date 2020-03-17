@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import json
 from datetime import datetime, timedelta, tzinfo
 from enum import Enum
+from http import HTTPStatus
 from typing import Any, Dict, Optional, Union
 
 from gql.gql.transport.http import HTTPTransport
@@ -21,6 +22,10 @@ class MissingEnumException(Exception):
 
     def __str__(self) -> str:
         return f"Try to encode missing value of enum {self.enum_type}"
+
+
+class UserDeactivatedException(Exception):
+    pass
 
 
 class simple_utc(tzinfo):
@@ -65,6 +70,12 @@ class RequestsHTTPSessionTransport(HTTPTransport):
             data=json.dumps(payload, default=encode_variable).encode("utf-8"),
             headers=self.headers,
         )
+
+        if (
+            response.status_code == HTTPStatus.FORBIDDEN
+            and response.text == "user is deactivated\n"
+        ):
+            raise UserDeactivatedException()
 
         result = response.json()
 

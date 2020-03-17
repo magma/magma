@@ -9,6 +9,7 @@ from .test_location import TestLocation
 from .test_port_type import TestEquipmentPortType
 from .test_service import TestService
 from .test_site_survey import TestSiteSurvey
+from .test_user import TestUser
 
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "TestEquipmentPortType",
     "TestService",
     "TestSiteSurvey",
+    "TestUser",
 ]
