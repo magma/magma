@@ -114,11 +114,13 @@ class InOutController(MagmaController):
             actions=[], priority=flows.DEFAULT_PRIORITY,
             resubmit_table=logical_table)
 
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           ipv4_dst=self.config.mtr_ip)
-        flows.add_output_flow(dp,
-            self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL), match, [],
-            priority=flows.UE_FLOW_PRIORITY, output_port=self.config.mtr_port)
+        if self._mtr_service_enabled:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                               ipv4_dst=self.config.mtr_ip)
+            flows.add_output_flow(dp,
+                self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL), match,
+                [], priority=flows.UE_FLOW_PRIORITY,
+                output_port=self.config.mtr_port)
 
     def _install_default_egress_flows(self, dp):
         """
