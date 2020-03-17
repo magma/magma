@@ -425,7 +425,8 @@ type ActivateFlowsRequest struct {
 	// List of static rules obtained from PCRF
 	RuleIds []string `protobuf:"bytes,3,rep,name=rule_ids,json=ruleIds,proto3" json:"rule_ids,omitempty"`
 	// List of dynamic rules obtained from PCRF
-	DynamicRules         []*PolicyRule      `protobuf:"bytes,4,rep,name=dynamic_rules,json=dynamicRules,proto3" json:"dynamic_rules,omitempty"`
+	DynamicRules []*PolicyRule `protobuf:"bytes,4,rep,name=dynamic_rules,json=dynamicRules,proto3" json:"dynamic_rules,omitempty"`
+	// Activate flow source (GX/GY)
 	RequestOrigin        *RequestOriginType `protobuf:"bytes,5,opt,name=request_origin,json=requestOrigin,proto3" json:"request_origin,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
 	XXX_unrecognized     []byte             `json:"-"`
