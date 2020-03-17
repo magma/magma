@@ -44,20 +44,27 @@ class IPFIXController(MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
-        self.ipfix_config = self._get_ipfix_config(kwargs['config'])
+        self.ipfix_config = self._get_ipfix_config(kwargs['config'],
+                                                   kwargs['mconfig'])
         self._bridge_name = kwargs['config']['bridge_name']
         self._datapath = None
 
-    def _get_ipfix_config(self, config_dict: Dict) -> NamedTuple:
+    def _get_ipfix_config(self, config_dict: Dict,
+                          mconfig) -> NamedTuple:
         if 'ipfix' not in config_dict or not config_dict['ipfix']['enabled']:
             return self.IPFIXConfig(enabled=False, probability=0,
                 collector_ip='', collector_port=0, collector_set_id=0,
-                obs_domain_id=0, obs_point_id=0, gtp_port=0)
+                obs_domain_id=0, obs_point_id=0, cache_timeout=0, gtp_port=0)
+        if not mconfig.ipdr_export_dst.ip:
+            self.logger.error("IPDR enabled byt ipdr dst ip not provided")
+            return self.IPFIXConfig(enabled=False, probability=0,
+                collector_ip='', collector_port=0, collector_set_id=0,
+                obs_domain_id=0, obs_point_id=0, cache_timeout=0, gtp_port=0)
 
         return self.IPFIXConfig(
             enabled=config_dict['ipfix']['enabled'],
-            collector_ip=config_dict['ipfix']['collector_ip'],
-            collector_port=config_dict['ipfix']['collector_port'],
+            collector_ip=mconfig.ipdr_export_dst.ip,
+            collector_port=mconfig.ipdr_export_dst.port,
             probability=config_dict['ipfix']['probability'],
             collector_set_id=config_dict['ipfix']['collector_set_id'],
             obs_domain_id=config_dict['ipfix']['obs_domain_id'],
