@@ -27,6 +27,7 @@ import PowerSearchContext from './PowerSearchContext';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import update from 'immutability-helper';
+import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {
   configToFilterQuery,
   doesFilterHasValue,
@@ -225,6 +226,9 @@ const PowerSearchBar = (props: Props) => {
                   if (searchConfig == null) {
                     return null;
                   }
+                  ServerLogger.info(LogEvents.SAVED_SEARCH_LOADED, {
+                    bookmark_name: searchConfig.label,
+                  });
                   setBookmark({id: searchConfig.id, name: searchConfig.label});
                   onFiltersChanged(configToFilterQuery(searchConfig));
                 } else {

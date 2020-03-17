@@ -45,6 +45,7 @@ import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '../../../../fbcnms-packages/fbcnms-ui/theme/symphony';
+import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect} from 'react';
 import {usePowerSearch} from './power_search/PowerSearchContext';
@@ -166,6 +167,9 @@ const FilterBookmark = (props: Props) => {
     };
     const callbacks: MutationCallbacks<DeleteReportFilterMutationResponse> = {
       onCompleted: (response, errors) => {
+        ServerLogger.info(LogEvents.SAVED_SEARCH_DELETED, {
+          bookmark_name: bookmark?.name,
+        });
         if (errors && errors[0]) {
           props.enqueueSnackbar(errors[0].message, {
             children: key => (
@@ -203,6 +207,9 @@ const FilterBookmark = (props: Props) => {
     };
     const callbacks: MutationCallbacks<EditReportFilterMutationResponse> = {
       onCompleted: (response, errors) => {
+        ServerLogger.info(LogEvents.SAVED_SEARCH_EDITED, {
+          bookmark_new_name: name,
+        });
         if (errors && errors[0]) {
           props.enqueueSnackbar(errors[0].message, {
             children: key => (
@@ -246,6 +253,9 @@ const FilterBookmark = (props: Props) => {
     const callbacks: MutationCallbacks<AddReportFilterMutationResponse> = {
       onCompleted: (response, errors) => {
         setSaving(false);
+        ServerLogger.info(LogEvents.SAVED_SEARCH_CREATED, {
+          bookmark_name: name,
+        });
         if (errors && errors[0]) {
           props.enqueueSnackbar(errors[0].message, {
             children: key => (
