@@ -11,6 +11,10 @@ package sqorc
 import (
 	"database/sql"
 	"strings"
+
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Open is a wrapper for sql.Open which sets the max open connections to 1
