@@ -9,6 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,20 +23,13 @@ import (
 // SurveyCreate is the builder for creating a Survey entity.
 type SurveyCreate struct {
 	config
-	create_time          *time.Time
-	update_time          *time.Time
-	name                 *string
-	owner_name           *string
-	creation_timestamp   *time.Time
-	completion_timestamp *time.Time
-	location             map[int]struct{}
-	source_file          map[int]struct{}
-	questions            map[int]struct{}
+	mutation *SurveyMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (sc *SurveyCreate) SetCreateTime(t time.Time) *SurveyCreate {
-	sc.create_time = &t
+	sc.mutation.SetCreateTime(t)
 	return sc
 }
 
@@ -49,7 +43,7 @@ func (sc *SurveyCreate) SetNillableCreateTime(t *time.Time) *SurveyCreate {
 
 // SetUpdateTime sets the update_time field.
 func (sc *SurveyCreate) SetUpdateTime(t time.Time) *SurveyCreate {
-	sc.update_time = &t
+	sc.mutation.SetUpdateTime(t)
 	return sc
 }
 
@@ -63,13 +57,13 @@ func (sc *SurveyCreate) SetNillableUpdateTime(t *time.Time) *SurveyCreate {
 
 // SetName sets the name field.
 func (sc *SurveyCreate) SetName(s string) *SurveyCreate {
-	sc.name = &s
+	sc.mutation.SetName(s)
 	return sc
 }
 
 // SetOwnerName sets the owner_name field.
 func (sc *SurveyCreate) SetOwnerName(s string) *SurveyCreate {
-	sc.owner_name = &s
+	sc.mutation.SetOwnerName(s)
 	return sc
 }
 
@@ -83,7 +77,7 @@ func (sc *SurveyCreate) SetNillableOwnerName(s *string) *SurveyCreate {
 
 // SetCreationTimestamp sets the creation_timestamp field.
 func (sc *SurveyCreate) SetCreationTimestamp(t time.Time) *SurveyCreate {
-	sc.creation_timestamp = &t
+	sc.mutation.SetCreationTimestamp(t)
 	return sc
 }
 
@@ -97,16 +91,13 @@ func (sc *SurveyCreate) SetNillableCreationTimestamp(t *time.Time) *SurveyCreate
 
 // SetCompletionTimestamp sets the completion_timestamp field.
 func (sc *SurveyCreate) SetCompletionTimestamp(t time.Time) *SurveyCreate {
-	sc.completion_timestamp = &t
+	sc.mutation.SetCompletionTimestamp(t)
 	return sc
 }
 
 // SetLocationID sets the location edge to Location by id.
 func (sc *SurveyCreate) SetLocationID(id int) *SurveyCreate {
-	if sc.location == nil {
-		sc.location = make(map[int]struct{})
-	}
-	sc.location[id] = struct{}{}
+	sc.mutation.SetLocationID(id)
 	return sc
 }
 
@@ -125,10 +116,7 @@ func (sc *SurveyCreate) SetLocation(l *Location) *SurveyCreate {
 
 // SetSourceFileID sets the source_file edge to File by id.
 func (sc *SurveyCreate) SetSourceFileID(id int) *SurveyCreate {
-	if sc.source_file == nil {
-		sc.source_file = make(map[int]struct{})
-	}
-	sc.source_file[id] = struct{}{}
+	sc.mutation.SetSourceFileID(id)
 	return sc
 }
 
@@ -147,12 +135,7 @@ func (sc *SurveyCreate) SetSourceFile(f *File) *SurveyCreate {
 
 // AddQuestionIDs adds the questions edge to SurveyQuestion by ids.
 func (sc *SurveyCreate) AddQuestionIDs(ids ...int) *SurveyCreate {
-	if sc.questions == nil {
-		sc.questions = make(map[int]struct{})
-	}
-	for i := range ids {
-		sc.questions[ids[i]] = struct{}{}
-	}
+	sc.mutation.AddQuestionIDs(ids...)
 	return sc
 }
 
@@ -167,27 +150,44 @@ func (sc *SurveyCreate) AddQuestions(s ...*SurveyQuestion) *SurveyCreate {
 
 // Save creates the Survey in the database.
 func (sc *SurveyCreate) Save(ctx context.Context) (*Survey, error) {
-	if sc.create_time == nil {
+	if _, ok := sc.mutation.CreateTime(); !ok {
 		v := survey.DefaultCreateTime()
-		sc.create_time = &v
+		sc.mutation.SetCreateTime(v)
 	}
-	if sc.update_time == nil {
+	if _, ok := sc.mutation.UpdateTime(); !ok {
 		v := survey.DefaultUpdateTime()
-		sc.update_time = &v
+		sc.mutation.SetUpdateTime(v)
 	}
-	if sc.name == nil {
+	if _, ok := sc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if sc.completion_timestamp == nil {
+	if _, ok := sc.mutation.CompletionTimestamp(); !ok {
 		return nil, errors.New("ent: missing required field \"completion_timestamp\"")
 	}
-	if len(sc.location) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
+	var (
+		err  error
+		node *Survey
+	)
+	if len(sc.hooks) == 0 {
+		node, err = sc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			sc.mutation = mutation
+			node, err = sc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(sc.hooks); i > 0; i-- {
+			mut = sc.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, sc.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(sc.source_file) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"source_file\"")
-	}
-	return sc.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -210,55 +210,55 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			},
 		}
 	)
-	if value := sc.create_time; value != nil {
+	if value, ok := sc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldCreateTime,
 		})
-		s.CreateTime = *value
+		s.CreateTime = value
 	}
-	if value := sc.update_time; value != nil {
+	if value, ok := sc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldUpdateTime,
 		})
-		s.UpdateTime = *value
+		s.UpdateTime = value
 	}
-	if value := sc.name; value != nil {
+	if value, ok := sc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldName,
 		})
-		s.Name = *value
+		s.Name = value
 	}
-	if value := sc.owner_name; value != nil {
+	if value, ok := sc.mutation.OwnerName(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldOwnerName,
 		})
-		s.OwnerName = *value
+		s.OwnerName = value
 	}
-	if value := sc.creation_timestamp; value != nil {
+	if value, ok := sc.mutation.CreationTimestamp(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldCreationTimestamp,
 		})
-		s.CreationTimestamp = *value
+		s.CreationTimestamp = value
 	}
-	if value := sc.completion_timestamp; value != nil {
+	if value, ok := sc.mutation.CompletionTimestamp(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldCompletionTimestamp,
 		})
-		s.CompletionTimestamp = *value
+		s.CompletionTimestamp = value
 	}
-	if nodes := sc.location; len(nodes) > 0 {
+	if nodes := sc.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -272,12 +272,12 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sc.source_file; len(nodes) > 0 {
+	if nodes := sc.mutation.SourceFileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -291,12 +291,12 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sc.questions; len(nodes) > 0 {
+	if nodes := sc.mutation.QuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -310,7 +310,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

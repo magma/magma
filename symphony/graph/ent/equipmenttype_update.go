@@ -8,8 +8,7 @@ package ent
 
 import (
 	"context"
-	"errors"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -26,20 +25,9 @@ import (
 // EquipmentTypeUpdate is the builder for updating EquipmentType entities.
 type EquipmentTypeUpdate struct {
 	config
-
-	update_time                *time.Time
-	name                       *string
-	port_definitions           map[int]struct{}
-	position_definitions       map[int]struct{}
-	property_types             map[int]struct{}
-	equipment                  map[int]struct{}
-	category                   map[int]struct{}
-	removedPortDefinitions     map[int]struct{}
-	removedPositionDefinitions map[int]struct{}
-	removedPropertyTypes       map[int]struct{}
-	removedEquipment           map[int]struct{}
-	clearedCategory            bool
-	predicates                 []predicate.EquipmentType
+	hooks      []Hook
+	mutation   *EquipmentTypeMutation
+	predicates []predicate.EquipmentType
 }
 
 // Where adds a new predicate for the builder.
@@ -50,18 +38,13 @@ func (etu *EquipmentTypeUpdate) Where(ps ...predicate.EquipmentType) *EquipmentT
 
 // SetName sets the name field.
 func (etu *EquipmentTypeUpdate) SetName(s string) *EquipmentTypeUpdate {
-	etu.name = &s
+	etu.mutation.SetName(s)
 	return etu
 }
 
 // AddPortDefinitionIDs adds the port_definitions edge to EquipmentPortDefinition by ids.
 func (etu *EquipmentTypeUpdate) AddPortDefinitionIDs(ids ...int) *EquipmentTypeUpdate {
-	if etu.port_definitions == nil {
-		etu.port_definitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		etu.port_definitions[ids[i]] = struct{}{}
-	}
+	etu.mutation.AddPortDefinitionIDs(ids...)
 	return etu
 }
 
@@ -76,12 +59,7 @@ func (etu *EquipmentTypeUpdate) AddPortDefinitions(e ...*EquipmentPortDefinition
 
 // AddPositionDefinitionIDs adds the position_definitions edge to EquipmentPositionDefinition by ids.
 func (etu *EquipmentTypeUpdate) AddPositionDefinitionIDs(ids ...int) *EquipmentTypeUpdate {
-	if etu.position_definitions == nil {
-		etu.position_definitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		etu.position_definitions[ids[i]] = struct{}{}
-	}
+	etu.mutation.AddPositionDefinitionIDs(ids...)
 	return etu
 }
 
@@ -96,12 +74,7 @@ func (etu *EquipmentTypeUpdate) AddPositionDefinitions(e ...*EquipmentPositionDe
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (etu *EquipmentTypeUpdate) AddPropertyTypeIDs(ids ...int) *EquipmentTypeUpdate {
-	if etu.property_types == nil {
-		etu.property_types = make(map[int]struct{})
-	}
-	for i := range ids {
-		etu.property_types[ids[i]] = struct{}{}
-	}
+	etu.mutation.AddPropertyTypeIDs(ids...)
 	return etu
 }
 
@@ -116,12 +89,7 @@ func (etu *EquipmentTypeUpdate) AddPropertyTypes(p ...*PropertyType) *EquipmentT
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
 func (etu *EquipmentTypeUpdate) AddEquipmentIDs(ids ...int) *EquipmentTypeUpdate {
-	if etu.equipment == nil {
-		etu.equipment = make(map[int]struct{})
-	}
-	for i := range ids {
-		etu.equipment[ids[i]] = struct{}{}
-	}
+	etu.mutation.AddEquipmentIDs(ids...)
 	return etu
 }
 
@@ -136,10 +104,7 @@ func (etu *EquipmentTypeUpdate) AddEquipment(e ...*Equipment) *EquipmentTypeUpda
 
 // SetCategoryID sets the category edge to EquipmentCategory by id.
 func (etu *EquipmentTypeUpdate) SetCategoryID(id int) *EquipmentTypeUpdate {
-	if etu.category == nil {
-		etu.category = make(map[int]struct{})
-	}
-	etu.category[id] = struct{}{}
+	etu.mutation.SetCategoryID(id)
 	return etu
 }
 
@@ -158,12 +123,7 @@ func (etu *EquipmentTypeUpdate) SetCategory(e *EquipmentCategory) *EquipmentType
 
 // RemovePortDefinitionIDs removes the port_definitions edge to EquipmentPortDefinition by ids.
 func (etu *EquipmentTypeUpdate) RemovePortDefinitionIDs(ids ...int) *EquipmentTypeUpdate {
-	if etu.removedPortDefinitions == nil {
-		etu.removedPortDefinitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		etu.removedPortDefinitions[ids[i]] = struct{}{}
-	}
+	etu.mutation.RemovePortDefinitionIDs(ids...)
 	return etu
 }
 
@@ -178,12 +138,7 @@ func (etu *EquipmentTypeUpdate) RemovePortDefinitions(e ...*EquipmentPortDefinit
 
 // RemovePositionDefinitionIDs removes the position_definitions edge to EquipmentPositionDefinition by ids.
 func (etu *EquipmentTypeUpdate) RemovePositionDefinitionIDs(ids ...int) *EquipmentTypeUpdate {
-	if etu.removedPositionDefinitions == nil {
-		etu.removedPositionDefinitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		etu.removedPositionDefinitions[ids[i]] = struct{}{}
-	}
+	etu.mutation.RemovePositionDefinitionIDs(ids...)
 	return etu
 }
 
@@ -198,12 +153,7 @@ func (etu *EquipmentTypeUpdate) RemovePositionDefinitions(e ...*EquipmentPositio
 
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (etu *EquipmentTypeUpdate) RemovePropertyTypeIDs(ids ...int) *EquipmentTypeUpdate {
-	if etu.removedPropertyTypes == nil {
-		etu.removedPropertyTypes = make(map[int]struct{})
-	}
-	for i := range ids {
-		etu.removedPropertyTypes[ids[i]] = struct{}{}
-	}
+	etu.mutation.RemovePropertyTypeIDs(ids...)
 	return etu
 }
 
@@ -218,12 +168,7 @@ func (etu *EquipmentTypeUpdate) RemovePropertyTypes(p ...*PropertyType) *Equipme
 
 // RemoveEquipmentIDs removes the equipment edge to Equipment by ids.
 func (etu *EquipmentTypeUpdate) RemoveEquipmentIDs(ids ...int) *EquipmentTypeUpdate {
-	if etu.removedEquipment == nil {
-		etu.removedEquipment = make(map[int]struct{})
-	}
-	for i := range ids {
-		etu.removedEquipment[ids[i]] = struct{}{}
-	}
+	etu.mutation.RemoveEquipmentIDs(ids...)
 	return etu
 }
 
@@ -238,20 +183,41 @@ func (etu *EquipmentTypeUpdate) RemoveEquipment(e ...*Equipment) *EquipmentTypeU
 
 // ClearCategory clears the category edge to EquipmentCategory.
 func (etu *EquipmentTypeUpdate) ClearCategory() *EquipmentTypeUpdate {
-	etu.clearedCategory = true
+	etu.mutation.ClearCategory()
 	return etu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (etu *EquipmentTypeUpdate) Save(ctx context.Context) (int, error) {
-	if etu.update_time == nil {
+	if _, ok := etu.mutation.UpdateTime(); !ok {
 		v := equipmenttype.UpdateDefaultUpdateTime()
-		etu.update_time = &v
+		etu.mutation.SetUpdateTime(v)
 	}
-	if len(etu.category) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"category\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(etu.hooks) == 0 {
+		affected, err = etu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			etu.mutation = mutation
+			affected, err = etu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(etu.hooks); i > 0; i-- {
+			mut = etu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, etu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	return etu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -294,21 +260,21 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			}
 		}
 	}
-	if value := etu.update_time; value != nil {
+	if value, ok := etu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmenttype.FieldUpdateTime,
 		})
 	}
-	if value := etu.name; value != nil {
+	if value, ok := etu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmenttype.FieldName,
 		})
 	}
-	if nodes := etu.removedPortDefinitions; len(nodes) > 0 {
+	if nodes := etu.mutation.RemovedPortDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -322,12 +288,12 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := etu.port_definitions; len(nodes) > 0 {
+	if nodes := etu.mutation.PortDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -341,12 +307,12 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := etu.removedPositionDefinitions; len(nodes) > 0 {
+	if nodes := etu.mutation.RemovedPositionDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -360,12 +326,12 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := etu.position_definitions; len(nodes) > 0 {
+	if nodes := etu.mutation.PositionDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -379,12 +345,12 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := etu.removedPropertyTypes; len(nodes) > 0 {
+	if nodes := etu.mutation.RemovedPropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -398,12 +364,12 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := etu.property_types; len(nodes) > 0 {
+	if nodes := etu.mutation.PropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -417,12 +383,12 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := etu.removedEquipment; len(nodes) > 0 {
+	if nodes := etu.mutation.RemovedEquipmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -436,12 +402,12 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := etu.equipment; len(nodes) > 0 {
+	if nodes := etu.mutation.EquipmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -455,12 +421,12 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if etu.clearedCategory {
+	if etu.mutation.CategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -476,7 +442,7 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := etu.category; len(nodes) > 0 {
+	if nodes := etu.mutation.CategoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -490,7 +456,7 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -509,36 +475,19 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 // EquipmentTypeUpdateOne is the builder for updating a single EquipmentType entity.
 type EquipmentTypeUpdateOne struct {
 	config
-	id int
-
-	update_time                *time.Time
-	name                       *string
-	port_definitions           map[int]struct{}
-	position_definitions       map[int]struct{}
-	property_types             map[int]struct{}
-	equipment                  map[int]struct{}
-	category                   map[int]struct{}
-	removedPortDefinitions     map[int]struct{}
-	removedPositionDefinitions map[int]struct{}
-	removedPropertyTypes       map[int]struct{}
-	removedEquipment           map[int]struct{}
-	clearedCategory            bool
+	hooks    []Hook
+	mutation *EquipmentTypeMutation
 }
 
 // SetName sets the name field.
 func (etuo *EquipmentTypeUpdateOne) SetName(s string) *EquipmentTypeUpdateOne {
-	etuo.name = &s
+	etuo.mutation.SetName(s)
 	return etuo
 }
 
 // AddPortDefinitionIDs adds the port_definitions edge to EquipmentPortDefinition by ids.
 func (etuo *EquipmentTypeUpdateOne) AddPortDefinitionIDs(ids ...int) *EquipmentTypeUpdateOne {
-	if etuo.port_definitions == nil {
-		etuo.port_definitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		etuo.port_definitions[ids[i]] = struct{}{}
-	}
+	etuo.mutation.AddPortDefinitionIDs(ids...)
 	return etuo
 }
 
@@ -553,12 +502,7 @@ func (etuo *EquipmentTypeUpdateOne) AddPortDefinitions(e ...*EquipmentPortDefini
 
 // AddPositionDefinitionIDs adds the position_definitions edge to EquipmentPositionDefinition by ids.
 func (etuo *EquipmentTypeUpdateOne) AddPositionDefinitionIDs(ids ...int) *EquipmentTypeUpdateOne {
-	if etuo.position_definitions == nil {
-		etuo.position_definitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		etuo.position_definitions[ids[i]] = struct{}{}
-	}
+	etuo.mutation.AddPositionDefinitionIDs(ids...)
 	return etuo
 }
 
@@ -573,12 +517,7 @@ func (etuo *EquipmentTypeUpdateOne) AddPositionDefinitions(e ...*EquipmentPositi
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (etuo *EquipmentTypeUpdateOne) AddPropertyTypeIDs(ids ...int) *EquipmentTypeUpdateOne {
-	if etuo.property_types == nil {
-		etuo.property_types = make(map[int]struct{})
-	}
-	for i := range ids {
-		etuo.property_types[ids[i]] = struct{}{}
-	}
+	etuo.mutation.AddPropertyTypeIDs(ids...)
 	return etuo
 }
 
@@ -593,12 +532,7 @@ func (etuo *EquipmentTypeUpdateOne) AddPropertyTypes(p ...*PropertyType) *Equipm
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
 func (etuo *EquipmentTypeUpdateOne) AddEquipmentIDs(ids ...int) *EquipmentTypeUpdateOne {
-	if etuo.equipment == nil {
-		etuo.equipment = make(map[int]struct{})
-	}
-	for i := range ids {
-		etuo.equipment[ids[i]] = struct{}{}
-	}
+	etuo.mutation.AddEquipmentIDs(ids...)
 	return etuo
 }
 
@@ -613,10 +547,7 @@ func (etuo *EquipmentTypeUpdateOne) AddEquipment(e ...*Equipment) *EquipmentType
 
 // SetCategoryID sets the category edge to EquipmentCategory by id.
 func (etuo *EquipmentTypeUpdateOne) SetCategoryID(id int) *EquipmentTypeUpdateOne {
-	if etuo.category == nil {
-		etuo.category = make(map[int]struct{})
-	}
-	etuo.category[id] = struct{}{}
+	etuo.mutation.SetCategoryID(id)
 	return etuo
 }
 
@@ -635,12 +566,7 @@ func (etuo *EquipmentTypeUpdateOne) SetCategory(e *EquipmentCategory) *Equipment
 
 // RemovePortDefinitionIDs removes the port_definitions edge to EquipmentPortDefinition by ids.
 func (etuo *EquipmentTypeUpdateOne) RemovePortDefinitionIDs(ids ...int) *EquipmentTypeUpdateOne {
-	if etuo.removedPortDefinitions == nil {
-		etuo.removedPortDefinitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		etuo.removedPortDefinitions[ids[i]] = struct{}{}
-	}
+	etuo.mutation.RemovePortDefinitionIDs(ids...)
 	return etuo
 }
 
@@ -655,12 +581,7 @@ func (etuo *EquipmentTypeUpdateOne) RemovePortDefinitions(e ...*EquipmentPortDef
 
 // RemovePositionDefinitionIDs removes the position_definitions edge to EquipmentPositionDefinition by ids.
 func (etuo *EquipmentTypeUpdateOne) RemovePositionDefinitionIDs(ids ...int) *EquipmentTypeUpdateOne {
-	if etuo.removedPositionDefinitions == nil {
-		etuo.removedPositionDefinitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		etuo.removedPositionDefinitions[ids[i]] = struct{}{}
-	}
+	etuo.mutation.RemovePositionDefinitionIDs(ids...)
 	return etuo
 }
 
@@ -675,12 +596,7 @@ func (etuo *EquipmentTypeUpdateOne) RemovePositionDefinitions(e ...*EquipmentPos
 
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (etuo *EquipmentTypeUpdateOne) RemovePropertyTypeIDs(ids ...int) *EquipmentTypeUpdateOne {
-	if etuo.removedPropertyTypes == nil {
-		etuo.removedPropertyTypes = make(map[int]struct{})
-	}
-	for i := range ids {
-		etuo.removedPropertyTypes[ids[i]] = struct{}{}
-	}
+	etuo.mutation.RemovePropertyTypeIDs(ids...)
 	return etuo
 }
 
@@ -695,12 +611,7 @@ func (etuo *EquipmentTypeUpdateOne) RemovePropertyTypes(p ...*PropertyType) *Equ
 
 // RemoveEquipmentIDs removes the equipment edge to Equipment by ids.
 func (etuo *EquipmentTypeUpdateOne) RemoveEquipmentIDs(ids ...int) *EquipmentTypeUpdateOne {
-	if etuo.removedEquipment == nil {
-		etuo.removedEquipment = make(map[int]struct{})
-	}
-	for i := range ids {
-		etuo.removedEquipment[ids[i]] = struct{}{}
-	}
+	etuo.mutation.RemoveEquipmentIDs(ids...)
 	return etuo
 }
 
@@ -715,20 +626,41 @@ func (etuo *EquipmentTypeUpdateOne) RemoveEquipment(e ...*Equipment) *EquipmentT
 
 // ClearCategory clears the category edge to EquipmentCategory.
 func (etuo *EquipmentTypeUpdateOne) ClearCategory() *EquipmentTypeUpdateOne {
-	etuo.clearedCategory = true
+	etuo.mutation.ClearCategory()
 	return etuo
 }
 
 // Save executes the query and returns the updated entity.
 func (etuo *EquipmentTypeUpdateOne) Save(ctx context.Context) (*EquipmentType, error) {
-	if etuo.update_time == nil {
+	if _, ok := etuo.mutation.UpdateTime(); !ok {
 		v := equipmenttype.UpdateDefaultUpdateTime()
-		etuo.update_time = &v
+		etuo.mutation.SetUpdateTime(v)
 	}
-	if len(etuo.category) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"category\"")
+
+	var (
+		err  error
+		node *EquipmentType
+	)
+	if len(etuo.hooks) == 0 {
+		node, err = etuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			etuo.mutation = mutation
+			node, err = etuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(etuo.hooks); i > 0; i-- {
+			mut = etuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, etuo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return etuo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -759,27 +691,31 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 			Table:   equipmenttype.Table,
 			Columns: equipmenttype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  etuo.id,
 				Type:   field.TypeInt,
 				Column: equipmenttype.FieldID,
 			},
 		},
 	}
-	if value := etuo.update_time; value != nil {
+	id, ok := etuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing EquipmentType.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := etuo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmenttype.FieldUpdateTime,
 		})
 	}
-	if value := etuo.name; value != nil {
+	if value, ok := etuo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmenttype.FieldName,
 		})
 	}
-	if nodes := etuo.removedPortDefinitions; len(nodes) > 0 {
+	if nodes := etuo.mutation.RemovedPortDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -793,12 +729,12 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := etuo.port_definitions; len(nodes) > 0 {
+	if nodes := etuo.mutation.PortDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -812,12 +748,12 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := etuo.removedPositionDefinitions; len(nodes) > 0 {
+	if nodes := etuo.mutation.RemovedPositionDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -831,12 +767,12 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := etuo.position_definitions; len(nodes) > 0 {
+	if nodes := etuo.mutation.PositionDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -850,12 +786,12 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := etuo.removedPropertyTypes; len(nodes) > 0 {
+	if nodes := etuo.mutation.RemovedPropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -869,12 +805,12 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := etuo.property_types; len(nodes) > 0 {
+	if nodes := etuo.mutation.PropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -888,12 +824,12 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := etuo.removedEquipment; len(nodes) > 0 {
+	if nodes := etuo.mutation.RemovedEquipmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -907,12 +843,12 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := etuo.equipment; len(nodes) > 0 {
+	if nodes := etuo.mutation.EquipmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -926,12 +862,12 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if etuo.clearedCategory {
+	if etuo.mutation.CategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -947,7 +883,7 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := etuo.category; len(nodes) > 0 {
+	if nodes := etuo.mutation.CategoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -961,7 +897,7 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

@@ -8,36 +8,46 @@ package property
 
 import (
 	"time"
-
-	"github.com/facebookincubator/ent"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the property type in the database.
 	Label = "property"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time"
-	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time"
-	// FieldIntVal holds the string denoting the int_val vertex property in the database.
-	FieldIntVal = "int_val"
-	// FieldBoolVal holds the string denoting the bool_val vertex property in the database.
-	FieldBoolVal = "bool_val"
-	// FieldFloatVal holds the string denoting the float_val vertex property in the database.
-	FieldFloatVal = "float_val"
-	// FieldLatitudeVal holds the string denoting the latitude_val vertex property in the database.
-	FieldLatitudeVal = "latitude_val"
-	// FieldLongitudeVal holds the string denoting the longitude_val vertex property in the database.
-	FieldLongitudeVal = "longitude_val"
-	// FieldRangeFromVal holds the string denoting the range_from_val vertex property in the database.
-	FieldRangeFromVal = "range_from_val"
-	// FieldRangeToVal holds the string denoting the range_to_val vertex property in the database.
-	FieldRangeToVal = "range_to_val"
-	// FieldStringVal holds the string denoting the string_val vertex property in the database.
-	FieldStringVal = "string_val"
+	FieldID           = "id"             // FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime   = "create_time"    // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime   = "update_time"    // FieldIntVal holds the string denoting the int_val vertex property in the database.
+	FieldIntVal       = "int_val"        // FieldBoolVal holds the string denoting the bool_val vertex property in the database.
+	FieldBoolVal      = "bool_val"       // FieldFloatVal holds the string denoting the float_val vertex property in the database.
+	FieldFloatVal     = "float_val"      // FieldLatitudeVal holds the string denoting the latitude_val vertex property in the database.
+	FieldLatitudeVal  = "latitude_val"   // FieldLongitudeVal holds the string denoting the longitude_val vertex property in the database.
+	FieldLongitudeVal = "longitude_val"  // FieldRangeFromVal holds the string denoting the range_from_val vertex property in the database.
+	FieldRangeFromVal = "range_from_val" // FieldRangeToVal holds the string denoting the range_to_val vertex property in the database.
+	FieldRangeToVal   = "range_to_val"   // FieldStringVal holds the string denoting the string_val vertex property in the database.
+	FieldStringVal    = "string_val"
+
+	// EdgeType holds the string denoting the type edge name in mutations.
+	EdgeType = "type"
+	// EdgeLocation holds the string denoting the location edge name in mutations.
+	EdgeLocation = "location"
+	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
+	EdgeEquipment = "equipment"
+	// EdgeService holds the string denoting the service edge name in mutations.
+	EdgeService = "service"
+	// EdgeEquipmentPort holds the string denoting the equipment_port edge name in mutations.
+	EdgeEquipmentPort = "equipment_port"
+	// EdgeLink holds the string denoting the link edge name in mutations.
+	EdgeLink = "link"
+	// EdgeWorkOrder holds the string denoting the work_order edge name in mutations.
+	EdgeWorkOrder = "work_order"
+	// EdgeProject holds the string denoting the project edge name in mutations.
+	EdgeProject = "project"
+	// EdgeEquipmentValue holds the string denoting the equipment_value edge name in mutations.
+	EdgeEquipmentValue = "equipment_value"
+	// EdgeLocationValue holds the string denoting the location_value edge name in mutations.
+	EdgeLocationValue = "location_value"
+	// EdgeServiceValue holds the string denoting the service_value edge name in mutations.
+	EdgeServiceValue = "service_value"
 
 	// Table holds the table name of the property in the database.
 	Table = "properties"
@@ -151,21 +161,10 @@ var ForeignKeys = []string{
 }
 
 var (
-	mixin       = schema.Property{}.Mixin()
-	mixinFields = [...][]ent.Field{
-		mixin[0].Fields(),
-	}
-	fields = schema.Property{}.Fields()
-
-	// descCreateTime is the schema descriptor for create_time field.
-	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
-
-	// descUpdateTime is the schema descriptor for update_time field.
-	descUpdateTime = mixinFields[0][1].Descriptor()
+	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
+	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
+	UpdateDefaultUpdateTime func() time.Time
 )

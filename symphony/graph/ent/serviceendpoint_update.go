@@ -8,8 +8,7 @@ package ent
 
 import (
 	"context"
-	"errors"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -23,14 +22,9 @@ import (
 // ServiceEndpointUpdate is the builder for updating ServiceEndpoint entities.
 type ServiceEndpointUpdate struct {
 	config
-
-	update_time    *time.Time
-	role           *string
-	port           map[int]struct{}
-	service        map[int]struct{}
-	clearedPort    bool
-	clearedService bool
-	predicates     []predicate.ServiceEndpoint
+	hooks      []Hook
+	mutation   *ServiceEndpointMutation
+	predicates []predicate.ServiceEndpoint
 }
 
 // Where adds a new predicate for the builder.
@@ -41,16 +35,13 @@ func (seu *ServiceEndpointUpdate) Where(ps ...predicate.ServiceEndpoint) *Servic
 
 // SetRole sets the role field.
 func (seu *ServiceEndpointUpdate) SetRole(s string) *ServiceEndpointUpdate {
-	seu.role = &s
+	seu.mutation.SetRole(s)
 	return seu
 }
 
 // SetPortID sets the port edge to EquipmentPort by id.
 func (seu *ServiceEndpointUpdate) SetPortID(id int) *ServiceEndpointUpdate {
-	if seu.port == nil {
-		seu.port = make(map[int]struct{})
-	}
-	seu.port[id] = struct{}{}
+	seu.mutation.SetPortID(id)
 	return seu
 }
 
@@ -69,10 +60,7 @@ func (seu *ServiceEndpointUpdate) SetPort(e *EquipmentPort) *ServiceEndpointUpda
 
 // SetServiceID sets the service edge to Service by id.
 func (seu *ServiceEndpointUpdate) SetServiceID(id int) *ServiceEndpointUpdate {
-	if seu.service == nil {
-		seu.service = make(map[int]struct{})
-	}
-	seu.service[id] = struct{}{}
+	seu.mutation.SetServiceID(id)
 	return seu
 }
 
@@ -91,29 +79,47 @@ func (seu *ServiceEndpointUpdate) SetService(s *Service) *ServiceEndpointUpdate 
 
 // ClearPort clears the port edge to EquipmentPort.
 func (seu *ServiceEndpointUpdate) ClearPort() *ServiceEndpointUpdate {
-	seu.clearedPort = true
+	seu.mutation.ClearPort()
 	return seu
 }
 
 // ClearService clears the service edge to Service.
 func (seu *ServiceEndpointUpdate) ClearService() *ServiceEndpointUpdate {
-	seu.clearedService = true
+	seu.mutation.ClearService()
 	return seu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (seu *ServiceEndpointUpdate) Save(ctx context.Context) (int, error) {
-	if seu.update_time == nil {
+	if _, ok := seu.mutation.UpdateTime(); !ok {
 		v := serviceendpoint.UpdateDefaultUpdateTime()
-		seu.update_time = &v
+		seu.mutation.SetUpdateTime(v)
 	}
-	if len(seu.port) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"port\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(seu.hooks) == 0 {
+		affected, err = seu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ServiceEndpointMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			seu.mutation = mutation
+			affected, err = seu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(seu.hooks); i > 0; i-- {
+			mut = seu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, seu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	if len(seu.service) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"service\"")
-	}
-	return seu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -156,21 +162,21 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 			}
 		}
 	}
-	if value := seu.update_time; value != nil {
+	if value, ok := seu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: serviceendpoint.FieldUpdateTime,
 		})
 	}
-	if value := seu.role; value != nil {
+	if value, ok := seu.mutation.Role(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: serviceendpoint.FieldRole,
 		})
 	}
-	if seu.clearedPort {
+	if seu.mutation.PortCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -186,7 +192,7 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := seu.port; len(nodes) > 0 {
+	if nodes := seu.mutation.PortIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -200,12 +206,12 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if seu.clearedService {
+	if seu.mutation.ServiceCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -221,7 +227,7 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := seu.service; len(nodes) > 0 {
+	if nodes := seu.mutation.ServiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -235,7 +241,7 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -254,28 +260,19 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 // ServiceEndpointUpdateOne is the builder for updating a single ServiceEndpoint entity.
 type ServiceEndpointUpdateOne struct {
 	config
-	id int
-
-	update_time    *time.Time
-	role           *string
-	port           map[int]struct{}
-	service        map[int]struct{}
-	clearedPort    bool
-	clearedService bool
+	hooks    []Hook
+	mutation *ServiceEndpointMutation
 }
 
 // SetRole sets the role field.
 func (seuo *ServiceEndpointUpdateOne) SetRole(s string) *ServiceEndpointUpdateOne {
-	seuo.role = &s
+	seuo.mutation.SetRole(s)
 	return seuo
 }
 
 // SetPortID sets the port edge to EquipmentPort by id.
 func (seuo *ServiceEndpointUpdateOne) SetPortID(id int) *ServiceEndpointUpdateOne {
-	if seuo.port == nil {
-		seuo.port = make(map[int]struct{})
-	}
-	seuo.port[id] = struct{}{}
+	seuo.mutation.SetPortID(id)
 	return seuo
 }
 
@@ -294,10 +291,7 @@ func (seuo *ServiceEndpointUpdateOne) SetPort(e *EquipmentPort) *ServiceEndpoint
 
 // SetServiceID sets the service edge to Service by id.
 func (seuo *ServiceEndpointUpdateOne) SetServiceID(id int) *ServiceEndpointUpdateOne {
-	if seuo.service == nil {
-		seuo.service = make(map[int]struct{})
-	}
-	seuo.service[id] = struct{}{}
+	seuo.mutation.SetServiceID(id)
 	return seuo
 }
 
@@ -316,29 +310,47 @@ func (seuo *ServiceEndpointUpdateOne) SetService(s *Service) *ServiceEndpointUpd
 
 // ClearPort clears the port edge to EquipmentPort.
 func (seuo *ServiceEndpointUpdateOne) ClearPort() *ServiceEndpointUpdateOne {
-	seuo.clearedPort = true
+	seuo.mutation.ClearPort()
 	return seuo
 }
 
 // ClearService clears the service edge to Service.
 func (seuo *ServiceEndpointUpdateOne) ClearService() *ServiceEndpointUpdateOne {
-	seuo.clearedService = true
+	seuo.mutation.ClearService()
 	return seuo
 }
 
 // Save executes the query and returns the updated entity.
 func (seuo *ServiceEndpointUpdateOne) Save(ctx context.Context) (*ServiceEndpoint, error) {
-	if seuo.update_time == nil {
+	if _, ok := seuo.mutation.UpdateTime(); !ok {
 		v := serviceendpoint.UpdateDefaultUpdateTime()
-		seuo.update_time = &v
+		seuo.mutation.SetUpdateTime(v)
 	}
-	if len(seuo.port) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"port\"")
+
+	var (
+		err  error
+		node *ServiceEndpoint
+	)
+	if len(seuo.hooks) == 0 {
+		node, err = seuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ServiceEndpointMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			seuo.mutation = mutation
+			node, err = seuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(seuo.hooks); i > 0; i-- {
+			mut = seuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, seuo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(seuo.service) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"service\"")
-	}
-	return seuo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -369,27 +381,31 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 			Table:   serviceendpoint.Table,
 			Columns: serviceendpoint.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  seuo.id,
 				Type:   field.TypeInt,
 				Column: serviceendpoint.FieldID,
 			},
 		},
 	}
-	if value := seuo.update_time; value != nil {
+	id, ok := seuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing ServiceEndpoint.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := seuo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: serviceendpoint.FieldUpdateTime,
 		})
 	}
-	if value := seuo.role; value != nil {
+	if value, ok := seuo.mutation.Role(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: serviceendpoint.FieldRole,
 		})
 	}
-	if seuo.clearedPort {
+	if seuo.mutation.PortCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -405,7 +421,7 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := seuo.port; len(nodes) > 0 {
+	if nodes := seuo.mutation.PortIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -419,12 +435,12 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if seuo.clearedService {
+	if seuo.mutation.ServiceCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -440,7 +456,7 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := seuo.service; len(nodes) > 0 {
+	if nodes := seuo.mutation.ServiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -454,7 +470,7 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
