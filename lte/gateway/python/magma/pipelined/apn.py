@@ -10,7 +10,9 @@ import hashlib
 
 
 def encode_apn(apn):
-    """Converts string definition of APN with random length in to fixed length byte array.
+    """
+    Converts string definition of APN with random length in to fixed length 
+    byte array.
 
     Args:
         apn: APN string
@@ -21,8 +23,8 @@ def encode_apn(apn):
 
 def split_apn(encoded_apn):
     """ 
-        Splits 16 bytes hash which represents encoded APN into 4 x 4bytes hashes which can 
-        be pushed to low level registers. 
+    Splits 16 bytes hash which represents encoded APN into 4 x 4bytes hashes 
+    which can be pushed to low level registers. 
     """
     return [encoded_apn[i:i+8] for i in range(0,32,8)]
 

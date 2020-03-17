@@ -7,7 +7,6 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.registers import (
@@ -39,16 +38,13 @@ class APNController(MagmaController):
     APP_TYPE = ControllerType.LOGICAL
 
     def __init__(self, *args, **kwargs):
-        super(APNController, self).__init__(*args, **kwargs)
         # TODO(119vik) get following from the config file
-        self._clean_start = True 
         self._datapath = None
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
-        self.apn_tagging_scratch = \
-            self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
         self.next_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
         self._msg_hub = MessageHub(self.logger)
+        super(APNController, self).__init__(*args, **kwargs)
 
     def initialize_on_connect(self, datapath):
         """
@@ -58,10 +54,8 @@ class APNController(MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        # In case wee need to clean all existing  buggy / orphaned flows 
-        # before start the controller
-        if self._clean_start:
-          self.delete_all_flows(datapath)
+        # Just clean all existing flows before start of the controller
+        self.delete_all_flows(datapath)
 
     @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
     def _handle_barrier(self, ev):
@@ -103,14 +97,14 @@ class APNController(MagmaController):
 
     def add_apn_flow_for_ue(self, imsi, ue_ip_addr, apn):
         """ 
-            Add flow which match all IN traffic with specified UE_IP and set 
-            APN hash in to register.
-            
-            Args:
-                imsi: user's IMSI
-                ue_ip_addr: ip addr allocated for the UE in scope of connection 
-                    to specific APN
-                apn: APN UE is connected to with specified IP addr
+        Add flow which match all IN traffic with specified UE_IP and set 
+        APN hash in to register.
+        
+        Args:
+            imsi: user's IMSI
+            ue_ip_addr: ip addr allocated for the UE in scope of connection 
+                to specific APN
+            apn: APN UE is connected to with specified IP addr
         """
         #TODO(119vik): same IP is reused for several bearers connected to the 
         # same APN - take care about duplications
@@ -131,17 +125,20 @@ class APNController(MagmaController):
             eth_type=ether.ETH_TYPE_IP)
         
         # Generate OF Add Flow messages for Uplink and DownLink traffic
-        flow_adds += self._get_flows_for_traffic_direction(
-            flows.get_add_resubmit_next_service_flow_msg,
-            outbound_match, 
-            apn_tagging_actions)
-        flow_adds += self._get_flows_for_traffic_direction(
-            flows.get_add_resubmit_next_service_flow_msg, 
-            inbound_match, 
-            apn_tagging_actions)
+        for flw in self._get_flows_for_traffic_direction(
+                flows.get_add_resubmit_next_service_flow_msg,
+                outbound_match, 
+                apn_tagging_actions):
+            flow_adds.append(flw)
+
+        for flw in self._get_flows_for_traffic_direction(
+                flows.get_add_resubmit_next_service_flow_msg, 
+                inbound_match, 
+                apn_tagging_actions):
+            flow_adds.append(flw)
         
-        logging.info("Flows to add {}, datapath {}".format(flow_adds, 
-                                                           self._datapath))
+        self.logger.info("Flows to add {}, datapath {}".format(flow_adds, 
+                                                               self._datapath))
         
         # Push messages to OVS through async message hub
         chan = self._msg_hub.send(flow_adds, self._datapath)
@@ -151,21 +148,21 @@ class APNController(MagmaController):
     
     def _get_apn_tagging_actions(self, parser, encoded_apn):
         """
-            Generate list of set value to register openflow actions.
+        Generate list of set value to register openflow actions.
 
-            Ryu doesn't provide API to set value to double extended register 
-            xxreg<x>. However Ryu provides API to match traffic by the value of
-            double extended register xxreg<x>. As a result we should split 
-            single 16bytes value into 4 x 4bytes values so they can be set to 
-            underlying registers reg<4x>..reg<4x+4> which represent single 
-            double extended register xxreg<x>. More details can be found at 
+        Ryu doesn't provide API to set value to double extended register 
+        xxreg<x>. However Ryu provides API to match traffic by the value of
+        double extended register xxreg<x>. As a result we should split 
+        single 16bytes value into 4 x 4bytes values so they can be set to 
+        underlying registers reg<4x>..reg<4x+4> which represent single 
+        double extended register xxreg<x>. More details can be found at 
         http://man7.org/linux/man-pages/man7/ovs-fields.7.html#REGISTER_FIELDS
 
-            Args:
-                parser: 
-                encoded_apn: 16bytes value which represents APN
-            Returns:
-                List of 4  set value to register actions
+        Args:
+            parser: 
+            encoded_apn: 16bytes value which represents APN
+        Returns:
+            List of 4  set value to register actions
         """
         encoded_apn_registers = split_apn(encoded_apn)
         return [
@@ -177,15 +174,14 @@ class APNController(MagmaController):
     def _get_flows_for_traffic_direction(self, generator, matcher, 
                                          apn_tagging_actions):
         """ 
-            Generates list of flows for specified traffic direction
-            
-            Args:
-                generator: function which responsible for add / delete flow mod
-                    generation
-                matcher: MagmaMatcher instance which specifies traffic flow 
-                    direction
-                apn_tagging_actions: actions to be applied to packets at 
-                    ScratchTable level
+        Generates list of flows for specified traffic direction
+        
+        Args:
+            generator: function which responsible for add / delete flow mod
+                generation
+            matcher: MagmaMatcher instance which specifies traffic flow 
+                direction
+            apn_tagging_actions: actions to be applied to packets
 
         """
         return [
@@ -193,19 +189,14 @@ class APNController(MagmaController):
                 self._datapath, 
                 self.tbl_num,
                 matcher,
-                None,
-                resubmit_table=self.apn_tagging_scratch,
-                priority=flows.DEFAULT_PRIORITY),
-            generator(
-                self._datapath, 
-                self.apn_tagging_scratch,
-                matcher,
                 apn_tagging_actions,
                 resubmit_table=self.next_table,
-                priority=flows.DEFAULT_PRIORITY)]
+                priority=flows.DEFAULT_PRIORITY),
+        ]
     
     def delete_apn_flow_for_ue(self, imsi, ue_ip_addr, apn):
-        """ Delete flow been created in scope of add_apn_flow_for_ue.
+        """
+        Delete flow been created in scope of add_apn_flow_for_ue.
 
         Args:
             imsi: user's IMSI
@@ -232,18 +223,20 @@ class APNController(MagmaController):
             eth_type=ether.ETH_TYPE_IP)
         
         # Generate OF Add Flow messages for Uplink and DownLink traffic
-        flow_dels += self._get_flows_for_traffic_direction(
-            get_del_resubmit_next_service_flow_msg,
-            outbound_match, 
-            apn_tagging_actions
-        )
-        flow_dels += self._get_flows_for_traffic_direction(
-            get_del_resubmit_next_service_flow_msg,
-            inbound_match, 
-            apn_tagging_actions
-        )
-        logging.info("Flows to delete {}, datapath {}".format(flow_dels, 
-                                                              self._datapath))
+        for flw in self._get_flows_for_traffic_direction(
+                get_del_resubmit_next_service_flow_msg,
+                outbound_match, 
+                apn_tagging_actions):
+            flow_dels.append(flw)
+        
+        for flw in self._get_flows_for_traffic_direction(
+                get_del_resubmit_next_service_flow_msg,
+                inbound_match, 
+                apn_tagging_actions):
+            flow_dels.append(flw)
+
+        self.logger.info("Flows to delete {}, datapath {}".format(
+            flow_dels, self._datapath))
         
         # Push messages to OVS through async message hub
         chan = self._msg_hub.send(flow_dels, self._datapath)
@@ -256,26 +249,25 @@ class APNController(MagmaController):
 def get_del_resubmit_next_service_flow_msg(datapath, table, match, actions=None,
                                            resubmit_table=None, **kwargs):
     """
-        Get an delete flow modification message that resubmits to another 
-        service.
+    Get an delete flow modification message for flow with resubmit action.
 
-        Args:
-            datapath (ryu.controller.controller.Datapath):
-                Datapath to push the flow to
-            table (int): Table number to apply the flow to
-            match (MagmaMatch): The match for the flow
-            actions ([OFPAction]):
-                List of actions for the flow.
-            instructions ([OFPInstruction]):
-                List of instructions for the flow. This will default to a
-                single OFPInstructionsActions to apply `actions`.
-                Ignored if `actions` is set.
-            priority (int): Flow priority
-            resubmit_table (int): Table number of the next service to
-                forward traffic to.
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to push the flow to
+        table (int): Table number to apply the flow to
+        match (MagmaMatch): The match for the flow
+        actions ([OFPAction]):
+            List of actions for the flow.
+        instructions ([OFPInstruction]):
+            List of instructions for the flow. This will default to a
+            single OFPInstructionsActions to apply `actions`.
+            Ignored if `actions` is set.
+        priority (int): Flow priority
+        resubmit_table (int): Table number of the next service to
+            forward traffic to.
 
-        Returns:
-            OFPFlowMod
+    Returns:
+        OFPFlowMod
     """
     actions = actions or []
     actions.append(datapath.ofproto_parser.NXActionResubmitTable(
