@@ -13,7 +13,6 @@
 #include <devmand/devices/cli/schema/Path.h>
 
 namespace devmand::channels::cli::datastore {
-using LeafVector = std::vector<pair<string, string>>;
 using devmand::devices::cli::BindingCodec;
 using devmand::devices::cli::Path;
 using std::unique_ptr;
@@ -35,11 +34,11 @@ class BindingAwareDatastoreTransaction {
     const dynamic& data = datastoreTransaction->read(path);
     return std::static_pointer_cast<T>(codec->decode(toJson(data), ydkData));
   }
-  map<Path, DatastoreDiff> diff();
+  DiffResult diff(vector<DiffPath> registeredPaths);
   void delete_(Path path);
   void overwrite(Path path, shared_ptr<Entity> entity);
   void merge(Path path, shared_ptr<Entity> entity);
-  bool isValid();
+  void isValid();
   void print();
   void commit();
   void abort();

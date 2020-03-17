@@ -526,36 +526,10 @@ static const string EXPECTED_OUTPUT =
     "        \"name\": \"3/6\"\n"
     "      }\n"
     "    ]\n"
-    "  },\n"
-    "  \"openconfig-network-instance:network-instances\": {\n"
-    "    \"network-instance\": [\n"
-    "      {\n"
-    "        \"vlans\": {\n"
-    "          \"vlan\": [\n"
-    "            {\n"
-    "              \"state\": {\n"
-    "                \"status\": \"ACTIVE\",\n"
-    "                \"vlan-id\": 1\n"
-    "              },\n"
-    "              \"config\": {\n"
-    "                \"vlan-id\": 1,\n"
-    "                \"status\": \"ACTIVE\"\n"
-    "              },\n"
-    "              \"vlan-id\": \"1\"\n"
-    "            }\n"
-    "          ]\n"
-    "        },\n"
-    "        \"config\": {\n"
-    "          \"type\": \"openconfig-network-instance-types:DEFAULT_INSTANCE\",\n"
-    "          \"name\": \"default\"\n"
-    "        },\n"
-    "        \"name\": \"default\"\n"
-    "      }\n"
-    "    ]\n"
-    "  }\n"
+    "  }"
     "}";
 
-TEST_F(StructuredUbntDeviceTest, DISABLED_getIfcOper) {
+TEST_F(StructuredUbntDeviceTest, getIfcOper) {
   PluginRegistry pReg;
   ModelRegistry mReg;
   auto executor = make_shared<CPUThreadPoolExecutor>(2);
