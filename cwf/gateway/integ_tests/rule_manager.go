@@ -153,12 +153,7 @@ func getAccountRulesWithDynamicPassAll(imsi, ruleID, monitoringKey string) *fegP
 		StaticRuleNames:     []string{},
 		StaticRuleBaseNames: []string{},
 		DynamicRuleDefinitions: []*fegProtos.RuleDefinition{
-			{
-				RuleName:         ruleID,
-				Precedence:       100,
-				FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
-				MonitoringKey:    monitoringKey,
-			},
+			getDynamicPassAll(ruleID, monitoringKey, 100),
 		},
 	}
 }
