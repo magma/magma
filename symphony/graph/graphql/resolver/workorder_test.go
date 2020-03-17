@@ -85,7 +85,7 @@ func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationRe
 		InstallDate: &workOrder.InstallDate,
 		Status:      models.WorkOrderStatusDone,
 		Priority:    models.WorkOrderPriorityNone,
-		Assignee:    &workOrder.Assignee,
+		Assignee:    &workOrder.AssigneeName,
 	})
 	require.NoError(t, err)
 	return mr.ExecuteWorkOrder(ctx, workOrder.ID)
@@ -173,7 +173,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 		LocationID:      &location.ID,
 	})
 	require.NoError(t, err)
-	require.Empty(t, workOrder.Assignee)
+	require.Empty(t, workOrder.AssigneeName)
 
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          workOrder.ID,
@@ -190,7 +190,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	require.NoError(t, err)
 	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
 	require.True(t, ok)
-	require.Equal(t, &workOrder.Assignee, &assignee)
+	require.Equal(t, &workOrder.AssigneeName, &assignee)
 
 	fetchedWorkOrderType, err := wr.WorkOrderType(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -268,7 +268,7 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 		Priority:        &pri,
 	})
 	require.NoError(t, err)
-	require.Equal(t, workOrder.Assignee, "")
+	require.Equal(t, workOrder.AssigneeName, "")
 	require.EqualValues(t, pri, workOrder.Priority)
 
 	input := models.EditWorkOrderInput{

@@ -252,7 +252,7 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetTypeID(input.Type).
-		SetNillableCreator(input.Creator).
+		SetNillableCreatorName(input.Creator).
 		SetNillableLocationID(input.Location).
 		AddProperties(properties...).
 		Save(ctx)
@@ -309,9 +309,9 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		SetName(input.Name).
 		SetNillableDescription(input.Description)
 	if input.Creator != nil {
-		mutation.SetCreator(*input.Creator)
+		mutation.SetCreatorName(*input.Creator)
 	} else {
-		mutation.ClearCreator()
+		mutation.ClearCreatorName()
 	}
 	if input.Location != nil {
 		mutation.SetLocationID(*input.Location)

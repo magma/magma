@@ -695,6 +695,7 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "creator", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "project_location", Type: field.TypeInt, Nullable: true},
+		{Name: "project_creator", Type: field.TypeInt, Nullable: true},
 		{Name: "project_type_projects", Type: field.TypeInt, Nullable: true},
 	}
 	// ProjectsTable holds the schema information for the "projects" table.
@@ -711,8 +712,15 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "projects_project_types_projects",
+				Symbol:  "projects_users_creator",
 				Columns: []*schema.Column{ProjectsColumns[7]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "projects_project_types_projects",
+				Columns: []*schema.Column{ProjectsColumns[8]},
 
 				RefColumns: []*schema.Column{ProjectTypesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -722,7 +730,7 @@ var (
 			{
 				Name:    "project_name_project_type_projects",
 				Unique:  true,
-				Columns: []*schema.Column{ProjectsColumns[3], ProjectsColumns[7]},
+				Columns: []*schema.Column{ProjectsColumns[3], ProjectsColumns[8]},
 			},
 		},
 	}
@@ -1335,6 +1343,8 @@ var (
 		{Name: "work_order_type", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_location", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_technician", Type: field.TypeInt, Nullable: true},
+		{Name: "work_order_owner", Type: field.TypeInt, Nullable: true},
+		{Name: "work_order_assignee", Type: field.TypeInt, Nullable: true},
 	}
 	// WorkOrdersTable holds the schema information for the "work_orders" table.
 	WorkOrdersTable = &schema.Table{
@@ -1368,6 +1378,20 @@ var (
 				Columns: []*schema.Column{WorkOrdersColumns[16]},
 
 				RefColumns: []*schema.Column{TechniciansColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "work_orders_users_owner",
+				Columns: []*schema.Column{WorkOrdersColumns[17]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "work_orders_users_assignee",
+				Columns: []*schema.Column{WorkOrdersColumns[18]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -1584,7 +1608,8 @@ func init() {
 	LocationsTable.ForeignKeys[0].RefTable = LocationTypesTable
 	LocationsTable.ForeignKeys[1].RefTable = LocationsTable
 	ProjectsTable.ForeignKeys[0].RefTable = LocationsTable
-	ProjectsTable.ForeignKeys[1].RefTable = ProjectTypesTable
+	ProjectsTable.ForeignKeys[1].RefTable = UsersTable
+	ProjectsTable.ForeignKeys[2].RefTable = ProjectTypesTable
 	PropertiesTable.ForeignKeys[0].RefTable = EquipmentTable
 	PropertiesTable.ForeignKeys[1].RefTable = EquipmentPortsTable
 	PropertiesTable.ForeignKeys[2].RefTable = LinksTable
@@ -1620,6 +1645,8 @@ func init() {
 	WorkOrdersTable.ForeignKeys[1].RefTable = WorkOrderTypesTable
 	WorkOrdersTable.ForeignKeys[2].RefTable = LocationsTable
 	WorkOrdersTable.ForeignKeys[3].RefTable = TechniciansTable
+	WorkOrdersTable.ForeignKeys[4].RefTable = UsersTable
+	WorkOrdersTable.ForeignKeys[5].RefTable = UsersTable
 	WorkOrderDefinitionsTable.ForeignKeys[0].RefTable = ProjectTypesTable
 	WorkOrderDefinitionsTable.ForeignKeys[1].RefTable = WorkOrderTypesTable
 	ServiceUpstreamTable.ForeignKeys[0].RefTable = ServicesTable

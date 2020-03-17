@@ -18,8 +18,8 @@ const (
 	FieldCreateTime  = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
 	FieldUpdateTime  = "update_time" // FieldName holds the string denoting the name vertex property in the database.
 	FieldName        = "name"        // FieldDescription holds the string denoting the description vertex property in the database.
-	FieldDescription = "description" // FieldCreator holds the string denoting the creator vertex property in the database.
-	FieldCreator     = "creator"
+	FieldDescription = "description" // FieldCreatorName holds the string denoting the creator_name vertex property in the database.
+	FieldCreatorName = "creator"
 
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"
@@ -31,6 +31,8 @@ const (
 	EdgeWorkOrders = "work_orders"
 	// EdgeProperties holds the string denoting the properties edge name in mutations.
 	EdgeProperties = "properties"
+	// EdgeCreator holds the string denoting the creator edge name in mutations.
+	EdgeCreator = "creator"
 
 	// Table holds the table name of the project in the database.
 	Table = "projects"
@@ -69,6 +71,13 @@ const (
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
 	PropertiesColumn = "project_properties"
+	// CreatorTable is the table the holds the creator relation/edge.
+	CreatorTable = "projects"
+	// CreatorInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	CreatorInverseTable = "users"
+	// CreatorColumn is the table column denoting the creator relation/edge.
+	CreatorColumn = "project_creator"
 )
 
 // Columns holds all SQL columns for project fields.
@@ -78,12 +87,13 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldName,
 	FieldDescription,
-	FieldCreator,
+	FieldCreatorName,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Project type.
 var ForeignKeys = []string{
 	"project_location",
+	"project_creator",
 	"project_type_projects",
 }
 

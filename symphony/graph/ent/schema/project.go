@@ -51,7 +51,9 @@ func (Project) Fields() []ent.Field {
 		field.Text("description").
 			Optional().
 			Nillable(),
-		field.Text("creator").
+		field.Text("creator_name").
+			StructTag(`gqlgen:"creator"`).
+			StorageKey("creator").
 			Optional().
 			Nillable(),
 	}
@@ -69,6 +71,8 @@ func (Project) Edges() []ent.Edge {
 		edge.To("comments", Comment.Type),
 		edge.To("work_orders", WorkOrder.Type),
 		edge.To("properties", Property.Type),
+		edge.To("creator", User.Type).
+			Unique(),
 	}
 }
 

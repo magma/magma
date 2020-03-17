@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -63,23 +64,23 @@ func (pu *ProjectUpdate) ClearDescription() *ProjectUpdate {
 	return pu
 }
 
-// SetCreator sets the creator field.
-func (pu *ProjectUpdate) SetCreator(s string) *ProjectUpdate {
-	pu.mutation.SetCreator(s)
+// SetCreatorName sets the creator_name field.
+func (pu *ProjectUpdate) SetCreatorName(s string) *ProjectUpdate {
+	pu.mutation.SetCreatorName(s)
 	return pu
 }
 
-// SetNillableCreator sets the creator field if the given value is not nil.
-func (pu *ProjectUpdate) SetNillableCreator(s *string) *ProjectUpdate {
+// SetNillableCreatorName sets the creator_name field if the given value is not nil.
+func (pu *ProjectUpdate) SetNillableCreatorName(s *string) *ProjectUpdate {
 	if s != nil {
-		pu.SetCreator(*s)
+		pu.SetCreatorName(*s)
 	}
 	return pu
 }
 
-// ClearCreator clears the value of creator.
-func (pu *ProjectUpdate) ClearCreator() *ProjectUpdate {
-	pu.mutation.ClearCreator()
+// ClearCreatorName clears the value of creator_name.
+func (pu *ProjectUpdate) ClearCreatorName() *ProjectUpdate {
+	pu.mutation.ClearCreatorName()
 	return pu
 }
 
@@ -158,6 +159,25 @@ func (pu *ProjectUpdate) AddProperties(p ...*Property) *ProjectUpdate {
 	return pu.AddPropertyIDs(ids...)
 }
 
+// SetCreatorID sets the creator edge to User by id.
+func (pu *ProjectUpdate) SetCreatorID(id int) *ProjectUpdate {
+	pu.mutation.SetCreatorID(id)
+	return pu
+}
+
+// SetNillableCreatorID sets the creator edge to User by id if the given value is not nil.
+func (pu *ProjectUpdate) SetNillableCreatorID(id *int) *ProjectUpdate {
+	if id != nil {
+		pu = pu.SetCreatorID(*id)
+	}
+	return pu
+}
+
+// SetCreator sets the creator edge to User.
+func (pu *ProjectUpdate) SetCreator(u *User) *ProjectUpdate {
+	return pu.SetCreatorID(u.ID)
+}
+
 // ClearType clears the type edge to ProjectType.
 func (pu *ProjectUpdate) ClearType() *ProjectUpdate {
 	pu.mutation.ClearType()
@@ -213,6 +233,12 @@ func (pu *ProjectUpdate) RemoveProperties(p ...*Property) *ProjectUpdate {
 		ids[i] = p[i].ID
 	}
 	return pu.RemovePropertyIDs(ids...)
+}
+
+// ClearCreator clears the creator edge to User.
+func (pu *ProjectUpdate) ClearCreator() *ProjectUpdate {
+	pu.mutation.ClearCreator()
+	return pu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -324,17 +350,17 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: project.FieldDescription,
 		})
 	}
-	if value, ok := pu.mutation.Creator(); ok {
+	if value, ok := pu.mutation.CreatorName(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: project.FieldCreator,
+			Column: project.FieldCreatorName,
 		})
 	}
-	if pu.mutation.CreatorCleared() {
+	if pu.mutation.CreatorNameCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: project.FieldCreator,
+			Column: project.FieldCreatorName,
 		})
 	}
 	if pu.mutation.TypeCleared() {
@@ -521,6 +547,41 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   project.CreatorTable,
+			Columns: []string{project.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   project.CreatorTable,
+			Columns: []string{project.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{project.Label}
@@ -565,23 +626,23 @@ func (puo *ProjectUpdateOne) ClearDescription() *ProjectUpdateOne {
 	return puo
 }
 
-// SetCreator sets the creator field.
-func (puo *ProjectUpdateOne) SetCreator(s string) *ProjectUpdateOne {
-	puo.mutation.SetCreator(s)
+// SetCreatorName sets the creator_name field.
+func (puo *ProjectUpdateOne) SetCreatorName(s string) *ProjectUpdateOne {
+	puo.mutation.SetCreatorName(s)
 	return puo
 }
 
-// SetNillableCreator sets the creator field if the given value is not nil.
-func (puo *ProjectUpdateOne) SetNillableCreator(s *string) *ProjectUpdateOne {
+// SetNillableCreatorName sets the creator_name field if the given value is not nil.
+func (puo *ProjectUpdateOne) SetNillableCreatorName(s *string) *ProjectUpdateOne {
 	if s != nil {
-		puo.SetCreator(*s)
+		puo.SetCreatorName(*s)
 	}
 	return puo
 }
 
-// ClearCreator clears the value of creator.
-func (puo *ProjectUpdateOne) ClearCreator() *ProjectUpdateOne {
-	puo.mutation.ClearCreator()
+// ClearCreatorName clears the value of creator_name.
+func (puo *ProjectUpdateOne) ClearCreatorName() *ProjectUpdateOne {
+	puo.mutation.ClearCreatorName()
 	return puo
 }
 
@@ -660,6 +721,25 @@ func (puo *ProjectUpdateOne) AddProperties(p ...*Property) *ProjectUpdateOne {
 	return puo.AddPropertyIDs(ids...)
 }
 
+// SetCreatorID sets the creator edge to User by id.
+func (puo *ProjectUpdateOne) SetCreatorID(id int) *ProjectUpdateOne {
+	puo.mutation.SetCreatorID(id)
+	return puo
+}
+
+// SetNillableCreatorID sets the creator edge to User by id if the given value is not nil.
+func (puo *ProjectUpdateOne) SetNillableCreatorID(id *int) *ProjectUpdateOne {
+	if id != nil {
+		puo = puo.SetCreatorID(*id)
+	}
+	return puo
+}
+
+// SetCreator sets the creator edge to User.
+func (puo *ProjectUpdateOne) SetCreator(u *User) *ProjectUpdateOne {
+	return puo.SetCreatorID(u.ID)
+}
+
 // ClearType clears the type edge to ProjectType.
 func (puo *ProjectUpdateOne) ClearType() *ProjectUpdateOne {
 	puo.mutation.ClearType()
@@ -715,6 +795,12 @@ func (puo *ProjectUpdateOne) RemoveProperties(p ...*Property) *ProjectUpdateOne 
 		ids[i] = p[i].ID
 	}
 	return puo.RemovePropertyIDs(ids...)
+}
+
+// ClearCreator clears the creator edge to User.
+func (puo *ProjectUpdateOne) ClearCreator() *ProjectUpdateOne {
+	puo.mutation.ClearCreator()
+	return puo
 }
 
 // Save executes the query and returns the updated entity.
@@ -824,17 +910,17 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 			Column: project.FieldDescription,
 		})
 	}
-	if value, ok := puo.mutation.Creator(); ok {
+	if value, ok := puo.mutation.CreatorName(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: project.FieldCreator,
+			Column: project.FieldCreatorName,
 		})
 	}
-	if puo.mutation.CreatorCleared() {
+	if puo.mutation.CreatorNameCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: project.FieldCreator,
+			Column: project.FieldCreatorName,
 		})
 	}
 	if puo.mutation.TypeCleared() {
@@ -1013,6 +1099,41 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.CreatorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   project.CreatorTable,
+			Columns: []string{project.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   project.CreatorTable,
+			Columns: []string{project.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
 				},
 			},
 		}

@@ -125,10 +125,10 @@ func Description(v string) predicate.Project {
 	})
 }
 
-// Creator applies equality check predicate on the "creator" field. It's identical to CreatorEQ.
-func Creator(v string) predicate.Project {
+// CreatorName applies equality check predicate on the "creator_name" field. It's identical to CreatorNameEQ.
+func CreatorName(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreator), v))
+		s.Where(sql.EQ(s.C(FieldCreatorName), v))
 	})
 }
 
@@ -520,22 +520,22 @@ func DescriptionContainsFold(v string) predicate.Project {
 	})
 }
 
-// CreatorEQ applies the EQ predicate on the "creator" field.
-func CreatorEQ(v string) predicate.Project {
+// CreatorNameEQ applies the EQ predicate on the "creator_name" field.
+func CreatorNameEQ(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreator), v))
+		s.Where(sql.EQ(s.C(FieldCreatorName), v))
 	})
 }
 
-// CreatorNEQ applies the NEQ predicate on the "creator" field.
-func CreatorNEQ(v string) predicate.Project {
+// CreatorNameNEQ applies the NEQ predicate on the "creator_name" field.
+func CreatorNameNEQ(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreator), v))
+		s.Where(sql.NEQ(s.C(FieldCreatorName), v))
 	})
 }
 
-// CreatorIn applies the In predicate on the "creator" field.
-func CreatorIn(vs ...string) predicate.Project {
+// CreatorNameIn applies the In predicate on the "creator_name" field.
+func CreatorNameIn(vs ...string) predicate.Project {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -547,12 +547,12 @@ func CreatorIn(vs ...string) predicate.Project {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldCreator), v...))
+		s.Where(sql.In(s.C(FieldCreatorName), v...))
 	})
 }
 
-// CreatorNotIn applies the NotIn predicate on the "creator" field.
-func CreatorNotIn(vs ...string) predicate.Project {
+// CreatorNameNotIn applies the NotIn predicate on the "creator_name" field.
+func CreatorNameNotIn(vs ...string) predicate.Project {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -564,84 +564,84 @@ func CreatorNotIn(vs ...string) predicate.Project {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldCreator), v...))
+		s.Where(sql.NotIn(s.C(FieldCreatorName), v...))
 	})
 }
 
-// CreatorGT applies the GT predicate on the "creator" field.
-func CreatorGT(v string) predicate.Project {
+// CreatorNameGT applies the GT predicate on the "creator_name" field.
+func CreatorNameGT(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreator), v))
+		s.Where(sql.GT(s.C(FieldCreatorName), v))
 	})
 }
 
-// CreatorGTE applies the GTE predicate on the "creator" field.
-func CreatorGTE(v string) predicate.Project {
+// CreatorNameGTE applies the GTE predicate on the "creator_name" field.
+func CreatorNameGTE(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreator), v))
+		s.Where(sql.GTE(s.C(FieldCreatorName), v))
 	})
 }
 
-// CreatorLT applies the LT predicate on the "creator" field.
-func CreatorLT(v string) predicate.Project {
+// CreatorNameLT applies the LT predicate on the "creator_name" field.
+func CreatorNameLT(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreator), v))
+		s.Where(sql.LT(s.C(FieldCreatorName), v))
 	})
 }
 
-// CreatorLTE applies the LTE predicate on the "creator" field.
-func CreatorLTE(v string) predicate.Project {
+// CreatorNameLTE applies the LTE predicate on the "creator_name" field.
+func CreatorNameLTE(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreator), v))
+		s.Where(sql.LTE(s.C(FieldCreatorName), v))
 	})
 }
 
-// CreatorContains applies the Contains predicate on the "creator" field.
-func CreatorContains(v string) predicate.Project {
+// CreatorNameContains applies the Contains predicate on the "creator_name" field.
+func CreatorNameContains(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldCreator), v))
+		s.Where(sql.Contains(s.C(FieldCreatorName), v))
 	})
 }
 
-// CreatorHasPrefix applies the HasPrefix predicate on the "creator" field.
-func CreatorHasPrefix(v string) predicate.Project {
+// CreatorNameHasPrefix applies the HasPrefix predicate on the "creator_name" field.
+func CreatorNameHasPrefix(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldCreator), v))
+		s.Where(sql.HasPrefix(s.C(FieldCreatorName), v))
 	})
 }
 
-// CreatorHasSuffix applies the HasSuffix predicate on the "creator" field.
-func CreatorHasSuffix(v string) predicate.Project {
+// CreatorNameHasSuffix applies the HasSuffix predicate on the "creator_name" field.
+func CreatorNameHasSuffix(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldCreator), v))
+		s.Where(sql.HasSuffix(s.C(FieldCreatorName), v))
 	})
 }
 
-// CreatorIsNil applies the IsNil predicate on the "creator" field.
-func CreatorIsNil() predicate.Project {
+// CreatorNameIsNil applies the IsNil predicate on the "creator_name" field.
+func CreatorNameIsNil() predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldCreator)))
+		s.Where(sql.IsNull(s.C(FieldCreatorName)))
 	})
 }
 
-// CreatorNotNil applies the NotNil predicate on the "creator" field.
-func CreatorNotNil() predicate.Project {
+// CreatorNameNotNil applies the NotNil predicate on the "creator_name" field.
+func CreatorNameNotNil() predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldCreator)))
+		s.Where(sql.NotNull(s.C(FieldCreatorName)))
 	})
 }
 
-// CreatorEqualFold applies the EqualFold predicate on the "creator" field.
-func CreatorEqualFold(v string) predicate.Project {
+// CreatorNameEqualFold applies the EqualFold predicate on the "creator_name" field.
+func CreatorNameEqualFold(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldCreator), v))
+		s.Where(sql.EqualFold(s.C(FieldCreatorName), v))
 	})
 }
 
-// CreatorContainsFold applies the ContainsFold predicate on the "creator" field.
-func CreatorContainsFold(v string) predicate.Project {
+// CreatorNameContainsFold applies the ContainsFold predicate on the "creator_name" field.
+func CreatorNameContainsFold(v string) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldCreator), v))
+		s.Where(sql.ContainsFold(s.C(FieldCreatorName), v))
 	})
 }
 
@@ -776,6 +776,34 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.Project {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PropertiesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, PropertiesTable, PropertiesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreator applies the HasEdge predicate on the "creator" edge.
+func HasCreator() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatorTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CreatorTable, CreatorColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatorWith applies the HasEdge predicate on the "creator" edge with a given conditions (other predicates).
+func HasCreatorWith(preds ...predicate.User) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatorInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CreatorTable, CreatorColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

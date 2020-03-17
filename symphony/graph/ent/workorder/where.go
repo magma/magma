@@ -160,10 +160,10 @@ func CreationDate(v time.Time) predicate.WorkOrder {
 	})
 }
 
-// Assignee applies equality check predicate on the "assignee" field. It's identical to AssigneeEQ.
-func Assignee(v string) predicate.WorkOrder {
+// AssigneeName applies equality check predicate on the "assignee_name" field. It's identical to AssigneeNameEQ.
+func AssigneeName(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldAssignee), v))
+		s.Where(sql.EQ(s.C(FieldAssigneeName), v))
 	})
 }
 
@@ -1068,22 +1068,22 @@ func CreationDateLTE(v time.Time) predicate.WorkOrder {
 	})
 }
 
-// AssigneeEQ applies the EQ predicate on the "assignee" field.
-func AssigneeEQ(v string) predicate.WorkOrder {
+// AssigneeNameEQ applies the EQ predicate on the "assignee_name" field.
+func AssigneeNameEQ(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldAssignee), v))
+		s.Where(sql.EQ(s.C(FieldAssigneeName), v))
 	})
 }
 
-// AssigneeNEQ applies the NEQ predicate on the "assignee" field.
-func AssigneeNEQ(v string) predicate.WorkOrder {
+// AssigneeNameNEQ applies the NEQ predicate on the "assignee_name" field.
+func AssigneeNameNEQ(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldAssignee), v))
+		s.Where(sql.NEQ(s.C(FieldAssigneeName), v))
 	})
 }
 
-// AssigneeIn applies the In predicate on the "assignee" field.
-func AssigneeIn(vs ...string) predicate.WorkOrder {
+// AssigneeNameIn applies the In predicate on the "assignee_name" field.
+func AssigneeNameIn(vs ...string) predicate.WorkOrder {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -1095,12 +1095,12 @@ func AssigneeIn(vs ...string) predicate.WorkOrder {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldAssignee), v...))
+		s.Where(sql.In(s.C(FieldAssigneeName), v...))
 	})
 }
 
-// AssigneeNotIn applies the NotIn predicate on the "assignee" field.
-func AssigneeNotIn(vs ...string) predicate.WorkOrder {
+// AssigneeNameNotIn applies the NotIn predicate on the "assignee_name" field.
+func AssigneeNameNotIn(vs ...string) predicate.WorkOrder {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -1112,84 +1112,84 @@ func AssigneeNotIn(vs ...string) predicate.WorkOrder {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldAssignee), v...))
+		s.Where(sql.NotIn(s.C(FieldAssigneeName), v...))
 	})
 }
 
-// AssigneeGT applies the GT predicate on the "assignee" field.
-func AssigneeGT(v string) predicate.WorkOrder {
+// AssigneeNameGT applies the GT predicate on the "assignee_name" field.
+func AssigneeNameGT(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldAssignee), v))
+		s.Where(sql.GT(s.C(FieldAssigneeName), v))
 	})
 }
 
-// AssigneeGTE applies the GTE predicate on the "assignee" field.
-func AssigneeGTE(v string) predicate.WorkOrder {
+// AssigneeNameGTE applies the GTE predicate on the "assignee_name" field.
+func AssigneeNameGTE(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldAssignee), v))
+		s.Where(sql.GTE(s.C(FieldAssigneeName), v))
 	})
 }
 
-// AssigneeLT applies the LT predicate on the "assignee" field.
-func AssigneeLT(v string) predicate.WorkOrder {
+// AssigneeNameLT applies the LT predicate on the "assignee_name" field.
+func AssigneeNameLT(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldAssignee), v))
+		s.Where(sql.LT(s.C(FieldAssigneeName), v))
 	})
 }
 
-// AssigneeLTE applies the LTE predicate on the "assignee" field.
-func AssigneeLTE(v string) predicate.WorkOrder {
+// AssigneeNameLTE applies the LTE predicate on the "assignee_name" field.
+func AssigneeNameLTE(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldAssignee), v))
+		s.Where(sql.LTE(s.C(FieldAssigneeName), v))
 	})
 }
 
-// AssigneeContains applies the Contains predicate on the "assignee" field.
-func AssigneeContains(v string) predicate.WorkOrder {
+// AssigneeNameContains applies the Contains predicate on the "assignee_name" field.
+func AssigneeNameContains(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldAssignee), v))
+		s.Where(sql.Contains(s.C(FieldAssigneeName), v))
 	})
 }
 
-// AssigneeHasPrefix applies the HasPrefix predicate on the "assignee" field.
-func AssigneeHasPrefix(v string) predicate.WorkOrder {
+// AssigneeNameHasPrefix applies the HasPrefix predicate on the "assignee_name" field.
+func AssigneeNameHasPrefix(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldAssignee), v))
+		s.Where(sql.HasPrefix(s.C(FieldAssigneeName), v))
 	})
 }
 
-// AssigneeHasSuffix applies the HasSuffix predicate on the "assignee" field.
-func AssigneeHasSuffix(v string) predicate.WorkOrder {
+// AssigneeNameHasSuffix applies the HasSuffix predicate on the "assignee_name" field.
+func AssigneeNameHasSuffix(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldAssignee), v))
+		s.Where(sql.HasSuffix(s.C(FieldAssigneeName), v))
 	})
 }
 
-// AssigneeIsNil applies the IsNil predicate on the "assignee" field.
-func AssigneeIsNil() predicate.WorkOrder {
+// AssigneeNameIsNil applies the IsNil predicate on the "assignee_name" field.
+func AssigneeNameIsNil() predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldAssignee)))
+		s.Where(sql.IsNull(s.C(FieldAssigneeName)))
 	})
 }
 
-// AssigneeNotNil applies the NotNil predicate on the "assignee" field.
-func AssigneeNotNil() predicate.WorkOrder {
+// AssigneeNameNotNil applies the NotNil predicate on the "assignee_name" field.
+func AssigneeNameNotNil() predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldAssignee)))
+		s.Where(sql.NotNull(s.C(FieldAssigneeName)))
 	})
 }
 
-// AssigneeEqualFold applies the EqualFold predicate on the "assignee" field.
-func AssigneeEqualFold(v string) predicate.WorkOrder {
+// AssigneeNameEqualFold applies the EqualFold predicate on the "assignee_name" field.
+func AssigneeNameEqualFold(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldAssignee), v))
+		s.Where(sql.EqualFold(s.C(FieldAssigneeName), v))
 	})
 }
 
-// AssigneeContainsFold applies the ContainsFold predicate on the "assignee" field.
-func AssigneeContainsFold(v string) predicate.WorkOrder {
+// AssigneeNameContainsFold applies the ContainsFold predicate on the "assignee_name" field.
+func AssigneeNameContainsFold(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldAssignee), v))
+		s.Where(sql.ContainsFold(s.C(FieldAssigneeName), v))
 	})
 }
 
@@ -1700,6 +1700,62 @@ func HasProjectWith(preds ...predicate.Project) predicate.WorkOrder {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ProjectInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ProjectTable, ProjectColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOwner applies the HasEdge predicate on the "owner" edge.
+func HasOwner() predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OwnerTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, OwnerTable, OwnerColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOwnerWith applies the HasEdge predicate on the "owner" edge with a given conditions (other predicates).
+func HasOwnerWith(preds ...predicate.User) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OwnerInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, OwnerTable, OwnerColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAssignee applies the HasEdge predicate on the "assignee" edge.
+func HasAssignee() predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AssigneeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, AssigneeTable, AssigneeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAssigneeWith applies the HasEdge predicate on the "assignee" edge with a given conditions (other predicates).
+func HasAssigneeWith(preds ...predicate.User) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AssigneeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, AssigneeTable, AssigneeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

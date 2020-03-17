@@ -265,7 +265,7 @@ func TestEditProject(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, input.Name, project.Name)
 		assert.Equal(t, *input.Location, project.QueryLocation().OnlyX(ctx).ID)
-		assert.Equal(t, input.Creator, project.Creator)
+		assert.Equal(t, input.Creator, project.CreatorName)
 
 		updateInput := models.EditProjectInput{
 			ID:          project.ID,
@@ -277,7 +277,7 @@ func TestEditProject(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, updateInput.Name, project.Name)
 		assert.Equal(t, *updateInput.Description, *project.Description)
-		assert.Nil(t, project.Creator)
+		assert.Nil(t, project.CreatorName)
 	}
 }
 

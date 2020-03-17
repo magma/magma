@@ -13108,7 +13108,7 @@ type ProjectMutation struct {
 	update_time        *time.Time
 	name               *string
 	description        *string
-	creator            *string
+	creator_name       *string
 	clearedFields      map[string]bool
 	_type              *int
 	cleared_type       bool
@@ -13120,6 +13120,8 @@ type ProjectMutation struct {
 	removedwork_orders map[int]struct{}
 	properties         map[int]struct{}
 	removedproperties  map[int]struct{}
+	creator            *int
+	clearedcreator     bool
 }
 
 var _ ent.Mutation = (*ProjectMutation)(nil)
@@ -13250,35 +13252,35 @@ func (m *ProjectMutation) ResetDescription() {
 	delete(m.clearedFields, project.FieldDescription)
 }
 
-// SetCreator sets the creator field.
-func (m *ProjectMutation) SetCreator(s string) {
-	m.creator = &s
+// SetCreatorName sets the creator_name field.
+func (m *ProjectMutation) SetCreatorName(s string) {
+	m.creator_name = &s
 }
 
-// Creator returns the creator value in the mutation.
-func (m *ProjectMutation) Creator() (r string, exists bool) {
-	v := m.creator
+// CreatorName returns the creator_name value in the mutation.
+func (m *ProjectMutation) CreatorName() (r string, exists bool) {
+	v := m.creator_name
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ClearCreator clears the value of creator.
-func (m *ProjectMutation) ClearCreator() {
-	m.creator = nil
-	m.clearedFields[project.FieldCreator] = true
+// ClearCreatorName clears the value of creator_name.
+func (m *ProjectMutation) ClearCreatorName() {
+	m.creator_name = nil
+	m.clearedFields[project.FieldCreatorName] = true
 }
 
-// CreatorCleared returns if the field creator was cleared in this mutation.
-func (m *ProjectMutation) CreatorCleared() bool {
-	return m.clearedFields[project.FieldCreator]
+// CreatorNameCleared returns if the field creator_name was cleared in this mutation.
+func (m *ProjectMutation) CreatorNameCleared() bool {
+	return m.clearedFields[project.FieldCreatorName]
 }
 
-// ResetCreator reset all changes of the creator field.
-func (m *ProjectMutation) ResetCreator() {
-	m.creator = nil
-	delete(m.clearedFields, project.FieldCreator)
+// ResetCreatorName reset all changes of the creator_name field.
+func (m *ProjectMutation) ResetCreatorName() {
+	m.creator_name = nil
+	delete(m.clearedFields, project.FieldCreatorName)
 }
 
 // SetTypeID sets the type edge to ProjectType by id.
@@ -13485,6 +13487,45 @@ func (m *ProjectMutation) ResetProperties() {
 	m.removedproperties = nil
 }
 
+// SetCreatorID sets the creator edge to User by id.
+func (m *ProjectMutation) SetCreatorID(id int) {
+	m.creator = &id
+}
+
+// ClearCreator clears the creator edge to User.
+func (m *ProjectMutation) ClearCreator() {
+	m.clearedcreator = true
+}
+
+// CreatorCleared returns if the edge creator was cleared.
+func (m *ProjectMutation) CreatorCleared() bool {
+	return m.clearedcreator
+}
+
+// CreatorID returns the creator id in the mutation.
+func (m *ProjectMutation) CreatorID() (id int, exists bool) {
+	if m.creator != nil {
+		return *m.creator, true
+	}
+	return
+}
+
+// CreatorIDs returns the creator ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// CreatorID instead. It exists only for internal usage by the builders.
+func (m *ProjectMutation) CreatorIDs() (ids []int) {
+	if id := m.creator; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCreator reset all changes of the creator edge.
+func (m *ProjectMutation) ResetCreator() {
+	m.creator = nil
+	m.clearedcreator = false
+}
+
 // Op returns the operation name.
 func (m *ProjectMutation) Op() Op {
 	return m.op
@@ -13512,8 +13553,8 @@ func (m *ProjectMutation) Fields() []string {
 	if m.description != nil {
 		fields = append(fields, project.FieldDescription)
 	}
-	if m.creator != nil {
-		fields = append(fields, project.FieldCreator)
+	if m.creator_name != nil {
+		fields = append(fields, project.FieldCreatorName)
 	}
 	return fields
 }
@@ -13531,8 +13572,8 @@ func (m *ProjectMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case project.FieldDescription:
 		return m.Description()
-	case project.FieldCreator:
-		return m.Creator()
+	case project.FieldCreatorName:
+		return m.CreatorName()
 	}
 	return nil, false
 }
@@ -13570,12 +13611,12 @@ func (m *ProjectMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDescription(v)
 		return nil
-	case project.FieldCreator:
+	case project.FieldCreatorName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCreator(v)
+		m.SetCreatorName(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Project field %s", name)
@@ -13610,8 +13651,8 @@ func (m *ProjectMutation) ClearedFields() []string {
 	if m.clearedFields[project.FieldDescription] {
 		fields = append(fields, project.FieldDescription)
 	}
-	if m.clearedFields[project.FieldCreator] {
-		fields = append(fields, project.FieldCreator)
+	if m.clearedFields[project.FieldCreatorName] {
+		fields = append(fields, project.FieldCreatorName)
 	}
 	return fields
 }
@@ -13629,8 +13670,8 @@ func (m *ProjectMutation) ClearField(name string) error {
 	case project.FieldDescription:
 		m.ClearDescription()
 		return nil
-	case project.FieldCreator:
-		m.ClearCreator()
+	case project.FieldCreatorName:
+		m.ClearCreatorName()
 		return nil
 	}
 	return fmt.Errorf("unknown Project nullable field %s", name)
@@ -13653,8 +13694,8 @@ func (m *ProjectMutation) ResetField(name string) error {
 	case project.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case project.FieldCreator:
-		m.ResetCreator()
+	case project.FieldCreatorName:
+		m.ResetCreatorName()
 		return nil
 	}
 	return fmt.Errorf("unknown Project field %s", name)
@@ -13663,7 +13704,7 @@ func (m *ProjectMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *ProjectMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m._type != nil {
 		edges = append(edges, project.EdgeType)
 	}
@@ -13678,6 +13719,9 @@ func (m *ProjectMutation) AddedEdges() []string {
 	}
 	if m.properties != nil {
 		edges = append(edges, project.EdgeProperties)
+	}
+	if m.creator != nil {
+		edges = append(edges, project.EdgeCreator)
 	}
 	return edges
 }
@@ -13712,6 +13756,10 @@ func (m *ProjectMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case project.EdgeCreator:
+		if id := m.creator; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -13719,7 +13767,7 @@ func (m *ProjectMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *ProjectMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedcomments != nil {
 		edges = append(edges, project.EdgeComments)
 	}
@@ -13761,12 +13809,15 @@ func (m *ProjectMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *ProjectMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.cleared_type {
 		edges = append(edges, project.EdgeType)
 	}
 	if m.clearedlocation {
 		edges = append(edges, project.EdgeLocation)
+	}
+	if m.clearedcreator {
+		edges = append(edges, project.EdgeCreator)
 	}
 	return edges
 }
@@ -13779,6 +13830,8 @@ func (m *ProjectMutation) EdgeCleared(name string) bool {
 		return m.cleared_type
 	case project.EdgeLocation:
 		return m.clearedlocation
+	case project.EdgeCreator:
+		return m.clearedcreator
 	}
 	return false
 }
@@ -13792,6 +13845,9 @@ func (m *ProjectMutation) ClearEdge(name string) error {
 		return nil
 	case project.EdgeLocation:
 		m.ClearLocation()
+		return nil
+	case project.EdgeCreator:
+		m.ClearCreator()
 		return nil
 	}
 	return fmt.Errorf("unknown Project unique edge %s", name)
@@ -13816,6 +13872,9 @@ func (m *ProjectMutation) ResetEdge(name string) error {
 		return nil
 	case project.EdgeProperties:
 		m.ResetProperties()
+		return nil
+	case project.EdgeCreator:
+		m.ResetCreator()
 		return nil
 	}
 	return fmt.Errorf("unknown Project edge %s", name)
@@ -26748,7 +26807,7 @@ type WorkOrderMutation struct {
 	owner_name                   *string
 	install_date                 *time.Time
 	creation_date                *time.Time
-	assignee                     *string
+	assignee_name                *string
 	index                        *int
 	addindex                     *int
 	close_date                   *time.Time
@@ -26777,6 +26836,10 @@ type WorkOrderMutation struct {
 	clearedtechnician            bool
 	project                      *int
 	clearedproject               bool
+	owner                        *int
+	clearedowner                 bool
+	assignee                     *int
+	clearedassignee              bool
 }
 
 var _ ent.Mutation = (*WorkOrderMutation)(nil)
@@ -27014,35 +27077,35 @@ func (m *WorkOrderMutation) ResetCreationDate() {
 	m.creation_date = nil
 }
 
-// SetAssignee sets the assignee field.
-func (m *WorkOrderMutation) SetAssignee(s string) {
-	m.assignee = &s
+// SetAssigneeName sets the assignee_name field.
+func (m *WorkOrderMutation) SetAssigneeName(s string) {
+	m.assignee_name = &s
 }
 
-// Assignee returns the assignee value in the mutation.
-func (m *WorkOrderMutation) Assignee() (r string, exists bool) {
-	v := m.assignee
+// AssigneeName returns the assignee_name value in the mutation.
+func (m *WorkOrderMutation) AssigneeName() (r string, exists bool) {
+	v := m.assignee_name
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ClearAssignee clears the value of assignee.
-func (m *WorkOrderMutation) ClearAssignee() {
-	m.assignee = nil
-	m.clearedFields[workorder.FieldAssignee] = true
+// ClearAssigneeName clears the value of assignee_name.
+func (m *WorkOrderMutation) ClearAssigneeName() {
+	m.assignee_name = nil
+	m.clearedFields[workorder.FieldAssigneeName] = true
 }
 
-// AssigneeCleared returns if the field assignee was cleared in this mutation.
-func (m *WorkOrderMutation) AssigneeCleared() bool {
-	return m.clearedFields[workorder.FieldAssignee]
+// AssigneeNameCleared returns if the field assignee_name was cleared in this mutation.
+func (m *WorkOrderMutation) AssigneeNameCleared() bool {
+	return m.clearedFields[workorder.FieldAssigneeName]
 }
 
-// ResetAssignee reset all changes of the assignee field.
-func (m *WorkOrderMutation) ResetAssignee() {
-	m.assignee = nil
-	delete(m.clearedFields, workorder.FieldAssignee)
+// ResetAssigneeName reset all changes of the assignee_name field.
+func (m *WorkOrderMutation) ResetAssigneeName() {
+	m.assignee_name = nil
+	delete(m.clearedFields, workorder.FieldAssigneeName)
 }
 
 // SetIndex sets the index field.
@@ -27620,6 +27683,84 @@ func (m *WorkOrderMutation) ResetProject() {
 	m.clearedproject = false
 }
 
+// SetOwnerID sets the owner edge to User by id.
+func (m *WorkOrderMutation) SetOwnerID(id int) {
+	m.owner = &id
+}
+
+// ClearOwner clears the owner edge to User.
+func (m *WorkOrderMutation) ClearOwner() {
+	m.clearedowner = true
+}
+
+// OwnerCleared returns if the edge owner was cleared.
+func (m *WorkOrderMutation) OwnerCleared() bool {
+	return m.clearedowner
+}
+
+// OwnerID returns the owner id in the mutation.
+func (m *WorkOrderMutation) OwnerID() (id int, exists bool) {
+	if m.owner != nil {
+		return *m.owner, true
+	}
+	return
+}
+
+// OwnerIDs returns the owner ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// OwnerID instead. It exists only for internal usage by the builders.
+func (m *WorkOrderMutation) OwnerIDs() (ids []int) {
+	if id := m.owner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOwner reset all changes of the owner edge.
+func (m *WorkOrderMutation) ResetOwner() {
+	m.owner = nil
+	m.clearedowner = false
+}
+
+// SetAssigneeID sets the assignee edge to User by id.
+func (m *WorkOrderMutation) SetAssigneeID(id int) {
+	m.assignee = &id
+}
+
+// ClearAssignee clears the assignee edge to User.
+func (m *WorkOrderMutation) ClearAssignee() {
+	m.clearedassignee = true
+}
+
+// AssigneeCleared returns if the edge assignee was cleared.
+func (m *WorkOrderMutation) AssigneeCleared() bool {
+	return m.clearedassignee
+}
+
+// AssigneeID returns the assignee id in the mutation.
+func (m *WorkOrderMutation) AssigneeID() (id int, exists bool) {
+	if m.assignee != nil {
+		return *m.assignee, true
+	}
+	return
+}
+
+// AssigneeIDs returns the assignee ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// AssigneeID instead. It exists only for internal usage by the builders.
+func (m *WorkOrderMutation) AssigneeIDs() (ids []int) {
+	if id := m.assignee; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAssignee reset all changes of the assignee edge.
+func (m *WorkOrderMutation) ResetAssignee() {
+	m.assignee = nil
+	m.clearedassignee = false
+}
+
 // Op returns the operation name.
 func (m *WorkOrderMutation) Op() Op {
 	return m.op
@@ -27662,8 +27803,8 @@ func (m *WorkOrderMutation) Fields() []string {
 	if m.creation_date != nil {
 		fields = append(fields, workorder.FieldCreationDate)
 	}
-	if m.assignee != nil {
-		fields = append(fields, workorder.FieldAssignee)
+	if m.assignee_name != nil {
+		fields = append(fields, workorder.FieldAssigneeName)
 	}
 	if m.index != nil {
 		fields = append(fields, workorder.FieldIndex)
@@ -27697,8 +27838,8 @@ func (m *WorkOrderMutation) Field(name string) (ent.Value, bool) {
 		return m.InstallDate()
 	case workorder.FieldCreationDate:
 		return m.CreationDate()
-	case workorder.FieldAssignee:
-		return m.Assignee()
+	case workorder.FieldAssigneeName:
+		return m.AssigneeName()
 	case workorder.FieldIndex:
 		return m.Index()
 	case workorder.FieldCloseDate:
@@ -27775,12 +27916,12 @@ func (m *WorkOrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCreationDate(v)
 		return nil
-	case workorder.FieldAssignee:
+	case workorder.FieldAssigneeName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetAssignee(v)
+		m.SetAssigneeName(v)
 		return nil
 	case workorder.FieldIndex:
 		v, ok := value.(int)
@@ -27847,8 +27988,8 @@ func (m *WorkOrderMutation) ClearedFields() []string {
 	if m.clearedFields[workorder.FieldInstallDate] {
 		fields = append(fields, workorder.FieldInstallDate)
 	}
-	if m.clearedFields[workorder.FieldAssignee] {
-		fields = append(fields, workorder.FieldAssignee)
+	if m.clearedFields[workorder.FieldAssigneeName] {
+		fields = append(fields, workorder.FieldAssigneeName)
 	}
 	if m.clearedFields[workorder.FieldIndex] {
 		fields = append(fields, workorder.FieldIndex)
@@ -27875,8 +28016,8 @@ func (m *WorkOrderMutation) ClearField(name string) error {
 	case workorder.FieldInstallDate:
 		m.ClearInstallDate()
 		return nil
-	case workorder.FieldAssignee:
-		m.ClearAssignee()
+	case workorder.FieldAssigneeName:
+		m.ClearAssigneeName()
 		return nil
 	case workorder.FieldIndex:
 		m.ClearIndex()
@@ -27920,8 +28061,8 @@ func (m *WorkOrderMutation) ResetField(name string) error {
 	case workorder.FieldCreationDate:
 		m.ResetCreationDate()
 		return nil
-	case workorder.FieldAssignee:
-		m.ResetAssignee()
+	case workorder.FieldAssigneeName:
+		m.ResetAssigneeName()
 		return nil
 	case workorder.FieldIndex:
 		m.ResetIndex()
@@ -27936,7 +28077,7 @@ func (m *WorkOrderMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *WorkOrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 14)
 	if m._type != nil {
 		edges = append(edges, workorder.EdgeType)
 	}
@@ -27972,6 +28113,12 @@ func (m *WorkOrderMutation) AddedEdges() []string {
 	}
 	if m.project != nil {
 		edges = append(edges, workorder.EdgeProject)
+	}
+	if m.owner != nil {
+		edges = append(edges, workorder.EdgeOwner)
+	}
+	if m.assignee != nil {
+		edges = append(edges, workorder.EdgeAssignee)
 	}
 	return edges
 }
@@ -28044,6 +28191,14 @@ func (m *WorkOrderMutation) AddedIDs(name string) []ent.Value {
 		if id := m.project; id != nil {
 			return []ent.Value{*id}
 		}
+	case workorder.EdgeOwner:
+		if id := m.owner; id != nil {
+			return []ent.Value{*id}
+		}
+	case workorder.EdgeAssignee:
+		if id := m.assignee; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -28051,7 +28206,7 @@ func (m *WorkOrderMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *WorkOrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 14)
 	if m.removedequipment != nil {
 		edges = append(edges, workorder.EdgeEquipment)
 	}
@@ -28138,7 +28293,7 @@ func (m *WorkOrderMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *WorkOrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 14)
 	if m.cleared_type {
 		edges = append(edges, workorder.EdgeType)
 	}
@@ -28150,6 +28305,12 @@ func (m *WorkOrderMutation) ClearedEdges() []string {
 	}
 	if m.clearedproject {
 		edges = append(edges, workorder.EdgeProject)
+	}
+	if m.clearedowner {
+		edges = append(edges, workorder.EdgeOwner)
+	}
+	if m.clearedassignee {
+		edges = append(edges, workorder.EdgeAssignee)
 	}
 	return edges
 }
@@ -28166,6 +28327,10 @@ func (m *WorkOrderMutation) EdgeCleared(name string) bool {
 		return m.clearedtechnician
 	case workorder.EdgeProject:
 		return m.clearedproject
+	case workorder.EdgeOwner:
+		return m.clearedowner
+	case workorder.EdgeAssignee:
+		return m.clearedassignee
 	}
 	return false
 }
@@ -28185,6 +28350,12 @@ func (m *WorkOrderMutation) ClearEdge(name string) error {
 		return nil
 	case workorder.EdgeProject:
 		m.ClearProject()
+		return nil
+	case workorder.EdgeOwner:
+		m.ClearOwner()
+		return nil
+	case workorder.EdgeAssignee:
+		m.ClearAssignee()
 		return nil
 	}
 	return fmt.Errorf("unknown WorkOrder unique edge %s", name)
@@ -28230,6 +28401,12 @@ func (m *WorkOrderMutation) ResetEdge(name string) error {
 		return nil
 	case workorder.EdgeProject:
 		m.ResetProject()
+		return nil
+	case workorder.EdgeOwner:
+		m.ResetOwner()
+		return nil
+	case workorder.EdgeAssignee:
+		m.ResetAssignee()
 		return nil
 	}
 	return fmt.Errorf("unknown WorkOrder edge %s", name)

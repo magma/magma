@@ -25,6 +25,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
@@ -138,16 +139,16 @@ func (woc *WorkOrderCreate) SetCreationDate(t time.Time) *WorkOrderCreate {
 	return woc
 }
 
-// SetAssignee sets the assignee field.
-func (woc *WorkOrderCreate) SetAssignee(s string) *WorkOrderCreate {
-	woc.mutation.SetAssignee(s)
+// SetAssigneeName sets the assignee_name field.
+func (woc *WorkOrderCreate) SetAssigneeName(s string) *WorkOrderCreate {
+	woc.mutation.SetAssigneeName(s)
 	return woc
 }
 
-// SetNillableAssignee sets the assignee field if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillableAssignee(s *string) *WorkOrderCreate {
+// SetNillableAssigneeName sets the assignee_name field if the given value is not nil.
+func (woc *WorkOrderCreate) SetNillableAssigneeName(s *string) *WorkOrderCreate {
 	if s != nil {
-		woc.SetAssignee(*s)
+		woc.SetAssigneeName(*s)
 	}
 	return woc
 }
@@ -376,6 +377,44 @@ func (woc *WorkOrderCreate) SetProject(p *Project) *WorkOrderCreate {
 	return woc.SetProjectID(p.ID)
 }
 
+// SetOwnerID sets the owner edge to User by id.
+func (woc *WorkOrderCreate) SetOwnerID(id int) *WorkOrderCreate {
+	woc.mutation.SetOwnerID(id)
+	return woc
+}
+
+// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
+func (woc *WorkOrderCreate) SetNillableOwnerID(id *int) *WorkOrderCreate {
+	if id != nil {
+		woc = woc.SetOwnerID(*id)
+	}
+	return woc
+}
+
+// SetOwner sets the owner edge to User.
+func (woc *WorkOrderCreate) SetOwner(u *User) *WorkOrderCreate {
+	return woc.SetOwnerID(u.ID)
+}
+
+// SetAssigneeID sets the assignee edge to User by id.
+func (woc *WorkOrderCreate) SetAssigneeID(id int) *WorkOrderCreate {
+	woc.mutation.SetAssigneeID(id)
+	return woc
+}
+
+// SetNillableAssigneeID sets the assignee edge to User by id if the given value is not nil.
+func (woc *WorkOrderCreate) SetNillableAssigneeID(id *int) *WorkOrderCreate {
+	if id != nil {
+		woc = woc.SetAssigneeID(*id)
+	}
+	return woc
+}
+
+// SetAssignee sets the assignee edge to User.
+func (woc *WorkOrderCreate) SetAssignee(u *User) *WorkOrderCreate {
+	return woc.SetAssigneeID(u.ID)
+}
+
 // Save creates the WorkOrder in the database.
 func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 	if _, ok := woc.mutation.CreateTime(); !ok {
@@ -526,13 +565,13 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		})
 		wo.CreationDate = value
 	}
-	if value, ok := woc.mutation.Assignee(); ok {
+	if value, ok := woc.mutation.AssigneeName(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: workorder.FieldAssignee,
+			Column: workorder.FieldAssigneeName,
 		})
-		wo.Assignee = value
+		wo.AssigneeName = value
 	}
 	if value, ok := woc.mutation.Index(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -770,6 +809,44 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: project.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := woc.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.OwnerTable,
+			Columns: []string{workorder.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := woc.mutation.AssigneeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.AssigneeTable,
+			Columns: []string{workorder.AssigneeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
 				},
 			},
 		}

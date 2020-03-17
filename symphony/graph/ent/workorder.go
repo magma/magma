@@ -15,13 +15,14 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // WorkOrder is the model entity for the WorkOrder schema.
 type WorkOrder struct {
-	config `json:"-"`
+	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
@@ -42,8 +43,8 @@ type WorkOrder struct {
 	InstallDate time.Time `json:"install_date,omitempty"`
 	// CreationDate holds the value of the "creation_date" field.
 	CreationDate time.Time `json:"creation_date,omitempty"`
-	// Assignee holds the value of the "assignee" field.
-	Assignee string `json:"assignee,omitempty"`
+	// AssigneeName holds the value of the "assignee_name" field.
+	AssigneeName string `json:"assignee_name,omitempty" gqlgen:"assignee"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
 	// CloseDate holds the value of the "close_date" field.
@@ -55,6 +56,8 @@ type WorkOrder struct {
 	work_order_type       *int
 	work_order_location   *int
 	work_order_technician *int
+	work_order_owner      *int
+	work_order_assignee   *int
 }
 
 // WorkOrderEdges holds the relations/edges for other nodes in the graph.
@@ -83,9 +86,13 @@ type WorkOrderEdges struct {
 	Technician *Technician
 	// Project holds the value of the project edge.
 	Project *Project
+	// Owner holds the value of the owner edge.
+	Owner *User
+	// Assignee holds the value of the assignee edge.
+	Assignee *User
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [14]bool
 }
 
 // TypeOrErr returns the Type value or an error if the edge
@@ -216,6 +223,34 @@ func (e WorkOrderEdges) ProjectOrErr() (*Project, error) {
 	return nil, &NotLoadedError{edge: "project"}
 }
 
+// OwnerOrErr returns the Owner value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) OwnerOrErr() (*User, error) {
+	if e.loadedTypes[12] {
+		if e.Owner == nil {
+			// The edge owner was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.Owner, nil
+	}
+	return nil, &NotLoadedError{edge: "owner"}
+}
+
+// AssigneeOrErr returns the Assignee value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) AssigneeOrErr() (*User, error) {
+	if e.loadedTypes[13] {
+		if e.Assignee == nil {
+			// The edge assignee was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.Assignee, nil
+	}
+	return nil, &NotLoadedError{edge: "assignee"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*WorkOrder) scanValues() []interface{} {
 	return []interface{}{
@@ -229,7 +264,7 @@ func (*WorkOrder) scanValues() []interface{} {
 		&sql.NullString{}, // owner_name
 		&sql.NullTime{},   // install_date
 		&sql.NullTime{},   // creation_date
-		&sql.NullString{}, // assignee
+		&sql.NullString{}, // assignee_name
 		&sql.NullInt64{},  // index
 		&sql.NullTime{},   // close_date
 	}
@@ -242,6 +277,8 @@ func (*WorkOrder) fkValues() []interface{} {
 		&sql.NullInt64{}, // work_order_type
 		&sql.NullInt64{}, // work_order_location
 		&sql.NullInt64{}, // work_order_technician
+		&sql.NullInt64{}, // work_order_owner
+		&sql.NullInt64{}, // work_order_assignee
 	}
 }
 
@@ -303,9 +340,9 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 		wo.CreationDate = value.Time
 	}
 	if value, ok := values[9].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field assignee", values[9])
+		return fmt.Errorf("unexpected type %T for field assignee_name", values[9])
 	} else if value.Valid {
-		wo.Assignee = value.String
+		wo.AssigneeName = value.String
 	}
 	if value, ok := values[10].(*sql.NullInt64); !ok {
 		return fmt.Errorf("unexpected type %T for field index", values[10])
@@ -342,6 +379,18 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 		} else if value.Valid {
 			wo.work_order_technician = new(int)
 			*wo.work_order_technician = int(value.Int64)
+		}
+		if value, ok := values[4].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_owner", value)
+		} else if value.Valid {
+			wo.work_order_owner = new(int)
+			*wo.work_order_owner = int(value.Int64)
+		}
+		if value, ok := values[5].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_assignee", value)
+		} else if value.Valid {
+			wo.work_order_assignee = new(int)
+			*wo.work_order_assignee = int(value.Int64)
 		}
 	}
 	return nil
@@ -407,6 +456,16 @@ func (wo *WorkOrder) QueryProject() *ProjectQuery {
 	return (&WorkOrderClient{config: wo.config}).QueryProject(wo)
 }
 
+// QueryOwner queries the owner edge of the WorkOrder.
+func (wo *WorkOrder) QueryOwner() *UserQuery {
+	return (&WorkOrderClient{config: wo.config}).QueryOwner(wo)
+}
+
+// QueryAssignee queries the assignee edge of the WorkOrder.
+func (wo *WorkOrder) QueryAssignee() *UserQuery {
+	return (&WorkOrderClient{config: wo.config}).QueryAssignee(wo)
+}
+
 // Update returns a builder for updating this WorkOrder.
 // Note that, you need to call WorkOrder.Unwrap() before calling this method, if this WorkOrder
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -448,8 +507,8 @@ func (wo *WorkOrder) String() string {
 	builder.WriteString(wo.InstallDate.Format(time.ANSIC))
 	builder.WriteString(", creation_date=")
 	builder.WriteString(wo.CreationDate.Format(time.ANSIC))
-	builder.WriteString(", assignee=")
-	builder.WriteString(wo.Assignee)
+	builder.WriteString(", assignee_name=")
+	builder.WriteString(wo.AssigneeName)
 	builder.WriteString(", index=")
 	builder.WriteString(fmt.Sprintf("%v", wo.Index))
 	builder.WriteString(", close_date=")

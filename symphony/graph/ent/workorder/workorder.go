@@ -23,8 +23,8 @@ const (
 	FieldDescription  = "description"   // FieldOwnerName holds the string denoting the owner_name vertex property in the database.
 	FieldOwnerName    = "owner_name"    // FieldInstallDate holds the string denoting the install_date vertex property in the database.
 	FieldInstallDate  = "install_date"  // FieldCreationDate holds the string denoting the creation_date vertex property in the database.
-	FieldCreationDate = "creation_date" // FieldAssignee holds the string denoting the assignee vertex property in the database.
-	FieldAssignee     = "assignee"      // FieldIndex holds the string denoting the index vertex property in the database.
+	FieldCreationDate = "creation_date" // FieldAssigneeName holds the string denoting the assignee_name vertex property in the database.
+	FieldAssigneeName = "assignee"      // FieldIndex holds the string denoting the index vertex property in the database.
 	FieldIndex        = "index"         // FieldCloseDate holds the string denoting the close_date vertex property in the database.
 	FieldCloseDate    = "close_date"
 
@@ -52,6 +52,10 @@ const (
 	EdgeTechnician = "technician"
 	// EdgeProject holds the string denoting the project edge name in mutations.
 	EdgeProject = "project"
+	// EdgeOwner holds the string denoting the owner edge name in mutations.
+	EdgeOwner = "owner"
+	// EdgeAssignee holds the string denoting the assignee edge name in mutations.
+	EdgeAssignee = "assignee"
 
 	// Table holds the table name of the workorder in the database.
 	Table = "work_orders"
@@ -139,6 +143,20 @@ const (
 	ProjectInverseTable = "projects"
 	// ProjectColumn is the table column denoting the project relation/edge.
 	ProjectColumn = "project_work_orders"
+	// OwnerTable is the table the holds the owner relation/edge.
+	OwnerTable = "work_orders"
+	// OwnerInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	OwnerInverseTable = "users"
+	// OwnerColumn is the table column denoting the owner relation/edge.
+	OwnerColumn = "work_order_owner"
+	// AssigneeTable is the table the holds the assignee relation/edge.
+	AssigneeTable = "work_orders"
+	// AssigneeInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	AssigneeInverseTable = "users"
+	// AssigneeColumn is the table column denoting the assignee relation/edge.
+	AssigneeColumn = "work_order_assignee"
 )
 
 // Columns holds all SQL columns for workorder fields.
@@ -153,7 +171,7 @@ var Columns = []string{
 	FieldOwnerName,
 	FieldInstallDate,
 	FieldCreationDate,
-	FieldAssignee,
+	FieldAssigneeName,
 	FieldIndex,
 	FieldCloseDate,
 }
@@ -164,6 +182,8 @@ var ForeignKeys = []string{
 	"work_order_type",
 	"work_order_location",
 	"work_order_technician",
+	"work_order_owner",
+	"work_order_assignee",
 }
 
 var (

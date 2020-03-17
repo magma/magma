@@ -153,7 +153,7 @@ func (r mutationResolver) internalAddWorkOrder(
 		SetNillableLocationID(input.LocationID).
 		SetNillableDescription(input.Description).
 		SetCreationDate(time.Now()).
-		SetNillableAssignee(input.Assignee).
+		SetNillableAssigneeName(input.Assignee).
 		SetNillableIndex(input.Index)
 	if input.Status != nil {
 		mutation.SetStatus(input.Status.String())
@@ -218,7 +218,7 @@ func (r mutationResolver) EditWorkOrder(
 		UpdateOne(wo).
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
-		SetNillableAssignee(input.Assignee).
+		SetNillableAssigneeName(input.Assignee).
 		SetStatus(input.Status.String()).
 		SetPriority(input.Priority.String()).
 		SetNillableIndex(input.Index)

@@ -26,6 +26,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
@@ -130,23 +131,23 @@ func (wou *WorkOrderUpdate) SetCreationDate(t time.Time) *WorkOrderUpdate {
 	return wou
 }
 
-// SetAssignee sets the assignee field.
-func (wou *WorkOrderUpdate) SetAssignee(s string) *WorkOrderUpdate {
-	wou.mutation.SetAssignee(s)
+// SetAssigneeName sets the assignee_name field.
+func (wou *WorkOrderUpdate) SetAssigneeName(s string) *WorkOrderUpdate {
+	wou.mutation.SetAssigneeName(s)
 	return wou
 }
 
-// SetNillableAssignee sets the assignee field if the given value is not nil.
-func (wou *WorkOrderUpdate) SetNillableAssignee(s *string) *WorkOrderUpdate {
+// SetNillableAssigneeName sets the assignee_name field if the given value is not nil.
+func (wou *WorkOrderUpdate) SetNillableAssigneeName(s *string) *WorkOrderUpdate {
 	if s != nil {
-		wou.SetAssignee(*s)
+		wou.SetAssigneeName(*s)
 	}
 	return wou
 }
 
-// ClearAssignee clears the value of assignee.
-func (wou *WorkOrderUpdate) ClearAssignee() *WorkOrderUpdate {
-	wou.mutation.ClearAssignee()
+// ClearAssigneeName clears the value of assignee_name.
+func (wou *WorkOrderUpdate) ClearAssigneeName() *WorkOrderUpdate {
+	wou.mutation.ClearAssigneeName()
 	return wou
 }
 
@@ -393,6 +394,44 @@ func (wou *WorkOrderUpdate) SetProject(p *Project) *WorkOrderUpdate {
 	return wou.SetProjectID(p.ID)
 }
 
+// SetOwnerID sets the owner edge to User by id.
+func (wou *WorkOrderUpdate) SetOwnerID(id int) *WorkOrderUpdate {
+	wou.mutation.SetOwnerID(id)
+	return wou
+}
+
+// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
+func (wou *WorkOrderUpdate) SetNillableOwnerID(id *int) *WorkOrderUpdate {
+	if id != nil {
+		wou = wou.SetOwnerID(*id)
+	}
+	return wou
+}
+
+// SetOwner sets the owner edge to User.
+func (wou *WorkOrderUpdate) SetOwner(u *User) *WorkOrderUpdate {
+	return wou.SetOwnerID(u.ID)
+}
+
+// SetAssigneeID sets the assignee edge to User by id.
+func (wou *WorkOrderUpdate) SetAssigneeID(id int) *WorkOrderUpdate {
+	wou.mutation.SetAssigneeID(id)
+	return wou
+}
+
+// SetNillableAssigneeID sets the assignee edge to User by id if the given value is not nil.
+func (wou *WorkOrderUpdate) SetNillableAssigneeID(id *int) *WorkOrderUpdate {
+	if id != nil {
+		wou = wou.SetAssigneeID(*id)
+	}
+	return wou
+}
+
+// SetAssignee sets the assignee edge to User.
+func (wou *WorkOrderUpdate) SetAssignee(u *User) *WorkOrderUpdate {
+	return wou.SetAssigneeID(u.ID)
+}
+
 // ClearType clears the type edge to WorkOrderType.
 func (wou *WorkOrderUpdate) ClearType() *WorkOrderUpdate {
 	wou.mutation.ClearType()
@@ -534,6 +573,18 @@ func (wou *WorkOrderUpdate) ClearTechnician() *WorkOrderUpdate {
 // ClearProject clears the project edge to Project.
 func (wou *WorkOrderUpdate) ClearProject() *WorkOrderUpdate {
 	wou.mutation.ClearProject()
+	return wou
+}
+
+// ClearOwner clears the owner edge to User.
+func (wou *WorkOrderUpdate) ClearOwner() *WorkOrderUpdate {
+	wou.mutation.ClearOwner()
+	return wou
+}
+
+// ClearAssignee clears the assignee edge to User.
+func (wou *WorkOrderUpdate) ClearAssignee() *WorkOrderUpdate {
+	wou.mutation.ClearAssignee()
 	return wou
 }
 
@@ -683,17 +734,17 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: workorder.FieldCreationDate,
 		})
 	}
-	if value, ok := wou.mutation.Assignee(); ok {
+	if value, ok := wou.mutation.AssigneeName(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: workorder.FieldAssignee,
+			Column: workorder.FieldAssigneeName,
 		})
 	}
-	if wou.mutation.AssigneeCleared() {
+	if wou.mutation.AssigneeNameCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: workorder.FieldAssignee,
+			Column: workorder.FieldAssigneeName,
 		})
 	}
 	if value, ok := wou.mutation.Index(); ok {
@@ -1173,6 +1224,76 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if wou.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.OwnerTable,
+			Columns: []string{workorder.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wou.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.OwnerTable,
+			Columns: []string{workorder.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wou.mutation.AssigneeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.AssigneeTable,
+			Columns: []string{workorder.AssigneeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wou.mutation.AssigneeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.AssigneeTable,
+			Columns: []string{workorder.AssigneeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, wou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{workorder.Label}
@@ -1277,23 +1398,23 @@ func (wouo *WorkOrderUpdateOne) SetCreationDate(t time.Time) *WorkOrderUpdateOne
 	return wouo
 }
 
-// SetAssignee sets the assignee field.
-func (wouo *WorkOrderUpdateOne) SetAssignee(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetAssignee(s)
+// SetAssigneeName sets the assignee_name field.
+func (wouo *WorkOrderUpdateOne) SetAssigneeName(s string) *WorkOrderUpdateOne {
+	wouo.mutation.SetAssigneeName(s)
 	return wouo
 }
 
-// SetNillableAssignee sets the assignee field if the given value is not nil.
-func (wouo *WorkOrderUpdateOne) SetNillableAssignee(s *string) *WorkOrderUpdateOne {
+// SetNillableAssigneeName sets the assignee_name field if the given value is not nil.
+func (wouo *WorkOrderUpdateOne) SetNillableAssigneeName(s *string) *WorkOrderUpdateOne {
 	if s != nil {
-		wouo.SetAssignee(*s)
+		wouo.SetAssigneeName(*s)
 	}
 	return wouo
 }
 
-// ClearAssignee clears the value of assignee.
-func (wouo *WorkOrderUpdateOne) ClearAssignee() *WorkOrderUpdateOne {
-	wouo.mutation.ClearAssignee()
+// ClearAssigneeName clears the value of assignee_name.
+func (wouo *WorkOrderUpdateOne) ClearAssigneeName() *WorkOrderUpdateOne {
+	wouo.mutation.ClearAssigneeName()
 	return wouo
 }
 
@@ -1540,6 +1661,44 @@ func (wouo *WorkOrderUpdateOne) SetProject(p *Project) *WorkOrderUpdateOne {
 	return wouo.SetProjectID(p.ID)
 }
 
+// SetOwnerID sets the owner edge to User by id.
+func (wouo *WorkOrderUpdateOne) SetOwnerID(id int) *WorkOrderUpdateOne {
+	wouo.mutation.SetOwnerID(id)
+	return wouo
+}
+
+// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
+func (wouo *WorkOrderUpdateOne) SetNillableOwnerID(id *int) *WorkOrderUpdateOne {
+	if id != nil {
+		wouo = wouo.SetOwnerID(*id)
+	}
+	return wouo
+}
+
+// SetOwner sets the owner edge to User.
+func (wouo *WorkOrderUpdateOne) SetOwner(u *User) *WorkOrderUpdateOne {
+	return wouo.SetOwnerID(u.ID)
+}
+
+// SetAssigneeID sets the assignee edge to User by id.
+func (wouo *WorkOrderUpdateOne) SetAssigneeID(id int) *WorkOrderUpdateOne {
+	wouo.mutation.SetAssigneeID(id)
+	return wouo
+}
+
+// SetNillableAssigneeID sets the assignee edge to User by id if the given value is not nil.
+func (wouo *WorkOrderUpdateOne) SetNillableAssigneeID(id *int) *WorkOrderUpdateOne {
+	if id != nil {
+		wouo = wouo.SetAssigneeID(*id)
+	}
+	return wouo
+}
+
+// SetAssignee sets the assignee edge to User.
+func (wouo *WorkOrderUpdateOne) SetAssignee(u *User) *WorkOrderUpdateOne {
+	return wouo.SetAssigneeID(u.ID)
+}
+
 // ClearType clears the type edge to WorkOrderType.
 func (wouo *WorkOrderUpdateOne) ClearType() *WorkOrderUpdateOne {
 	wouo.mutation.ClearType()
@@ -1681,6 +1840,18 @@ func (wouo *WorkOrderUpdateOne) ClearTechnician() *WorkOrderUpdateOne {
 // ClearProject clears the project edge to Project.
 func (wouo *WorkOrderUpdateOne) ClearProject() *WorkOrderUpdateOne {
 	wouo.mutation.ClearProject()
+	return wouo
+}
+
+// ClearOwner clears the owner edge to User.
+func (wouo *WorkOrderUpdateOne) ClearOwner() *WorkOrderUpdateOne {
+	wouo.mutation.ClearOwner()
+	return wouo
+}
+
+// ClearAssignee clears the assignee edge to User.
+func (wouo *WorkOrderUpdateOne) ClearAssignee() *WorkOrderUpdateOne {
+	wouo.mutation.ClearAssignee()
 	return wouo
 }
 
@@ -1828,17 +1999,17 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 			Column: workorder.FieldCreationDate,
 		})
 	}
-	if value, ok := wouo.mutation.Assignee(); ok {
+	if value, ok := wouo.mutation.AssigneeName(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: workorder.FieldAssignee,
+			Column: workorder.FieldAssigneeName,
 		})
 	}
-	if wouo.mutation.AssigneeCleared() {
+	if wouo.mutation.AssigneeNameCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: workorder.FieldAssignee,
+			Column: workorder.FieldAssigneeName,
 		})
 	}
 	if value, ok := wouo.mutation.Index(); ok {
@@ -2310,6 +2481,76 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: project.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wouo.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.OwnerTable,
+			Columns: []string{workorder.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wouo.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.OwnerTable,
+			Columns: []string{workorder.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wouo.mutation.AssigneeCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.AssigneeTable,
+			Columns: []string{workorder.AssigneeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wouo.mutation.AssigneeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.AssigneeTable,
+			Columns: []string{workorder.AssigneeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
 				},
 			},
 		}

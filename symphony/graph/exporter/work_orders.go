@@ -126,7 +126,7 @@ func woToSlice(ctx context.Context, wo *ent.WorkOrder, propertyTypes []string) (
 	}
 
 	row := []string{
-		strconv.Itoa(wo.ID), wo.Name, projName, wo.Status, wo.Assignee,
+		strconv.Itoa(wo.ID), wo.Name, projName, wo.Status, wo.AssigneeName,
 		wo.OwnerName, wo.Priority, getStringDate(wo.CreationDate),
 		getStringDate(wo.InstallDate), locName,
 	}

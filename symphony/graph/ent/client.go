@@ -3132,6 +3132,20 @@ func (c *ProjectClient) QueryProperties(pr *Project) *PropertyQuery {
 	return query
 }
 
+// QueryCreator queries the creator edge of a Project.
+func (c *ProjectClient) QueryCreator(pr *Project) *UserQuery {
+	query := &UserQuery{config: c.config}
+	id := pr.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, id),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, project.CreatorTable, project.CreatorColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ProjectClient) Hooks() []Hook {
 	return c.hooks.Project
@@ -5294,6 +5308,34 @@ func (c *WorkOrderClient) QueryProject(wo *WorkOrder) *ProjectQuery {
 		sqlgraph.From(workorder.Table, workorder.FieldID, id),
 		sqlgraph.To(project.Table, project.FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, workorder.ProjectTable, workorder.ProjectColumn),
+	)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryOwner queries the owner edge of a WorkOrder.
+func (c *WorkOrderClient) QueryOwner(wo *WorkOrder) *UserQuery {
+	query := &UserQuery{config: c.config}
+	id := wo.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorder.OwnerTable, workorder.OwnerColumn),
+	)
+	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryAssignee queries the assignee edge of a WorkOrder.
+func (c *WorkOrderClient) QueryAssignee(wo *WorkOrder) *UserQuery {
+	query := &UserQuery{config: c.config}
+	id := wo.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, id),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorder.AssigneeTable, workorder.AssigneeColumn),
 	)
 	query.sql = sqlgraph.Neighbors(wo.driver.Dialect(), step)
 

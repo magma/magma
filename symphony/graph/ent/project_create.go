@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -77,16 +78,16 @@ func (pc *ProjectCreate) SetNillableDescription(s *string) *ProjectCreate {
 	return pc
 }
 
-// SetCreator sets the creator field.
-func (pc *ProjectCreate) SetCreator(s string) *ProjectCreate {
-	pc.mutation.SetCreator(s)
+// SetCreatorName sets the creator_name field.
+func (pc *ProjectCreate) SetCreatorName(s string) *ProjectCreate {
+	pc.mutation.SetCreatorName(s)
 	return pc
 }
 
-// SetNillableCreator sets the creator field if the given value is not nil.
-func (pc *ProjectCreate) SetNillableCreator(s *string) *ProjectCreate {
+// SetNillableCreatorName sets the creator_name field if the given value is not nil.
+func (pc *ProjectCreate) SetNillableCreatorName(s *string) *ProjectCreate {
 	if s != nil {
-		pc.SetCreator(*s)
+		pc.SetCreatorName(*s)
 	}
 	return pc
 }
@@ -164,6 +165,25 @@ func (pc *ProjectCreate) AddProperties(p ...*Property) *ProjectCreate {
 		ids[i] = p[i].ID
 	}
 	return pc.AddPropertyIDs(ids...)
+}
+
+// SetCreatorID sets the creator edge to User by id.
+func (pc *ProjectCreate) SetCreatorID(id int) *ProjectCreate {
+	pc.mutation.SetCreatorID(id)
+	return pc
+}
+
+// SetNillableCreatorID sets the creator edge to User by id if the given value is not nil.
+func (pc *ProjectCreate) SetNillableCreatorID(id *int) *ProjectCreate {
+	if id != nil {
+		pc = pc.SetCreatorID(*id)
+	}
+	return pc
+}
+
+// SetCreator sets the creator edge to User.
+func (pc *ProjectCreate) SetCreator(u *User) *ProjectCreate {
+	return pc.SetCreatorID(u.ID)
 }
 
 // Save creates the Project in the database.
@@ -265,13 +285,13 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		})
 		pr.Description = &value
 	}
-	if value, ok := pc.mutation.Creator(); ok {
+	if value, ok := pc.mutation.CreatorName(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: project.FieldCreator,
+			Column: project.FieldCreatorName,
 		})
-		pr.Creator = &value
+		pr.CreatorName = &value
 	}
 	if nodes := pc.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -360,6 +380,25 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: property.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.CreatorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   project.CreatorTable,
+			Columns: []string{project.CreatorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
 				},
 			},
 		}
