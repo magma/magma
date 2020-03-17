@@ -23,7 +23,7 @@ import (
 )
 
 func TestAuthenticateUplinkTraffic(t *testing.T) {
-	fmt.Printf("Running TestAuthenticateUplinkTraffic...\n")
+	fmt.Printf("\nRunning TestAuthenticateUplinkTraffic...\n")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
