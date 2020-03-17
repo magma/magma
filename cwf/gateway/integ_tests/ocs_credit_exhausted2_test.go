@@ -26,7 +26,7 @@ import (
 )
 
 func TestAuthenticateOcsCreditExhaustedWithoutCRRU(t *testing.T) {
-	fmt.Printf("Running TestAuthenticateOcsCreditExhaustedWithoutCCRU...\n")
+	fmt.Printf("\nRunning TestAuthenticateOcsCreditExhaustedWithoutCCRU...\n")
 
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
