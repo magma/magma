@@ -30,7 +30,7 @@ import (
 // TestGxClient tests CCR init and terminate messages using a fake PCRF
 func TestPCRFExpectations(t *testing.T) {
 	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:3898",
+		Addr:     "127.0.0.1:0",
 		Protocol: "tcp"},
 	}
 	clientConfig := getClientConfig()
@@ -83,15 +83,12 @@ func TestPCRFExpectations(t *testing.T) {
 	defaultCCA := &fegprotos.GxCreditControlAnswer{
 		ResultCode: 2001,
 	}
-	serverConfigForPCRF := serverConfig
 	pcrf := startServerWithExpectations(
-		clientConfig, &serverConfigForPCRF,
+		clientConfig, &serverConfig,
 		[]*fegprotos.GxCreditControlExpectation{expectedInit, expectedUpdate, expectationNotMet},
 		fegprotos.UnexpectedRequestBehavior_CONTINUE_WITH_DEFAULT_ANSWER,
 		defaultCCA)
-
 	gxClient := gx.NewGxClient(clientConfig, &serverConfig, getMockReAuthHandler(), nil, nil)
-
 	// send init
 	ccrInit := &gx.CreditControlRequest{
 		SessionID:     "1",
@@ -193,12 +190,12 @@ func startServerWithExpectations(
 			GxDefaultCca:              defaultCCA,
 		})
 
-		serverStarted <- struct{}{}
 		lis, err := pcrf.StartListener()
 		if err != nil {
 			log.Fatalf("Could not start listener for PCRF, %s", err.Error())
 		}
 		server.Addr = lis.Addr().String()
+		serverStarted <- struct{}{}
 		err = pcrf.Start(lis)
 		if err != nil {
 			log.Fatalf("Could not start test PCRF server, %s", err.Error())
