@@ -73,6 +73,7 @@ class MockPipelinedClient : public PipelinedClient {
       .WillByDefault(Return(true));
     ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
+    ON_CALL(*this, add_gy_final_action_flow(_, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, update_subscriber_quota_state(_))
       .WillByDefault(Return(true));
   }
@@ -119,6 +120,13 @@ class MockPipelinedClient : public PipelinedClient {
     bool(
       const SubscriberID &sid,
       const std::string &ue_mac_addr));
+  MOCK_METHOD4(
+    add_gy_final_action_flow,
+    bool(
+      const std::string &imsi,
+      const std::string &ip_addr,
+      const std::vector<std::string> &static_rules,
+      const std::vector<PolicyRule> &dynamic_rules));
   MOCK_METHOD1(
     update_subscriber_quota_state,
     bool(const std::vector<SubscriberQuotaUpdate>& updates));

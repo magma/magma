@@ -19,10 +19,12 @@ namespace { // anonymous
 magma::DeactivateFlowsRequest create_deactivate_req(
   const std::string& imsi,
   const std::vector<std::string>& rule_ids,
-  const std::vector<magma::PolicyRule>& dynamic_rules)
+  const std::vector<magma::PolicyRule>& dynamic_rules,
+  const magma::RequestOriginType_OriginType origin_type)
 {
   magma::DeactivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
+  req.mutable_request_origin()->set_type(origin_type);
   auto ids = req.mutable_rule_ids();
   for (const auto& id : rule_ids) {
     ids->Add()->assign(id);
@@ -37,11 +39,13 @@ magma::ActivateFlowsRequest create_activate_req(
   const std::string& imsi,
   const std::string& ip_addr,
   const std::vector<std::string>& static_rules,
-  const std::vector<magma::PolicyRule>& dynamic_rules)
+  const std::vector<magma::PolicyRule>& dynamic_rules,
+  const magma::RequestOriginType_OriginType origin_type)
 {
   magma::ActivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
+  req.mutable_request_origin()->set_type(origin_type);
   auto ids = req.mutable_rule_ids();
   for (const auto& id : static_rules) {
     ids->Add()->assign(id);
@@ -88,7 +92,8 @@ magma::SetupPolicyRequest create_setup_policy_req(
   for(auto it = infos.begin(); it != infos.end(); it++ )
   {
     auto activate_req = create_activate_req(it->imsi, it->ip_addr,
-      it->static_rules, it->dynamic_rules);
+      it->static_rules, it->dynamic_rules,
+      magma::RequestOriginType::GX);
     activation_reqs.push_back(activate_req);
   }
   auto mut_requests = req.mutable_requests();
@@ -204,7 +209,8 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules(
   const std::vector<std::string>& rule_ids,
   const std::vector<PolicyRule>& dynamic_rules)
 {
-  auto req = create_deactivate_req(imsi, rule_ids, dynamic_rules);
+  auto req = create_deactivate_req(imsi, rule_ids, dynamic_rules,
+                                   RequestOriginType::GX);
   MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
                << dynamic_rules.size() << " dynamic rules for subscriber "
                << imsi;
@@ -229,7 +235,8 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
   // Activate static rules and dynamic rules separately until bug is fixed in
   // pipelined which crashes if activated at the same time
   auto static_req = create_activate_req(
-    imsi, ip_addr, static_rules, std::vector<PolicyRule>());
+    imsi, ip_addr, static_rules, std::vector<PolicyRule>(),
+    RequestOriginType::GX);
   activate_flows_rpc(static_req,
     [imsi](Status status, ActivateFlowsResult resp) {
       if (!status.ok()) {
@@ -238,7 +245,8 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
       }
   });
   auto dynamic_req = create_activate_req(
-    imsi, ip_addr,std::vector<std::string>(), dynamic_rules);
+    imsi, ip_addr, std::vector<std::string>(), dynamic_rules,
+    RequestOriginType::GX);
   activate_flows_rpc(dynamic_req,
     [imsi](Status status, ActivateFlowsResult resp) {
       if (!status.ok()) {
@@ -314,6 +322,35 @@ void AsyncPipelinedClient::setup_ue_mac_rpc(
     stub_->AsyncSetupUEMacFlows(local_resp->get_context(), request, &queue_)));
 }
 
+bool AsyncPipelinedClient::add_gy_final_action_flow(
+  const std::string &imsi,
+  const std::string &ip_addr,
+  const std::vector<std::string> &static_rules,
+  const std::vector<PolicyRule> &dynamic_rules)
+{
+  MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
+  auto static_req = create_activate_req(
+    imsi, ip_addr, static_rules, std::vector<PolicyRule>(),
+    RequestOriginType::GY);
+  activate_flows_rpc(static_req,
+    [imsi](Status status, ActivateFlowsResult resp) {
+      if (!status.ok()) {
+        MLOG(MERROR) << "Could not activate flows through pipelined for UE "
+                     << imsi << ": " << status.error_message();
+      }
+  });
+  auto dynamic_req = create_activate_req(
+    imsi, ip_addr,std::vector<std::string>(), dynamic_rules,
+    RequestOriginType::GY);
+  activate_flows_rpc(dynamic_req,
+    [imsi](Status status, ActivateFlowsResult resp) {
+      if (!status.ok()) {
+        MLOG(MERROR) << "Could not activate flows through pipelined for UE "
+                     << imsi << ": " << status.error_message();
+      }
+  });
+  return true;
+}
 void AsyncPipelinedClient::deactivate_flows_rpc(
   const DeactivateFlowsRequest& request,
   std::function<void(Status, DeactivateFlowsResult)> callback)

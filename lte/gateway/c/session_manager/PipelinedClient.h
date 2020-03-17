@@ -106,6 +106,15 @@ class PipelinedClient {
    */
   virtual bool update_subscriber_quota_state(
     const std::vector<SubscriberQuotaUpdate>& updates) = 0;
+
+  /**
+   * Activate the GY final action policy
+   */
+  virtual bool add_gy_final_action_flow(
+    const std::string &imsi,
+    const std::string &ip_addr,
+    const std::vector<std::string> &static_rules,
+    const std::vector<PolicyRule> &dynamic_rules) = 0;
 };
 
 /**
@@ -190,6 +199,12 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool delete_ue_mac_flow(
     const SubscriberID &sid,
     const std::string &ue_mac_addr);
+
+  bool add_gy_final_action_flow(
+    const std::string &imsi,
+    const std::string &ip_addr,
+    const std::vector<std::string> &static_rules,
+    const std::vector<PolicyRule> &dynamic_rules);
 
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
