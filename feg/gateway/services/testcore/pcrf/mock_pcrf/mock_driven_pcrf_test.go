@@ -83,8 +83,9 @@ func TestPCRFExpectations(t *testing.T) {
 	defaultCCA := &fegprotos.GxCreditControlAnswer{
 		ResultCode: 2001,
 	}
+	serverConifgForPCRF := serverConfig
 	pcrf := startServerWithExpectations(
-		clientConfig, &serverConfig,
+		clientConfig, &serverConifgForPCRF,
 		[]*fegprotos.GxCreditControlExpectation{expectedInit, expectedUpdate, expectationNotMet},
 		fegprotos.UnexpectedRequestBehavior_CONTINUE_WITH_DEFAULT_ANSWER,
 		defaultCCA)
