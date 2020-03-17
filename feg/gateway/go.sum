@@ -68,6 +68,8 @@ github.com/elastic/gosigar v0.9.0/go.mod h1:cdorVVzy1fhmEqmtgqkoE3bYtCfSCkVyjTyC
 github.com/elazarl/go-bindata-assetfs v1.0.0/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo7R71Vk1u8bnjau5yw4=
 github.com/emakeev/go-diameter/v4 v4.0.4 h1:QZ8734e0Pyrp9NQtFH87HxOYcAUKuLx+cyAn9Q4cZlw=
 github.com/emakeev/go-diameter/v4 v4.0.4/go.mod h1:Qx/+pf+c9sBUHWq1d7EH3bkdwN8U0mUpdy9BieDw6UQ=
+github.com/emakeev/go-diameter/v4 v4.0.6 h1:C0ns4G2CHqYn4XrcVwqBWI8l7LcxwtP2N6Us7yoW3E4=
+github.com/emakeev/go-diameter/v4 v4.0.6/go.mod h1:Qx/+pf+c9sBUHWq1d7EH3bkdwN8U0mUpdy9BieDw6UQ=
 github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe h1:AtQCu1EME1N7Gwb4BNcpeKNxPmMK6G2QCeN+rVJO1EM=
 github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe/go.mod h1:kEQPRPTu2Cm00AIGJ0SWq8pOfa9kPZozrZ5/2XN2PB4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
