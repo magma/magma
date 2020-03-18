@@ -11,7 +11,7 @@
 import type {ChecklistItemsDialogStateType} from '../checkListCategory/ChecklistItemsDialogMutateState';
 
 import CheckCircle from '@material-ui/icons/CheckCircle';
-import CheckListItem from '../CheckListItem';
+import CheckListItemFilling from './CheckListItemFilling';
 import ChecklistItemsDialogMutateDispatchContext from '../checkListCategory/ChecklistItemsDialogMutateDispatchContext';
 import RadioButtonUnchecked from '@material-ui/icons/RadioButtonUnchecked';
 import React, {useContext, useMemo} from 'react';
@@ -93,7 +93,7 @@ const CheckListTableFilling = ({items}: Props) => {
         )}
       </TableCell>
       <TableCell component="div">
-        <CheckListItem
+        <CheckListItemFilling
           item={checkListItem || null}
           onChange={updatedItem =>
             dispatch({
