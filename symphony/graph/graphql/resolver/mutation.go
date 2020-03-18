@@ -2938,21 +2938,29 @@ func (r mutationResolver) AddReportFilter(ctx context.Context, input models.Repo
 	if err != nil {
 		return nil, err
 	}
-	return r.ClientFrom(ctx).
+	rf, err := r.ClientFrom(ctx).
 		ReportFilter.
 		Create().
 		SetName(input.Name).
 		SetEntity(reportfilter.Entity(input.Entity)).
 		SetFilters(string(filters)).
 		Save(ctx)
+	if err != nil && ent.IsConstraintError(err) {
+		return nil, gqlerror.Errorf("a saved search with the name %s already exists", input.Name)
+	}
+	return rf, err
 }
 
 func (r mutationResolver) EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error) {
-	return r.ClientFrom(ctx).
+	rf, err := r.ClientFrom(ctx).
 		ReportFilter.
 		UpdateOneID(input.ID).
 		SetName(input.Name).
 		Save(ctx)
+	if err != nil && ent.IsConstraintError(err) {
+		return nil, gqlerror.Errorf("a saved search with the name %s already exists", input.Name)
+	}
+	return rf, err
 }
 
 func (r mutationResolver) DeleteReportFilter(ctx context.Context, id int) (bool, error) {

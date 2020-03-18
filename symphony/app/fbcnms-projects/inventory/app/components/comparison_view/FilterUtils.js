@@ -240,3 +240,21 @@ export const toOperator = (op: FilterOperator): Operator => {
   }
   throw new Error(`Operator ${op} is not supported`);
 };
+
+export const stringToOperator = (op: string): FilterOperator => {
+  switch (op) {
+    case 'is':
+      return 'IS';
+    case 'contains':
+      return 'CONTAINS';
+    case 'date_greater_than':
+      return 'DATE_GREATER_THAN';
+    case 'date_less_than':
+      return 'DATE_LESS_THAN';
+    case 'is_not_one_of':
+      return 'IS_NOT_ONE_OF';
+    case 'is_one_of':
+      return 'IS_ONE_OF';
+  }
+  throw new Error(`Operator ${op} is not supported`);
+};
