@@ -7,11 +7,17 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
+#include <functional>
 #include <string>
+#include <utility>
+#include <unordered_set>
 #include <vector>
 
+#include "RuleStore.h"
 #include "SessionState.h"
+#include "StoredState.h"
 #include "magma_logging.h"
+#include "CreditKey.h"
 
 namespace magma {
 
@@ -329,6 +335,55 @@ UsageMonitoringCreditPool& SessionState::get_monitor_pool()
 {
   return monitor_pool_;
 }
+
+SessionState::TotalCreditUsage SessionState::get_total_credit_usage()
+{
+  // Collate unique charging/monitoring keys used by rules
+  std::unordered_set<CreditKey, decltype(&ccHash), decltype(&ccEqual)> used_charging_keys
+    (4, ccHash, ccEqual);
+  std::unordered_set<std::string> used_monitoring_keys;
+
+  std::vector<std::reference_wrapper<PolicyRuleBiMap>> bimaps{
+    static_rules_, dynamic_rules_
+  };
+
+  for (auto bimap : bimaps) {
+    PolicyRuleBiMap& rules = bimap;
+    std::vector<std::string> rule_ids{};
+    std::vector<std::string>& rule_ids_ptr = rule_ids;
+    rules.get_rule_ids(rule_ids_ptr);
+
+    for (auto rule_id : rule_ids) {
+      CreditKey charging_key;
+      bool should_track_charging_key =
+        rules.get_charging_key_for_rule_id(rule_id, &charging_key);
+      std::string monitoring_key;
+      bool should_track_monitoring_key =
+        rules.get_monitoring_key_for_rule_id(rule_id, &monitoring_key);
+
+      if (should_track_charging_key) used_charging_keys.insert(charging_key);
+      if (should_track_monitoring_key) used_monitoring_keys.insert(monitoring_key);
+    }
+  }
+
+  // Sum up usage
+  TotalCreditUsage usage{
+    .monitoring_tx = 0,
+    .monitoring_rx = 0,
+    .charging_tx = 0,
+    .charging_rx = 0,
+  };
+  for (auto monitoring_key : used_monitoring_keys) {
+    usage.monitoring_tx += get_monitor_pool().get_credit(monitoring_key, USED_TX);
+    usage.monitoring_rx += get_monitor_pool().get_credit(monitoring_key, USED_RX);
+  }
+  for (auto charging_key : used_charging_keys) {
+    usage.charging_tx += get_charging_pool().get_credit(charging_key, USED_TX);
+    usage.charging_rx += get_charging_pool().get_credit(charging_key, USED_RX);
+  }
+  return usage;
+}
+
 
 bool SessionState::is_same_config(const Config& new_config) const
 {

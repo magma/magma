@@ -181,6 +181,12 @@ MATCHER_P2(CheckQuotaUpdateState, size, expected_states, "")
   return true;
 }
 
+MATCHER_P(CheckEventType, expectedEventType, "")
+{
+  return (arg.event_type() == expectedEventType);
+}
+
+
 TEST_F(LocalEnforcerTest, test_init_cwf_session_credit)
 {
   insert_static_rule(1, "", "rule1");

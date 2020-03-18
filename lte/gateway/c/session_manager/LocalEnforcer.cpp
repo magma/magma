@@ -750,6 +750,11 @@ bool LocalEnforcer::init_session_credit(
   }
   session_map_[imsi].push_back(
     std::move(std::unique_ptr<SessionState>(session_state)));
+
+  if (session_state->is_radius_cwf_session() == false) {
+    session_events::session_created(eventd_client_, imsi, session_id);
+  }
+
   return rule_update_success;
 }
 
@@ -835,6 +840,10 @@ void LocalEnforcer::complete_termination(
     if ((*session_it)->get_session_id() == session_id) {
       // Complete session termination and remove session from session_map_.
       (*session_it)->complete_termination();
+      // Send to eventd
+        if ((*session_it)->is_radius_cwf_session() == false) {
+          session_events::session_terminated(eventd_client_, *session_it);
+        }
       // We break the loop below, but for extra code safety in case
       // someone removes the break in the future, adjust the iterator
       // after erasing the element

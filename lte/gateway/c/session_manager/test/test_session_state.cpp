@@ -8,6 +8,7 @@
  */
 #include <memory>
 #include <future>
+#include <utility>
 
 #include <glog/logging.h>
 #include <gtest/gtest.h>
@@ -506,6 +507,60 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update)
   EXPECT_EQ(update.usage_monitors_size(), 1);
   EXPECT_EQ(update.usage_monitors().Get(0).tgpp_ctx().gx_dest_host(), "gx.dest.com");
   EXPECT_EQ(update.usage_monitors().Get(0).tgpp_ctx().gy_dest_host(), "gy.dest.com");
+}
+
+TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_no_key)
+{
+  insert_rule(0, "", "rule1", STATIC);
+  session_state->add_used_credit("rule1", 2000, 1000);
+  SessionState::TotalCreditUsage actual = session_state->get_total_credit_usage();
+  EXPECT_EQ(actual.monitoring_tx, 0);
+  EXPECT_EQ(actual.monitoring_rx, 0);
+  EXPECT_EQ(actual.charging_tx, 0);
+  EXPECT_EQ(actual.charging_rx, 0);
+}
+
+TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_single_key)
+{
+  insert_rule(1, "", "rule1", STATIC);
+  receive_credit_from_ocs(1, 3000);
+  session_state->add_used_credit("rule1", 2000, 1000);
+  SessionState::TotalCreditUsage actual = session_state->get_total_credit_usage();
+  EXPECT_EQ(actual.monitoring_tx, 0);
+  EXPECT_EQ(actual.monitoring_rx, 0);
+  EXPECT_EQ(actual.charging_tx, 2000);
+  EXPECT_EQ(actual.charging_rx, 1000);
+}
+
+TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_multiple_key)
+{
+  insert_rule(1, "m1", "rule1", STATIC);
+  receive_credit_from_ocs(1, 3000);
+  receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
+  session_state->add_used_credit("rule1", 2000, 1000);
+  SessionState::TotalCreditUsage actual = session_state->get_total_credit_usage();
+  EXPECT_EQ(actual.monitoring_tx, 2000);
+  EXPECT_EQ(actual.monitoring_rx, 1000);
+  EXPECT_EQ(actual.charging_tx, 2000);
+  EXPECT_EQ(actual.charging_rx, 1000);
+
+}
+
+TEST_F(SessionStateTest, test_get_total_credit_usage_multiple_rule_shared_key)
+{
+  // Shared monitoring key
+  // One rule is dynamic
+  insert_rule(1, "m1", "rule1", STATIC);
+  insert_rule(0, "m1", "rule2", DYNAMIC);
+  receive_credit_from_ocs(1, 3000);
+  receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
+  session_state->add_used_credit("rule1", 1000, 10);
+  session_state->add_used_credit("rule2", 500, 5);
+  SessionState::TotalCreditUsage actual = session_state->get_total_credit_usage();
+  EXPECT_EQ(actual.monitoring_tx, 1500);
+  EXPECT_EQ(actual.monitoring_rx, 15);
+  EXPECT_EQ(actual.charging_tx, 1000);
+  EXPECT_EQ(actual.charging_rx, 10);
 }
 
 int main(int argc, char **argv)
