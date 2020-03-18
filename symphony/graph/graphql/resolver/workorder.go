@@ -15,9 +15,11 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/graph/viewer"
 
 	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
@@ -128,6 +130,22 @@ func (workOrderResolver) Comments(ctx context.Context, obj *ent.WorkOrder) ([]*e
 	return obj.QueryComments().All(ctx)
 }
 
+func (workOrderResolver) OwnerName(ctx context.Context, obj *ent.WorkOrder) (string, error) {
+	owner, err := obj.QueryOwner().Only(ctx)
+	if err != nil {
+		return "", err
+	}
+	return owner.Email, nil
+}
+
+func (workOrderResolver) Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error) {
+	assignee, err := obj.QueryAssignee().Only(ctx)
+	if err != nil {
+		return nil, ent.MaskNotFound(err)
+	}
+	return &assignee.Email, nil
+}
+
 func (r mutationResolver) AddWorkOrder(
 	ctx context.Context,
 	input models.AddWorkOrderInput,
@@ -153,7 +171,6 @@ func (r mutationResolver) internalAddWorkOrder(
 		SetNillableLocationID(input.LocationID).
 		SetNillableDescription(input.Description).
 		SetCreationDate(time.Now()).
-		SetNillableAssigneeName(input.Assignee).
 		SetNillableIndex(input.Index)
 	if input.Status != nil {
 		mutation.SetStatus(input.Status.String())
@@ -164,11 +181,24 @@ func (r mutationResolver) internalAddWorkOrder(
 	if input.Priority != nil {
 		mutation.SetPriority(input.Priority.String())
 	}
-	if input.OwnerName != nil {
-		mutation.SetOwnerName(*input.OwnerName)
-	} else {
-		mutation.SetOwnerName(r.Me(ctx).User)
+	if input.Assignee != nil {
+		assigneeID, err := c.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
+		if err != nil {
+			return nil, xerrors.Errorf("fetching assignee user", err)
+		} else {
+			mutation = mutation.SetAssigneeID(assigneeID)
+		}
 	}
+	var owner *ent.User
+	if input.OwnerName != nil {
+		owner, err = c.User.Query().Where(user.AuthID(*input.OwnerName)).Only(ctx)
+	} else {
+		owner, err = viewer.UserFromContext(ctx)
+	}
+	if err != nil {
+		return nil, xerrors.Errorf("fetching own user", err)
+	}
+	mutation = mutation.SetOwner(owner)
 	for _, clInput := range input.CheckListCategories {
 		checkListCategory, err := r.createOrUpdateCheckListCategory(ctx, clInput)
 		if err != nil {
@@ -218,12 +248,22 @@ func (r mutationResolver) EditWorkOrder(
 		UpdateOne(wo).
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
-		SetNillableAssigneeName(input.Assignee).
 		SetStatus(input.Status.String()).
 		SetPriority(input.Priority.String()).
 		SetNillableIndex(input.Index)
 	if input.OwnerName != nil {
-		mutation.SetOwnerName(*input.OwnerName)
+		ownerID, err := client.User.Query().Where(user.AuthID(*input.OwnerName)).OnlyID(ctx)
+		if err != nil {
+			return nil, xerrors.Errorf("fetching owner user", err)
+		}
+		mutation = mutation.SetOwnerID(ownerID)
+	}
+	if input.Assignee != nil {
+		assigneeID, err := client.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
+		if err != nil {
+			return nil, xerrors.Errorf("fetching assignee user", err)
+		}
+		mutation = mutation.SetAssigneeID(assigneeID)
 	}
 	if input.Status == models.WorkOrderStatusDone {
 		mutation.SetCloseDate(time.Now())

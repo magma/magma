@@ -113,12 +113,6 @@ func (woc *WorkOrderCreate) SetNillableDescription(s *string) *WorkOrderCreate {
 	return woc
 }
 
-// SetOwnerName sets the owner_name field.
-func (woc *WorkOrderCreate) SetOwnerName(s string) *WorkOrderCreate {
-	woc.mutation.SetOwnerName(s)
-	return woc
-}
-
 // SetInstallDate sets the install_date field.
 func (woc *WorkOrderCreate) SetInstallDate(t time.Time) *WorkOrderCreate {
 	woc.mutation.SetInstallDate(t)
@@ -136,20 +130,6 @@ func (woc *WorkOrderCreate) SetNillableInstallDate(t *time.Time) *WorkOrderCreat
 // SetCreationDate sets the creation_date field.
 func (woc *WorkOrderCreate) SetCreationDate(t time.Time) *WorkOrderCreate {
 	woc.mutation.SetCreationDate(t)
-	return woc
-}
-
-// SetAssigneeName sets the assignee_name field.
-func (woc *WorkOrderCreate) SetAssigneeName(s string) *WorkOrderCreate {
-	woc.mutation.SetAssigneeName(s)
-	return woc
-}
-
-// SetNillableAssigneeName sets the assignee_name field if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillableAssigneeName(s *string) *WorkOrderCreate {
-	if s != nil {
-		woc.SetAssigneeName(*s)
-	}
 	return woc
 }
 
@@ -383,14 +363,6 @@ func (woc *WorkOrderCreate) SetOwnerID(id int) *WorkOrderCreate {
 	return woc
 }
 
-// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillableOwnerID(id *int) *WorkOrderCreate {
-	if id != nil {
-		woc = woc.SetOwnerID(*id)
-	}
-	return woc
-}
-
 // SetOwner sets the owner edge to User.
 func (woc *WorkOrderCreate) SetOwner(u *User) *WorkOrderCreate {
 	return woc.SetOwnerID(u.ID)
@@ -441,11 +413,11 @@ func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 		v := workorder.DefaultPriority
 		woc.mutation.SetPriority(v)
 	}
-	if _, ok := woc.mutation.OwnerName(); !ok {
-		return nil, errors.New("ent: missing required field \"owner_name\"")
-	}
 	if _, ok := woc.mutation.CreationDate(); !ok {
 		return nil, errors.New("ent: missing required field \"creation_date\"")
+	}
+	if _, ok := woc.mutation.OwnerID(); !ok {
+		return nil, errors.New("ent: missing required edge \"owner\"")
 	}
 	var (
 		err  error
@@ -541,14 +513,6 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		})
 		wo.Description = value
 	}
-	if value, ok := woc.mutation.OwnerName(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: workorder.FieldOwnerName,
-		})
-		wo.OwnerName = value
-	}
 	if value, ok := woc.mutation.InstallDate(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -564,14 +528,6 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Column: workorder.FieldCreationDate,
 		})
 		wo.CreationDate = value
-	}
-	if value, ok := woc.mutation.AssigneeName(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: workorder.FieldAssigneeName,
-		})
-		wo.AssigneeName = value
 	}
 	if value, ok := woc.mutation.Index(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

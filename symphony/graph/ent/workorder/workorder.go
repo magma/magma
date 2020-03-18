@@ -20,11 +20,9 @@ const (
 	FieldName         = "name"          // FieldStatus holds the string denoting the status vertex property in the database.
 	FieldStatus       = "status"        // FieldPriority holds the string denoting the priority vertex property in the database.
 	FieldPriority     = "priority"      // FieldDescription holds the string denoting the description vertex property in the database.
-	FieldDescription  = "description"   // FieldOwnerName holds the string denoting the owner_name vertex property in the database.
-	FieldOwnerName    = "owner_name"    // FieldInstallDate holds the string denoting the install_date vertex property in the database.
+	FieldDescription  = "description"   // FieldInstallDate holds the string denoting the install_date vertex property in the database.
 	FieldInstallDate  = "install_date"  // FieldCreationDate holds the string denoting the creation_date vertex property in the database.
-	FieldCreationDate = "creation_date" // FieldAssigneeName holds the string denoting the assignee_name vertex property in the database.
-	FieldAssigneeName = "assignee"      // FieldIndex holds the string denoting the index vertex property in the database.
+	FieldCreationDate = "creation_date" // FieldIndex holds the string denoting the index vertex property in the database.
 	FieldIndex        = "index"         // FieldCloseDate holds the string denoting the close_date vertex property in the database.
 	FieldCloseDate    = "close_date"
 
@@ -168,10 +166,8 @@ var Columns = []string{
 	FieldStatus,
 	FieldPriority,
 	FieldDescription,
-	FieldOwnerName,
 	FieldInstallDate,
 	FieldCreationDate,
-	FieldAssigneeName,
 	FieldIndex,
 	FieldCloseDate,
 }

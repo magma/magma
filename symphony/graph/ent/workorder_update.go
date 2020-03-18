@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -99,12 +100,6 @@ func (wou *WorkOrderUpdate) ClearDescription() *WorkOrderUpdate {
 	return wou
 }
 
-// SetOwnerName sets the owner_name field.
-func (wou *WorkOrderUpdate) SetOwnerName(s string) *WorkOrderUpdate {
-	wou.mutation.SetOwnerName(s)
-	return wou
-}
-
 // SetInstallDate sets the install_date field.
 func (wou *WorkOrderUpdate) SetInstallDate(t time.Time) *WorkOrderUpdate {
 	wou.mutation.SetInstallDate(t)
@@ -128,26 +123,6 @@ func (wou *WorkOrderUpdate) ClearInstallDate() *WorkOrderUpdate {
 // SetCreationDate sets the creation_date field.
 func (wou *WorkOrderUpdate) SetCreationDate(t time.Time) *WorkOrderUpdate {
 	wou.mutation.SetCreationDate(t)
-	return wou
-}
-
-// SetAssigneeName sets the assignee_name field.
-func (wou *WorkOrderUpdate) SetAssigneeName(s string) *WorkOrderUpdate {
-	wou.mutation.SetAssigneeName(s)
-	return wou
-}
-
-// SetNillableAssigneeName sets the assignee_name field if the given value is not nil.
-func (wou *WorkOrderUpdate) SetNillableAssigneeName(s *string) *WorkOrderUpdate {
-	if s != nil {
-		wou.SetAssigneeName(*s)
-	}
-	return wou
-}
-
-// ClearAssigneeName clears the value of assignee_name.
-func (wou *WorkOrderUpdate) ClearAssigneeName() *WorkOrderUpdate {
-	wou.mutation.ClearAssigneeName()
 	return wou
 }
 
@@ -400,14 +375,6 @@ func (wou *WorkOrderUpdate) SetOwnerID(id int) *WorkOrderUpdate {
 	return wou
 }
 
-// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
-func (wou *WorkOrderUpdate) SetNillableOwnerID(id *int) *WorkOrderUpdate {
-	if id != nil {
-		wou = wou.SetOwnerID(*id)
-	}
-	return wou
-}
-
 // SetOwner sets the owner edge to User.
 func (wou *WorkOrderUpdate) SetOwner(u *User) *WorkOrderUpdate {
 	return wou.SetOwnerID(u.ID)
@@ -600,6 +567,10 @@ func (wou *WorkOrderUpdate) Save(ctx context.Context) (int, error) {
 		}
 	}
 
+	if _, ok := wou.mutation.OwnerID(); wou.mutation.OwnerCleared() && !ok {
+		return 0, errors.New("ent: clearing a unique edge \"owner\"")
+	}
+
 	var (
 		err      error
 		affected int
@@ -707,13 +678,6 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: workorder.FieldDescription,
 		})
 	}
-	if value, ok := wou.mutation.OwnerName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: workorder.FieldOwnerName,
-		})
-	}
 	if value, ok := wou.mutation.InstallDate(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -732,19 +696,6 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: workorder.FieldCreationDate,
-		})
-	}
-	if value, ok := wou.mutation.AssigneeName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: workorder.FieldAssigneeName,
-		})
-	}
-	if wou.mutation.AssigneeNameCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: workorder.FieldAssigneeName,
 		})
 	}
 	if value, ok := wou.mutation.Index(); ok {
@@ -1366,12 +1317,6 @@ func (wouo *WorkOrderUpdateOne) ClearDescription() *WorkOrderUpdateOne {
 	return wouo
 }
 
-// SetOwnerName sets the owner_name field.
-func (wouo *WorkOrderUpdateOne) SetOwnerName(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetOwnerName(s)
-	return wouo
-}
-
 // SetInstallDate sets the install_date field.
 func (wouo *WorkOrderUpdateOne) SetInstallDate(t time.Time) *WorkOrderUpdateOne {
 	wouo.mutation.SetInstallDate(t)
@@ -1395,26 +1340,6 @@ func (wouo *WorkOrderUpdateOne) ClearInstallDate() *WorkOrderUpdateOne {
 // SetCreationDate sets the creation_date field.
 func (wouo *WorkOrderUpdateOne) SetCreationDate(t time.Time) *WorkOrderUpdateOne {
 	wouo.mutation.SetCreationDate(t)
-	return wouo
-}
-
-// SetAssigneeName sets the assignee_name field.
-func (wouo *WorkOrderUpdateOne) SetAssigneeName(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetAssigneeName(s)
-	return wouo
-}
-
-// SetNillableAssigneeName sets the assignee_name field if the given value is not nil.
-func (wouo *WorkOrderUpdateOne) SetNillableAssigneeName(s *string) *WorkOrderUpdateOne {
-	if s != nil {
-		wouo.SetAssigneeName(*s)
-	}
-	return wouo
-}
-
-// ClearAssigneeName clears the value of assignee_name.
-func (wouo *WorkOrderUpdateOne) ClearAssigneeName() *WorkOrderUpdateOne {
-	wouo.mutation.ClearAssigneeName()
 	return wouo
 }
 
@@ -1667,14 +1592,6 @@ func (wouo *WorkOrderUpdateOne) SetOwnerID(id int) *WorkOrderUpdateOne {
 	return wouo
 }
 
-// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
-func (wouo *WorkOrderUpdateOne) SetNillableOwnerID(id *int) *WorkOrderUpdateOne {
-	if id != nil {
-		wouo = wouo.SetOwnerID(*id)
-	}
-	return wouo
-}
-
 // SetOwner sets the owner edge to User.
 func (wouo *WorkOrderUpdateOne) SetOwner(u *User) *WorkOrderUpdateOne {
 	return wouo.SetOwnerID(u.ID)
@@ -1867,6 +1784,10 @@ func (wouo *WorkOrderUpdateOne) Save(ctx context.Context) (*WorkOrder, error) {
 		}
 	}
 
+	if _, ok := wouo.mutation.OwnerID(); wouo.mutation.OwnerCleared() && !ok {
+		return nil, errors.New("ent: clearing a unique edge \"owner\"")
+	}
+
 	var (
 		err  error
 		node *WorkOrder
@@ -1972,13 +1893,6 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 			Column: workorder.FieldDescription,
 		})
 	}
-	if value, ok := wouo.mutation.OwnerName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: workorder.FieldOwnerName,
-		})
-	}
 	if value, ok := wouo.mutation.InstallDate(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -1997,19 +1911,6 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: workorder.FieldCreationDate,
-		})
-	}
-	if value, ok := wouo.mutation.AssigneeName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: workorder.FieldAssigneeName,
-		})
-	}
-	if wouo.mutation.AssigneeNameCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: workorder.FieldAssigneeName,
 		})
 	}
 	if value, ok := wouo.mutation.Index(); ok {

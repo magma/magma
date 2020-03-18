@@ -64,26 +64,6 @@ func (pu *ProjectUpdate) ClearDescription() *ProjectUpdate {
 	return pu
 }
 
-// SetCreatorName sets the creator_name field.
-func (pu *ProjectUpdate) SetCreatorName(s string) *ProjectUpdate {
-	pu.mutation.SetCreatorName(s)
-	return pu
-}
-
-// SetNillableCreatorName sets the creator_name field if the given value is not nil.
-func (pu *ProjectUpdate) SetNillableCreatorName(s *string) *ProjectUpdate {
-	if s != nil {
-		pu.SetCreatorName(*s)
-	}
-	return pu
-}
-
-// ClearCreatorName clears the value of creator_name.
-func (pu *ProjectUpdate) ClearCreatorName() *ProjectUpdate {
-	pu.mutation.ClearCreatorName()
-	return pu
-}
-
 // SetTypeID sets the type edge to ProjectType by id.
 func (pu *ProjectUpdate) SetTypeID(id int) *ProjectUpdate {
 	pu.mutation.SetTypeID(id)
@@ -350,19 +330,6 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: project.FieldDescription,
 		})
 	}
-	if value, ok := pu.mutation.CreatorName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: project.FieldCreatorName,
-		})
-	}
-	if pu.mutation.CreatorNameCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: project.FieldCreatorName,
-		})
-	}
 	if pu.mutation.TypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -623,26 +590,6 @@ func (puo *ProjectUpdateOne) SetNillableDescription(s *string) *ProjectUpdateOne
 // ClearDescription clears the value of description.
 func (puo *ProjectUpdateOne) ClearDescription() *ProjectUpdateOne {
 	puo.mutation.ClearDescription()
-	return puo
-}
-
-// SetCreatorName sets the creator_name field.
-func (puo *ProjectUpdateOne) SetCreatorName(s string) *ProjectUpdateOne {
-	puo.mutation.SetCreatorName(s)
-	return puo
-}
-
-// SetNillableCreatorName sets the creator_name field if the given value is not nil.
-func (puo *ProjectUpdateOne) SetNillableCreatorName(s *string) *ProjectUpdateOne {
-	if s != nil {
-		puo.SetCreatorName(*s)
-	}
-	return puo
-}
-
-// ClearCreatorName clears the value of creator_name.
-func (puo *ProjectUpdateOne) ClearCreatorName() *ProjectUpdateOne {
-	puo.mutation.ClearCreatorName()
 	return puo
 }
 
@@ -908,19 +855,6 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: project.FieldDescription,
-		})
-	}
-	if value, ok := puo.mutation.CreatorName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: project.FieldCreatorName,
-		})
-	}
-	if puo.mutation.CreatorNameCleared() {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: project.FieldCreatorName,
 		})
 	}
 	if puo.mutation.TypeCleared() {

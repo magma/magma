@@ -125,9 +125,27 @@ func woToSlice(ctx context.Context, wo *ent.WorkOrder, propertyTypes []string) (
 		}
 	}
 
+	assigneeName := ""
+	assignee, err := wo.QueryAssignee().Only(ctx)
+	if ent.MaskNotFound(err) != nil {
+		return nil, err
+	}
+	if assignee != nil {
+		assigneeName = assignee.Email
+	}
+
+	ownerName := ""
+	owner, err := wo.QueryOwner().Only(ctx)
+	if ent.MaskNotFound(err) != nil {
+		return nil, err
+	}
+	if owner != nil {
+		ownerName = owner.Email
+	}
+
 	row := []string{
-		strconv.Itoa(wo.ID), wo.Name, projName, wo.Status, wo.AssigneeName,
-		wo.OwnerName, wo.Priority, getStringDate(wo.CreationDate),
+		strconv.Itoa(wo.ID), wo.Name, projName, wo.Status, assigneeName,
+		ownerName, wo.Priority, getStringDate(wo.CreationDate),
 		getStringDate(wo.InstallDate), locName,
 	}
 	row = append(row, properties...)

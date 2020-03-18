@@ -20,7 +20,7 @@ import (
 
 // Project is the model entity for the Project schema.
 type Project struct {
-	config `gqlgen:"-" json:"-"`
+	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
@@ -31,8 +31,6 @@ type Project struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description *string `json:"description,omitempty"`
-	// CreatorName holds the value of the "creator_name" field.
-	CreatorName *string `json:"creator_name,omitempty" gqlgen:"creator"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
 	Edges                 ProjectEdges `json:"edges"`
@@ -137,7 +135,6 @@ func (*Project) scanValues() []interface{} {
 		&sql.NullTime{},   // update_time
 		&sql.NullString{}, // name
 		&sql.NullString{}, // description
-		&sql.NullString{}, // creator_name
 	}
 }
 
@@ -183,13 +180,7 @@ func (pr *Project) assignValues(values ...interface{}) error {
 		pr.Description = new(string)
 		*pr.Description = value.String
 	}
-	if value, ok := values[4].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field creator_name", values[4])
-	} else if value.Valid {
-		pr.CreatorName = new(string)
-		*pr.CreatorName = value.String
-	}
-	values = values[5:]
+	values = values[4:]
 	if len(values) == len(project.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_location", value)
@@ -274,10 +265,6 @@ func (pr *Project) String() string {
 	builder.WriteString(pr.Name)
 	if v := pr.Description; v != nil {
 		builder.WriteString(", description=")
-		builder.WriteString(*v)
-	}
-	if v := pr.CreatorName; v != nil {
-		builder.WriteString(", creator_name=")
 		builder.WriteString(*v)
 	}
 	builder.WriteByte(')')

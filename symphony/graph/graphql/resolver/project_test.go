@@ -11,6 +11,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/AlekSi/pointer"
@@ -254,18 +255,20 @@ func TestEditProject(t *testing.T) {
 
 	var project *ent.Project
 	{
+		u, err := viewer.UserFromContext(ctx)
+		require.NoError(t, err)
 		input := models.AddProjectInput{
 			Name:        "test",
 			Description: pointer.ToString("desc"),
 			Type:        typ.ID,
 			Location:    &loc.ID,
-			Creator:     pointer.ToString("fbuser@fb.com"),
+			Creator:     &u.Email,
 		}
 		project, err = mutation.CreateProject(ctx, input)
 		require.NoError(t, err)
 		assert.Equal(t, input.Name, project.Name)
 		assert.Equal(t, *input.Location, project.QueryLocation().OnlyX(ctx).ID)
-		assert.Equal(t, input.Creator, project.CreatorName)
+		assert.Equal(t, *input.Creator, project.QueryCreator().OnlyX(ctx).Email)
 
 		updateInput := models.EditProjectInput{
 			ID:          project.ID,
@@ -277,7 +280,7 @@ func TestEditProject(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, updateInput.Name, project.Name)
 		assert.Equal(t, *updateInput.Description, *project.Description)
-		assert.Nil(t, project.CreatorName)
+		assert.False(t, project.QueryCreator().ExistX(ctx))
 	}
 }
 
@@ -360,11 +363,13 @@ func TestAddProjectWithProperties(t *testing.T) {
 		RangeToValue:   &fl2,
 	}
 	propInputs := []*models.PropertyInput{&strProp, &strFixedProp, &intProp, &rngProp}
+	u, err := viewer.UserFromContext(ctx)
+	require.NoError(t, err)
 	input := models.AddProjectInput{
 		Name:        "test",
 		Description: pointer.ToString("desc"),
 		Type:        typ.ID,
-		Creator:     pointer.ToString("fbuser@fb.com"),
+		Creator:     &u.Email,
 		Properties:  propInputs,
 	}
 	p, err := mutation.CreateProject(ctx, input)

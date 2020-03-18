@@ -18,8 +18,7 @@ const (
 	FieldCreateTime  = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
 	FieldUpdateTime  = "update_time" // FieldName holds the string denoting the name vertex property in the database.
 	FieldName        = "name"        // FieldDescription holds the string denoting the description vertex property in the database.
-	FieldDescription = "description" // FieldCreatorName holds the string denoting the creator_name vertex property in the database.
-	FieldCreatorName = "creator"
+	FieldDescription = "description"
 
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"
@@ -87,7 +86,6 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldName,
 	FieldDescription,
-	FieldCreatorName,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Project type.

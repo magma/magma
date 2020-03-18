@@ -25,7 +25,6 @@ func TestEditUser(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	prepareUserData(t, ctx, r.client)
 
 	u, err := viewer.UserFromContext(ctx)
 	require.NoError(t, err)
@@ -43,7 +42,6 @@ func TestAddAndDeleteProfileImage(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	prepareUserData(t, ctx, r.client)
 	u, err := viewer.UserFromContext(ctx)
 	require.NoError(t, err)
 

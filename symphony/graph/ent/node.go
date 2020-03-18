@@ -1867,7 +1867,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pr.ID,
 		Type:   "Project",
-		Fields: make([]*Field, 5),
+		Fields: make([]*Field, 4),
 		Edges:  make([]*Edge, 6),
 	}
 	var buf []byte
@@ -1901,14 +1901,6 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[3] = &Field{
 		Type:  "string",
 		Name:  "Description",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(pr.CreatorName); err != nil {
-		return nil, err
-	}
-	node.Fields[4] = &Field{
-		Type:  "string",
-		Name:  "CreatorName",
 		Value: string(buf),
 	}
 	var ids []int
@@ -3748,7 +3740,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     wo.ID,
 		Type:   "WorkOrder",
-		Fields: make([]*Field, 12),
+		Fields: make([]*Field, 10),
 		Edges:  make([]*Edge, 14),
 	}
 	var buf []byte
@@ -3800,18 +3792,10 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Description",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(wo.OwnerName); err != nil {
-		return nil, err
-	}
-	node.Fields[6] = &Field{
-		Type:  "string",
-		Name:  "OwnerName",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(wo.InstallDate); err != nil {
 		return nil, err
 	}
-	node.Fields[7] = &Field{
+	node.Fields[6] = &Field{
 		Type:  "time.Time",
 		Name:  "InstallDate",
 		Value: string(buf),
@@ -3819,23 +3803,15 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(wo.CreationDate); err != nil {
 		return nil, err
 	}
-	node.Fields[8] = &Field{
+	node.Fields[7] = &Field{
 		Type:  "time.Time",
 		Name:  "CreationDate",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(wo.AssigneeName); err != nil {
-		return nil, err
-	}
-	node.Fields[9] = &Field{
-		Type:  "string",
-		Name:  "AssigneeName",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.Index); err != nil {
 		return nil, err
 	}
-	node.Fields[10] = &Field{
+	node.Fields[8] = &Field{
 		Type:  "int",
 		Name:  "Index",
 		Value: string(buf),
@@ -3843,7 +3819,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(wo.CloseDate); err != nil {
 		return nil, err
 	}
-	node.Fields[11] = &Field{
+	node.Fields[9] = &Field{
 		Type:  "time.Time",
 		Name:  "CloseDate",
 		Value: string(buf),

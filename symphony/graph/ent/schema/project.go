@@ -51,11 +51,6 @@ func (Project) Fields() []ent.Field {
 		field.Text("description").
 			Optional().
 			Nillable(),
-		field.Text("creator_name").
-			StructTag(`gqlgen:"creator"`).
-			StorageKey("creator").
-			Optional().
-			Nillable(),
 	}
 }
 

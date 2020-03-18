@@ -693,7 +693,6 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "creator", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "project_location", Type: field.TypeInt, Nullable: true},
 		{Name: "project_creator", Type: field.TypeInt, Nullable: true},
 		{Name: "project_type_projects", Type: field.TypeInt, Nullable: true},
@@ -706,21 +705,21 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "projects_locations_location",
-				Columns: []*schema.Column{ProjectsColumns[6]},
+				Columns: []*schema.Column{ProjectsColumns[5]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "projects_users_creator",
-				Columns: []*schema.Column{ProjectsColumns[7]},
+				Columns: []*schema.Column{ProjectsColumns[6]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "projects_project_types_projects",
-				Columns: []*schema.Column{ProjectsColumns[8]},
+				Columns: []*schema.Column{ProjectsColumns[7]},
 
 				RefColumns: []*schema.Column{ProjectTypesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -730,7 +729,7 @@ var (
 			{
 				Name:    "project_name_project_type_projects",
 				Unique:  true,
-				Columns: []*schema.Column{ProjectsColumns[3], ProjectsColumns[8]},
+				Columns: []*schema.Column{ProjectsColumns[3], ProjectsColumns[7]},
 			},
 		},
 	}
@@ -1333,10 +1332,8 @@ var (
 		{Name: "status", Type: field.TypeString, Default: "PLANNED"},
 		{Name: "priority", Type: field.TypeString, Default: "NONE"},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "owner_name", Type: field.TypeString},
 		{Name: "install_date", Type: field.TypeTime, Nullable: true},
 		{Name: "creation_date", Type: field.TypeTime},
-		{Name: "assignee", Type: field.TypeString, Nullable: true},
 		{Name: "index", Type: field.TypeInt, Nullable: true},
 		{Name: "close_date", Type: field.TypeTime, Nullable: true},
 		{Name: "project_work_orders", Type: field.TypeInt, Nullable: true},
@@ -1354,42 +1351,42 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "work_orders_projects_work_orders",
-				Columns: []*schema.Column{WorkOrdersColumns[13]},
+				Columns: []*schema.Column{WorkOrdersColumns[11]},
 
 				RefColumns: []*schema.Column{ProjectsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "work_orders_work_order_types_type",
-				Columns: []*schema.Column{WorkOrdersColumns[14]},
+				Columns: []*schema.Column{WorkOrdersColumns[12]},
 
 				RefColumns: []*schema.Column{WorkOrderTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "work_orders_locations_location",
-				Columns: []*schema.Column{WorkOrdersColumns[15]},
+				Columns: []*schema.Column{WorkOrdersColumns[13]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "work_orders_technicians_technician",
-				Columns: []*schema.Column{WorkOrdersColumns[16]},
+				Columns: []*schema.Column{WorkOrdersColumns[14]},
 
 				RefColumns: []*schema.Column{TechniciansColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "work_orders_users_owner",
-				Columns: []*schema.Column{WorkOrdersColumns[17]},
+				Columns: []*schema.Column{WorkOrdersColumns[15]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "work_orders_users_assignee",
-				Columns: []*schema.Column{WorkOrdersColumns[18]},
+				Columns: []*schema.Column{WorkOrdersColumns[16]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,

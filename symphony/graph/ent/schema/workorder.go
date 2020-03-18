@@ -53,14 +53,9 @@ func (WorkOrder) Fields() []ent.Field {
 			Default("NONE"),
 		field.Text("description").
 			Optional(),
-		field.String("owner_name"),
 		field.Time("install_date").
 			Optional(),
 		field.Time("creation_date"),
-		field.String("assignee_name").
-			StructTag(`gqlgen:"assignee"`).
-			StorageKey("assignee").
-			Optional(),
 		field.Int("index").
 			Optional(),
 		field.Time("close_date").
@@ -91,6 +86,7 @@ func (WorkOrder) Edges() []ent.Edge {
 			Ref("work_orders").
 			Unique(),
 		edge.To("owner", User.Type).
+			Required().
 			Unique(),
 		edge.To("assignee", User.Type).
 			Unique(),

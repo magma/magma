@@ -78,20 +78,6 @@ func (pc *ProjectCreate) SetNillableDescription(s *string) *ProjectCreate {
 	return pc
 }
 
-// SetCreatorName sets the creator_name field.
-func (pc *ProjectCreate) SetCreatorName(s string) *ProjectCreate {
-	pc.mutation.SetCreatorName(s)
-	return pc
-}
-
-// SetNillableCreatorName sets the creator_name field if the given value is not nil.
-func (pc *ProjectCreate) SetNillableCreatorName(s *string) *ProjectCreate {
-	if s != nil {
-		pc.SetCreatorName(*s)
-	}
-	return pc
-}
-
 // SetTypeID sets the type edge to ProjectType by id.
 func (pc *ProjectCreate) SetTypeID(id int) *ProjectCreate {
 	pc.mutation.SetTypeID(id)
@@ -284,14 +270,6 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 			Column: project.FieldDescription,
 		})
 		pr.Description = &value
-	}
-	if value, ok := pc.mutation.CreatorName(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: project.FieldCreatorName,
-		})
-		pr.CreatorName = &value
 	}
 	if nodes := pc.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

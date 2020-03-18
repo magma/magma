@@ -22,7 +22,7 @@ import (
 
 // WorkOrder is the model entity for the WorkOrder schema.
 type WorkOrder struct {
-	config `gqlgen:"-" json:"-"`
+	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
@@ -37,14 +37,10 @@ type WorkOrder struct {
 	Priority string `json:"priority,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// OwnerName holds the value of the "owner_name" field.
-	OwnerName string `json:"owner_name,omitempty"`
 	// InstallDate holds the value of the "install_date" field.
 	InstallDate time.Time `json:"install_date,omitempty"`
 	// CreationDate holds the value of the "creation_date" field.
 	CreationDate time.Time `json:"creation_date,omitempty"`
-	// AssigneeName holds the value of the "assignee_name" field.
-	AssigneeName string `json:"assignee_name,omitempty" gqlgen:"assignee"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
 	// CloseDate holds the value of the "close_date" field.
@@ -261,10 +257,8 @@ func (*WorkOrder) scanValues() []interface{} {
 		&sql.NullString{}, // status
 		&sql.NullString{}, // priority
 		&sql.NullString{}, // description
-		&sql.NullString{}, // owner_name
 		&sql.NullTime{},   // install_date
 		&sql.NullTime{},   // creation_date
-		&sql.NullString{}, // assignee_name
 		&sql.NullInt64{},  // index
 		&sql.NullTime{},   // close_date
 	}
@@ -324,37 +318,27 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		wo.Description = value.String
 	}
-	if value, ok := values[6].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field owner_name", values[6])
-	} else if value.Valid {
-		wo.OwnerName = value.String
-	}
-	if value, ok := values[7].(*sql.NullTime); !ok {
-		return fmt.Errorf("unexpected type %T for field install_date", values[7])
+	if value, ok := values[6].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field install_date", values[6])
 	} else if value.Valid {
 		wo.InstallDate = value.Time
 	}
-	if value, ok := values[8].(*sql.NullTime); !ok {
-		return fmt.Errorf("unexpected type %T for field creation_date", values[8])
+	if value, ok := values[7].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field creation_date", values[7])
 	} else if value.Valid {
 		wo.CreationDate = value.Time
 	}
-	if value, ok := values[9].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field assignee_name", values[9])
-	} else if value.Valid {
-		wo.AssigneeName = value.String
-	}
-	if value, ok := values[10].(*sql.NullInt64); !ok {
-		return fmt.Errorf("unexpected type %T for field index", values[10])
+	if value, ok := values[8].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[8])
 	} else if value.Valid {
 		wo.Index = int(value.Int64)
 	}
-	if value, ok := values[11].(*sql.NullTime); !ok {
-		return fmt.Errorf("unexpected type %T for field close_date", values[11])
+	if value, ok := values[9].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field close_date", values[9])
 	} else if value.Valid {
 		wo.CloseDate = value.Time
 	}
-	values = values[12:]
+	values = values[10:]
 	if len(values) == len(workorder.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_work_orders", value)
@@ -501,14 +485,10 @@ func (wo *WorkOrder) String() string {
 	builder.WriteString(wo.Priority)
 	builder.WriteString(", description=")
 	builder.WriteString(wo.Description)
-	builder.WriteString(", owner_name=")
-	builder.WriteString(wo.OwnerName)
 	builder.WriteString(", install_date=")
 	builder.WriteString(wo.InstallDate.Format(time.ANSIC))
 	builder.WriteString(", creation_date=")
 	builder.WriteString(wo.CreationDate.Format(time.ANSIC))
-	builder.WriteString(", assignee_name=")
-	builder.WriteString(wo.AssigneeName)
 	builder.WriteString(", index=")
 	builder.WriteString(fmt.Sprintf("%v", wo.Index))
 	builder.WriteString(", close_date=")

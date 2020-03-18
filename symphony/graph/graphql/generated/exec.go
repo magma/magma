@@ -561,7 +561,7 @@ type ComplexityRoot struct {
 
 	Project struct {
 		Comments           func(childComplexity int) int
-		CreatorName        func(childComplexity int) int
+		Creator            func(childComplexity int) int
 		Description        func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Location           func(childComplexity int) int
@@ -887,7 +887,7 @@ type ComplexityRoot struct {
 	}
 
 	WorkOrder struct {
-		AssigneeName        func(childComplexity int) int
+		Assignee            func(childComplexity int) int
 		CheckList           func(childComplexity int) int
 		CheckListCategories func(childComplexity int) int
 		CloseDate           func(childComplexity int) int
@@ -1150,6 +1150,7 @@ type MutationResolver interface {
 	DeleteReportFilter(ctx context.Context, id int) (bool, error)
 }
 type ProjectResolver interface {
+	Creator(ctx context.Context, obj *ent.Project) (*string, error)
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
 	Location(ctx context.Context, obj *ent.Project) (*ent.Location, error)
 	WorkOrders(ctx context.Context, obj *ent.Project) ([]*ent.WorkOrder, error)
@@ -1280,6 +1281,10 @@ type ViewerResolver interface {
 }
 type WorkOrderResolver interface {
 	WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error)
+
+	OwnerName(ctx context.Context, obj *ent.WorkOrder) (string, error)
+
+	Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error)
 
 	Status(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderStatus, error)
 	Priority(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderPriority, error)
@@ -3826,11 +3831,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Project.Comments(childComplexity), true
 
 	case "Project.creator":
-		if e.complexity.Project.CreatorName == nil {
+		if e.complexity.Project.Creator == nil {
 			break
 		}
 
-		return e.complexity.Project.CreatorName(childComplexity), true
+		return e.complexity.Project.Creator(childComplexity), true
 
 	case "Project.description":
 		if e.complexity.Project.Description == nil {
@@ -5606,11 +5611,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Viewer.User(childComplexity), true
 
 	case "WorkOrder.assignee":
-		if e.complexity.WorkOrder.AssigneeName == nil {
+		if e.complexity.WorkOrder.Assignee == nil {
 			break
 		}
 
-		return e.complexity.WorkOrder.AssigneeName(childComplexity), true
+		return e.complexity.WorkOrder.Assignee(childComplexity), true
 
 	case "WorkOrder.checkList":
 		if e.complexity.WorkOrder.CheckList == nil {
@@ -22202,13 +22207,13 @@ func (ec *executionContext) _Project_creator(ctx context.Context, field graphql.
 		Object:   "Project",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatorName, nil
+		return ec.resolvers.Project().Creator(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30857,13 +30862,13 @@ func (ec *executionContext) _WorkOrder_ownerName(ctx context.Context, field grap
 		Object:   "WorkOrder",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OwnerName, nil
+		return ec.resolvers.WorkOrder().OwnerName(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30965,13 +30970,13 @@ func (ec *executionContext) _WorkOrder_assignee(ctx context.Context, field graph
 		Object:   "WorkOrder",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AssigneeName, nil
+		return ec.resolvers.WorkOrder().Assignee(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30980,10 +30985,10 @@ func (ec *executionContext) _WorkOrder_assignee(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrder_index(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
@@ -40717,7 +40722,16 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "description":
 			out.Values[i] = ec._Project_description(ctx, field, obj)
 		case "creator":
-			out.Values[i] = ec._Project_creator(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Project_creator(ctx, field, obj)
+				return res
+			})
 		case "type":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -43070,10 +43084,19 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 		case "description":
 			out.Values[i] = ec._WorkOrder_description(ctx, field, obj)
 		case "ownerName":
-			out.Values[i] = ec._WorkOrder_ownerName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_ownerName(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "creationDate":
 			out.Values[i] = ec._WorkOrder_creationDate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -43082,7 +43105,16 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 		case "installDate":
 			out.Values[i] = ec._WorkOrder_installDate(ctx, field, obj)
 		case "assignee":
-			out.Values[i] = ec._WorkOrder_assignee(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_assignee(ctx, field, obj)
+				return res
+			})
 		case "index":
 			out.Values[i] = ec._WorkOrder_index(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

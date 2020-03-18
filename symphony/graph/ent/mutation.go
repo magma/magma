@@ -13108,7 +13108,6 @@ type ProjectMutation struct {
 	update_time        *time.Time
 	name               *string
 	description        *string
-	creator_name       *string
 	clearedFields      map[string]bool
 	_type              *int
 	cleared_type       bool
@@ -13250,37 +13249,6 @@ func (m *ProjectMutation) DescriptionCleared() bool {
 func (m *ProjectMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, project.FieldDescription)
-}
-
-// SetCreatorName sets the creator_name field.
-func (m *ProjectMutation) SetCreatorName(s string) {
-	m.creator_name = &s
-}
-
-// CreatorName returns the creator_name value in the mutation.
-func (m *ProjectMutation) CreatorName() (r string, exists bool) {
-	v := m.creator_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearCreatorName clears the value of creator_name.
-func (m *ProjectMutation) ClearCreatorName() {
-	m.creator_name = nil
-	m.clearedFields[project.FieldCreatorName] = true
-}
-
-// CreatorNameCleared returns if the field creator_name was cleared in this mutation.
-func (m *ProjectMutation) CreatorNameCleared() bool {
-	return m.clearedFields[project.FieldCreatorName]
-}
-
-// ResetCreatorName reset all changes of the creator_name field.
-func (m *ProjectMutation) ResetCreatorName() {
-	m.creator_name = nil
-	delete(m.clearedFields, project.FieldCreatorName)
 }
 
 // SetTypeID sets the type edge to ProjectType by id.
@@ -13540,7 +13508,7 @@ func (m *ProjectMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *ProjectMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 4)
 	if m.create_time != nil {
 		fields = append(fields, project.FieldCreateTime)
 	}
@@ -13552,9 +13520,6 @@ func (m *ProjectMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, project.FieldDescription)
-	}
-	if m.creator_name != nil {
-		fields = append(fields, project.FieldCreatorName)
 	}
 	return fields
 }
@@ -13572,8 +13537,6 @@ func (m *ProjectMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case project.FieldDescription:
 		return m.Description()
-	case project.FieldCreatorName:
-		return m.CreatorName()
 	}
 	return nil, false
 }
@@ -13611,13 +13574,6 @@ func (m *ProjectMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDescription(v)
 		return nil
-	case project.FieldCreatorName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatorName(v)
-		return nil
 	}
 	return fmt.Errorf("unknown Project field %s", name)
 }
@@ -13651,9 +13607,6 @@ func (m *ProjectMutation) ClearedFields() []string {
 	if m.clearedFields[project.FieldDescription] {
 		fields = append(fields, project.FieldDescription)
 	}
-	if m.clearedFields[project.FieldCreatorName] {
-		fields = append(fields, project.FieldCreatorName)
-	}
 	return fields
 }
 
@@ -13669,9 +13622,6 @@ func (m *ProjectMutation) ClearField(name string) error {
 	switch name {
 	case project.FieldDescription:
 		m.ClearDescription()
-		return nil
-	case project.FieldCreatorName:
-		m.ClearCreatorName()
 		return nil
 	}
 	return fmt.Errorf("unknown Project nullable field %s", name)
@@ -13693,9 +13643,6 @@ func (m *ProjectMutation) ResetField(name string) error {
 		return nil
 	case project.FieldDescription:
 		m.ResetDescription()
-		return nil
-	case project.FieldCreatorName:
-		m.ResetCreatorName()
 		return nil
 	}
 	return fmt.Errorf("unknown Project field %s", name)
@@ -26804,10 +26751,8 @@ type WorkOrderMutation struct {
 	status                       *string
 	priority                     *string
 	description                  *string
-	owner_name                   *string
 	install_date                 *time.Time
 	creation_date                *time.Time
-	assignee_name                *string
 	index                        *int
 	addindex                     *int
 	close_date                   *time.Time
@@ -27008,25 +26953,6 @@ func (m *WorkOrderMutation) ResetDescription() {
 	delete(m.clearedFields, workorder.FieldDescription)
 }
 
-// SetOwnerName sets the owner_name field.
-func (m *WorkOrderMutation) SetOwnerName(s string) {
-	m.owner_name = &s
-}
-
-// OwnerName returns the owner_name value in the mutation.
-func (m *WorkOrderMutation) OwnerName() (r string, exists bool) {
-	v := m.owner_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetOwnerName reset all changes of the owner_name field.
-func (m *WorkOrderMutation) ResetOwnerName() {
-	m.owner_name = nil
-}
-
 // SetInstallDate sets the install_date field.
 func (m *WorkOrderMutation) SetInstallDate(t time.Time) {
 	m.install_date = &t
@@ -27075,37 +27001,6 @@ func (m *WorkOrderMutation) CreationDate() (r time.Time, exists bool) {
 // ResetCreationDate reset all changes of the creation_date field.
 func (m *WorkOrderMutation) ResetCreationDate() {
 	m.creation_date = nil
-}
-
-// SetAssigneeName sets the assignee_name field.
-func (m *WorkOrderMutation) SetAssigneeName(s string) {
-	m.assignee_name = &s
-}
-
-// AssigneeName returns the assignee_name value in the mutation.
-func (m *WorkOrderMutation) AssigneeName() (r string, exists bool) {
-	v := m.assignee_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ClearAssigneeName clears the value of assignee_name.
-func (m *WorkOrderMutation) ClearAssigneeName() {
-	m.assignee_name = nil
-	m.clearedFields[workorder.FieldAssigneeName] = true
-}
-
-// AssigneeNameCleared returns if the field assignee_name was cleared in this mutation.
-func (m *WorkOrderMutation) AssigneeNameCleared() bool {
-	return m.clearedFields[workorder.FieldAssigneeName]
-}
-
-// ResetAssigneeName reset all changes of the assignee_name field.
-func (m *WorkOrderMutation) ResetAssigneeName() {
-	m.assignee_name = nil
-	delete(m.clearedFields, workorder.FieldAssigneeName)
 }
 
 // SetIndex sets the index field.
@@ -27775,7 +27670,7 @@ func (m *WorkOrderMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *WorkOrderMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 10)
 	if m.create_time != nil {
 		fields = append(fields, workorder.FieldCreateTime)
 	}
@@ -27794,17 +27689,11 @@ func (m *WorkOrderMutation) Fields() []string {
 	if m.description != nil {
 		fields = append(fields, workorder.FieldDescription)
 	}
-	if m.owner_name != nil {
-		fields = append(fields, workorder.FieldOwnerName)
-	}
 	if m.install_date != nil {
 		fields = append(fields, workorder.FieldInstallDate)
 	}
 	if m.creation_date != nil {
 		fields = append(fields, workorder.FieldCreationDate)
-	}
-	if m.assignee_name != nil {
-		fields = append(fields, workorder.FieldAssigneeName)
 	}
 	if m.index != nil {
 		fields = append(fields, workorder.FieldIndex)
@@ -27832,14 +27721,10 @@ func (m *WorkOrderMutation) Field(name string) (ent.Value, bool) {
 		return m.Priority()
 	case workorder.FieldDescription:
 		return m.Description()
-	case workorder.FieldOwnerName:
-		return m.OwnerName()
 	case workorder.FieldInstallDate:
 		return m.InstallDate()
 	case workorder.FieldCreationDate:
 		return m.CreationDate()
-	case workorder.FieldAssigneeName:
-		return m.AssigneeName()
 	case workorder.FieldIndex:
 		return m.Index()
 	case workorder.FieldCloseDate:
@@ -27895,13 +27780,6 @@ func (m *WorkOrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDescription(v)
 		return nil
-	case workorder.FieldOwnerName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetOwnerName(v)
-		return nil
 	case workorder.FieldInstallDate:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -27915,13 +27793,6 @@ func (m *WorkOrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreationDate(v)
-		return nil
-	case workorder.FieldAssigneeName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAssigneeName(v)
 		return nil
 	case workorder.FieldIndex:
 		v, ok := value.(int)
@@ -27988,9 +27859,6 @@ func (m *WorkOrderMutation) ClearedFields() []string {
 	if m.clearedFields[workorder.FieldInstallDate] {
 		fields = append(fields, workorder.FieldInstallDate)
 	}
-	if m.clearedFields[workorder.FieldAssigneeName] {
-		fields = append(fields, workorder.FieldAssigneeName)
-	}
 	if m.clearedFields[workorder.FieldIndex] {
 		fields = append(fields, workorder.FieldIndex)
 	}
@@ -28015,9 +27883,6 @@ func (m *WorkOrderMutation) ClearField(name string) error {
 		return nil
 	case workorder.FieldInstallDate:
 		m.ClearInstallDate()
-		return nil
-	case workorder.FieldAssigneeName:
-		m.ClearAssigneeName()
 		return nil
 	case workorder.FieldIndex:
 		m.ClearIndex()
@@ -28052,17 +27917,11 @@ func (m *WorkOrderMutation) ResetField(name string) error {
 	case workorder.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case workorder.FieldOwnerName:
-		m.ResetOwnerName()
-		return nil
 	case workorder.FieldInstallDate:
 		m.ResetInstallDate()
 		return nil
 	case workorder.FieldCreationDate:
 		m.ResetCreationDate()
-		return nil
-	case workorder.FieldAssigneeName:
-		m.ResetAssigneeName()
 		return nil
 	case workorder.FieldIndex:
 		m.ResetIndex()
