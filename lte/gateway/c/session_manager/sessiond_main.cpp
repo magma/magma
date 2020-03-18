@@ -132,6 +132,12 @@ int main(int argc, char *argv[])
     directoryd_client->rpc_response_loop();
   });
 
+  auto eventd_client = std::make_shared<magma::AsyncEventdClient>();
+  std::thread eventd_thread([&]() {
+    MLOG(MINFO) << "Started eventd response thread";
+    eventd_client->rpc_response_loop();
+  });
+
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
 
@@ -210,6 +216,7 @@ int main(int argc, char *argv[])
     rule_store,
     pipelined_client,
     directoryd_client,
+    eventd_client,
     spgw_client,
     aaa_client,
     config["session_force_termination_timeout_ms"].as<long>(),
