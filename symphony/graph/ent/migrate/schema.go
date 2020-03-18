@@ -976,7 +976,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
 		{Name: "entity", Type: field.TypeEnum, Enums: []string{"WORK_ORDER", "PORT", "EQUIPMENT", "LINK", "LOCATION", "SERVICE"}},
 		{Name: "filters", Type: field.TypeString, Size: 2147483647, Default: "[]"},
 	}
@@ -986,6 +986,13 @@ var (
 		Columns:     ReportFiltersColumns,
 		PrimaryKey:  []*schema.Column{ReportFiltersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
+		Indexes: []*schema.Index{
+			{
+				Name:    "reportfilter_name_entity",
+				Unique:  true,
+				Columns: []*schema.Column{ReportFiltersColumns[3], ReportFiltersColumns[4]},
+			},
+		},
 	}
 	// ServicesColumns holds the columns for the "services" table.
 	ServicesColumns = []*schema.Column{
