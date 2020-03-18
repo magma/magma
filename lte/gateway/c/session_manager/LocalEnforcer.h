@@ -18,7 +18,7 @@
 #include <folly/io/async/EventBaseManager.h>
 
 #include "AAAClient.h"
-#include "EventdClient.h"
+#include "SessionEvents.h"
 #include "SessionReporter.h"
 #include "PipelinedClient.h"
 #include "DirectorydClient.h"

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <functional>
+#include <utility>
 
 #include <lte/protos/session_manager.grpc.pb.h>
 
@@ -53,6 +54,13 @@ class SessionState {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
   };
+  struct TotalCreditUsage {
+    uint64_t monitoring_tx;
+    uint64_t monitoring_rx;
+    uint64_t charging_tx;
+    uint64_t charging_rx;
+  };
+
 
  public:
   SessionState(
@@ -150,6 +158,14 @@ class SessionState {
   ChargingCreditPool& get_charging_pool();
 
   UsageMonitoringCreditPool& get_monitor_pool();
+
+  /**
+   * get_total_credit_usage returns the tx and rx of the session,
+   * accounting for all unique keys (charging and monitoring) used by all
+   * rules (static and dynamic)
+   * Should be called after complete_termination.
+   */
+  TotalCreditUsage get_total_credit_usage();
 
   std::string get_session_id() const;
 

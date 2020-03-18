@@ -16,6 +16,7 @@
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <orc8r/protos/eventd.pb.h>
 
 #include <folly/io/async/EventBase.h>
 
@@ -141,12 +142,11 @@ class MockEventdClient : public AsyncEventdClient {
  public:
   MockEventdClient()
   {
-    ON_CALL(*this, log_event(_,_)).WillByDefault(Return(true));
   }
 
   MOCK_METHOD2(log_event,
-    bool(
-      const std::string& imsi,
+    void(
+      const Event& request,
       std::function<void(Status status, Void)> callback));
 };
 
