@@ -305,9 +305,23 @@ const FilterBookmark = (props: Props) => {
           ) : (
             <div className={classes.popup}>
               <div className={classes.text}>
-                <Text variant="body2" color="regular">
-                  <fbt desc="">SAVE SEARCH</fbt>
+                <Text variant="body1" color="regular">
+                  <fbt desc="">Saved Search</fbt>
                 </Text>
+                <div>
+                  <Text variant="subtitle2" color="gray">
+                    <fbt desc="">
+                      You can find it under the
+                      <fbt:param name="entity name">
+                        '`' +
+                        {props.entity[0] +
+                          props.entity.substring(1).toLowerCase()}
+                        +'`'
+                      </fbt:param>{' '}
+                      filter search bar.
+                    </fbt>
+                  </Text>
+                </div>
               </div>
               <TextInput
                 type="string"
