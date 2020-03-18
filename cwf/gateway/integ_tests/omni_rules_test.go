@@ -25,7 +25,7 @@ import (
 )
 
 func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
-	fmt.Printf("Running TestAuthenticateUplinkTrafficWithOmniRules...\n")
+	fmt.Println("Running TestAuthenticateUplinkTrafficWithOmniRules...")
 
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()

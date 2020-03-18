@@ -35,7 +35,7 @@ const (
 )
 
 func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
-	fmt.Printf("\nRunning TestAuthenticateUplinkTrafficWithEnforcement...\n")
+	fmt.Println("\nRunning TestAuthenticateUplinkTrafficWithEnforcement...")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -138,7 +138,7 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 }
 
 func TestAuthenticateUplinkTrafficWithQosEnforcement(t *testing.T) {
-	fmt.Printf("\nRunning TestAuthenticateUplinkTrafficWithQosEnforcement...\n")
+	fmt.Println("\nRunning TestAuthenticateUplinkTrafficWithQosEnforcement...")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -221,7 +221,7 @@ func TestAuthenticateUplinkTrafficWithQosEnforcement(t *testing.T) {
 }
 
 func testAuthenticateDownlinkTrafficWithQosEnforcement(t *testing.T) {
-	fmt.Printf("\nRunning TestAuthenticateDownlinkTrafficWithQosEnforcement...\n")
+	fmt.Println("\nRunning TestAuthenticateDownlinkTrafficWithQosEnforcement...")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
