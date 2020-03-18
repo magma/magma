@@ -91,6 +91,7 @@ type Props = WithSnackbarProps & {
 
 const FilterBookmark = (props: Props) => {
   const classes = useStyles();
+  const {filters, entity} = props;
   const {bookmark, setBookmark} = usePowerSearch();
 
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -226,7 +227,7 @@ const FilterBookmark = (props: Props) => {
 
   const saveFilterReport = () => {
     setSaving(true);
-    const filterInput = filtersQueryToFilterInput(props.filters);
+    const filterInput = filtersQueryToFilterInput(filters);
     const variables: AddReportFilterMutationVariables = {
       input: {
         name: name,
@@ -313,9 +314,7 @@ const FilterBookmark = (props: Props) => {
                     <fbt desc="">
                       You can find it under the
                       <fbt:param name="entity name">
-                        '`' +
-                        {props.entity[0] +
-                          props.entity.substring(1).toLowerCase()}
+                        '`' +{entity[0] + entity.substring(1).toLowerCase()}
                         +'`'
                       </fbt:param>{' '}
                       filter search bar.
@@ -342,11 +341,15 @@ const FilterBookmark = (props: Props) => {
                     {Strings.common.cancelButton}
                   </Button>
                   {isBookmark ? (
-                    <Button disabled={name.trim() == ''} onClick={editBookmark}>
+                    <Button
+                      disabled={name.trim() == '' || filters.length === 0}
+                      onClick={editBookmark}>
                       {Strings.common.saveButton}
                     </Button>
                   ) : (
-                    <Button disabled={name.trim() == ''} onClick={saveBookmark}>
+                    <Button
+                      disabled={name.trim() == '' || filters.length === 0}
+                      onClick={saveBookmark}>
                       {Strings.common.createButton}
                     </Button>
                   )}
