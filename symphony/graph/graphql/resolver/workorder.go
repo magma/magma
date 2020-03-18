@@ -181,7 +181,7 @@ func (r mutationResolver) internalAddWorkOrder(
 	if input.Priority != nil {
 		mutation.SetPriority(input.Priority.String())
 	}
-	if input.Assignee != nil {
+	if input.Assignee != nil && *input.Assignee != "" {
 		assigneeID, err := c.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
 		if err != nil {
 			return nil, xerrors.Errorf("fetching assignee user", err)
@@ -190,7 +190,7 @@ func (r mutationResolver) internalAddWorkOrder(
 		}
 	}
 	var owner *ent.User
-	if input.OwnerName != nil {
+	if input.OwnerName != nil && *input.OwnerName != "" {
 		owner, err = c.User.Query().Where(user.AuthID(*input.OwnerName)).Only(ctx)
 	} else {
 		owner, err = viewer.UserFromContext(ctx)
@@ -251,14 +251,14 @@ func (r mutationResolver) EditWorkOrder(
 		SetStatus(input.Status.String()).
 		SetPriority(input.Priority.String()).
 		SetNillableIndex(input.Index)
-	if input.OwnerName != nil {
+	if input.OwnerName != nil && *input.OwnerName != "" {
 		ownerID, err := client.User.Query().Where(user.AuthID(*input.OwnerName)).OnlyID(ctx)
 		if err != nil {
 			return nil, xerrors.Errorf("fetching owner user", err)
 		}
 		mutation = mutation.SetOwnerID(ownerID)
 	}
-	if input.Assignee != nil {
+	if input.Assignee != nil && *input.Assignee != "" {
 		assigneeID, err := client.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
 		if err != nil {
 			return nil, xerrors.Errorf("fetching assignee user", err)

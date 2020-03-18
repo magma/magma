@@ -264,7 +264,7 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 		SetNillableLocationID(input.Location).
 		AddProperties(properties...)
 
-	if input.Creator != nil {
+	if input.Creator != nil && *input.Creator != "" {
 		creatorID, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
 		if err != nil {
 			return nil, xerrors.Errorf("fetching creator user", err)
@@ -325,7 +325,7 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		UpdateOne(proj).
 		SetName(input.Name).
 		SetNillableDescription(input.Description)
-	if input.Creator != nil {
+	if input.Creator != nil && *input.Creator != "" {
 		creatorID, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
 		if err != nil {
 			return nil, xerrors.Errorf("fetching creator user", err)
