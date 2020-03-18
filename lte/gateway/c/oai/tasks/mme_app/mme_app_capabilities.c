@@ -32,7 +32,6 @@
 #include "s1ap_messages_types.h"
 
 int mme_app_handle_s1ap_ue_capabilities_ind(
-  mme_app_desc_t* mme_app_desc_p,
   const itti_s1ap_ue_cap_ind_t const* s1ap_ue_cap_ind_pP)
 {
   ue_mm_context_t* ue_context_p = NULL;
@@ -45,8 +44,8 @@ int mme_app_handle_s1ap_ue_capabilities_ind(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, s1ap_ue_cap_ind_pP->mme_ue_s1ap_id);
+  ue_context_p =
+    mme_ue_context_exists_mme_ue_s1ap_id(s1ap_ue_cap_ind_pP->mme_ue_s1ap_id);
   if (!ue_context_p) {
     OAILOG_ERROR(
       LOG_MME_APP,

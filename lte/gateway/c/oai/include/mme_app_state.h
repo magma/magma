@@ -55,6 +55,13 @@ void put_mme_nas_state(void);
 */
 void clear_mme_nas_state(void);
 
+// Returns UE MME state hashtable, indexed by IMSI
+hash_table_ts_t* get_mme_ue_state(void);
+// Persists UE MME state for subscriber into db
+void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64);
+// Deletes entry for UE MME state on db
+void delete_mme_ue_state(imsi64_t imsi64);
+
 #ifdef __cplusplus
 }
 #endif
