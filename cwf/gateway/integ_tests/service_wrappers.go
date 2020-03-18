@@ -266,6 +266,18 @@ func setCreditOnOCS(creditInfo *fegprotos.CreditInfo) error {
 	return err
 }
 
+// sendChargingReAuthRequest triggers a RAR from OCS to Sessiond
+// Input: ChargingReAuthTarget
+func sendChargingReAuthRequest(imsi string, ratingGroup uint32) (*fegprotos.ChargingReAuthAnswer, error) {
+	cli, err := getOCSClient()
+	if err != nil {
+		return nil, err
+	}
+	raa, err := cli.ReAuth(context.Background(),
+		&fegprotos.ChargingReAuthTarget{Imsi: imsi, RatingGroup: ratingGroup})
+	return raa, err
+}
+
 /**  ========== Pipelined Helpers ========== **/
 // getPipelinedClient is a utility function to an RPC connection to a
 // remote OCS service.

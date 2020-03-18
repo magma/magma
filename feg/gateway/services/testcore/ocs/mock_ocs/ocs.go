@@ -214,8 +214,8 @@ func (srv *OCSDiamServer) ClearSubscribers(ctx context.Context, void *orcprotos.
 // It waits for any answer from the OCS
 func (srv *OCSDiamServer) ReAuth(
 	ctx context.Context,
-	target *protos.ReAuthTarget,
-) (*protos.ReAuthAnswer, error) {
+	target *protos.ChargingReAuthTarget,
+) (*protos.ChargingReAuthAnswer, error) {
 	account, ok := srv.accounts[target.Imsi]
 	if !ok {
 		return nil, fmt.Errorf("Could not find imsi %s", target.Imsi)
@@ -223,12 +223,12 @@ func (srv *OCSDiamServer) ReAuth(
 	if account.CurrentState == nil {
 		return nil, fmt.Errorf("Credit client location unknown for imsi %s", target.Imsi)
 	}
-	done := make(chan *gy.ReAuthAnswer)
+	done := make(chan *gy.ChargingReAuthAnswer)
 	srv.mux.Handle(diam.RAA, handleRAA(done))
 	sendRAR(account.CurrentState, &target.RatingGroup, srv.mux.Settings())
 	select {
 	case raa := <-done:
-		return &protos.ReAuthAnswer{SessionId: diameter.DecodeSessionID(raa.SessionID), ResultCode: raa.ResultCode}, nil
+		return &protos.ChargingReAuthAnswer{SessionId: diameter.DecodeSessionID(raa.SessionID), ResultCode: raa.ResultCode}, nil
 	case <-time.After(10 * time.Second):
 		return nil, fmt.Errorf("No RAA received")
 	}
@@ -253,9 +253,9 @@ func sendRAR(state *SubscriberSessionState, ratingGroup *uint32, cfg *sm.Setting
 	return err
 }
 
-func handleRAA(done chan *gy.ReAuthAnswer) diam.HandlerFunc {
+func handleRAA(done chan *gy.ChargingReAuthAnswer) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
-		var raa gy.ReAuthAnswer
+		var raa gy.ChargingReAuthAnswer
 		if err := m.Unmarshal(&raa); err != nil {
 			glog.Errorf("Received unparseable RAA over Gy %s", m)
 			return
