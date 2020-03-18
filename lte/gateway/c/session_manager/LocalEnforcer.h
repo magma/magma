@@ -18,6 +18,7 @@
 #include <folly/io/async/EventBaseManager.h>
 
 #include "AAAClient.h"
+#include "EventdClient.h"
 #include "SessionReporter.h"
 #include "PipelinedClient.h"
 #include "DirectorydClient.h"
@@ -45,6 +46,7 @@ class LocalEnforcer {
     std::shared_ptr<StaticRuleStore> rule_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    std::shared_ptr<AsyncEventdClient> eventd_client,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms,
@@ -193,6 +195,7 @@ class LocalEnforcer {
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
+  std::shared_ptr<AsyncEventdClient> eventd_client_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string,

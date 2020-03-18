@@ -137,6 +137,19 @@ class MockDirectorydClient : public AsyncDirectorydClient {
       std::function<void(Status status, DirectoryField)> callback));
 };
 
+class MockEventdClient : public AsyncEventdClient {
+ public:
+  MockEventdClient()
+  {
+    ON_CALL(*this, log_event(_,_)).WillByDefault(Return(true));
+  }
+
+  MOCK_METHOD2(log_event,
+    bool(
+      const std::string& imsi,
+      std::function<void(Status status, Void)> callback));
+};
+
 /**
  * Mock handler to mock actual request handling and just test server
  */
