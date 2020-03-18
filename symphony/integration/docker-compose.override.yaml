@@ -29,7 +29,6 @@ services:
       - ${XPLAT_FBC_DIR}/fbcnms-projects/inventory/app:/app/fbcnms-projects/inventory/app:delegated
       - ${XPLAT_FBC_DIR}/fbcnms-projects/inventory/scripts:/app/fbcnms-projects/inventory/scripts:delegated
       - ${XPLAT_FBC_DIR}/fbcnms-projects/magmalte/app:/app/fbcnms-projects/magmalte/app:delegated
-      - ${XPLAT_FBC_DIR}/fbcnms-projects/hub/app:/app/fbcnms-projects/hub/app:delegated
 
   store:
     environment:

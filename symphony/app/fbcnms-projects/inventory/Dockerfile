@@ -8,7 +8,6 @@ COPY package.json babel.config.js /app/
 COPY fbcnms-packages /app/fbcnms-packages
 COPY fbcnms-projects/inventory /app/fbcnms-projects/inventory
 COPY fbcnms-projects/magmalte /app/fbcnms-projects/magmalte
-COPY fbcnms-projects/hub /app/fbcnms-projects/hub
 
 # Build static files
 WORKDIR /app/fbcnms-projects/inventory
