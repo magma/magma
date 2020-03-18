@@ -127,6 +127,7 @@ const WorkOrderComparisonView = () => {
           className={classes.powerSearchBar}
           filterConfigs={filterConfigs}
           searchConfig={WorkOrderSearchConfig}
+          filterValues={filters}
           savedSearches={filterBookmarksFilterConfig}
           getSelectedFilter={(filterConfig: FilterConfig) =>
             getInitialFilterValue(
