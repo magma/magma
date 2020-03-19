@@ -11,16 +11,21 @@ package integ_tests
 import (
 	"fmt"
 	"math/rand"
+	"reflect"
 	"strconv"
+	"testing"
 
 	"fbc/lib/go/radius"
+	"fbc/lib/go/radius/rfc2869"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
+	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 )
 
 // todo make Op configurable, or export it in the UESimServer.
@@ -137,6 +142,15 @@ func (testRunner *TestRunner) Authenticate(imsi string) (*radius.Packet, error) 
 	}
 	fmt.Printf("Finished Authenticating UE. Resulting RADIUS Packet: %d\n", radiusP)
 	return radiusP, nil
+}
+
+func (testRunner *TestRunner) AuthenticateAndAssertSuccess(t *testing.T, imsi string) {
+	radiusP, err := testRunner.Authenticate(imsi)
+	assert.NoError(t, err)
+
+	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
+	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
+	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
 }
 
 // Authenticate simulates an authentication between the UE with the specified

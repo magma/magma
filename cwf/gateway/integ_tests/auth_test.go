@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"fbc/lib/go/radius/rfc2869"
 	"magma/feg/cloud/go/protos"
@@ -28,14 +29,10 @@ func TestAuthenticateMultipleUEs(t *testing.T) {
 	assert.NoError(t, err)
 
 	for _, ue := range ues {
-		radiusP, err := tr.Authenticate(ue.GetImsi())
-		assert.NoError(t, err)
-
-		eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-		assert.NotNil(t, eapMessage)
-		assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
+		tr.AuthenticateAndAssertSuccess(t, ue.GetImsi())
+		tr.Disconnect(ue.GetImsi())
 	}
-
+	time.Sleep(1 * time.Second)
 	// Clear hss, ocs, and pcrf
 	assert.NoError(t, tr.CleanUp())
 }
@@ -45,7 +42,7 @@ func TestAuthenticateFail(t *testing.T) {
 	tr := NewTestRunner()
 	assert.NoError(t, usePCRFMockDriver())
 
-	ues, err := tr.ConfigUEs(2)
+	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
 
 	// Test Authentication Fail
