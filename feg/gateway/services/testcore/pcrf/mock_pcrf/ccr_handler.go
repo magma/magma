@@ -70,9 +70,23 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
 			return
 		}
+
+		if srv.serviceConfig.UseMockDriver {
+			srv.mockDriverLock.Lock()
+			iAnswer := srv.mockDriver.GetAnswerFromExpectations(ccr)
+			srv.mockDriverLock.Unlock()
+			if iAnswer == nil {
+				sendAnswer(ccr, c, m, diam.UnableToComply)
+				return
+			}
+			avps, resultCode := iAnswer.(GxAnswer).toAVPs()
+			sendAnswer(ccr, c, m, resultCode, avps...)
+			return
+		}
+
 		account, found := srv.subscribers[imsi]
 		if !found {
-			glog.Error("IMSI not found in subscribers")
+			glog.Errorf("IMSI %v not found in subscribers", imsi)
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
 			return
 		}

@@ -23,6 +23,7 @@ This is template for release notes
 - `get_equipment_port_type` - get existing equipment port type.
 - `edit_equipment_port_type` - edit existing equipment port type.
 - `delete_equipment_port_type` - delete existing equipment port.
+- Added support for user operations - `add_user`, `get_user`, `deactivate_user`, `activate_user`, `get_users`, `get_active_users`
 ## Changes:
 - functions now raise warning if they query against deprecated Graphql Endpoints. If you get such warning you are adviced to upgrade to newer version of API that will call different graphql endpoints instead
 - use BasicAuth login to graphql server which improves first connection performance

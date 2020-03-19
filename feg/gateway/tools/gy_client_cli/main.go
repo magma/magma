@@ -196,7 +196,7 @@ func sendCreditCall(config *cliConfig, requestType credit_control.CreditRequestT
 	}
 }
 
-func handleReAuth(request *gy.ReAuthRequest) *gy.ReAuthAnswer {
+func handleReAuth(request *gy.ChargingReAuthRequest) *gy.ChargingReAuthAnswer {
 	return nil
 }
 

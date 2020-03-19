@@ -29,7 +29,7 @@
 #include "mme_app_ue_context.h"
 
 typedef struct mme_app_desc_s {
-  /* UE contexts + some statistics variables */
+  /* UE contexts */
   mme_ue_context_t mme_ue_contexts;
 
   long statistic_timer_id;
@@ -59,4 +59,9 @@ typedef struct mme_app_desc_s {
   uint32_t nb_enb_released_since_last_stat;
   uint32_t nb_s1u_bearers_released_since_last_stat;
   uint32_t nb_s1u_bearers_established_since_last_stat;
+  uint32_t nb_ue_managed;
+  uint32_t nb_ue_idle;
+  uint32_t nb_bearers_managed;
+  uint32_t nb_ue_since_last_stat;
+  uint32_t nb_bearers_since_last_stat;
 } mme_app_desc_t;

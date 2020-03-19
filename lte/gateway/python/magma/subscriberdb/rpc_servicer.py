@@ -11,13 +11,10 @@ import logging
 
 import grpc
 from lte.protos import subscriberdb_pb2, subscriberdb_pb2_grpc
-
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
-from .store.base import (
-    DuplicateSubscriberError,
-    SubscriberNotFoundError,
-)
+
+from .store.base import DuplicateSubscriberError, SubscriberNotFoundError
 
 
 class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
@@ -47,7 +44,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         try:
             self._store.add_subscriber(request)
         except DuplicateSubscriberError:
-            context.set_details('Duplicate subscriber: %s' % sid)
+            context.set_details("Duplicate subscriber: %s" % sid)
             context.set_code(grpc.StatusCode.ALREADY_EXISTS)
 
     @return_void
@@ -66,10 +63,12 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         """
         sid = SIDUtils.to_str(request.data.sid)
         try:
-            with self._store.edit_subscriber(sid, request) as subs:
-                request.mask.MergeMessage(request.data, subs)
+            with self._store.edit_subscriber(sid) as subs:
+                request.mask.MergeMessage(
+                    request.data, subs, replace_message_field=True
+                )
         except SubscriberNotFoundError:
-            context.set_details('Subscriber not found: %s' % sid)
+            context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)
 
     def GetSubscriberData(self, request, context):
@@ -80,7 +79,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         try:
             return self._store.get_subscriber_data(sid)
         except SubscriberNotFoundError:
-            context.set_details('Subscriber not found: %s' % sid)
+            context.set_details("Subscriber not found: %s" % sid)
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return subscriberdb_pb2.SubscriberData()
 

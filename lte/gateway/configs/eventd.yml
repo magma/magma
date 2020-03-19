@@ -14,3 +14,9 @@ event_registry:
   mock_subscriber_event:
     module: orc8r
     filename: mock_event_definitions.v1.yml
+  session_created:
+    module: lte
+    filename: session_manager_events.v1.yml
+  session_terminated:
+    module: lte
+    filename: session_manager_events.v1.yml

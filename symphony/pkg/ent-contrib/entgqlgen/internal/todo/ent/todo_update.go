@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -21,12 +20,9 @@ import (
 // TodoUpdate is the builder for updating Todo entities.
 type TodoUpdate struct {
 	config
-	text            *string
-	parent          map[int]struct{}
-	children        map[int]struct{}
-	clearedParent   bool
-	removedChildren map[int]struct{}
-	predicates      []predicate.Todo
+	hooks      []Hook
+	mutation   *TodoMutation
+	predicates []predicate.Todo
 }
 
 // Where adds a new predicate for the builder.
@@ -37,16 +33,13 @@ func (tu *TodoUpdate) Where(ps ...predicate.Todo) *TodoUpdate {
 
 // SetText sets the text field.
 func (tu *TodoUpdate) SetText(s string) *TodoUpdate {
-	tu.text = &s
+	tu.mutation.SetText(s)
 	return tu
 }
 
 // SetParentID sets the parent edge to Todo by id.
 func (tu *TodoUpdate) SetParentID(id int) *TodoUpdate {
-	if tu.parent == nil {
-		tu.parent = make(map[int]struct{})
-	}
-	tu.parent[id] = struct{}{}
+	tu.mutation.SetParentID(id)
 	return tu
 }
 
@@ -65,12 +58,7 @@ func (tu *TodoUpdate) SetParent(t *Todo) *TodoUpdate {
 
 // AddChildIDs adds the children edge to Todo by ids.
 func (tu *TodoUpdate) AddChildIDs(ids ...int) *TodoUpdate {
-	if tu.children == nil {
-		tu.children = make(map[int]struct{})
-	}
-	for i := range ids {
-		tu.children[ids[i]] = struct{}{}
-	}
+	tu.mutation.AddChildIDs(ids...)
 	return tu
 }
 
@@ -85,18 +73,13 @@ func (tu *TodoUpdate) AddChildren(t ...*Todo) *TodoUpdate {
 
 // ClearParent clears the parent edge to Todo.
 func (tu *TodoUpdate) ClearParent() *TodoUpdate {
-	tu.clearedParent = true
+	tu.mutation.ClearParent()
 	return tu
 }
 
 // RemoveChildIDs removes the children edge to Todo by ids.
 func (tu *TodoUpdate) RemoveChildIDs(ids ...int) *TodoUpdate {
-	if tu.removedChildren == nil {
-		tu.removedChildren = make(map[int]struct{})
-	}
-	for i := range ids {
-		tu.removedChildren[ids[i]] = struct{}{}
-	}
+	tu.mutation.RemoveChildIDs(ids...)
 	return tu
 }
 
@@ -111,15 +94,36 @@ func (tu *TodoUpdate) RemoveChildren(t ...*Todo) *TodoUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (tu *TodoUpdate) Save(ctx context.Context) (int, error) {
-	if tu.text != nil {
-		if err := todo.TextValidator(*tu.text); err != nil {
+	if v, ok := tu.mutation.Text(); ok {
+		if err := todo.TextValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"text\": %v", err)
 		}
 	}
-	if len(tu.parent) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"parent\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(tu.hooks) == 0 {
+		affected, err = tu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*TodoMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			tu.mutation = mutation
+			affected, err = tu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(tu.hooks); i > 0; i-- {
+			mut = tu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, tu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	return tu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -162,14 +166,14 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := tu.text; value != nil {
+	if value, ok := tu.mutation.Text(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: todo.FieldText,
 		})
 	}
-	if tu.clearedParent {
+	if tu.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -185,7 +189,7 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.parent; len(nodes) > 0 {
+	if nodes := tu.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -199,12 +203,12 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := tu.removedChildren; len(nodes) > 0 {
+	if nodes := tu.mutation.RemovedChildrenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -218,12 +222,12 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.children; len(nodes) > 0 {
+	if nodes := tu.mutation.ChildrenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -237,13 +241,15 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{todo.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -254,26 +260,19 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // TodoUpdateOne is the builder for updating a single Todo entity.
 type TodoUpdateOne struct {
 	config
-	id              int
-	text            *string
-	parent          map[int]struct{}
-	children        map[int]struct{}
-	clearedParent   bool
-	removedChildren map[int]struct{}
+	hooks    []Hook
+	mutation *TodoMutation
 }
 
 // SetText sets the text field.
 func (tuo *TodoUpdateOne) SetText(s string) *TodoUpdateOne {
-	tuo.text = &s
+	tuo.mutation.SetText(s)
 	return tuo
 }
 
 // SetParentID sets the parent edge to Todo by id.
 func (tuo *TodoUpdateOne) SetParentID(id int) *TodoUpdateOne {
-	if tuo.parent == nil {
-		tuo.parent = make(map[int]struct{})
-	}
-	tuo.parent[id] = struct{}{}
+	tuo.mutation.SetParentID(id)
 	return tuo
 }
 
@@ -292,12 +291,7 @@ func (tuo *TodoUpdateOne) SetParent(t *Todo) *TodoUpdateOne {
 
 // AddChildIDs adds the children edge to Todo by ids.
 func (tuo *TodoUpdateOne) AddChildIDs(ids ...int) *TodoUpdateOne {
-	if tuo.children == nil {
-		tuo.children = make(map[int]struct{})
-	}
-	for i := range ids {
-		tuo.children[ids[i]] = struct{}{}
-	}
+	tuo.mutation.AddChildIDs(ids...)
 	return tuo
 }
 
@@ -312,18 +306,13 @@ func (tuo *TodoUpdateOne) AddChildren(t ...*Todo) *TodoUpdateOne {
 
 // ClearParent clears the parent edge to Todo.
 func (tuo *TodoUpdateOne) ClearParent() *TodoUpdateOne {
-	tuo.clearedParent = true
+	tuo.mutation.ClearParent()
 	return tuo
 }
 
 // RemoveChildIDs removes the children edge to Todo by ids.
 func (tuo *TodoUpdateOne) RemoveChildIDs(ids ...int) *TodoUpdateOne {
-	if tuo.removedChildren == nil {
-		tuo.removedChildren = make(map[int]struct{})
-	}
-	for i := range ids {
-		tuo.removedChildren[ids[i]] = struct{}{}
-	}
+	tuo.mutation.RemoveChildIDs(ids...)
 	return tuo
 }
 
@@ -338,15 +327,36 @@ func (tuo *TodoUpdateOne) RemoveChildren(t ...*Todo) *TodoUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (tuo *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
-	if tuo.text != nil {
-		if err := todo.TextValidator(*tuo.text); err != nil {
+	if v, ok := tuo.mutation.Text(); ok {
+		if err := todo.TextValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"text\": %v", err)
 		}
 	}
-	if len(tuo.parent) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"parent\"")
+
+	var (
+		err  error
+		node *Todo
+	)
+	if len(tuo.hooks) == 0 {
+		node, err = tuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*TodoMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			tuo.mutation = mutation
+			node, err = tuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(tuo.hooks); i > 0; i-- {
+			mut = tuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, tuo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return tuo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -377,20 +387,24 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
 			Table:   todo.Table,
 			Columns: todo.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  tuo.id,
 				Type:   field.TypeInt,
 				Column: todo.FieldID,
 			},
 		},
 	}
-	if value := tuo.text; value != nil {
+	id, ok := tuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Todo.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := tuo.mutation.Text(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: todo.FieldText,
 		})
 	}
-	if tuo.clearedParent {
+	if tuo.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -406,7 +420,7 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.parent; len(nodes) > 0 {
+	if nodes := tuo.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -420,12 +434,12 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := tuo.removedChildren; len(nodes) > 0 {
+	if nodes := tuo.mutation.RemovedChildrenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -439,12 +453,12 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.children; len(nodes) > 0 {
+	if nodes := tuo.mutation.ChildrenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -458,7 +472,7 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -467,7 +481,9 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
 	_spec.Assign = t.assignValues
 	_spec.ScanValues = t.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, tuo.driver, _spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{todo.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

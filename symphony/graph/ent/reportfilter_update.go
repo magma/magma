@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -21,12 +20,9 @@ import (
 // ReportFilterUpdate is the builder for updating ReportFilter entities.
 type ReportFilterUpdate struct {
 	config
-
-	update_time *time.Time
-	name        *string
-	entity      *reportfilter.Entity
-	filters     *string
-	predicates  []predicate.ReportFilter
+	hooks      []Hook
+	mutation   *ReportFilterMutation
+	predicates []predicate.ReportFilter
 }
 
 // Where adds a new predicate for the builder.
@@ -37,19 +33,19 @@ func (rfu *ReportFilterUpdate) Where(ps ...predicate.ReportFilter) *ReportFilter
 
 // SetName sets the name field.
 func (rfu *ReportFilterUpdate) SetName(s string) *ReportFilterUpdate {
-	rfu.name = &s
+	rfu.mutation.SetName(s)
 	return rfu
 }
 
 // SetEntity sets the entity field.
 func (rfu *ReportFilterUpdate) SetEntity(r reportfilter.Entity) *ReportFilterUpdate {
-	rfu.entity = &r
+	rfu.mutation.SetEntity(r)
 	return rfu
 }
 
 // SetFilters sets the filters field.
 func (rfu *ReportFilterUpdate) SetFilters(s string) *ReportFilterUpdate {
-	rfu.filters = &s
+	rfu.mutation.SetFilters(s)
 	return rfu
 }
 
@@ -63,21 +59,44 @@ func (rfu *ReportFilterUpdate) SetNillableFilters(s *string) *ReportFilterUpdate
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (rfu *ReportFilterUpdate) Save(ctx context.Context) (int, error) {
-	if rfu.update_time == nil {
+	if _, ok := rfu.mutation.UpdateTime(); !ok {
 		v := reportfilter.UpdateDefaultUpdateTime()
-		rfu.update_time = &v
+		rfu.mutation.SetUpdateTime(v)
 	}
-	if rfu.name != nil {
-		if err := reportfilter.NameValidator(*rfu.name); err != nil {
+	if v, ok := rfu.mutation.Name(); ok {
+		if err := reportfilter.NameValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if rfu.entity != nil {
-		if err := reportfilter.EntityValidator(*rfu.entity); err != nil {
+	if v, ok := rfu.mutation.Entity(); ok {
+		if err := reportfilter.EntityValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"entity\": %v", err)
 		}
 	}
-	return rfu.sqlSave(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(rfu.hooks) == 0 {
+		affected, err = rfu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ReportFilterMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			rfu.mutation = mutation
+			affected, err = rfu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(rfu.hooks); i > 0; i-- {
+			mut = rfu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, rfu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -120,31 +139,31 @@ func (rfu *ReportFilterUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := rfu.update_time; value != nil {
+	if value, ok := rfu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: reportfilter.FieldUpdateTime,
 		})
 	}
-	if value := rfu.name; value != nil {
+	if value, ok := rfu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: reportfilter.FieldName,
 		})
 	}
-	if value := rfu.entity; value != nil {
+	if value, ok := rfu.mutation.Entity(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  *value,
+			Value:  value,
 			Column: reportfilter.FieldEntity,
 		})
 	}
-	if value := rfu.filters; value != nil {
+	if value, ok := rfu.mutation.Filters(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: reportfilter.FieldFilters,
 		})
 	}
@@ -162,29 +181,25 @@ func (rfu *ReportFilterUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ReportFilterUpdateOne is the builder for updating a single ReportFilter entity.
 type ReportFilterUpdateOne struct {
 	config
-	id int
-
-	update_time *time.Time
-	name        *string
-	entity      *reportfilter.Entity
-	filters     *string
+	hooks    []Hook
+	mutation *ReportFilterMutation
 }
 
 // SetName sets the name field.
 func (rfuo *ReportFilterUpdateOne) SetName(s string) *ReportFilterUpdateOne {
-	rfuo.name = &s
+	rfuo.mutation.SetName(s)
 	return rfuo
 }
 
 // SetEntity sets the entity field.
 func (rfuo *ReportFilterUpdateOne) SetEntity(r reportfilter.Entity) *ReportFilterUpdateOne {
-	rfuo.entity = &r
+	rfuo.mutation.SetEntity(r)
 	return rfuo
 }
 
 // SetFilters sets the filters field.
 func (rfuo *ReportFilterUpdateOne) SetFilters(s string) *ReportFilterUpdateOne {
-	rfuo.filters = &s
+	rfuo.mutation.SetFilters(s)
 	return rfuo
 }
 
@@ -198,21 +213,44 @@ func (rfuo *ReportFilterUpdateOne) SetNillableFilters(s *string) *ReportFilterUp
 
 // Save executes the query and returns the updated entity.
 func (rfuo *ReportFilterUpdateOne) Save(ctx context.Context) (*ReportFilter, error) {
-	if rfuo.update_time == nil {
+	if _, ok := rfuo.mutation.UpdateTime(); !ok {
 		v := reportfilter.UpdateDefaultUpdateTime()
-		rfuo.update_time = &v
+		rfuo.mutation.SetUpdateTime(v)
 	}
-	if rfuo.name != nil {
-		if err := reportfilter.NameValidator(*rfuo.name); err != nil {
+	if v, ok := rfuo.mutation.Name(); ok {
+		if err := reportfilter.NameValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if rfuo.entity != nil {
-		if err := reportfilter.EntityValidator(*rfuo.entity); err != nil {
+	if v, ok := rfuo.mutation.Entity(); ok {
+		if err := reportfilter.EntityValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"entity\": %v", err)
 		}
 	}
-	return rfuo.sqlSave(ctx)
+	var (
+		err  error
+		node *ReportFilter
+	)
+	if len(rfuo.hooks) == 0 {
+		node, err = rfuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ReportFilterMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			rfuo.mutation = mutation
+			node, err = rfuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(rfuo.hooks); i > 0; i-- {
+			mut = rfuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, rfuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -243,37 +281,41 @@ func (rfuo *ReportFilterUpdateOne) sqlSave(ctx context.Context) (rf *ReportFilte
 			Table:   reportfilter.Table,
 			Columns: reportfilter.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  rfuo.id,
 				Type:   field.TypeInt,
 				Column: reportfilter.FieldID,
 			},
 		},
 	}
-	if value := rfuo.update_time; value != nil {
+	id, ok := rfuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing ReportFilter.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := rfuo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: reportfilter.FieldUpdateTime,
 		})
 	}
-	if value := rfuo.name; value != nil {
+	if value, ok := rfuo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: reportfilter.FieldName,
 		})
 	}
-	if value := rfuo.entity; value != nil {
+	if value, ok := rfuo.mutation.Entity(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  *value,
+			Value:  value,
 			Column: reportfilter.FieldEntity,
 		})
 	}
-	if value := rfuo.filters; value != nil {
+	if value, ok := rfuo.mutation.Filters(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: reportfilter.FieldFilters,
 		})
 	}

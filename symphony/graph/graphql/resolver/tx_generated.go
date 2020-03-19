@@ -969,3 +969,14 @@ func (tr txResolver) EditReportFilter(ctx context.Context, input models.EditRepo
 	}
 	return result, nil
 }
+
+func (tr txResolver) DeleteReportFilter(ctx context.Context, id int) (bool, error) {
+	var result, zero bool
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.DeleteReportFilter(ctx, id)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	return result, nil
+}

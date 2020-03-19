@@ -343,10 +343,7 @@ static int _check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id)
 {
   ue_mm_context_t *ue_context = NULL;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts,
-        ue_id);
+  ue_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if(ue_context) {
     if((ue_context->sgs_context) &&
        (ue_context->sgs_context->csfb_service_type ==

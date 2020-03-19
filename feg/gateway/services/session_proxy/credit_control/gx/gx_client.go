@@ -239,10 +239,6 @@ func (gxClient *GxClient) createCreditControlMessage(
 		m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(Ipv6PrefixFromMAC(request.HardwareAddr)))
 	}
 
-	if len(request.Apn) > 0 {
-		m.NewAVP(avp.CalledStationID, avp.Mbit, 0, datatype.UTF8String(request.Apn))
-	}
-
 	apn := datatype.UTF8String(request.Apn)
 	if globalConfig != nil && len(globalConfig.PCFROverwriteApn) > 0 {
 		apn = datatype.UTF8String(globalConfig.PCFROverwriteApn)

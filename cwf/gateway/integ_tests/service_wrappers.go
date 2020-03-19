@@ -189,6 +189,52 @@ func setNewOCSConfig(ocsConfig *fegprotos.OCSConfig) error {
 	return err
 }
 
+func usePCRFMockDriver() error {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetPCRFConfigs(context.Background(), &fegprotos.PCRFConfigs{UseMockDriver: true})
+	return err
+}
+
+func clearPCRFMockDriver() error {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetPCRFConfigs(context.Background(), &fegprotos.PCRFConfigs{UseMockDriver: false})
+	return err
+}
+
+func setPCRFExpectations(expectations []*fegprotos.GxCreditControlExpectation, defaultAnswer *fegprotos.GxCreditControlAnswer) error {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return err
+	}
+	request := &fegprotos.GxCreditControlExpectations{
+		Expectations: expectations,
+		GxDefaultCca: defaultAnswer,
+	}
+	if defaultAnswer != nil {
+		request.UnexpectedRequestBehavior = fegprotos.UnexpectedRequestBehavior_CONTINUE_WITH_DEFAULT_ANSWER
+	}
+	_, err = cli.SetExpectations(context.Background(), request)
+	return err
+}
+
+func getAssertExpectationsResult() ([]*fegprotos.ExpectationResult, []*fegprotos.ErrorByIndex, error) {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return nil, nil, nil
+	}
+	res, err := cli.AssertExpectations(context.Background(), &protos.Void{})
+	if err != nil {
+		return nil, nil, err
+	}
+	return res.Results, res.Errors, nil
+}
+
 // addSubscriber tries to add this subscriber to the OCS server.
 // Input: The subscriber data which will be added.
 func addSubscriberToOCS(sub *lteprotos.SubscriberID) error {
@@ -218,6 +264,18 @@ func setCreditOnOCS(creditInfo *fegprotos.CreditInfo) error {
 	}
 	_, err = cli.SetCredit(context.Background(), creditInfo)
 	return err
+}
+
+// sendChargingReAuthRequest triggers a RAR from OCS to Sessiond
+// Input: ChargingReAuthTarget
+func sendChargingReAuthRequest(imsi string, ratingGroup uint32) (*fegprotos.ChargingReAuthAnswer, error) {
+	cli, err := getOCSClient()
+	if err != nil {
+		return nil, err
+	}
+	raa, err := cli.ReAuth(context.Background(),
+		&fegprotos.ChargingReAuthTarget{Imsi: imsi, RatingGroup: ratingGroup})
+	return raa, err
 }
 
 /**  ========== Pipelined Helpers ========== **/

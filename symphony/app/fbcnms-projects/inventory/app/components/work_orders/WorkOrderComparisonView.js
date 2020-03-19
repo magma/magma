@@ -19,6 +19,7 @@ import React, {useMemo, useState} from 'react';
 import WorkOrderCard from './WorkOrderCard';
 import WorkOrderComparisonViewQueryRenderer from './WorkOrderComparisonViewQueryRenderer';
 import fbt from 'fbt';
+import useFilterBookmarks from '../comparison_view/hooks/filterBookmarksHook';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
@@ -70,6 +71,7 @@ const WorkOrderComparisonView = () => {
   );
 
   const locationTypesFilterConfigs = useLocationTypes();
+  const filterBookmarksFilterConfig = useFilterBookmarks('WORK_ORDER');
 
   const filterConfigs = WorkOrderSearchConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
@@ -125,6 +127,8 @@ const WorkOrderComparisonView = () => {
           className={classes.powerSearchBar}
           filterConfigs={filterConfigs}
           searchConfig={WorkOrderSearchConfig}
+          filterValues={filters}
+          savedSearches={filterBookmarksFilterConfig}
           getSelectedFilter={(filterConfig: FilterConfig) =>
             getInitialFilterValue(
               filterConfig.key,
@@ -135,6 +139,7 @@ const WorkOrderComparisonView = () => {
           }
           onFiltersChanged={filters => setFilters(filters)}
           exportPath={'/work_orders'}
+          entity={'WORK_ORDER'}
           footer={
             count !== 0
               ? count > QUERY_LIMIT

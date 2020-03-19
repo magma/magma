@@ -9,7 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,12 +22,9 @@ import (
 // TokenUpdate is the builder for updating Token entities.
 type TokenUpdate struct {
 	config
-
-	updated_at *time.Time
-
-	user        map[int]struct{}
-	clearedUser bool
-	predicates  []predicate.Token
+	hooks      []Hook
+	mutation   *TokenMutation
+	predicates []predicate.Token
 }
 
 // Where adds a new predicate for the builder.
@@ -38,10 +35,7 @@ func (tu *TokenUpdate) Where(ps ...predicate.Token) *TokenUpdate {
 
 // SetUserID sets the user edge to User by id.
 func (tu *TokenUpdate) SetUserID(id int) *TokenUpdate {
-	if tu.user == nil {
-		tu.user = make(map[int]struct{})
-	}
-	tu.user[id] = struct{}{}
+	tu.mutation.SetUserID(id)
 	return tu
 }
 
@@ -52,23 +46,44 @@ func (tu *TokenUpdate) SetUser(u *User) *TokenUpdate {
 
 // ClearUser clears the user edge to User.
 func (tu *TokenUpdate) ClearUser() *TokenUpdate {
-	tu.clearedUser = true
+	tu.mutation.ClearUser()
 	return tu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (tu *TokenUpdate) Save(ctx context.Context) (int, error) {
-	if tu.updated_at == nil {
+	if _, ok := tu.mutation.UpdatedAt(); !ok {
 		v := token.UpdateDefaultUpdatedAt()
-		tu.updated_at = &v
+		tu.mutation.SetUpdatedAt(v)
 	}
-	if len(tu.user) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"user\"")
-	}
-	if tu.clearedUser && tu.user == nil {
+
+	if _, ok := tu.mutation.UserID(); tu.mutation.UserCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"user\"")
 	}
-	return tu.sqlSave(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(tu.hooks) == 0 {
+		affected, err = tu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*TokenMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			tu.mutation = mutation
+			affected, err = tu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(tu.hooks); i > 0; i-- {
+			mut = tu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, tu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -111,14 +126,14 @@ func (tu *TokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := tu.updated_at; value != nil {
+	if value, ok := tu.mutation.UpdatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: token.FieldUpdatedAt,
 		})
 	}
-	if tu.clearedUser {
+	if tu.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -134,7 +149,7 @@ func (tu *TokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.user; len(nodes) > 0 {
+	if nodes := tu.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -148,7 +163,7 @@ func (tu *TokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -167,20 +182,13 @@ func (tu *TokenUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // TokenUpdateOne is the builder for updating a single Token entity.
 type TokenUpdateOne struct {
 	config
-	id int
-
-	updated_at *time.Time
-
-	user        map[int]struct{}
-	clearedUser bool
+	hooks    []Hook
+	mutation *TokenMutation
 }
 
 // SetUserID sets the user edge to User by id.
 func (tuo *TokenUpdateOne) SetUserID(id int) *TokenUpdateOne {
-	if tuo.user == nil {
-		tuo.user = make(map[int]struct{})
-	}
-	tuo.user[id] = struct{}{}
+	tuo.mutation.SetUserID(id)
 	return tuo
 }
 
@@ -191,23 +199,44 @@ func (tuo *TokenUpdateOne) SetUser(u *User) *TokenUpdateOne {
 
 // ClearUser clears the user edge to User.
 func (tuo *TokenUpdateOne) ClearUser() *TokenUpdateOne {
-	tuo.clearedUser = true
+	tuo.mutation.ClearUser()
 	return tuo
 }
 
 // Save executes the query and returns the updated entity.
 func (tuo *TokenUpdateOne) Save(ctx context.Context) (*Token, error) {
-	if tuo.updated_at == nil {
+	if _, ok := tuo.mutation.UpdatedAt(); !ok {
 		v := token.UpdateDefaultUpdatedAt()
-		tuo.updated_at = &v
+		tuo.mutation.SetUpdatedAt(v)
 	}
-	if len(tuo.user) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"user\"")
-	}
-	if tuo.clearedUser && tuo.user == nil {
+
+	if _, ok := tuo.mutation.UserID(); tuo.mutation.UserCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"user\"")
 	}
-	return tuo.sqlSave(ctx)
+	var (
+		err  error
+		node *Token
+	)
+	if len(tuo.hooks) == 0 {
+		node, err = tuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*TokenMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			tuo.mutation = mutation
+			node, err = tuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(tuo.hooks); i > 0; i-- {
+			mut = tuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, tuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -238,20 +267,24 @@ func (tuo *TokenUpdateOne) sqlSave(ctx context.Context) (t *Token, err error) {
 			Table:   token.Table,
 			Columns: token.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  tuo.id,
 				Type:   field.TypeInt,
 				Column: token.FieldID,
 			},
 		},
 	}
-	if value := tuo.updated_at; value != nil {
+	id, ok := tuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Token.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := tuo.mutation.UpdatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: token.FieldUpdatedAt,
 		})
 	}
-	if tuo.clearedUser {
+	if tuo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -267,7 +300,7 @@ func (tuo *TokenUpdateOne) sqlSave(ctx context.Context) (t *Token, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.user; len(nodes) > 0 {
+	if nodes := tuo.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -281,7 +314,7 @@ func (tuo *TokenUpdateOne) sqlSave(ctx context.Context) (t *Token, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

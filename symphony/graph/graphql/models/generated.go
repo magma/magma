@@ -394,11 +394,13 @@ type FileInput struct {
 	ModificationTime *int      `json:"modificationTime"`
 	UploadTime       *int      `json:"uploadTime"`
 	FileType         *FileType `json:"fileType"`
+	MimeType         *string   `json:"mimeType"`
 	StoreKey         string    `json:"storeKey"`
 }
 
 type GeneralFilter struct {
 	FilterType    string            `json:"filterType"`
+	Key           string            `json:"key"`
 	Operator      FilterOperator    `json:"operator"`
 	StringValue   *string           `json:"stringValue"`
 	IDSet         []int             `json:"idSet"`
@@ -409,6 +411,7 @@ type GeneralFilter struct {
 
 type GeneralFilterInput struct {
 	FilterType    string             `json:"filterType"`
+	Key           string             `json:"key"`
 	Operator      FilterOperator     `json:"operator"`
 	StringValue   *string            `json:"stringValue"`
 	IDSet         []int              `json:"idSet"`

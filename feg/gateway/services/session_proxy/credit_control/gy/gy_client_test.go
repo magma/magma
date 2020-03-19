@@ -376,7 +376,7 @@ func TestGyReAuth(t *testing.T) {
 	var rg uint32 = 1
 	raa, err := ocs.ReAuth(
 		context.Background(),
-		&fegprotos.ReAuthTarget{Imsi: testIMSI1, RatingGroup: rg},
+		&fegprotos.ChargingReAuthTarget{Imsi: testIMSI1, RatingGroup: rg},
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, sessionID, raa.SessionId)
@@ -473,9 +473,9 @@ func startServer(
 	return server, ocs
 }
 
-func getReAuthHandler() gy.ReAuthHandler {
-	return gy.ReAuthHandler(func(request *gy.ReAuthRequest) *gy.ReAuthAnswer {
-		return &gy.ReAuthAnswer{
+func getReAuthHandler() gy.ChargingReAuthHandler {
+	return gy.ChargingReAuthHandler(func(request *gy.ChargingReAuthRequest) *gy.ChargingReAuthAnswer {
+		return &gy.ChargingReAuthAnswer{
 			SessionID:  request.SessionID,
 			ResultCode: diam.Success,
 		}

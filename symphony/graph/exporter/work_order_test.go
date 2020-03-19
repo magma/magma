@@ -36,6 +36,7 @@ type woTestType struct {
 
 func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) woTestType {
 	prepareData(ctx, t, r)
+	viewertest.CreateUserEnt(ctx, r.client, "tester2@example.com")
 
 	// Add templates
 	typInput1 := models.AddWorkOrderTypeInput{

@@ -267,7 +267,3 @@ func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.
 		},
 	}
 }
-
-func makeDynamicRuleIDFromIMSI(imsi string) string {
-	return "dynrule1-" + imsi
-}

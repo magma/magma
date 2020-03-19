@@ -207,6 +207,7 @@ type File implements Node {
   modified: Time
   uploaded: Time
   fileType: FileType
+  mimeType: String
   storeKey: String
   category: String
 }
@@ -968,6 +969,7 @@ enum FilterEntity {
 
 type GeneralFilter {
   filterType: String!
+  key: String!
   operator: FilterOperator!
   stringValue: String
   idSet: [ID!]
@@ -985,6 +987,7 @@ type ReportFilter implements Node {
 
 input GeneralFilterInput {
   filterType: String!
+  key: String!
   operator: FilterOperator!
   stringValue: String
   idSet: [ID!]
@@ -1626,6 +1629,7 @@ input FileInput {
   modificationTime: Int
   uploadTime: Int
   fileType: FileType
+  mimeType: String
   storeKey: String!
 }
 
@@ -2265,6 +2269,7 @@ type Mutation {
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
+  deleteReportFilter(id: ID!): Boolean!
 }
 
 type Subscription {

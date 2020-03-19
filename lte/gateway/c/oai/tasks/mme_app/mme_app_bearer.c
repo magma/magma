@@ -89,12 +89,8 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
 
   uint8_t item = 0; // This function call is used for default bearer only
   ue_mm_context_t* ue_context_p = NULL;
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
 
-  if (mme_app_desc_p) {
-    ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, ue_id);
-  }
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
@@ -278,7 +274,6 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
   OAILOG_FUNC_IN(LOG_MME_APP);
   struct ue_mm_context_s* ue_context_p = NULL;
   emm_context_t emm_context = {0};
-  mme_app_desc_t* mme_app_desc_p = NULL;
   MessageDef* message_p = NULL;
   itti_mme_app_connection_establishment_cnf_t* establishment_cnf_p = NULL;
   int rc = RETURNok;
@@ -288,9 +283,7 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
     "Handle MME_APP_CONNECTION_ESTABLISHMENT_CNF for ue-id " MME_UE_S1AP_ID_FMT
     "\n",
     nas_conn_est_cnf_p->ue_id);
-  mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, nas_conn_est_cnf_p->ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(nas_conn_est_cnf_p->ue_id);
 
   if (!ue_context_p) {
     OAILOG_ERROR(
@@ -506,6 +499,7 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
    * first
    */
   if (ue_context_p->ecm_state != ECM_CONNECTED) {
+    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
     mme_ue_context_update_ue_sig_connection_state(
       &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_CONNECTED);
 
@@ -772,7 +766,6 @@ void mme_app_handle_erab_setup_req(
   const bitrate_t gbr_ul,
   bstring nas_msg)
 {
-  mme_app_desc_t* mme_app_desc_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   OAILOG_DEBUG(
@@ -780,9 +773,7 @@ void mme_app_handle_erab_setup_req(
     "Handle mme app e-rab setup request for ue-id " MME_UE_S1AP_ID_FMT "\n",
     ue_id);
 
-  mme_app_desc_p = get_mme_nas_state(false);
-  struct ue_mm_context_s* ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context_t* ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
   if (!ue_context_p) {
     OAILOG_ERROR(
@@ -1238,7 +1229,7 @@ error_handling_csr_failure:
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_initial_context_setup_rsp(mme_app_desc_t *mme_app_desc_p,
+void mme_app_handle_initial_context_setup_rsp(
   itti_mme_app_initial_context_setup_rsp_t *const initial_ctxt_setup_rsp_pP)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -1248,9 +1239,8 @@ void mme_app_handle_initial_context_setup_rsp(mme_app_desc_t *mme_app_desc_p,
   OAILOG_INFO(
     LOG_MME_APP, "Received MME_APP_INITIAL_CONTEXT_SETUP_RSP from S1AP for ue_id = (%u)\n",
     initial_ctxt_setup_rsp_pP->ue_id);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts,
-      initial_ctxt_setup_rsp_pP->ue_id);
+  ue_context_p =
+    mme_ue_context_exists_mme_ue_s1ap_id(initial_ctxt_setup_rsp_pP->ue_id);
 
   if (ue_context_p == NULL) {
     OAILOG_DEBUG(
@@ -1531,7 +1521,6 @@ void mme_app_handle_s11_create_bearer_req(
 }
 
 void mme_app_handle_e_rab_setup_rsp(
-  mme_app_desc_t* mme_app_desc_p,
   itti_s1ap_e_rab_setup_rsp_t* const e_rab_setup_rsp)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -1543,8 +1532,8 @@ void mme_app_handle_e_rab_setup_rsp(
     "\n",
     e_rab_setup_rsp->mme_ue_s1ap_id);
 
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, e_rab_setup_rsp->mme_ue_s1ap_id);
+  ue_context_p =
+    mme_ue_context_exists_mme_ue_s1ap_id(e_rab_setup_rsp->mme_ue_s1ap_id);
 
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
@@ -1827,7 +1816,6 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(void* args)
 }
 //------------------------------------------------------------------------------
 void mme_app_handle_initial_context_setup_failure(
-  mme_app_desc_t *mme_app_desc_p,
   const itti_mme_app_initial_context_setup_failure_t
     *const initial_ctxt_setup_failure_pP)
 {
@@ -1837,7 +1825,6 @@ void mme_app_handle_initial_context_setup_failure(
   OAILOG_INFO(
     LOG_MME_APP, "Received MME_APP_INITIAL_CONTEXT_SETUP_FAILURE from S1AP\n");
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts,
     initial_ctxt_setup_failure_pP->mme_ue_s1ap_id);
 
   if (ue_context_p == NULL) {
@@ -2266,7 +2253,6 @@ int mme_app_handle_nas_extended_service_req(
   uint8_t csfb_response)
 {
   struct ue_mm_context_s *ue_context_p = NULL;
-  mme_app_desc_t* mme_app_desc_p = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -2277,9 +2263,7 @@ int mme_app_handle_nas_extended_service_req(
       "ERROR***** Invalid UE Id received in Extended Service Request \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context_p) {
     if (ue_id != ue_context_p->mme_ue_s1ap_id) {
       OAILOG_ERROR(
@@ -3040,7 +3024,7 @@ void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
   OAILOG_DEBUG(LOG_MME_APP, "Received PATH_SWITCH_REQUEST from S1AP\n");
 
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, path_switch_req_p->mme_ue_s1ap_id);
+    path_switch_req_p->mme_ue_s1ap_id);
   if (!ue_context_p) {
     OAILOG_ERROR(
       LOG_MME_APP,
@@ -3228,13 +3212,10 @@ void mme_app_handle_erab_rel_cmd(
   bstring nas_msg)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_app_desc_t* mme_app_desc_p = NULL;
   MessageDef* message_p = NULL;
   struct ue_mm_context_s* ue_context_p = NULL;
 
-  mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
   if (!ue_context_p) {
     OAILOG_ERROR(
@@ -3543,15 +3524,13 @@ ue_mm_context_t* mme_app_get_ue_context_for_timer(
     timer_name,
     mme_ue_s1ap_id);
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  struct ue_mm_context_s* ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts,
-    mme_ue_s1ap_id);
+  ue_mm_context_t* ue_context_p =
+    mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Failed to get ue context while handling %s for ue_id "
-      MME_UE_S1AP_ID_FMT "\n",
+      "Failed to get ue context while handling %s for ue_id " MME_UE_S1AP_ID_FMT
+      "\n",
       timer_name,
       mme_ue_s1ap_id);
     return NULL;

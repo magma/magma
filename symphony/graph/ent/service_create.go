@@ -25,23 +25,13 @@ import (
 // ServiceCreate is the builder for creating a Service entity.
 type ServiceCreate struct {
 	config
-	create_time *time.Time
-	update_time *time.Time
-	name        *string
-	external_id *string
-	status      *string
-	_type       map[int]struct{}
-	downstream  map[int]struct{}
-	upstream    map[int]struct{}
-	properties  map[int]struct{}
-	links       map[int]struct{}
-	customer    map[int]struct{}
-	endpoints   map[int]struct{}
+	mutation *ServiceMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (sc *ServiceCreate) SetCreateTime(t time.Time) *ServiceCreate {
-	sc.create_time = &t
+	sc.mutation.SetCreateTime(t)
 	return sc
 }
 
@@ -55,7 +45,7 @@ func (sc *ServiceCreate) SetNillableCreateTime(t *time.Time) *ServiceCreate {
 
 // SetUpdateTime sets the update_time field.
 func (sc *ServiceCreate) SetUpdateTime(t time.Time) *ServiceCreate {
-	sc.update_time = &t
+	sc.mutation.SetUpdateTime(t)
 	return sc
 }
 
@@ -69,13 +59,13 @@ func (sc *ServiceCreate) SetNillableUpdateTime(t *time.Time) *ServiceCreate {
 
 // SetName sets the name field.
 func (sc *ServiceCreate) SetName(s string) *ServiceCreate {
-	sc.name = &s
+	sc.mutation.SetName(s)
 	return sc
 }
 
 // SetExternalID sets the external_id field.
 func (sc *ServiceCreate) SetExternalID(s string) *ServiceCreate {
-	sc.external_id = &s
+	sc.mutation.SetExternalID(s)
 	return sc
 }
 
@@ -89,16 +79,13 @@ func (sc *ServiceCreate) SetNillableExternalID(s *string) *ServiceCreate {
 
 // SetStatus sets the status field.
 func (sc *ServiceCreate) SetStatus(s string) *ServiceCreate {
-	sc.status = &s
+	sc.mutation.SetStatus(s)
 	return sc
 }
 
 // SetTypeID sets the type edge to ServiceType by id.
 func (sc *ServiceCreate) SetTypeID(id int) *ServiceCreate {
-	if sc._type == nil {
-		sc._type = make(map[int]struct{})
-	}
-	sc._type[id] = struct{}{}
+	sc.mutation.SetTypeID(id)
 	return sc
 }
 
@@ -109,12 +96,7 @@ func (sc *ServiceCreate) SetType(s *ServiceType) *ServiceCreate {
 
 // AddDownstreamIDs adds the downstream edge to Service by ids.
 func (sc *ServiceCreate) AddDownstreamIDs(ids ...int) *ServiceCreate {
-	if sc.downstream == nil {
-		sc.downstream = make(map[int]struct{})
-	}
-	for i := range ids {
-		sc.downstream[ids[i]] = struct{}{}
-	}
+	sc.mutation.AddDownstreamIDs(ids...)
 	return sc
 }
 
@@ -129,12 +111,7 @@ func (sc *ServiceCreate) AddDownstream(s ...*Service) *ServiceCreate {
 
 // AddUpstreamIDs adds the upstream edge to Service by ids.
 func (sc *ServiceCreate) AddUpstreamIDs(ids ...int) *ServiceCreate {
-	if sc.upstream == nil {
-		sc.upstream = make(map[int]struct{})
-	}
-	for i := range ids {
-		sc.upstream[ids[i]] = struct{}{}
-	}
+	sc.mutation.AddUpstreamIDs(ids...)
 	return sc
 }
 
@@ -149,12 +126,7 @@ func (sc *ServiceCreate) AddUpstream(s ...*Service) *ServiceCreate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (sc *ServiceCreate) AddPropertyIDs(ids ...int) *ServiceCreate {
-	if sc.properties == nil {
-		sc.properties = make(map[int]struct{})
-	}
-	for i := range ids {
-		sc.properties[ids[i]] = struct{}{}
-	}
+	sc.mutation.AddPropertyIDs(ids...)
 	return sc
 }
 
@@ -169,12 +141,7 @@ func (sc *ServiceCreate) AddProperties(p ...*Property) *ServiceCreate {
 
 // AddLinkIDs adds the links edge to Link by ids.
 func (sc *ServiceCreate) AddLinkIDs(ids ...int) *ServiceCreate {
-	if sc.links == nil {
-		sc.links = make(map[int]struct{})
-	}
-	for i := range ids {
-		sc.links[ids[i]] = struct{}{}
-	}
+	sc.mutation.AddLinkIDs(ids...)
 	return sc
 }
 
@@ -189,12 +156,7 @@ func (sc *ServiceCreate) AddLinks(l ...*Link) *ServiceCreate {
 
 // AddCustomerIDs adds the customer edge to Customer by ids.
 func (sc *ServiceCreate) AddCustomerIDs(ids ...int) *ServiceCreate {
-	if sc.customer == nil {
-		sc.customer = make(map[int]struct{})
-	}
-	for i := range ids {
-		sc.customer[ids[i]] = struct{}{}
-	}
+	sc.mutation.AddCustomerIDs(ids...)
 	return sc
 }
 
@@ -209,12 +171,7 @@ func (sc *ServiceCreate) AddCustomer(c ...*Customer) *ServiceCreate {
 
 // AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
 func (sc *ServiceCreate) AddEndpointIDs(ids ...int) *ServiceCreate {
-	if sc.endpoints == nil {
-		sc.endpoints = make(map[int]struct{})
-	}
-	for i := range ids {
-		sc.endpoints[ids[i]] = struct{}{}
-	}
+	sc.mutation.AddEndpointIDs(ids...)
 	return sc
 }
 
@@ -229,35 +186,57 @@ func (sc *ServiceCreate) AddEndpoints(s ...*ServiceEndpoint) *ServiceCreate {
 
 // Save creates the Service in the database.
 func (sc *ServiceCreate) Save(ctx context.Context) (*Service, error) {
-	if sc.create_time == nil {
+	if _, ok := sc.mutation.CreateTime(); !ok {
 		v := service.DefaultCreateTime()
-		sc.create_time = &v
+		sc.mutation.SetCreateTime(v)
 	}
-	if sc.update_time == nil {
+	if _, ok := sc.mutation.UpdateTime(); !ok {
 		v := service.DefaultUpdateTime()
-		sc.update_time = &v
+		sc.mutation.SetUpdateTime(v)
 	}
-	if sc.name == nil {
+	if _, ok := sc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if err := service.NameValidator(*sc.name); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+	if v, ok := sc.mutation.Name(); ok {
+		if err := service.NameValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
 	}
-	if sc.external_id != nil {
-		if err := service.ExternalIDValidator(*sc.external_id); err != nil {
+	if v, ok := sc.mutation.ExternalID(); ok {
+		if err := service.ExternalIDValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
 		}
 	}
-	if sc.status == nil {
+	if _, ok := sc.mutation.Status(); !ok {
 		return nil, errors.New("ent: missing required field \"status\"")
 	}
-	if len(sc._type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
-	}
-	if sc._type == nil {
+	if _, ok := sc.mutation.TypeID(); !ok {
 		return nil, errors.New("ent: missing required edge \"type\"")
 	}
-	return sc.sqlSave(ctx)
+	var (
+		err  error
+		node *Service
+	)
+	if len(sc.hooks) == 0 {
+		node, err = sc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ServiceMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			sc.mutation = mutation
+			node, err = sc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(sc.hooks); i > 0; i-- {
+			mut = sc.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, sc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -280,47 +259,47 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 			},
 		}
 	)
-	if value := sc.create_time; value != nil {
+	if value, ok := sc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldCreateTime,
 		})
-		s.CreateTime = *value
+		s.CreateTime = value
 	}
-	if value := sc.update_time; value != nil {
+	if value, ok := sc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldUpdateTime,
 		})
-		s.UpdateTime = *value
+		s.UpdateTime = value
 	}
-	if value := sc.name; value != nil {
+	if value, ok := sc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldName,
 		})
-		s.Name = *value
+		s.Name = value
 	}
-	if value := sc.external_id; value != nil {
+	if value, ok := sc.mutation.ExternalID(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldExternalID,
 		})
-		s.ExternalID = value
+		s.ExternalID = &value
 	}
-	if value := sc.status; value != nil {
+	if value, ok := sc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldStatus,
 		})
-		s.Status = *value
+		s.Status = value
 	}
-	if nodes := sc._type; len(nodes) > 0 {
+	if nodes := sc.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -334,12 +313,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sc.downstream; len(nodes) > 0 {
+	if nodes := sc.mutation.DownstreamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -353,12 +332,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sc.upstream; len(nodes) > 0 {
+	if nodes := sc.mutation.UpstreamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -372,12 +351,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sc.properties; len(nodes) > 0 {
+	if nodes := sc.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -391,12 +370,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sc.links; len(nodes) > 0 {
+	if nodes := sc.mutation.LinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -410,12 +389,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sc.customer; len(nodes) > 0 {
+	if nodes := sc.mutation.CustomerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -429,12 +408,12 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sc.endpoints; len(nodes) > 0 {
+	if nodes := sc.mutation.EndpointsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -448,7 +427,7 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

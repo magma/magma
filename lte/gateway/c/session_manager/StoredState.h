@@ -12,6 +12,7 @@
 
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/session_manager.grpc.pb.h>
 
 #include "CreditKey.h"
 
@@ -124,10 +125,13 @@ struct StoredSessionState {
 
 struct SessionCreditUpdateCriteria {
   bool is_final;
+  bool reporting;
   ReAuthState reauth_state;
   ServiceState service_state;
   std::time_t  expiry_time;
+  // Do not mark REPORTING buckets, but do mark REPORTED
   std::unordered_map<Bucket, uint64_t> bucket_deltas;
+  uint64_t usage_reporting_limit;
 };
 
 struct SessionStateUpdateCriteria {
@@ -143,5 +147,10 @@ struct SessionStateUpdateCriteria {
     decltype(&ccHash), decltype(&ccEqual)> charging_credit_map;
   std::unordered_map<std::string, StoredMonitor> monitor_credit_to_install;
   std::unordered_map<std::string, SessionCreditUpdateCriteria> monitor_credit_map;
+  TgppContext updated_tgpp_context;
+  magma::lte::SubscriberQuotaUpdate_Type updated_subscriber_quota_state;
 };
-}; // namespace magma
+
+SessionStateUpdateCriteria get_default_update_criteria();
+
+} // namespace magma

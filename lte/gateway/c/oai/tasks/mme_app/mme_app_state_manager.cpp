@@ -30,14 +30,16 @@ extern "C" {
 #include "mme_app_state_manager.h"
 
 namespace {
-const char* MME_NAS_STATE_KEY = "mme_nas_state";
+constexpr char MME_NAS_STATE_KEY[] = "mme_nas_state";
 const int NUM_MAX_UE_HTBL_LISTS = 6;
-const char* UE_ID_UE_CTXT_TABLE_NAME = "mme_app_mme_ue_s1ap_id_ue_context_htbl";
-const char* IMSI_UE_ID_TABLE_NAME = "mme_app_imsi_ue_context_htbl";
-const char* TUN_UE_ID_TABLE_NAME = "mme_app_tun11_ue_context_htbl";
-const char* GUTI_UE_ID_TABLE_NAME = "mme_app_tun11_ue_context_htbl";
-const char* ENB_UE_ID_MME_UE_ID_TABLE_NAME =
+constexpr char UE_ID_UE_CTXT_TABLE_NAME[] =
+  "mme_app_mme_ue_s1ap_id_ue_context_htbl";
+constexpr char IMSI_UE_ID_TABLE_NAME[] = "mme_app_imsi_ue_context_htbl";
+constexpr char TUN_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
+constexpr char GUTI_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
+constexpr char ENB_UE_ID_MME_UE_ID_TABLE_NAME[] =
   "mme_app_enb_ue_s1ap_id_ue_context_htbl";
+constexpr char MME_TASK_NAME[] = "MME";
 } // namespace
 
 namespace magma {
@@ -72,12 +74,14 @@ int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p)
   max_ue_htbl_lists_ = mme_config_p->max_ues;
   mme_statistic_timer_ = mme_config_p->mme_statistic_timer;
   log_task = LOG_MME_APP;
+  task_name = MME_TASK_NAME;
   table_key = MME_NAS_STATE_KEY;
 
   // Allocate the local mme state
   create_state();
 
   int rc = read_state_from_db();
+  read_ue_state_from_db();
   is_initialized = true;
   return rc;
 }
@@ -157,7 +161,7 @@ void MmeNasStateManager::mme_nas_state_init_local_state()
 void MmeNasStateManager::create_hashtables()
 {
   bstring b = bfromcstr(IMSI_UE_ID_TABLE_NAME);
-  state_cache_p->mme_ue_contexts.imsi_ue_context_htbl =
+  state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl =
     hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
   btrunc(b, 0);
   bassigncstr(b, TUN_UE_ID_TABLE_NAME);
@@ -168,9 +172,8 @@ void MmeNasStateManager::create_hashtables()
     "Problem with mme_ue_s1ap_id_ue_context_htbl in MME_APP");
   btrunc(b, 0);
   bassigncstr(b, UE_ID_UE_CTXT_TABLE_NAME);
-  state_cache_p->mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl =
-    hashtable_ts_create(
-      max_ue_htbl_lists_, nullptr, mme_app_state_free_ue_context, b);
+  state_imsi_ht = hashtable_ts_create(
+    max_ue_htbl_lists_, nullptr, mme_app_state_free_ue_context, b);
   btrunc(b, 0);
   bassigncstr(b, ENB_UE_ID_MME_UE_ID_TABLE_NAME);
   state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl =
@@ -201,12 +204,11 @@ void MmeNasStateManager::clear_mme_nas_hashtables()
     return;
   }
 
+  hashtable_ts_destroy(state_imsi_ht);
   hashtable_uint64_ts_destroy(
-    state_cache_p->mme_ue_contexts.imsi_ue_context_htbl);
+    state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl);
   hashtable_uint64_ts_destroy(
     state_cache_p->mme_ue_contexts.tun11_ue_context_htbl);
-  hashtable_ts_destroy(
-    state_cache_p->mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl);
   hashtable_uint64_ts_destroy(
     state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl);
   obj_hashtable_uint64_ts_destroy(
@@ -223,6 +225,31 @@ void MmeNasStateManager::free_state()
   timer_remove(state_cache_p->statistic_timer_id, nullptr);
   free(state_cache_p);
   state_cache_p = nullptr;
+}
+
+int MmeNasStateManager::read_ue_state_from_db()
+{
+  if (persist_state_enabled) {
+    auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
+    for (const auto& key : keys) {
+      OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
+      UeContext ue_proto = UeContext();
+      auto* ue_context =
+        (ue_mm_context_t*) (calloc(1, sizeof(ue_mm_context_t)));
+      if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
+        return RETURNerror;
+      }
+      MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);
+
+      hashtable_ts_insert(
+        state_imsi_ht, ue_context->mme_ue_s1ap_id, (void*) ue_context);
+      OAILOG_DEBUG(
+        log_task,
+        "Inserted UE state with key mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+        ue_context->mme_ue_s1ap_id);
+    }
+  }
+  return RETURNok;
 }
 
 } // namespace lte

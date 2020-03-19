@@ -20,7 +20,7 @@ import TextField from '@material-ui/core/TextField';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useSnackbar from '@fbcnms/ui/hooks/useSnackbar';
 import {makeStyles} from '@material-ui/styles';
-import {uploadFile} from '../FileUpload';
+import {uploadFile} from '../FileUpload/FileUploadUtils';
 
 const useStyles = makeStyles(() => ({
   img: {

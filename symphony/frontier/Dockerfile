@@ -19,7 +19,7 @@ COPY pkg /src/symphony/pkg
 # Build service
 WORKDIR /src/symphony/frontier
 COPY frontier .
-RUN go build -o /bin/frontier
+RUN mkdir /build && go build -o /build ./cmd/...
 
 # Create deployable image
 FROM alpine
@@ -28,7 +28,7 @@ FROM alpine
 RUN apk add --no-cache musl curl
 
 # Copy application artifacts
-COPY --from=builder /bin/frontier /bin/
+COPY --from=builder /build/* /bin/
 
 # Set exposed port and entrypoint
 EXPOSE 80

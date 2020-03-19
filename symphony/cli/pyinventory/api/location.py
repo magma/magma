@@ -18,6 +18,7 @@ from ..graphql.add_location_input import AddLocationInput
 from ..graphql.add_location_mutation import AddLocationMutation
 from ..graphql.edit_location_input import EditLocationInput
 from ..graphql.edit_location_mutation import EditLocationMutation
+from ..graphql.get_locations_query import GetLocationsQuery
 from ..graphql.location_children_query import LocationChildrenQuery
 from ..graphql.location_deps_query import LocationDepsQuery
 from ..graphql.location_details_query import LocationDetailsQuery
@@ -351,6 +352,40 @@ def get_location(
     if last_location is None:
         raise LocationNotFoundException()
     return last_location
+
+
+def get_locations(client: SymphonyClient) -> List[Location]:
+    """This function returns all existing locations
+
+        Returns:
+            List[ pyinventory.consts.Location ]
+
+        Example:
+            ```
+            all_locations = client.get_locations()
+            ```
+    """
+    locations = GetLocationsQuery.execute(client).locations
+    if not locations:
+        return []
+    result = []
+    edges = locations.edges
+
+    for edge in edges:
+        node = edge.node
+        if node is not None:
+            result.append(
+                Location(
+                    name=node.name,
+                    id=node.id,
+                    latitude=node.latitude,
+                    longitude=node.longitude,
+                    externalId=node.externalId,
+                    locationTypeName=node.locationType.name,
+                )
+            )
+
+    return result
 
 
 def get_location_children(client: SymphonyClient, location_id: str) -> List[Location]:

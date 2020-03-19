@@ -106,9 +106,15 @@ monitored_ifaces: ['gtp_br0',
 # Whether pipelined should cleanup flows on restarts
 clean_restart: true
 
+# MTR iface IP
+mtr_ip: 10.0.2.10
+mtr_interface: mtr0
+
 ###############
 ## IMPORTANT ##
 ###############
 # This is duplicated from spgw.yml - if you change the value here,
 # also change it there
 ovs_gtp_port_number: 32768
+# Internal port for monitoring service
+ovs_mtr_port_number: 15577

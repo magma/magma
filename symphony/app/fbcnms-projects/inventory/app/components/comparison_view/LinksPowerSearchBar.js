@@ -17,6 +17,7 @@ import type {
 import AppContext from '@fbcnms/ui/context/AppContext';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useContext} from 'react';
+import useFilterBookmarks from './hooks/filterBookmarksHook';
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
 import {LinkCriteriaConfig} from './LinkSearchConfig';
@@ -39,6 +40,7 @@ const LinksPowerSearchBar = (props: Props) => {
   const linkPropertiesFilterConfigs = buildPropertyFilterConfigs(
     possibleProperties,
   );
+  const filterBookmarksFilterConfig = useFilterBookmarks('LINK');
 
   const filterConfigs = LinkCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
@@ -59,6 +61,7 @@ const LinksPowerSearchBar = (props: Props) => {
       placeholder="Filter..."
       searchConfig={LinkCriteriaConfig}
       filterConfigs={filterConfigs}
+      savedSearches={filterBookmarksFilterConfig}
       footer={footer}
       exportPath={'/links'}
       entity="LINK"

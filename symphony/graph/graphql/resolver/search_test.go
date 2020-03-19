@@ -136,6 +136,8 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 	woType2, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "wo_type_b"})
 	assignee1 := "user1@fb.com"
 	assignee2 := "user2@fb.com"
+	viewertest.CreateUserEnt(ctx, r.client, assignee1)
+	viewertest.CreateUserEnt(ctx, r.client, assignee2)
 	desc := "random description"
 
 	wo1, _ := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -167,6 +169,7 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 
 	installDate := time.Now()
 	owner := "owner"
+	viewertest.CreateUserEnt(ctx, r.client, owner)
 	_, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          wo1.ID,
 		Name:        wo1.Name,

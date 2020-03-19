@@ -115,6 +115,7 @@ def update_subscriber(client, args):
             )
             apn_config.ambr.max_bandwidth_ul = int(apn_dict[ul])
             apn_config.ambr.max_bandwidth_dl = int(apn_dict[dl])
+        fields.append('non_3gpp')
 
     client.UpdateSubscriber(update)
 

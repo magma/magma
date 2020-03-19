@@ -97,7 +97,7 @@ service MockOCS {
     rpc SetCredit(CreditInfo) returns (magma.orc8r.Void) {}
     rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
     rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
-    rpc ReAuth(ReAuthTarget) returns (ReAuthAnswer) {}
+    rpc ReAuth(ChargingReAuthTarget) returns (ChargingReAuthAnswer) {}
 
     // Todo
     // rpc SetExpectations(Expectations) returns (magma.orc8r.Void) {}
@@ -121,12 +121,12 @@ message CreditInfo {
     UnitType unit_type = 4;
 }
 
-message ReAuthTarget {
+message ChargingReAuthTarget {
     string imsi = 1;
     uint32 rating_group = 2;
 }
 
-message ReAuthAnswer {
+message ChargingReAuthAnswer {
     string session_id = 1;
     uint32 result_code = 2;
 }

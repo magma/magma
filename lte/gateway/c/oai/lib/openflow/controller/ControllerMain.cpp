@@ -40,7 +40,8 @@ int start_of_controller(bool persist_state)
   static openflow::BaseApplication base_app(persist_state);
   static openflow::GTPApplication gtp_app(
     std::string(bdata(spgw_config.sgw_config.ovs_config.uplink_mac)),
-    spgw_config.sgw_config.ovs_config.gtp_port_num);
+    spgw_config.sgw_config.ovs_config.gtp_port_num,
+    spgw_config.sgw_config.ovs_config.mtr_port_num);
   // Base app registers first, because it deletes/creates default flow
   ctrl.register_for_event(&base_app, openflow::EVENT_SWITCH_UP);
   ctrl.register_for_event(&base_app, openflow::EVENT_ERROR);

@@ -1,0 +1,9 @@
+query UserQuery($authID: String!) {
+  user(authID: $authID) {
+    id
+    authID
+    email
+    status
+    role
+  }
+}

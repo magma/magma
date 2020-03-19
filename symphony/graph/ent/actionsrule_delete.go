@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // ActionsRuleDelete is the builder for deleting a ActionsRule entity.
 type ActionsRuleDelete struct {
 	config
+	hooks      []Hook
+	mutation   *ActionsRuleMutation
 	predicates []predicate.ActionsRule
 }
 
@@ -30,7 +33,30 @@ func (ard *ActionsRuleDelete) Where(ps ...predicate.ActionsRule) *ActionsRuleDel
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ard *ActionsRuleDelete) Exec(ctx context.Context) (int, error) {
-	return ard.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(ard.hooks) == 0 {
+		affected, err = ard.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ActionsRuleMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ard.mutation = mutation
+			affected, err = ard.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(ard.hooks); i > 0; i-- {
+			mut = ard.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ard.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.

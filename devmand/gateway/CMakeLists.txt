@@ -151,7 +151,6 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/TreeCache.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/Datastore.h
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/Datastore.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/DatastoreState.h
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/DatastoreTransaction.h
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/DatastoreTransaction.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/BindingAwareDatastoreTransaction.cpp
@@ -173,7 +172,8 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcCliHandler.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/translation/GrpcPlugin.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/DeviceType.cpp
-)
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/DatastoreState.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/datastore/DatastoreState.h)
 
 target_link_libraries(devman_channel_cli
   devman

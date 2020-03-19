@@ -17,7 +17,7 @@ func (m *GetHostnameForHWIDRequest) Validate() error {
 		return errors.New("request cannot be nil")
 	}
 	if m.Hwid == "" {
-		return errors.New("request params cannot be empty")
+		return errors.New("request hwid cannot be empty")
 	}
 	return nil
 }
@@ -27,7 +27,7 @@ func (m *MapHWIDToHostnameRequest) Validate() error {
 		return errors.New("request cannot be nil")
 	}
 	if m.HwidToHostname == nil {
-		return errors.New("request params cannot be empty")
+		return errors.New("request hwidToHostname cannot be empty")
 	}
 	return nil
 }
@@ -37,7 +37,7 @@ func (m *GetIMSIForSessionIDRequest) Validate() error {
 		return errors.New("request cannot be nil")
 	}
 	if m.SessionID == "" {
-		return errors.New("request params cannot be empty")
+		return errors.New("request sessionID cannot be empty")
 	}
 	return nil
 }
@@ -50,7 +50,7 @@ func (m *MapSessionIDToIMSIRequest) Validate() error {
 		return errors.New("network ID cannot be empty")
 	}
 	if m.SessionIDToIMSI == nil {
-		return errors.New("request params cannot be empty")
+		return errors.New("request sessionIDToIMSI cannot be empty")
 	}
 	return nil
 }

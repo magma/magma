@@ -11,7 +11,6 @@ package main
 
 import (
 	"errors"
-
 	"github.com/facebookincubator/symphony/frontier/handler"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/oc"

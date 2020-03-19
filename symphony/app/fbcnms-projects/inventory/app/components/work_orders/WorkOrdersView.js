@@ -11,6 +11,7 @@
 import type {WorkOrdersView_workOrder} from './__generated__/WorkOrdersView_workOrder.graphql';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
+import DateTimeFormat from '../../common/DateTimeFormat';
 import LocationLink from '../location/LocationLink';
 import React, {useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
@@ -106,15 +107,12 @@ const WorkOrdersView = (props: Props) => {
         {
           key: 'creationDate',
           title: 'Creation Date',
-          render: row => new Date(row.creationDate).toLocaleDateString(),
+          render: row => DateTimeFormat.dateOnly(row.creationDate),
         },
         {
           key: 'dueDate',
           title: 'Due Date',
-          render: row =>
-            !!row.installDate
-              ? new Date(row.installDate).toLocaleDateString()
-              : '',
+          render: row => DateTimeFormat.dateOnly(row.installDate),
         },
         {
           key: 'location',
@@ -131,9 +129,8 @@ const WorkOrdersView = (props: Props) => {
         },
         {
           key: 'closeDate',
-          title: 'Close Date',
-          render: row =>
-            !!row.closeDate ? new Date(row.closeDate).toLocaleDateString() : '',
+          title: 'Close Time',
+          render: row => DateTimeFormat.dateTime(row.closeDate),
         },
       ]}
     />

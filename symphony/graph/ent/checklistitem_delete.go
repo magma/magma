@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // CheckListItemDelete is the builder for deleting a CheckListItem entity.
 type CheckListItemDelete struct {
 	config
+	hooks      []Hook
+	mutation   *CheckListItemMutation
 	predicates []predicate.CheckListItem
 }
 
@@ -30,7 +33,30 @@ func (clid *CheckListItemDelete) Where(ps ...predicate.CheckListItem) *CheckList
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (clid *CheckListItemDelete) Exec(ctx context.Context) (int, error) {
-	return clid.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(clid.hooks) == 0 {
+		affected, err = clid.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*CheckListItemMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			clid.mutation = mutation
+			affected, err = clid.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(clid.hooks); i > 0; i-- {
+			mut = clid.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, clid.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.

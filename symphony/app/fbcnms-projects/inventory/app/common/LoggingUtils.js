@@ -78,7 +78,10 @@ export const LogEvents = {
   DOCUMENTATION_LINK_CLICKED: 'documentation_link_clicked',
   DOCUMENTATION_LINK_CLICKED_FROM_EXPORT_DIALOG:
     'documentation_link_clicked_from_export_dialog',
-
+  SAVED_SEARCH_LOADED: 'saved_search_loaded',
+  SAVED_SEARCH_CREATED: 'saved_search_created',
+  SAVED_SEARCH_DELETED: 'saved_search_deleted',
+  SAVED_SEARCH_EDITED: 'saved_search_edited',
   //Work Orders Logs:
   ADD_WORK_ORDER_TYPE_BUTTON_CLICKED: 'add_work_order_template_button_clicked',
   DELETE_WORK_ORDER_BUTTON_CLICKED: 'delete_work_order_button_clicked',

@@ -54,8 +54,10 @@
  * Function that adds predefined PCC rules to PGW struct,
  * it returns an error or success code after adding rules.
  */
-int pgw_pcef_emulation_init(spgw_state_t* state_p,
-                            const pgw_config_t* const pgw_config_p) {
+int pgw_pcef_emulation_init(
+  spgw_state_t* state_p,
+  const pgw_config_t* const pgw_config_p)
+{
   int rc = RETURNok;
   hashtable_rc_t hrc = HASH_TABLE_OK;
 
@@ -65,7 +67,7 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
   pcc_rule_t* pcc_rule;
   // Initializing PCC rules only if PGW state doesn't already contain them
   hrc = hashtable_ts_is_key_exists(
-      state_p->pgw_state.deactivated_predefined_pcc_rules,
+      state_p->deactivated_predefined_pcc_rules,
       SDF_ID_GBR_VOLTE_40K);
   if (hrc == HASH_TABLE_KEY_NOT_EXISTS) {
     pcc_rule = (pcc_rule_t*) calloc(1, sizeof(pcc_rule_t));
@@ -117,7 +119,7 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
         .packetfiltercontents.ipv4remoteaddr[3]
         .mask = 255;
     pcc_rule->sdf_template.number_of_packet_filters = 1;
-    hrc = hashtable_ts_insert(state_p->pgw_state.deactivated_predefined_pcc_rules,
+    hrc = hashtable_ts_insert(state_p->deactivated_predefined_pcc_rules,
                               pcc_rule->sdf_id, pcc_rule);
     if (HASH_TABLE_OK != hrc) {
       return RETURNerror;
@@ -125,7 +127,7 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
   }
 
   hrc = hashtable_ts_is_key_exists(
-      state_p->pgw_state.deactivated_predefined_pcc_rules,
+      state_p->deactivated_predefined_pcc_rules,
       SDF_ID_GBR_VOLTE_64K);
   if (hrc == HASH_TABLE_KEY_NOT_EXISTS) {
     pcc_rule = (pcc_rule_t*) calloc(1, sizeof(pcc_rule_t));
@@ -178,7 +180,7 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
         .mask = 255;
     pcc_rule->sdf_template.number_of_packet_filters = 1;
     hrc =
-        hashtable_ts_insert(state_p->pgw_state.deactivated_predefined_pcc_rules,
+        hashtable_ts_insert(state_p->deactivated_predefined_pcc_rules,
                             pcc_rule->sdf_id, pcc_rule);
     if (HASH_TABLE_OK != hrc) {
       return RETURNerror;
@@ -186,7 +188,7 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
   }
 
   hrc = hashtable_ts_is_key_exists(
-      state_p->pgw_state.deactivated_predefined_pcc_rules,
+      state_p->deactivated_predefined_pcc_rules,
       SDF_ID_GBR_VILTE_192K);
   if (hrc == HASH_TABLE_KEY_NOT_EXISTS) {
     pcc_rule = (pcc_rule_t*) calloc(1, sizeof(pcc_rule_t));
@@ -239,14 +241,14 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
         .mask = 255;
     pcc_rule->sdf_template.number_of_packet_filters = 1;
     hrc =
-        hashtable_ts_insert(state_p->pgw_state.deactivated_predefined_pcc_rules,
+        hashtable_ts_insert(state_p->deactivated_predefined_pcc_rules,
                             pcc_rule->sdf_id, pcc_rule);
     if (HASH_TABLE_OK != hrc) {
       return RETURNerror;
     }
   }
   hrc = hashtable_ts_is_key_exists(
-      state_p->pgw_state.deactivated_predefined_pcc_rules, SDF_ID_TEST_PING);
+      state_p->deactivated_predefined_pcc_rules, SDF_ID_TEST_PING);
   if (hrc == HASH_TABLE_KEY_NOT_EXISTS) {
     pcc_rule = (pcc_rule_t*) calloc(1, sizeof(pcc_rule_t));
     pcc_rule->name = bfromcstr("TEST_PING_PCC_RULE");
@@ -275,7 +277,7 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
     pcc_rule->sdf_template.sdf_filter[0]
         .packetfiltercontents.protocolidentifier_nextheader = IPPROTO_ICMP;
     pcc_rule->sdf_template.number_of_packet_filters = 1;
-    hrc = hashtable_ts_insert(state_p->pgw_state.deactivated_predefined_pcc_rules,
+    hrc = hashtable_ts_insert(state_p->deactivated_predefined_pcc_rules,
                               pcc_rule->sdf_id, pcc_rule);
     if (HASH_TABLE_OK != hrc) {
       return RETURNerror;
@@ -283,7 +285,7 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
   }
 
   hrc = hashtable_ts_is_key_exists(
-      state_p->pgw_state.deactivated_predefined_pcc_rules, SDF_ID_NGBR_DEFAULT);
+      state_p->deactivated_predefined_pcc_rules, SDF_ID_NGBR_DEFAULT);
   if (hrc == HASH_TABLE_KEY_NOT_EXISTS) {
     // really necessary ?
     pcc_rule = (pcc_rule_t*) calloc(1, sizeof(pcc_rule_t));
@@ -341,7 +343,7 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
         .packetfiltercontents.ipv4remoteaddr[3]
         .mask = (uint8_t) ((addr_mask.s_addr >> 24) & 0x000000FF);
     pcc_rule->sdf_template.number_of_packet_filters = 1;
-    hrc = hashtable_ts_insert(state_p->pgw_state.deactivated_predefined_pcc_rules,
+    hrc = hashtable_ts_insert(state_p->deactivated_predefined_pcc_rules,
                               pcc_rule->sdf_id, pcc_rule);
     if (HASH_TABLE_OK != hrc) {
       return RETURNerror;
@@ -351,7 +353,8 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
   for (int i = 0; i < (SDF_ID_MAX - 1); i++) {
     if (pgw_config_p->pcef.preload_static_sdf_identifiers[i]) {
       pgw_pcef_emulation_apply_rule(
-          state_p, pgw_config_p->pcef.preload_static_sdf_identifiers[i],
+        state_p,
+        pgw_config_p->pcef.preload_static_sdf_identifiers[i],
           pgw_config_p);
     } else
       break;
@@ -363,17 +366,19 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
         pgw_config_p->pcef.automatic_push_dedicated_bearer_sdf_identifier,
         pgw_config_p);
   }
-
   return rc;
 }
 
 //------------------------------------------------------------------------------
 // may change sdf_id to PCC_rule name ?
-void pgw_pcef_emulation_apply_rule(spgw_state_t* state_p, const sdf_id_t sdf_id,
-                                   const pgw_config_t* const pgw_config_p) {
+void pgw_pcef_emulation_apply_rule(
+  spgw_state_t* state_p,
+  const sdf_id_t sdf_id,
+  const pgw_config_t* const pgw_config_p)
+{
   pcc_rule_t* pcc_rule = NULL;
   hashtable_rc_t hrc =
-      hashtable_ts_get(state_p->pgw_state.deactivated_predefined_pcc_rules,
+      hashtable_ts_get(state_p->deactivated_predefined_pcc_rules,
                        sdf_id, (void**) &pcc_rule);
 
   if (HASH_TABLE_OK == hrc) {
@@ -531,13 +536,16 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
 }
 
 //------------------------------------------------------------------------------
-int pgw_pcef_get_sdf_parameters(spgw_state_t* state_p, const sdf_id_t sdf_id,
-                                bearer_qos_t* const bearer_qos,
-                                packet_filter_t* const packet_filter,
-                                uint8_t* const num_pf) {
+int pgw_pcef_get_sdf_parameters(
+  spgw_state_t* state_p,
+  const sdf_id_t sdf_id,
+  bearer_qos_t* const bearer_qos,
+  packet_filter_t* const packet_filter,
+  uint8_t* const num_pf)
+{
   pcc_rule_t* pcc_rule = NULL;
   hashtable_rc_t hrc =
-      hashtable_ts_get(state_p->pgw_state.deactivated_predefined_pcc_rules,
+      hashtable_ts_get(state_p->deactivated_predefined_pcc_rules,
                        sdf_id, (void**) &pcc_rule);
 
   if (HASH_TABLE_OK == hrc) {

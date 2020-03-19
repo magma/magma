@@ -48,10 +48,12 @@ var (
 				StreamName: "streamOne",
 				EventType:  "an_event",
 				HardwareID: "hardware-2",
+				NetworkID:  "test_network",
 				Tag:        "critical",
 			},
 			expected: elastic.NewBoolQuery().
 				Filter(elastic.NewTermQuery("stream_name.keyword", "streamOne")).
+				Filter(elastic.NewTermQuery("network_id.keyword", "test_network")).
 				Filter(elastic.NewTermQuery("event_type.keyword", "an_event")).
 				Filter(elastic.NewTermQuery("hw_id.keyword", "hardware-2")).
 				Filter(elastic.NewTermQuery("event_tag.keyword", "critical")),
@@ -60,19 +62,23 @@ var (
 			name: "partial query params",
 			params: eventQueryParams{
 				StreamName: "streamTwo",
+				NetworkID:  "test_network_two",
 				EventType:  "an_event",
 			},
 			expected: elastic.NewBoolQuery().
 				Filter(elastic.NewTermQuery("stream_name.keyword", "streamTwo")).
+				Filter(elastic.NewTermQuery("network_id.keyword", "test_network_two")).
 				Filter(elastic.NewTermQuery("event_type.keyword", "an_event")),
 		},
 		{
-			name: "only StreamName",
+			name: "only required Path params",
 			params: eventQueryParams{
 				StreamName: "streamThree",
+				NetworkID:  "test_network_three",
 			},
 			expected: elastic.NewBoolQuery().
-				Filter(elastic.NewTermQuery("stream_name.keyword", "streamThree")),
+				Filter(elastic.NewTermQuery("stream_name.keyword", "streamThree")).
+				Filter(elastic.NewTermQuery("network_id.keyword", "test_network_three")),
 		},
 	}
 
@@ -84,33 +90,33 @@ var (
 			expectedParams: eventQueryParams{},
 		},
 		{
-			name:        "only stream_name",
-			urlString:   "",
-			paramNames:  []string{"stream_name"},
-			paramValues: []string{"streamOne"},
-			expectedParams: eventQueryParams{
-				StreamName: "streamOne",
-			},
+			name:         "only stream_name",
+			urlString:    "",
+			paramNames:   []string{"stream_name"},
+			paramValues:  []string{"streamOne"},
+			expectsError: true,
 		},
 		{
 			name:         "excess path params",
 			urlString:    "",
-			paramNames:   []string{"stream_name", "bad_param"},
-			paramValues:  []string{"streamOne", "bad_value"},
+			paramNames:   []string{"stream_name", "network_id", "bad_param"},
+			paramValues:  []string{"streamOne", "nw1", "bad_value"},
 			expectsError: false,
 			expectedParams: eventQueryParams{
 				StreamName: "streamOne",
+				NetworkID:  "nw1",
 			},
 		},
 		{
 			name:        "all query params",
 			urlString:   "?event_type=mock_subscriber_event&hardware_id=123&tag=critical",
-			paramNames:  []string{"stream_name"},
-			paramValues: []string{"streamOne"},
+			paramNames:  []string{"stream_name", "network_id"},
+			paramValues: []string{"streamOne", "nw1"},
 			expectedParams: eventQueryParams{
 				StreamName: "streamOne",
 				EventType:  "mock_subscriber_event",
 				HardwareID: "123",
+				NetworkID:  "nw1",
 				Tag:        "critical",
 			},
 		},
@@ -166,6 +172,12 @@ var (
 	}
 )
 
+func TestEventsPath(t *testing.T) {
+	assert.Equal(t,
+		"/magma/v1/events/:network_id/:stream_name",
+		EventsPath)
+}
+
 func TestElasticBoolQuery(t *testing.T) {
 	for _, test := range elasticCases {
 		t.Run(test.name, func(t *testing.T) {
@@ -199,8 +211,8 @@ func runQueryParamTestCase(t *testing.T, tc queryParamTestCase) {
 		assert.Error(t, err)
 	} else {
 		assert.NoError(t, err)
+		assert.Equal(t, tc.expectedParams, params)
 	}
-	assert.Equal(t, tc.expectedParams, params)
 }
 
 func TestGetEventMap(t *testing.T) {
