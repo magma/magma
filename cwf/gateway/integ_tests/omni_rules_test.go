@@ -42,7 +42,7 @@ func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
 	err = ruleManager.AddStaticPassAllToDB("omni-pass-all-1", "", 0, models.PolicyRuleTrackingTypeNOTRACKING, 20)
 	assert.NoError(t, err)
 	// Apply a network wide rule that points to the static rule above
-	err = ruleManager.AddOmniPresentRulesToDB("onmi", []string{"omni-pass-all-1"}, []string{""})
+	err = ruleManager.AddOmniPresentRulesToDB("omni", []string{"omni-pass-all-1"}, []string{""})
 	assert.NoError(t, err)
 
 	// Wait for rules propagation
