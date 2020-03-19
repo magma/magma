@@ -32,7 +32,7 @@ const (
 )
 
 func TestAuthenticateUplinkWithOCSChargingReAuth(t *testing.T) {
-	fmt.Printf("Running TestAuthenticateUplinkWithOcsChargingReAuth...\n")
+	fmt.Println("\nRunning TestAuthenticateUplinkWithOcsChargingReAuth...")
 
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
@@ -149,5 +149,5 @@ func TestAuthenticateUplinkWithOCSChargingReAuth(t *testing.T) {
 	assert.NoError(t, ruleManager.RemoveInstalledRules())
 	assert.NoError(t, tr.CleanUp())
 	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(10 * time.Second)
+	time.Sleep(3 * time.Second)
 }

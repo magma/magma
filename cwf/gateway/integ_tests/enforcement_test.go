@@ -11,14 +11,11 @@ package integ_tests
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
-	"fbc/lib/go/radius/rfc2869"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/plugin/models"
 	lteProtos "magma/lte/cloud/go/protos"
 
@@ -34,8 +31,8 @@ const (
 	Buffer    = 50 * KiloBytes
 )
 
-func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestAuthenticateUplinkTrafficWithEnforcement...")
+func TestBasicUplinkTrafficWithEnforcement(t *testing.T) {
+	fmt.Println("\nRunning TestBasicUplinkTrafficWithEnforcement...")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -75,12 +72,7 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	// wait for the rules to be synced into sessiond
 	time.Sleep(1 * time.Second)
 
-	radiusP, err := tr.Authenticate(imsi)
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	tr.AuthenticateAndAssertSuccess(t, imsi)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
 	_, err = tr.GenULTraffic(req)
@@ -130,6 +122,8 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 		{ExpectationIndex: 0, ExpectationMet: true},
 	}
 	assert.ElementsMatch(t, expectedResult, resultByIndex)
+
+	// Clear hss, ocs, and pcrf
 	assert.NoError(t, clearPCRFMockDriver())
 
 	// Clear hss, ocs, and pcrf
@@ -164,12 +158,7 @@ func TestAuthenticateUplinkTrafficWithQosEnforcement(t *testing.T) {
 	// wait for the rules to be synced into sessiond
 	time.Sleep(1 * time.Second)
 
-	radiusP, err := tr.Authenticate(imsi)
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	tr.AuthenticateAndAssertSuccess(t, imsi)
 
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:       imsi,
@@ -247,12 +236,7 @@ func testAuthenticateDownlinkTrafficWithQosEnforcement(t *testing.T) {
 	// wait for the rules to be synced into sessiond
 	time.Sleep(3 * time.Second)
 
-	radiusP, err := tr.Authenticate(imsi)
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	tr.AuthenticateAndAssertSuccess(t, imsi)
 
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:        imsi,
@@ -292,5 +276,4 @@ func testAuthenticateDownlinkTrafficWithQosEnforcement(t *testing.T) {
 	// Clear hss, ocs, and pcrf
 	assert.NoError(t, ruleManager.RemoveInstalledRules())
 	assert.NoError(t, tr.CleanUp())
-	clearPCRFMockDriver()
 }
