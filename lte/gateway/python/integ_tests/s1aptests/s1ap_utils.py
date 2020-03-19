@@ -23,9 +23,19 @@ from lte.protos.policydb_pb2 import (
     PolicyRule,
     QosArp,
 )
+from lte.protos.session_manager_pb2 import (
+    DynamicRuleInstall,
+    PolicyReAuthRequest,
+    QoSInformation,
+)
+from lte.protos.session_manager_pb2_grpc import (
+    LocalSessionManagerStub,
+    SessionProxyResponderStub,
+)
 from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
+from magma.common.service_registry import ServiceRegistry
 
 
 class S1ApUtil(object):
@@ -525,3 +535,116 @@ class SpgwUtil(object):
             sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=[ebi]
         )
         self._stub.DeleteBearer(req)
+
+
+class SessionManagerUtil(object):
+    """
+    Helper class to communicate with session manager for the tests.
+    """
+
+    def __init__(self):
+        """
+        Initialize sessionManager util.
+        """
+        sessiond_chan = ServiceRegistry.get_rpc_channel("sessiond", ServiceRegistry.LOCAL)
+        self.sessiond_client = SessionProxyResponderStub(sessiond_chan)
+
+    def create_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
+        """
+        Sends Policy RAR message to session manager
+        """
+        print("Sending Policy RAR message to session manager")
+        flow_match_list = []
+        for flow in flow_list:
+            if flow["direction"] == "UL":
+                flow_direction = FlowMatch.UPLINK
+            else :
+                flow_direction = FlowMatch.DOWNLINK
+
+            ip_protocol = flow["ip_proto"]
+            if ip_protocol == "TCP":
+                udp_src_port = 0
+                udp_dst_port = 0
+                if flow["tcp_src_port"]:
+                    tcp_src_port = flow["tcp_src_port"]
+                else:
+                    tcp_src_port = 0
+                if flow["tcp_dst_port"]:
+                    tcp_dst_port = flow["tcp_dst_port"]
+                else:
+                    tcp_dst_port = 0
+            elif ip_protocol == "UDP":
+                tcp_src_port = 0
+                tcp_dst_port = 0
+                if flow["udp_src_port"]:
+                    udp_src_port = flow["udp_src_port"]
+                else:
+                    udp_src_port = 0
+                if flow["udp_dst_port"]:
+                    udp_dst_port = flow["udp_dst_port"]
+                else:
+                    udp_dst_port = 0
+            else:
+                udp_src_port = 0
+                udp_dst_port = 0
+                tcp_src_port = 0
+                tcp_dst_port = 0
+
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        direction=flow_direction,
+                        ip_proto=ip_protocol,
+                        ipv4_src=flow["ipv4_src"],
+                        ipv4_dst=flow["ipv4_dst"],
+                        tcp_src=tcp_src_port,
+                        tcp_dst=tcp_dst_port,
+                        udp_src=udp_src_port,
+                        udp_dst=udp_dst_port,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+
+        policy_qos = FlowQos(
+          qci=qos["qci"],
+          max_req_bw_ul=qos["max_req_bw_ul"],
+          max_req_bw_dl=qos["max_req_bw_dl"],
+          gbr_ul=qos["gbr_ul"],
+          gbr_dl=qos["gbr_dl"],
+          arp=QosArp(
+            priority_level=qos["arp_prio"],
+            pre_capability=qos["pre_cap"],
+            pre_vulnerability=qos["pre_vul"],
+          )
+        )
+
+        policy_rule = PolicyRule(
+            id=policy_id,
+            priority=qos["priority"],
+            flow_list=flow_match_list,
+            tracking_type=PolicyRule.NO_TRACKING,
+            rating_group=1,
+            monitoring_key=None,
+            qos=policy_qos,
+        )
+
+        qos = QoSInformation(qci=qos["qci"])
+
+        # Get sessionid
+        req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
+
+        reauth_result = sessiond_client.PolicyReAuth(
+          PolicyReAuthRequest(
+            session_id=req.value,
+            imsi=imsi,
+            rules_to_remove=[],
+            rules_to_install=[],
+            dynamic_rules_to_install=[DynamicRuleInstall(policy_rule=policy_rule)],
+            event_triggers=[],
+            revalidation_time=None,
+            usage_monitoring_credits=[],
+            qos_info=qos,
+          )
+        )
+
