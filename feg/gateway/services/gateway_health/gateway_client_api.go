@@ -29,7 +29,7 @@ func getHealthClient(cloudRegistry service_registry.GatewayRegistry) (protos.Hea
 	if cloudRegistry == nil {
 		return nil, nil, fmt.Errorf("Nil cloud registry provided")
 	}
-	conn, err := cloudRegistry.GetConnection("HEALTH")
+	conn, err := cloudRegistry.GetCloudConnection("HEALTH")
 	if err != nil {
 		initErr := errors.NewInitError(err, "HEALTH")
 		glog.Error(initErr)
