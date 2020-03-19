@@ -10,8 +10,6 @@
 
 import MultiSelect from '../../components/design-system/Select/MultiSelect';
 import React, {useMemo, useState} from 'react';
-import Text from '../../components/design-system/Text';
-import symphony from '../../theme/symphony';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -20,29 +18,11 @@ const useStyles = makeStyles(_theme => ({
   root: {
     width: '100%',
   },
-  card: {
-    marginBottom: '16px',
-  },
-  popover: {
-    backgroundColor: symphony.palette.white,
-    boxShadow: symphony.shadows.DP1,
-    borderRadius: '4px',
-  },
   select: {
     minWidth: '120px',
+    marginBottom: '20px',
   },
 }));
-
-const Popover = () => {
-  const classes = useStyles();
-  return (
-    <div className={classes.popover}>
-      <Text variant="body2">
-        Below the input, with the same width. Amazing.
-      </Text>
-    </div>
-  );
-};
 
 const INITIAL_OPTIONS = [
   {
@@ -57,7 +37,27 @@ const INITIAL_OPTIONS = [
   },
 ];
 
-const MultiSelectsRoot = () => {
+const BasicMultiSelect = () => {
+  const classes = useStyles();
+  const [selectedValues, setSelectedValues] = useState([]);
+  return (
+    <MultiSelect
+      className={classes.select}
+      label="Project"
+      options={INITIAL_OPTIONS}
+      onChange={option =>
+        setSelectedValues(
+          selectedValues.map(v => v.value).includes(option.value)
+            ? selectedValues.filter(v => v.value !== option.value)
+            : [...selectedValues, option],
+        )
+      }
+      selectedValues={selectedValues}
+    />
+  );
+};
+
+const MultiSelectWithSearch = () => {
   const classes = useStyles();
   const [options, setOptions] = useState(INITIAL_OPTIONS);
   const [selectedValues, setSelectedValues] = useState([]);
@@ -86,7 +86,6 @@ const MultiSelectsRoot = () => {
     <div className={classes.root}>
       <MultiSelect
         className={classes.select}
-        popover={Popover}
         label="Project"
         options={options}
         searchable={true}
@@ -107,6 +106,15 @@ const MultiSelectsRoot = () => {
         }
         selectedValues={selectedValues}
       />
+    </div>
+  );
+};
+
+const MultiSelectsRoot = () => {
+  return (
+    <div>
+      <BasicMultiSelect />
+      <MultiSelectWithSearch />
     </div>
   );
 };
