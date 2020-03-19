@@ -19,4 +19,5 @@ import type {OrganizationMiddlewareRequest} from './organizationMiddleware';
 export type FBCNMSMiddleWareRequest = {
   csrfToken: () => string, // from csrf
   body: Object, // from bodyParser
+  session: any,
 } & OrganizationMiddlewareRequest;
