@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 023e932109e456ca1cc1042407cbe000
+ * @relayHash e2a6da25973b9e3712aebdfcff64f826
  */
 
 /* eslint-disable */
@@ -19,14 +19,28 @@ export type LocationTypeahead_LocationsQueryVariables = {|
   name: string
 |};
 export type LocationTypeahead_LocationsQueryResponse = {|
-  +searchForEntity: {|
+  +searchForNode: {|
     +edges: ?$ReadOnlyArray<{|
-      +node: ?{|
-        +entityId: string,
-        +entityType: string,
+      +node: ?({|
+        +__typename: "Location",
+        +id: string,
+        +externalId: ?string,
         +name: string,
-        +type: string,
-      |}
+        +locationType: {|
+          +name: string
+        |},
+        +locationHierarchy: $ReadOnlyArray<{|
+          +id: string,
+          +name: string,
+          +locationType: {|
+            +name: string
+          |},
+        |}>,
+      |} | {|
+        // This will never be '%other', but we need some
+        // value in case none of the concrete values match.
+        +__typename: "%other"
+      |})
     |}>
   |}
 |};
@@ -41,13 +55,28 @@ export type LocationTypeahead_LocationsQuery = {|
 query LocationTypeahead_LocationsQuery(
   $name: String!
 ) {
-  searchForEntity(name: $name, first: 10) {
+  searchForNode(name: $name, first: 10) {
     edges {
       node {
-        entityId
-        entityType
-        name
-        type
+        __typename
+        ... on Location {
+          id
+          externalId
+          name
+          locationType {
+            name
+            id
+          }
+          locationHierarchy {
+            id
+            name
+            locationType {
+              name
+              id
+            }
+          }
+        }
+        id
       }
     }
   }
@@ -65,78 +94,69 @@ var v0 = [
 ],
 v1 = [
   {
-    "kind": "LinkedField",
-    "alias": null,
-    "name": "searchForEntity",
-    "storageKey": null,
-    "args": [
-      {
-        "kind": "Literal",
-        "name": "first",
-        "value": 10
-      },
-      {
-        "kind": "Variable",
-        "name": "name",
-        "variableName": "name"
-      }
-    ],
-    "concreteType": "SearchEntriesConnection",
-    "plural": false,
-    "selections": [
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "edges",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "SearchEntryEdge",
-        "plural": true,
-        "selections": [
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "node",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "SearchEntry",
-            "plural": false,
-            "selections": [
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "entityId",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "entityType",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "name",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "type",
-                "args": null,
-                "storageKey": null
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    "kind": "Literal",
+    "name": "first",
+    "value": 10
+  },
+  {
+    "kind": "Variable",
+    "name": "name",
+    "variableName": "name"
   }
-];
+],
+v2 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "__typename",
+  "args": null,
+  "storageKey": null
+},
+v3 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "id",
+  "args": null,
+  "storageKey": null
+},
+v4 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "externalId",
+  "args": null,
+  "storageKey": null
+},
+v5 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "name",
+  "args": null,
+  "storageKey": null
+},
+v6 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "locationType",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "LocationType",
+  "plural": false,
+  "selections": [
+    (v5/*: any*/)
+  ]
+},
+v7 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "locationType",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "LocationType",
+  "plural": false,
+  "selections": [
+    (v5/*: any*/),
+    (v3/*: any*/)
+  ]
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -145,23 +165,141 @@ return {
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v1/*: any*/)
+    "selections": [
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "searchForNode",
+        "storageKey": null,
+        "args": (v1/*: any*/),
+        "concreteType": "SearchNodesConnection",
+        "plural": false,
+        "selections": [
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "edges",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "SearchNodeEdge",
+            "plural": true,
+            "selections": [
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "node",
+                "storageKey": null,
+                "args": null,
+                "concreteType": null,
+                "plural": false,
+                "selections": [
+                  (v2/*: any*/),
+                  {
+                    "kind": "InlineFragment",
+                    "type": "Location",
+                    "selections": [
+                      (v3/*: any*/),
+                      (v4/*: any*/),
+                      (v5/*: any*/),
+                      (v6/*: any*/),
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "locationHierarchy",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "Location",
+                        "plural": true,
+                        "selections": [
+                          (v3/*: any*/),
+                          (v5/*: any*/),
+                          (v6/*: any*/)
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   },
   "operation": {
     "kind": "Operation",
     "name": "LocationTypeahead_LocationsQuery",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v1/*: any*/)
+    "selections": [
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "searchForNode",
+        "storageKey": null,
+        "args": (v1/*: any*/),
+        "concreteType": "SearchNodesConnection",
+        "plural": false,
+        "selections": [
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "edges",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "SearchNodeEdge",
+            "plural": true,
+            "selections": [
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "node",
+                "storageKey": null,
+                "args": null,
+                "concreteType": null,
+                "plural": false,
+                "selections": [
+                  (v2/*: any*/),
+                  (v3/*: any*/),
+                  {
+                    "kind": "InlineFragment",
+                    "type": "Location",
+                    "selections": [
+                      (v4/*: any*/),
+                      (v5/*: any*/),
+                      (v7/*: any*/),
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "locationHierarchy",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "Location",
+                        "plural": true,
+                        "selections": [
+                          (v3/*: any*/),
+                          (v5/*: any*/),
+                          (v7/*: any*/)
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   },
   "params": {
     "operationKind": "query",
     "name": "LocationTypeahead_LocationsQuery",
     "id": null,
-    "text": "query LocationTypeahead_LocationsQuery(\n  $name: String!\n) {\n  searchForEntity(name: $name, first: 10) {\n    edges {\n      node {\n        entityId\n        entityType\n        name\n        type\n      }\n    }\n  }\n}\n",
+    "text": "query LocationTypeahead_LocationsQuery(\n  $name: String!\n) {\n  searchForNode(name: $name, first: 10) {\n    edges {\n      node {\n        __typename\n        ... on Location {\n          id\n          externalId\n          name\n          locationType {\n            name\n            id\n          }\n          locationHierarchy {\n            id\n            name\n            locationType {\n              name\n              id\n            }\n          }\n        }\n        id\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b34a4b24708335635a362399d5a4c613';
+(node/*: any*/).hash = '9e4ab0ce3b932ff34a72c8db6f428190';
 module.exports = node;

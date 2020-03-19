@@ -5,7 +5,7 @@ query SearchQuery(
   $before: Cursor
   $last: Int
 ) {
-  searchForEntity(
+  searchForNode(
     name: $name
     after: $after
     first: $first
@@ -14,10 +14,15 @@ query SearchQuery(
   ) {
     edges {
       node {
-        entityId
-        entityType
-        name
-        type
+        typename: __typename
+        ... on Location {
+          id
+          externalId
+          name
+          locationType {
+            name
+          }
+        }
       }
     }
   }

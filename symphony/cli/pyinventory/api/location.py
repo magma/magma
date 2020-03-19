@@ -108,15 +108,15 @@ def add_location(
         if last_location is None:
             search_results = SearchQuery.execute(
                 client, name=location_name
-            ).searchForEntity.edges
+            ).searchForNode.edges
 
             locations = []
             for search_result in search_results:
                 node = search_result.node
                 if (
                     node is not None
-                    and node.entityType == "location"
-                    and node.type == location_type
+                    and node.typename == "Location"
+                    and node.locationType.name == location_type
                     and node.name == location_name
                 ):
                     locations.append(node)
@@ -127,11 +127,11 @@ def add_location(
                 )
             if len(locations) == 1:
                 location_details = LocationDetailsQuery.execute(
-                    client, id=locations[0].entityId
+                    client, id=locations[0].id
                 ).location
                 if location_details is None:
                     raise EntityNotFoundError(
-                        entity=Entity.Location, entity_id=locations[0].entityId
+                        entity=Entity.Location, entity_id=locations[0].id
                     )
                 last_location = Location(
                     name=location_details.name,
@@ -286,15 +286,15 @@ def get_location(
         if last_location is None:
             entities = SearchQuery.execute(
                 client, name=location_name
-            ).searchForEntity.edges
+            ).searchForNode.edges
             nodes = [entity.node for entity in entities]
 
             locations = [
                 node
                 for node in nodes
                 if node is not None
-                and node.entityType == "location"
-                and node.type == location_type
+                and node.typename == "Location"
+                and node.locationType.name == location_type
                 and node.name == location_name
             ]
             if len(locations) == 0:
@@ -306,11 +306,11 @@ def get_location(
                     location_name=location_name, location_type=location_type
                 )
             location_details = LocationDetailsQuery.execute(
-                client, id=locations[0].entityId
+                client, id=locations[0].id
             ).location
             if location_details is None:
                 raise EntityNotFoundError(
-                    entity=Entity.Location, entity_id=locations[0].entityId
+                    entity=Entity.Location, entity_id=locations[0].id
                 )
             last_location = Location(
                 name=location_details.name,
@@ -600,21 +600,17 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
             location = client.get_location_by_external_id(external_id="12345")
             ```
     """
-    locations = SearchQuery.execute(client, name=external_id).searchForEntity.edges
+    locations = SearchQuery.execute(client, name=external_id).searchForNode.edges
     if not locations:
         raise LocationNotFoundException()
 
     location_details = None
     for location in locations:
         node = location.node
-        if node is not None and node.entityType == "location":
-            location_details = LocationDetailsQuery.execute(
-                client, id=node.entityId
-            ).location
+        if node is not None and node.typename == "Location":
+            location_details = LocationDetailsQuery.execute(client, id=node.id).location
             if location_details is None:
-                raise EntityNotFoundError(
-                    entity=Entity.Location, entity_id=node.entityId
-                )
+                raise EntityNotFoundError(entity=Entity.Location, entity_id=node.id)
             if location_details.externalId == external_id:
                 break
             else:

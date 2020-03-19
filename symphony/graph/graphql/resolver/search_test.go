@@ -195,8 +195,9 @@ func TestSearchEquipmentByName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
+	c := newGraphClient(t, r)
 
-	mr, qr := r.Mutation(), r.Query()
+	mr := r.Mutation()
 
 	locationType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type",
@@ -210,42 +211,51 @@ func TestSearchEquipmentByName(t *testing.T) {
 		Name: "equipment_type",
 	})
 	require.NoError(t, err)
-	eq, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
+	e, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:     "EqUiPmEnT",
 		Type:     equipmentType.ID,
 		Location: &location.ID,
 	})
 
-	limit := 10
-	equipmentsResult, err := qr.SearchForEntity(ctx, "equip", nil, &limit, nil, nil)
+	var rsp struct {
+		SearchForNode struct {
+			Edges []struct {
+				Node struct {
+					Name string
+				}
+			}
+		}
+	}
+	c.MustPost(
+		`query($name: String!) { searchForNode(name: $name, first: 10) { edges { node { ... on Equipment { name } } } } }`,
+		&rsp,
+		client.Var("name", "equip"),
+	)
+	require.Len(t, rsp.SearchForNode.Edges, 1)
+	assert.Equal(t, e.Name, rsp.SearchForNode.Edges[0].Node.Name)
 	require.NoError(t, err)
 
-	equipmentResult := equipmentsResult.Edges[0].Node
-	assert.Equal(t, equipmentResult.EntityID, eq.ID)
-	assert.Equal(t, equipmentResult.EntityType, "equipment")
-	assert.Equal(t, equipmentResult.Name, eq.Name)
-	assert.Equal(t, equipmentResult.Type, equipmentType.Name)
-
-	require.NoError(t, err)
 	_, _ = mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:     "equipMENT",
 		Type:     equipmentType.ID,
 		Location: &location.ID,
 	})
 
-	equipmentsResult, err = qr.SearchForEntity(ctx, "ment", nil, &limit, nil, nil)
+	c.MustPost(
+		`query($name: String!) { searchForNode(name: $name, first: 10) { edges { node { ... on Equipment { name } } } } }`,
+		&rsp,
+		client.Var("name", "ment"),
+	)
+	require.Len(t, rsp.SearchForNode.Edges, 2)
+
+	c.MustPost(
+		`query($name: String!) { searchForNode(name: $name, first: 10) { edges { node { ... on Location { name } } } } }`,
+		&rsp,
+		client.Var("name", "cation"),
+	)
+	require.Len(t, rsp.SearchForNode.Edges, 1)
+	assert.Equal(t, location.Name, rsp.SearchForNode.Edges[0].Node.Name)
 	require.NoError(t, err)
-
-	assert.Len(t, equipmentsResult.Edges, 2)
-
-	locationsResult, err := qr.SearchForEntity(ctx, "cation", nil, &limit, nil, nil)
-	require.NoError(t, err)
-
-	locationResult := locationsResult.Edges[0].Node
-	assert.Equal(t, locationResult.EntityID, location.ID)
-	assert.Equal(t, locationResult.EntityType, "location")
-	assert.Equal(t, locationResult.Name, location.Name)
-	assert.Equal(t, locationResult.Type, locationType.Name)
 }
 
 func TestEquipmentSearch(t *testing.T) {
