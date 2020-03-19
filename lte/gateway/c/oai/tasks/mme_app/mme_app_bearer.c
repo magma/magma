@@ -1600,7 +1600,7 @@ void mme_app_handle_e_rab_setup_rsp(
     bearer_context_t* bc =
       mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
     if (bc->bearer_state & BEARER_STATE_SGW_CREATED) {
-      if (!(bc->bearer_state & BEARER_STATE_MME_CREATED)) {
+      if (bc->bearer_state & BEARER_STATE_MME_CREATED) {
         OAILOG_ERROR(
           LOG_MME_APP,
           "Bearer creation failed in eNB, but successfully created in "
@@ -1609,6 +1609,11 @@ void mme_app_handle_e_rab_setup_rsp(
         esm_proc_dedicated_eps_bearer_context_reject(
           &ue_context_p->emm_context, e_rab_id, NULL);
         OAILOG_FUNC_OUT(LOG_MME_APP);
+      } else {
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "Bearer creation failed in eNB and MME for bearer Id: %u\n",
+          e_rab_id);
       }
       bc->bearer_state &= (~BEARER_STATE_ENB_CREATED);
       bc->bearer_state &= (~BEARER_STATE_MME_CREATED);
