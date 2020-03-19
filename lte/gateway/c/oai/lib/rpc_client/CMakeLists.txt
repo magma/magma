@@ -39,7 +39,7 @@ link_directories(
 
 add_library(LIB_RPC_CLIENT
     MobilityServiceClient.cpp
-    RpcClient.cpp
+    MobilityClientAPI.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
 )
