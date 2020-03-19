@@ -25,6 +25,9 @@ import (
 type RuleManager struct {
 	// List of static rules successfully inserted into the policyDB store
 	staticRuleDefs []*lteProtos.PolicyRule
+	// List of basename -> rule names mapping successfully inserted into the
+	// policyDB store
+	baseNameMappings []*lteProtos.ChargingRuleBaseNameRecord
 	// List of dynamic rules successfully installed into PCRF
 	accountRules []*fegProtos.AccountRules
 	// List of usage monitors successfully installed into PCRF
@@ -110,6 +113,12 @@ func (manager *RuleManager) RemoveInstalledRules() error {
 		if err != nil {
 			return err
 		}
+		for _, ruleID := range ruleIDs {
+			manager.policyDBWrapper.policyMap.Delete(ruleID)
+		}
+	}
+	for _, baseNameRecord := range manager.baseNameMappings {
+		manager.policyDBWrapper.baseNameMap.Delete(baseNameRecord.Name)
 	}
 	return nil
 }
@@ -119,32 +128,49 @@ func (manager *RuleManager) RemoveInstalledRules() error {
 func (manager *RuleManager) AddUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) error {
 	fmt.Printf("************************* Adding PCRF Usage Monitor for UE with IMSI: %s\n", imsi)
 	usageMonitor := makeUsageMonitor(imsi, monitoringKey, volume, bytesPerGrant)
+	err := addPCRFUsageMonitors(usageMonitor)
+	if err != nil {
+		return err
+	}
 	manager.monitors = append(manager.monitors, usageMonitor)
-	return addPCRFUsageMonitors(usageMonitor)
+	return nil
 }
 
 func (manager *RuleManager) insertStaticRuleIntoRedis(rule *lteProtos.PolicyRule) error {
 	err := manager.policyDBWrapper.policyMap.Set(rule.Id, rule)
 	if err != nil {
-		manager.staticRuleDefs = append(manager.staticRuleDefs, rule)
+		return err
 	}
-	return err
+	manager.staticRuleDefs = append(manager.staticRuleDefs, rule)
+	return nil
 }
+
+func (manager *RuleManager) insertBaseNameMappingIntoRedis(record *lteProtos.ChargingRuleBaseNameRecord) error {
+	err := manager.policyDBWrapper.baseNameMap.Set(record.GetName(), record.GetRuleNamesSet())
+	if err != nil {
+		return err
+	}
+	manager.baseNameMappings = append(manager.baseNameMappings, record)
+	return nil
+}
+
 
 func (manager *RuleManager) insertOmniPresentRuleIntoRedis(keyID string, rule *lteProtos.AssignedPolicies) error {
 	err := manager.policyDBWrapper.omniPresentRules.Set(keyID, rule)
 	if err != nil {
-		manager.omniPresentRules = append(manager.omniPresentRules, rule)
+		return err
 	}
-	return err
+	manager.omniPresentRules = append(manager.omniPresentRules, rule)
+	return nil
 }
 
 func (manager *RuleManager) addAccountRules(rules *fegProtos.AccountRules) error {
 	err := addPCRFRules(rules)
 	if err != nil {
-		manager.accountRules = append(manager.accountRules, rules)
+		return err
 	}
-	return err
+	manager.accountRules = append(manager.accountRules, rules)
+	return nil
 }
 
 func getAccountRulesWithDynamicPassAll(imsi, ruleID, monitoringKey string) *fegProtos.AccountRules {
