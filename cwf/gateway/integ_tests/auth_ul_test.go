@@ -10,14 +10,11 @@ package integ_tests
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
-	"fbc/lib/go/radius/rfc2869"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/eap"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -49,12 +46,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfos(usageMonitorInfo)
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
 
-	radiusP, err := tr.Authenticate(imsi)
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage)
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
+	tr.AuthenticateAndAssertSuccess(t, imsi)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "100K"}}
 	_, err = tr.GenULTraffic(req)
@@ -69,7 +61,10 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 		{ExpectationIndex: 0, ExpectationMet: true},
 	}
 	assert.ElementsMatch(t, expectedResult, resultByIndex)
-	assert.NoError(t, clearPCRFMockDriver())
+
+	_, err = tr.Disconnect(imsi)
+	assert.NoError(t, err)
+	time.Sleep(3 * time.Second)
 
 	// Clear hss, ocs, and pcrf
 	assert.NoError(t, clearPCRFMockDriver())
