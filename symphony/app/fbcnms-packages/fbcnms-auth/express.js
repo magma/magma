@@ -133,10 +133,36 @@ function userMiddleware(options: Options): express.Router {
     }),
   );
 
+  router.get(
+    '/login/oidc',
+    passport.authenticate('oidc', {
+      failureRedirect: options.loginFailureUrl,
+    }),
+  );
+  router.get('/login/oidc/callback', (req: FBCNMSRequest, res, next) => {
+    const to = req.query.to;
+    const loginSuccessUrl =
+      ensureRelativeUrl(Array.isArray(to) ? null : to) || '/';
+    passport.authenticate('oidc', (err, user, _info) => {
+      if (!user || err) {
+        logger.error('Error logging in with oidc: ' + err);
+        return res.redirect(options.loginFailureUrl);
+      }
+      req.logIn(user, err => {
+        if (err) {
+          next(err);
+          return;
+        }
+        res.redirect(loginSuccessUrl);
+      });
+    })(req, res, next);
+  });
+
   router.get('/logout', (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
       req.logout();
     }
+    delete req.session.oidc;
     res.redirect('/');
   });
 
