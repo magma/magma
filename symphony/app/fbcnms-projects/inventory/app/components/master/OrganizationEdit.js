@@ -9,6 +9,7 @@
  */
 
 import type {Organization} from './Organizations';
+import type {SSOSelectedType} from '@fbcnms/types/auth';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -27,6 +28,7 @@ import SaveIcon from '@material-ui/icons/Save';
 import Select from '@material-ui/core/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
+import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import axios from 'axios';
 import renderList from '@fbcnms/util/renderList';
 import symphony from '@fbcnms/ui/theme/symphony';
@@ -77,9 +79,18 @@ export default function OrganizationEdit() {
   const [tabs, setTabs] = useState<Set<string>>(new Set());
   const [shouldEnableAllNetworks, setShouldEnableAllNetworks] = useState(false);
   const [networkIds, setNetworkIds] = useState<Set<string>>(new Set());
+  const [ssoSelectedType, setSSOSelectedType] = useState<SSOSelectedType>(
+    'saml',
+  );
   const [ssoIssuer, setSSOIssuer] = useState<string>('');
   const [ssoEntrypoint, setSSOEntrypoint] = useState<string>('');
   const [ssoCert, setSSOCert] = useState<string>('');
+  const [ssoOidcClientID, setSSOOidcClientID] = useState<string>('');
+  const [ssoOidcClientSecret, setSSOOidcClientSecret] = useState<string>('');
+  const [
+    ssoOidcConfigurationURL,
+    setSSOOidcConfigurationURL,
+  ] = useState<string>('');
 
   const orgRequest = useAxios<null, {organization: Organization}>({
     method: 'get',
@@ -90,9 +101,13 @@ export default function OrganizationEdit() {
       setTabs(new Set(organization.tabs));
       setNetworkIds(new Set(organization.networkIDs));
       setCsvCharset(organization.csvCharset);
+      setSSOSelectedType(organization.ssoSelectedType);
       setSSOIssuer(organization.ssoIssuer);
       setSSOEntrypoint(organization.ssoEntrypoint);
       setSSOCert(organization.ssoCert);
+      setSSOOidcClientID(organization.ssoOidcClientID);
+      setSSOOidcClientSecret(organization.ssoOidcClientSecret);
+      setSSOOidcConfigurationURL(organization.ssoOidcConfigurationURL);
     }, []),
   });
 
@@ -134,9 +149,13 @@ export default function OrganizationEdit() {
           ? allNetworks
           : Array.from(networkIds),
         csvCharset,
+        ssoSelectedType,
         ssoIssuer,
         ssoEntrypoint,
         ssoCert,
+        ssoOidcClientID,
+        ssoOidcClientSecret,
+        ssoOidcConfigurationURL,
       })
       .then(_res => {
         enqueueSnackbar('Updated organization successfully', {
@@ -255,35 +274,89 @@ export default function OrganizationEdit() {
           <Text variant="h6">Single Sign-On</Text>
           <form noValidate autoComplete="off">
             <FormGroup>
-              <TextField
-                label="Issuer"
+              <TypedSelect
+                value={ssoSelectedType}
                 className={classes.textField}
-                value={ssoIssuer}
-                onChange={evt => setSSOIssuer(evt.target.value)}
-                margin="normal"
+                items={{
+                  none: 'Disabled',
+                  oidc: 'OpenID Connect',
+                  saml: 'SAML',
+                }}
+                onChange={value => setSSOSelectedType(value)}
+                input={<Input id="ssoSelectedType" />}
               />
             </FormGroup>
-            <FormGroup>
-              <TextField
-                label="Entrypoint"
-                className={classes.textField}
-                value={ssoEntrypoint}
-                onChange={evt => setSSOEntrypoint(evt.target.value)}
-                margin="normal"
-              />
-            </FormGroup>
-            <FormGroup>
-              <TextField
-                label="Certificate"
-                multiline
-                rows="4"
-                value={ssoCert}
-                onChange={evt => setSSOCert(evt.target.value)}
-                className={classes.textField}
-                margin="normal"
-                variant="filled"
-              />
-            </FormGroup>
+            {ssoSelectedType === 'saml' ? (
+              <>
+                <FormGroup>
+                  <TextField
+                    label="Issuer"
+                    className={classes.textField}
+                    value={ssoIssuer}
+                    onChange={evt => setSSOIssuer(evt.target.value)}
+                    margin="normal"
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <TextField
+                    label="Entrypoint"
+                    className={classes.textField}
+                    value={ssoEntrypoint}
+                    onChange={evt => setSSOEntrypoint(evt.target.value)}
+                    margin="normal"
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <TextField
+                    label="Certificate"
+                    multiline
+                    rows="4"
+                    value={ssoCert}
+                    onChange={evt => setSSOCert(evt.target.value)}
+                    className={classes.textField}
+                    margin="normal"
+                    variant="filled"
+                  />
+                </FormGroup>
+              </>
+            ) : null}
+            {ssoSelectedType === 'oidc' ? (
+              <>
+                <FormGroup>
+                  <TextField
+                    label="Client ID"
+                    className={classes.textField}
+                    value={ssoOidcClientID}
+                    onChange={evt => setSSOOidcClientID(evt.target.value)}
+                    margin="normal"
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <TextField
+                    label="Client Secret"
+                    className={classes.textField}
+                    value={ssoOidcClientSecret}
+                    onChange={evt => setSSOOidcClientSecret(evt.target.value)}
+                    margin="normal"
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <TextField
+                    label="Configuration URL"
+                    className={classes.textField}
+                    value={ssoOidcConfigurationURL}
+                    onChange={evt =>
+                      setSSOOidcConfigurationURL(evt.target.value)
+                    }
+                    margin="normal"
+                  />
+                </FormGroup>
+              </>
+            ) : null}
+          </form>
+        </Paper>
+        <Paper className={classes.root} elevation={1}>
+          <form noValidate autoComplete="off">
             <Button onClick={() => onSave()}>
               <SaveIcon className={classes.leftIcon} />
               <Text color="light" weight="medium">

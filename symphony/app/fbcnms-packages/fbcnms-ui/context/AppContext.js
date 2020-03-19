@@ -10,6 +10,7 @@
 'use strict';
 
 import type {FeatureID} from '@fbcnms/types/features';
+import type {SSOSelectedType} from '@fbcnms/types/auth';
 import type {Tab} from '@fbcnms/types/tabs';
 
 import * as React from 'react';
@@ -33,6 +34,7 @@ export type AppContextType = {
   isFeatureEnabled: FeatureID => boolean,
   isTabEnabled: Tab => boolean,
   ssoEnabled: boolean,
+  ssoSelectedType: SSOSelectedType,
 };
 
 export type AppContextAppData = {|
@@ -41,6 +43,7 @@ export type AppContextAppData = {|
   user: User,
   enabledFeatures: FeatureID[],
   ssoEnabled: boolean,
+  ssoSelectedType: SSOSelectedType,
   csvCharset: ?string,
 |};
 
@@ -55,6 +58,7 @@ const appContextDefaults = {
   isFeatureEnabled: () => false,
   isTabEnabled: () => false,
   ssoEnabled: false,
+  ssoSelectedType: 'none',
 };
 
 const AppContext = React.createContext<AppContextType>(appContextDefaults);
