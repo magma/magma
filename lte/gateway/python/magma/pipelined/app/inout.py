@@ -46,7 +46,10 @@ class InOutController(MagmaController):
         self.config = self._get_config(kwargs['config'])
         self._uplink_port = OFPP_LOCAL
         #TODO Alex do we want this to be cofigurable from swagger?
-        self._mtr_service_enabled = False
+        if self.config.mtr_ip:
+            self._mtr_service_enabled = True
+        else:
+            self._mtr_service_enabled = False
         if (self.config.uplink_port_name):
             self._uplink_port = BridgeTools.get_ofport(self.config.uplink_port_name)
 
