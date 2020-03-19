@@ -9,6 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -23,18 +24,13 @@ import (
 // FloorPlanCreate is the builder for creating a FloorPlan entity.
 type FloorPlanCreate struct {
 	config
-	create_time     *time.Time
-	update_time     *time.Time
-	name            *string
-	location        map[int]struct{}
-	reference_point map[int]struct{}
-	scale           map[int]struct{}
-	image           map[int]struct{}
+	mutation *FloorPlanMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (fpc *FloorPlanCreate) SetCreateTime(t time.Time) *FloorPlanCreate {
-	fpc.create_time = &t
+	fpc.mutation.SetCreateTime(t)
 	return fpc
 }
 
@@ -48,7 +44,7 @@ func (fpc *FloorPlanCreate) SetNillableCreateTime(t *time.Time) *FloorPlanCreate
 
 // SetUpdateTime sets the update_time field.
 func (fpc *FloorPlanCreate) SetUpdateTime(t time.Time) *FloorPlanCreate {
-	fpc.update_time = &t
+	fpc.mutation.SetUpdateTime(t)
 	return fpc
 }
 
@@ -62,16 +58,13 @@ func (fpc *FloorPlanCreate) SetNillableUpdateTime(t *time.Time) *FloorPlanCreate
 
 // SetName sets the name field.
 func (fpc *FloorPlanCreate) SetName(s string) *FloorPlanCreate {
-	fpc.name = &s
+	fpc.mutation.SetName(s)
 	return fpc
 }
 
 // SetLocationID sets the location edge to Location by id.
 func (fpc *FloorPlanCreate) SetLocationID(id int) *FloorPlanCreate {
-	if fpc.location == nil {
-		fpc.location = make(map[int]struct{})
-	}
-	fpc.location[id] = struct{}{}
+	fpc.mutation.SetLocationID(id)
 	return fpc
 }
 
@@ -90,10 +83,7 @@ func (fpc *FloorPlanCreate) SetLocation(l *Location) *FloorPlanCreate {
 
 // SetReferencePointID sets the reference_point edge to FloorPlanReferencePoint by id.
 func (fpc *FloorPlanCreate) SetReferencePointID(id int) *FloorPlanCreate {
-	if fpc.reference_point == nil {
-		fpc.reference_point = make(map[int]struct{})
-	}
-	fpc.reference_point[id] = struct{}{}
+	fpc.mutation.SetReferencePointID(id)
 	return fpc
 }
 
@@ -112,10 +102,7 @@ func (fpc *FloorPlanCreate) SetReferencePoint(f *FloorPlanReferencePoint) *Floor
 
 // SetScaleID sets the scale edge to FloorPlanScale by id.
 func (fpc *FloorPlanCreate) SetScaleID(id int) *FloorPlanCreate {
-	if fpc.scale == nil {
-		fpc.scale = make(map[int]struct{})
-	}
-	fpc.scale[id] = struct{}{}
+	fpc.mutation.SetScaleID(id)
 	return fpc
 }
 
@@ -134,10 +121,7 @@ func (fpc *FloorPlanCreate) SetScale(f *FloorPlanScale) *FloorPlanCreate {
 
 // SetImageID sets the image edge to File by id.
 func (fpc *FloorPlanCreate) SetImageID(id int) *FloorPlanCreate {
-	if fpc.image == nil {
-		fpc.image = make(map[int]struct{})
-	}
-	fpc.image[id] = struct{}{}
+	fpc.mutation.SetImageID(id)
 	return fpc
 }
 
@@ -156,30 +140,41 @@ func (fpc *FloorPlanCreate) SetImage(f *File) *FloorPlanCreate {
 
 // Save creates the FloorPlan in the database.
 func (fpc *FloorPlanCreate) Save(ctx context.Context) (*FloorPlan, error) {
-	if fpc.create_time == nil {
+	if _, ok := fpc.mutation.CreateTime(); !ok {
 		v := floorplan.DefaultCreateTime()
-		fpc.create_time = &v
+		fpc.mutation.SetCreateTime(v)
 	}
-	if fpc.update_time == nil {
+	if _, ok := fpc.mutation.UpdateTime(); !ok {
 		v := floorplan.DefaultUpdateTime()
-		fpc.update_time = &v
+		fpc.mutation.SetUpdateTime(v)
 	}
-	if fpc.name == nil {
+	if _, ok := fpc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if len(fpc.location) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
+	var (
+		err  error
+		node *FloorPlan
+	)
+	if len(fpc.hooks) == 0 {
+		node, err = fpc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*FloorPlanMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			fpc.mutation = mutation
+			node, err = fpc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(fpc.hooks); i > 0; i-- {
+			mut = fpc.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, fpc.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(fpc.reference_point) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"reference_point\"")
-	}
-	if len(fpc.scale) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"scale\"")
-	}
-	if len(fpc.image) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"image\"")
-	}
-	return fpc.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -202,31 +197,31 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 			},
 		}
 	)
-	if value := fpc.create_time; value != nil {
+	if value, ok := fpc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: floorplan.FieldCreateTime,
 		})
-		fp.CreateTime = *value
+		fp.CreateTime = value
 	}
-	if value := fpc.update_time; value != nil {
+	if value, ok := fpc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: floorplan.FieldUpdateTime,
 		})
-		fp.UpdateTime = *value
+		fp.UpdateTime = value
 	}
-	if value := fpc.name; value != nil {
+	if value, ok := fpc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: floorplan.FieldName,
 		})
-		fp.Name = *value
+		fp.Name = value
 	}
-	if nodes := fpc.location; len(nodes) > 0 {
+	if nodes := fpc.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -240,12 +235,12 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := fpc.reference_point; len(nodes) > 0 {
+	if nodes := fpc.mutation.ReferencePointIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -259,12 +254,12 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := fpc.scale; len(nodes) > 0 {
+	if nodes := fpc.mutation.ScaleIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -278,12 +273,12 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := fpc.image; len(nodes) > 0 {
+	if nodes := fpc.mutation.ImageIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -297,7 +292,7 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

@@ -7,7 +7,7 @@ from gql.gql.reporter import FailedOperationException
 
 from .._utils import deprecated, get_graphql_property_inputs
 from ..client import SymphonyClient
-from ..consts import Document, Entity, ImageEntity, Location
+from ..consts import Document, Entity, ImageEntity, Location, PropertyValue
 from ..exceptions import (
     EntityNotFoundError,
     LocationCannotBeDeletedWithDependency,
@@ -18,6 +18,7 @@ from ..graphql.add_location_input import AddLocationInput
 from ..graphql.add_location_mutation import AddLocationMutation
 from ..graphql.edit_location_input import EditLocationInput
 from ..graphql.edit_location_mutation import EditLocationMutation
+from ..graphql.get_locations_query import GetLocationsQuery
 from ..graphql.location_children_query import LocationChildrenQuery
 from ..graphql.location_deps_query import LocationDepsQuery
 from ..graphql.location_details_query import LocationDetailsQuery
@@ -36,7 +37,7 @@ MOVE_LOCATION_MUTATION_NAME = "moveLocation"
 def add_location(
     client: SymphonyClient,
     location_hirerchy: List[Tuple[str, str]],
-    properties_dict: Dict[str, Any],
+    properties_dict: Dict[str, PropertyValue],
     lat: Optional[float] = None,
     long: Optional[float] = None,
     externalID: Optional[str] = None,
@@ -105,29 +106,28 @@ def add_location(
             long_val = long
 
         if last_location is None:
-            locations = SearchQuery.execute(
+            search_results = SearchQuery.execute(
                 client, name=location_name
             ).searchForEntity.edges
 
-            locations = [
-                location.node
-                for location in locations
-                # pyre-fixme[16]: `Optional` has no attribute `entityType`.
-                if location.node.entityType == "location"
-                # pyre-fixme[16]: `Optional` has no attribute `type`.
-                and location.node.type == location_type
-                # pyre-fixme[16]: `Optional` has no attribute `name`.
-                and location.node.name == location_name
-            ]
+            locations = []
+            for search_result in search_results:
+                node = search_result.node
+                if (
+                    node is not None
+                    and node.entityType == "location"
+                    and node.type == location_type
+                    and node.name == location_name
+                ):
+                    locations.append(node)
+
             if len(locations) > 1:
                 raise LocationIsNotUniqueException(
                     location_name=location_name, location_type=location_type
                 )
             if len(locations) == 1:
                 location_details = LocationDetailsQuery.execute(
-                    client,
-                    # pyre-fixme[16]: `Optional` has no attribute `entityId`.
-                    id=locations[0].entityId,
+                    client, id=locations[0].entityId
                 ).location
                 if location_details is None:
                     raise EntityNotFoundError(
@@ -354,6 +354,40 @@ def get_location(
     return last_location
 
 
+def get_locations(client: SymphonyClient) -> List[Location]:
+    """This function returns all existing locations
+
+        Returns:
+            List[ pyinventory.consts.Location ]
+
+        Example:
+            ```
+            all_locations = client.get_locations()
+            ```
+    """
+    locations = GetLocationsQuery.execute(client).locations
+    if not locations:
+        return []
+    result = []
+    edges = locations.edges
+
+    for edge in edges:
+        node = edge.node
+        if node is not None:
+            result.append(
+                Location(
+                    name=node.name,
+                    id=node.id,
+                    latitude=node.latitude,
+                    longitude=node.longitude,
+                    externalId=node.externalId,
+                    locationTypeName=node.locationType.name,
+                )
+            )
+
+    return result
+
+
 def get_location_children(client: SymphonyClient, location_id: str) -> List[Location]:
     """This function returns all children locations of the given location
 
@@ -400,7 +434,7 @@ def edit_location(
     new_lat: Optional[float] = None,
     new_long: Optional[float] = None,
     new_external_id: Optional[str] = None,
-    new_properties: Optional[Dict[str, Any]] = None,
+    new_properties: Optional[Dict[str, PropertyValue]] = None,
 ) -> Location:
     """This function returns edited location.
 
@@ -410,9 +444,9 @@ def edit_location(
             new_lat (Optional[float]): location new latitude
             new_long (Optional[float]): location new longitude
             new_external_id (Optional[float]): location new external ID
-            new_properties (Optional[Dict[str, Any]]): dict of property name to property value
+            new_properties (Optional[Dict[str, PropertyValue]]): dict of property name to property value
             - str - property name
-            - Any - new value of the same type for this property
+            - PropertyValue - new value of the same type for this property
 
         Returns:
             pyinventory.consts.Location object

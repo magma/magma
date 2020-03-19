@@ -1867,8 +1867,8 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pr.ID,
 		Type:   "Project",
-		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 5),
+		Fields: make([]*Field, 4),
+		Edges:  make([]*Edge, 6),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(pr.CreateTime); err != nil {
@@ -1901,14 +1901,6 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[3] = &Field{
 		Type:  "string",
 		Name:  "Description",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(pr.Creator); err != nil {
-		return nil, err
-	}
-	node.Fields[4] = &Field{
-		Type:  "string",
-		Name:  "Creator",
 		Value: string(buf),
 	}
 	var ids []int
@@ -1966,6 +1958,17 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "Property",
 		Name: "Properties",
+	}
+	ids, err = pr.QueryCreator().
+		Select(user.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[5] = &Edge{
+		IDs:  ids,
+		Type: "User",
+		Name: "Creator",
 	}
 	return node, nil
 }
@@ -3737,8 +3740,8 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     wo.ID,
 		Type:   "WorkOrder",
-		Fields: make([]*Field, 11),
-		Edges:  make([]*Edge, 12),
+		Fields: make([]*Field, 10),
+		Edges:  make([]*Edge, 14),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(wo.CreateTime); err != nil {
@@ -3789,18 +3792,10 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Description",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(wo.OwnerName); err != nil {
-		return nil, err
-	}
-	node.Fields[6] = &Field{
-		Type:  "string",
-		Name:  "OwnerName",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(wo.InstallDate); err != nil {
 		return nil, err
 	}
-	node.Fields[7] = &Field{
+	node.Fields[6] = &Field{
 		Type:  "time.Time",
 		Name:  "InstallDate",
 		Value: string(buf),
@@ -3808,25 +3803,25 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(wo.CreationDate); err != nil {
 		return nil, err
 	}
-	node.Fields[8] = &Field{
+	node.Fields[7] = &Field{
 		Type:  "time.Time",
 		Name:  "CreationDate",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(wo.Assignee); err != nil {
-		return nil, err
-	}
-	node.Fields[9] = &Field{
-		Type:  "string",
-		Name:  "Assignee",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(wo.Index); err != nil {
 		return nil, err
 	}
-	node.Fields[10] = &Field{
+	node.Fields[8] = &Field{
 		Type:  "int",
 		Name:  "Index",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(wo.CloseDate); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
+		Type:  "time.Time",
+		Name:  "CloseDate",
 		Value: string(buf),
 	}
 	var ids []int
@@ -3961,6 +3956,28 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "Project",
 		Name: "Project",
+	}
+	ids, err = wo.QueryOwner().
+		Select(user.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[12] = &Edge{
+		IDs:  ids,
+		Type: "User",
+		Name: "Owner",
+	}
+	ids, err = wo.QueryAssignee().
+		Select(user.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[13] = &Edge{
+		IDs:  ids,
+		Type: "User",
+		Name: "Assignee",
 	}
 	return node, nil
 }

@@ -37,6 +37,10 @@ const Strings = {
       'Delete',
       'Text for button that will cause a delete operation',
     )}`,
+    createButton: `${fbt(
+      'Create',
+      'Text for button that creates a new instance',
+    )}`,
     nextButton: `${fbt('Next', 'Text for button that go to next operation')}`,
     backButton: `${fbt(
       'Back',

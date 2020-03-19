@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {FilterEntity} from './hooks/__generated__/filterBookmarksHookReportFiltersQuery.graphql';
 import type {PropertyType} from '../../common/PropertyType';
 
 export const EntityTypeMap = Object.freeze({
@@ -50,6 +51,14 @@ export type FilterConfig = {
   component: Object,
   defaultOperator: Operator,
   extraData?: ?Object,
+};
+
+export type SavedSearchConfig = {
+  id: string,
+  label: string,
+  key: string,
+  entity: FilterEntity,
+  filters: Array<FilterValue>,
 };
 
 export type EntityConfig = {

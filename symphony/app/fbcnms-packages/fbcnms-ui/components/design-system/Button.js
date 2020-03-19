@@ -78,6 +78,7 @@ const useStyles = makeStyles(_theme => ({
       '&:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.white,
+          fill: symphony.palette.white,
         },
       },
       '&:hover:not($disabled)': {
@@ -92,6 +93,7 @@ const useStyles = makeStyles(_theme => ({
       '&:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.white,
+          fill: symphony.palette.white,
         },
       },
       '&:hover:not($disabled)': {
@@ -118,16 +120,19 @@ const useStyles = makeStyles(_theme => ({
       '&:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.secondary,
+          fill: symphony.palette.secondary,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.primary,
+          fill: symphony.palette.primary,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.B700,
+          fill: symphony.palette.B700,
         },
       },
     },
@@ -136,16 +141,19 @@ const useStyles = makeStyles(_theme => ({
       '&:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.secondary,
+          fill: symphony.palette.secondary,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.primary,
+          fill: symphony.palette.primary,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.B700,
+          fill: symphony.palette.B700,
         },
       },
     },
@@ -154,6 +162,7 @@ const useStyles = makeStyles(_theme => ({
       backgroundColor: symphony.palette.disabled,
       '& $buttonText, $icon': {
         color: symphony.palette.white,
+        fill: symphony.palette.white,
       },
     },
   },
@@ -168,16 +177,19 @@ const useStyles = makeStyles(_theme => ({
       '&:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.primary,
+          fill: symphony.palette.primary,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.B700,
+          fill: symphony.palette.B700,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.B700,
+          fill: symphony.palette.B700,
         },
       },
     },
@@ -185,6 +197,7 @@ const useStyles = makeStyles(_theme => ({
       '&:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.R600,
+          fill: symphony.palette.R600,
         },
       },
       '&:hover:not($disabled)': {
@@ -202,6 +215,7 @@ const useStyles = makeStyles(_theme => ({
       '&:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.secondary,
+          fill: symphony.palette.secondary,
         },
       },
       '&:hover:not($disabled)': {
@@ -219,16 +233,19 @@ const useStyles = makeStyles(_theme => ({
       '&:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.D500,
+          fill: symphony.palette.D500,
         },
       },
       '&:hover:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.primary,
+          fill: symphony.palette.primary,
         },
       },
       '&:active:not($disabled)': {
         '& $buttonText, $icon': {
           color: symphony.palette.primary,
+          fill: symphony.palette.primary,
         },
       },
     },
@@ -313,6 +330,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
       ref={forwardedRef}>
       {LeftIcon ? (
         <LeftIcon
+          color="inherit"
           className={classNames(classes.icon, classes.leftIcon, leftIconClass)}
           size="small"
         />
@@ -328,6 +346,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
             rightIconClass,
           )}
           size="small"
+          color="inherit"
         />
       ) : null}
     </button>

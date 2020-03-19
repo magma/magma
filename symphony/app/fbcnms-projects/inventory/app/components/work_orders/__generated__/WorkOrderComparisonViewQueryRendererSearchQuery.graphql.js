@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0750167311f92733be723ecb6df537cd
+ * @relayHash ab22ca43e41b9d10e60de386fa9725b9
  */
 
 /* eslint-disable */
@@ -120,6 +120,7 @@ fragment WorkOrdersView_workOrder on WorkOrder {
     id
     name
   }
+  closeDate
 }
 */
 
@@ -337,6 +338,13 @@ return {
               {
                 "kind": "ScalarField",
                 "alias": null,
+                "name": "closeDate",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
                 "name": "priority",
                 "args": null,
                 "storageKey": null
@@ -351,7 +359,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrderComparisonViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query WorkOrderComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [WorkOrderFilterInput!]!\n) {\n  workOrderSearch(limit: $limit, filters: $filters) {\n    count\n    workOrders {\n      ...WorkOrdersView_workOrder\n      ...WorkOrdersMap_workOrders\n      id\n    }\n  }\n}\n\nfragment WorkOrdersMap_workOrders on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  status\n  priority\n  assignee\n  installDate\n  location {\n    id\n    name\n    latitude\n    longitude\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  assignee\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n}\n",
+    "text": "query WorkOrderComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [WorkOrderFilterInput!]!\n) {\n  workOrderSearch(limit: $limit, filters: $filters) {\n    count\n    workOrders {\n      ...WorkOrdersView_workOrder\n      ...WorkOrdersMap_workOrders\n      id\n    }\n  }\n}\n\nfragment WorkOrdersMap_workOrders on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  status\n  priority\n  assignee\n  installDate\n  location {\n    id\n    name\n    latitude\n    longitude\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  assignee\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n  closeDate\n}\n",
     "metadata": {}
   }
 };

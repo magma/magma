@@ -92,8 +92,6 @@ allow_unknown_arps: False
 # Configuration for IPFIX sampling
 ipfix:
   enabled: true
-  collector_ip: '10.22.20.116'
-  collector_port: 4740
   probability: 30000
   collector_set_id: 1
   cache_timeout: 60

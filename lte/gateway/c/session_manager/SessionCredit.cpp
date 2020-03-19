@@ -15,6 +15,7 @@
 
 namespace magma {
 
+SessionCreditUpdateCriteria SessionCredit::UNUSED_UPDATE_CRITERIA{};
 float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
@@ -72,9 +73,24 @@ StoredSessionCredit SessionCredit::marshal()
     marshaled.buckets[bucket] = buckets_[bucket];
   }
 
-  usage_reporting_limit_ = marshaled.usage_reporting_limit;
+  marshaled.usage_reporting_limit = usage_reporting_limit_;
 
   return marshaled;
+}
+
+SessionCreditUpdateCriteria SessionCredit::get_update_criteria()
+{
+  SessionCreditUpdateCriteria uc {};
+  uc.is_final = is_final_grant_;
+  uc.reauth_state = reauth_state_;
+  uc.service_state = service_state_;
+  uc.expiry_time = expiry_time_;
+  for ( int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++ )
+  {
+    Bucket bucket = static_cast<Bucket>(bucket_int);
+    uc.bucket_deltas[bucket] = 0;
+  }
+  return uc;
 }
 
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state):
@@ -106,43 +122,56 @@ SessionCredit::SessionCredit(CreditType credit_type):
 {
 }
 
-void SessionCredit::set_expiry_time(uint32_t validity_time)
+void SessionCredit::set_expiry_time(
+  uint32_t validity_time,
+  SessionCreditUpdateCriteria& uc)
 {
   if (validity_time == 0) {
     // set as max possible time
     expiry_time_ = std::numeric_limits<std::time_t>::max();
+    uc.expiry_time = expiry_time_;
     return;
   }
   expiry_time_ = std::time(nullptr) + validity_time;
+  uc.expiry_time = expiry_time_;
 }
 
-void SessionCredit::add_used_credit(uint64_t used_tx, uint64_t used_rx)
+void SessionCredit::add_used_credit(uint64_t used_tx, uint64_t used_rx, SessionCreditUpdateCriteria& uc)
 {
   buckets_[USED_TX] += used_tx;
   buckets_[USED_RX] += used_rx;
+  uc.bucket_deltas[USED_TX] += used_tx;
+  uc.bucket_deltas[USED_RX] += used_rx;
 
   if (should_deactivate_service()) {
     MLOG(MDEBUG) << "Quota exhausted. Deactivating service";
     service_state_ = SERVICE_NEEDS_DEACTIVATION;
+    uc.service_state = SERVICE_NEEDS_DEACTIVATION;
   }
 }
 
-void SessionCredit::reset_reporting_credit()
+void SessionCredit::reset_reporting_credit(SessionCreditUpdateCriteria& update_criteria)
 {
   buckets_[REPORTING_RX] = 0;
   buckets_[REPORTING_TX] = 0;
   reporting_ = false;
+  update_criteria.reporting = false;
 }
 
-void SessionCredit::mark_failure(uint32_t code)
+void SessionCredit::mark_failure(
+  uint32_t code,
+  SessionCreditUpdateCriteria& update_criteria)
 {
   if (DiameterCodeHandler::is_transient_failure(code)) {
     buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
     buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
+    update_criteria.bucket_deltas[REPORTED_RX] += buckets_[REPORTING_RX];
+    update_criteria.bucket_deltas[REPORTED_TX] += buckets_[REPORTING_TX];
   }
-  reset_reporting_credit();
+  reset_reporting_credit(update_criteria);
   if (should_deactivate_service()) {
     service_state_ = SERVICE_NEEDS_DEACTIVATION;
+    update_criteria.service_state = SERVICE_NEEDS_DEACTIVATION;
   }
 }
 
@@ -152,7 +181,8 @@ void SessionCredit::receive_credit(
   uint64_t rx_volume,
   uint32_t validity_time,
   bool is_final_grant,
-  FinalActionInfo final_action_info)
+  FinalActionInfo final_action_info,
+  SessionCreditUpdateCriteria& update_criteria)
 {
   MLOG(MDEBUG) << "Received the following credit"
                << " total_volume=" << total_volume
@@ -167,6 +197,9 @@ void SessionCredit::receive_credit(
   buckets_[ALLOWED_TOTAL] += total_volume;
   buckets_[ALLOWED_TX] += tx_volume;
   buckets_[ALLOWED_RX] += rx_volume;
+  update_criteria.bucket_deltas[ALLOWED_TOTAL] += total_volume;
+  update_criteria.bucket_deltas[ALLOWED_TX] += tx_volume;
+  update_criteria.bucket_deltas[ALLOWED_RX] += rx_volume;
   MLOG(MDEBUG) << "Total amount received since start of session is "
                << " total=" << buckets_[ALLOWED_TOTAL]
                << " tx=" << buckets_[ALLOWED_TX]
@@ -181,6 +214,8 @@ void SessionCredit::receive_credit(
 
   // Set the usage_reporting_limit so that we never report more than grant
   // we've received.
+  update_criteria.bucket_deltas[REPORTED_RX] += buckets_[REPORTING_RX];
+  update_criteria.bucket_deltas[REPORTED_TX] += buckets_[REPORTING_TX];
   auto reported_sum = buckets_[REPORTED_RX] + buckets_[REPORTED_TX];
   if (buckets_[ALLOWED_TOTAL] > reported_sum) {
     usage_reporting_limit_ = buckets_[ALLOWED_TOTAL] - reported_sum;
@@ -188,6 +223,7 @@ void SessionCredit::receive_credit(
     MLOG(MINFO) << "We have reported data usage for all credit received, the "
                  << "upper limit for reporting is now 0.";
     usage_reporting_limit_ = 0;
+    update_criteria.usage_reporting_limit = usage_reporting_limit_;
   }
 
   set_expiry_time(validity_time);
@@ -318,7 +354,9 @@ CreditUpdateType SessionCredit::get_update_type()
   }
 }
 
-SessionCredit::Usage SessionCredit::get_usage_for_reporting(bool is_termination)
+SessionCredit::Usage SessionCredit::get_usage_for_reporting(
+  bool is_termination,
+  SessionCreditUpdateCriteria& update_criteria)
 {
   // Send delta. If bytes are reporting, don't resend them
   auto report = buckets_[REPORTED_TX] + buckets_[REPORTING_TX];
@@ -340,11 +378,13 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(bool is_termination)
 
   if (get_update_type() == CREDIT_REAUTH_REQUIRED) {
     reauth_state_ = REAUTH_PROCESSING;
+    update_criteria.reauth_state = REAUTH_PROCESSING;
   }
 
   buckets_[REPORTING_TX] += tx;
   buckets_[REPORTING_RX] += rx;
   reporting_ = true;
+  update_criteria.reporting = true;
 
   MLOG(MDEBUG) << "Amount reporting for this report:"
                << " tx=" << tx << " rx=" << rx;
@@ -355,15 +395,17 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(bool is_termination)
   return SessionCredit::Usage {.bytes_tx = tx, .bytes_rx = rx};
 }
 
-ServiceActionType SessionCredit::get_action()
+ServiceActionType SessionCredit::get_action(SessionCreditUpdateCriteria& update_criteria)
 {
   if (service_state_ == SERVICE_NEEDS_DEACTIVATION) {
     MLOG(MDEBUG) << "Service State: " << service_state_;
     service_state_ = SERVICE_DISABLED;
+    update_criteria.service_state = SERVICE_DISABLED;
     return get_action_for_deactivating_service();
   } else if (service_state_ == SERVICE_NEEDS_ACTIVATION) {
     MLOG(MDEBUG) << "Service State: " << service_state_;
     service_state_ = SERVICE_ENABLED;
+    update_criteria.service_state = SERVICE_ENABLED;
     return ACTIVATE_SERVICE;
   }
   return CONTINUE_SERVICE;
@@ -397,33 +439,50 @@ bool SessionCredit::is_reauth_required()
   return reauth_state_ == REAUTH_REQUIRED;
 }
 
-void SessionCredit::reauth()
+void SessionCredit::reauth(SessionCreditUpdateCriteria& update_criteria)
 {
   reauth_state_ = REAUTH_REQUIRED;
+  update_criteria.reauth_state = REAUTH_REQUIRED;
 }
 
 RedirectServer SessionCredit::get_redirect_server() {
   return final_action_info_.redirect_server;
 }
 
-void SessionCredit::set_is_final_grant(bool is_final_grant) {
+void SessionCredit::set_is_final_grant(
+  bool is_final_grant,
+  SessionCreditUpdateCriteria& update_criteria) {
   is_final_grant_ = is_final_grant;
+  update_criteria.is_final = is_final_grant;
 }
 
-void SessionCredit::set_reauth(ReAuthState reauth_state) {
+void SessionCredit::set_reauth(
+  ReAuthState reauth_state,
+  SessionCreditUpdateCriteria& update_criteria) {
   reauth_state_ = reauth_state;
+  update_criteria.reauth_state = reauth_state;
 }
 
-void SessionCredit::set_service_state(ServiceState service_state) {
+void SessionCredit::set_service_state(
+  ServiceState service_state,
+  SessionCreditUpdateCriteria& update_criteria) {
   service_state_ = service_state;
+  update_criteria.service_state = service_state;
 }
 
-void SessionCredit::set_expiry_time(std::time_t expiry_time) {
+void SessionCredit::set_expiry_time(
+  std::time_t expiry_time,
+  SessionCreditUpdateCriteria& update_criteria) {
   expiry_time_ = expiry_time;
+  update_criteria.expiry_time = expiry_time;
 }
 
-void SessionCredit::add_credit(uint64_t credit, Bucket bucket) {
+void SessionCredit::add_credit(
+  uint64_t credit,
+  Bucket bucket,
+  SessionCreditUpdateCriteria& update_criteria) {
   buckets_[bucket] += credit;
+  update_criteria.bucket_deltas[bucket] += credit;
 }
 
 } // namespace magma

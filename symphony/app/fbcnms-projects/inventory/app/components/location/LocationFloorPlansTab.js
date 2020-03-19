@@ -19,15 +19,14 @@ import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
 import DeleteFloorPlanMutation from '../../mutations/DeleteFloorPlanMutation';
 import FileAttachment from '../FileAttachment';
+import FileUploadButton from '../FileUpload/FileUploadButton';
 import FloorPlanImage from './FloorPlanImage';
 import React, {useState} from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import axios from 'axios';
-
 import nullthrows from '@fbcnms/util/nullthrows';
 import {DocumentAPIUrls} from '../../common/DocumentAPI';
-import {FileUploadButton} from '../FileUpload';
 import {graphql, useFragment} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -127,9 +126,13 @@ export default function LocationFloorPlansTab(props: Props) {
       <CardHeader
         rightContent={
           <FileUploadButton
-            button={<Button>Upload</Button>}
-            onFileChanged={event => setFile(event.currentTarget.files[0])}
-          />
+            onFileUploaded={file => setFile(file)}
+            uploadUsingSnackbar={false}
+            uploadType="locally">
+            {openFileUploadDialog => (
+              <Button onClick={openFileUploadDialog}>Upload</Button>
+            )}
+          </FileUploadButton>
         }>
         Floor Plans
       </CardHeader>

@@ -1,0 +1,13 @@
+query UsersQuery {
+  users {
+    edges {
+      node {
+        id
+        authID
+        email
+        status
+        role
+      }
+    }
+  }
+}

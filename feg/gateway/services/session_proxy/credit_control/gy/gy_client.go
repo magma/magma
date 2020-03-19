@@ -42,7 +42,7 @@ type CreditClient interface {
 }
 
 // ReAuthHandler defines a function that responds to a RAR message with an RAA
-type ReAuthHandler func(request *ReAuthRequest) *ReAuthAnswer
+type ChargingReAuthHandler func(request *ChargingReAuthRequest) *ChargingReAuthAnswer
 
 // GyClient holds the relevant state for sending and receiving diameter calls
 // over Gy
@@ -65,7 +65,7 @@ var (
 func NewConnectedGyClient(
 	diamClient *diameter.Client,
 	serverCfg *diameter.DiameterServerConfig,
-	reAuthHandler ReAuthHandler,
+	reAuthHandler ChargingReAuthHandler,
 	cloudRegistry service_registry.GatewayRegistry,
 	globalConfig *GyGlobalConfig,
 ) *GyClient {
@@ -96,7 +96,7 @@ func NewConnectedGyClient(
 func NewGyClient(
 	clientCfg *diameter.DiameterClientConfig,
 	serverCfg *diameter.DiameterServerConfig,
-	reAuthHandler ReAuthHandler,
+	reAuthHandler ChargingReAuthHandler,
 	cloudRegistry service_registry.GatewayRegistry,
 	globalConfig *GyGlobalConfig,
 ) *GyClient {
@@ -168,9 +168,9 @@ func (gyClient *GyClient) DisableConnections(period time.Duration) {
 
 // RegisterReAuthHandler adds a handler to the client for responding to RAR
 // messages received from the OCS
-func registerReAuthHandler(reAuthHandler ReAuthHandler, diamClient *diameter.Client) {
+func registerReAuthHandler(reAuthHandler ChargingReAuthHandler, diamClient *diameter.Client) {
 	reqHandler := func(conn diam.Conn, message *diam.Message) {
-		rar := &ReAuthRequest{}
+		rar := &ChargingReAuthRequest{}
 		if err := message.Unmarshal(rar); err != nil {
 			glog.Errorf("Received unparseable RAR over Gy %s\n%s", message, err)
 			return
@@ -191,7 +191,7 @@ func registerReAuthHandler(reAuthHandler ReAuthHandler, diamClient *diameter.Cli
 	diamClient.RegisterRequestHandlerForAppID(diam.ReAuth, diam.CHARGING_CONTROL_APP_ID, reqHandler)
 }
 
-func createReAuthAnswerMessage(requestMsg *diam.Message, answer *ReAuthAnswer) *diam.Message {
+func createReAuthAnswerMessage(requestMsg *diam.Message, answer *ChargingReAuthAnswer) *diam.Message {
 	ansMsg := requestMsg.Answer(answer.ResultCode)
 	ansMsg.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(answer.SessionID)))
 	return ansMsg

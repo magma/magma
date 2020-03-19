@@ -173,6 +173,7 @@ def _build_gateway():
         sudo(' docker-compose'
              ' -f docker-compose.yml'
              ' -f docker-compose.override.yml'
+             ' -f docker-compose.nginx.yml'
              ' -f docker-compose.integ-test.yml'
              ' build --parallel')
 

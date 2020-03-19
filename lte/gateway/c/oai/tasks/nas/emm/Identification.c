@@ -226,9 +226,7 @@ int emm_proc_identification_complete(
     ue_id);
 
   // Get the UE context
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
     nas_emm_ident_proc_t *ident_proc =
@@ -412,9 +410,8 @@ static int _identification_request(nas_emm_ident_proc_t *const proc)
   int rc = RETURNok;
   struct emm_context_s *emm_ctx = NULL;
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, proc->ue_id);
+    proc->ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {

@@ -55,6 +55,7 @@
 #define SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11 "SGW_IPV4_ADDRESS_FOR_S11"
 #define SGW_CONFIG_STRING_OVS_BRIDGE_NAME "BRIDGE_NAME"
 #define SGW_CONFIG_STRING_OVS_GTP_PORT_NUM "GTP_PORT_NUM"
+#define SGW_CONFIG_STRING_OVS_MTR_PORT_NUM "MTR_PORT_NUM"
 #define SGW_CONFIG_STRING_OVS_UPLINK_PORT_NUM "UPLINK_PORT_NUM"
 #define SGW_CONFIG_STRING_OVS_UPLINK_MAC "UPLINK_MAC"
 
@@ -64,6 +65,7 @@
 typedef struct ovs_config_s {
   bstring bridge_name;
   int gtp_port_num;
+  int mtr_port_num;
   int uplink_port_num;
   bstring uplink_mac;
 } ovs_config_t;

@@ -23,16 +23,23 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-// State includes reported operational state and additional info about the reporter
+// State includes reported operational state and additional info about the reporter.
+// Internally, we store a piece of state with primary key triplet {network ID, reporter ID, type}.
 type State struct {
-	// ID of the entity reporting the state (hwID, cert serial number, etc)
+	// ReporterID is the ID of the entity reporting the state (hwID, cert serial number, etc).
 	ReporterID string
-	// TimeMs received in millisecond
+	// Type determines how the value is deserialized and validated on the cloud service side.
+	Type string
+
+	// ReportedState is the actual state reported by the device.
+	ReportedState interface{}
+	// Version is the reported version of the state.
+	Version uint64
+
+	// TimeMs is the time the state was received in milliseconds.
 	TimeMs uint64
-	// Cert expiration TimeMs
+	// CertExpirationTime is the expiration time in milliseconds.
 	CertExpirationTime int64
-	ReportedState      interface{}
-	Version            uint64
 }
 
 // SerializedStateWithMeta includes reported operational states and additional info
@@ -199,7 +206,7 @@ func fillInGatewayStatusState(state State) *models.GatewayStatus {
 }
 
 func toProtosStateIDs(stateIDs []StateID) []*protos.StateID {
-	ids := []*protos.StateID{}
+	var ids []*protos.StateID
 	for _, state := range stateIDs {
 		ids = append(ids, &protos.StateID{Type: state.Type, DeviceID: state.DeviceID})
 	}
@@ -218,6 +225,7 @@ func toState(pState *protos.State) (State, error) {
 		TimeMs:             serialized.TimeMs,
 		CertExpirationTime: serialized.CertExpirationTime,
 		ReportedState:      iReportedState,
+		Type:               pState.Type,
 		Version:            pState.Version,
 	}
 	return state, err

@@ -101,7 +101,7 @@ class HyperlinkTableRow extends React.Component<Props, State> {
           component="th"
           scope="row">
           {hyperlink.createTime &&
-            DateTimeFormat.dateOnly(hyperlink.createTime)}
+            DateTimeFormat.dateTime(hyperlink.createTime)}
         </TableCell>
         <TableCell
           padding="none"

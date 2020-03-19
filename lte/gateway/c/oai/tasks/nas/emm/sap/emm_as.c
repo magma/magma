@@ -361,9 +361,7 @@ static int _emm_as_recv(
     decode_status = &local_decode_status;
   }
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
   emm_context_t *emm_ctx = NULL;
 
@@ -700,18 +698,17 @@ static int _emm_as_data_ind(emm_as_data_t *msg, int *emm_cause)
 
       if (plain_msg) {
         nas_message_security_header_t header = {0};
-        emm_security_context_t *security =
+        emm_security_context_t* security =
           NULL; /* Current EPS NAS security context     */
         nas_message_decode_status_t decode_status = {0};
 
         /*
          * Decrypt the received security protected message
          */
-        mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-        ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-          &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+        ue_mm_context_t* ue_mm_context =
+          mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
-        emm_context_t *emm_ctx = NULL;
+        emm_context_t* emm_ctx = NULL;
 
         if (ue_mm_context) {
           emm_ctx = &ue_mm_context->emm_context;
@@ -827,9 +824,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
                            .security_protected.plain.emm.header = {0},
                            .security_protected.plain.esm.header = {0}};
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+  ue_mm_context_t* ue_mm_context =
+    mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -1534,11 +1530,10 @@ static int _emm_as_data_req(
 
   if (size > 0) {
     int bytes = 0;
-    emm_security_context_t *emm_security_context = NULL;
-    struct emm_context_s *emm_ctx = NULL;
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+    emm_security_context_t* emm_security_context = NULL;
+    struct emm_context_s* emm_ctx = NULL;
+    ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -1673,11 +1668,10 @@ static int _emm_as_status_ind(
   }
 
   if (size > 0) {
-    emm_security_context_t *emm_security_context = NULL;
-    struct emm_context_s *emm_ctx = NULL;
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+    emm_security_context_t* emm_security_context = NULL;
+    struct emm_context_s* emm_ctx = NULL;
+    ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -1823,11 +1817,10 @@ static int _emm_as_security_req(
     }
 
   if (size > 0) {
-    struct emm_context_s *emm_ctx = NULL;
-    emm_security_context_t *emm_security_context = NULL;
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+    struct emm_context_s* emm_ctx = NULL;
+    emm_security_context_t* emm_security_context = NULL;
+    ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -1932,11 +1925,10 @@ static int _emm_as_security_rej(
     }
 
   if (size > 0) {
-    struct emm_context_s *emm_ctx = NULL;
-    emm_security_context_t *emm_security_context = NULL;
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+    struct emm_context_s* emm_ctx = NULL;
+    emm_security_context_t* emm_security_context = NULL;
+    ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -2016,11 +2008,10 @@ static int _emm_as_erab_setup_req(
 
   if (size > 0) {
     int bytes = 0;
-    emm_security_context_t *emm_security_context = NULL;
-    struct emm_context_s *emm_ctx = NULL;
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+    emm_security_context_t* emm_security_context = NULL;
+    struct emm_context_s* emm_ctx = NULL;
+    ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -2102,9 +2093,8 @@ static int _emm_as_erab_rel_cmd(
     int bytes = 0;
     emm_security_context_t *emm_security_context = NULL;
     struct emm_context_s *emm_ctx = NULL;
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+    ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -2369,9 +2359,8 @@ static int _emm_as_establish_rej(
   if (size > 0) {
     struct emm_context_s *emm_ctx = NULL;
     emm_security_context_t *emm_security_context = NULL;
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+    ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;

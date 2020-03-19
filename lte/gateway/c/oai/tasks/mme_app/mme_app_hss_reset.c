@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <mme_app_state.h>
 
 #include "common_defs.h"
 #include "log.h"
@@ -40,9 +41,7 @@
 #include "mme_app_desc.h"
 #include "s6a_messages_types.h"
 
-int mme_app_handle_s6a_reset_req(
-  mme_app_desc_t* mme_app_desc_p,
-  const s6a_reset_req_t* const rsr_pP)
+int mme_app_handle_s6a_reset_req(const s6a_reset_req_t *const rsr_pP)
 {
   int rc = RETURNok;
   struct ue_mm_context_s* ue_context_p = NULL;
@@ -61,7 +60,7 @@ int mme_app_handle_s6a_reset_req(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  hashtblP = mme_app_desc_p->mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl;
+  hashtblP = get_mme_ue_state();
   if (!hashtblP) {
     OAILOG_INFO(LOG_MME_APP, "There is no Ue Context in the MME context \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);

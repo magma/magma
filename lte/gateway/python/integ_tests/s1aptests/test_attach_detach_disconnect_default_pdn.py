@@ -24,8 +24,9 @@ class TestDisconnectDefaultPdn(unittest.TestCase):
     def test_disconnect_default_pdn(self):
         """ Attach a single UE and send PDN disconnect request
         for the default bearer """
+        num_ue = 1
 
-        self._s1ap_wrapper.configUEDevice(1)
+        self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
         print(

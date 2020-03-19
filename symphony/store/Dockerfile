@@ -19,7 +19,7 @@ COPY pkg /src/symphony/pkg
 # Build service
 WORKDIR /src/symphony/store
 COPY store .
-RUN go build -o /bin/store
+RUN mkdir /build && go build -o /build ./cmd/...
 
 # Create deployable image
 FROM alpine
@@ -28,7 +28,7 @@ FROM alpine
 RUN apk add --no-cache musl curl
 
 # Copy application artifacts
-COPY --from=builder /bin/store /bin/
+COPY --from=builder /build/* /bin/
 
 # Set exposed port and entrypoint
 EXPOSE 80

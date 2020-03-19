@@ -55,6 +55,7 @@ class InventoryClient(SymphonyClient):
         add_location,
         edit_location,
         move_location,
+        get_locations,
     )
     from .api.equipment_type import (
         copy_equipment_type,
@@ -110,6 +111,14 @@ class InventoryClient(SymphonyClient):
         delete_equipment_port_type,
     )
     from .api.port import get_port, edit_port_properties, edit_link_properties
+    from .api.user import (
+        add_user,
+        get_user,
+        deactivate_user,
+        activate_user,
+        get_users,
+        get_active_users,
+    )
 
     def __init__(
         self,

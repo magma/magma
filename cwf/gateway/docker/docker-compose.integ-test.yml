@@ -61,9 +61,6 @@ services:
   sessiond:
     volumes:
       - ../integ_tests/sessiond.yml:/etc/magma/sessiond.yml
-    extra_hosts:
-      - controller.magma.test:127.0.0.1
-      - bootstrapper-controller.magma.test:127.0.0.1
 
   swx_proxy:
     <<: *feggoservice
@@ -80,7 +77,7 @@ services:
       - ocs
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
-    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=2
 
   hss:
     <<: *feggoservice
@@ -111,11 +108,8 @@ services:
       - controller.magma.test:127.0.0.1
       - bootstrapper-controller.magma.test:127.0.0.1
     command: >
-      sh -c "mkdir -p /usr/share/ca-certificates/extra/ &&
-             cp -f /var/opt/magma/certs/rootCA.pem /usr/share/ca-certificates/extra/ &&
-             echo \"extra/rootCA.pem\" >> /etc/ca-certificates.conf && update-ca-certificates &&
-             /usr/local/bin/generate_nghttpx_config.py &&
-            /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
+      sh -c "/usr/local/bin/generate_nghttpx_config.py &&
+             /usr/bin/env nghttpx --insecure --conf /var/opt/magma/tmp/nghttpx.conf"
 
   magmad:
     extra_hosts:
@@ -131,7 +125,7 @@ services:
   ingress:
     <<: *service
     container_name: ingress
-    image: nginx:latest
+    image: ${DOCKER_REGISTRY}nginx:${IMAGE_VERSION}
     extra_hosts:
       - controller.magma.test:127.0.0.1
       - bootstrapper-controller.magma.test:127.0.0.1
@@ -139,5 +133,4 @@ services:
       - sessiond.magma.test:127.0.0.1
     volumes:
       - ../integ_tests/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ${CERTS_PATH}/:/etc/nginx/certs/
     command: /usr/sbin/nginx -g "daemon off;"

@@ -35,62 +35,74 @@
 <dl>
 <dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery"><code class="flex name class">
 <span>class <span class="ident">EquipmentPortsQuery</span></span>
-<span>(</span><span>data: Union[<a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData">EquipmentPortsQuery.EquipmentPortsQueryData</a>, NoneType] = None, errors: Union[Any, NoneType] = None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData">EquipmentPortsQuery.EquipmentPortsQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentPortsQuery(data: Union[pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
+<section class="desc"><p>EquipmentPortsQuery(data: pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData, <strong>QUERY</strong>: str = '\n
+query EquipmentPortsQuery($id: ID!) {\n
+equipment: node(id: $id) {\n
+&hellip; on Equipment {\n
+ports {\n
+id\n
+properties {\n
+id\n
+propertyType {\n
+id\n
+name\n
+type\n
+index\n
+stringValue\n
+intValue\n
+booleanValue\n
+floatValue\n
+latitudeValue\n
+longitudeValue\n
+isEditable\n
+isInstanceProperty\n
+}\n
+stringValue\n
+intValue\n
+floatValue\n
+booleanValue\n
+latitudeValue\n
+longitudeValue\n
+rangeFromValue\n
+rangeToValue\n
+}\n
+definition {\n
+id\n
+name\n
+portType {\n
+id\n
+name\n
+}\n
+}\n
+link {\n
+id\n
+services {\n
+id\n
+}\n
+}\n
+}\n
+}\n
+}\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData"><code class="name">var <span class="ident">EquipmentPortsQueryData</span></code></dt>
 <dd>
 <section class="desc"><p>EquipmentPortsQueryData(equipment: Union[pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData.Node, NoneType] = None)</p></section>
 </dd>
-<dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, id: str)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, id: str) -> <a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData">EquipmentPortsQuery.EquipmentPortsQueryData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -117,14 +129,7 @@
 <h4><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery">EquipmentPortsQuery</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData">EquipmentPortsQueryData</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.data" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.errors" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.execute" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.from_dict" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.from_json" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.schema" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.to_dict" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.to_json" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

@@ -11,7 +11,9 @@
 import type {ChecklistItemsDialogStateType} from '../checkListCategory/ChecklistItemsDialogMutateState';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
-import CheckListItem, {CHECKLIST_ITEM_TYPES} from '../CheckListItem';
+import CheckListItemDefinition, {
+  CHECKLIST_ITEM_DEFINITION_TYPES,
+} from './CheckListItemDefinition';
 import ChecklistItemsDialogMutateDispatchContext from '../checkListCategory/ChecklistItemsDialogMutateDispatchContext';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DraggableTableRow from '../../draggable/DraggableTableRow';
@@ -98,9 +100,9 @@ const CheckListTableDefinition = ({items}: Props) => {
 
   const checklistTypes = useMemo(
     () =>
-      Object.keys(CHECKLIST_ITEM_TYPES).map(type => ({
+      Object.keys(CHECKLIST_ITEM_DEFINITION_TYPES).map(type => ({
         key: type,
-        label: CHECKLIST_ITEM_TYPES[type].description,
+        label: CHECKLIST_ITEM_DEFINITION_TYPES[type].description,
         value: type,
       })),
     [],
@@ -126,9 +128,8 @@ const CheckListTableDefinition = ({items}: Props) => {
         </FormField>
       </TableCell>
       <TableCell component="div">
-        <CheckListItem
+        <CheckListItemDefinition
           item={checkListItem}
-          designMode={true}
           onChange={item =>
             dispatch({
               type: 'EDIT_ITEM',

@@ -39,6 +39,11 @@
 </code></dt>
 <dd>
 <section class="desc"><p>SurveyWiFiScanData(timestamp: int, frequency: int, channel: int, bssid: str, strength: int, ssid: Union[str, NoneType] = None, band: Union[str, NoneType] = None, channelWidth: Union[int, NoneType] = None, capabilities: Union[str, NoneType] = None, latitude: Union[numbers.Number, NoneType] = None, longitude: Union[numbers.Number, NoneType] = None)</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.band"><code class="name">var <span class="ident">band</span></code></dt>
@@ -66,42 +71,6 @@
 <section class="desc"></section>
 </dd>
 </dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
 </dd>
 </dl>
 </section>
@@ -125,14 +94,9 @@
 <li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.band" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.band">band</a></code></li>
 <li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.capabilities" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.capabilities">capabilities</a></code></li>
 <li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.channelWidth" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.channelWidth">channelWidth</a></code></li>
-<li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.from_dict" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.from_json" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.from_json">from_json</a></code></li>
 <li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.latitude" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.latitude">latitude</a></code></li>
 <li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.longitude" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.longitude">longitude</a></code></li>
-<li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.schema" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.schema">schema</a></code></li>
 <li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.ssid" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.ssid">ssid</a></code></li>
-<li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.to_dict" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.to_json" href="#pyinventory.graphql.survey_wi_fi_scan_data_input.SurveyWiFiScanData.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

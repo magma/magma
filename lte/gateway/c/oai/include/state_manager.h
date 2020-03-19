@@ -77,15 +77,11 @@ class StateManager {
     return state_cache_p;
   }
 
-  virtual hash_table_ts_t* get_state_imsi_ht(bool read_from_db)
+  virtual hash_table_ts_t* get_ue_state_ht()
   {
     AssertFatal(
       is_initialized,
       "StateManager init() function should be called to initialize state");
-
-    if (persist_state_enabled && read_from_db) {
-      read_state_from_db_imsi();
-    }
 
     return state_imsi_ht;
   }
@@ -106,7 +102,7 @@ class StateManager {
     return RETURNok;
   }
 
-  virtual int read_state_from_db_imsi()
+  virtual int read_ue_state_from_db()
   {
     if (!persist_state_enabled) {
       return RETURNok;
@@ -155,7 +151,7 @@ class StateManager {
     this->state_dirty = false;
   }
 
-  virtual void write_state_to_db_imsi(
+  virtual void write_ue_state_to_db(
     const UeContextType* ue_context,
     const std::string& imsi_str)
   {
@@ -190,7 +186,7 @@ class StateManager {
     return imsi_str;
   }
 
-  void clear_state_db_imsi(const std::string& imsi_str)
+  void clear_ue_state_db(const std::string& imsi_str)
   {
     AssertFatal(
       is_initialized,

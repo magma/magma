@@ -15,15 +15,17 @@ import (
 	"time"
 
 	"fbc/lib/go/radius/rfc2869"
+	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/plugin/models"
 
 	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
-	fmt.Printf("Running TestAuthenticateUplinkTrafficWithOmniRules...\n")
+	fmt.Println("Running TestAuthenticateUplinkTrafficWithOmniRules...")
 
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
@@ -55,7 +57,8 @@ func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
 	assert.NotNil(t, eapMessage)
 	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
 
-	err = tr.GenULTraffic(ue.GetImsi(), swag.String("200K"))
+	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("200k")}}
+	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
 	// Wait for traffic to go through

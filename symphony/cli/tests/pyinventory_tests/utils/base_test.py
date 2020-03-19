@@ -34,6 +34,11 @@ class BaseTest(unittest.TestCase):
                 response = requests.get(PLATFORM_SERVER_HEALTH_CHECK_URL, timeout=0.5)
                 if response.status_code == 200:
                     return
-            except Exception:
+                print(
+                    f"Response failed with status code {response.status_code}"
+                    f' and with message "{response.text}"'
+                )
+            except Exception as e:
+                print(f"Request failed with exception {e}")
                 time.sleep(0.5)
         raise Exception("Failed to wait for platform")

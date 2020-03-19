@@ -11,6 +11,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -65,7 +66,7 @@ func statusFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*
 
 func ownerFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(workorder.OwnerNameIn(filter.StringSet...)), nil
+		return q.Where(workorder.HasOwnerWith(user.AuthIDIn(filter.StringSet...))), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
@@ -79,7 +80,7 @@ func typeFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*en
 
 func assigneeFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(workorder.AssigneeIn(filter.StringSet...)), nil
+		return q.Where(workorder.HasAssigneeWith(user.AuthIDIn(filter.StringSet...))), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

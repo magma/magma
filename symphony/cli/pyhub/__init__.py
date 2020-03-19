@@ -14,6 +14,6 @@ def get_version() -> VersionQuery.VersionQueryData:
     session.verify = False
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    client = GraphqlClient(address, session)
+    client = GraphqlClient(address, session, "Pyhub/0.0.1")
 
     return VersionQuery.execute(client)

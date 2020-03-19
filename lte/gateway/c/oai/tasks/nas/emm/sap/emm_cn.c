@@ -135,9 +135,8 @@ static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg)
   /*
    * We received security vector from HSS. Try to setup security with UE
    */
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+  ue_mm_context_t* ue_mm_context =
+    mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -173,9 +172,8 @@ static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg)
   /*
    * We received security vector from HSS. Try to setup security with UE
    */
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+  ue_mm_context_t* ue_mm_context =
+    mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -261,9 +259,8 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
   ebi_t new_ebi = 0;
   bool is_pdn_context_exist_for_apn = false;
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, msg_pP->ue_id);
+    msg_pP->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -402,6 +399,7 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
     if (!is_pdn_context_exist_for_apn) {
+      mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
       if ((mme_app_send_s11_create_session_req(
         mme_app_desc_p, ue_mm_context, pdn_cid)) == RETURNok) {
         increment_counter("mme_spgw_create_session_req", 1, NO_LABELS);
@@ -524,9 +522,8 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
   bool is_standalone = false;  // warning hardcoded
   bool triggered_by_ue = true; // warning hardcoded
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, msg_pP->ue_id);
+  ue_mm_context_t* ue_mm_context =
+    mme_ue_context_exists_mme_ue_s1ap_id(msg_pP->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -788,9 +785,8 @@ static int _emm_cn_activate_dedicated_bearer_req(
   // forward to ESM
   esm_sap_t esm_sap = {0};
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+  ue_mm_context_t* ue_mm_context =
+    mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
   esm_sap.primitive = ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_REQ;
   esm_sap.ctx = &ue_mm_context->emm_context;
@@ -832,9 +828,8 @@ static int _emm_cn_deactivate_dedicated_bearer_req(
   // forward to ESM
   esm_sap_t esm_sap = {0};
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+  ue_mm_context_t* ue_mm_context =
+    mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
   esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
   esm_sap.ctx = &ue_mm_context->emm_context;
@@ -1122,10 +1117,8 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
 
   ESM_msg esm_msg = {0};
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t* ue_mm_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
-
+  ue_mm_context_t* ue_mm_context_p =
+    mme_ue_context_exists_mme_ue_s1ap_id(msg->ue_id);
 
   pti = ue_mm_context_p->emm_context.esm_ctx.esm_proc_data->pti;
   /*

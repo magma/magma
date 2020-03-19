@@ -30,30 +30,13 @@ import (
 // LocationCreate is the builder for creating a Location entity.
 type LocationCreate struct {
 	config
-	create_time        *time.Time
-	update_time        *time.Time
-	name               *string
-	external_id        *string
-	latitude           *float64
-	longitude          *float64
-	site_survey_needed *bool
-	_type              map[int]struct{}
-	parent             map[int]struct{}
-	children           map[int]struct{}
-	files              map[int]struct{}
-	hyperlinks         map[int]struct{}
-	equipment          map[int]struct{}
-	properties         map[int]struct{}
-	survey             map[int]struct{}
-	wifi_scan          map[int]struct{}
-	cell_scan          map[int]struct{}
-	work_orders        map[int]struct{}
-	floor_plans        map[int]struct{}
+	mutation *LocationMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (lc *LocationCreate) SetCreateTime(t time.Time) *LocationCreate {
-	lc.create_time = &t
+	lc.mutation.SetCreateTime(t)
 	return lc
 }
 
@@ -67,7 +50,7 @@ func (lc *LocationCreate) SetNillableCreateTime(t *time.Time) *LocationCreate {
 
 // SetUpdateTime sets the update_time field.
 func (lc *LocationCreate) SetUpdateTime(t time.Time) *LocationCreate {
-	lc.update_time = &t
+	lc.mutation.SetUpdateTime(t)
 	return lc
 }
 
@@ -81,13 +64,13 @@ func (lc *LocationCreate) SetNillableUpdateTime(t *time.Time) *LocationCreate {
 
 // SetName sets the name field.
 func (lc *LocationCreate) SetName(s string) *LocationCreate {
-	lc.name = &s
+	lc.mutation.SetName(s)
 	return lc
 }
 
 // SetExternalID sets the external_id field.
 func (lc *LocationCreate) SetExternalID(s string) *LocationCreate {
-	lc.external_id = &s
+	lc.mutation.SetExternalID(s)
 	return lc
 }
 
@@ -101,7 +84,7 @@ func (lc *LocationCreate) SetNillableExternalID(s *string) *LocationCreate {
 
 // SetLatitude sets the latitude field.
 func (lc *LocationCreate) SetLatitude(f float64) *LocationCreate {
-	lc.latitude = &f
+	lc.mutation.SetLatitude(f)
 	return lc
 }
 
@@ -115,7 +98,7 @@ func (lc *LocationCreate) SetNillableLatitude(f *float64) *LocationCreate {
 
 // SetLongitude sets the longitude field.
 func (lc *LocationCreate) SetLongitude(f float64) *LocationCreate {
-	lc.longitude = &f
+	lc.mutation.SetLongitude(f)
 	return lc
 }
 
@@ -129,7 +112,7 @@ func (lc *LocationCreate) SetNillableLongitude(f *float64) *LocationCreate {
 
 // SetSiteSurveyNeeded sets the site_survey_needed field.
 func (lc *LocationCreate) SetSiteSurveyNeeded(b bool) *LocationCreate {
-	lc.site_survey_needed = &b
+	lc.mutation.SetSiteSurveyNeeded(b)
 	return lc
 }
 
@@ -143,10 +126,7 @@ func (lc *LocationCreate) SetNillableSiteSurveyNeeded(b *bool) *LocationCreate {
 
 // SetTypeID sets the type edge to LocationType by id.
 func (lc *LocationCreate) SetTypeID(id int) *LocationCreate {
-	if lc._type == nil {
-		lc._type = make(map[int]struct{})
-	}
-	lc._type[id] = struct{}{}
+	lc.mutation.SetTypeID(id)
 	return lc
 }
 
@@ -157,10 +137,7 @@ func (lc *LocationCreate) SetType(l *LocationType) *LocationCreate {
 
 // SetParentID sets the parent edge to Location by id.
 func (lc *LocationCreate) SetParentID(id int) *LocationCreate {
-	if lc.parent == nil {
-		lc.parent = make(map[int]struct{})
-	}
-	lc.parent[id] = struct{}{}
+	lc.mutation.SetParentID(id)
 	return lc
 }
 
@@ -179,12 +156,7 @@ func (lc *LocationCreate) SetParent(l *Location) *LocationCreate {
 
 // AddChildIDs adds the children edge to Location by ids.
 func (lc *LocationCreate) AddChildIDs(ids ...int) *LocationCreate {
-	if lc.children == nil {
-		lc.children = make(map[int]struct{})
-	}
-	for i := range ids {
-		lc.children[ids[i]] = struct{}{}
-	}
+	lc.mutation.AddChildIDs(ids...)
 	return lc
 }
 
@@ -199,12 +171,7 @@ func (lc *LocationCreate) AddChildren(l ...*Location) *LocationCreate {
 
 // AddFileIDs adds the files edge to File by ids.
 func (lc *LocationCreate) AddFileIDs(ids ...int) *LocationCreate {
-	if lc.files == nil {
-		lc.files = make(map[int]struct{})
-	}
-	for i := range ids {
-		lc.files[ids[i]] = struct{}{}
-	}
+	lc.mutation.AddFileIDs(ids...)
 	return lc
 }
 
@@ -219,12 +186,7 @@ func (lc *LocationCreate) AddFiles(f ...*File) *LocationCreate {
 
 // AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
 func (lc *LocationCreate) AddHyperlinkIDs(ids ...int) *LocationCreate {
-	if lc.hyperlinks == nil {
-		lc.hyperlinks = make(map[int]struct{})
-	}
-	for i := range ids {
-		lc.hyperlinks[ids[i]] = struct{}{}
-	}
+	lc.mutation.AddHyperlinkIDs(ids...)
 	return lc
 }
 
@@ -239,12 +201,7 @@ func (lc *LocationCreate) AddHyperlinks(h ...*Hyperlink) *LocationCreate {
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
 func (lc *LocationCreate) AddEquipmentIDs(ids ...int) *LocationCreate {
-	if lc.equipment == nil {
-		lc.equipment = make(map[int]struct{})
-	}
-	for i := range ids {
-		lc.equipment[ids[i]] = struct{}{}
-	}
+	lc.mutation.AddEquipmentIDs(ids...)
 	return lc
 }
 
@@ -259,12 +216,7 @@ func (lc *LocationCreate) AddEquipment(e ...*Equipment) *LocationCreate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (lc *LocationCreate) AddPropertyIDs(ids ...int) *LocationCreate {
-	if lc.properties == nil {
-		lc.properties = make(map[int]struct{})
-	}
-	for i := range ids {
-		lc.properties[ids[i]] = struct{}{}
-	}
+	lc.mutation.AddPropertyIDs(ids...)
 	return lc
 }
 
@@ -279,12 +231,7 @@ func (lc *LocationCreate) AddProperties(p ...*Property) *LocationCreate {
 
 // AddSurveyIDs adds the survey edge to Survey by ids.
 func (lc *LocationCreate) AddSurveyIDs(ids ...int) *LocationCreate {
-	if lc.survey == nil {
-		lc.survey = make(map[int]struct{})
-	}
-	for i := range ids {
-		lc.survey[ids[i]] = struct{}{}
-	}
+	lc.mutation.AddSurveyIDs(ids...)
 	return lc
 }
 
@@ -299,12 +246,7 @@ func (lc *LocationCreate) AddSurvey(s ...*Survey) *LocationCreate {
 
 // AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
 func (lc *LocationCreate) AddWifiScanIDs(ids ...int) *LocationCreate {
-	if lc.wifi_scan == nil {
-		lc.wifi_scan = make(map[int]struct{})
-	}
-	for i := range ids {
-		lc.wifi_scan[ids[i]] = struct{}{}
-	}
+	lc.mutation.AddWifiScanIDs(ids...)
 	return lc
 }
 
@@ -319,12 +261,7 @@ func (lc *LocationCreate) AddWifiScan(s ...*SurveyWiFiScan) *LocationCreate {
 
 // AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
 func (lc *LocationCreate) AddCellScanIDs(ids ...int) *LocationCreate {
-	if lc.cell_scan == nil {
-		lc.cell_scan = make(map[int]struct{})
-	}
-	for i := range ids {
-		lc.cell_scan[ids[i]] = struct{}{}
-	}
+	lc.mutation.AddCellScanIDs(ids...)
 	return lc
 }
 
@@ -339,12 +276,7 @@ func (lc *LocationCreate) AddCellScan(s ...*SurveyCellScan) *LocationCreate {
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (lc *LocationCreate) AddWorkOrderIDs(ids ...int) *LocationCreate {
-	if lc.work_orders == nil {
-		lc.work_orders = make(map[int]struct{})
-	}
-	for i := range ids {
-		lc.work_orders[ids[i]] = struct{}{}
-	}
+	lc.mutation.AddWorkOrderIDs(ids...)
 	return lc
 }
 
@@ -359,12 +291,7 @@ func (lc *LocationCreate) AddWorkOrders(w ...*WorkOrder) *LocationCreate {
 
 // AddFloorPlanIDs adds the floor_plans edge to FloorPlan by ids.
 func (lc *LocationCreate) AddFloorPlanIDs(ids ...int) *LocationCreate {
-	if lc.floor_plans == nil {
-		lc.floor_plans = make(map[int]struct{})
-	}
-	for i := range ids {
-		lc.floor_plans[ids[i]] = struct{}{}
-	}
+	lc.mutation.AddFloorPlanIDs(ids...)
 	return lc
 }
 
@@ -379,48 +306,71 @@ func (lc *LocationCreate) AddFloorPlans(f ...*FloorPlan) *LocationCreate {
 
 // Save creates the Location in the database.
 func (lc *LocationCreate) Save(ctx context.Context) (*Location, error) {
-	if lc.create_time == nil {
+	if _, ok := lc.mutation.CreateTime(); !ok {
 		v := location.DefaultCreateTime()
-		lc.create_time = &v
+		lc.mutation.SetCreateTime(v)
 	}
-	if lc.update_time == nil {
+	if _, ok := lc.mutation.UpdateTime(); !ok {
 		v := location.DefaultUpdateTime()
-		lc.update_time = &v
+		lc.mutation.SetUpdateTime(v)
 	}
-	if lc.name == nil {
+	if _, ok := lc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if err := location.NameValidator(*lc.name); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+	if v, ok := lc.mutation.Name(); ok {
+		if err := location.NameValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
 	}
-	if lc.latitude == nil {
+	if _, ok := lc.mutation.Latitude(); !ok {
 		v := location.DefaultLatitude
-		lc.latitude = &v
+		lc.mutation.SetLatitude(v)
 	}
-	if err := location.LatitudeValidator(*lc.latitude); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"latitude\": %v", err)
+	if v, ok := lc.mutation.Latitude(); ok {
+		if err := location.LatitudeValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"latitude\": %v", err)
+		}
 	}
-	if lc.longitude == nil {
+	if _, ok := lc.mutation.Longitude(); !ok {
 		v := location.DefaultLongitude
-		lc.longitude = &v
+		lc.mutation.SetLongitude(v)
 	}
-	if err := location.LongitudeValidator(*lc.longitude); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"longitude\": %v", err)
+	if v, ok := lc.mutation.Longitude(); ok {
+		if err := location.LongitudeValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"longitude\": %v", err)
+		}
 	}
-	if lc.site_survey_needed == nil {
+	if _, ok := lc.mutation.SiteSurveyNeeded(); !ok {
 		v := location.DefaultSiteSurveyNeeded
-		lc.site_survey_needed = &v
+		lc.mutation.SetSiteSurveyNeeded(v)
 	}
-	if len(lc._type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
-	}
-	if lc._type == nil {
+	if _, ok := lc.mutation.TypeID(); !ok {
 		return nil, errors.New("ent: missing required edge \"type\"")
 	}
-	if len(lc.parent) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"parent\"")
+	var (
+		err  error
+		node *Location
+	)
+	if len(lc.hooks) == 0 {
+		node, err = lc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*LocationMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			lc.mutation = mutation
+			node, err = lc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(lc.hooks); i > 0; i-- {
+			mut = lc.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, lc.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return lc.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -443,63 +393,63 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 			},
 		}
 	)
-	if value := lc.create_time; value != nil {
+	if value, ok := lc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: location.FieldCreateTime,
 		})
-		l.CreateTime = *value
+		l.CreateTime = value
 	}
-	if value := lc.update_time; value != nil {
+	if value, ok := lc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: location.FieldUpdateTime,
 		})
-		l.UpdateTime = *value
+		l.UpdateTime = value
 	}
-	if value := lc.name; value != nil {
+	if value, ok := lc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: location.FieldName,
 		})
-		l.Name = *value
+		l.Name = value
 	}
-	if value := lc.external_id; value != nil {
+	if value, ok := lc.mutation.ExternalID(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: location.FieldExternalID,
 		})
-		l.ExternalID = *value
+		l.ExternalID = value
 	}
-	if value := lc.latitude; value != nil {
+	if value, ok := lc.mutation.Latitude(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: location.FieldLatitude,
 		})
-		l.Latitude = *value
+		l.Latitude = value
 	}
-	if value := lc.longitude; value != nil {
+	if value, ok := lc.mutation.Longitude(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: location.FieldLongitude,
 		})
-		l.Longitude = *value
+		l.Longitude = value
 	}
-	if value := lc.site_survey_needed; value != nil {
+	if value, ok := lc.mutation.SiteSurveyNeeded(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: location.FieldSiteSurveyNeeded,
 		})
-		l.SiteSurveyNeeded = *value
+		l.SiteSurveyNeeded = value
 	}
-	if nodes := lc._type; len(nodes) > 0 {
+	if nodes := lc.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -513,12 +463,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.parent; len(nodes) > 0 {
+	if nodes := lc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -532,12 +482,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.children; len(nodes) > 0 {
+	if nodes := lc.mutation.ChildrenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -551,12 +501,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.files; len(nodes) > 0 {
+	if nodes := lc.mutation.FilesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -570,12 +520,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.hyperlinks; len(nodes) > 0 {
+	if nodes := lc.mutation.HyperlinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -589,12 +539,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.equipment; len(nodes) > 0 {
+	if nodes := lc.mutation.EquipmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -608,12 +558,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.properties; len(nodes) > 0 {
+	if nodes := lc.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -627,12 +577,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.survey; len(nodes) > 0 {
+	if nodes := lc.mutation.SurveyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -646,12 +596,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.wifi_scan; len(nodes) > 0 {
+	if nodes := lc.mutation.WifiScanIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -665,12 +615,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.cell_scan; len(nodes) > 0 {
+	if nodes := lc.mutation.CellScanIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -684,12 +634,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.work_orders; len(nodes) > 0 {
+	if nodes := lc.mutation.WorkOrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -703,12 +653,12 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lc.floor_plans; len(nodes) > 0 {
+	if nodes := lc.mutation.FloorPlansIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -722,7 +672,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

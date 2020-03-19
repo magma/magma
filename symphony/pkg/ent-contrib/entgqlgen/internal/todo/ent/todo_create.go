@@ -19,23 +19,19 @@ import (
 // TodoCreate is the builder for creating a Todo entity.
 type TodoCreate struct {
 	config
-	text     *string
-	parent   map[int]struct{}
-	children map[int]struct{}
+	mutation *TodoMutation
+	hooks    []Hook
 }
 
 // SetText sets the text field.
 func (tc *TodoCreate) SetText(s string) *TodoCreate {
-	tc.text = &s
+	tc.mutation.SetText(s)
 	return tc
 }
 
 // SetParentID sets the parent edge to Todo by id.
 func (tc *TodoCreate) SetParentID(id int) *TodoCreate {
-	if tc.parent == nil {
-		tc.parent = make(map[int]struct{})
-	}
-	tc.parent[id] = struct{}{}
+	tc.mutation.SetParentID(id)
 	return tc
 }
 
@@ -54,12 +50,7 @@ func (tc *TodoCreate) SetParent(t *Todo) *TodoCreate {
 
 // AddChildIDs adds the children edge to Todo by ids.
 func (tc *TodoCreate) AddChildIDs(ids ...int) *TodoCreate {
-	if tc.children == nil {
-		tc.children = make(map[int]struct{})
-	}
-	for i := range ids {
-		tc.children[ids[i]] = struct{}{}
-	}
+	tc.mutation.AddChildIDs(ids...)
 	return tc
 }
 
@@ -74,16 +65,38 @@ func (tc *TodoCreate) AddChildren(t ...*Todo) *TodoCreate {
 
 // Save creates the Todo in the database.
 func (tc *TodoCreate) Save(ctx context.Context) (*Todo, error) {
-	if tc.text == nil {
+	if _, ok := tc.mutation.Text(); !ok {
 		return nil, errors.New("ent: missing required field \"text\"")
 	}
-	if err := todo.TextValidator(*tc.text); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"text\": %v", err)
+	if v, ok := tc.mutation.Text(); ok {
+		if err := todo.TextValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"text\": %v", err)
+		}
 	}
-	if len(tc.parent) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"parent\"")
+	var (
+		err  error
+		node *Todo
+	)
+	if len(tc.hooks) == 0 {
+		node, err = tc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*TodoMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			tc.mutation = mutation
+			node, err = tc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(tc.hooks); i > 0; i-- {
+			mut = tc.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, tc.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return tc.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -106,15 +119,15 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 			},
 		}
 	)
-	if value := tc.text; value != nil {
+	if value, ok := tc.mutation.Text(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: todo.FieldText,
 		})
-		t.Text = *value
+		t.Text = value
 	}
-	if nodes := tc.parent; len(nodes) > 0 {
+	if nodes := tc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -128,12 +141,12 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := tc.children; len(nodes) > 0 {
+	if nodes := tc.mutation.ChildrenIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -147,7 +160,7 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

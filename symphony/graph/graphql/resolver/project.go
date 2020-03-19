@@ -13,6 +13,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
@@ -193,6 +194,14 @@ func (r queryResolver) ProjectTypes(
 		Paginate(ctx, after, first, before, last)
 }
 
+func (projectResolver) Creator(ctx context.Context, obj *ent.Project) (*string, error) {
+	assignee, err := obj.QueryCreator().Only(ctx)
+	if err != nil {
+		return nil, ent.MaskNotFound(err)
+	}
+	return &assignee.Email, nil
+}
+
 func (projectResolver) Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error) {
 	typ, err := obj.QueryType().Only(ctx)
 	if err != nil {
@@ -247,15 +256,23 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 	if err != nil {
 		return nil, xerrors.Errorf("fetching template", err)
 	}
-	proj, err := client.
+	query := client.
 		Project.Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetTypeID(input.Type).
-		SetNillableCreator(input.Creator).
 		SetNillableLocationID(input.Location).
-		AddProperties(properties...).
-		Save(ctx)
+		AddProperties(properties...)
+
+	if input.Creator != nil && *input.Creator != "" {
+		creatorID, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
+		if err != nil {
+			return nil, xerrors.Errorf("fetching creator user", err)
+		}
+		query = query.SetCreatorID(creatorID)
+	}
+	proj, err := query.Save(ctx)
+
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("Project %q already exists", input.Name)
@@ -308,8 +325,12 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		UpdateOne(proj).
 		SetName(input.Name).
 		SetNillableDescription(input.Description)
-	if input.Creator != nil {
-		mutation.SetCreator(*input.Creator)
+	if input.Creator != nil && *input.Creator != "" {
+		creatorID, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
+		if err != nil {
+			return nil, xerrors.Errorf("fetching creator user", err)
+		}
+		mutation.SetCreatorID(creatorID)
 	} else {
 		mutation.ClearCreator()
 	}

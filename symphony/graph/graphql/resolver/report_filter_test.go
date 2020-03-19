@@ -46,11 +46,13 @@ func TestAddReportFilter(t *testing.T) {
 				{
 					FilterType: models.EquipmentFilterTypeLocationInst.String(),
 					Operator:   models.FilterOperatorIsOneOf,
+					Key:        "for-ui-purposes",
 					IDSet:      []int{data.loc1, data.loc2},
 				},
 				{
 					FilterType:  models.EquipmentFilterTypeEquipInstName.String(),
 					Operator:    models.FilterOperatorContains,
+					Key:         "for-ui-purposes",
 					StringValue: pointer.ToString(substring),
 				},
 			}}
@@ -107,6 +109,7 @@ func TestAddInvalidReportFilters(t *testing.T) {
 			{
 				FilterType: models.EquipmentFilterTypeLocationInst.String(),
 				Operator:   models.FilterOperatorIsOneOf,
+				Key:        "for-ui-purposes",
 				IDSet:      []int{data.loc1, data.loc2},
 			},
 		}}
@@ -120,6 +123,7 @@ func TestAddInvalidReportFilters(t *testing.T) {
 			{
 				FilterType:  models.EquipmentFilterTypeEquipInstName.String(),
 				Operator:    models.FilterOperatorContains,
+				Key:         "for-ui-purposes",
 				StringValue: pointer.ToString(substring),
 			},
 		},
@@ -134,6 +138,7 @@ func TestAddInvalidReportFilters(t *testing.T) {
 			{
 				FilterType:  "InvalidType",
 				Operator:    models.FilterOperatorContains,
+				Key:         "for-ui-purposes",
 				StringValue: pointer.ToString(substring),
 			},
 		},
@@ -147,6 +152,7 @@ func TestAddInvalidReportFilters(t *testing.T) {
 			{
 				FilterType:  models.EquipmentFilterTypeEquipInstName.String(),
 				Operator:    "invalidOperator",
+				Key:         "for-ui-purposes",
 				StringValue: pointer.ToString(substring),
 			},
 		},
@@ -160,6 +166,7 @@ func TestAddInvalidReportFilters(t *testing.T) {
 			{
 				FilterType:  models.EquipmentFilterTypeEquipInstName.String(),
 				Operator:    models.FilterOperatorContains,
+				Key:         "for-ui-purposes",
 				StringValue: pointer.ToString(substring),
 			},
 		},
@@ -182,6 +189,7 @@ func TestEditReportFilters(t *testing.T) {
 			{
 				FilterType: models.EquipmentFilterTypeLocationInst.String(),
 				Operator:   models.FilterOperatorIsOneOf,
+				Key:        "for-ui-purposes",
 				IDSet:      []int{data.loc1, data.loc2},
 			},
 		}}

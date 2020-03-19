@@ -26,6 +26,7 @@ const mutation = graphql`
       entity
       filters {
         filterType
+        key
         operator
         stringValue
         idSet

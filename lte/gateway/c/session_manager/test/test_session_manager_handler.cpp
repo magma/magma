@@ -34,6 +34,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
         auto rule_store = std::make_shared<StaticRuleStore>();
         auto pipelined_client = std::make_shared<MockPipelinedClient>();
         auto directoryd_client = std::make_shared<MockDirectorydClient>();
+        auto eventd_client = std::make_shared<MockEventdClient>();
         auto spgw_client = std::make_shared<MockSpgwServiceClient>();
         auto aaa_client = std::make_shared<MockAAAClient>();
         local_enforcer = std::make_shared<LocalEnforcer>(
@@ -41,6 +42,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
                 rule_store,
                 pipelined_client,
                 directoryd_client,
+                eventd_client,
                 spgw_client,
                 aaa_client,
                 0,

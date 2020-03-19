@@ -15,8 +15,6 @@ func TestQueryMe(t *testing.T) {
 	resolver := newTestResolver(t)
 	defer resolver.drv.Close()
 	c := newGraphClient(t, resolver)
-	ctx := viewertest.NewContext(resolver.client)
-	prepareUserData(t, ctx, resolver.client)
 
 	var rsp struct {
 		Me struct {

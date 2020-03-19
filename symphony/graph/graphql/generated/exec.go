@@ -332,14 +332,15 @@ type ComplexityRoot struct {
 	}
 
 	File struct {
-		Category   func(childComplexity int) int
-		FileType   func(childComplexity int) int
-		ID         func(childComplexity int) int
-		ModifiedAt func(childComplexity int) int
-		Name       func(childComplexity int) int
-		Size       func(childComplexity int) int
-		StoreKey   func(childComplexity int) int
-		UploadedAt func(childComplexity int) int
+		Category    func(childComplexity int) int
+		ContentType func(childComplexity int) int
+		FileType    func(childComplexity int) int
+		ID          func(childComplexity int) int
+		ModifiedAt  func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Size        func(childComplexity int) int
+		StoreKey    func(childComplexity int) int
+		UploadedAt  func(childComplexity int) int
 	}
 
 	FloorPlan struct {
@@ -370,6 +371,7 @@ type ComplexityRoot struct {
 		BoolValue     func(childComplexity int) int
 		FilterType    func(childComplexity int) int
 		IDSet         func(childComplexity int) int
+		Key           func(childComplexity int) int
 		Operator      func(childComplexity int) int
 		PropertyValue func(childComplexity int) int
 		StringSet     func(childComplexity int) int
@@ -497,6 +499,7 @@ type ComplexityRoot struct {
 		DeleteImage                              func(childComplexity int, entityType models.ImageEntity, entityID int, id int) int
 		DeleteProject                            func(childComplexity int, id int) int
 		DeleteProjectType                        func(childComplexity int, id int) int
+		DeleteReportFilter                       func(childComplexity int, id int) int
 		EditActionsRule                          func(childComplexity int, id int, input models.AddActionsRuleInput) int
 		EditEquipment                            func(childComplexity int, input models.EditEquipmentInput) int
 		EditEquipmentPort                        func(childComplexity int, input models.EditEquipmentPortInput) int
@@ -887,6 +890,7 @@ type ComplexityRoot struct {
 		Assignee            func(childComplexity int) int
 		CheckList           func(childComplexity int) int
 		CheckListCategories func(childComplexity int) int
+		CloseDate           func(childComplexity int) int
 		Comments            func(childComplexity int) int
 		CreationDate        func(childComplexity int) int
 		Description         func(childComplexity int) int
@@ -1143,8 +1147,10 @@ type MutationResolver interface {
 	TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID int) (*ent.WorkOrder, error)
 	AddReportFilter(ctx context.Context, input models.ReportFilterInput) (*ent.ReportFilter, error)
 	EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error)
+	DeleteReportFilter(ctx context.Context, id int) (bool, error)
 }
 type ProjectResolver interface {
+	Creator(ctx context.Context, obj *ent.Project) (*string, error)
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
 	Location(ctx context.Context, obj *ent.Project) (*ent.Location, error)
 	WorkOrders(ctx context.Context, obj *ent.Project) ([]*ent.WorkOrder, error)
@@ -1275,6 +1281,10 @@ type ViewerResolver interface {
 }
 type WorkOrderResolver interface {
 	WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error)
+
+	OwnerName(ctx context.Context, obj *ent.WorkOrder) (string, error)
+
+	Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error)
 
 	Status(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderStatus, error)
 	Priority(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderPriority, error)
@@ -2274,6 +2284,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.File.Category(childComplexity), true
 
+	case "File.mimeType":
+		if e.complexity.File.ContentType == nil {
+			break
+		}
+
+		return e.complexity.File.ContentType(childComplexity), true
+
 	case "File.fileType":
 		if e.complexity.File.FileType == nil {
 			break
@@ -2448,6 +2465,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.GeneralFilter.IDSet(childComplexity), true
+
+	case "GeneralFilter.key":
+		if e.complexity.GeneralFilter.Key == nil {
+			break
+		}
+
+		return e.complexity.GeneralFilter.Key(childComplexity), true
 
 	case "GeneralFilter.operator":
 		if e.complexity.GeneralFilter.Operator == nil {
@@ -3250,6 +3274,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteProjectType(childComplexity, args["id"].(int)), true
+
+	case "Mutation.deleteReportFilter":
+		if e.complexity.Mutation.DeleteReportFilter == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteReportFilter_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteReportFilter(childComplexity, args["id"].(int)), true
 
 	case "Mutation.editActionsRule":
 		if e.complexity.Mutation.EditActionsRule == nil {
@@ -5595,6 +5631,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkOrder.CheckListCategories(childComplexity), true
 
+	case "WorkOrder.closeDate":
+		if e.complexity.WorkOrder.CloseDate == nil {
+			break
+		}
+
+		return e.complexity.WorkOrder.CloseDate(childComplexity), true
+
 	case "WorkOrder.comments":
 		if e.complexity.WorkOrder.Comments == nil {
 			break
@@ -6224,6 +6267,7 @@ type File implements Node {
   modified: Time
   uploaded: Time
   fileType: FileType
+  mimeType: String
   storeKey: String
   category: String
 }
@@ -6985,6 +7029,7 @@ enum FilterEntity {
 
 type GeneralFilter {
   filterType: String!
+  key: String!
   operator: FilterOperator!
   stringValue: String
   idSet: [ID!]
@@ -7002,6 +7047,7 @@ type ReportFilter implements Node {
 
 input GeneralFilterInput {
   filterType: String!
+  key: String!
   operator: FilterOperator!
   stringValue: String
   idSet: [ID!]
@@ -7062,6 +7108,7 @@ type WorkOrder implements Node {
   checkList: [CheckListItem]!
   checkListCategories: [CheckListCategory!]!
   hyperlinks: [Hyperlink!]!
+  closeDate: Time
 }
 
 """
@@ -7642,6 +7689,7 @@ input FileInput {
   modificationTime: Int
   uploadTime: Int
   fileType: FileType
+  mimeType: String
   storeKey: String!
 }
 
@@ -8281,6 +8329,7 @@ type Mutation {
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
+  deleteReportFilter(id: ID!): Boolean!
 }
 
 type Subscription {
@@ -8871,6 +8920,20 @@ func (ec *executionContext) field_Mutation_deleteProjectType_args(ctx context.Co
 }
 
 func (ec *executionContext) field_Mutation_deleteProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteReportFilter_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -15574,6 +15637,40 @@ func (ec *executionContext) _File_fileType(ctx context.Context, field graphql.Co
 	return ec.marshalOFileType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileType(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _File_mimeType(ctx context.Context, field graphql.CollectedField, obj *ent.File) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "File",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContentType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _File_storeKey(ctx context.Context, field graphql.CollectedField, obj *ent.File) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -16217,6 +16314,43 @@ func (ec *executionContext) _GeneralFilter_filterType(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.FilterType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _GeneralFilter_key(ctx context.Context, field graphql.CollectedField, obj *models.GeneralFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "GeneralFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21594,6 +21728,50 @@ func (ec *executionContext) _Mutation_editReportFilter(ctx context.Context, fiel
 	return ec.marshalNReportFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐReportFilter(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_deleteReportFilter(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteReportFilter_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteReportFilter(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NetworkTopology_nodes(ctx context.Context, field graphql.CollectedField, obj *models.NetworkTopology) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -22029,13 +22207,13 @@ func (ec *executionContext) _Project_creator(ctx context.Context, field graphql.
 		Object:   "Project",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Creator, nil
+		return ec.resolvers.Project().Creator(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30684,13 +30862,13 @@ func (ec *executionContext) _WorkOrder_ownerName(ctx context.Context, field grap
 		Object:   "WorkOrder",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OwnerName, nil
+		return ec.resolvers.WorkOrder().OwnerName(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30792,13 +30970,13 @@ func (ec *executionContext) _WorkOrder_assignee(ctx context.Context, field graph
 		Object:   "WorkOrder",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Assignee, nil
+		return ec.resolvers.WorkOrder().Assignee(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30807,10 +30985,10 @@ func (ec *executionContext) _WorkOrder_assignee(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrder_index(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
@@ -31397,6 +31575,40 @@ func (ec *executionContext) _WorkOrder_hyperlinks(ctx context.Context, field gra
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNHyperlink2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐHyperlinkᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrder_closeDate(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CloseDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderConnection) (ret graphql.Marshaler) {
@@ -35686,6 +35898,12 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
+		case "mimeType":
+			var err error
+			it.MimeType, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "storeKey":
 			var err error
 			it.StoreKey, err = ec.unmarshalNString2string(ctx, v)
@@ -35707,6 +35925,12 @@ func (ec *executionContext) unmarshalInputGeneralFilterInput(ctx context.Context
 		case "filterType":
 			var err error
 			it.FilterType, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "key":
+			var err error
+			it.Key, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39057,6 +39281,8 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 				res = ec._File_fileType(ctx, field, obj)
 				return res
 			})
+		case "mimeType":
+			out.Values[i] = ec._File_mimeType(ctx, field, obj)
 		case "storeKey":
 			out.Values[i] = ec._File_storeKey(ctx, field, obj)
 		case "category":
@@ -39262,6 +39488,11 @@ func (ec *executionContext) _GeneralFilter(ctx context.Context, sel ast.Selectio
 			out.Values[i] = graphql.MarshalString("GeneralFilter")
 		case "filterType":
 			out.Values[i] = ec._GeneralFilter_filterType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "key":
+			out.Values[i] = ec._GeneralFilter_key(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -40351,6 +40582,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "deleteReportFilter":
+			out.Values[i] = ec._Mutation_deleteReportFilter(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -40486,7 +40722,16 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "description":
 			out.Values[i] = ec._Project_description(ctx, field, obj)
 		case "creator":
-			out.Values[i] = ec._Project_creator(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Project_creator(ctx, field, obj)
+				return res
+			})
 		case "type":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -42839,10 +43084,19 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 		case "description":
 			out.Values[i] = ec._WorkOrder_description(ctx, field, obj)
 		case "ownerName":
-			out.Values[i] = ec._WorkOrder_ownerName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_ownerName(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "creationDate":
 			out.Values[i] = ec._WorkOrder_creationDate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -42851,7 +43105,16 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 		case "installDate":
 			out.Values[i] = ec._WorkOrder_installDate(ctx, field, obj)
 		case "assignee":
-			out.Values[i] = ec._WorkOrder_assignee(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_assignee(ctx, field, obj)
+				return res
+			})
 		case "index":
 			out.Values[i] = ec._WorkOrder_index(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -43061,6 +43324,8 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 				}
 				return res
 			})
+		case "closeDate":
+			out.Values[i] = ec._WorkOrder_closeDate(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

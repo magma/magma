@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -21,14 +21,9 @@ import (
 // CheckListCategoryUpdate is the builder for updating CheckListCategory entities.
 type CheckListCategoryUpdate struct {
 	config
-
-	update_time           *time.Time
-	title                 *string
-	description           *string
-	cleardescription      bool
-	check_list_items      map[int]struct{}
-	removedCheckListItems map[int]struct{}
-	predicates            []predicate.CheckListCategory
+	hooks      []Hook
+	mutation   *CheckListCategoryMutation
+	predicates []predicate.CheckListCategory
 }
 
 // Where adds a new predicate for the builder.
@@ -39,13 +34,13 @@ func (clcu *CheckListCategoryUpdate) Where(ps ...predicate.CheckListCategory) *C
 
 // SetTitle sets the title field.
 func (clcu *CheckListCategoryUpdate) SetTitle(s string) *CheckListCategoryUpdate {
-	clcu.title = &s
+	clcu.mutation.SetTitle(s)
 	return clcu
 }
 
 // SetDescription sets the description field.
 func (clcu *CheckListCategoryUpdate) SetDescription(s string) *CheckListCategoryUpdate {
-	clcu.description = &s
+	clcu.mutation.SetDescription(s)
 	return clcu
 }
 
@@ -59,19 +54,13 @@ func (clcu *CheckListCategoryUpdate) SetNillableDescription(s *string) *CheckLis
 
 // ClearDescription clears the value of description.
 func (clcu *CheckListCategoryUpdate) ClearDescription() *CheckListCategoryUpdate {
-	clcu.description = nil
-	clcu.cleardescription = true
+	clcu.mutation.ClearDescription()
 	return clcu
 }
 
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
 func (clcu *CheckListCategoryUpdate) AddCheckListItemIDs(ids ...int) *CheckListCategoryUpdate {
-	if clcu.check_list_items == nil {
-		clcu.check_list_items = make(map[int]struct{})
-	}
-	for i := range ids {
-		clcu.check_list_items[ids[i]] = struct{}{}
-	}
+	clcu.mutation.AddCheckListItemIDs(ids...)
 	return clcu
 }
 
@@ -86,12 +75,7 @@ func (clcu *CheckListCategoryUpdate) AddCheckListItems(c ...*CheckListItem) *Che
 
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
 func (clcu *CheckListCategoryUpdate) RemoveCheckListItemIDs(ids ...int) *CheckListCategoryUpdate {
-	if clcu.removedCheckListItems == nil {
-		clcu.removedCheckListItems = make(map[int]struct{})
-	}
-	for i := range ids {
-		clcu.removedCheckListItems[ids[i]] = struct{}{}
-	}
+	clcu.mutation.RemoveCheckListItemIDs(ids...)
 	return clcu
 }
 
@@ -106,11 +90,35 @@ func (clcu *CheckListCategoryUpdate) RemoveCheckListItems(c ...*CheckListItem) *
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (clcu *CheckListCategoryUpdate) Save(ctx context.Context) (int, error) {
-	if clcu.update_time == nil {
+	if _, ok := clcu.mutation.UpdateTime(); !ok {
 		v := checklistcategory.UpdateDefaultUpdateTime()
-		clcu.update_time = &v
+		clcu.mutation.SetUpdateTime(v)
 	}
-	return clcu.sqlSave(ctx)
+
+	var (
+		err      error
+		affected int
+	)
+	if len(clcu.hooks) == 0 {
+		affected, err = clcu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*CheckListCategoryMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			clcu.mutation = mutation
+			affected, err = clcu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(clcu.hooks); i > 0; i-- {
+			mut = clcu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, clcu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -153,34 +161,34 @@ func (clcu *CheckListCategoryUpdate) sqlSave(ctx context.Context) (n int, err er
 			}
 		}
 	}
-	if value := clcu.update_time; value != nil {
+	if value, ok := clcu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: checklistcategory.FieldUpdateTime,
 		})
 	}
-	if value := clcu.title; value != nil {
+	if value, ok := clcu.mutation.Title(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistcategory.FieldTitle,
 		})
 	}
-	if value := clcu.description; value != nil {
+	if value, ok := clcu.mutation.Description(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistcategory.FieldDescription,
 		})
 	}
-	if clcu.cleardescription {
+	if clcu.mutation.DescriptionCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistcategory.FieldDescription,
 		})
 	}
-	if nodes := clcu.removedCheckListItems; len(nodes) > 0 {
+	if nodes := clcu.mutation.RemovedCheckListItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -194,12 +202,12 @@ func (clcu *CheckListCategoryUpdate) sqlSave(ctx context.Context) (n int, err er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := clcu.check_list_items; len(nodes) > 0 {
+	if nodes := clcu.mutation.CheckListItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -213,7 +221,7 @@ func (clcu *CheckListCategoryUpdate) sqlSave(ctx context.Context) (n int, err er
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -232,25 +240,19 @@ func (clcu *CheckListCategoryUpdate) sqlSave(ctx context.Context) (n int, err er
 // CheckListCategoryUpdateOne is the builder for updating a single CheckListCategory entity.
 type CheckListCategoryUpdateOne struct {
 	config
-	id int
-
-	update_time           *time.Time
-	title                 *string
-	description           *string
-	cleardescription      bool
-	check_list_items      map[int]struct{}
-	removedCheckListItems map[int]struct{}
+	hooks    []Hook
+	mutation *CheckListCategoryMutation
 }
 
 // SetTitle sets the title field.
 func (clcuo *CheckListCategoryUpdateOne) SetTitle(s string) *CheckListCategoryUpdateOne {
-	clcuo.title = &s
+	clcuo.mutation.SetTitle(s)
 	return clcuo
 }
 
 // SetDescription sets the description field.
 func (clcuo *CheckListCategoryUpdateOne) SetDescription(s string) *CheckListCategoryUpdateOne {
-	clcuo.description = &s
+	clcuo.mutation.SetDescription(s)
 	return clcuo
 }
 
@@ -264,19 +266,13 @@ func (clcuo *CheckListCategoryUpdateOne) SetNillableDescription(s *string) *Chec
 
 // ClearDescription clears the value of description.
 func (clcuo *CheckListCategoryUpdateOne) ClearDescription() *CheckListCategoryUpdateOne {
-	clcuo.description = nil
-	clcuo.cleardescription = true
+	clcuo.mutation.ClearDescription()
 	return clcuo
 }
 
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
 func (clcuo *CheckListCategoryUpdateOne) AddCheckListItemIDs(ids ...int) *CheckListCategoryUpdateOne {
-	if clcuo.check_list_items == nil {
-		clcuo.check_list_items = make(map[int]struct{})
-	}
-	for i := range ids {
-		clcuo.check_list_items[ids[i]] = struct{}{}
-	}
+	clcuo.mutation.AddCheckListItemIDs(ids...)
 	return clcuo
 }
 
@@ -291,12 +287,7 @@ func (clcuo *CheckListCategoryUpdateOne) AddCheckListItems(c ...*CheckListItem) 
 
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
 func (clcuo *CheckListCategoryUpdateOne) RemoveCheckListItemIDs(ids ...int) *CheckListCategoryUpdateOne {
-	if clcuo.removedCheckListItems == nil {
-		clcuo.removedCheckListItems = make(map[int]struct{})
-	}
-	for i := range ids {
-		clcuo.removedCheckListItems[ids[i]] = struct{}{}
-	}
+	clcuo.mutation.RemoveCheckListItemIDs(ids...)
 	return clcuo
 }
 
@@ -311,11 +302,35 @@ func (clcuo *CheckListCategoryUpdateOne) RemoveCheckListItems(c ...*CheckListIte
 
 // Save executes the query and returns the updated entity.
 func (clcuo *CheckListCategoryUpdateOne) Save(ctx context.Context) (*CheckListCategory, error) {
-	if clcuo.update_time == nil {
+	if _, ok := clcuo.mutation.UpdateTime(); !ok {
 		v := checklistcategory.UpdateDefaultUpdateTime()
-		clcuo.update_time = &v
+		clcuo.mutation.SetUpdateTime(v)
 	}
-	return clcuo.sqlSave(ctx)
+
+	var (
+		err  error
+		node *CheckListCategory
+	)
+	if len(clcuo.hooks) == 0 {
+		node, err = clcuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*CheckListCategoryMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			clcuo.mutation = mutation
+			node, err = clcuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(clcuo.hooks); i > 0; i-- {
+			mut = clcuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, clcuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -346,40 +361,44 @@ func (clcuo *CheckListCategoryUpdateOne) sqlSave(ctx context.Context) (clc *Chec
 			Table:   checklistcategory.Table,
 			Columns: checklistcategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  clcuo.id,
 				Type:   field.TypeInt,
 				Column: checklistcategory.FieldID,
 			},
 		},
 	}
-	if value := clcuo.update_time; value != nil {
+	id, ok := clcuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing CheckListCategory.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := clcuo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: checklistcategory.FieldUpdateTime,
 		})
 	}
-	if value := clcuo.title; value != nil {
+	if value, ok := clcuo.mutation.Title(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistcategory.FieldTitle,
 		})
 	}
-	if value := clcuo.description; value != nil {
+	if value, ok := clcuo.mutation.Description(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistcategory.FieldDescription,
 		})
 	}
-	if clcuo.cleardescription {
+	if clcuo.mutation.DescriptionCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistcategory.FieldDescription,
 		})
 	}
-	if nodes := clcuo.removedCheckListItems; len(nodes) > 0 {
+	if nodes := clcuo.mutation.RemovedCheckListItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -393,12 +412,12 @@ func (clcuo *CheckListCategoryUpdateOne) sqlSave(ctx context.Context) (clc *Chec
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := clcuo.check_list_items; len(nodes) > 0 {
+	if nodes := clcuo.mutation.CheckListItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -412,7 +431,7 @@ func (clcuo *CheckListCategoryUpdateOne) sqlSave(ctx context.Context) (clc *Chec
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

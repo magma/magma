@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 605bfb0dce4a13b5c64fcc4e18828c5a
+ * @relayHash f8325163c5c55b5d8859deb60993d9c6
  */
 
 /* eslint-disable */
@@ -25,6 +25,7 @@ export type ReportFilterInput = {|
 |};
 export type GeneralFilterInput = {|
   filterType: string,
+  key: string,
   operator: FilterOperator,
   stringValue?: ?string,
   idSet?: ?$ReadOnlyArray<string>,
@@ -61,6 +62,7 @@ export type AddReportFilterMutationResponse = {|
     +entity: FilterEntity,
     +filters: $ReadOnlyArray<{|
       +filterType: string,
+      +key: string,
       +operator: FilterOperator,
       +stringValue: ?string,
       +idSet: ?$ReadOnlyArray<string>,
@@ -101,6 +103,7 @@ mutation AddReportFilterMutation(
     entity
     filters {
       filterType
+      key
       operator
       stringValue
       idSet
@@ -194,6 +197,13 @@ v4 = [
             "kind": "ScalarField",
             "alias": null,
             "name": "filterType",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "key",
             "args": null,
             "storageKey": null
           },
@@ -335,11 +345,11 @@ return {
     "operationKind": "mutation",
     "name": "AddReportFilterMutation",
     "id": null,
-    "text": "mutation AddReportFilterMutation(\n  $input: ReportFilterInput!\n) {\n  addReportFilter(input: $input) {\n    id\n    name\n    entity\n    filters {\n      filterType\n      operator\n      stringValue\n      idSet\n      stringSet\n      boolValue\n      propertyValue {\n        id\n        name\n        type\n        isEditable\n        isInstanceProperty\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n      }\n    }\n  }\n}\n",
+    "text": "mutation AddReportFilterMutation(\n  $input: ReportFilterInput!\n) {\n  addReportFilter(input: $input) {\n    id\n    name\n    entity\n    filters {\n      filterType\n      key\n      operator\n      stringValue\n      idSet\n      stringSet\n      boolValue\n      propertyValue {\n        id\n        name\n        type\n        isEditable\n        isInstanceProperty\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '990637d691b7e35198b5c445629f8990';
+(node/*: any*/).hash = '3e3612e639af302bd2d1471acb019e8b';
 module.exports = node;

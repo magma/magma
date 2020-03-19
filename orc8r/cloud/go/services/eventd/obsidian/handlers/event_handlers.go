@@ -23,9 +23,13 @@ import (
 
 const (
 	Events     = "events"
-	EventsPath = obsidian.V1Root + Events + obsidian.UrlSep + ":" + pathParamStreamName
+	EventsPath = obsidian.V1Root +
+		Events + obsidian.UrlSep +
+		":" + pathParamNetworkID + obsidian.UrlSep +
+		":" + pathParamStreamName
 
 	pathParamStreamName  = "stream_name"
+	pathParamNetworkID   = "network_id"
 	queryParamEventType  = "event_type"
 	queryParamHardwareID = "hardware_id"
 	queryParamTag        = "tag"
@@ -36,19 +40,20 @@ const (
 	// We use the ES "keyword" type for exact match
 	dotKeyword              = ".keyword"
 	elasticFilterStreamName = pathParamStreamName + dotKeyword
+	elasticFilterNetworkID  = pathParamNetworkID + dotKeyword
 	elasticFilterEventType  = queryParamEventType + dotKeyword
 	elasticFilterHardwareID = "hw_id" + dotKeyword
 	elasticFilterEventTag   = "event_tag" + dotKeyword // We use event_tag as fluentd uses the "tag" field
 )
 
-// Returns a Hander that uses the provided elastic client
+// GetEventsHandler returns a Hander that uses the provided elastic client
 func GetEventsHandler(client *elastic.Client) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		return EventsHandler(c, client)
 	}
 }
 
-// Handles event querying
+// EventsHandler handles event querying using ES
 func EventsHandler(c echo.Context, client *elastic.Client) error {
 	queryParams, err := getQueryParameters(c)
 	if err != nil {
@@ -131,15 +136,19 @@ func getEventMaps(hits []*elastic.SearchHit) ([]map[string]interface{}, error) {
 }
 
 func getQueryParameters(c echo.Context) (eventQueryParams, error) {
-	pathParams, pathParamError := obsidian.GetParamValues(c, pathParamStreamName)
-	if pathParamError != nil {
-		return eventQueryParams{}, pathParamError
+	streamName := c.Param(pathParamStreamName)
+	if streamName == "" {
+		return eventQueryParams{}, StreamNameHTTPErr()
 	}
-	streamName := pathParams[0]
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return eventQueryParams{}, nerr
+	}
 	params := eventQueryParams{
 		StreamName: streamName,
 		EventType:  c.QueryParam(queryParamEventType),
 		HardwareID: c.QueryParam(queryParamHardwareID),
+		NetworkID:  networkID,
 		Tag:        c.QueryParam(queryParamTag),
 	}
 	return params, nil
@@ -149,12 +158,14 @@ type eventQueryParams struct {
 	StreamName string
 	EventType  string
 	HardwareID string
+	NetworkID  string
 	Tag        string
 }
 
 func (b *eventQueryParams) ToElasticBoolQuery() *elastic.BoolQuery {
 	query := elastic.NewBoolQuery()
 	query.Filter(elastic.NewTermQuery(elasticFilterStreamName, b.StreamName))
+	query.Filter(elastic.NewTermQuery(elasticFilterNetworkID, b.NetworkID))
 	if len(b.EventType) > 0 {
 		query.Filter(elastic.NewTermQuery(elasticFilterEventType, b.EventType))
 	}
@@ -165,4 +176,9 @@ func (b *eventQueryParams) ToElasticBoolQuery() *elastic.BoolQuery {
 		query.Filter(elastic.NewTermQuery(elasticFilterEventTag, b.Tag))
 	}
 	return query
+}
+
+// StreamNameHTTPErr indicates that stream_name is missing
+func StreamNameHTTPErr() *echo.HTTPError {
+	return obsidian.HttpError(fmt.Errorf("Missing stream name"), http.StatusBadRequest)
 }

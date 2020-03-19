@@ -668,9 +668,8 @@ struct emm_context_s *emm_context_get(
 
   DevAssert(emm_data);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, ue_id);
+    ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
     if (ue_mm_context) {
       emm_context_p = &ue_mm_context->emm_context;
     }
@@ -772,11 +771,11 @@ int emm_context_upsert_imsi(emm_data_t *emm_data, struct emm_context_s *elm)
 
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   h_rc = hashtable_uint64_ts_remove(
-    mme_app_desc_p->mme_ue_contexts.imsi_ue_context_htbl,
+    mme_app_desc_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
     (const hash_key_t) elm->_imsi64);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
     h_rc = hashtable_uint64_ts_insert(
-      mme_app_desc_p->mme_ue_contexts.imsi_ue_context_htbl,
+      mme_app_desc_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
       (const hash_key_t) elm->_imsi64,
       ue_id);
   } else {

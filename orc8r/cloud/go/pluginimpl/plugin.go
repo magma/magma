@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
-	"magma/orc8r/cloud/go/services/state/indexer"
 	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -22,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/directoryd"
+	directorydIndexers "magma/orc8r/cloud/go/services/directoryd/indexers"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
@@ -30,6 +30,7 @@ import (
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	promeExp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
@@ -118,7 +119,9 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 }
 
 func (*BaseOrchestratorPlugin) GetStateIndexers() []indexer.Indexer {
-	return []indexer.Indexer{}
+	return []indexer.Indexer{
+		directorydIndexers.NewSessionIDToIMSI(),
+	}
 }
 
 const (
@@ -127,7 +130,6 @@ const (
 )
 
 func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
-
 	// Controller profile - 1 collector for each service
 	allServices := registry.ListControllerServices()
 	deviceMetricsCollectors := []collection.MetricCollector{&collection.DiskUsageMetricCollector{}, &collection.ProcMetricsCollector{}}

@@ -7,7 +7,7 @@ iface gtp_br0 inet static
     up iptables -t mangle -A FORWARD -i gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
     up iptables -t mangle -A FORWARD -o gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
     ovs_type OVSBridge
-    ovs_ports gtp0 cpe_port
+    ovs_ports gtp0 mtr0
 
 # Add GTP vport to gtp_br0 as port 32768
 allow-gtp_br0 gtp0
@@ -17,9 +17,10 @@ iface gtp0 inet manual
     ovs_tunnel_type gtp
     ovs_tunnel_options ofport_request=32768 options:remote_ip=flow options:key=flow
 
-allow-gtp_br0 cpe_port
-iface cpe_port inet static
+allow-gtp_br0 mtr0
+iface mtr0 inet static
     address 10.0.2.10
     netmask 255.255.255.0
     ovs_bridge gtp_br0
     ovs_type OVSIntPort
+    ovs_extra set interface ${IFACE} ofport_request=15577

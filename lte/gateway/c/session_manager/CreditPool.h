@@ -30,14 +30,19 @@ class CreditPool {
   /**
    * add_used_credit adds usage to a specific credit
    */
-  virtual bool
-  add_used_credit(const KeyType &key, uint64_t used_tx, uint64_t used_rx) = 0;
+  virtual bool add_used_credit(
+    const KeyType &key,
+    uint64_t used_tx,
+    uint64_t used_rx,
+    SessionStateUpdateCriteria& update_criteria) = 0;
 
   /**
    * reset_reporting_credit resets the credit state machine by clearing any
    * credit that was in the reporting state
    */
-  virtual bool reset_reporting_credit(const KeyType &key) = 0;
+  virtual bool reset_reporting_credit(
+    const KeyType &key,
+    SessionStateUpdateCriteria& update_criteria) = 0;
 
   /**
    * get_updates gets any usage updates required by the credits in the pool
@@ -48,7 +53,8 @@ class CreditPool {
     StaticRuleStore &static_rules,
     DynamicRuleStore *dynamic_rules,
     std::vector<UpdateRequestType> *updates_out,
-    std::vector<std::unique_ptr<ServiceAction>> *actions_out) const = 0;
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out,
+    SessionStateUpdateCriteria& update_criteria) = 0;
 
   /**
    * get_termination_updates gets updates from all credits in the pool at the
@@ -60,12 +66,18 @@ class CreditPool {
   /**
    * receive_credit adds allowed credit from the cloud
    */
-  virtual bool receive_credit(const UpdateResponseType &update) = 0;
+  virtual bool receive_credit(
+    const UpdateResponseType &update,
+    SessionStateUpdateCriteria& update_criteria) = 0;
 
   /**
    * get_credit is a helper function to return the bytes in a credit bucket
    */
   virtual uint64_t get_credit(const KeyType &key, Bucket bucket) const = 0;
+
+  virtual SessionCreditUpdateCriteria* get_credit_update(
+    const KeyType &key,
+    SessionStateUpdateCriteria& update_criteria) = 0;
 
   /**
    * Updates either the Monitor or SessionCredit using the update criteria
@@ -83,6 +95,8 @@ class CreditPool {
 class ChargingCreditPool :
   public CreditPool<CreditKey, CreditUpdateResponse, CreditUsage> {
  public:
+  static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
+
   static std::unique_ptr<ChargingCreditPool> unmarshal(
     const StoredChargingCreditPool &marshaled);
 
@@ -90,10 +104,15 @@ class ChargingCreditPool :
 
   ChargingCreditPool(const std::string &imsi);
 
-  bool add_used_credit(const CreditKey &key, uint64_t used_tx, uint64_t used_rx)
-    override;
+  bool add_used_credit(
+    const CreditKey &key,
+    uint64_t used_tx,
+    uint64_t used_rx,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
 
-  bool reset_reporting_credit(const CreditKey &key) override;
+  bool reset_reporting_credit(
+    const CreditKey &key,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
 
   void get_updates(
     std::string imsi,
@@ -101,24 +120,37 @@ class ChargingCreditPool :
     StaticRuleStore &static_rules,
     DynamicRuleStore *dynamic_rules,
     std::vector<CreditUsage> *updates_out,
-    std::vector<std::unique_ptr<ServiceAction>> *actions_out) const override;
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
 
   bool get_termination_updates(
     SessionTerminateRequest *termination_out) const override;
 
-  bool receive_credit(const CreditUpdateResponse &update) override;
+  bool receive_credit(
+    const CreditUpdateResponse &update,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
 
   uint64_t get_credit(const CreditKey &key, Bucket bucket) const override;
 
-  void add_credit(const CreditKey &key, std::unique_ptr<SessionCredit> credit);
+  void add_credit(
+    const CreditKey &key,
+    std::unique_ptr<SessionCredit> credit,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+
+  SessionCreditUpdateCriteria* get_credit_update(
+    const CreditKey &key,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
 
   void merge_credit_update(
     const CreditKey &key,
     const SessionCreditUpdateCriteria &credit_update) override;
 
-  ChargingReAuthAnswer::Result reauth_key(const CreditKey &charging_key);
+  ChargingReAuthAnswer::Result reauth_key(
+    const CreditKey &charging_key,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
-  ChargingReAuthAnswer::Result reauth_all();
+  ChargingReAuthAnswer::Result reauth_all(
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
  private:
   std::unordered_map<
@@ -127,7 +159,9 @@ class ChargingCreditPool :
   std::string imsi_;
 
  private:
-  bool init_new_credit(const CreditUpdateResponse &update);
+  bool init_new_credit(
+    const CreditUpdateResponse &update,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   void populate_output_actions(
     std::string imsi,
@@ -150,12 +184,17 @@ class UsageMonitoringCreditPool :
     UsageMonitoringUpdateResponse,
     UsageMonitorUpdate> {
  public:
+  static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
+
   struct Monitor {
     SessionCredit credit;
     MonitoringLevel level;
 
     Monitor(): credit(CreditType::MONITORING) {}
   };
+
+  static StoredMonitor marshal_monitor(
+    std::unique_ptr<UsageMonitoringCreditPool::Monitor> &monitor);
 
   static std::unique_ptr<Monitor> unmarshal_monitor(
     const StoredMonitor &marshaled);
@@ -170,9 +209,12 @@ class UsageMonitoringCreditPool :
   bool add_used_credit(
     const std::string &key,
     uint64_t used_tx,
-    uint64_t used_rx) override;
+    uint64_t used_rx,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
 
-  bool reset_reporting_credit(const std::string &key) override;
+  bool reset_reporting_credit(
+    const std::string &key,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
 
   void get_updates(
     std::string imsi,
@@ -180,18 +222,26 @@ class UsageMonitoringCreditPool :
     StaticRuleStore &static_rules,
     DynamicRuleStore *dynamic_rules,
     std::vector<UsageMonitorUpdate> *updates_out,
-    std::vector<std::unique_ptr<ServiceAction>> *actions_out) const override;
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out,
+    SessionStateUpdateCriteria& _ = UNUSED_UPDATE_CRITERIA) override;
 
   bool get_termination_updates(
     SessionTerminateRequest *termination_out) const override;
 
-  bool receive_credit(const UsageMonitoringUpdateResponse &update) override;
+  bool receive_credit(
+    const UsageMonitoringUpdateResponse &update,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
 
   uint64_t get_credit(const std::string &key, Bucket bucket) const override;
 
   void add_monitor(
     const std::string &key,
-    std::unique_ptr<UsageMonitoringCreditPool::Monitor> monitor);
+    std::unique_ptr<UsageMonitoringCreditPool::Monitor> monitor,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+
+  SessionCreditUpdateCriteria* get_credit_update(
+    const std::string &key,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
 
   void merge_credit_update(
     const std::string &key,
@@ -206,8 +256,12 @@ class UsageMonitoringCreditPool :
   std::unique_ptr<std::string> session_level_key_;
 
  private:
-  void update_session_level_key(const UsageMonitoringUpdateResponse &update);
-  bool init_new_credit(const UsageMonitoringUpdateResponse &update);
+  void update_session_level_key(
+    const UsageMonitoringUpdateResponse &update,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+  bool init_new_credit(
+    const UsageMonitoringUpdateResponse &update,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
   void populate_output_actions(
     std::string imsi,
     std::string ip_addr,

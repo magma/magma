@@ -13,13 +13,16 @@ import time
 import abc
 import base64
 import grpc
-#import swagger_client
 from orc8r.protos.common_pb2 import Void
-from lte.protos.subscriberdb_pb2 import LTESubscription, SubscriberData, \
-    SubscriberState, SubscriberID
+from lte.protos.subscriberdb_pb2 import (
+    LTESubscription,
+    SubscriberData,
+    SubscriberState,
+    SubscriberID,
+    SubscriberUpdate,
+)
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
-#from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
 from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 from magma.subscriberdb.sid import SIDUtils
 
@@ -132,6 +135,31 @@ class SubscriberDbGrpc(SubscriberDbClient):
         state.lte_auth_next_seq = 1
         return SubscriberData(sid=sub_db_sid, lte=lte, state=state)
 
+    @staticmethod
+    def _get_apn_data(sid, apn_list):
+        """
+        Get APN data in protobuf format.
+
+        Args:
+            apn_list : list of APN configuration
+        Returns:
+            update (protos.subscriberdb_pb2.SubscriberUpdate)
+        """
+        # APN
+        update = SubscriberUpdate()
+        update.data.sid.CopyFrom(sid)
+        non_3gpp = update.data.non_3gpp
+        for apn in apn_list:
+            apn_config = non_3gpp.apn_config.add()
+            apn_config.service_selection = apn["apn_name"]
+            apn_config.qos_profile.class_id = apn["qci"]
+            apn_config.qos_profile.priority_level = apn["priority"]
+            apn_config.qos_profile.preemption_capability = apn["pre_cap"]
+            apn_config.qos_profile.preemption_vulnerability = apn["pre_vul"]
+            apn_config.ambr.max_bandwidth_ul = apn["mbr_ul"]
+            apn_config.ambr.max_bandwidth_dl = apn["mbr_dl"]
+        return update
+
     def _check_invariants(self):
         """
         Assert preservation of invariants.
@@ -147,7 +175,8 @@ class SubscriberDbGrpc(SubscriberDbClient):
         self._added_sids.add(sid)
         sub_data = self._get_subscriberdb_data(sid)
         SubscriberDbGrpc._try_to_call(
-            lambda: self._subscriber_stub.AddSubscriber(sub_data))
+            lambda: self._subscriber_stub.AddSubscriber(sub_data)
+        )
         self._check_invariants()
 
     def delete_subscriber(self, sid):
@@ -162,6 +191,15 @@ class SubscriberDbGrpc(SubscriberDbClient):
             lambda: self._subscriber_stub.ListSubscribers(Void()).sids)
         sids = ['IMSI' + sid.id for sid in sids_pb]
         return sids
+
+    def config_apn_details(self, imsi, apn_list):
+        sid = SIDUtils.to_pb(imsi)
+        update_sub = self._get_apn_data(sid, apn_list)
+        fields = update_sub.mask.paths
+        fields.append('non_3gpp')
+        SubscriberDbGrpc._try_to_call(
+            lambda: self._subscriber_stub.UpdateSubscriber(update_sub)
+        )
 
     def clean_up(self):
         # Remove all sids

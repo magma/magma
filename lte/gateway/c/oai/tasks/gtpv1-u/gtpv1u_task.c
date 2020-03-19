@@ -125,15 +125,15 @@ int gtpv1u_init(
     &netaddr,
     netmask,
     spgw_config->pgw_config.ipv4.mtu_SGI,
-    &spgw_state_p->sgw_state.gtpv1u_data.fd0,
-    &spgw_state_p->sgw_state.gtpv1u_data.fd1u,
+    &spgw_state_p->gtpv1u_data.fd0,
+    &spgw_state_p->gtpv1u_data.fd1u,
     persist_state);
 
   // END-GTP quick integration only for evaluation purpose
 
   if (
     itti_create_task(
-      TASK_GTPV1_U, &gtpv1u_thread, &spgw_state_p->sgw_state.gtpv1u_data) < 0) {
+      TASK_GTPV1_U, &gtpv1u_thread, &spgw_state_p->gtpv1u_data) < 0) {
     OAILOG_ERROR(LOG_GTPV1U, "gtpv1u phtread_create: %s", strerror(errno));
     gtp_tunnel_ops->uninit();
     return -1;

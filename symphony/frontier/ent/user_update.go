@@ -9,7 +9,6 @@ package ent
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,19 +21,9 @@ import (
 // UserUpdate is the builder for updating User entities.
 type UserUpdate struct {
 	config
-
-	updated_at *time.Time
-	email      *string
-	password   *string
-	role       *int
-	addrole    *int
-
-	networks      *[]string
-	tabs          *[]string
-	cleartabs     bool
-	tokens        map[int]struct{}
-	removedTokens map[int]struct{}
-	predicates    []predicate.User
+	hooks      []Hook
+	mutation   *UserMutation
+	predicates []predicate.User
 }
 
 // Where adds a new predicate for the builder.
@@ -45,20 +34,20 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 
 // SetEmail sets the email field.
 func (uu *UserUpdate) SetEmail(s string) *UserUpdate {
-	uu.email = &s
+	uu.mutation.SetEmail(s)
 	return uu
 }
 
 // SetPassword sets the password field.
 func (uu *UserUpdate) SetPassword(s string) *UserUpdate {
-	uu.password = &s
+	uu.mutation.SetPassword(s)
 	return uu
 }
 
 // SetRole sets the role field.
 func (uu *UserUpdate) SetRole(i int) *UserUpdate {
-	uu.role = &i
-	uu.addrole = nil
+	uu.mutation.ResetRole()
+	uu.mutation.SetRole(i)
 	return uu
 }
 
@@ -72,41 +61,31 @@ func (uu *UserUpdate) SetNillableRole(i *int) *UserUpdate {
 
 // AddRole adds i to role.
 func (uu *UserUpdate) AddRole(i int) *UserUpdate {
-	if uu.addrole == nil {
-		uu.addrole = &i
-	} else {
-		*uu.addrole += i
-	}
+	uu.mutation.AddRole(i)
 	return uu
 }
 
 // SetNetworks sets the networks field.
 func (uu *UserUpdate) SetNetworks(s []string) *UserUpdate {
-	uu.networks = &s
+	uu.mutation.SetNetworks(s)
 	return uu
 }
 
 // SetTabs sets the tabs field.
 func (uu *UserUpdate) SetTabs(s []string) *UserUpdate {
-	uu.tabs = &s
+	uu.mutation.SetTabs(s)
 	return uu
 }
 
 // ClearTabs clears the value of tabs.
 func (uu *UserUpdate) ClearTabs() *UserUpdate {
-	uu.tabs = nil
-	uu.cleartabs = true
+	uu.mutation.ClearTabs()
 	return uu
 }
 
 // AddTokenIDs adds the tokens edge to Token by ids.
 func (uu *UserUpdate) AddTokenIDs(ids ...int) *UserUpdate {
-	if uu.tokens == nil {
-		uu.tokens = make(map[int]struct{})
-	}
-	for i := range ids {
-		uu.tokens[ids[i]] = struct{}{}
-	}
+	uu.mutation.AddTokenIDs(ids...)
 	return uu
 }
 
@@ -121,12 +100,7 @@ func (uu *UserUpdate) AddTokens(t ...*Token) *UserUpdate {
 
 // RemoveTokenIDs removes the tokens edge to Token by ids.
 func (uu *UserUpdate) RemoveTokenIDs(ids ...int) *UserUpdate {
-	if uu.removedTokens == nil {
-		uu.removedTokens = make(map[int]struct{})
-	}
-	for i := range ids {
-		uu.removedTokens[ids[i]] = struct{}{}
-	}
+	uu.mutation.RemoveTokenIDs(ids...)
 	return uu
 }
 
@@ -141,26 +115,50 @@ func (uu *UserUpdate) RemoveTokens(t ...*Token) *UserUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	if uu.updated_at == nil {
+	if _, ok := uu.mutation.UpdatedAt(); !ok {
 		v := user.UpdateDefaultUpdatedAt()
-		uu.updated_at = &v
+		uu.mutation.SetUpdatedAt(v)
 	}
-	if uu.email != nil {
-		if err := user.EmailValidator(*uu.email); err != nil {
+	if v, ok := uu.mutation.Email(); ok {
+		if err := user.EmailValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
-	if uu.password != nil {
-		if err := user.PasswordValidator(*uu.password); err != nil {
+	if v, ok := uu.mutation.Password(); ok {
+		if err := user.PasswordValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"password\": %v", err)
 		}
 	}
-	if uu.role != nil {
-		if err := user.RoleValidator(*uu.role); err != nil {
+	if v, ok := uu.mutation.Role(); ok {
+		if err := user.RoleValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
 		}
 	}
-	return uu.sqlSave(ctx)
+
+	var (
+		err      error
+		affected int
+	)
+	if len(uu.hooks) == 0 {
+		affected, err = uu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*UserMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			uu.mutation = mutation
+			affected, err = uu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(uu.hooks); i > 0; i-- {
+			mut = uu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, uu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -203,62 +201,62 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := uu.updated_at; value != nil {
+	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldUpdatedAt,
 		})
 	}
-	if value := uu.email; value != nil {
+	if value, ok := uu.mutation.Email(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldEmail,
 		})
 	}
-	if value := uu.password; value != nil {
+	if value, ok := uu.mutation.Password(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldPassword,
 		})
 	}
-	if value := uu.role; value != nil {
+	if value, ok := uu.mutation.Role(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldRole,
 		})
 	}
-	if value := uu.addrole; value != nil {
+	if value, ok := uu.mutation.AddedRole(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldRole,
 		})
 	}
-	if value := uu.networks; value != nil {
+	if value, ok := uu.mutation.Networks(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldNetworks,
 		})
 	}
-	if value := uu.tabs; value != nil {
+	if value, ok := uu.mutation.Tabs(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldTabs,
 		})
 	}
-	if uu.cleartabs {
+	if uu.mutation.TabsCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: user.FieldTabs,
 		})
 	}
-	if nodes := uu.removedTokens; len(nodes) > 0 {
+	if nodes := uu.mutation.RemovedTokensIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -272,12 +270,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.tokens; len(nodes) > 0 {
+	if nodes := uu.mutation.TokensIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -291,7 +289,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -310,37 +308,26 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // UserUpdateOne is the builder for updating a single User entity.
 type UserUpdateOne struct {
 	config
-	id int
-
-	updated_at *time.Time
-	email      *string
-	password   *string
-	role       *int
-	addrole    *int
-
-	networks      *[]string
-	tabs          *[]string
-	cleartabs     bool
-	tokens        map[int]struct{}
-	removedTokens map[int]struct{}
+	hooks    []Hook
+	mutation *UserMutation
 }
 
 // SetEmail sets the email field.
 func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
-	uuo.email = &s
+	uuo.mutation.SetEmail(s)
 	return uuo
 }
 
 // SetPassword sets the password field.
 func (uuo *UserUpdateOne) SetPassword(s string) *UserUpdateOne {
-	uuo.password = &s
+	uuo.mutation.SetPassword(s)
 	return uuo
 }
 
 // SetRole sets the role field.
 func (uuo *UserUpdateOne) SetRole(i int) *UserUpdateOne {
-	uuo.role = &i
-	uuo.addrole = nil
+	uuo.mutation.ResetRole()
+	uuo.mutation.SetRole(i)
 	return uuo
 }
 
@@ -354,41 +341,31 @@ func (uuo *UserUpdateOne) SetNillableRole(i *int) *UserUpdateOne {
 
 // AddRole adds i to role.
 func (uuo *UserUpdateOne) AddRole(i int) *UserUpdateOne {
-	if uuo.addrole == nil {
-		uuo.addrole = &i
-	} else {
-		*uuo.addrole += i
-	}
+	uuo.mutation.AddRole(i)
 	return uuo
 }
 
 // SetNetworks sets the networks field.
 func (uuo *UserUpdateOne) SetNetworks(s []string) *UserUpdateOne {
-	uuo.networks = &s
+	uuo.mutation.SetNetworks(s)
 	return uuo
 }
 
 // SetTabs sets the tabs field.
 func (uuo *UserUpdateOne) SetTabs(s []string) *UserUpdateOne {
-	uuo.tabs = &s
+	uuo.mutation.SetTabs(s)
 	return uuo
 }
 
 // ClearTabs clears the value of tabs.
 func (uuo *UserUpdateOne) ClearTabs() *UserUpdateOne {
-	uuo.tabs = nil
-	uuo.cleartabs = true
+	uuo.mutation.ClearTabs()
 	return uuo
 }
 
 // AddTokenIDs adds the tokens edge to Token by ids.
 func (uuo *UserUpdateOne) AddTokenIDs(ids ...int) *UserUpdateOne {
-	if uuo.tokens == nil {
-		uuo.tokens = make(map[int]struct{})
-	}
-	for i := range ids {
-		uuo.tokens[ids[i]] = struct{}{}
-	}
+	uuo.mutation.AddTokenIDs(ids...)
 	return uuo
 }
 
@@ -403,12 +380,7 @@ func (uuo *UserUpdateOne) AddTokens(t ...*Token) *UserUpdateOne {
 
 // RemoveTokenIDs removes the tokens edge to Token by ids.
 func (uuo *UserUpdateOne) RemoveTokenIDs(ids ...int) *UserUpdateOne {
-	if uuo.removedTokens == nil {
-		uuo.removedTokens = make(map[int]struct{})
-	}
-	for i := range ids {
-		uuo.removedTokens[ids[i]] = struct{}{}
-	}
+	uuo.mutation.RemoveTokenIDs(ids...)
 	return uuo
 }
 
@@ -423,26 +395,50 @@ func (uuo *UserUpdateOne) RemoveTokens(t ...*Token) *UserUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	if uuo.updated_at == nil {
+	if _, ok := uuo.mutation.UpdatedAt(); !ok {
 		v := user.UpdateDefaultUpdatedAt()
-		uuo.updated_at = &v
+		uuo.mutation.SetUpdatedAt(v)
 	}
-	if uuo.email != nil {
-		if err := user.EmailValidator(*uuo.email); err != nil {
+	if v, ok := uuo.mutation.Email(); ok {
+		if err := user.EmailValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
-	if uuo.password != nil {
-		if err := user.PasswordValidator(*uuo.password); err != nil {
+	if v, ok := uuo.mutation.Password(); ok {
+		if err := user.PasswordValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"password\": %v", err)
 		}
 	}
-	if uuo.role != nil {
-		if err := user.RoleValidator(*uuo.role); err != nil {
+	if v, ok := uuo.mutation.Role(); ok {
+		if err := user.RoleValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
 		}
 	}
-	return uuo.sqlSave(ctx)
+
+	var (
+		err  error
+		node *User
+	)
+	if len(uuo.hooks) == 0 {
+		node, err = uuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*UserMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			uuo.mutation = mutation
+			node, err = uuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(uuo.hooks); i > 0; i-- {
+			mut = uuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, uuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -473,68 +469,72 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 			Table:   user.Table,
 			Columns: user.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  uuo.id,
 				Type:   field.TypeInt,
 				Column: user.FieldID,
 			},
 		},
 	}
-	if value := uuo.updated_at; value != nil {
+	id, ok := uuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing User.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldUpdatedAt,
 		})
 	}
-	if value := uuo.email; value != nil {
+	if value, ok := uuo.mutation.Email(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldEmail,
 		})
 	}
-	if value := uuo.password; value != nil {
+	if value, ok := uuo.mutation.Password(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldPassword,
 		})
 	}
-	if value := uuo.role; value != nil {
+	if value, ok := uuo.mutation.Role(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldRole,
 		})
 	}
-	if value := uuo.addrole; value != nil {
+	if value, ok := uuo.mutation.AddedRole(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldRole,
 		})
 	}
-	if value := uuo.networks; value != nil {
+	if value, ok := uuo.mutation.Networks(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldNetworks,
 		})
 	}
-	if value := uuo.tabs; value != nil {
+	if value, ok := uuo.mutation.Tabs(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: user.FieldTabs,
 		})
 	}
-	if uuo.cleartabs {
+	if uuo.mutation.TabsCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: user.FieldTabs,
 		})
 	}
-	if nodes := uuo.removedTokens; len(nodes) > 0 {
+	if nodes := uuo.mutation.RemovedTokensIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -548,12 +548,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.tokens; len(nodes) > 0 {
+	if nodes := uuo.mutation.TokensIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -567,7 +567,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

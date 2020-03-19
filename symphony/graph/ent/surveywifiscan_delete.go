@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // SurveyWiFiScanDelete is the builder for deleting a SurveyWiFiScan entity.
 type SurveyWiFiScanDelete struct {
 	config
+	hooks      []Hook
+	mutation   *SurveyWiFiScanMutation
 	predicates []predicate.SurveyWiFiScan
 }
 
@@ -30,7 +33,30 @@ func (swfsd *SurveyWiFiScanDelete) Where(ps ...predicate.SurveyWiFiScan) *Survey
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (swfsd *SurveyWiFiScanDelete) Exec(ctx context.Context) (int, error) {
-	return swfsd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(swfsd.hooks) == 0 {
+		affected, err = swfsd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyWiFiScanMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			swfsd.mutation = mutation
+			affected, err = swfsd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(swfsd.hooks); i > 0; i-- {
+			mut = swfsd.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, swfsd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.

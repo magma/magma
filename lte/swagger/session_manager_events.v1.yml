@@ -1,0 +1,40 @@
+
+---
+swagger: '2.0'
+
+info:
+  title: Session Manager definitions
+  description: These events occur in session_manager
+  version: 1.0.0
+
+definitions:
+  session_created:
+    type: object
+    description: Used to track when a session was created
+    properties:
+      imsi:
+        type: string
+      session_id:
+        type: string
+  session_terminated:
+    type: object
+    description: Used to track total session metrics
+    properties:
+      imsi:
+        type: string
+      ip_addr:
+        type: string
+      session_id:
+        type: string
+      charging_tx:
+        type: integer
+        minimum: 0
+      charging_rx:
+        type: integer
+        minimum: 0
+      monitoring_tx:
+        type: integer
+        minimum: 0
+      monitoring_rx:
+        type: integer
+        minimum: 0

@@ -20,7 +20,6 @@ import (
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 )
 
@@ -161,16 +160,9 @@ func (testRunner *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
 
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
 // by running an iperf3 client on the UE simulator and an iperf3 server on the
-// Magma traffic server. volume, if provided, specifies the volume of data
-// generated and it should be in the form of "1024K", "2048M" etc
-func (testRunner *TestRunner) GenULTraffic(imsi string, volume *string) error {
-	fmt.Printf("************************* Generating Traffic for UE with IMSI: %s\n", imsi)
-	req := &cwfprotos.GenTrafficRequest{
-		Imsi: imsi,
-	}
-	if volume != nil {
-		req.Volume = &wrappers.StringValue{Value: *volume}
-	}
+// Magma traffic server.
+func (testRunner *TestRunner) GenULTraffic(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
+	fmt.Printf("************************* Generating Traffic for UE with Req: %v\n", req)
 	return uesim.GenTraffic(req)
 }
 
@@ -274,8 +266,4 @@ func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.
 			ApnConfig:           []*lteprotos.APNConfiguration{&lteprotos.APNConfiguration{}},
 		},
 	}
-}
-
-func makeDynamicRuleIDFromIMSI(imsi string) string {
-	return "dynrule1-" + imsi
 }

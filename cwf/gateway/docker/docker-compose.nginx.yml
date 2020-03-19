@@ -1,0 +1,7 @@
+version: "3.7"
+
+services:
+  nginx:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: cwf/gateway/docker/nginx/Dockerfile

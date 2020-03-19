@@ -125,13 +125,6 @@ func Description(v string) predicate.Project {
 	})
 }
 
-// Creator applies equality check predicate on the "creator" field. It's identical to CreatorEQ.
-func Creator(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreator), v))
-	})
-}
-
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
@@ -520,131 +513,6 @@ func DescriptionContainsFold(v string) predicate.Project {
 	})
 }
 
-// CreatorEQ applies the EQ predicate on the "creator" field.
-func CreatorEQ(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreator), v))
-	})
-}
-
-// CreatorNEQ applies the NEQ predicate on the "creator" field.
-func CreatorNEQ(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreator), v))
-	})
-}
-
-// CreatorIn applies the In predicate on the "creator" field.
-func CreatorIn(vs ...string) predicate.Project {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Project(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldCreator), v...))
-	})
-}
-
-// CreatorNotIn applies the NotIn predicate on the "creator" field.
-func CreatorNotIn(vs ...string) predicate.Project {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Project(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldCreator), v...))
-	})
-}
-
-// CreatorGT applies the GT predicate on the "creator" field.
-func CreatorGT(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreator), v))
-	})
-}
-
-// CreatorGTE applies the GTE predicate on the "creator" field.
-func CreatorGTE(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreator), v))
-	})
-}
-
-// CreatorLT applies the LT predicate on the "creator" field.
-func CreatorLT(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreator), v))
-	})
-}
-
-// CreatorLTE applies the LTE predicate on the "creator" field.
-func CreatorLTE(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreator), v))
-	})
-}
-
-// CreatorContains applies the Contains predicate on the "creator" field.
-func CreatorContains(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldCreator), v))
-	})
-}
-
-// CreatorHasPrefix applies the HasPrefix predicate on the "creator" field.
-func CreatorHasPrefix(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldCreator), v))
-	})
-}
-
-// CreatorHasSuffix applies the HasSuffix predicate on the "creator" field.
-func CreatorHasSuffix(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldCreator), v))
-	})
-}
-
-// CreatorIsNil applies the IsNil predicate on the "creator" field.
-func CreatorIsNil() predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldCreator)))
-	})
-}
-
-// CreatorNotNil applies the NotNil predicate on the "creator" field.
-func CreatorNotNil() predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldCreator)))
-	})
-}
-
-// CreatorEqualFold applies the EqualFold predicate on the "creator" field.
-func CreatorEqualFold(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldCreator), v))
-	})
-}
-
-// CreatorContainsFold applies the ContainsFold predicate on the "creator" field.
-func CreatorContainsFold(v string) predicate.Project {
-	return predicate.Project(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldCreator), v))
-	})
-}
-
 // HasType applies the HasEdge predicate on the "type" edge.
 func HasType() predicate.Project {
 	return predicate.Project(func(s *sql.Selector) {
@@ -776,6 +644,34 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.Project {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PropertiesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, PropertiesTable, PropertiesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCreator applies the HasEdge predicate on the "creator" edge.
+func HasCreator() predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatorTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CreatorTable, CreatorColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCreatorWith applies the HasEdge predicate on the "creator" edge with a given conditions (other predicates).
+func HasCreatorWith(preds ...predicate.User) predicate.Project {
+	return predicate.Project(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CreatorInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, CreatorTable, CreatorColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

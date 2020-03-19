@@ -35,7 +35,7 @@ type File struct {
 	// UploadedAt holds the value of the "uploaded_at" field.
 	UploadedAt time.Time `json:"uploaded_at,omitempty" gqlgen:"uploaded"`
 	// ContentType holds the value of the "content_type" field.
-	ContentType string `json:"content_type,omitempty"`
+	ContentType string `json:"content_type,omitempty" gqlgen:"mimeType"`
 	// StoreKey holds the value of the "store_key" field.
 	StoreKey string `json:"store_key,omitempty"`
 	// Category holds the value of the "category" field.

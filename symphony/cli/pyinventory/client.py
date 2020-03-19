@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import re
 from distutils.version import LooseVersion
 from typing import Any, Dict, Optional, Tuple
 
@@ -8,23 +9,29 @@ from gql.gql.graphql_client import GraphqlClient
 from gql.gql.reporter import DUMMY_REPORTER, Reporter
 from requests import Session
 from requests.auth import HTTPBasicAuth
+from requests.models import Response
 
 from .consts import (
     INVENTORY_ENDPOINT,
     INVENTORY_GRAPHQL_ENDPOINT,
+    INVENTORY_LOGIN_ENDPOINT,
     INVENTORY_STORE_DELETE_ENDPOINT,
     INVENTORY_STORE_PUT_ENDPOINT,
     LOCALHOST_INVENTORY_ENDPOINT,
+    EquipmentPortType,
+    EquipmentType,
+    LocationType,
+    ServiceType,
     __version__,
 )
 from .graphql.latest_python_package_query import LatestPythonPackageQuery
 
 
 class SymphonyClient(GraphqlClient):
-    locationTypes: Dict[str, Any] = {}
-    equipmentTypes: Dict[str, Any] = {}
-    serviceTypes: Dict[str, Any] = {}
-    portTypes: Dict[str, Any] = {}
+    locationTypes: Dict[str, LocationType] = {}
+    equipmentTypes: Dict[str, EquipmentType] = {}
+    serviceTypes: Dict[str, ServiceType] = {}
+    portTypes: Dict[str, EquipmentPortType] = {}
 
     def __init__(
         self,
@@ -61,12 +68,14 @@ class SymphonyClient(GraphqlClient):
 
         """
 
-        address = (
+        self.email = email
+        self.password = password
+        self.address: str = (
             LOCALHOST_INVENTORY_ENDPOINT.format(tenant)
             if is_local_host
             else INVENTORY_ENDPOINT.format(tenant)
         )
-        graphql_endpoint_address = address + INVENTORY_GRAPHQL_ENDPOINT
+        graphql_endpoint_address = self.address + INVENTORY_GRAPHQL_ENDPOINT
 
         self.session: Session = Session()
         self.session.auth = HTTPBasicAuth(email, password)
@@ -77,10 +86,15 @@ class SymphonyClient(GraphqlClient):
 
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        self.put_endpoint: str = address + INVENTORY_STORE_PUT_ENDPOINT
-        self.delete_endpoint: str = address + INVENTORY_STORE_DELETE_ENDPOINT
+        self.put_endpoint: str = self.address + INVENTORY_STORE_PUT_ENDPOINT
+        self.delete_endpoint: str = self.address + INVENTORY_STORE_DELETE_ENDPOINT
 
-        super().__init__(graphql_endpoint_address, self.session, reporter)
+        super().__init__(
+            graphql_endpoint_address,
+            self.session,
+            "Pyinventory/" + __version__,
+            reporter,
+        )
         self._verify_version_is_not_broken()
 
     def _verify_version_is_not_broken(self) -> None:
@@ -153,3 +167,29 @@ class SymphonyClient(GraphqlClient):
         signed_url = sign_response.headers["location"]
         response = self.session.delete(signed_url)
         response.raise_for_status()
+
+    def post(self, url: str, json: Optional[Dict[str, Any]] = None) -> Response:
+        if "x-csrf-token" not in self.session.headers:
+            self._login()
+        return self.session.post("".join([self.address, url]), json=json)
+
+    def _login(self) -> None:
+        login_endpoint = self.address + INVENTORY_LOGIN_ENDPOINT
+        response = self.session.get(login_endpoint)
+        match = re.search(b'"csrfToken":"([^"]+)"', response.content)
+        assert match is not None, "Problem with inventory login"
+        csrf_token = match.group(1).decode("ascii")
+        login_data = "_csrf={0}&email={1}&password={2}".format(
+            csrf_token, self.email, self.password
+        ).encode("ascii")
+        response = self.session.post(
+            login_endpoint,
+            data=login_data,
+            headers={"Content-type": "application/x-www-form-urlencoded"},
+        )
+        response.raise_for_status()
+        assert (
+            re.search('"email":"{}"'.format(self.email).encode(), response.content)
+            is not None
+        ), "Credentials are incorrect"
+        self.session.headers.update({"x-csrf-token": csrf_token})
