@@ -95,11 +95,11 @@ function userMiddleware(options: Options): express.Router {
       return;
     }
 
-    let isSSO = false;
+    let ssoSelectedType = 'none';
     try {
       if (req.organization) {
         const org = await req.organization();
-        isSSO = !!org.ssoEntrypoint;
+        ssoSelectedType = org.ssoSelectedType || 'none';
       }
     } catch (e) {
       logger.error('Error getting organization', e);
@@ -107,7 +107,8 @@ function userMiddleware(options: Options): express.Router {
 
     const appData: AppContextAppData = {
       csrfToken: req.csrfToken(),
-      ssoEnabled: isSSO,
+      ssoEnabled: ssoSelectedType !== 'none',
+      ssoSelectedType,
       csvCharset: null,
       enabledFeatures: [],
       tabs: [],

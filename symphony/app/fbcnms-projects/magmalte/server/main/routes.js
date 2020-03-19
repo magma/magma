@@ -37,6 +37,7 @@ const handleReact = _tab =>
         : {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
       enabledFeatures: await getEnabledFeatures(req, null),
       ssoEnabled: false,
+      ssoSelectedType: 'none',
       csvCharset: null,
     };
     res.render('index', {

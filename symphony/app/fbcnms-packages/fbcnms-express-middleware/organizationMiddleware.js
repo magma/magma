@@ -37,6 +37,7 @@ export async function getOrganization(req: {
     if (host != null && host !== '') {
       const org = await getOrganizationFromHost(host);
       if (org) {
+        org.name;
         return org;
       }
     }
