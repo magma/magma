@@ -137,6 +137,7 @@ service MockPCRF {
     rpc SetRules (AccountRules) returns (magma.orc8r.Void) {}
     rpc SetUsageMonitors (UsageMonitorConfiguration) returns (magma.orc8r.Void) {}
     rpc ClearSubscribers (magma.orc8r.Void) returns (magma.orc8r.Void) {}
+    rpc ReAuth(PolicyReAuthTarget) returns (PolicyReAuthAnswer) {}
 
     rpc SetExpectations(GxCreditControlExpectations) returns (magma.orc8r.Void) {}
     rpc AssertExpectations(magma.orc8r.Void) returns (GxCreditControlResult) {}
@@ -296,4 +297,19 @@ message Octets {
     uint64 total_octets = 1;
     uint64 input_octets = 2;
     uint64 output_octets = 3;
+}
+
+message PolicyReAuthTarget {
+    string imsi = 1;
+    RuleRemovals rules_to_remove = 2;
+    RuleInstalls rules_to_install = 3;
+    repeated UsageMonitoringInformation usage_monitoring_infos = 4;
+    // TODO repeated magma.lte.EventTrigger event_triggers = 5;
+    // TODO google.protobuf.Timestamp revalidation_time = 6;
+}
+
+message PolicyReAuthAnswer {
+    string session_id = 1;
+    uint32 result_code = 2;
+    map<string, uint32> failed_rules = 3;
 }
