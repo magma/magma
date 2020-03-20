@@ -28,7 +28,7 @@
 
 #include "intertask_interface.h"
 #include "log.h"
-#include "RpcClient.h"
+#include "MobilityClientAPI.h"
 #include "sgw_paging.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"

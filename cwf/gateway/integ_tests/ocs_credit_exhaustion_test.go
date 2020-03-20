@@ -10,14 +10,11 @@ package integ_tests
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
-	"fbc/lib/go/radius/rfc2869"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/plugin/models"
 
 	"github.com/go-openapi/swag"
@@ -88,17 +85,11 @@ func TestAuthenticateOcsCreditExhaustedWithCRRU(t *testing.T) {
 
 	// Wait for rules propagation
 	time.Sleep(2 * time.Second)
-	radiusP, err := tr.Authenticate(ue.GetImsi())
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage)
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
-	time.Sleep(2 * time.Second)
+	tr.AuthenticateAndAssertSuccess(t, ue.GetImsi())
 
 	// we need to generate over 80% of the quota to trigger a CCR update
 	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("5M")}}
-	_, err = tr.GenULTraffic(req)
+	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	time.Sleep(3 * time.Second)
 
@@ -139,17 +130,11 @@ func TestAuthenticateOcsCreditExhaustedWithoutCRRU(t *testing.T) {
 
 	// Wait for rules propagation
 	time.Sleep(2 * time.Second)
-	radiusP, err := tr.Authenticate(ue.GetImsi())
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage)
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
-	time.Sleep(2 * time.Second)
+	tr.AuthenticateAndAssertSuccess(t, ue.GetImsi())
 
 	// we need to generate over 100% of the quota to trigger a session termination
 	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("5M")}}
-	_, err = tr.GenULTraffic(req)
+	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
 	// Wait for traffic to go through

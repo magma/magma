@@ -33,7 +33,7 @@ func ExecInTx(
 			err = tx.Commit()
 		default:
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				glog.Errorf("error rolling back tx: %s", err)
+				glog.Errorf("error rolling back tx: %s", rollbackErr)
 			}
 		}
 	}()

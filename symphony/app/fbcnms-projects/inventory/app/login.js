@@ -36,7 +36,9 @@ function LoginWrapper() {
   return (
     <LoginForm
       action={history.createHref({pathname: '/user/login'})}
-      ssoAction={history.createHref({pathname: '/user/login/saml'})}
+      ssoAction={history.createHref({
+        pathname: '/user/login/' + appData.ssoSelectedType,
+      })}
       title={fbt('Connectivity Platform', 'Main page title')}
       ssoEnabled={appData.ssoEnabled}
       csrfToken={appData.csrfToken}

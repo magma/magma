@@ -76,7 +76,8 @@ def main() -> None:
         _run_docker(['up', '-d', 'postgres_test'])
         _run_docker(['build', 'test'])
         _run_docker(['run', '--rm', 'test', 'make test'])
-        _run_docker(['down'])
+        if not args.leave:
+            _run_docker(['down'])
     else:
         _run_docker(files_args + _get_docker_build_args(args))
 
@@ -277,7 +278,9 @@ def _parse_args() -> argparse.Namespace:
     """ Parse the command line args """
     parser = argparse.ArgumentParser(description='Orc8r build tool')
     parser.add_argument('--tests', '-t', action='store_true',
-                        help="Run unit tests")
+                        help='Run unit tests')
+    parser.add_argument('--leave', '-l', action='store_true',
+                        help='Leave containers running after running tests')
     parser.add_argument('--mount', '-m', action='store_true',
                         help='Mount the source code and create a bash shell')
     parser.add_argument('--generate', '-g', action='store_true',

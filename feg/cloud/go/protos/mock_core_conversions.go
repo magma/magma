@@ -52,6 +52,15 @@ func (m *GxCreditControlAnswer) SetDynamicRuleInstalls(rules []*RuleDefinition) 
 	return m
 }
 
+func (m *GxCreditControlAnswer) SetStaticRuleRemovals(rulesIDs, baseNames []string) *GxCreditControlAnswer {
+	if m.RuleRemovals == nil {
+		m.RuleRemovals = &RuleRemovals{}
+	}
+	m.RuleRemovals.RuleNames = rulesIDs
+	m.RuleRemovals.RuleBaseNames = baseNames
+	return m
+}
+
 func (m *GxCreditControlRequest) SetUsageMonitorReports(reports []*UsageMonitoringInformation) *GxCreditControlRequest {
 	m.UsageMonitoringReports = reports
 	return m

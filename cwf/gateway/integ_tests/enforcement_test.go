@@ -11,14 +11,11 @@ package integ_tests
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
-	"fbc/lib/go/radius/rfc2869"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/plugin/models"
 	lteProtos "magma/lte/cloud/go/protos"
 
@@ -34,8 +31,8 @@ const (
 	Buffer    = 50 * KiloBytes
 )
 
-func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestAuthenticateUplinkTrafficWithEnforcement...")
+func TestBasicUplinkTrafficWithEnforcement(t *testing.T) {
+	fmt.Println("\nRunning TestBasicUplinkTrafficWithEnforcement...")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -75,12 +72,7 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	// wait for the rules to be synced into sessiond
 	time.Sleep(1 * time.Second)
 
-	radiusP, err := tr.Authenticate(imsi)
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	tr.AuthenticateAndAssertSuccess(t, imsi)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
 	_, err = tr.GenULTraffic(req)
@@ -130,9 +122,140 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 		{ExpectationIndex: 0, ExpectationMet: true},
 	}
 	assert.ElementsMatch(t, expectedResult, resultByIndex)
-	assert.NoError(t, clearPCRFMockDriver())
 
 	// Clear hss, ocs, and pcrf
+	assert.NoError(t, clearPCRFMockDriver())
+	assert.NoError(t, ruleManager.RemoveInstalledRules())
+	assert.NoError(t, tr.CleanUp())
+}
+
+// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//   respond with a rule install (static-pass-all-1).
+//   Generate traffic and assert the CCR-I is received.
+// - Set an expectation for a CCR-U to be sent up to PCRF, to which it will
+//   respond with a rule removal (static-pass-all-1) and rule install (static-pass-all-2).
+//   Generate traffic and assert the CCR-U is received.
+// - Generate traffic to put traffic through the newly installed rule.
+//   Assert that there's > 0 data usage in the rule.
+func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
+	fmt.Println("\nRunning TestMidSessionRuleRemovalWithCCA_U...")
+
+	tr := NewTestRunner()
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+	assert.NoError(t, usePCRFMockDriver())
+
+	ues, err := tr.ConfigUEs(1)
+	assert.NoError(t, err)
+	imsi := ues[0].GetImsi()
+
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-1", "mkey1", 0, models.PolicyRuleTrackingTypeONLYPCRF, 100)
+	assert.NoError(t, err)
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-2", "mkey2", 0, models.PolicyRuleTrackingTypeONLYPCRF, 150)
+	assert.NoError(t, err)
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-3", "mkey2", 0, models.PolicyRuleTrackingTypeONLYPCRF, 200)
+	assert.NoError(t, err)
+	err = ruleManager.AddBaseNameMappingToDB("base-1", []string{"static-pass-all-3"})
+
+	usageMonitorInfo := []*protos.UsageMonitoringInformation{
+		{
+			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
+			MonitoringKey:   []byte("mkey1"),
+			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
+		},
+	}
+
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initAnswer := protos.NewGxCCAnswer(diam.Success).
+		SetStaticRuleInstalls([]string{"static-pass-all-1"}, []string{"base-1"}).
+		SetUsageMonitorInfos(usageMonitorInfo)
+	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	// Remove the high priority Rule
+	defaultUpdateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo)
+	expectations := []*protos.GxCreditControlExpectation{initExpectation}
+	// On unexpected requests, just return some quota
+	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
+
+	// wait for the rules to be synced into sessiond
+	time.Sleep(1 * time.Second)
+
+	tr.AuthenticateAndAssertSuccess(t, imsi)
+
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+
+	// At this point both static-pass-all-1 & static-pass-all-3 are installed.
+	// Since static-pass-all-1 has higher precedence, it will get hit.
+	// Wait for some traffic to go through
+	time.Sleep(1 * time.Second)
+
+	// Assert that enforcement_stats rules are properly installed and the right
+	// amount of data was passed through
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	record1 := recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"]
+	if record1 != nil {
+		assert.True(t, record1.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record1.RuleId))
+	}
+	assert.NotNil(t, record1, fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-1", imsi))
+
+	// Assert that a CCR-I was sent up to the PCRF
+	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	assert.NoError(t, err)
+	assert.Empty(t, errByIndex)
+	expectedResult := []*protos.ExpectationResult{
+		{ExpectationIndex: 0, ExpectationMet: true},
+	}
+	assert.ElementsMatch(t, expectedResult, resultByIndex)
+
+	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
+		SetUsageMonitorReports(usageMonitorInfo).
+		SetUsageReportDelta(250 * KiloBytes * 0.5)
+	updateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo).
+		SetStaticRuleInstalls([]string{"static-pass-all-2"}, []string{}).
+		SetStaticRuleRemovals([]string{"static-pass-all-1"}, []string{"base-1"})
+	updateExpectation := protos.NewGxCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
+	expectations = []*protos.GxCreditControlExpectation{updateExpectation}
+	// On unexpected requests, just return some quota
+	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
+
+	fmt.Println("Generating traffic again to trigger a CCR/A-U so that 'static-pass-all-1' gets removed")
+	// Generate traffic to trigger the CCR-U so that the rule removal/install happens
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	time.Sleep(3 * time.Second)
+
+	fmt.Println("Generating traffic again to put data through static-pass-all-2")
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	// Wait for some traffic to go through
+	time.Sleep(1 * time.Second)
+
+	// Assert that we sent back a CCA-Update with RuleRemovals
+	resultByIndex, errByIndex, err = getAssertExpectationsResult()
+	assert.NoError(t, err)
+	assert.Empty(t, errByIndex)
+	expectedResult = []*protos.ExpectationResult{
+		{ExpectationIndex: 0, ExpectationMet: true},
+	}
+	assert.ElementsMatch(t, expectedResult, resultByIndex)
+
+	recordsBySubID, err = tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	record2 := recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"]
+	assert.NotNil(t, record1, fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-2", imsi))
+	if record2 != nil {
+		// This rule should have passed some traffic
+		assert.True(t, record2.BytesTx > 0, fmt.Sprintf("%s did not pass any data", record2.RuleId))
+	}
+
+	_, err = tr.Disconnect(imsi)
+	assert.NoError(t, err)
+	time.Sleep(3 * time.Second)
+
+	// Clear hss, ocs, and pcrf
+	assert.NoError(t, clearPCRFMockDriver())
 	assert.NoError(t, ruleManager.RemoveInstalledRules())
 	assert.NoError(t, tr.CleanUp())
 }
@@ -164,12 +287,7 @@ func TestAuthenticateUplinkTrafficWithQosEnforcement(t *testing.T) {
 	// wait for the rules to be synced into sessiond
 	time.Sleep(1 * time.Second)
 
-	radiusP, err := tr.Authenticate(imsi)
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	tr.AuthenticateAndAssertSuccess(t, imsi)
 
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:       imsi,
@@ -247,12 +365,7 @@ func testAuthenticateDownlinkTrafficWithQosEnforcement(t *testing.T) {
 	// wait for the rules to be synced into sessiond
 	time.Sleep(3 * time.Second)
 
-	radiusP, err := tr.Authenticate(imsi)
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	tr.AuthenticateAndAssertSuccess(t, imsi)
 
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:        imsi,
@@ -292,5 +405,4 @@ func testAuthenticateDownlinkTrafficWithQosEnforcement(t *testing.T) {
 	// Clear hss, ocs, and pcrf
 	assert.NoError(t, ruleManager.RemoveInstalledRules())
 	assert.NoError(t, tr.CleanUp())
-	clearPCRFMockDriver()
 }

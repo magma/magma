@@ -15,7 +15,7 @@ import logging from '@fbcnms/logging';
 import passport from 'passport';
 import staticDist from 'fbcnms-webpack-config/staticDist';
 import {AccessRoles, accessRoleToString} from './roles';
-import {User} from '@fbcnms/sequelize-models';
+import {AuditLogEntry, User} from '@fbcnms/sequelize-models';
 import {access} from './access';
 import {
   addQueryParamsToUrl,
@@ -28,8 +28,10 @@ import {isEmpty} from 'lodash';
 import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';
+import type {UserType} from '@fbcnms/sequelize-models/models/user';
 
 const logger = logging.getLogger(module);
+const PASSWORD_FOR_LOGGING = '<SECRET>';
 
 type Options = {|
   loginSuccessUrl: string,
@@ -95,11 +97,11 @@ function userMiddleware(options: Options): express.Router {
       return;
     }
 
-    let isSSO = false;
+    let ssoSelectedType = 'none';
     try {
       if (req.organization) {
         const org = await req.organization();
-        isSSO = !!org.ssoEntrypoint;
+        ssoSelectedType = org.ssoSelectedType || 'none';
       }
     } catch (e) {
       logger.error('Error getting organization', e);
@@ -107,7 +109,8 @@ function userMiddleware(options: Options): express.Router {
 
     const appData: AppContextAppData = {
       csrfToken: req.csrfToken(),
-      ssoEnabled: isSSO,
+      ssoEnabled: ssoSelectedType !== 'none',
+      ssoSelectedType,
       csvCharset: null,
       enabledFeatures: [],
       tabs: [],
@@ -130,10 +133,36 @@ function userMiddleware(options: Options): express.Router {
     }),
   );
 
+  router.get(
+    '/login/oidc',
+    passport.authenticate('oidc', {
+      failureRedirect: options.loginFailureUrl,
+    }),
+  );
+  router.get('/login/oidc/callback', (req: FBCNMSRequest, res, next) => {
+    const to = req.query.to;
+    const loginSuccessUrl =
+      ensureRelativeUrl(Array.isArray(to) ? null : to) || '/';
+    passport.authenticate('oidc', (err, user, _info) => {
+      if (!user || err) {
+        logger.error('Error logging in with oidc: ' + err);
+        return res.redirect(options.loginFailureUrl);
+      }
+      req.logIn(user, err => {
+        if (err) {
+          next(err);
+          return;
+        }
+        res.redirect(loginSuccessUrl);
+      });
+    })(req, res, next);
+  });
+
   router.get('/logout', (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
       req.logout();
     }
+    delete req.session.oidc;
     res.redirect('/');
   });
 
@@ -238,10 +267,17 @@ function userMiddleware(options: Options): express.Router {
           }
         }
         const user = await User.create(userProperties);
-
+        await logUserChange(
+          req,
+          req.user,
+          'CREATE',
+          {...userProperties},
+          'SUCCESS',
+        );
         res.status(201).send({user});
       } catch (error) {
         res.status(400).send({error: error.toString()});
+        await logUserChange(req, req.user, 'CREATE', req.body, 'FAILURE');
       }
     },
   );
@@ -275,8 +311,10 @@ function userMiddleware(options: Options): express.Router {
 
         // Update user's password
         await user.update(userProperties);
+        await logUserChange(req, req.user, 'UPDATE', req.body, 'SUCCESS');
         res.status(200).send({user});
       } catch (error) {
+        await logUserChange(req, req.user, 'UPDATE', req.body, 'FAILURE');
         res.status(400).send({error: error.toString()});
       }
     },
@@ -291,8 +329,10 @@ function userMiddleware(options: Options): express.Router {
       try {
         const where = await injectOrganizationParams(req, {id});
         await User.destroy({where});
+        await logUserChange(req, req.user, 'DELETE', {}, 'SUCCESS');
         res.status(200).send();
       } catch (error) {
+        await logUserChange(req, req.user, 'DELETE', {}, 'FAILURE');
         res.status(400).send({error: error.toString()});
       }
     },
@@ -308,8 +348,10 @@ function userMiddleware(options: Options): express.Router {
 
       const hashedPassword = await validateAndHashPassword(newPassword);
       await req.user.update({password: hashedPassword});
+      await logUserChange(req, req.user, 'UPDATE', {password: ''}, 'SUCCESS');
       res.status(200).send();
     } catch (error) {
+      await logUserChange(req, req.user, 'UPDATE', {password: ''}, 'FAILURE');
       res.status(400).send({error: error.toString()});
     }
   });
@@ -322,6 +364,39 @@ function ensureRelativeUrl(url: ?string): ?string {
     return null;
   }
   return url;
+}
+
+async function logUserChange(
+  req: FBCNMSRequest,
+  target: UserType,
+  mutationType: 'CREATE' | 'UPDATE' | 'DELETE',
+  data: {[string]: mixed},
+  status: 'SUCCESS' | 'FAILURE',
+) {
+  let org;
+  if (req.organization) {
+    org = await req.organization();
+  }
+
+  const mutationData = {...data};
+  if (data.password != null) {
+    mutationData.password = PASSWORD_FOR_LOGGING;
+  }
+
+  const auditLog = {
+    actingUserId: req.user.id,
+    organization: org?.name || '<NO_ORGANIZATION>',
+    mutationType,
+    objectId: `${target.id}`,
+    objectType: 'USER',
+    objectDisplayName: target.email,
+    mutationData,
+    url: req.originalUrl,
+    ipAddress: req.ip,
+    status,
+    statusCode: 'N/A',
+  };
+  await AuditLogEntry.create(auditLog);
 }
 
 export default userMiddleware;
