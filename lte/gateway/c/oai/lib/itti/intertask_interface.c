@@ -107,11 +107,30 @@ typedef struct thread_desc_s {
    * State of the thread
    */
   volatile task_state_t task_state;
+/*
+   * This fd is used internally by ITTI.
+   */
+  int epoll_fd;
 
   /*
    * The thread fd
    */
   int task_event_fd;
+
+  /*
+   * Number of events to monitor
+   */
+  uint16_t nb_events;
+  
+  int epoll_nb_events;
+
+  /*
+   * Array of events monitored by the task.
+   * * * By default only one fd is monitored (the one used to received messages
+   * * * from other tasks).
+   * * * More events can be suscribed later by the task itself.
+   */
+  struct epoll_event *events;
 } thread_desc_t;
 
 typedef struct task_desc_s {
@@ -488,6 +507,79 @@ int itti_send_msg_to_task(
   }
 
   return 0;
+}
+
+void itti_subscribe_event_fd(task_id_t task_id, int fd) {
+  thread_id_t thread_id;
+  struct epoll_event event;
+
+  AssertFatal(task_id < itti_desc.task_max,
+              "Task id (%d) is out of range (%d)!\n", task_id,
+              itti_desc.task_max);
+  thread_id = TASK_GET_THREAD_ID(task_id);
+  itti_desc.threads[thread_id].nb_events++;
+  /*
+   * Reallocate the events
+   */
+  itti_desc.threads[thread_id].events = realloc(
+      itti_desc.threads[thread_id].events,
+      itti_desc.threads[thread_id].nb_events * sizeof(struct epoll_event));
+  event.events = EPOLLIN | EPOLLERR;
+  event.data.u64 = 0;
+  event.data.fd = fd;
+
+  /*
+   * Add the event fd to the list of monitored events
+   */
+  if (epoll_ctl(itti_desc.threads[thread_id].epoll_fd, EPOLL_CTL_ADD, fd,
+                &event) != 0) {
+    /*
+     * Always assert on this condition
+     */
+    AssertFatal(0, "epoll_ctl (EPOLL_CTL_ADD) failed for task %s, fd %d: %s!\n",
+                itti_get_task_name(task_id), fd, strerror(errno));
+  }
+
+  ITTI_DEBUG(ITTI_DEBUG_EVEN_FD, " Successfully subscribed fd %d for task %s\n",
+             fd, itti_get_task_name(task_id));
+}
+
+void itti_unsubscribe_event_fd(task_id_t task_id, int fd) {
+  thread_id_t thread_id;
+
+  AssertFatal(task_id < itti_desc.task_max,
+              "Task id (%d) is out of range (%d)!\n", task_id,
+              itti_desc.task_max);
+  AssertFatal(fd >= 0, "File descriptor (%d) is invalid!\n", fd);
+  thread_id = TASK_GET_THREAD_ID(task_id);
+
+  /*
+   * Add the event fd to the list of monitored events
+   */
+  if (epoll_ctl(itti_desc.threads[thread_id].epoll_fd, EPOLL_CTL_DEL, fd,
+                NULL) != 0) {
+    /*
+     * Always assert on this condition
+     */
+    AssertFatal(0, "epoll_ctl (EPOLL_CTL_DEL) failed for task %s, fd %d: %s!\n",
+                itti_get_task_name(task_id), fd, strerror(errno));
+  }
+
+  itti_desc.threads[thread_id].nb_events--;
+  itti_desc.threads[thread_id].events = realloc(
+      itti_desc.threads[thread_id].events,
+      itti_desc.threads[thread_id].nb_events * sizeof(struct epoll_event));
+}
+
+int itti_get_events(task_id_t task_id, struct epoll_event **events) {
+  thread_id_t thread_id;
+
+  AssertFatal(task_id < itti_desc.task_max,
+              "Task id (%d) is out of range (%d)\n", task_id,
+              itti_desc.task_max);
+  thread_id = TASK_GET_THREAD_ID(task_id);
+  *events = itti_desc.threads[thread_id].events;
+  return itti_desc.threads[thread_id].epoll_nb_events;
 }
 
 void itti_receive_msg(task_id_t task_id, MessageDef **received_msg)
