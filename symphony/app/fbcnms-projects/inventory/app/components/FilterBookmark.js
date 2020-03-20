@@ -324,7 +324,9 @@ const FilterBookmark = (props: Props) => {
               </div>
               <TextInput
                 type="string"
-                placeholder={isBookmark ? name : `${fbt('Bookmark name', '')}`}
+                placeholder={
+                  isBookmark ? name : `${fbt('Saved search name', '')}`
+                }
                 onChange={({target}) => setName(target.value)}
                 value={name}
               />
