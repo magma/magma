@@ -13,7 +13,14 @@ package storage
 import (
 	"fmt"
 
+	"magma/orc8r/lib/go/definitions"
+
 	"github.com/google/uuid"
+)
+
+var (
+	SQLDriver      = definitions.GetEnvWithDefault("SQL_DRIVER", "sqlite3")
+	DatabaseSource = definitions.GetEnvWithDefault("DATABASE_SOURCE", ":memory:")
 )
 
 type TypeAndKey struct {

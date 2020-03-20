@@ -14,7 +14,6 @@ and meta data for the network and network entity structures.
 package main
 
 import (
-	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -33,7 +32,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating service: %s", err)
 	}
-	db, err := sqorc.Open(blobstore.SQLDriver, blobstore.DatabaseSource)
+	db, err := sqorc.Open(storage2.SQLDriver, storage2.DatabaseSource)
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
