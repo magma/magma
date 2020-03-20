@@ -187,7 +187,7 @@ static void udp_server_receive_and_process(
           ipv6 ? htons(addr6.sin6_port) : htons(addr.sin_port);
       memcpy(
           (void *)&udp_data_ind_p->sock_addr,
-          (ipv6) ? (struct sockaddr_in6 *)&addr6 : (struct sockaddr_in *)&addr,
+          (ipv6) ? (void  *)&addr6 : (void *)&addr,
           (ipv6) ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in));
 
       OAILOG_DEBUG(LOG_UDP, "Msg of length %d received from %s:%u\n",
@@ -367,7 +367,7 @@ static int udp_server_create_socket_v6(uint16_t port, struct in6_addr *address,
 
 //------------------------------------------------------------------------------
 static void *udp_intertask_interface(void *args_p) {
-  int rc = 0;
+  //int rc = 0 ;
   int nb_events = 0;
   struct epoll_event *events = NULL;
 
@@ -515,9 +515,8 @@ static void *udp_intertask_interface(void *args_p) {
 
     on_error:
       itti_free_msg_content(received_message_p);
-      rc =
-          itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-      AssertFatal(rc == EXIT_SUCCESS, "Failed to free memory (%d)!\n", rc);
+       itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
+      //AssertFatal(rc == EXIT_SUCCESS, "Failed to free memory (%d)!\n", rc);
       received_message_p = NULL;
     }
 
