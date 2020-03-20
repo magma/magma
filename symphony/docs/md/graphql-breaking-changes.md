@@ -13,6 +13,7 @@ title: Graphql API Breaking Changes
 * `service` - Use `node` instead. Will be removed on 1/4/2020
 * `serviceType` - Use `node` instead. Will be removed on 1/4/2020
 * `workOrder` - Use `node` instead. Will be removed on 1/4/2020
+* `searchForEntity` - Use `searchForNode` instead. Will be removed on 1/5/2020
 * `projectType` - Use `node` instead. Will be removed on 1/4/2020
 
 ## Deprecated Mutations

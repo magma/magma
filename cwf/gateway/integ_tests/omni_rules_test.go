@@ -10,13 +10,10 @@ package integ_tests
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
-	"fbc/lib/go/radius/rfc2869"
 	cwfprotos "magma/cwf/cloud/go/protos"
-	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/plugin/models"
 
 	"github.com/go-openapi/swag"
@@ -34,30 +31,25 @@ func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
 
-	ue := ues[0]
+	imsi := ues[0].GetImsi()
 	// Set a block all rule to be installed by the PCRF
 	err = ruleManager.AddStaticRuleToDB(getStaticDenyAll("static-block-all", "mkey1", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 30))
 	assert.NoError(t, err)
-	err = ruleManager.AddRulesToPCRF(ue.Imsi, []string{"static-block-all"}, nil)
+	err = ruleManager.AddRulesToPCRF(imsi, []string{"static-block-all"}, nil)
 	assert.NoError(t, err)
 
 	// Override with an omni pass all static rule with a higher priority
 	err = ruleManager.AddStaticPassAllToDB("omni-pass-all-1", "", 0, models.PolicyRuleTrackingTypeNOTRACKING, 20)
 	assert.NoError(t, err)
 	// Apply a network wide rule that points to the static rule above
-	err = ruleManager.AddOmniPresentRulesToDB("onmi", []string{"omni-pass-all-1"}, []string{""})
+	err = ruleManager.AddOmniPresentRulesToDB("omni", []string{"omni-pass-all-1"}, []string{""})
 	assert.NoError(t, err)
 
 	// Wait for rules propagation
 	time.Sleep(2 * time.Second)
-	radiusP, err := tr.Authenticate(ue.GetImsi())
-	assert.NoError(t, err)
+	tr.AuthenticateAndAssertSuccess(t, imsi)
 
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage)
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
-
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("200k")}}
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("200k")}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
@@ -66,15 +58,15 @@ func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
 
-	omniRecord := recordsBySubID["IMSI"+ue.GetImsi()]["omni-pass-all-1"]
-	blockAllRecord := recordsBySubID["IMSI"+ue.GetImsi()]["static-block-all"]
-	assert.NotNil(t, omniRecord, fmt.Sprintf("No policy usage omniRecord for imsi: %v", ue.GetImsi()))
-	assert.NotNil(t, blockAllRecord, fmt.Sprintf("Block all record was not installed for imsi %v", ue.GetImsi()))
+	omniRecord := recordsBySubID["IMSI"+imsi]["omni-pass-all-1"]
+	blockAllRecord := recordsBySubID["IMSI"+imsi]["static-block-all"]
+	assert.NotNil(t, omniRecord, fmt.Sprintf("No policy usage omniRecord for imsi: %v", imsi))
+	assert.NotNil(t, blockAllRecord, fmt.Sprintf("Block all record was not installed for imsi %v", imsi))
 
 	assert.True(t, omniRecord.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", omniRecord.RuleId))
 	assert.True(t, omniRecord.BytesTx <= uint64(200*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", omniRecord))
 	assert.Equal(t, uint64(0x0), blockAllRecord.BytesTx)
-	_, err = tr.Disconnect(ue.GetImsi())
+	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
 
 	// Clear hss, ocs, and pcrf

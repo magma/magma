@@ -15,7 +15,7 @@ const paths = require('fbcnms-webpack-config/paths');
 
 module.exports = webpackConfig.createDevWebpackConfig({
   projectName: 'inventory',
-  extraPaths: [paths.resolveApp('../magmalte')],
+  extraPaths: [paths.resolveApp('../magmalte'), paths.resolveApp('../hub')],
   entry: {
     master: [paths.resolveApp('app/master.js')],
     onboarding: [paths.resolveApp('app/onboarding.js')],

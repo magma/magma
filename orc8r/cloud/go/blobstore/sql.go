@@ -70,7 +70,7 @@ func (fact *sqlBlobStoreFactory) InitializeFactory() error {
 	err = fact.initTable(tx, fact.tableName)
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			glog.Errorf("error rolling back transaction initializing blobstore factory: %s", err)
+			glog.Errorf("error rolling back transaction initializing blobstore factory: %s", rollbackErr)
 		}
 
 		return err

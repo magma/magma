@@ -23,7 +23,7 @@
 #include <arpa/inet.h>
 #include "OpenflowController.h"
 #include "PagingApplication.h"
-#include "RpcClient.h"
+#include "MobilityClientAPI.h"
 
 extern "C" {
 #include "log.h"

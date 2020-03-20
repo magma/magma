@@ -171,20 +171,24 @@ func (registry *ServiceRegistry) GetConnectionImpl(ctx context.Context, service 
 		return conn, nil
 	}
 
+	// Attempt to connect outside of the lock
+	newConn, err := GetClientConnection(ctx, addr, opts...)
+	if err != nil || newConn == nil {
+		return newConn, fmt.Errorf("Service %v connection error: %s", service, err)
+	}
+
 	registry.Lock()
 	defer registry.Unlock()
+
 	// Re-check after taking the lock
 	conn, ok = registry.ServiceConnections[service]
 	if ok && conn != nil {
+		// another routine already added the connection for the service, clean up ours & return existing
+		newConn.Close()
 		return conn, nil
 	}
-	conn, err = GetClientConnection(ctx, addr, opts...)
-	if err != nil {
-		err = fmt.Errorf("Service %v connection error: %s", service, err)
-	} else {
-		registry.ServiceConnections[service] = conn
-	}
-	return conn, err
+	registry.ServiceConnections[service] = newConn
+	return newConn, nil
 }
 
 // GetClientConnection provides a gRPC connection to a service on the address addr.

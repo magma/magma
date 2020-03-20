@@ -37,6 +37,7 @@ const handleReact = tab =>
       res.redirect(organization.tabs.length ? `/${organization.tabs[0]}` : '/');
       return;
     }
+    const ssoSelectedType = organization?.ssoSelectedType || 'none';
     const appData: AppContextAppData = {
       csrfToken: req.csrfToken(),
       tabs: organization?.tabs || [],
@@ -49,7 +50,8 @@ const handleReact = tab =>
           }
         : {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
       enabledFeatures: await getEnabledFeatures(req, organization?.name),
-      ssoEnabled: !!organization?.ssoEntrypoint,
+      ssoEnabled: ssoSelectedType !== 'none',
+      ssoSelectedType,
       csvCharset: organization?.csvCharset,
     };
     res.render('index', {
@@ -108,6 +110,7 @@ async function handleMaster(req: FBCNMSRequest, res) {
     enabledFeatures: await getEnabledFeatures(req, 'master'),
     tabs: [],
     ssoEnabled: false,
+    ssoSelectedType: 'none',
     csvCharset: null,
   };
   res.render('master', {

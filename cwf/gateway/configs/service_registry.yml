@@ -55,4 +55,7 @@ services:
   radiusd:
     ip_address: 127.0.0.1
     port: 9115
+  eventd:
+    ip_address: 127.0.0.1
+    port: 50075
 
