@@ -24,4 +24,7 @@ include_directories("${SRC_TOP_DIR}/mme_app")
 include_directories("${SRC_TOP_DIR}/s1ap/messages/asn1/${ASN1RELDIR}")
 include_directories("${SRC_TOP_DIR}/s1ap")
 
-add_library(UDP_SERVER udp_primitives_server.c)
+
+
+
+add_library(TASK_UDP udp_primitives_server.c)
