@@ -9,19 +9,17 @@
 package integ_tests
 
 import (
-	"encoding/json"
 	"fmt"
-	"testing"
-	"time"
-
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
-	lteProtos "magma/lte/cloud/go/protos"
+	"testing"
+	"time"
 
-	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/emakeev/go-diameter/diam"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/wrappers"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -256,153 +254,6 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 
 	// Clear hss, ocs, and pcrf
 	assert.NoError(t, clearPCRFMockDriver())
-	assert.NoError(t, ruleManager.RemoveInstalledRules())
-	assert.NoError(t, tr.CleanUp())
-}
-
-func TestAuthenticateUplinkTrafficWithQosEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestAuthenticateUplinkTrafficWithQosEnforcement...")
-	tr := NewTestRunner()
-	ruleManager, err := NewRuleManager()
-	assert.NoError(t, err)
-
-	ues, err := tr.ConfigUEs(1)
-	assert.NoError(t, err)
-	imsi := ues[0].GetImsi()
-
-	err = ruleManager.AddUsageMonitor(imsi, "mqos1", 1000*MegaBytes, 250*MegaBytes)
-	assert.NoError(t, err)
-
-	rule := getStaticPassAll("static-qos-1", "mqos1", 0, models.PolicyRuleTrackingTypeONLYPCRF, 3)
-	rule.Qos = &lteProtos.FlowQos{
-		MaxReqBwUl: uint32(1000000),
-		GbrUl:      uint32(12000),
-	}
-
-	err = ruleManager.AddStaticRuleToDB(rule)
-	assert.NoError(t, err)
-	err = ruleManager.AddRulesToPCRF(imsi, []string{"static-qos-1"}, nil)
-	assert.NoError(t, err)
-
-	// wait for the rules to be synced into sessiond
-	time.Sleep(1 * time.Second)
-
-	tr.AuthenticateAndAssertSuccess(t, imsi)
-
-	req := &cwfprotos.GenTrafficRequest{
-		Imsi:       imsi,
-		Bitrate:    &wrappers.StringValue{Value: "5m"},
-		TimeInSecs: uint64(10)}
-
-	resp, err := tr.GenULTraffic(req)
-	assert.NoError(t, err)
-
-	// Wait for the traffic to go through
-	time.Sleep(6 * time.Second)
-
-	// Assert that enforcement_stats rules are properly installed and the right
-	// amount of data was passed through
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]["static-qos-1"]
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
-
-	if resp != nil {
-		var perfResp map[string]interface{}
-		json.Unmarshal([]byte(resp.Output), &perfResp)
-
-		intervalResp := perfResp["intervals"].([]interface{})
-		assert.Equal(t, len(intervalResp), 10)
-
-		// verify that starting bit rate was > 500k
-		firstIntvl := intervalResp[0].(map[string]interface{})
-		firstIntvlSumMap := firstIntvl["sum"].(map[string]interface{})
-		b := firstIntvlSumMap["bits_per_second"].(float64)
-		fmt.Println("initial bit rate transmitted by traffic gen", b)
-		assert.GreaterOrEqual(t, b, float64(500*1024))
-
-		// Ensure that the overall bitrate recd by server was <= 128k
-		respEndRecd := perfResp["end"].(map[string]interface{})
-		respEndRcvMap := respEndRecd["sum_received"].(map[string]interface{})
-		b = respEndRcvMap["bits_per_second"].(float64)
-		fmt.Println("bit rate observed at server ", b)
-		assert.LessOrEqual(t, b, float64(1000000))
-	}
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
-	time.Sleep(3 * time.Second)
-	// Clear hss, ocs, and pcrf
-	assert.NoError(t, ruleManager.RemoveInstalledRules())
-	assert.NoError(t, tr.CleanUp())
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(10 * time.Second)
-}
-
-func testAuthenticateDownlinkTrafficWithQosEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestAuthenticateDownlinkTrafficWithQosEnforcement...")
-	tr := NewTestRunner()
-	ruleManager, err := NewRuleManager()
-	assert.NoError(t, err)
-
-	ues, err := tr.ConfigUEs(1)
-	assert.NoError(t, err)
-	imsi := ues[0].GetImsi()
-
-	err = ruleManager.AddUsageMonitor(imsi, "mqos2", 1000*MegaBytes, 250*MegaBytes)
-	assert.NoError(t, err)
-
-	rule := getStaticPassAll("static-qos-2", "mqos2", 0, models.PolicyRuleTrackingTypeONLYPCRF, 3)
-	rule.Qos = &lteProtos.FlowQos{
-		MaxReqBwDl: uint32(1000000),
-		GbrDl:      uint32(12000),
-	}
-
-	err = ruleManager.AddStaticRuleToDB(rule)
-	assert.NoError(t, err)
-	err = ruleManager.AddRulesToPCRF(imsi, []string{"static-qos-2"}, nil)
-	assert.NoError(t, err)
-
-	// wait for the rules to be synced into sessiond
-	time.Sleep(3 * time.Second)
-
-	tr.AuthenticateAndAssertSuccess(t, imsi)
-
-	req := &cwfprotos.GenTrafficRequest{
-		Imsi:        imsi,
-		Bitrate:     &wrappers.StringValue{Value: "5m"},
-		TimeInSecs:  uint64(10),
-		ReverseMode: true,
-	}
-
-	resp, err := tr.GenULTraffic(req)
-	assert.NoError(t, err)
-
-	// Wait for the traffic to go through
-	time.Sleep(6 * time.Second)
-
-	// Assert that enforcement_stats rules are properly installed and the right
-	// amount of data was passed through
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]["static-qos-2"]
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
-
-	if resp != nil {
-		var perfResp map[string]interface{}
-		json.Unmarshal([]byte(resp.Output), &perfResp)
-
-		// Ensure that the overall bitrate recd by server was <= 128k
-		respEndRecd := perfResp["end"].(map[string]interface{})
-		respEndRcvMap := respEndRecd["sum_received"].(map[string]interface{})
-		b := respEndRcvMap["bits_per_second"].(float64)
-		fmt.Println("bit rate observed at server ", b)
-		assert.LessOrEqual(t, b, float64(1000000))
-	}
-	_, err = tr.Disconnect(imsi)
-	assert.NoError(t, err)
-	time.Sleep(3 * time.Second)
-
-	// Clear hss, ocs, and pcrf
 	assert.NoError(t, ruleManager.RemoveInstalledRules())
 	assert.NoError(t, tr.CleanUp())
 }
