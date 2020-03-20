@@ -58,11 +58,17 @@ module.exports = {
             },
             {transaction},
           ),
-          queryInterface.bulkUpdate('Organizations', {ssoSelectedType: 'none'}),
+          queryInterface.bulkUpdate(
+            'Organizations',
+            {ssoSelectedType: 'none'},
+            {},
+            {transaction},
+          ),
           queryInterface.bulkUpdate(
             'Organizations',
             {ssoSelectedType: 'saml'},
             {ssoEntrypoint: {[Op.ne]: ''}},
+            {transaction},
           ),
         ]),
     );
