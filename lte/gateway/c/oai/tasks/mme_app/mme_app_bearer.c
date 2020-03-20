@@ -1607,7 +1607,7 @@ void mme_app_handle_e_rab_setup_rsp(
           "MME/SGW for bearer Id: %u\n",
           e_rab_id);
         esm_proc_dedicated_eps_bearer_context_reject(
-          &ue_context_p->emm_context, e_rab_id, NULL);
+          &ue_context_p->emm_context, e_rab_id);
         OAILOG_FUNC_OUT(LOG_MME_APP);
       } else {
         OAILOG_ERROR(

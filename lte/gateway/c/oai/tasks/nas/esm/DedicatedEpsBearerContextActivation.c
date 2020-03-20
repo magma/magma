@@ -343,8 +343,7 @@ int esm_proc_dedicated_eps_bearer_context_accept(
  ***************************************************************************/
 int esm_proc_dedicated_eps_bearer_context_reject(
   emm_context_t* emm_context,
-  ebi_t ebi,
-  esm_cause_t* esm_cause)
+  ebi_t ebi)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -379,16 +378,13 @@ int esm_proc_dedicated_eps_bearer_context_reject(
       emm_context, true, ebi, &pid, &bid, NULL);
 
     if (rc != RETURNok) {
-      /*
-       * Failed to release the dedicated EPS bearer context
-       */
-      if (esm_cause) {
-        *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
-      }
+      OAILOG_INFO(
+        LOG_NAS_ESM,
+        "Failed to release the dedicated EPS bearer context for ebi:%u\n",
+        ebi);
     }
     mme_app_handle_create_dedicated_bearer_rej(ue_context_p, ebi);
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 
