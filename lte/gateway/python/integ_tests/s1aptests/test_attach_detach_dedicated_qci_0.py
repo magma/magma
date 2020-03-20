@@ -23,8 +23,9 @@ class TestAttachDetachDedicatedQci0(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach(self):
-        """ attach/detach + dedicated bearer test with a single UE """
+    def test_attach_detach_dedicated_qci_0(self):
+        """ test attach + create dedicated bearer with QCI, 0 +
+        erab_setup_failed_indication + detach, with a single UE """
         num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
@@ -68,8 +69,9 @@ class TestAttachDetachDedicatedQci0(unittest.TestCase):
                 s1ap_types.FwErabSetupFailedTosetup
             )
             print(
-               "*** Received UE_FW_ERAB_SETUP_REQ_FAILED_FOR_ERABS for bearer",
-               erab_setup_failed_for_bearers.failedErablist[0].erabId)
+               "*** Received UE_FW_ERAB_SETUP_REQ_FAILED_FOR_ERABS for bearer-id:",
+               erab_setup_failed_for_bearers.failedErablist[0].erabId, end=" ")
+            print(" with qci:", erab_setup_failed_for_bearers.failedErablist[0].qci)
 
             time.sleep(5)
             print(
