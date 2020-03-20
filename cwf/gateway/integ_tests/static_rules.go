@@ -9,13 +9,25 @@
 package integ_tests
 
 import (
+	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
-	"magma/lte/cloud/go/protos"
+	lteProtos "magma/lte/cloud/go/protos"
 
 	"github.com/go-openapi/swag"
 )
 
-func getStaticPassAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) *protos.PolicyRule {
+func getUsageInformation(monitorKey string, quota uint64) []*protos.UsageMonitoringInformation {
+	return []*protos.UsageMonitoringInformation{
+		{
+			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
+			MonitoringKey:   []byte(monitorKey),
+			Octets:          &protos.Octets{TotalOctets: quota},
+		},
+	}
+}
+
+func getStaticPassAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32,
+	qos *models.FlowQos) *lteProtos.PolicyRule {
 	rule := &models.PolicyRuleConfig{
 		FlowList: []*models.FlowDescription{
 			{
@@ -37,6 +49,7 @@ func getStaticPassAll(ruleID string, monitoringKey string, ratingGroup uint32, t
 				},
 			},
 		},
+		Qos:           qos,
 		MonitoringKey: monitoringKey,
 		Priority:      swag.Uint32(priority),
 		TrackingType:  trackingType,
@@ -46,7 +59,7 @@ func getStaticPassAll(ruleID string, monitoringKey string, ratingGroup uint32, t
 	return rule.ToProto(ruleID)
 }
 
-func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) *protos.PolicyRule {
+func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) *lteProtos.PolicyRule {
 	rule := &models.PolicyRuleConfig{
 		FlowList: []*models.FlowDescription{
 			{
