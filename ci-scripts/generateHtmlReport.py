@@ -437,6 +437,44 @@ class HtmlReport():
 			self.file.write('       <td colspan=3><b>KO: logfile (magma_run_s1ap_tester.log) not found</b></td>\n')
 			self.file.write('     </tr>\n')
 
+		if os.path.isfile(cwd + '/archives/magma_vagrant_make_coverage_oai.log'):
+			with open(cwd + '/archives/magma_vagrant_make_coverage_oai.log', 'r') as logfile:
+				cov_global_rate = False
+				for line in logfile:
+					result = re.search('Overall coverage rate:', line)
+					if result is not None:
+						cov_global_rate = True
+						self.file.write('     <tr>\n')
+						self.file.write('       <td colspan = 3 bgcolor = "DarkSlateGrey"><b><font color = "white">Overall coverage rate</font></b></td>\n')
+						self.file.write('     </tr>\n')
+					if cov_global_rate:
+						result = re.search(' lines.*: (.+)% \(([0-9]+) of ([0-9]+) lines', line)
+						if result is not None:
+							percentage = result.group(1)
+							reached_line_nb = result.group(2)
+							total_line_nb = result.group(3)
+							self.file.write('     <tr>\n')
+							self.file.write('       <td><b>Lines</b></td>\n')
+							self.file.write('       <td bgcolor = "DarkSlateGrey"><b><font color = "white">' + percentage + '%</font></b></td>\n')
+							self.file.write('       <td bgcolor = "DarkSlateGrey"><b><font color = "white">' + reached_line_nb + ' over ' + total_line_nb + '</font></b></td>\n')
+							self.file.write('     </tr>\n')
+						result = re.search(' functions.*: (.+)% \(([0-9]+) of ([0-9]+) functions', line)
+						if result is not None:
+							percentage = result.group(1)
+							reached_function_nb = result.group(2)
+							total_function_nb = result.group(3)
+							self.file.write('     <tr>\n')
+							self.file.write('       <td><b>Functions</font></b></td>\n')
+							self.file.write('       <td bgcolor = "DarkSlateGrey"><b><font color = "white">' + percentage + '%</font></b></td>\n')
+							self.file.write('       <td bgcolor = "DarkSlateGrey"><b><font color = "white">' + reached_function_nb + ' over ' + total_function_nb + '</font></b></td>\n')
+							self.file.write('     </tr>\n')
+						result = re.search('Generated coverage output', line)
+						if result is not None:
+							self.file.write('     <tr>\n')
+							self.file.write('       <td colspan = 3>More details in artifact magma_logs.zip (code_coverage.zip)</td>\n')
+							self.file.write('     </tr>\n')
+			logfile.close()
+
 		self.file.write('  </table>\n')
 		self.file.write('  </div>\n')
 		self.file.write('  <br>\n')
