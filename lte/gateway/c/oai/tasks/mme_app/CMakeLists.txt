@@ -79,7 +79,7 @@ target_link_libraries(TASK_MME_APP
 if (EMBEDDED_SGW)
 target_link_libraries(TASK_MME_APP TASK_SGW)
 else (EMBEDDED_SGW)
-target_link_libraries(TASK_MME_APP TASK_S11)
+target_link_libraries(TASK_MME_APP TASK_S11 TASK_UDP)
 endif(EMBEDDED_SGW)
 
 target_include_directories(TASK_MME_APP PUBLIC
