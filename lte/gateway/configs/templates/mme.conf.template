@@ -190,7 +190,7 @@ MME :
 
         # MME binded interface for S11 communication (GTPV2-C)
         MME_INTERFACE_NAME_FOR_S11_MME        = "{{ s11_iface_name }}";
-        MME_IPV4_ADDRESS_FOR_S11_MME          = "{{ s11_ip }}";
+        MME_IPV4_ADDRESS_FOR_S11_MME          = "127.0.100.1/8";
         MME_PORT_FOR_S11_MME                  = 2124;
     };
 
@@ -241,5 +241,5 @@ MME :
 S-GW :
 {
     # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
-    SGW_IPV4_ADDRESS_FOR_S11              = "{{ s11_ip }}";
+    SGW_IPV4_ADDRESS_FOR_S11              = "127.0.100.2/8";
 };

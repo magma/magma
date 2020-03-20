@@ -1543,7 +1543,7 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
   /*
    * Parsing command line
    */
-  while ((c = getopt(argc, argv, "c:h:v:V")) != -1) {
+  while ((c = getopt(argc, argv, "c:s:h:v:V")) != -1) {
     switch (c) {
       case 'c': {
         /*
@@ -1569,12 +1569,19 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
           PACKAGE_VERSION,
           PACKAGE_BUGREPORT);
       } break;
+      
+      case 's': {
+       OAI_FPRINTF_INFO(
+           "Ignoring command line option s as there is no embedded sgw \n");
+      } break;
 
       case 'h': /* Fall through */
+    
       default:
         OAI_FPRINTF_ERR("Unknown command line option %c\n", c);
         usage(argv[0]);
         exit(0);
+            
     }
   }
 

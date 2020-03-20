@@ -56,7 +56,9 @@
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
+#warning EMBEDDED_SGW = 1
 #else
+//#warning EMBEDDED_SGW = 0
 #define TASK_SPGW TASK_S11
 #endif
 
