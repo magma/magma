@@ -314,6 +314,55 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 	}
 }
 
+func TestGxReAuthRemoveRules(t *testing.T) {
+	log.Printf("Start TestGxReAuth")
+	if t != nil {
+		return
+	}
+	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+		Addr:     "127.0.0.1:3905",
+		Protocol: "tcp"},
+	}
+	clientConfig := getClientConfig()
+	globalConfig := getGxGlobalConfig("")
+	startServer(clientConfig, &serverConfig)
+
+	gxClient := gx.NewGxClient(
+		clientConfig,
+		&serverConfig,
+		getMockReAuthHandler(),
+		nil,
+		globalConfig,
+	)
+
+	// send one init to set user context in OCS
+	ccrInit := &gx.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI4,
+		RequestNumber: 0,
+		IPAddr:        "192.168.1.1",
+		SpgwIPV4:      "10.10.10.10",
+	}
+	done := make(chan interface{}, 1000)
+	log.Printf("Sending CCR-Init")
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	answer := gx.GetAnswer(done)
+	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
+	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
+
+	// send a RAR request to request a rule removal
+	rulesToRemove := &fegprotos.RuleRemovals{RuleNames: []string{"dynrule4"}, RuleBaseNames: []string{""}}
+	raa, err := pcrf.ReAuth(
+		context.Background(),
+		&fegprotos.PolicyReAuthTarget{Imsi: testIMSI4, RulesToRemove: rulesToRemove},
+	)
+	// success reauth
+	assert.NoError(t, err)
+	assert.Equal(t, "1", raa.SessionId)
+	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+}
+
 func getClientConfig() *diameter.DiameterClientConfig {
 	return &diameter.DiameterClientConfig{
 		Host:        "test.test.com",
@@ -470,9 +519,9 @@ func startServer(
 	time.Sleep(time.Millisecond)
 }
 
-func getMockReAuthHandler() gx.ReAuthHandler {
-	return func(request *gx.ReAuthRequest) *gx.ReAuthAnswer {
-		return &gx.ReAuthAnswer{
+func getMockReAuthHandler() gx.PolicyReAuthHandler {
+	return func(request *gx.PolicyReAuthRequest) *gx.PolicyReAuthAnswer {
+		return &gx.PolicyReAuthAnswer{
 			SessionID:  request.SessionID,
 			ResultCode: diam.Success,
 		}
