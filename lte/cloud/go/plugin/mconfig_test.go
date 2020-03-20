@@ -137,7 +137,6 @@ func TestBuilder_Build(t *testing.T) {
 			NatEnabled:    true,
 			DefaultRuleId: "",
 			Services: []mconfig.PipelineD_NetworkServices{
-				mconfig.PipelineD_DPI,
 				mconfig.PipelineD_ENFORCEMENT,
 			},
 		},
@@ -256,7 +255,6 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			NatEnabled:    true,
 			DefaultRuleId: "",
 			Services: []mconfig.PipelineD_NetworkServices{
-				mconfig.PipelineD_DPI,
 				mconfig.PipelineD_ENFORCEMENT,
 			},
 		},
@@ -382,7 +380,6 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			NatEnabled:    true,
 			DefaultRuleId: "",
 			Services: []mconfig.PipelineD_NetworkServices{
-				mconfig.PipelineD_DPI,
 				mconfig.PipelineD_ENFORCEMENT,
 			},
 		},

@@ -809,7 +809,8 @@ definitions:
           - 'dpi'
           - 'policy_enforcement'
         example:
-        - 'policy_enforcement'
+          - 'dpi'
+          - 'policy_enforcement'
       eap_aka:
         $ref: './feg-swagger.yml#/definitions/eap_aka'
       aaa_server:
