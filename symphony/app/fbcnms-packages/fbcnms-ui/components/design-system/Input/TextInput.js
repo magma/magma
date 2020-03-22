@@ -209,6 +209,7 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
           {prefix && <div className={classes.prefix}>{prefix}</div>}
           {isMultiline ? (
             <textarea
+              {...rest}
               rows={rows}
               disabled={disabled}
               className={classNames(classes.input, classes.multilineInput)}

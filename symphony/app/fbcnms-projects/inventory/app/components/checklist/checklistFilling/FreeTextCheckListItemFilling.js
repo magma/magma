@@ -21,10 +21,8 @@ type Props = {
 };
 
 const useStyles = makeStyles(() => ({
-  container: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
+  textInput: {
+    width: '100%',
   },
 }));
 
@@ -44,16 +42,16 @@ const FreeTextCheckListItemFilling = ({item, onChange}: Props) => {
   };
 
   return (
-    <div className={classes.container}>
-      <FormField>
-        <TextInput
-          type="string"
-          placeholder={item.helpText || ''}
-          value={item.stringValue || ''}
-          onChange={event => _updateOnChange(event.target.value)}
-        />
-      </FormField>
-    </div>
+    <FormField>
+      <TextInput
+        className={classes.textInput}
+        type="multiline"
+        rows={5}
+        placeholder={item.helpText || ''}
+        value={item.stringValue || ''}
+        onChange={event => _updateOnChange(event.target.value)}
+      />
+    </FormField>
   );
 };
 
