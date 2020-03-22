@@ -8,7 +8,6 @@ import random
 import string
 
 from gql.gql.transport.session import UserDeactivatedException
-from pyinventory import InventoryClient
 from pyinventory.api.user import (
     activate_user,
     add_user,
@@ -17,6 +16,7 @@ from pyinventory.api.user import (
 )
 from pyinventory.graphql.user_status_enum import UserStatus
 
+from .utils import init_client
 from .utils.base_test import BaseTest
 from .utils.constant import TEST_USER_EMAIL
 
@@ -40,7 +40,7 @@ class TestUser(BaseTest):
         self.assertEqual(UserStatus.ACTIVE, u.status)
         active_users = get_active_users(self.client)
         self.assertEqual(2, len(active_users))
-        client2 = InventoryClient(user_name, user_name, is_dev_mode=True)
+        client2 = init_client(user_name, user_name)
         active_users = get_active_users(client2)
         self.assertEqual(2, len(active_users))
 
@@ -51,7 +51,7 @@ class TestUser(BaseTest):
         active_users = get_active_users(self.client)
         self.assertEqual(1, len(active_users))
         with self.assertRaises(UserDeactivatedException):
-            InventoryClient(user_name, user_name, is_dev_mode=True)
+            init_client(user_name, user_name)
 
     def test_user_reactivated(self) -> None:
         user_name = f"{self.random_string()}@fb.com"
