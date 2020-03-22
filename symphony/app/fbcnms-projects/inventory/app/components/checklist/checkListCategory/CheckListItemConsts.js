@@ -14,6 +14,7 @@ import type {SvgIconStyleProps} from '@fbcnms/ui/components/design-system/Icons/
 import * as React from 'react';
 import {
   ChecklistCheckIcon,
+  MultipleSelectionIcon,
   TextIcon,
 } from '@fbcnms/ui/components/design-system/Icons';
 
@@ -22,4 +23,5 @@ export const CheckListItemIcons: {
 } = {
   simple: ChecklistCheckIcon,
   string: TextIcon,
+  enum: MultipleSelectionIcon,
 };

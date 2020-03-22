@@ -12,6 +12,7 @@ import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutat
 
 import BasicCheckListItemFilling from './BasicCheckListItemFilling';
 import FreeTextCheckListItemFilling from './FreeTextCheckListItemFilling';
+import MultipleChoiceCheckListItemFilling from './MultipleChoiceCheckListItemFilling';
 import React from 'react';
 
 export const CHECKLIST_ITEM_FILLING_TYPES = {
@@ -21,12 +22,15 @@ export const CHECKLIST_ITEM_FILLING_TYPES = {
   string: {
     component: FreeTextCheckListItemFilling,
   },
+  enum: {
+    component: MultipleChoiceCheckListItemFilling,
+  },
 };
 
 export const GetValidChecklistItemType = (
   type: string,
-): 'simple' | 'string' | null => {
-  if (type === 'simple' || type === 'string') {
+): 'simple' | 'string' | 'enum' | null => {
+  if (type === 'simple' || type === 'string' || type === 'enum') {
     return type;
   }
 

@@ -25,6 +25,7 @@ const useStyles = makeStyles(() => ({
     boxShadow: symphony.shadows.DP1,
     borderRadius: '4px',
     maxHeight: '322px',
+    overflowY: 'auto',
   },
   fullWidth: {
     width: '100%',

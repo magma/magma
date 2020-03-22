@@ -8,7 +8,10 @@
  * @format
  */
 
-import type {CheckListItemType} from '../../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
+import type {
+  CheckListItemEnumSelectionMode,
+  CheckListItemType,
+} from '../../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
 
 export type CheckListItemBase = $ReadOnly<{|
   id: string,
@@ -24,6 +27,8 @@ export type BasicCheckListItemData = {|
 
 export type EnumCheckListItemData = {|
   enumValues?: ?string,
+  selectedEnumValues?: ?string,
+  enumSelectionMode?: ?CheckListItemEnumSelectionMode,
 |};
 
 export type FreeTextCheckListItemData = {|

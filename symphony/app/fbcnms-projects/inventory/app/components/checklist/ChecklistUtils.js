@@ -24,3 +24,9 @@ export const isChecklistItemDone = (item: CheckListItem): boolean => {
       );
   }
 };
+
+export const enumStringToArray = (enumString: ?string): Array<string> => {
+  return enumString != null && enumString !== ''
+    ? enumString.split(',')
+    : ([]: Array<string>);
+};

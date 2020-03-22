@@ -13,6 +13,7 @@ import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutat
 import BasicCheckListItemDefinition from './BasicCheckListItemDefinition';
 import CheckListItemCollapsedDefinition from './CheckListItemCollapsedDefinition';
 import FreeTextCheckListItemDefinition from './FreeTextCheckListItemDefinition';
+import MultipleChoiceCheckListItemDefinition from './MultipleChoiceCheckListItemDefinition';
 import React from 'react';
 import fbt from 'fbt';
 
@@ -31,12 +32,15 @@ export const CHECKLIST_ITEM_DEFINITION_TYPES = {
     ),
     component: FreeTextCheckListItemDefinition,
   },
+  enum: {
+    component: MultipleChoiceCheckListItemDefinition,
+  },
 };
 
 export const GetValidChecklistItemType = (
   type: string,
-): 'simple' | 'string' | null => {
-  if (type === 'simple' || type === 'string') {
+): 'simple' | 'string' | 'enum' | null => {
+  if (type === 'simple' || type === 'string' || type === 'enum') {
     return type;
   }
 

@@ -19,6 +19,7 @@ type EntityDocumentsTable_files$ref = any;
 type EntityDocumentsTable_hyperlinks$ref = any;
 type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type WorkOrderDetailsPane_workOrder$ref = any;
+export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
 export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
@@ -116,6 +117,8 @@ export type WorkOrderDetails_workOrder = {|
       +checked: ?boolean,
       +enumValues: ?string,
       +stringValue: ?string,
+      +enumSelectionMode: ?CheckListItemEnumSelectionMode,
+      +selectedEnumValues: ?string,
     |}>,
   |}>,
   +$fragmentRefs: WorkOrderDetailsPane_workOrder$ref,
@@ -561,7 +564,21 @@ return {
               "args": null,
               "storageKey": null
             },
-            (v4/*: any*/)
+            (v4/*: any*/),
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "enumSelectionMode",
+              "args": null,
+              "storageKey": null
+            },
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "selectedEnumValues",
+              "args": null,
+              "storageKey": null
+            }
           ]
         }
       ]
@@ -575,5 +592,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'bc8c74843937fd2b05bcbf653f7c2a95';
+(node/*: any*/).hash = 'b476de193c2de4c79deae64766aefd39';
 module.exports = node;

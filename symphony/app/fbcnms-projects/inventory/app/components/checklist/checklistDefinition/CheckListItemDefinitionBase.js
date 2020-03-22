@@ -86,6 +86,10 @@ const CHECKLIST_ITEM_CONFIGS: {
     selectLabel: <fbt desc="">Free text</fbt>,
     titlePlaceholder: `${fbt('What needs to be written?', '')}`,
   },
+  enum: {
+    selectLabel: <fbt desc="">Multiple choice</fbt>,
+    titlePlaceholder: `${fbt('What needs to be chosen?', '')}`,
+  },
 };
 
 type Props = {
