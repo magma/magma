@@ -8,6 +8,7 @@ import random
 import string
 
 from gql.gql.transport.session import UserDeactivatedException
+from pyinventory import InventoryClient
 from pyinventory.api.user import (
     activate_user,
     add_user,
