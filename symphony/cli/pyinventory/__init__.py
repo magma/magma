@@ -115,6 +115,7 @@ class InventoryClient(SymphonyClient):
     from .api.user import (
         add_user,
         get_user,
+        edit_user,
         deactivate_user,
         activate_user,
         get_users,

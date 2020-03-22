@@ -12,8 +12,10 @@ from pyinventory.api.user import (
     activate_user,
     add_user,
     deactivate_user,
+    edit_user,
     get_active_users,
 )
+from pyinventory.graphql.user_role_enum import UserRole
 from pyinventory.graphql.user_status_enum import UserStatus
 
 from .utils import init_client
@@ -41,6 +43,15 @@ class TestUser(BaseTest):
         active_users = get_active_users(self.client)
         self.assertEqual(2, len(active_users))
         client2 = init_client(user_name, user_name)
+        active_users = get_active_users(client2)
+        self.assertEqual(2, len(active_users))
+
+    def test_user_edited(self) -> None:
+        user_name = f"{self.random_string()}@fb.com"
+        new_password = self.random_string()
+        u = add_user(self.client, user_name, user_name)
+        edit_user(self.client, u, new_password, UserRole.OWNER)
+        client2 = InventoryClient(user_name, new_password, is_dev_mode=True)
         active_users = get_active_users(client2)
         self.assertEqual(2, len(active_users))
 

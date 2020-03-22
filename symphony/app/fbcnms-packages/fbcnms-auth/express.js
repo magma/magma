@@ -356,6 +356,43 @@ function userMiddleware(options: Options): express.Router {
     }
   });
 
+  router.put(
+    '/set/:email',
+    access(AccessRoles.SUPERUSER),
+    async (req: FBCNMSRequest, res) => {
+      try {
+        const {email} = req.params;
+
+        const where = await injectOrganizationParams(req, {email});
+        const user = await User.findOne({where});
+
+        // Check if user exists
+        if (!user) {
+          throw new Error('User does not exist!');
+        }
+
+        // Create object to pass into update()
+        const allowedProps = ['password', 'role'];
+
+        const userProperties = await getPropsToUpdate(
+          allowedProps,
+          req.body,
+          params => injectOrganizationParams(req, params),
+        );
+        if (isEmpty(userProperties)) {
+          throw new Error('No valid properties to edit!');
+        }
+
+        await user.update(userProperties);
+        await logUserChange(req, req.user, 'UPDATE', req.body, 'SUCCESS');
+        res.status(200).send({user});
+      } catch (error) {
+        await logUserChange(req, req.user, 'UPDATE', req.body, 'FAILURE');
+        res.status(400).send({error: error.toString()});
+      }
+    },
+  );
+
   return router;
 }
 
