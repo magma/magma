@@ -67,16 +67,17 @@ def get_port(
     ports = [
         port for port in equipment_with_ports.ports if port.definition.name == port_name
     ]
-    port_type_name = None
-    port_type = ports[0].definition.portType
-    if port_type is not None:
-        port_type_name = port_type.name
-    link = ports[0].link
 
     if len(ports) > 1:
         raise EquipmentPortIsNotUniqueException(equipment.name, port_name)
     if len(ports) == 0:
         raise EntityNotFoundError(entity=Entity.EquipmentPort, entity_name=port_name)
+
+    port_type_name = None
+    port_type = ports[0].definition.portType
+    if port_type is not None:
+        port_type_name = port_type.name
+    link = ports[0].link
 
     return EquipmentPort(
         id=ports[0].id,
@@ -119,7 +120,7 @@ def edit_port_properties(
             ```
             location = client.get_location([("Country", "LS_IND_Prod_Copy")])
             equipment = client.get_equipment("indProdCpy1_AIO", location)
-            edited_port = client.edit_port(equipment, "Z AIO - Port 1", {"Port Property 2": "test_it"})  
+            edited_port = client.edit_port_properties(equipment, "Z AIO - Port 1", {"Port Property 2": "test_it"})  
             ```
     """
     port = get_port(client, equipment, port_name)

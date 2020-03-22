@@ -231,7 +231,10 @@ def add_equipment_type(
     """
     new_property_types = format_properties(properties)
 
-    port_definitions = [{"name": name} for name, _ in ports_dict.items()]
+    port_definitions = [
+        {"name": name, "portTypeID": client.portTypes[_type].id}
+        for name, _type in ports_dict.items()
+    ]
     position_definitions = [{"name": position} for position in position_list]
 
     add_equipment_type_variables = {
