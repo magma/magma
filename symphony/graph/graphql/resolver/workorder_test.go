@@ -1606,7 +1606,18 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 		Type:  "simple",
 		Index: &indexValue,
 	}
-	clInputs = []*models.CheckListItemInput{&barCL}
+	enumValues := "val1,val2,val3"
+	selectionMode := models.CheckListItemEnumSelectionModeMultiple
+	selectedValues := "val2,val3"
+	multiCL := models.CheckListItemInput{
+		Title:              "Multi",
+		Type:               "enum",
+		Index:              pointer.ToInt(2),
+		EnumValues:         &enumValues,
+		EnumSelectionMode:  &selectionMode,
+		SelectedEnumValues: &selectedValues,
+	}
+	clInputs = []*models.CheckListItemInput{&barCL, &multiCL}
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:        workOrder.ID,
 		Name:      longWorkOrderName,
@@ -1614,14 +1625,20 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 	})
 	require.NoError(t, err)
 	cls := workOrder.QueryCheckListItems().AllX(ctx)
-	require.Len(t, cls, 1)
+	require.Len(t, cls, 2)
 
 	fooCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
 	require.Equal(t, "Bar", fooCLFetched.Title, "verifying check list name")
 
+	multiCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("enum")).OnlyX(ctx)
+	require.Equal(t, "Multi", multiCLFetched.Title)
+	require.Equal(t, selectionMode.String(), multiCLFetched.EnumSelectionMode)
+	require.Equal(t, enumValues, multiCLFetched.EnumValues)
+	require.Equal(t, selectedValues, multiCLFetched.SelectedEnumValues)
+
 	cl, err := wr.CheckList(ctx, workOrder)
 	require.NoError(t, err)
-	require.Len(t, cl, 1)
+	require.Len(t, cl, 2)
 }
 
 func TestEditWorkOrderLocation(t *testing.T) {

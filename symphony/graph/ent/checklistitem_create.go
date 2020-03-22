@@ -92,6 +92,34 @@ func (clic *CheckListItemCreate) SetNillableEnumValues(s *string) *CheckListItem
 	return clic
 }
 
+// SetEnumSelectionMode sets the enum_selection_mode field.
+func (clic *CheckListItemCreate) SetEnumSelectionMode(s string) *CheckListItemCreate {
+	clic.mutation.SetEnumSelectionMode(s)
+	return clic
+}
+
+// SetNillableEnumSelectionMode sets the enum_selection_mode field if the given value is not nil.
+func (clic *CheckListItemCreate) SetNillableEnumSelectionMode(s *string) *CheckListItemCreate {
+	if s != nil {
+		clic.SetEnumSelectionMode(*s)
+	}
+	return clic
+}
+
+// SetSelectedEnumValues sets the selected_enum_values field.
+func (clic *CheckListItemCreate) SetSelectedEnumValues(s string) *CheckListItemCreate {
+	clic.mutation.SetSelectedEnumValues(s)
+	return clic
+}
+
+// SetNillableSelectedEnumValues sets the selected_enum_values field if the given value is not nil.
+func (clic *CheckListItemCreate) SetNillableSelectedEnumValues(s *string) *CheckListItemCreate {
+	if s != nil {
+		clic.SetSelectedEnumValues(*s)
+	}
+	return clic
+}
+
 // SetHelpText sets the help_text field.
 func (clic *CheckListItemCreate) SetHelpText(s string) *CheckListItemCreate {
 	clic.mutation.SetHelpText(s)
@@ -226,6 +254,22 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 			Column: checklistitem.FieldEnumValues,
 		})
 		cli.EnumValues = value
+	}
+	if value, ok := clic.mutation.EnumSelectionMode(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+		cli.EnumSelectionMode = value
+	}
+	if value, ok := clic.mutation.SelectedEnumValues(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+		cli.SelectedEnumValues = value
 	}
 	if value, ok := clic.mutation.HelpText(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

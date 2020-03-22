@@ -163,14 +163,16 @@ type ComplexityRoot struct {
 	}
 
 	CheckListItem struct {
-		Checked    func(childComplexity int) int
-		EnumValues func(childComplexity int) int
-		HelpText   func(childComplexity int) int
-		ID         func(childComplexity int) int
-		Index      func(childComplexity int) int
-		StringVal  func(childComplexity int) int
-		Title      func(childComplexity int) int
-		Type       func(childComplexity int) int
+		Checked            func(childComplexity int) int
+		EnumSelectionMode  func(childComplexity int) int
+		EnumValues         func(childComplexity int) int
+		HelpText           func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Index              func(childComplexity int) int
+		SelectedEnumValues func(childComplexity int) int
+		StringVal          func(childComplexity int) int
+		Title              func(childComplexity int) int
+		Type               func(childComplexity int) int
 	}
 
 	CheckListItemDefinition struct {
@@ -995,6 +997,8 @@ type CheckListCategoryResolver interface {
 }
 type CheckListItemResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItem) (models.CheckListItemType, error)
+
+	EnumSelectionMode(ctx context.Context, obj *ent.CheckListItem) (*models.CheckListItemEnumSelectionMode, error)
 }
 type CheckListItemDefinitionResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error)
@@ -1591,6 +1595,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CheckListItem.Checked(childComplexity), true
 
+	case "CheckListItem.enumSelectionMode":
+		if e.complexity.CheckListItem.EnumSelectionMode == nil {
+			break
+		}
+
+		return e.complexity.CheckListItem.EnumSelectionMode(childComplexity), true
+
 	case "CheckListItem.enumValues":
 		if e.complexity.CheckListItem.EnumValues == nil {
 			break
@@ -1618,6 +1629,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CheckListItem.Index(childComplexity), true
+
+	case "CheckListItem.selectedEnumValues":
+		if e.complexity.CheckListItem.SelectedEnumValues == nil {
+			break
+		}
+
+		return e.complexity.CheckListItem.SelectedEnumValues(childComplexity), true
 
 	case "CheckListItem.stringValue":
 		if e.complexity.CheckListItem.StringVal == nil {
@@ -7044,6 +7062,12 @@ enum CheckListItemType {
   enum
 }
 
+enum CheckListItemEnumSelectionMode {
+  single
+  multiple
+}
+
+
 type CheckListItemDefinition {
   id: ID!
   title: String!
@@ -7076,6 +7100,8 @@ type CheckListItem implements Node {
   index: Int
   helpText: String
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
+  selectedEnumValues: String
   stringValue: String
   checked: Boolean
 }
@@ -7094,6 +7120,8 @@ input CheckListItemInput {
   index: Int
   helpText: String
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
+  selectedEnumValues: String
   stringValue: String
   checked: Boolean
 }
@@ -12140,6 +12168,74 @@ func (ec *executionContext) _CheckListItem_enumValues(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EnumValues, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListItem_enumSelectionMode(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CheckListItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CheckListItem().EnumSelectionMode(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.CheckListItemEnumSelectionMode)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListItem_selectedEnumValues(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CheckListItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SelectedEnumValues, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -35209,6 +35305,18 @@ func (ec *executionContext) unmarshalInputCheckListItemInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
+		case "enumSelectionMode":
+			var err error
+			it.EnumSelectionMode, err = ec.unmarshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "selectedEnumValues":
+			var err error
+			it.SelectedEnumValues, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "stringValue":
 			var err error
 			it.StringValue, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -38361,6 +38469,19 @@ func (ec *executionContext) _CheckListItem(ctx context.Context, sel ast.Selectio
 			out.Values[i] = ec._CheckListItem_helpText(ctx, field, obj)
 		case "enumValues":
 			out.Values[i] = ec._CheckListItem_enumValues(ctx, field, obj)
+		case "enumSelectionMode":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CheckListItem_enumSelectionMode(ctx, field, obj)
+				return res
+			})
+		case "selectedEnumValues":
+			out.Values[i] = ec._CheckListItem_selectedEnumValues(ctx, field, obj)
 		case "stringValue":
 			out.Values[i] = ec._CheckListItem_stringValue(ctx, field, obj)
 		case "checked":
@@ -49042,6 +49163,30 @@ func (ec *executionContext) marshalOCheckListItemDefinition2ᚖgithubᚗcomᚋfa
 		return graphql.Null
 	}
 	return ec._CheckListItemDefinition(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx context.Context, v interface{}) (models.CheckListItemEnumSelectionMode, error) {
+	var res models.CheckListItemEnumSelectionMode
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx context.Context, sel ast.SelectionSet, v models.CheckListItemEnumSelectionMode) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx context.Context, v interface{}) (*models.CheckListItemEnumSelectionMode, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemEnumSelectionMode(ctx context.Context, sel ast.SelectionSet, v *models.CheckListItemEnumSelectionMode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOCheckListItemInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemInputᚄ(ctx context.Context, v interface{}) ([]*models.CheckListItemInput, error) {

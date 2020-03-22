@@ -422,6 +422,10 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 	input *models.CheckListItemInput) (*ent.CheckListItem, error) {
 	client := r.ClientFrom(ctx)
 	cl := client.CheckListItem
+	var selectionMode *string
+	if input.EnumSelectionMode != nil {
+		selectionMode = pointer.ToString(input.EnumSelectionMode.String())
+	}
 	if input.ID == nil {
 		cli, err := cl.Create().
 			SetTitle(input.Title).
@@ -431,6 +435,8 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableHelpText(input.HelpText).
 			SetNillableChecked(input.Checked).
 			SetNillableStringVal(input.StringValue).
+			SetNillableEnumSelectionMode(selectionMode).
+			SetNillableSelectedEnumValues(input.SelectedEnumValues).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list item")
@@ -445,6 +451,8 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 		SetNillableHelpText(input.HelpText).
 		SetNillableChecked(input.Checked).
 		SetNillableStringVal(input.StringValue).
+		SetNillableEnumSelectionMode(selectionMode).
+		SetNillableSelectedEnumValues(input.SelectedEnumValues).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating check list item")

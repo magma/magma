@@ -932,6 +932,11 @@ enum CheckListItemType {
   enum
 }
 
+enum CheckListItemEnumSelectionMode {
+  single
+  multiple
+}
+
 type CheckListItemDefinition {
   id: ID!
   title: String!
@@ -964,6 +969,8 @@ type CheckListItem implements Node {
   index: Int
   helpText: String
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
+  selectedEnumValues: String
   stringValue: String
   checked: Boolean
 }
@@ -982,6 +989,8 @@ input CheckListItemInput {
   index: Int
   helpText: String
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
+  selectedEnumValues: String
   stringValue: String
   checked: Boolean
 }
