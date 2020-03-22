@@ -20,14 +20,19 @@ fragment PropertyTypeFragment on PropertyType {
   name
   type
   index
+  category
   stringValue
   intValue
   booleanValue
   floatValue
   latitudeValue
   longitudeValue
+  rangeFromValue
+  rangeToValue
   isEditable
   isInstanceProperty
+  isMandatory
+  isDeleted
 }
 
 """
@@ -38,11 +43,16 @@ class PropertyTypeFragment(DataClassJsonMixin):
     name: str
     type: PropertyKind = enum_field(PropertyKind)
     index: Optional[int] = None
+    category: Optional[str] = None
     stringValue: Optional[str] = None
     intValue: Optional[int] = None
     booleanValue: Optional[bool] = None
     floatValue: Optional[Number] = None
     latitudeValue: Optional[Number] = None
     longitudeValue: Optional[Number] = None
+    rangeFromValue: Optional[Number] = None
+    rangeToValue: Optional[Number] = None
     isEditable: Optional[bool] = None
     isInstanceProperty: Optional[bool] = None
+    isMandatory: Optional[bool] = None
+    isDeleted: Optional[bool] = None

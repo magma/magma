@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from dataclasses import asdict
 from typing import List, Optional, Tuple
 
 from gql.gql.client import OperationException
@@ -30,9 +29,7 @@ def _populate_location_types(client: SymphonyClient) -> None:
         node = edge.node
         if node:
             client.locationTypes[node.name] = LocationType(
-                name=node.name,
-                id=node.id,
-                propertyTypes=[asdict(p) for p in node.propertyTypes],
+                name=node.name, id=node.id, property_types=node.propertyTypes
             )
 
 
@@ -73,9 +70,7 @@ def add_location_type(
         )
 
     location_type = LocationType(
-        name=result.name,
-        id=result.id,
-        propertyTypes=[asdict(p) for p in result.propertyTypes],
+        name=result.name, id=result.id, property_types=result.propertyTypes
     )
     client.locationTypes[result.name] = location_type
     return location_type

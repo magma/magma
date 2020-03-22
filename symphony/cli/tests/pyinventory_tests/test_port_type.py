@@ -63,12 +63,12 @@ class TestEquipmentPortType(BaseTest):
         )
         fetched_port_type = get_equipment_port_type(self.client, self.port_type1.id)
         self.assertEqual(fetched_port_type.name, edited_port_type.name)
-        self.assertEqual(len(fetched_port_type.properties), 1)
+        self.assertEqual(len(fetched_port_type.property_types), 1)
         self.assertEqual(
-            fetched_port_type.properties[0]["stringValue"], "new port property value"
+            fetched_port_type.property_types[0].stringValue, "new port property value"
         )
-        self.assertEqual(len(fetched_port_type.link_properties), 1)
+        self.assertEqual(len(fetched_port_type.link_property_types), 1)
         self.assertEqual(
-            fetched_port_type.link_properties[0]["stringValue"],
+            fetched_port_type.link_property_types[0].stringValue,
             "new link port property value",
         )

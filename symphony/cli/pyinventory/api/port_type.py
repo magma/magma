@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from dataclasses import asdict
 from typing import Dict, List, Optional
 
 from gql.gql.client import OperationException
@@ -93,8 +92,8 @@ def add_equipment_port_type(
     added = EquipmentPortType(
         id=result.id,
         name=result.name,
-        properties=[asdict(p) for p in result.propertyTypes],
-        link_properties=[asdict(p) for p in result.linkPropertyTypes],
+        property_types=result.propertyTypes,
+        link_property_types=result.linkPropertyTypes,
     )
     client.portTypes[added.name] = added
     return added
@@ -129,8 +128,8 @@ def get_equipment_port_type(
     return EquipmentPortType(
         id=result.id,
         name=result.name,
-        properties=[asdict(p) for p in result.propertyTypes],
-        link_properties=[asdict(p) for p in result.linkPropertyTypes],
+        property_types=result.propertyTypes,
+        link_property_types=result.linkPropertyTypes,
     )
 
 
@@ -170,14 +169,14 @@ def edit_equipment_port_type(
 
     new_property_type_inputs = []
     if new_properties:
-        property_types = client.portTypes[port_type.name].properties
+        property_types = client.portTypes[port_type.name].property_types
         new_property_type_inputs = get_graphql_property_type_inputs(
             property_types, new_properties
         )
 
     new_link_property_type_inputs = []
     if new_link_properties:
-        link_property_types = client.portTypes[port_type.name].link_properties
+        link_property_types = client.portTypes[port_type.name].link_property_types
         new_link_property_type_inputs = get_graphql_property_type_inputs(
             link_property_types, new_link_properties
         )
@@ -212,8 +211,8 @@ def edit_equipment_port_type(
     return EquipmentPortType(
         id=result.id,
         name=result.name,
-        properties=[asdict(p) for p in result.propertyTypes],
-        link_properties=[asdict(p) for p in result.linkPropertyTypes],
+        property_types=result.propertyTypes,
+        link_property_types=result.linkPropertyTypes,
     )
 
 

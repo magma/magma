@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-from dataclasses import asdict
-from typing import Dict, List, Optional, Tuple, cast
+from typing import Dict, List, Optional, Tuple
 
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
@@ -226,7 +225,7 @@ def add_equipment(
             ```
     """
 
-    property_types = client.equipmentTypes[equipment_type].propertyTypes
+    property_types = client.equipmentTypes[equipment_type].property_types
     properties = get_graphql_property_inputs(property_types, properties_dict)
 
     add_equipment_input = AddEquipmentInput(
@@ -288,7 +287,7 @@ def edit_equipment(
             ```
     """
     properties = []
-    property_types = client.equipmentTypes[equipment.equipment_type_name].propertyTypes
+    property_types = client.equipmentTypes[equipment.equipment_type_name].property_types
     if new_properties:
         properties = get_graphql_property_inputs(property_types, new_properties)
     edit_equipment_input = EditEquipmentInput(
@@ -419,7 +418,7 @@ def add_equipment_to_position(
     position_definition_id, _ = _find_position_definition_id(
         client, existing_equipment, position_name
     )
-    property_types = client.equipmentTypes[equipment_type].propertyTypes
+    property_types = client.equipmentTypes[equipment_type].property_types
     properties = get_graphql_property_inputs(property_types, properties_dict)
 
     add_equipment_input = AddEquipmentInput(
@@ -534,13 +533,13 @@ def _get_equipment_type_and_properties_dict(
     equipment_type = result.equipmentType.name
 
     properties_dict = {}
-    property_types = client.equipmentTypes[equipment_type].propertyTypes
+    property_types = client.equipmentTypes[equipment_type].property_types
     for property in result.properties:
         property_type_id = property.propertyType.id
         property_types_with_id = [
             property_type
             for property_type in property_types
-            if cast(str, property_type["id"]) == property_type_id
+            if property_type.id == property_type_id
         ]
         assert (
             len(property_types_with_id) == 1
@@ -548,15 +547,11 @@ def _get_equipment_type_and_properties_dict(
             equipment_type, property_type_id
         )
         property_type = property_types_with_id[0]
-        property_type_type = cast(PropertyKind, property_type["type"])
-        property_value = _get_property_value(property_type_type.value, asdict(property))
-        if property_type_type.value == "gps_location":
-            properties_dict[property_type["name"]] = (
-                property_value[0],
-                property_value[1],
-            )
+        property_value = _get_property_value(property_type.type.value, property)
+        if property_type.type == PropertyKind.gps_location:
+            properties_dict[property_type.name] = (property_value[0], property_value[1])
         else:
-            properties_dict[property_type["name"]] = property_value[0]
+            properties_dict[property_type.name] = property_value[0]
     return equipment_type, properties_dict
 
 

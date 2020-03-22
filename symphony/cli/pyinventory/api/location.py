@@ -24,7 +24,6 @@ from ..graphql.location_deps_query import LocationDepsQuery
 from ..graphql.location_details_query import LocationDetailsQuery
 from ..graphql.location_documents_query import LocationDocumentsQuery
 from ..graphql.move_location_mutation import MoveLocationMutation
-from ..graphql.property_input import PropertyInput
 from ..graphql.remove_location_mutation import RemoveLocationMutation
 from ..graphql.search_query import SearchQuery
 
@@ -100,7 +99,7 @@ def add_location(
         lat_val = None
         long_val = None
         if i == len(location_hirerchy) - 1:
-            property_types = client.locationTypes[location_type].propertyTypes
+            property_types = client.locationTypes[location_type].property_types
             properties = get_graphql_property_inputs(property_types, properties_dict)
             lat_val = lat
             long_val = long
@@ -470,7 +469,7 @@ def edit_location(
     """
     properties = []
     location_type = location.locationTypeName
-    property_types = client.locationTypes[location_type].propertyTypes
+    property_types = client.locationTypes[location_type].property_types
     if new_properties:
         properties = get_graphql_property_inputs(property_types, new_properties)
     if new_external_id is None:
