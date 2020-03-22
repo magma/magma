@@ -9,15 +9,17 @@
  */
 
 import type {CheckListItemType} from '../../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
-import type {Node} from 'react';
+import type {SvgIconStyleProps} from '@fbcnms/ui/components/design-system/Icons/SvgIcon';
 
-import React from 'react';
+import * as React from 'react';
 import {
   ChecklistCheckIcon,
   TextIcon,
 } from '@fbcnms/ui/components/design-system/Icons';
 
-export const CheckListItemIcons: {[CheckListItemType]: Node} = {
-  simple: <ChecklistCheckIcon />,
-  string: <TextIcon />,
+export const CheckListItemIcons: {
+  [CheckListItemType]: React.ComponentType<SvgIconStyleProps>,
+} = {
+  simple: ChecklistCheckIcon,
+  string: TextIcon,
 };

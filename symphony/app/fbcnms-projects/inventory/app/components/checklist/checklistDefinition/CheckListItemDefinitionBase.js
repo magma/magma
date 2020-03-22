@@ -121,20 +121,21 @@ const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
           <Select
             className={classes.typeSelector}
             options={Object.keys(CHECKLIST_ITEM_CONFIGS).map(
-              (itemType: CheckListItemType) => ({
-                key: `${itemType}`,
-                label: (
-                  <div className={classes.label}>
-                    <div className={classes.selectIcon}>
-                      {CheckListItemIcons[itemType]}
+              (itemType: CheckListItemType) => {
+                const Icon = CheckListItemIcons[itemType];
+                return {
+                  key: `${itemType}`,
+                  label: (
+                    <div className={classes.label}>
+                      <Icon className={classes.selectIcon} />
+                      <Text variant="body2">
+                        {CHECKLIST_ITEM_CONFIGS[itemType].selectLabel}
+                      </Text>
                     </div>
-                    <Text variant="body2">
-                      {CHECKLIST_ITEM_CONFIGS[itemType].selectLabel}
-                    </Text>
-                  </div>
-                ),
-                value: itemType,
-              }),
+                  ),
+                  value: itemType,
+                };
+              },
             )}
             selectedValue={item.type}
             onChange={type =>
