@@ -8,8 +8,11 @@
  * @format
  */
 
+import type {
+  CheckListItem,
+  ChecklistItemsDialogStateType,
+} from './ChecklistItemsDialogMutateState';
 import type {ChecklistItemsDialogMutateStateActionType} from './ChecklistItemsDialogMutateAction';
-import type {ChecklistItemsDialogStateType} from './ChecklistItemsDialogMutateState';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -47,9 +50,9 @@ const useStyles = makeStyles(() => ({
 type Props = {
   isOpened?: boolean,
   onCancel?: () => void,
-  onSave?: (items: ChecklistItemsDialogStateType) => void,
+  onSave?: (items: Array<CheckListItem>) => void,
   categoryTitle: string,
-  initialItems: ChecklistItemsDialogStateType,
+  initialItems: Array<CheckListItem>,
 };
 
 const TabViewValues = {
@@ -61,7 +64,7 @@ type TabViewValue = $Values<typeof TabViewValues>;
 
 type View = {
   label: string,
-  labelSuffix: (?ChecklistItemsDialogStateType) => string,
+  labelSuffix: (?Array<CheckListItem>) => string,
   value: TabViewValue,
 };
 
@@ -94,10 +97,10 @@ const CheckListCategoryItemsDialog = ({
   categoryTitle,
 }: Props) => {
   const classes = useStyles();
-  const [editingItems, dispatch] = useReducer<
+  const [dialogState, dispatch] = useReducer<
     ChecklistItemsDialogStateType,
     ChecklistItemsDialogMutateStateActionType,
-    ChecklistItemsDialogStateType,
+    Array<CheckListItem>,
   >(reducer, initialItems, getInitialState);
 
   const [pickedView, setPickedView] = useState<number>(DESIGN_VIEW.value);
@@ -114,7 +117,7 @@ const CheckListCategoryItemsDialog = ({
           <TabsBar
             className={classes.tabs}
             tabs={VIEWS.map(view => ({
-              label: `${view.label}${view.labelSuffix(editingItems)}`,
+              label: `${view.label}${view.labelSuffix(dialogState.items)}`,
             }))}
             activeTabIndex={pickedView}
             onChange={setPickedView}
@@ -132,9 +135,12 @@ const CheckListCategoryItemsDialog = ({
         </div>
         <ChecklistItemsDialogMutateDispatchContext.Provider value={dispatch}>
           {pickedView === TabViewValues.items ? (
-            <ChecklistDefinitionsList items={editingItems} />
+            <ChecklistDefinitionsList
+              items={dialogState.items}
+              editedDefinitionId={dialogState.editedDefinitionId}
+            />
           ) : (
-            <CheckListTableFilling items={editingItems} />
+            <CheckListTableFilling items={dialogState.items} />
           )}
         </ChecklistItemsDialogMutateDispatchContext.Provider>
       </DialogContent>
@@ -142,7 +148,7 @@ const CheckListCategoryItemsDialog = ({
         <Button skin="gray" onClick={onCancel}>
           {Strings.common.cancelButton}
         </Button>
-        <Button onClick={() => onSave && onSave(editingItems)}>
+        <Button onClick={() => onSave && onSave(dialogState.items)}>
           {Strings.common.saveButton}
         </Button>
       </DialogActions>

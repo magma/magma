@@ -8,11 +8,12 @@
  * @format
  */
 
-import type {ChecklistItemsDialogStateType} from '../checkListCategory/ChecklistItemsDialogMutateState';
+import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
 
 import CheckListItemDefinition from './CheckListItemDefinition';
 import ChecklistItemsDialogMutateDispatchContext from '../checkListCategory/ChecklistItemsDialogMutateDispatchContext';
 import React, {useContext} from 'react';
+import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import {Draggable} from 'react-beautiful-dnd';
@@ -21,12 +22,14 @@ import {makeStyles} from '@material-ui/styles';
 import {sortByIndex} from '../../draggable/DraggableUtils';
 
 type Props = {
-  items: ChecklistItemsDialogStateType,
+  items: Array<CheckListItem>,
+  editedDefinitionId: ?string,
 };
 
 const useStyles = makeStyles(() => ({
   itemsList: {
     paddingTop: '16px',
+    position: 'relative',
   },
   listItem: {
     display: 'flex',
@@ -40,35 +43,53 @@ const useStyles = makeStyles(() => ({
     cursor: 'grab',
     fill: symphony.palette.D300,
   },
+  dragHandle: {
+    position: 'absolute',
+    left: '-24px',
+  },
+  hiddenDragHandle: {
+    display: 'none',
+  },
 }));
 
-const ChecklistDefinitionsList = ({items}: Props) => {
+const ChecklistDefinitionsList = ({items, editedDefinitionId}: Props) => {
   const classes = useStyles();
   const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
 
-  const checklistItems = items.sort(sortByIndex).map(item => (
-    <Draggable key={item.id} draggableId={item.id} index={item.index}>
-      {provided => (
-        <div
-          className={classes.listItem}
-          ref={provided.innerRef}
-          {...provided.draggableProps}>
-          <div {...provided.dragHandleProps}>
-            <ReorderIcon className={classes.dragIndicatorIcon} />
+  const checklistItems = items.sort(sortByIndex).map(item => {
+    return (
+      <Draggable
+        key={item.id}
+        draggableId={item.id}
+        index={item.index}
+        isDragDisabled={item.id !== editedDefinitionId}>
+        {provided => (
+          <div
+            className={classes.listItem}
+            ref={provided.innerRef}
+            {...provided.draggableProps}>
+            <div
+              {...provided.dragHandleProps}
+              className={classNames(classes.dragHandle, {
+                [classes.hiddenDragHandle]: item.id !== editedDefinitionId,
+              })}>
+              <ReorderIcon className={classes.dragIndicatorIcon} />
+            </div>
+            <CheckListItemDefinition
+              item={item}
+              editedDefinitionId={editedDefinitionId}
+              onChange={item =>
+                dispatch({
+                  type: 'EDIT_ITEM',
+                  value: item,
+                })
+              }
+            />
           </div>
-          <CheckListItemDefinition
-            item={item}
-            onChange={item =>
-              dispatch({
-                type: 'EDIT_ITEM',
-                value: item,
-              })
-            }
-          />
-        </div>
-      )}
-    </Draggable>
-  ));
+        )}
+      </Draggable>
+    );
+  });
 
   return (
     <div className={classes.itemsList}>

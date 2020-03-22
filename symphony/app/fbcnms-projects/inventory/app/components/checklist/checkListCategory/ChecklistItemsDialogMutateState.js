@@ -37,4 +37,7 @@ export type CheckListItem = {|
   ...FreeTextCheckListItemData,
 |};
 
-export type ChecklistItemsDialogStateType = Array<CheckListItem>;
+export type ChecklistItemsDialogStateType = {
+  items: Array<CheckListItem>,
+  editedDefinitionId: ?string,
+};

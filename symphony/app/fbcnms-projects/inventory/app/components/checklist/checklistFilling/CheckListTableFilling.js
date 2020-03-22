@@ -9,7 +9,6 @@
  */
 
 import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
-import type {ChecklistItemsDialogStateType} from '../checkListCategory/ChecklistItemsDialogMutateState';
 import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
 
 import CheckListItemFilling from './CheckListItemFilling';
@@ -25,7 +24,7 @@ import {isChecklistItemDone} from '../ChecklistUtils';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {
-  items: ChecklistItemsDialogStateType,
+  items: Array<CheckListItem>,
 };
 
 const useStyles = makeStyles(() => ({
@@ -85,7 +84,11 @@ const CheckListTableFilling = ({items}: Props) => {
                     weight="medium"
                     variant="body2"
                     className={classes.itemTitle}>
-                    {row.item.title}
+                    {row.item.title.trim() !== '' ? (
+                      row.item.title
+                    ) : (
+                      <fbt desc="">Item</fbt>
+                    )}
                   </Text>
                 </div>
               );

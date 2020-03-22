@@ -26,6 +26,10 @@ export type ChecklistItemsDialogMutateStateActionType =
   | {|
       type: 'REMOVE_ITEM',
       itemId: string,
+    |}
+  | {|
+      type: 'SET_EDITED_DEFINITION_ID',
+      itemId: string,
     |};
 
 export type ChecklistItemsDialogMutateDispatcher = (
