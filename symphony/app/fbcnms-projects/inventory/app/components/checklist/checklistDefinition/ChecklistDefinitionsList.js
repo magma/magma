@@ -63,7 +63,7 @@ const ChecklistDefinitionsList = ({items, editedDefinitionId}: Props) => {
         draggableId={item.id}
         index={item.index}
         isDragDisabled={item.id !== editedDefinitionId}>
-        {provided => (
+        {(provided, snapshot) => (
           <div
             className={classes.listItem}
             ref={provided.innerRef}
@@ -77,7 +77,9 @@ const ChecklistDefinitionsList = ({items, editedDefinitionId}: Props) => {
             </div>
             <CheckListItemDefinition
               item={item}
-              editedDefinitionId={editedDefinitionId}
+              editedDefinitionId={
+                snapshot.isDragging ? null : editedDefinitionId
+              }
               onChange={item =>
                 dispatch({
                   type: 'EDIT_ITEM',
