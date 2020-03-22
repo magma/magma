@@ -1,0 +1,14 @@
+fragment PropertyTypeFragment on PropertyType {
+  id
+  name
+  type
+  index
+  stringValue
+  intValue
+  booleanValue
+  floatValue
+  latitudeValue
+  longitudeValue
+  isEditable
+  isInstanceProperty
+}

@@ -3,18 +3,7 @@ mutation AddLocationTypeMutation($input: AddLocationTypeInput!) {
     id
     name
     propertyTypes {
-      id
-      name
-      type
-      index
-      stringValue
-      intValue
-      booleanValue
-      floatValue
-      latitudeValue
-      longitudeValue
-      isEditable
-      isInstanceProperty
+      ...PropertyTypeFragment
     }
   }
 }

@@ -33,7 +33,7 @@ def load_schema(uri):
     return build_client_schema(introspection)
 
 
-def compile_schema_library(schema_library):
+def compile_schema_library(schema_library: str):
     full_schema = ""
     schema_filepaths = glob.glob(
         os.path.join(schema_library, "**/*.graphql*"), recursive=True
@@ -42,3 +42,14 @@ def compile_schema_library(schema_library):
         with open(schema_filepath) as schema_file:
             full_schema = full_schema + schema_file.read()
     return build_ast_schema(parse(full_schema))
+
+
+def read_fragment_queries(graphql_library: str):
+    full_fragments = {}
+    fragment_filenames = glob.glob(
+        os.path.join(graphql_library, "**/*_fragment.graphql"), recursive=True
+    )
+    for fragment_filepath in fragment_filenames:
+        with open(fragment_filepath) as fragment_file:
+            full_fragments.update({fragment_filepath: fragment_file.read()})
+    return full_fragments
