@@ -57,16 +57,7 @@ const CheckListItemDefinition = (props: Props) => {
     return null;
   }
 
-  const checkListItemDefinitionComponentProps = {
-    ...props,
-    checkListItem: props.item,
-  };
-
-  return (
-    <CheckListItemDefinitionComponent
-      {...checkListItemDefinitionComponentProps}
-    />
-  );
+  return <CheckListItemDefinitionComponent {...props} />;
 };
 
 export default CheckListItemDefinition;

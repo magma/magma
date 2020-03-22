@@ -13,19 +13,36 @@ import type {ChecklistItemsDialogStateType} from './ChecklistItemsDialogMutateSt
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import CheckListTable from '../CheckListTable';
+import CheckListTableFilling from '../checklistFilling/CheckListTableFilling';
+import ChecklistDefinitionsList from '../checklistDefinition/ChecklistDefinitionsList';
 import ChecklistItemsDialogMutateDispatchContext from './ChecklistItemsDialogMutateDispatchContext';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import Strings from '../../../common/CommonStrings';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import TabsBar from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
+import {PlusIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {getInitialState, reducer} from './ChecklistItemsDialogMutateReducer';
+import {makeStyles} from '@material-ui/styles';
 import {useReducer, useState} from 'react';
+
+const useStyles = makeStyles(() => ({
+  dialogHeader: {
+    display: 'flex',
+    flexDirection: 1,
+    alignItems: 'center',
+  },
+  tabs: {
+    flexGrow: 1,
+  },
+  dialogActions: {
+    padding: '24px',
+  },
+}));
 
 type Props = {
   isOpened?: boolean,
@@ -35,16 +52,23 @@ type Props = {
   initialItems: ChecklistItemsDialogStateType,
 };
 
+const TabViewValues = {
+  items: 0,
+  responses: 1,
+};
+
+type TabViewValue = $Values<typeof TabViewValues>;
+
 type View = {
   label: string,
   labelSuffix: (?ChecklistItemsDialogStateType) => string,
-  value: number,
+  value: TabViewValue,
 };
 
 const DESIGN_VIEW: View = {
   label: `${fbt('items', 'Header for tab showing checklist items')}`,
   labelSuffix: itemsList => (itemsList ? ` (${itemsList.length})` : ''),
-  value: 1,
+  value: 0,
 };
 const RESPONSE_VIEW: View = {
   label: `${fbt(
@@ -59,7 +83,7 @@ const RESPONSE_VIEW: View = {
           0,
         )})`
       : '',
-  value: 2,
+  value: 1,
 };
 const VIEWS = [DESIGN_VIEW, RESPONSE_VIEW];
 
@@ -69,6 +93,7 @@ const CheckListCategoryItemsDialog = ({
   onSave,
   categoryTitle,
 }: Props) => {
+  const classes = useStyles();
   const [editingItems, dispatch] = useReducer<
     ChecklistItemsDialogStateType,
     ChecklistItemsDialogMutateStateActionType,
@@ -85,25 +110,35 @@ const CheckListCategoryItemsDialog = ({
         </Text>
       </DialogTitle>
       <DialogContent>
-        <Tabs
-          value={pickedView}
-          onChange={(_e, newValue: number) => setPickedView(newValue)}
-          indicatorColor="primary">
-          {VIEWS.map(view => (
-            <Tab
-              value={view.value}
-              label={`${view.label}${view.labelSuffix(editingItems)}`}
-            />
-          ))}
-        </Tabs>
-        <ChecklistItemsDialogMutateDispatchContext.Provider value={dispatch}>
-          <CheckListTable
-            items={editingItems}
-            onDesignMode={pickedView === DESIGN_VIEW.value}
+        <div className={classes.dialogHeader}>
+          <TabsBar
+            className={classes.tabs}
+            tabs={VIEWS.map(view => ({
+              label: `${view.label}${view.labelSuffix(editingItems)}`,
+            }))}
+            activeTabIndex={pickedView}
+            onChange={setPickedView}
+            spread={true}
           />
+          {pickedView === TabViewValues.items && (
+            <FormAction>
+              <Button
+                onClick={() => dispatch({type: 'ADD_ITEM'})}
+                leftIcon={PlusIcon}>
+                <fbt desc="">Add Item</fbt>
+              </Button>
+            </FormAction>
+          )}
+        </div>
+        <ChecklistItemsDialogMutateDispatchContext.Provider value={dispatch}>
+          {pickedView === TabViewValues.items ? (
+            <ChecklistDefinitionsList items={editingItems} />
+          ) : (
+            <CheckListTableFilling items={editingItems} />
+          )}
         </ChecklistItemsDialogMutateDispatchContext.Provider>
       </DialogContent>
-      <DialogActions>
+      <DialogActions className={classes.dialogActions}>
         <Button skin="gray" onClick={onCancel}>
           {Strings.common.cancelButton}
         </Button>
