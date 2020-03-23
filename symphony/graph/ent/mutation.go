@@ -954,6 +954,8 @@ type CheckListItemMutation struct {
 	selected_enum_values *string
 	help_text            *string
 	clearedFields        map[string]bool
+	files                map[int]struct{}
+	removedfiles         map[int]struct{}
 	work_order           *int
 	clearedwork_order    bool
 }
@@ -1272,6 +1274,48 @@ func (m *CheckListItemMutation) HelpTextCleared() bool {
 func (m *CheckListItemMutation) ResetHelpText() {
 	m.help_text = nil
 	delete(m.clearedFields, checklistitem.FieldHelpText)
+}
+
+// AddFileIDs adds the files edge to File by ids.
+func (m *CheckListItemMutation) AddFileIDs(ids ...int) {
+	if m.files == nil {
+		m.files = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.files[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveFileIDs removes the files edge to File by ids.
+func (m *CheckListItemMutation) RemoveFileIDs(ids ...int) {
+	if m.removedfiles == nil {
+		m.removedfiles = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedfiles[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFiles returns the removed ids of files.
+func (m *CheckListItemMutation) RemovedFilesIDs() (ids []int) {
+	for id := range m.removedfiles {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FilesIDs returns the files ids in the mutation.
+func (m *CheckListItemMutation) FilesIDs() (ids []int) {
+	for id := range m.files {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFiles reset all changes of the files edge.
+func (m *CheckListItemMutation) ResetFiles() {
+	m.files = nil
+	m.removedfiles = nil
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
@@ -1596,7 +1640,10 @@ func (m *CheckListItemMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *CheckListItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.files != nil {
+		edges = append(edges, checklistitem.EdgeFiles)
+	}
 	if m.work_order != nil {
 		edges = append(edges, checklistitem.EdgeWorkOrder)
 	}
@@ -1607,6 +1654,12 @@ func (m *CheckListItemMutation) AddedEdges() []string {
 // the given edge name.
 func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case checklistitem.EdgeFiles:
+		ids := make([]ent.Value, 0, len(m.files))
+		for id := range m.files {
+			ids = append(ids, id)
+		}
+		return ids
 	case checklistitem.EdgeWorkOrder:
 		if id := m.work_order; id != nil {
 			return []ent.Value{*id}
@@ -1618,7 +1671,10 @@ func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *CheckListItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedfiles != nil {
+		edges = append(edges, checklistitem.EdgeFiles)
+	}
 	return edges
 }
 
@@ -1626,6 +1682,12 @@ func (m *CheckListItemMutation) RemovedEdges() []string {
 // the given edge name.
 func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case checklistitem.EdgeFiles:
+		ids := make([]ent.Value, 0, len(m.removedfiles))
+		for id := range m.removedfiles {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1633,7 +1695,7 @@ func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *CheckListItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedwork_order {
 		edges = append(edges, checklistitem.EdgeWorkOrder)
 	}
@@ -1666,6 +1728,9 @@ func (m *CheckListItemMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *CheckListItemMutation) ResetEdge(name string) error {
 	switch name {
+	case checklistitem.EdgeFiles:
+		m.ResetFiles()
+		return nil
 	case checklistitem.EdgeWorkOrder:
 		m.ResetWorkOrder()
 		return nil

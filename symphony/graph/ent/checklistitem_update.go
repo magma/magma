@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
@@ -191,6 +192,21 @@ func (cliu *CheckListItemUpdate) ClearHelpText() *CheckListItemUpdate {
 	return cliu
 }
 
+// AddFileIDs adds the files edge to File by ids.
+func (cliu *CheckListItemUpdate) AddFileIDs(ids ...int) *CheckListItemUpdate {
+	cliu.mutation.AddFileIDs(ids...)
+	return cliu
+}
+
+// AddFiles adds the files edges to File.
+func (cliu *CheckListItemUpdate) AddFiles(f ...*File) *CheckListItemUpdate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cliu.AddFileIDs(ids...)
+}
+
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (cliu *CheckListItemUpdate) SetWorkOrderID(id int) *CheckListItemUpdate {
 	cliu.mutation.SetWorkOrderID(id)
@@ -208,6 +224,21 @@ func (cliu *CheckListItemUpdate) SetNillableWorkOrderID(id *int) *CheckListItemU
 // SetWorkOrder sets the work_order edge to WorkOrder.
 func (cliu *CheckListItemUpdate) SetWorkOrder(w *WorkOrder) *CheckListItemUpdate {
 	return cliu.SetWorkOrderID(w.ID)
+}
+
+// RemoveFileIDs removes the files edge to File by ids.
+func (cliu *CheckListItemUpdate) RemoveFileIDs(ids ...int) *CheckListItemUpdate {
+	cliu.mutation.RemoveFileIDs(ids...)
+	return cliu
+}
+
+// RemoveFiles removes files edges to File.
+func (cliu *CheckListItemUpdate) RemoveFiles(f ...*File) *CheckListItemUpdate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cliu.RemoveFileIDs(ids...)
 }
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
@@ -396,6 +427,44 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Type:   field.TypeString,
 			Column: checklistitem.FieldHelpText,
 		})
+	}
+	if nodes := cliu.mutation.RemovedFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   checklistitem.FilesTable,
+			Columns: []string{checklistitem.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cliu.mutation.FilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   checklistitem.FilesTable,
+			Columns: []string{checklistitem.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if cliu.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -609,6 +678,21 @@ func (cliuo *CheckListItemUpdateOne) ClearHelpText() *CheckListItemUpdateOne {
 	return cliuo
 }
 
+// AddFileIDs adds the files edge to File by ids.
+func (cliuo *CheckListItemUpdateOne) AddFileIDs(ids ...int) *CheckListItemUpdateOne {
+	cliuo.mutation.AddFileIDs(ids...)
+	return cliuo
+}
+
+// AddFiles adds the files edges to File.
+func (cliuo *CheckListItemUpdateOne) AddFiles(f ...*File) *CheckListItemUpdateOne {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cliuo.AddFileIDs(ids...)
+}
+
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (cliuo *CheckListItemUpdateOne) SetWorkOrderID(id int) *CheckListItemUpdateOne {
 	cliuo.mutation.SetWorkOrderID(id)
@@ -626,6 +710,21 @@ func (cliuo *CheckListItemUpdateOne) SetNillableWorkOrderID(id *int) *CheckListI
 // SetWorkOrder sets the work_order edge to WorkOrder.
 func (cliuo *CheckListItemUpdateOne) SetWorkOrder(w *WorkOrder) *CheckListItemUpdateOne {
 	return cliuo.SetWorkOrderID(w.ID)
+}
+
+// RemoveFileIDs removes the files edge to File by ids.
+func (cliuo *CheckListItemUpdateOne) RemoveFileIDs(ids ...int) *CheckListItemUpdateOne {
+	cliuo.mutation.RemoveFileIDs(ids...)
+	return cliuo
+}
+
+// RemoveFiles removes files edges to File.
+func (cliuo *CheckListItemUpdateOne) RemoveFiles(f ...*File) *CheckListItemUpdateOne {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cliuo.RemoveFileIDs(ids...)
 }
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
@@ -812,6 +911,44 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 			Type:   field.TypeString,
 			Column: checklistitem.FieldHelpText,
 		})
+	}
+	if nodes := cliuo.mutation.RemovedFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   checklistitem.FilesTable,
+			Columns: []string{checklistitem.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cliuo.mutation.FilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   checklistitem.FilesTable,
+			Columns: []string{checklistitem.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if cliuo.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{

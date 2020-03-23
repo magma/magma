@@ -426,8 +426,11 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 	if input.EnumSelectionMode != nil {
 		selectionMode = pointer.ToString(input.EnumSelectionMode.String())
 	}
+
+	var cli *ent.CheckListItem
+	var err error
 	if input.ID == nil {
-		cli, err := cl.Create().
+		cli, err = cl.Create().
 			SetTitle(input.Title).
 			SetType(input.Type.String()).
 			SetNillableIndex(input.Index).
@@ -441,23 +444,141 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list item")
 		}
-		return cli, nil
+	} else {
+		cli, err = cl.UpdateOneID(*input.ID).
+			SetTitle(input.Title).
+			SetType(input.Type.String()).
+			SetNillableIndex(input.Index).
+			SetNillableEnumValues(input.EnumValues).
+			SetNillableHelpText(input.HelpText).
+			SetNillableChecked(input.Checked).
+			SetNillableStringVal(input.StringValue).
+			SetNillableEnumSelectionMode(selectionMode).
+			SetNillableSelectedEnumValues(input.SelectedEnumValues).
+			Save(ctx)
 	}
-	cli, err := cl.UpdateOneID(*input.ID).
-		SetTitle(input.Title).
-		SetType(input.Type.String()).
-		SetNillableIndex(input.Index).
-		SetNillableEnumValues(input.EnumValues).
-		SetNillableHelpText(input.HelpText).
-		SetNillableChecked(input.Checked).
-		SetNillableStringVal(input.StringValue).
-		SetNillableEnumSelectionMode(selectionMode).
-		SetNillableSelectedEnumValues(input.SelectedEnumValues).
-		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating check list item")
 	}
-	return cli, nil
+
+	return r.createOrUpdateCheckListItemFiles(ctx, cli, input.Files)
+}
+
+func toIDSet(ids []int) map[int]bool {
+	idSet := make(map[int]bool, len(ids))
+	for _, id := range ids {
+		idSet[id] = true
+	}
+	return idSet
+}
+
+func (r mutationResolver) deleteRemovedCheckListItemFiles(ctx context.Context, item *ent.CheckListItem, currentFileIDs []int, inputFileIDs []int) (*ent.CheckListItem, map[int]bool, error) {
+	client := r.ClientFrom(ctx)
+	_, deletedFileIDs := resolverutil.GetDifferenceBetweenSlices(currentFileIDs, inputFileIDs)
+	deletedIDSet := toIDSet(deletedFileIDs)
+
+	for _, fileID := range deletedFileIDs {
+		err := client.File.DeleteOneID(fileID).Exec(ctx)
+		if err != nil {
+			return nil, nil, fmt.Errorf("deleting checklist file: file=%q: %w", fileID, err)
+		}
+	}
+
+	item, err := client.CheckListItem.UpdateOne(item).RemoveFileIDs(deletedFileIDs...).Save(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("removing checklist files, item: %q: %w", item, err)
+	}
+
+	return item, deletedIDSet, nil
+}
+
+func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, item *ent.CheckListItem, fileInputs []*models.FileInput) (*ent.CheckListItem, error) {
+	client := r.ClientFrom(ctx)
+	var addedFiles []*ent.File
+	for _, input := range fileInputs {
+		if input.ID != nil {
+			continue
+		}
+		f, err := r.createImage(
+			ctx,
+			&models.AddImageInput{
+				ImgKey:   input.StoreKey,
+				FileName: input.FileName,
+				FileSize: func() int {
+					if input.SizeInBytes != nil {
+						return *input.SizeInBytes
+					}
+					return 0
+				}(),
+				Modified:    time.Now(),
+				ContentType: models.FileTypeFile.String(),
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		addedFiles = append(addedFiles, f)
+	}
+
+	if len(addedFiles) > 0 {
+		if item, err := client.CheckListItem.
+			UpdateOne(item).
+			AddFiles(addedFiles...).
+			Save(ctx); err != nil {
+			return nil, fmt.Errorf("adding checklist file item=%q %w", item.ID, err)
+		}
+	}
+
+	return item, nil
+}
+
+func (r mutationResolver) createOrUpdateCheckListItemFiles(ctx context.Context, item *ent.CheckListItem, fileInputs []*models.FileInput) (*ent.CheckListItem, error) {
+	client := r.ClientFrom(ctx)
+	currentFileIDs, err := client.CheckListItem.QueryFiles(item).IDs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying checklist files, item=%q: %w", item.ID, err)
+	}
+	inputFileIDs := make([]int, 0, len(fileInputs))
+	for _, fileInput := range fileInputs {
+		if fileInput.ID == nil {
+			continue
+		}
+		inputFileIDs = append(inputFileIDs, *fileInput.ID)
+	}
+
+	item, deletedIDSet, err := r.deleteRemovedCheckListItemFiles(ctx, item, currentFileIDs, inputFileIDs)
+	if err != nil {
+		return nil, fmt.Errorf("deleting checklist files, item=%q: %w", item.ID, err)
+	}
+
+	item, err = r.createAddedCheckListItemFiles(ctx, item, fileInputs)
+	if err != nil {
+		return nil, fmt.Errorf("creating checklist files, item=%q: %w", item.ID, err)
+	}
+
+	for _, input := range fileInputs {
+		if input.ID == nil {
+			continue
+		}
+		if _, ok := deletedIDSet[*input.ID]; ok {
+			continue
+		}
+
+		existingFile, err := client.File.Get(ctx, *input.ID)
+		if err != nil {
+			return nil, fmt.Errorf("querying file: file=%q: %w", *input.ID, err)
+		}
+		if existingFile.Name == input.FileName {
+			continue
+		}
+		_, err = client.File.UpdateOne(existingFile).SetName(input.FileName).SetModifiedAt(time.Now()).Save(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("updating file name: file=%q: %w", existingFile.ID, err)
+		}
+	}
+
+	return item, nil
 }
 
 func (r mutationResolver) AddWorkOrderType(
