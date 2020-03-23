@@ -66,8 +66,13 @@ func TestAuthenticateUplinkTrafficWithOmniRules(t *testing.T) {
 	assert.True(t, omniRecord.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", omniRecord.RuleId))
 	assert.True(t, omniRecord.BytesTx <= uint64(200*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", omniRecord))
 	assert.Equal(t, uint64(0x0), blockAllRecord.BytesTx)
+
+	// Disconnect
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
+
+	// Delete omni rules
+	assert.NoError(t, ruleManager.RemoveOmniPresentRulesFromDB("omni"))
 
 	// Clear hss, ocs, and pcrf
 	assert.NoError(t, ruleManager.RemoveInstalledRules())

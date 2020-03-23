@@ -122,6 +122,15 @@ func getPCRFClient() (*pcrfClient, error) {
 	}, err
 }
 
+func sendPolicyReAuthRequest(target *fegprotos.PolicyReAuthTarget) (*fegprotos.PolicyReAuthAnswer, error) {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return nil, err
+	}
+	raa, err := cli.ReAuth(context.Background(), target)
+	return raa, err
+}
+
 // addSubscriber tries to add this subscriber to the PCRF server.
 // Input: The subscriber data which will be added.
 func addSubscriberToPCRF(sub *lteprotos.SubscriberID) error {
