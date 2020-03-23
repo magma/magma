@@ -52,10 +52,11 @@ def add_equipment_port_type(
         Example:
         ```
         from pyinventory.consts import PropertyDefinition
+        from pyinventory.graphql.property_kind_enum import PropertyKind
         port_type1 = client.add_equipment_port_type(
             "port type 1",
-            [PropertyDefinition("port property", "string", None, True)],
-            [PropertyDefinition("link port property", "string", None, True)],
+            [PropertyDefinition("port property", PropertyKind.string, None, True)],
+            [PropertyDefinition("link port property", PropertyKind.string, None, True)],
         )
         ```
     """
