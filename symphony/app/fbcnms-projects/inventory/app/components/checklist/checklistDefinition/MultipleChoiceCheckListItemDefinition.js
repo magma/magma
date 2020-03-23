@@ -9,6 +9,7 @@
  */
 
 import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+import type {CheckListItemDefinitionProps} from './CheckListItemDefinition';
 import type {CheckListItemEnumSelectionMode} from '../../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
 
 import CheckListItemDefinitionBase from './CheckListItemDefinitionBase';
@@ -36,12 +37,10 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props = {
-  item: CheckListItem,
-  onChange?: (updatedItem: CheckListItem) => void,
-};
-
-const MultipleChoiceCheckListItemDefinition = ({item, onChange}: Props) => {
+const MultipleChoiceCheckListItemDefinition = ({
+  item,
+  onChange,
+}: CheckListItemDefinitionProps) => {
   const classes = useStyles();
   return (
     <CheckListItemDefinitionBase item={item} onChange={onChange}>

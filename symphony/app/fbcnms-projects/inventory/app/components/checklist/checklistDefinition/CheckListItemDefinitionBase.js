@@ -22,7 +22,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {CheckListItemIcons} from '../checkListCategory/CheckListItemConsts';
+import {CheckListItemConfigs} from '../checkListCategory/CheckListItemConsts';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -72,26 +72,6 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const CHECKLIST_ITEM_CONFIGS: {
-  [CheckListItemType]: {|
-    selectLabel: Node,
-    titlePlaceholder: string,
-  |},
-} = {
-  simple: {
-    selectLabel: <fbt desc="">Check when complete</fbt>,
-    titlePlaceholder: `${fbt('What needs to be done?', '')}`,
-  },
-  string: {
-    selectLabel: <fbt desc="">Free text</fbt>,
-    titlePlaceholder: `${fbt('What needs to be written?', '')}`,
-  },
-  enum: {
-    selectLabel: <fbt desc="">Multiple choice</fbt>,
-    titlePlaceholder: `${fbt('What needs to be chosen?', '')}`,
-  },
-};
-
 type Props = {
   item: CheckListItem,
   children?: Node,
@@ -101,7 +81,7 @@ type Props = {
 const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
   const classes = useStyles();
   const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
-  const config = CHECKLIST_ITEM_CONFIGS[item.type];
+  const config = CheckListItemConfigs[item.type];
   return (
     <div className={classes.root}>
       <div className={classes.editIndicator} />
@@ -124,16 +104,16 @@ const CheckListItemDefinitionBase = ({children, item, onChange}: Props) => {
         <Grid item xs={5} l={4}>
           <Select
             className={classes.typeSelector}
-            options={Object.keys(CHECKLIST_ITEM_CONFIGS).map(
+            options={Object.keys(CheckListItemConfigs).map(
               (itemType: CheckListItemType) => {
-                const Icon = CheckListItemIcons[itemType];
+                const Icon = CheckListItemConfigs[itemType].icon;
                 return {
                   key: `${itemType}`,
                   label: (
                     <div className={classes.label}>
                       <Icon className={classes.selectIcon} />
                       <Text variant="body2">
-                        {CHECKLIST_ITEM_CONFIGS[itemType].selectLabel}
+                        {CheckListItemConfigs[itemType].selectLabel}
                       </Text>
                     </div>
                   ),
