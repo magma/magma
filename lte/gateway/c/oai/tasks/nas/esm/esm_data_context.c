@@ -111,14 +111,16 @@ void nas_stop_T3489(esm_context_t *const esm_ctx)
 
 // free allocated structs
 //------------------------------------------------------------------------------
-void free_esm_context_content(esm_context_t *esm_ctx)
+void free_esm_context_content(esm_context_t* esm_ctx)
 {
-  if (esm_ctx) {
-    nas_stop_T3489(esm_ctx);
-    if (esm_ctx->esm_proc_data) {
-      bdestroy_wrapper(&esm_ctx->esm_proc_data->apn);
-      free_wrapper((void**)&esm_ctx->esm_proc_data);
-    }
+  if (!esm_ctx) {
+    return;
+  }
+  nas_stop_T3489(esm_ctx);
+  if (esm_ctx->esm_proc_data){
+    OAILOG_DEBUG(LOG_NAS_ESM, "Free up esm_proc_data");
+    bdestroy_wrapper(&esm_ctx->esm_proc_data->apn);
+    free_wrapper((void**)&esm_ctx->esm_proc_data);
   }
 }
 
