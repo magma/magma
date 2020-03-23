@@ -79,7 +79,7 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 		externalIDIndex := findIndexForSimilar(firstLine, "external id")
 		if getImportContext(ctx).lowestHierarchyIndex == -1 {
 			log.Warn("location types on title does not match")
-			errorReturn(w, fmt.Sprintf("location types on title does not match schema"), log, err)
+			errorReturn(w, "location types on title does not match schema", log, err)
 			return
 		}
 

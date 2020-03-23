@@ -77,6 +77,7 @@ dpi:
   enabled: false
   mon_port: mon1
   mon_port_number: 32769
+  idle_timeout: 5
 
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: cwag_br0

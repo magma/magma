@@ -12,6 +12,7 @@ const querystring = require('querystring');
 const proxy = require('http-proxy-middleware');
 const {GRAPH_HOST} = require('../config');
 import {accessRoleToString} from '@fbcnms/auth/roles';
+import {oidcAccessToken} from '@fbcnms/auth/oidc/middleware';
 import type {ClientRequest} from 'http';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
@@ -36,6 +37,11 @@ router.use(
       }
       proxyReq.setHeader('x-auth-user-email', req.user.email);
       proxyReq.setHeader('x-auth-user-role', accessRoleToString(req.user.role));
+
+      const accessToken = oidcAccessToken(req);
+      if (accessToken != null) {
+        proxyReq.setHeader('authorization', 'Bearer ' + accessToken);
+      }
 
       if (!req.body || !Object.keys(req.body).length) {
         return;

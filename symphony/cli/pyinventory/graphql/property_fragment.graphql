@@ -1,0 +1,14 @@
+fragment PropertyFragment on Property {
+  id
+  propertyType {
+    ...PropertyTypeFragment
+  }
+  stringValue
+  intValue
+  floatValue
+  booleanValue
+  latitudeValue
+  longitudeValue
+  rangeFromValue
+  rangeToValue
+}

@@ -224,14 +224,16 @@ type CheckListDefinitionInput struct {
 }
 
 type CheckListItemInput struct {
-	ID          *int              `json:"id"`
-	Title       string            `json:"title"`
-	Type        CheckListItemType `json:"type"`
-	Index       *int              `json:"index"`
-	HelpText    *string           `json:"helpText"`
-	EnumValues  *string           `json:"enumValues"`
-	StringValue *string           `json:"stringValue"`
-	Checked     *bool             `json:"checked"`
+	ID                 *int                            `json:"id"`
+	Title              string                          `json:"title"`
+	Type               CheckListItemType               `json:"type"`
+	Index              *int                            `json:"index"`
+	HelpText           *string                         `json:"helpText"`
+	EnumValues         *string                         `json:"enumValues"`
+	EnumSelectionMode  *CheckListItemEnumSelectionMode `json:"enumSelectionMode"`
+	SelectedEnumValues *string                         `json:"selectedEnumValues"`
+	StringValue        *string                         `json:"stringValue"`
+	Checked            *bool                           `json:"checked"`
 }
 
 type CommentInput struct {
@@ -568,6 +570,22 @@ type SearchEntryEdge struct {
 	Cursor ent.Cursor `json:"cursor"`
 }
 
+// A search entry edge in a connection.
+type SearchNodeEdge struct {
+	// The search entry at the end of the edge.
+	Node ent.Noder `json:"node"`
+	// A cursor for use in pagination.
+	Cursor ent.Cursor `json:"cursor"`
+}
+
+// A connection to a list of search entries.
+type SearchNodesConnection struct {
+	// A list of search entry edges.
+	Edges []*SearchNodeEdge `json:"edges"`
+	// Information to aid in pagination.
+	PageInfo *ent.PageInfo `json:"pageInfo"`
+}
+
 type ServiceCreateData struct {
 	Name               string           `json:"name"`
 	ExternalID         *string          `json:"externalId"`
@@ -784,6 +802,47 @@ func (e *CellularNetworkType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CellularNetworkType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CheckListItemEnumSelectionMode string
+
+const (
+	CheckListItemEnumSelectionModeSingle   CheckListItemEnumSelectionMode = "single"
+	CheckListItemEnumSelectionModeMultiple CheckListItemEnumSelectionMode = "multiple"
+)
+
+var AllCheckListItemEnumSelectionMode = []CheckListItemEnumSelectionMode{
+	CheckListItemEnumSelectionModeSingle,
+	CheckListItemEnumSelectionModeMultiple,
+}
+
+func (e CheckListItemEnumSelectionMode) IsValid() bool {
+	switch e {
+	case CheckListItemEnumSelectionModeSingle, CheckListItemEnumSelectionModeMultiple:
+		return true
+	}
+	return false
+}
+
+func (e CheckListItemEnumSelectionMode) String() string {
+	return string(e)
+}
+
+func (e *CheckListItemEnumSelectionMode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CheckListItemEnumSelectionMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CheckListItemEnumSelectionMode", str)
+	}
+	return nil
+}
+
+func (e CheckListItemEnumSelectionMode) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

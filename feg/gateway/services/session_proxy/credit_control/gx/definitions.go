@@ -193,7 +193,7 @@ type CCADiameterMessage struct {
 //					*[ Proxy-Info ]
 //					*[ Route-Record ]
 //					*[ AVP ]
-type ReAuthRequest struct {
+type PolicyReAuthRequest struct {
 	SessionID        string                 `avp:"Session-Id"`
 	OriginHost       string                 `avp:"Origin-Host"`
 	RulesToRemove    []*RuleRemoveAVP       `avp:"Charging-Rule-Remove"`
@@ -234,7 +234,7 @@ type ReAuthRequest struct {
 //					[ Failed-AVP ]
 //					*[ Proxy-Info ]
 //					*[ AVP ]
-type ReAuthAnswer struct {
+type PolicyReAuthAnswer struct {
 	SessionID   string                `avp:"Session-Id"`
 	ResultCode  uint32                `avp:"Result-Code"`
 	RuleReports []*ChargingRuleReport `avp:"Charging-Rule-Report"`

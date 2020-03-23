@@ -25,7 +25,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
 	"go.uber.org/zap"
-	"golang.org/x/xerrors"
 )
 
 type workOrderDefinitionResolver struct{}
@@ -184,7 +183,7 @@ func (r mutationResolver) internalAddWorkOrder(
 	if input.Assignee != nil && *input.Assignee != "" {
 		assigneeID, err := c.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
 		if err != nil {
-			return nil, xerrors.Errorf("fetching assignee user", err)
+			return nil, fmt.Errorf("fetching assignee user: %w", err)
 		} else {
 			mutation = mutation.SetAssigneeID(assigneeID)
 		}
@@ -196,7 +195,7 @@ func (r mutationResolver) internalAddWorkOrder(
 		owner, err = viewer.UserFromContext(ctx)
 	}
 	if err != nil {
-		return nil, xerrors.Errorf("fetching own user", err)
+		return nil, fmt.Errorf("fetching own user: %w", err)
 	}
 	mutation = mutation.SetOwner(owner)
 	for _, clInput := range input.CheckListCategories {
@@ -254,14 +253,14 @@ func (r mutationResolver) EditWorkOrder(
 	if input.OwnerName != nil && *input.OwnerName != "" {
 		ownerID, err := client.User.Query().Where(user.AuthID(*input.OwnerName)).OnlyID(ctx)
 		if err != nil {
-			return nil, xerrors.Errorf("fetching owner user", err)
+			return nil, fmt.Errorf("fetching owner user: %w", err)
 		}
 		mutation = mutation.SetOwnerID(ownerID)
 	}
 	if input.Assignee != nil && *input.Assignee != "" {
 		assigneeID, err := client.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
 		if err != nil {
-			return nil, xerrors.Errorf("fetching assignee user", err)
+			return nil, fmt.Errorf("fetching assignee user: %w", err)
 		}
 		mutation = mutation.SetAssigneeID(assigneeID)
 	}
@@ -423,6 +422,10 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 	input *models.CheckListItemInput) (*ent.CheckListItem, error) {
 	client := r.ClientFrom(ctx)
 	cl := client.CheckListItem
+	var selectionMode *string
+	if input.EnumSelectionMode != nil {
+		selectionMode = pointer.ToString(input.EnumSelectionMode.String())
+	}
 	if input.ID == nil {
 		cli, err := cl.Create().
 			SetTitle(input.Title).
@@ -432,6 +435,8 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableHelpText(input.HelpText).
 			SetNillableChecked(input.Checked).
 			SetNillableStringVal(input.StringValue).
+			SetNillableEnumSelectionMode(selectionMode).
+			SetNillableSelectedEnumValues(input.SelectedEnumValues).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list item")
@@ -446,6 +451,8 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 		SetNillableHelpText(input.HelpText).
 		SetNillableChecked(input.Checked).
 		SetNillableStringVal(input.StringValue).
+		SetNillableEnumSelectionMode(selectionMode).
+		SetNillableSelectedEnumValues(input.SelectedEnumValues).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating check list item")
@@ -586,7 +593,7 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		Count(ctx); {
 	case err != nil:
 		logger.Error("cannot query work order count of type", zap.Error(err))
-		return id, xerrors.Errorf("querying work orders for type: %w", err)
+		return id, fmt.Errorf("querying work orders for type: %w", err)
 	case count > 0:
 		logger.Warn("work order type has existing work orders", zap.Int("count", count))
 		return id, gqlerror.Errorf("cannot delete work order type with %d existing work orders", count)
@@ -595,7 +602,7 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		Where(propertytype.HasWorkOrderTypeWith(workordertype.ID(id))).
 		Exec(ctx); err != nil {
 		logger.Error("cannot delete properties of work order type", zap.Error(err))
-		return id, xerrors.Errorf("deleting work order property types: %w", err)
+		return id, fmt.Errorf("deleting work order property types: %w", err)
 	}
 	switch err := client.WorkOrderType.DeleteOneID(id).Exec(ctx); err.(type) {
 	case nil:
@@ -607,6 +614,6 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		return id, err
 	default:
 		logger.Error("cannot delete work order type", zap.Error(err))
-		return id, xerrors.Errorf("deleting work order type: %w", err)
+		return id, fmt.Errorf("deleting work order type: %w", err)
 	}
 }

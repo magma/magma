@@ -1993,7 +1993,6 @@ definitions:
             - 'dpi'
             - 'policy_enforcement'
         example:
-          - 'dpi'
           - 'policy_enforcement'
       mobility:
         type: object

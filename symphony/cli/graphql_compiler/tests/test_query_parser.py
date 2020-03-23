@@ -224,15 +224,18 @@ class TestQueryParser(BaseTest):
                                 ],
                             )
                         ],
-                    ),
+                    )
+                ],
+                fragment_objects=[
                     ParsedObject(
                         name="FilmFields",
                         fields=[
                             ParsedField(name="title", type="str", nullable=False),
                             ParsedField(name="director", type="str", nullable=False),
                         ],
-                    ),
+                    )
                 ],
+                used_fragments=["FilmFields"],
             )
         )
 
@@ -285,7 +288,9 @@ class TestQueryParser(BaseTest):
                                 ],
                             )
                         ],
-                    ),
+                    )
+                ],
+                fragment_objects=[
                     ParsedObject(
                         name="CharacterFields",
                         fields=[
@@ -300,8 +305,9 @@ class TestQueryParser(BaseTest):
                                 ],
                             )
                         ],
-                    ),
+                    )
                 ],
+                used_fragments=["CharacterFields"],
             )
         )
 
@@ -509,15 +515,18 @@ class TestQueryParser(BaseTest):
                                 ],
                             )
                         ],
-                    ),
+                    )
+                ],
+                fragment_objects=[
                     ParsedObject(
                         name="HeroFields",
                         fields=[
                             ParsedField(name="id", type="str", nullable=False),
                             ParsedField(name="name", type="str", nullable=False),
                         ],
-                    ),
+                    )
                 ],
+                used_fragments=["HeroFields"],
             )
         )
 

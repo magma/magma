@@ -131,6 +131,46 @@ func (cliu *CheckListItemUpdate) ClearEnumValues() *CheckListItemUpdate {
 	return cliu
 }
 
+// SetEnumSelectionMode sets the enum_selection_mode field.
+func (cliu *CheckListItemUpdate) SetEnumSelectionMode(s string) *CheckListItemUpdate {
+	cliu.mutation.SetEnumSelectionMode(s)
+	return cliu
+}
+
+// SetNillableEnumSelectionMode sets the enum_selection_mode field if the given value is not nil.
+func (cliu *CheckListItemUpdate) SetNillableEnumSelectionMode(s *string) *CheckListItemUpdate {
+	if s != nil {
+		cliu.SetEnumSelectionMode(*s)
+	}
+	return cliu
+}
+
+// ClearEnumSelectionMode clears the value of enum_selection_mode.
+func (cliu *CheckListItemUpdate) ClearEnumSelectionMode() *CheckListItemUpdate {
+	cliu.mutation.ClearEnumSelectionMode()
+	return cliu
+}
+
+// SetSelectedEnumValues sets the selected_enum_values field.
+func (cliu *CheckListItemUpdate) SetSelectedEnumValues(s string) *CheckListItemUpdate {
+	cliu.mutation.SetSelectedEnumValues(s)
+	return cliu
+}
+
+// SetNillableSelectedEnumValues sets the selected_enum_values field if the given value is not nil.
+func (cliu *CheckListItemUpdate) SetNillableSelectedEnumValues(s *string) *CheckListItemUpdate {
+	if s != nil {
+		cliu.SetSelectedEnumValues(*s)
+	}
+	return cliu
+}
+
+// ClearSelectedEnumValues clears the value of selected_enum_values.
+func (cliu *CheckListItemUpdate) ClearSelectedEnumValues() *CheckListItemUpdate {
+	cliu.mutation.ClearSelectedEnumValues()
+	return cliu
+}
+
 // SetHelpText sets the help_text field.
 func (cliu *CheckListItemUpdate) SetHelpText(s string) *CheckListItemUpdate {
 	cliu.mutation.SetHelpText(s)
@@ -318,6 +358,32 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Column: checklistitem.FieldEnumValues,
 		})
 	}
+	if value, ok := cliu.mutation.EnumSelectionMode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if cliu.mutation.EnumSelectionModeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if value, ok := cliu.mutation.SelectedEnumValues(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
+	if cliu.mutation.SelectedEnumValuesCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
 	if value, ok := cliu.mutation.HelpText(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -480,6 +546,46 @@ func (cliuo *CheckListItemUpdateOne) SetNillableEnumValues(s *string) *CheckList
 // ClearEnumValues clears the value of enum_values.
 func (cliuo *CheckListItemUpdateOne) ClearEnumValues() *CheckListItemUpdateOne {
 	cliuo.mutation.ClearEnumValues()
+	return cliuo
+}
+
+// SetEnumSelectionMode sets the enum_selection_mode field.
+func (cliuo *CheckListItemUpdateOne) SetEnumSelectionMode(s string) *CheckListItemUpdateOne {
+	cliuo.mutation.SetEnumSelectionMode(s)
+	return cliuo
+}
+
+// SetNillableEnumSelectionMode sets the enum_selection_mode field if the given value is not nil.
+func (cliuo *CheckListItemUpdateOne) SetNillableEnumSelectionMode(s *string) *CheckListItemUpdateOne {
+	if s != nil {
+		cliuo.SetEnumSelectionMode(*s)
+	}
+	return cliuo
+}
+
+// ClearEnumSelectionMode clears the value of enum_selection_mode.
+func (cliuo *CheckListItemUpdateOne) ClearEnumSelectionMode() *CheckListItemUpdateOne {
+	cliuo.mutation.ClearEnumSelectionMode()
+	return cliuo
+}
+
+// SetSelectedEnumValues sets the selected_enum_values field.
+func (cliuo *CheckListItemUpdateOne) SetSelectedEnumValues(s string) *CheckListItemUpdateOne {
+	cliuo.mutation.SetSelectedEnumValues(s)
+	return cliuo
+}
+
+// SetNillableSelectedEnumValues sets the selected_enum_values field if the given value is not nil.
+func (cliuo *CheckListItemUpdateOne) SetNillableSelectedEnumValues(s *string) *CheckListItemUpdateOne {
+	if s != nil {
+		cliuo.SetSelectedEnumValues(*s)
+	}
+	return cliuo
+}
+
+// ClearSelectedEnumValues clears the value of selected_enum_values.
+func (cliuo *CheckListItemUpdateOne) ClearSelectedEnumValues() *CheckListItemUpdateOne {
+	cliuo.mutation.ClearSelectedEnumValues()
 	return cliuo
 }
 
@@ -666,6 +772,32 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitem.FieldEnumValues,
+		})
+	}
+	if value, ok := cliuo.mutation.EnumSelectionMode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if cliuo.mutation.EnumSelectionModeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if value, ok := cliuo.mutation.SelectedEnumValues(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
+	if cliuo.mutation.SelectedEnumValuesCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldSelectedEnumValues,
 		})
 	}
 	if value, ok := cliuo.mutation.HelpText(); ok {

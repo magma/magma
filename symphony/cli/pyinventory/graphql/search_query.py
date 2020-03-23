@@ -17,21 +17,26 @@ class SearchQuery(DataClassJsonMixin):
     @dataclass
     class SearchQueryData(DataClassJsonMixin):
         @dataclass
-        class SearchEntriesConnection(DataClassJsonMixin):
+        class SearchNodesConnection(DataClassJsonMixin):
             @dataclass
-            class SearchEntryEdge(DataClassJsonMixin):
+            class SearchNodeEdge(DataClassJsonMixin):
                 @dataclass
-                class SearchEntry(DataClassJsonMixin):
-                    entityId: str
-                    entityType: str
+                class Node(DataClassJsonMixin):
+                    @dataclass
+                    class LocationType(DataClassJsonMixin):
+                        name: str
+
+                    typename: str
+                    id: str
                     name: str
-                    type: str
+                    locationType: LocationType
+                    externalId: Optional[str] = None
 
-                node: Optional[SearchEntry] = None
+                node: Optional[Node] = None
 
-            edges: List[SearchEntryEdge]
+            edges: List[SearchNodeEdge]
 
-        searchForEntity: SearchEntriesConnection
+        searchForNode: SearchNodesConnection
 
     data: SearchQueryData
 
@@ -43,7 +48,7 @@ class SearchQuery(DataClassJsonMixin):
   $before: Cursor
   $last: Int
 ) {
-  searchForEntity(
+  searchForNode(
     name: $name
     after: $after
     first: $first
@@ -52,10 +57,15 @@ class SearchQuery(DataClassJsonMixin):
   ) {
     edges {
       node {
-        entityId
-        entityType
-        name
-        type
+        typename: __typename
+        ... on Location {
+          id
+          externalId
+          name
+          locationType {
+            name
+          }
+        }
       }
     }
   }

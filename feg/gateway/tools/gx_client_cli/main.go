@@ -182,6 +182,6 @@ func sendTerminateCall(config *cliConfig, requestNumber uint32) {
 	fmt.Printf("CCA-Terminate: %+v\n", answer)
 }
 
-func handleReAuth(request *gx.ReAuthRequest) *gx.ReAuthAnswer {
+func handleReAuth(request *gx.PolicyReAuthRequest) *gx.PolicyReAuthAnswer {
 	return nil
 }

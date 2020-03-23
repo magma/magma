@@ -33,6 +33,10 @@ export function getInitialState(
       helpText: item.helpText,
       checked: item.checked,
       enumValues: item.enumValues,
+      enumSelectionMode: !!item.enumSelectionMode
+        ? item.enumSelectionMode
+        : 'single',
+      selectedEnumValues: item.selectedEnumValues,
       stringValue: item.stringValue,
     })),
   }));

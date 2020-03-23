@@ -255,6 +255,56 @@ func (r queryResolver) SearchForEntity(
 	return &models.SearchEntriesConnection{Edges: edges}, nil
 }
 
+func (r queryResolver) SearchForNode(
+	ctx context.Context, name string,
+	_ *ent.Cursor, limit *int,
+	_ *ent.Cursor, _ *int,
+) (*models.SearchNodesConnection, error) {
+	if limit == nil {
+		return nil, errors.New("first is a mandatory param")
+	}
+	client := r.ClientFrom(ctx)
+	locations, err := client.Location.Query().
+		Where(
+			location.Or(
+				location.NameContainsFold(name),
+				location.ExternalIDContainsFold(name),
+			),
+		).
+		Limit(*limit).
+		All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error searching for locations")
+	}
+
+	edges := make([]*models.SearchNodeEdge, len(locations))
+	for i, l := range locations {
+		edges[i] = &models.SearchNodeEdge{
+			Node: l,
+		}
+	}
+	if len(locations) == *limit {
+		return &models.SearchNodesConnection{Edges: edges}, nil
+	}
+
+	equipments, err := client.Equipment.Query().
+		Where(equipment.Or(
+			equipment.NameContainsFold(name),
+			equipment.ExternalIDContainsFold(name),
+		)).
+		Limit(*limit - len(locations)).
+		All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error searching for equipments")
+	}
+	for _, e := range equipments {
+		edges = append(edges, &models.SearchNodeEdge{
+			Node: e,
+		})
+	}
+	return &models.SearchNodesConnection{Edges: edges}, nil
+}
+
 func (r queryResolver) PossibleProperties(ctx context.Context, entityType models.PropertyEntity) (pts []*ent.PropertyType, err error) {
 	client := r.ClientFrom(ctx)
 	switch entityType {

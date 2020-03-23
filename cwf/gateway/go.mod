@@ -30,6 +30,8 @@ replace (
 require (
 	fbc/cwf/radius v0.0.0
 	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
+	github.com/emakeev/go-diameter v3.0.2+incompatible
+	github.com/fiorix/go-diameter v3.0.2+incompatible // indirect
 	github.com/fiorix/go-diameter/v4 v4.0.1-0.20200120193412-55a1c21738f9
 	github.com/go-openapi/swag v0.18.0
 	github.com/go-redis/redis v6.15.5+incompatible

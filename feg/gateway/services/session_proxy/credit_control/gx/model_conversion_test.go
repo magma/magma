@@ -36,7 +36,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 	currentTime := time.Now()
 	protoTimestamp, err := ptypes.TimestampProto(currentTime)
 	assert.NoError(t, err)
-	in := &gx.ReAuthRequest{
+	in := &gx.PolicyReAuthRequest{
 		SessionID: "IMSI001010000000001-1234",
 		RulesToRemove: []*gx.RuleRemoveAVP{
 			{RuleNames: []string{"remove1", "remove2"}, RuleBaseNames: []string{"baseRemove1"}},
@@ -161,7 +161,7 @@ func TestReAuthAnswer_FromProto(t *testing.T) {
 			"baz": protos.PolicyReAuthAnswer_AN_GW_FAILED,
 		},
 	}
-	actual := (&gx.ReAuthAnswer{}).FromProto("sesh", in)
+	actual := (&gx.PolicyReAuthAnswer{}).FromProto("sesh", in)
 
 	// sort the rules so we get a deterministic test
 	sortFun := func(i, j int) bool {
@@ -174,7 +174,7 @@ func TestReAuthAnswer_FromProto(t *testing.T) {
 	}
 	sort.Slice(actual.RuleReports, sortFun)
 
-	expected := &gx.ReAuthAnswer{
+	expected := &gx.PolicyReAuthAnswer{
 		SessionID:  "sesh",
 		ResultCode: diam.Success,
 		RuleReports: []*gx.ChargingRuleReport{

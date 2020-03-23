@@ -5,32 +5,10 @@ query EquipmentPortTypesQuery {
         id
         name
         propertyTypes {
-          id
-          name
-          type
-          index
-          stringValue
-          intValue
-          booleanValue
-          floatValue
-          latitudeValue
-          longitudeValue
-          isEditable
-          isInstanceProperty
+          ...PropertyTypeFragment
         }
         linkPropertyTypes {
-          id
-          name
-          type
-          index
-          stringValue
-          intValue
-          booleanValue
-          floatValue
-          latitudeValue
-          longitudeValue
-          isEditable
-          isInstanceProperty
+          ...PropertyTypeFragment
         }
       }
     }

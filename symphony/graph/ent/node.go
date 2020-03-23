@@ -205,7 +205,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     cli.ID,
 		Type:   "CheckListItem",
-		Fields: make([]*Field, 7),
+		Fields: make([]*Field, 9),
 		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
@@ -257,10 +257,26 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "EnumValues",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(cli.HelpText); err != nil {
+	if buf, err = json.Marshal(cli.EnumSelectionMode); err != nil {
 		return nil, err
 	}
 	node.Fields[6] = &Field{
+		Type:  "string",
+		Name:  "EnumSelectionMode",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cli.SelectedEnumValues); err != nil {
+		return nil, err
+	}
+	node.Fields[7] = &Field{
+		Type:  "string",
+		Name:  "SelectedEnumValues",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cli.HelpText); err != nil {
+		return nil, err
+	}
+	node.Fields[8] = &Field{
 		Type:  "string",
 		Name:  "HelpText",
 		Value: string(buf),

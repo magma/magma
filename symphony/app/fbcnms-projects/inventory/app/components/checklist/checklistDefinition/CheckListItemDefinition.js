@@ -11,7 +11,9 @@
 import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
 
 import BasicCheckListItemDefinition from './BasicCheckListItemDefinition';
+import CheckListItemCollapsedDefinition from './CheckListItemCollapsedDefinition';
 import FreeTextCheckListItemDefinition from './FreeTextCheckListItemDefinition';
+import MultipleChoiceCheckListItemDefinition from './MultipleChoiceCheckListItemDefinition';
 import React from 'react';
 import fbt from 'fbt';
 
@@ -30,12 +32,15 @@ export const CHECKLIST_ITEM_DEFINITION_TYPES = {
     ),
     component: FreeTextCheckListItemDefinition,
   },
+  enum: {
+    component: MultipleChoiceCheckListItemDefinition,
+  },
 };
 
 export const GetValidChecklistItemType = (
   type: string,
-): 'simple' | 'string' | null => {
-  if (type === 'simple' || type === 'string') {
+): 'simple' | 'string' | 'enum' | null => {
+  if (type === 'simple' || type === 'string' || type === 'enum') {
     return type;
   }
 
@@ -44,11 +49,12 @@ export const GetValidChecklistItemType = (
 
 type Props = {
   item: CheckListItem,
+  editedDefinitionId: ?string,
   onChange?: (updatedChecklistItemDefinition: CheckListItem) => void,
 };
 
 const CheckListItemDefinition = (props: Props) => {
-  const {item} = props;
+  const {item, editedDefinitionId} = props;
 
   const itemTypeKey = item && GetValidChecklistItemType(item.type);
   const itemType = itemTypeKey && CHECKLIST_ITEM_DEFINITION_TYPES[itemTypeKey];
@@ -57,16 +63,11 @@ const CheckListItemDefinition = (props: Props) => {
     return null;
   }
 
-  const checkListItemDefinitionComponentProps = {
-    ...props,
-    checkListItem: props.item,
-  };
+  if (item.id !== editedDefinitionId) {
+    return <CheckListItemCollapsedDefinition item={item} />;
+  }
 
-  return (
-    <CheckListItemDefinitionComponent
-      {...checkListItemDefinitionComponentProps}
-    />
-  );
+  return <CheckListItemDefinitionComponent {...props} />;
 };
 
 export default CheckListItemDefinition;

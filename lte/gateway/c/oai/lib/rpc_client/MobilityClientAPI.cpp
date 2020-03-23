@@ -19,7 +19,7 @@
  *      contact@openairinterface.org
  */
 
-#include "RpcClient.h"
+#include "MobilityClientAPI.h"
 
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>

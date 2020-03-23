@@ -23,6 +23,11 @@ func (checkListItemResolver) Type(ctx context.Context, obj *ent.CheckListItem) (
 	return models.CheckListItemType(obj.Type), nil
 }
 
+func (checkListItemResolver) EnumSelectionMode(_ context.Context, item *ent.CheckListItem) (*models.CheckListItemEnumSelectionMode, error) {
+	selectionMode := models.CheckListItemEnumSelectionMode(item.EnumSelectionMode)
+	return &selectionMode, nil
+}
+
 type checkListItemDefinitionResolver struct{}
 
 func (checkListItemDefinitionResolver) Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error) {

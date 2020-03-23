@@ -27,7 +27,7 @@ CWAG_TEST_BR_NAME = "cwag_test_br0"
 
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
-               destroy_vm="False"):
+               destroy_vm="False", no_build="False"):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -44,9 +44,12 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     trf_host: The ssh address string of the machine to run the tests on
         on. Formatted as "host:port". If not specified, defaults to the
         `magma_trfserver` vagrant box.
+
+    no_build: When set to true, this script will NOT rebuild all docker images.
     """
 
     destroy_vm = bool(strtobool(destroy_vm))
+    no_build = bool(strtobool(no_build))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -66,7 +69,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         execute(_transfer_docker_images)
     else:
         execute(_stop_gateway)
-        execute(_build_gateway)
+        if not no_build:
+            execute(_build_gateway)
     execute(_run_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
@@ -196,7 +200,7 @@ def _start_ue_simulator():
 
 def _start_trfserver():
     """ Starts the traffic gen server"""
-    run('nohup iperf3 -s -B %s > /dev/null &' % TRF_SERVER_IP, pty=False)
+    run('nohup iperf3 -s --json -B %s > /dev/null &' % TRF_SERVER_IP, pty=False)
 
 
 def _run_unit_tests():

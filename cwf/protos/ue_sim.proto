@@ -51,7 +51,8 @@ message GenTrafficRequest {
     google.protobuf.StringValue volume = 2;
     google.protobuf.StringValue bitrate = 3;
     uint64 timeInSecs = 4;    
-    bool reverseMode = 5;
+    uint64 reportingIntervalInSecs = 5;    
+    bool reverseMode = 6;
 }
 
 message GenTrafficResponse {

@@ -11,6 +11,12 @@ variable "region" {
   type        = string
 }
 
+variable "state_backend" {
+  description = "State backend for terraform (e.g. s3, local)"
+  type        = string
+  default     = "local"
+}
+
 data "aws_availability_zones" "available" {}
 
 ##############################################################################
