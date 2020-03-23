@@ -8,20 +8,55 @@
  * @format
  */
 
+import type {CheckListItemDefinitionProps} from '../checklistDefinition/CheckListItemDefinition';
+import type {CheckListItemFillingProps} from '../checklistFilling/CheckListItemFilling';
 import type {CheckListItemType} from '../../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
 import type {SvgIconStyleProps} from '@fbcnms/ui/components/design-system/Icons/SvgIcon';
 
 import * as React from 'react';
+import BasicCheckListItemDefinition from '../checklistDefinition/BasicCheckListItemDefinition';
+import BasicCheckListItemFilling from '../checklistFilling/BasicCheckListItemFilling';
+import FreeTextCheckListItemDefinition from '../checklistDefinition/FreeTextCheckListItemDefinition';
+import FreeTextCheckListItemFilling from '../checklistFilling/FreeTextCheckListItemFilling';
+import MultipleChoiceCheckListItemDefinition from '../checklistDefinition/MultipleChoiceCheckListItemDefinition';
+import MultipleChoiceCheckListItemFilling from '../checklistFilling/MultipleChoiceCheckListItemFilling';
+import fbt from 'fbt';
 import {
   ChecklistCheckIcon,
   MultipleSelectionIcon,
   TextIcon,
 } from '@fbcnms/ui/components/design-system/Icons';
 
-export const CheckListItemIcons: {
-  [CheckListItemType]: React.ComponentType<SvgIconStyleProps>,
-} = {
-  simple: ChecklistCheckIcon,
-  string: TextIcon,
-  enum: MultipleSelectionIcon,
+export type CheckListItemConfigsType = {
+  [CheckListItemType]: {|
+    icon: React.ComponentType<SvgIconStyleProps>,
+    definitionComponent: React.ComponentType<CheckListItemDefinitionProps>,
+    fillingComponent: React.ComponentType<CheckListItemFillingProps>,
+    selectLabel: React.Node,
+    titlePlaceholder: string,
+  |},
+};
+
+export const CheckListItemConfigs: CheckListItemConfigsType = {
+  simple: {
+    icon: ChecklistCheckIcon,
+    definitionComponent: BasicCheckListItemDefinition,
+    fillingComponent: BasicCheckListItemFilling,
+    selectLabel: <fbt desc="">Check when complete</fbt>,
+    titlePlaceholder: `${fbt('What needs to be done?', '')}`,
+  },
+  string: {
+    icon: TextIcon,
+    definitionComponent: FreeTextCheckListItemDefinition,
+    fillingComponent: FreeTextCheckListItemFilling,
+    selectLabel: <fbt desc="">Free text</fbt>,
+    titlePlaceholder: `${fbt('What needs to be written?', '')}`,
+  },
+  enum: {
+    icon: MultipleSelectionIcon,
+    definitionComponent: MultipleChoiceCheckListItemDefinition,
+    fillingComponent: MultipleChoiceCheckListItemFilling,
+    selectLabel: <fbt desc="">Multiple choice</fbt>,
+    titlePlaceholder: `${fbt('What needs to be chosen?', '')}`,
+  },
 };

@@ -8,18 +8,14 @@
  * @format
  */
 
-import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+import type {CheckListItemFillingProps} from './CheckListItemFilling';
 
+import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
-import React, {useContext} from 'react';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
-
-type Props = {
-  item: CheckListItem,
-  onChange?: (updatedChecklistItem: CheckListItem) => void,
-};
+import {useContext} from 'react';
 
 const useStyles = makeStyles(() => ({
   container: {
@@ -28,7 +24,10 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const BasicCheckListItemFilling = ({item, onChange}: Props) => {
+const BasicCheckListItemFilling = ({
+  item,
+  onChange,
+}: CheckListItemFillingProps): React.Node => {
   const classes = useStyles();
 
   const _updateOnChange = () => {
