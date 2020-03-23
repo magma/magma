@@ -31,6 +31,4 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../s1ap/messages/asn1/${ASN1REL
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../s1ap")
 
 
-
-
 add_library(TASK_UDP udp_primitives_server.c)
