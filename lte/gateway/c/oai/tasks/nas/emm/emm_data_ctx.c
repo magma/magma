@@ -654,9 +654,7 @@ void free_emm_ctx_memory(emm_context_t* const ctxt,
   }
   nas_delete_all_emm_procedures(ctxt);
   free_esm_context_content(&ctxt->esm_ctx);
-  if (ctxt->esm_msg) {
-    bdestroy(ctxt->esm_msg);
-  }
+  bdestroy_wrapper(&ctxt->esm_msg);
 }
 
 //------------------------------------------------------------------------------

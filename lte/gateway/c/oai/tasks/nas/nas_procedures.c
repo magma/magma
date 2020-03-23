@@ -601,7 +601,6 @@ void nas_delete_all_emm_procedures(struct emm_context_s *const emm_context)
     nas_delete_attach_procedure(emm_context);
     nas_delete_detach_procedure(emm_context);
     nas_delete_tau_procedure(emm_context);
-
     // gc
     if (emm_context->emm_procedures) {
       free_wrapper((void **) &emm_context->emm_procedures);
