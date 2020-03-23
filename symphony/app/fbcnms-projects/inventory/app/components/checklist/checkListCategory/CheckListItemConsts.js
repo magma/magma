@@ -16,12 +16,15 @@ import type {SvgIconStyleProps} from '@fbcnms/ui/components/design-system/Icons/
 import * as React from 'react';
 import BasicCheckListItemDefinition from '../checklistDefinition/BasicCheckListItemDefinition';
 import BasicCheckListItemFilling from '../checklistFilling/BasicCheckListItemFilling';
+import FilesCheckListItemDefinition from '../checklistDefinition/FilesCheckListItemDefinition';
+import FilesCheckListItemFilling from '../checklistFilling/FilesCheckListItemFilling';
 import FreeTextCheckListItemDefinition from '../checklistDefinition/FreeTextCheckListItemDefinition';
 import FreeTextCheckListItemFilling from '../checklistFilling/FreeTextCheckListItemFilling';
 import MultipleChoiceCheckListItemDefinition from '../checklistDefinition/MultipleChoiceCheckListItemDefinition';
 import MultipleChoiceCheckListItemFilling from '../checklistFilling/MultipleChoiceCheckListItemFilling';
 import fbt from 'fbt';
 import {
+  AttachmentIcon,
   ChecklistCheckIcon,
   MultipleSelectionIcon,
   TextIcon,
@@ -58,5 +61,12 @@ export const CheckListItemConfigs: CheckListItemConfigsType = {
     fillingComponent: MultipleChoiceCheckListItemFilling,
     selectLabel: <fbt desc="">Multiple choice</fbt>,
     titlePlaceholder: `${fbt('What needs to be chosen?', '')}`,
+  },
+  files: {
+    icon: AttachmentIcon,
+    definitionComponent: FilesCheckListItemDefinition,
+    fillingComponent: FilesCheckListItemFilling,
+    selectLabel: <fbt desc="">Upload files</fbt>,
+    titlePlaceholder: `${fbt('What needs to be uploaded?', '')}`,
   },
 };
