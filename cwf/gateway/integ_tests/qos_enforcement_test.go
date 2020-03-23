@@ -67,7 +67,7 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 // - Generate traffic and verify if the traffic observed bitrate matches the configured
 // bitrate
 func TestUplinkTrafficWithQosEnforcement(t *testing.T) {
-	fmt.Println("Running TestAuthenticateDownlinkTrafficWithQosEnforcement")
+	fmt.Println("Running TestUplinkTrafficWithQosEnforcement")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -86,8 +86,6 @@ func TestUplinkTrafficWithQosEnforcement(t *testing.T) {
 	ki := rand.Intn(1000000)
 	monitorKey := fmt.Sprintf("monitor-ULQos-%d", ki)
 	ruleKey := fmt.Sprintf("static-ULQos-%d", ki)
-	err = ruleManager.AddUsageMonitor(imsi, monitorKey, 1000*MegaBytes, 250*MegaBytes)
-	assert.NoError(t, err)
 
 	uplinkBwMax := uint32(1000000)
 	qos := &models.FlowQos{MaxReqBwUl: &uplinkBwMax}
@@ -136,7 +134,7 @@ func TestUplinkTrafficWithQosEnforcement(t *testing.T) {
 // - Generate traffic from server to client and verify if the traffic observed bitrate
 //   matches the configured bitrate
 func TestDownlinkTrafficWithQosEnforcement(t *testing.T) {
-	fmt.Println("Running TestAuthenticateDownlinkTrafficWithQosEnforcement")
+	fmt.Println("Running TestDownlinkTrafficWithQosEnforcement")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -155,8 +153,6 @@ func TestDownlinkTrafficWithQosEnforcement(t *testing.T) {
 	ki := rand.Intn(1000000)
 	monitorKey := fmt.Sprintf("monitor-DLQos-%d", ki)
 	ruleKey := fmt.Sprintf("static-DLQos-%d", ki)
-	err = ruleManager.AddUsageMonitor(imsi, monitorKey, 1000*MegaBytes, 250*MegaBytes)
-	assert.NoError(t, err)
 
 	downlinkBwMax := uint32(1000000)
 	qos := &models.FlowQos{MaxReqBwDl: &downlinkBwMax}
@@ -210,7 +206,7 @@ func TestDownlinkTrafficWithQosEnforcement(t *testing.T) {
 // - Generate traffic and verify if the traffic observed bitrate matches the newly
 // downgraded bitrate
 func TestQosDowngradeWithCCAUpdate(t *testing.T) {
-	fmt.Println("Running TestAuthenticateUplinkTrafficWithEnforcement")
+	fmt.Println("Running TestQosDowngradeWithCCAUpdate")
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -255,14 +251,15 @@ func TestQosDowngradeWithCCAUpdate(t *testing.T) {
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
-	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
+	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
 		SetUsageMonitorReports(usageMonitorInfo).
-		SetUsageReportDelta(250 * KiloBytes * 0.2)
-	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
+		SetUsageReportDelta(209715) // 0.2 * Megabytes
+	updateAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule2Key}, []string{}).
 		SetUsageMonitorInfos(getUsageInformation(monitorKey, 50*MegaBytes))
-	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
-	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
+	updateExpectation := protos.NewGxCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
+	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation}
+
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setPCRFExpectations(expectations, protos.NewGxCCAnswer(diam.Success)))
 
@@ -272,6 +269,9 @@ func TestQosDowngradeWithCCAUpdate(t *testing.T) {
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("1M")}}
 	verifyEgressRate(t, tr, req, float64(uplinkBwFinal), float64(uplinkBwInitial))
+
+	// wait for the update to kick in
+	time.Sleep(3 * time.Second)
 
 	// verify with lower bitrate and check if constraints are met
 	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("1M")}}
