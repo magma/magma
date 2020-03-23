@@ -21,15 +21,43 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_multiple_seconday_pdn_conn_req(self):
+    def test_multiple_secondary_pdn_conn_req(self):
         """ Attach a single UE + add 2 PDN Connections + disconnect """
         num_pdns = 2
         bearer_ids = []
-        apn = ["ims", "internet"]
-        self._s1ap_wrapper.configUEDevice(1)
+        num_ue = 1
 
+        self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
+
+        # internet APN
+        internet = {
+            "apn_name": "internet",  # APN-name
+            "qci": 9,  # qci
+            "priority": 15,  # priority
+            "pre_cap": 0,  # preemption-capability
+            "pre_vul": 0,  # preemption-vulnerability
+            "mbr_ul": 250000000,  # MBR UL
+            "mbr_dl": 150000000,  # MBR DL
+        }
+        # ims APN
+        ims = {
+            "apn_name": "ims",  # APN-name
+            "qci": 5,  # qci
+            "priority": 15,  # priority
+            "pre_cap": 0,  # preemption-capability
+            "pre_vul": 0,  # preemption-vulnerability
+            "mbr_ul": 200000000,  # MBR UL
+            "mbr_dl": 100000000,  # MBR DL
+        }
+
+        # APN list to be configured
+        apn_list = [ims, internet]
+
+        self._s1ap_wrapper.configAPN(
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+        )
         print(
             "*********************** Running End to End attach for UE id ",
             ue_id,
@@ -46,6 +74,8 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         time.sleep(2)
+        # APNs of the secondary PDNs
+        apn = ["ims", "internet"]
         for i in range(num_pdns):
             # Send PDN Connectivity Request
             self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn[i])

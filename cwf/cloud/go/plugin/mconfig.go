@@ -85,6 +85,10 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	if err != nil {
 		return ret, err
 	}
+	ipdrExportDst, err := getPipelineDIpdrExportDst(gwConfig.IPDRExportDst)
+	if err != nil {
+		return ret, err
+	}
 
 	eapAka := nwConfig.EapAka
 	aaa := nwConfig.AaaServer
@@ -106,6 +110,7 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		RelayEnabled:    true,
 		Services:        pipelineDServices,
 		AllowedGrePeers: allowedGrePeers,
+		IpdrExportDst:   ipdrExportDst,
 	}
 	ret["sessiond"] = &ltemconfig.SessionD{
 		LogLevel:     protos.LogLevel_INFO,
@@ -126,6 +131,17 @@ func getPipelineDAllowedGrePeers(allowedGrePeers models.AllowedGrePeers) ([]*lte
 		ues = append(ues, &ltemconfig.PipelineD_AllowedGrePeer{Ip: entry.IP, Key: swag.Uint32Value(entry.Key)})
 	}
 	return ues, nil
+}
+
+func getPipelineDIpdrExportDst(ipdrExportDst *models.IPDRExportDst) (*ltemconfig.PipelineD_IPDRExportDst, error) {
+	if ipdrExportDst == nil {
+		return nil, nil
+	}
+	dst := &ltemconfig.PipelineD_IPDRExportDst{
+		Ip:   ipdrExportDst.IP.String(),
+		Port: ipdrExportDst.Port,
+	}
+	return dst, nil
 }
 
 func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.PipelineD_NetworkServices, error) {

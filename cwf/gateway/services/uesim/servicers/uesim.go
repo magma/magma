@@ -11,6 +11,7 @@ package servicers
 import (
 	"fmt"
 	"os/exec"
+	"strconv"
 
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
@@ -155,21 +156,42 @@ func (srv *UESimServer) Disconnect(ctx context.Context, id *cwfprotos.Disconnect
 	return &cwfprotos.DisconnectResponse{RadiusPacket: encoded}, nil
 }
 
-func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTrafficRequest) (*protos.Void, error) {
+func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
 	if req == nil {
-		return &protos.Void{}, fmt.Errorf("Nil GenTrafficRequest provided")
+		return &cwfprotos.GenTrafficResponse{}, fmt.Errorf("Nil GenTrafficRequest provided")
 	}
 	var cmd *exec.Cmd
 
-	if req.Volume == nil {
-		cmd = exec.Command("iperf3", "-c", trafficSrvIP, "-M", trafficMSS)
-	} else {
-		cmd = exec.Command("iperf3", "-c", trafficSrvIP, "-M", trafficMSS, "-n", req.Volume.Value)
+	argList := []string{"--json", "--get-server-output", "-c", trafficSrvIP, "-M", trafficMSS}
+	if req.Volume != nil {
+		argList = append(argList, []string{"-n", req.Volume.Value}...)
 	}
 
+	if req.ReverseMode {
+		argList = append(argList, "-R")
+	}
+
+	if req.Bitrate != nil {
+		argList = append(argList, []string{"-b", req.Bitrate.Value}...)
+	}
+
+	if req.TimeInSecs != 0 {
+		argList = append(argList, []string{"-t", strconv.FormatUint(req.TimeInSecs, 10)}...)
+	}
+
+	if req.ReportingIntervalInSecs != 0 {
+		argList = append(argList, []string{"-i", strconv.FormatUint(req.ReportingIntervalInSecs, 10)}...)
+	}
+
+	cmd = exec.Command("iperf3", argList...)
 	cmd.Dir = "/usr/bin"
-	_, err := cmd.Output()
-	return &protos.Void{}, err
+	output, err := cmd.Output()
+	if err != nil {
+		glog.Info("args = ", argList)
+		glog.Info("error = ", err)
+		err = errors.Wrap(err, fmt.Sprintf("argList %v\n output %v", argList, string(output)))
+	}
+	return &cwfprotos.GenTrafficResponse{Output: output}, err
 }
 
 // Converts UE data to a blob for storage.

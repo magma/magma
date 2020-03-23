@@ -210,8 +210,6 @@ var networkServicesByName = map[string]mconfig.PipelineD_NetworkServices{
 func getPipelineDServicesConfig(networkServices []string) ([]mconfig.PipelineD_NetworkServices, error) {
 	if networkServices == nil || len(networkServices) == 0 {
 		return []mconfig.PipelineD_NetworkServices{
-			mconfig.PipelineD_METERING,
-			mconfig.PipelineD_DPI,
 			mconfig.PipelineD_ENFORCEMENT,
 		}, nil
 	}

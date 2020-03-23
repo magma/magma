@@ -11,6 +11,7 @@ package mock_pcrf
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/session_proxy/credit_control"
@@ -33,6 +34,7 @@ type ccrMessage struct {
 	SubscriptionIDs  []*subscriptionIDDiam     `avp:"Subscription-Id"`
 	IPAddr           datatype.OctetString      `avp:"Framed-IP-Address"`
 	UsageMonitors    []*usageMonitorRequestAVP `avp:"Usage-Monitoring-Information"`
+	CalledStationId  string                    `avp:"Called-Station-Id"`
 }
 
 type subscriptionIDDiam struct {
@@ -61,17 +63,34 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			glog.Errorf("Failed to unmarshal CCR %s", err)
 			return
 		}
+		srv.LastMessageReceived = &ccr
 		imsi, err := ccr.GetIMSI()
 		if err != nil {
 			glog.Errorf("Could not parse CCR: %s", err.Error())
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
 			return
 		}
+		if srv.serviceConfig.UseMockDriver {
+			srv.mockDriverLock.Lock()
+			iAnswer := srv.mockDriver.GetAnswerFromExpectations(ccr)
+			srv.mockDriverLock.Unlock()
+			if iAnswer == nil {
+				sendAnswer(ccr, c, m, diam.UnableToComply)
+				return
+			}
+			avps, resultCode := iAnswer.(GxAnswer).toAVPs()
+			sendAnswer(ccr, c, m, resultCode, avps...)
+			return
+		}
 		account, found := srv.subscribers[imsi]
 		if !found {
-			glog.Error("IMSI not found in subscribers")
+			glog.Errorf("IMSI %v not found in subscribers", imsi)
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
 			return
+		}
+		account.CurrentState = &SubscriberSessionState{
+			Connection: c,
+			SessionID:  string(ccr.SessionID),
 		}
 
 		avps := []*diam.AVP{}
@@ -130,6 +149,46 @@ func (m *ccrMessage) GetIMSI() (string, error) {
 		}
 	}
 	return "", errors.New("Could not obtain IMSI from CCR message")
+}
+
+// Searches on ccr message for an specific AVP message based on the avp tag on ccr type (ie "Session-Id")
+// It returns on the first match it finds.
+func GetAVP(message *ccrMessage, AVPToFind string) (interface{}, error) {
+	elem := reflect.ValueOf(message)
+	calledStationID, err := findAVP(elem, "avp", AVPToFind)
+	if err != nil {
+		glog.Errorf("Failed to find %s: %s\n", AVPToFind, err)
+		return "", err
+	}
+	return calledStationID, nil
+}
+
+// Depth Search First of a specific tag:value on a element (accepts structs, pointers, slices)
+func findAVP(elem reflect.Value, tag, AVPtoFind string) (interface{}, error) {
+	switch elem.Kind() {
+	case reflect.Ptr:
+		return findAVP(elem.Elem(), tag, AVPtoFind)
+	case reflect.Struct:
+		for i := 0; i < elem.NumField(); i += 1 {
+			fieldT := elem.Type().Field(i)
+			if fieldT.Tag.Get(tag) == AVPtoFind {
+				fieldV := elem.Field(i)
+				return fieldV.Interface(), nil
+			}
+			result, err := findAVP(elem.Field(i), tag, AVPtoFind)
+			if err == nil {
+				return result, err
+			}
+		}
+	case reflect.Slice:
+		for i := 0; i < elem.Len(); i += 1 {
+			result, err := findAVP(elem.Index(i), tag, AVPtoFind)
+			if err == nil {
+				return result, err
+			}
+		}
+	}
+	return "", fmt.Errorf("Could not find AVP %s:%s", tag, AVPtoFind)
 }
 
 func updateSubscriberAccountWithUsageUpdates(account *subscriberAccount, monitorUpdates []*usageMonitorRequestAVP) (creditByMkey, error) {

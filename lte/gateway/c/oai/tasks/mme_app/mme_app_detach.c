@@ -114,19 +114,13 @@ void mme_app_send_delete_session_request(
 void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id)
 {
   struct ue_mm_context_s* ue_context_p = NULL;
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  if (!mme_app_desc_p) {
-    OAILOG_ERROR(LOG_MME_APP, "Failed to fetch mme_app_desc_p \n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   OAILOG_INFO(
     LOG_MME_APP,
     "Handle Detach Req at MME app for ue-id: " MME_UE_S1AP_ID_FMT "\n",
     ue_id);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP, "UE context doesn't exist -> Nothing to do :-) \n");
@@ -138,6 +132,11 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id)
      * If UE is already in idle state, skip asking eNB to release UE context and
      * just clean up locally.
      */
+    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+    if (!mme_app_desc_p) {
+      OAILOG_ERROR(LOG_MME_APP, "Failed to fetch mme_app_desc_p \n");
+      OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
     if (ECM_IDLE == ue_context_p->ecm_state) {
       ue_context_p->ue_context_rel_cause = S1AP_IMPLICIT_CONTEXT_RELEASE;
       // Notify S1AP to release S1AP UE context locally.

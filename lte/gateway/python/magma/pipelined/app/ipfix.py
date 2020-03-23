@@ -35,7 +35,8 @@ class IPFIXController(MagmaController):
         'IPFIXConfig',
         [('enabled', bool), ('collector_ip', str), ('collector_port', int),
          ('probability', int), ('collector_set_id', int),
-         ('obs_domain_id', int), ('obs_point_id', int), ('gtp_port', int)],
+         ('obs_domain_id', int), ('obs_point_id', int), ('cache_timeout', int),
+         ('sampling_port', int)],
     )
 
     def __init__(self, *args, **kwargs):
@@ -43,25 +44,42 @@ class IPFIXController(MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
-        self.ipfix_config = self._get_ipfix_config(kwargs['config'])
+        self.ipfix_config = self._get_ipfix_config(kwargs['config'],
+                                                   kwargs['mconfig'])
         self._bridge_name = kwargs['config']['bridge_name']
         self._datapath = None
 
-    def _get_ipfix_config(self, config_dict: Dict) -> NamedTuple:
+    def _get_ipfix_config(self, config_dict: Dict,
+                          mconfig) -> NamedTuple:
         if 'ipfix' not in config_dict or not config_dict['ipfix']['enabled']:
             return self.IPFIXConfig(enabled=False, probability=0,
                 collector_ip='', collector_port=0, collector_set_id=0,
-                obs_domain_id=0, obs_point_id=0, gtp_port=0)
+                obs_domain_id=0, obs_point_id=0, cache_timeout=0,
+                sampling_port=0)
+        collector_ip = mconfig.ipdr_export_dst.ip
+        collector_port = mconfig.ipdr_export_dst.port
+        if not mconfig.ipdr_export_dst.ip:
+            if 'collector_ip' in config_dict['ipfix']:
+                self.logger.error("Missing IPDR dest IP, using val from .yml")
+                collector_ip = config_dict['ipfix']['collector_ip']
+                collector_port = config_dict['ipfix']['collector_port']
+            else:
+                self.logger.error("Missing mconfig IPDR dest IP")
+                return self.IPFIXConfig(enabled=False, probability=0,
+                    collector_ip='', collector_port=0, collector_set_id=0,
+                    obs_domain_id=0, obs_point_id=0, cache_timeout=0,
+                    sampling_port=0)
 
         return self.IPFIXConfig(
             enabled=config_dict['ipfix']['enabled'],
-            collector_ip=config_dict['ipfix']['collector_ip'],
-            collector_port=config_dict['ipfix']['collector_port'],
+            collector_ip=collector_ip,
+            collector_port=collector_port,
             probability=config_dict['ipfix']['probability'],
             collector_set_id=config_dict['ipfix']['collector_set_id'],
             obs_domain_id=config_dict['ipfix']['obs_domain_id'],
             obs_point_id=config_dict['ipfix']['obs_point_id'],
-            gtp_port=config_dict['ovs_gtp_port_number']
+            cache_timeout=config_dict['ipfix']['cache_timeout'],
+            sampling_port=config_dict['ovs_uplink_port_name']
         )
 
     def initialize_on_connect(self, datapath: Datapath):
@@ -85,12 +103,14 @@ class IPFIXController(MagmaController):
         action_str = (
             'ovs-vsctl -- --id=@{} get Bridge {} -- --id=@cs create '
             'Flow_Sample_Collector_Set id={} bridge=@{} ipfix=@i -- --id=@i '
-            'create IPFIX targets=\"{}\\:{}\" obs_domain_id={} obs_point_id={}'
+            'create IPFIX targets=\"{}\\:{}\" obs_domain_id={} obs_point_id={} '
+            'cache_active_timeout={}'
         ).format(
             self._bridge_name, self._bridge_name,
             self.ipfix_config.collector_set_id, self._bridge_name,
             self.ipfix_config.collector_ip, self.ipfix_config.collector_port,
-            self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id
+            self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id,
+            self.ipfix_config.cache_timeout
         )
         try:
             p = subprocess.Popen(action_str, shell=True,
@@ -145,18 +165,17 @@ class IPFIXController(MagmaController):
             apn_name (string): AP name
         """
         imsi_hex = hex(encode_imsi(imsi))
-        apn_name = apn_name.replace(' ', '_')
         action_str = (
             'ovs-ofctl add-flow {} "table={},priority={},metadata={},'
             'actions=sample(probability={},collector_set_id={},'
             'obs_domain_id={},obs_point_id={},apn_mac_addr={},msisdn={},'
-            'apn_name={},sampling_port={}),resubmit(,{})"'
+            'apn_name=\\\"{}\\\", sampling_port={}),resubmit(,{})"'
         ).format(
             self._bridge_name, self.tbl_num, flows.UE_FLOW_PRIORITY, imsi_hex,
             self.ipfix_config.probability, self.ipfix_config.collector_set_id,
             self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id,
             apn_mac_addr.replace("-", ":"), msisdn, apn_name,
-            self.ipfix_config.gtp_port, self.next_main_table
+            self.ipfix_config.sampling_port, self.next_main_table
         )
         try:
             subprocess.Popen(action_str, shell=True).wait()

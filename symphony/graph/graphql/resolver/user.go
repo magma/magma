@@ -39,7 +39,6 @@ func (r mutationResolver) EditUser(ctx context.Context, input models.EditUserInp
 	u, err := client.User.UpdateOneID(input.ID).
 		SetNillableFirstName(input.FirstName).
 		SetNillableLastName(input.LastName).
-		SetNillableEmail(input.Email).
 		SetNillableStatus(input.Status).
 		SetNillableRole(input.Role).
 		Save(ctx)

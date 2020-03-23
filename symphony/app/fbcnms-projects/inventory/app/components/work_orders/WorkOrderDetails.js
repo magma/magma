@@ -27,7 +27,7 @@ import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import CommentsBox from '../comments/CommentsBox';
 import EntityDocumentsTable from '../EntityDocumentsTable';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
-import FileUpload from '../FileUpload';
+import FileUploadButton from '../FileUpload/FileUploadButton';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormValidationContext, {
   FormValidationContextProvider,
@@ -441,7 +441,7 @@ const WorkOrderDetails = ({
                                 setProperties(prevProperties => [
                                   ...prevProperties.slice(0, index),
                                   property,
-                                  prevProperties.slice(index + 1),
+                                  ...prevProperties.slice(index + 1),
                                 ])
                               }
                               headlineVariant="form"
@@ -504,16 +504,17 @@ const WorkOrderDetails = ({
                           {isLoadingDocument ? (
                             <CircularProgress size={24} />
                           ) : (
-                            <FileUpload
+                            <FileUploadButton
                               className={classes.minimizedButton}
-                              button={
+                              onFileUploaded={onDocumentUploaded}
+                              onProgress={() => setIsLoadingDocument(true)}>
+                              {openFileUploadDialog => (
                                 <CloudUploadOutlinedIcon
                                   className={classes.uploadButton}
+                                  onClick={openFileUploadDialog}
                                 />
-                              }
-                              onFileUploaded={onDocumentUploaded}
-                              onProgress={() => setIsLoadingDocument(true)}
-                            />
+                              )}
+                            </FileUploadButton>
                           )}
                         </div>
                       }>
@@ -650,6 +651,8 @@ export default withRouter(
               checked
               enumValues
               stringValue
+              enumSelectionMode
+              selectedEnumValues
             }
           }
         }

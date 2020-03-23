@@ -121,7 +121,6 @@ input EditUserInput {
   id: ID!
   firstName: String
   lastName: String
-  email: String
   status: UserStatus
   role: UserRole
 }
@@ -208,6 +207,7 @@ type File implements Node {
   modified: Time
   uploaded: Time
   fileType: FileType
+  mimeType: String
   storeKey: String
   category: String
 }
@@ -506,6 +506,34 @@ type SearchEntryEdge {
   A cursor for use in pagination.
   """
   cursor: Cursor!
+}
+
+"""
+A search entry edge in a connection.
+"""
+type SearchNodeEdge {
+  """
+  The search entry at the end of the edge.
+  """
+  node: Node
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of search entries.
+"""
+type SearchNodesConnection {
+  """
+  A list of search entry edges.
+  """
+  edges: [SearchNodeEdge!]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
 """
@@ -904,6 +932,11 @@ enum CheckListItemType {
   enum
 }
 
+enum CheckListItemEnumSelectionMode {
+  single
+  multiple
+}
+
 type CheckListItemDefinition {
   id: ID!
   title: String!
@@ -936,6 +969,8 @@ type CheckListItem implements Node {
   index: Int
   helpText: String
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
+  selectedEnumValues: String
   stringValue: String
   checked: Boolean
 }
@@ -954,6 +989,8 @@ input CheckListItemInput {
   index: Int
   helpText: String
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
+  selectedEnumValues: String
   stringValue: String
   checked: Boolean
 }
@@ -969,6 +1006,7 @@ enum FilterEntity {
 
 type GeneralFilter {
   filterType: String!
+  key: String!
   operator: FilterOperator!
   stringValue: String
   idSet: [ID!]
@@ -986,6 +1024,7 @@ type ReportFilter implements Node {
 
 input GeneralFilterInput {
   filterType: String!
+  key: String!
   operator: FilterOperator!
   stringValue: String
   idSet: [ID!]
@@ -1046,6 +1085,7 @@ type WorkOrder implements Node {
   checkList: [CheckListItem]!
   checkListCategories: [CheckListCategory!]!
   hyperlinks: [Hyperlink!]!
+  closeDate: Time
 }
 
 """
@@ -1626,6 +1666,7 @@ input FileInput {
   modificationTime: Int
   uploadTime: Int
   fileType: FileType
+  mimeType: String
   storeKey: String!
 }
 
@@ -2039,6 +2080,16 @@ type Query {
     before: Cursor
     last: Int
   ): SearchEntriesConnection!
+    @deprecated(
+      reason: "Use `searchForNode` instead. Will be removed on 1/5/2020"
+    )
+  searchForNode(
+    name: String!
+    after: Cursor
+    first: Int = 10
+    before: Cursor
+    last: Int
+  ): SearchNodesConnection!
   equipmentSearch(
     filters: [EquipmentFilterInput!]!
     limit: Int = 500
@@ -2265,6 +2316,7 @@ type Mutation {
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
+  deleteReportFilter(id: ID!): Boolean!
 }
 
 type Subscription {

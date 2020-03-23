@@ -16,6 +16,7 @@
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <orc8r/protos/eventd.pb.h>
 
 #include <folly/io/async/EventBase.h>
 
@@ -135,6 +136,18 @@ class MockDirectorydClient : public AsyncDirectorydClient {
     bool(
       const std::string& imsi,
       std::function<void(Status status, DirectoryField)> callback));
+};
+
+class MockEventdClient : public AsyncEventdClient {
+ public:
+  MockEventdClient()
+  {
+  }
+
+  MOCK_METHOD2(log_event,
+    void(
+      const Event& request,
+      std::function<void(Status status, Void)> callback));
 };
 
 /**

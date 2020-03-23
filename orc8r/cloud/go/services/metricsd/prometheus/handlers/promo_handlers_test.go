@@ -33,7 +33,7 @@ func (tc *seriesHandlerTestCase) RunTest(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	c := echo.New().NewContext(req, rec)
-	params, err := getSeriesMatches(c, tc.restrictor)
+	params, err := getSeriesMatches(c, "match", tc.restrictor)
 	assert.NoError(t, err)
 	assert.Equal(t, tc.expectedStrings, params)
 }

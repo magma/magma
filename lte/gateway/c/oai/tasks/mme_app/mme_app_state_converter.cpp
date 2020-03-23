@@ -706,29 +706,23 @@ void MmeNasStateConverter::state_to_proto(
   state_proto->set_nb_default_eps_bearers(
     mme_nas_state_p->nb_default_eps_bearers);
   state_proto->set_nb_s1u_bearers(mme_nas_state_p->nb_s1u_bearers);
+  state_proto->set_nb_ue_managed(mme_nas_state_p->nb_ue_managed);
+  state_proto->set_nb_ue_idle(mme_nas_state_p->nb_ue_idle);
+  state_proto->set_nb_bearers_managed(mme_nas_state_p->nb_bearers_managed);
+  state_proto->set_nb_ue_since_last_stat(
+    mme_nas_state_p->nb_ue_since_last_stat);
+  state_proto->set_nb_bearers_since_last_stat(
+    mme_nas_state_p->nb_bearers_since_last_stat);
 
   // copy mme_ue_contexts
   auto mme_ue_ctxts_proto = state_proto->mutable_mme_ue_contexts();
-  mme_ue_ctxts_proto->set_nb_ue_managed(
-    mme_nas_state_p->mme_ue_contexts.nb_ue_managed);
-  mme_ue_ctxts_proto->set_nb_ue_idle(
-    mme_nas_state_p->mme_ue_contexts.nb_ue_idle);
-  mme_ue_ctxts_proto->set_nb_bearers_managed(
-    mme_nas_state_p->mme_ue_contexts.nb_bearers_managed);
-  mme_ue_ctxts_proto->set_nb_ue_since_last_stat(
-    mme_nas_state_p->mme_ue_contexts.nb_ue_since_last_stat);
-  mme_ue_ctxts_proto->set_nb_bearers_since_last_stat(
-    mme_nas_state_p->mme_ue_contexts.nb_bearers_since_last_stat);
 
   hashtable_uint64_ts_to_proto(
-    mme_nas_state_p->mme_ue_contexts.imsi_ue_context_htbl,
+    mme_nas_state_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
     mme_ue_ctxts_proto->mutable_imsi_ue_id_htbl());
   hashtable_uint64_ts_to_proto(
     mme_nas_state_p->mme_ue_contexts.tun11_ue_context_htbl,
     mme_ue_ctxts_proto->mutable_tun11_ue_id_htbl());
-  hashtable_ts_to_proto(
-    mme_nas_state_p->mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl,
-    mme_ue_ctxts_proto->mutable_mme_ue_id_ue_ctxt_htbl());
   hashtable_uint64_ts_to_proto(
     mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
     mme_ue_ctxts_proto->mutable_enb_ue_id_ue_id_htbl());
@@ -749,36 +743,29 @@ void MmeNasStateConverter::proto_to_state(
   mme_nas_state_p->nb_default_eps_bearers =
     state_proto.nb_default_eps_bearers();
   mme_nas_state_p->nb_s1u_bearers = state_proto.nb_s1u_bearers();
+  mme_nas_state_p->nb_ue_managed = state_proto.nb_ue_managed();
+  mme_nas_state_p->nb_ue_idle = state_proto.nb_ue_idle();
+  mme_nas_state_p->nb_bearers_managed = state_proto.nb_bearers_managed();
+  mme_nas_state_p->nb_ue_since_last_stat = state_proto.nb_ue_since_last_stat();
+  mme_nas_state_p->nb_bearers_since_last_stat =
+    state_proto.nb_bearers_since_last_stat();
   OAILOG_INFO(LOG_MME_APP, "Read MME statistics from data store");
 
   // copy mme_ue_contexts
   MmeUeContext mme_ue_ctxts_proto = state_proto.mme_ue_contexts();
-  mme_nas_state_p->mme_ue_contexts.nb_ue_managed =
-    mme_ue_ctxts_proto.nb_ue_managed();
-  mme_nas_state_p->mme_ue_contexts.nb_ue_idle = mme_ue_ctxts_proto.nb_ue_idle();
-  mme_nas_state_p->mme_ue_contexts.nb_bearers_managed =
-    mme_ue_ctxts_proto.nb_bearers_managed();
-  mme_nas_state_p->mme_ue_contexts.nb_ue_since_last_stat =
-    mme_ue_ctxts_proto.nb_ue_since_last_stat();
-  mme_nas_state_p->mme_ue_contexts.nb_bearers_since_last_stat =
-    mme_ue_ctxts_proto.nb_bearers_since_last_stat();
   OAILOG_INFO(LOG_MME_APP, "Read MME UE context statistics from data store");
 
   mme_ue_context_t* mme_ue_ctxt_state = &mme_nas_state_p->mme_ue_contexts;
   // copy maps to hashtables
-  OAILOG_INFO(LOG_MME_APP, "Hashtable 0");
-  proto_to_hashtable_ts(
-    mme_ue_ctxts_proto.mme_ue_id_ue_ctxt_htbl(),
-    mme_ue_ctxt_state->mme_ue_s1ap_id_ue_context_htbl);
-  OAILOG_INFO(LOG_MME_APP, "Hashtable 1");
+  OAILOG_INFO(LOG_MME_APP, "Hashtable MME UE ID => IMSI");
   proto_to_hashtable_uint64_ts(
     mme_ue_ctxts_proto.imsi_ue_id_htbl(),
-    mme_ue_ctxt_state->imsi_ue_context_htbl);
-  OAILOG_INFO(LOG_MME_APP, "Hashtable 2");
+    mme_ue_ctxt_state->imsi_mme_ue_id_htbl);
+  OAILOG_INFO(LOG_MME_APP, "Hashtable TEID 11 => MME UE ID");
   proto_to_hashtable_uint64_ts(
     mme_ue_ctxts_proto.tun11_ue_id_htbl(),
     mme_ue_ctxt_state->tun11_ue_context_htbl);
-  OAILOG_INFO(LOG_MME_APP, "Hashtable 3");
+  OAILOG_INFO(LOG_MME_APP, "Hashtable ENB UE S1AP ID => MME UE ID");
   proto_to_hashtable_uint64_ts(
     mme_ue_ctxts_proto.enb_ue_id_ue_id_htbl(),
     mme_ue_ctxt_state->enb_ue_s1ap_id_ue_context_htbl);

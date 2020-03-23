@@ -23,6 +23,9 @@ type Gy struct {
 	// Enum: [1 2]
 	InitMethod *uint32 `json:"init_method,omitempty"`
 
+	// overwrite apn
+	OverwriteApn string `json:"overwrite_apn,omitempty"`
+
 	// server
 	Server *DiameterClientConfigs `json:"server,omitempty"`
 }

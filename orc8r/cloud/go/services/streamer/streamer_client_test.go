@@ -93,7 +93,9 @@ func (l testListener) Update(ub *protos.DataUpdateBatch) bool {
 }
 
 // Mock GW Cloud Service registry
-type mockedCloudRegistry struct{}
+type mockedCloudRegistry struct {
+	*platform_registry.ServiceRegistry
+}
 
 func (cr mockedCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
 	if service != definitions.StreamerServiceName {

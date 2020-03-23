@@ -4,30 +4,13 @@ mutation EditEquipmentTypeMutation($input: EditEquipmentTypeInput!) {
     name
     category
     propertyTypes {
-      id
-      name
-      type
-      index
-      stringValue
-      intValue
-      booleanValue
-      floatValue
-      latitudeValue
-      longitudeValue
-      isEditable
-      isInstanceProperty
+      ...PropertyTypeFragment
     }
     positionDefinitions {
-      id
-      name
-      index
-      visibleLabel
+      ...EquipmentPositionDefinitionFragment
     }
     portDefinitions {
-      id
-      name
-      index
-      visibleLabel
+      ...EquipmentPortDefinitionFragment
     }
   }
 }

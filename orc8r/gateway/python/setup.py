@@ -31,7 +31,6 @@ setup(
         'magma.magmad.check.kernel_check',
         'magma.magmad.check.machine_check',
         'magma.magmad.check.network_check',
-        'magma.magmad.logging',
         'magma.magmad.upgrade',
         'magma.state',
         'magma.eventd',
@@ -82,6 +81,6 @@ setup(
         'requests==2.22.0',
         'jsonpickle',
         'bravado-core==5.16.1',
-        'jsonschema==3.2.0',
+        'jsonschema==3.1.0',
     ]
 )

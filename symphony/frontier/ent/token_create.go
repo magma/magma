@@ -21,15 +21,13 @@ import (
 // TokenCreate is the builder for creating a Token entity.
 type TokenCreate struct {
 	config
-	created_at *time.Time
-	updated_at *time.Time
-	value      *string
-	user       map[int]struct{}
+	mutation *TokenMutation
+	hooks    []Hook
 }
 
 // SetCreatedAt sets the created_at field.
 func (tc *TokenCreate) SetCreatedAt(t time.Time) *TokenCreate {
-	tc.created_at = &t
+	tc.mutation.SetCreatedAt(t)
 	return tc
 }
 
@@ -43,7 +41,7 @@ func (tc *TokenCreate) SetNillableCreatedAt(t *time.Time) *TokenCreate {
 
 // SetUpdatedAt sets the updated_at field.
 func (tc *TokenCreate) SetUpdatedAt(t time.Time) *TokenCreate {
-	tc.updated_at = &t
+	tc.mutation.SetUpdatedAt(t)
 	return tc
 }
 
@@ -57,16 +55,13 @@ func (tc *TokenCreate) SetNillableUpdatedAt(t *time.Time) *TokenCreate {
 
 // SetValue sets the value field.
 func (tc *TokenCreate) SetValue(s string) *TokenCreate {
-	tc.value = &s
+	tc.mutation.SetValue(s)
 	return tc
 }
 
 // SetUserID sets the user edge to User by id.
 func (tc *TokenCreate) SetUserID(id int) *TokenCreate {
-	if tc.user == nil {
-		tc.user = make(map[int]struct{})
-	}
-	tc.user[id] = struct{}{}
+	tc.mutation.SetUserID(id)
 	return tc
 }
 
@@ -77,27 +72,49 @@ func (tc *TokenCreate) SetUser(u *User) *TokenCreate {
 
 // Save creates the Token in the database.
 func (tc *TokenCreate) Save(ctx context.Context) (*Token, error) {
-	if tc.created_at == nil {
+	if _, ok := tc.mutation.CreatedAt(); !ok {
 		v := token.DefaultCreatedAt()
-		tc.created_at = &v
+		tc.mutation.SetCreatedAt(v)
 	}
-	if tc.updated_at == nil {
+	if _, ok := tc.mutation.UpdatedAt(); !ok {
 		v := token.DefaultUpdatedAt()
-		tc.updated_at = &v
+		tc.mutation.SetUpdatedAt(v)
 	}
-	if tc.value == nil {
+	if _, ok := tc.mutation.Value(); !ok {
 		return nil, errors.New("ent: missing required field \"value\"")
 	}
-	if err := token.ValueValidator(*tc.value); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"value\": %v", err)
+	if v, ok := tc.mutation.Value(); ok {
+		if err := token.ValueValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"value\": %v", err)
+		}
 	}
-	if len(tc.user) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"user\"")
-	}
-	if tc.user == nil {
+	if _, ok := tc.mutation.UserID(); !ok {
 		return nil, errors.New("ent: missing required edge \"user\"")
 	}
-	return tc.sqlSave(ctx)
+	var (
+		err  error
+		node *Token
+	)
+	if len(tc.hooks) == 0 {
+		node, err = tc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*TokenMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			tc.mutation = mutation
+			node, err = tc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(tc.hooks); i > 0; i-- {
+			mut = tc.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, tc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -120,31 +137,31 @@ func (tc *TokenCreate) sqlSave(ctx context.Context) (*Token, error) {
 			},
 		}
 	)
-	if value := tc.created_at; value != nil {
+	if value, ok := tc.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: token.FieldCreatedAt,
 		})
-		t.CreatedAt = *value
+		t.CreatedAt = value
 	}
-	if value := tc.updated_at; value != nil {
+	if value, ok := tc.mutation.UpdatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: token.FieldUpdatedAt,
 		})
-		t.UpdatedAt = *value
+		t.UpdatedAt = value
 	}
-	if value := tc.value; value != nil {
+	if value, ok := tc.mutation.Value(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: token.FieldValue,
 		})
-		t.Value = *value
+		t.Value = value
 	}
-	if nodes := tc.user; len(nodes) > 0 {
+	if nodes := tc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -158,7 +175,7 @@ func (tc *TokenCreate) sqlSave(ctx context.Context) (*Token, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

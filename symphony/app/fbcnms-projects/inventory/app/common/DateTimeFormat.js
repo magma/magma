@@ -53,8 +53,6 @@ const FORMT_DATE_AND_TIME = {
 };
 
 const FORMT_DATE_ONLY = {
-  hour: 'numeric',
-  minute: 'numeric',
   year: 'numeric',
   month: 'numeric',
   day: 'numeric',

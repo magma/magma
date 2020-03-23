@@ -60,9 +60,15 @@ def main() -> None:
     _build_cache_if_necessary(args)
     _build_controller_if_necessary(args)
 
+    # Return early if only building controller image
+    if args.controller:
+        return
+
     if args.mount:
+        _run_docker(['up', '-d', 'postgres_test'])
         # Mount the source code and run a container with bash shell
         _run_docker(['run', '--rm'] + _get_mount_volumes() + ['test', 'bash'])
+        _run_docker(['down'])
     elif args.generate:
         _run_docker(
             ['run', '--rm'] + _get_mount_volumes() + ['test', 'make gen'],
@@ -72,7 +78,8 @@ def main() -> None:
         _run_docker(['up', '-d', 'postgres_test'])
         _run_docker(['build', 'test'])
         _run_docker(['run', '--rm', 'test', 'make test'])
-        _run_docker(['down'])
+        if not args.leave:
+            _run_docker(['down'])
     else:
         _run_docker(files_args + _get_docker_build_args(args))
 
@@ -273,7 +280,9 @@ def _parse_args() -> argparse.Namespace:
     """ Parse the command line args """
     parser = argparse.ArgumentParser(description='Orc8r build tool')
     parser.add_argument('--tests', '-t', action='store_true',
-                        help="Run unit tests")
+                        help='Run unit tests')
+    parser.add_argument('--leave', '-l', action='store_true',
+                        help='Leave containers running after running tests')
     parser.add_argument('--mount', '-m', action='store_true',
                         help='Mount the source code and create a bash shell')
     parser.add_argument('--generate', '-g', action='store_true',
@@ -286,6 +295,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--noncore', '-nc', action='store_true',
                         help='Build only non-core containers '
                              '(i.e. no proxy, controller images)')
+    parser.add_argument('--controller', '-c', action='store_true',
+                        help='Build only the controller image')
     args = parser.parse_args()
     return args
 

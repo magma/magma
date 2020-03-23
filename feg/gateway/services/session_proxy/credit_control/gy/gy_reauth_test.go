@@ -35,7 +35,7 @@ func TestReAuthRelay(t *testing.T) {
 
 func assertReAuth(
 	t *testing.T,
-	handler gy.ReAuthHandler,
+	handler gy.ChargingReAuthHandler,
 	sm *mocks.SessionProxyResponderServer,
 	ratingGroup *uint32,
 	protoResult protos.ChargingReAuthAnswer_Result,
@@ -55,7 +55,7 @@ func assertReAuth(
 		&protos.ChargingReAuthAnswer{Result: protoResult},
 		nil,
 	).Once()
-	raa := handler(&gy.ReAuthRequest{SessionID: sessionID, RatingGroup: ratingGroup})
+	raa := handler(&gy.ChargingReAuthRequest{SessionID: sessionID, RatingGroup: ratingGroup})
 	sm.AssertExpectations(t)
 	assert.Equal(t, expectedResultCode, int(raa.ResultCode))
 	assert.Equal(t, sessionID, raa.SessionID)

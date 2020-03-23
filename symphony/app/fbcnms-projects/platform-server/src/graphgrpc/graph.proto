@@ -40,13 +40,19 @@ message AlertPayload {
 }
 
 service UserService {
-    rpc Create(UserInput) returns (User);
+    rpc Create(AddUserInput) returns (User);
     rpc Delete(UserInput) returns (google.protobuf.Empty);
 }
 
 message UserInput {
     string tenant = 1;
     string id = 2;
+}
+
+message AddUserInput {
+    string tenant = 1;
+    string id = 2;
+    bool isOwner = 3;
 }
 
 message User {

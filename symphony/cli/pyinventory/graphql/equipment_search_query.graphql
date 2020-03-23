@@ -3,6 +3,10 @@ query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
     equipment {
       id
       name
+      equipmentType {
+        id
+        name
+      }
     }
     count
   }

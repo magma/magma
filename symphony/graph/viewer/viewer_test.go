@@ -218,19 +218,19 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 func TestUserHandler(t *testing.T) {
 	client := newTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
-	_, err := client.User.Create().SetAuthID("user1").Save(ctx)
+	u, err := client.User.Create().SetAuthID("user1").Save(ctx)
 	require.NoError(t, err)
 
 	t.Run("WithUserEntExists", func(t *testing.T) {
-		h := UserHandler(
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := UserHandler{
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				count, err := client.User.Query().Count(ctx)
 				require.NoError(t, err)
 				require.Equal(t, 1, count)
 				w.WriteHeader(http.StatusAccepted)
 			}),
-			log.NewNopLogger(),
-		)
+			Logger: log.NewNopLogger(),
+		}
 		v := &Viewer{
 			Tenant: "test",
 			User:   "user1",
@@ -244,8 +244,8 @@ func TestUserHandler(t *testing.T) {
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
 	t.Run("WithUserEntNotExist", func(t *testing.T) {
-		h := UserHandler(
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := UserHandler{
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				exist, err := client.User.Query().Where(user.AuthID("user2")).Exist(ctx)
 				require.NoError(t, err)
 				require.True(t, exist)
@@ -254,8 +254,8 @@ func TestUserHandler(t *testing.T) {
 				require.Equal(t, 2, count)
 				w.WriteHeader(http.StatusAccepted)
 			}),
-			log.NewNopLogger(),
-		)
+			Logger: log.NewNopLogger(),
+		}
 		v := &Viewer{
 			Tenant: "test",
 			User:   "user2",
@@ -269,10 +269,10 @@ func TestUserHandler(t *testing.T) {
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
 	t.Run("WithNoUserInViewer", func(t *testing.T) {
-		h := UserHandler(
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
-			log.NewNopLogger(),
-		)
+		h := UserHandler{
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+			Logger:  log.NewNopLogger(),
+		}
 		v := &Viewer{
 			Tenant: "test",
 			User:   "",
@@ -284,6 +284,26 @@ func TestUserHandler(t *testing.T) {
 		rec := httptest.NewRecorder()
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+	})
+	t.Run("WithDeactivatedUserEntExists", func(t *testing.T) {
+		h := UserHandler{
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+			Logger:  log.NewNopLogger(),
+		}
+		v := &Viewer{
+			Tenant: "test",
+			User:   "user1",
+			Role:   "",
+		}
+		ctx = NewContext(ctx, v)
+		err = client.User.UpdateOne(u).SetStatus(user.StatusDEACTIVATED).Exec(ctx)
+		require.NoError(t, err)
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req = req.WithContext(ctx)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusForbidden, rec.Code)
+		assert.Equal(t, "user is deactivated\n", rec.Body.String())
 	})
 }
 

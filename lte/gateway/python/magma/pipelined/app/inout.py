@@ -16,6 +16,8 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import load_direction, Direction, \
     PASSTHROUGH_REG_VAL
 
+from ryu.lib.packet import ether_types
+
 # ingress and egress service names -- used by other controllers
 INGRESS = "ingress"
 EGRESS = "egress"
@@ -36,24 +38,38 @@ class InOutController(MagmaController):
 
     InOutConfig = namedtuple(
         'InOutConfig',
-        ['gtp_port', 'uplink_port_name'],
+        ['gtp_port', 'uplink_port_name', 'mtr_ip', 'mtr_port'],
     )
 
     def __init__(self, *args, **kwargs):
         super(InOutController, self).__init__(*args, **kwargs)
         self.config = self._get_config(kwargs['config'])
         self._uplink_port = OFPP_LOCAL
+        #TODO Alex do we want this to be cofigurable from swagger?
+        if self.config.mtr_ip:
+            self._mtr_service_enabled = True
+        else:
+            self._mtr_service_enabled = False
         if (self.config.uplink_port_name):
             self._uplink_port = BridgeTools.get_ofport(self.config.uplink_port_name)
 
     def _get_config(self, config_dict):
         port_name = None
+        mtr_ip = None
+        mtr_port = None
         if 'ovs_uplink_port_name' in config_dict:
             port_name = config_dict['ovs_uplink_port_name']
 
+        if 'mtr_ip' in config_dict:
+            self._mtr_service_enabled = True
+            mtr_ip = config_dict['mtr_ip']
+            mtr_port = config_dict['ovs_mtr_port_number']
+
         return self.InOutConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
-            uplink_port_name=port_name
+            uplink_port_name=port_name,
+            mtr_ip=mtr_ip,
+            mtr_port=mtr_port
         )
 
     def initialize_on_connect(self, datapath):
@@ -100,6 +116,14 @@ class InOutController(MagmaController):
             self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL), match,
             actions=[], priority=flows.DEFAULT_PRIORITY,
             resubmit_table=logical_table)
+
+        if self._mtr_service_enabled:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                               ipv4_dst=self.config.mtr_ip)
+            flows.add_output_flow(dp,
+                self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL), match,
+                [], priority=flows.UE_FLOW_PRIORITY,
+                output_port=self.config.mtr_port)
 
     def _install_default_egress_flows(self, dp):
         """
@@ -165,3 +189,11 @@ class InOutController(MagmaController):
                                              actions=actions,
                                              priority=flows.DEFAULT_PRIORITY,
                                              resubmit_table=next_table)
+
+        # set a direction bit for incoming (mtr -> UE) traffic.
+        if self._mtr_service_enabled:
+            match = MagmaMatch(in_port=self.config.mtr_port)
+            actions = [load_direction(parser, Direction.IN)]
+            flows.add_resubmit_next_service_flow(dp, tbl_num, match,
+                actions=actions, priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=next_table)

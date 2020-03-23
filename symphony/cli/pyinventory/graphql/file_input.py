@@ -22,4 +22,5 @@ class FileInput(DataClassJsonMixin):
     modificationTime: Optional[int] = None
     uploadTime: Optional[int] = None
     fileType: Optional[FileType] = None
+    mimeType: Optional[str] = None
 

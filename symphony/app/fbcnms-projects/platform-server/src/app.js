@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {UserModel} from '@fbcnms/sequelize-models/models/user';
+
 const {LOG_FORMAT, LOG_LEVEL} = require('./config');
 
 // This must be done before any module imports to configure
@@ -24,6 +26,7 @@ const {
   organizationMiddleware,
   sessionMiddleware,
 } = require('@fbcnms/express-middleware');
+const {oidcAuthMiddleware} = require('@fbcnms/auth/oidc/middleware');
 const connectSession = require('connect-session-sequelize');
 const express = require('express');
 const passport = require('passport');
@@ -37,7 +40,9 @@ const OrganizationLocalStrategy = require('@fbcnms/auth/strategies/OrganizationL
   .default;
 const OrganizationSamlStrategy = require('@fbcnms/auth/strategies/OrganizationSamlStrategy')
   .default;
-import type {UserModel} from '../../../fbcnms-packages/fbcnms-sequelize-models/models/user';
+const OrganizationOIDCStrategy = require('@fbcnms/auth/strategies/OrganizationOIDCStrategy')
+  .default;
+
 const {createGraphTenant, deleteGraphTenant} = require('./graphgrpc/tenant');
 const {createGraphUser, deleteGraphUser} = require('./graphgrpc/user');
 const {access, configureAccess} = require('@fbcnms/auth/access');
@@ -64,6 +69,7 @@ User.beforeCreate((user: UserModel) => {
   createGraphUser(
     user.getDataValue('organization'),
     user.getDataValue('email'),
+    user.getDataValue('role') === SUPERUSER,
   );
 });
 
@@ -100,6 +106,14 @@ passport.use(
     urlPrefix: '/user',
   }),
 );
+passport.use(
+  'oidc',
+  new OrganizationOIDCStrategy({
+    urlPrefix: '/user',
+  }),
+);
+
+app.use(oidcAuthMiddleware());
 
 // Views
 app.set('views', path.join(__dirname, '..', 'views'));

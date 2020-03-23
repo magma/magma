@@ -11,6 +11,12 @@ variable "region" {
   type        = string
 }
 
+variable "state_backend" {
+  description = "State backend for terraform (e.g. s3, local)"
+  type        = string
+  default     = "local"
+}
+
 data "aws_availability_zones" "available" {}
 
 ##############################################################################
@@ -207,4 +213,14 @@ variable "helm_user" {
 variable "helm_pass" {
   description = "Helm repository password"
   type        = string
+}
+
+##############################################################################
+# Other deployment flags
+##############################################################################
+
+variable "deploy_openvpn" {
+  description = "Flag to deploy openvpn server into cluster. This is useful if you want to remotely access AGW's."
+  type        = bool
+  default     = false
 }

@@ -460,9 +460,8 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
        * The maximum number of deactivate EPS bearer context request
        * message retransmission has exceed
        */
-      mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-      ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-        &mme_app_desc_p->mme_ue_contexts, esm_ebr_timer_data->ue_id);
+      ue_mm_context_t* ue_mm_context =
+        mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
 
       ebi = esm_ebr_timer_data->ebi;
       ue_id = esm_ebr_timer_data->ue_id;

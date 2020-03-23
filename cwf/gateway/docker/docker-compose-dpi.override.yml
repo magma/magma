@@ -15,6 +15,7 @@ x-standard-volumes: &volumes_anchor
   - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
   - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
   - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+  - ${SECRETS_VOLUME}:/etc/magma/secrets
   - /etc/snowflake:/etc/snowflake
 
 x-generic-service: &service
@@ -30,6 +31,12 @@ x-lte-cservice: &dpiservice
 
 services:
   dpid:
+    <<: *dpiservice
+    container_name: dpid
+    environment:
+      - DPI_LICENSE=/etc/magma/secrets/${DPI_LICENSE_NAME}
+    command: /usr/local/bin/dpid
+
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: fb/src/dpi/Dockerfile

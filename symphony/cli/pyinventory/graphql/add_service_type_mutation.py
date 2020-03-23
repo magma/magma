@@ -11,9 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from gql.gql.enum_utils import enum_field
-from .property_kind_enum import PropertyKind
-
+from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
 from .service_type_create_data_input import ServiceTypeCreateData
 
 
@@ -24,19 +22,8 @@ class AddServiceTypeMutation(DataClassJsonMixin):
         @dataclass
         class ServiceType(DataClassJsonMixin):
             @dataclass
-            class PropertyType(DataClassJsonMixin):
-                id: str
-                name: str
-                type: PropertyKind = enum_field(PropertyKind)
-                index: Optional[int] = None
-                stringValue: Optional[str] = None
-                intValue: Optional[int] = None
-                booleanValue: Optional[bool] = None
-                floatValue: Optional[Number] = None
-                latitudeValue: Optional[Number] = None
-                longitudeValue: Optional[Number] = None
-                isEditable: Optional[bool] = None
-                isInstanceProperty: Optional[bool] = None
+            class PropertyType(PropertyTypeFragment):
+                pass
 
             id: str
             name: str
@@ -47,25 +34,14 @@ class AddServiceTypeMutation(DataClassJsonMixin):
 
     data: AddServiceTypeMutationData
 
-    __QUERY__: str = """
+    __QUERY__: str = PropertyTypeFragmentQuery + """
     mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {
   addServiceType(data: $data) {
     id
     name
     hasCustomer
     propertyTypes {
-      id
-      name
-      type
-      index
-      stringValue
-      intValue
-      booleanValue
-      floatValue
-      latitudeValue
-      longitudeValue
-      isEditable
-      isInstanceProperty
+      ...PropertyTypeFragment
     }
   }
 }

@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-from dataclasses import asdict
 from typing import List, Optional, Tuple
 
-from dacite import Config, from_dict
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 
@@ -15,7 +13,6 @@ from ..graphql.add_location_type_input import AddLocationTypeInput
 from ..graphql.add_location_type_mutation import AddLocationTypeMutation
 from ..graphql.location_type_locations_query import LocationTypeLocationsQuery
 from ..graphql.location_types_query import LocationTypesQuery
-from ..graphql.property_type_input import PropertyTypeInput
 from ..graphql.remove_location_type_mutation import RemoveLocationTypeMutation
 from .location import delete_location
 
@@ -32,9 +29,7 @@ def _populate_location_types(client: SymphonyClient) -> None:
         node = edge.node
         if node:
             client.locationTypes[node.name] = LocationType(
-                name=node.name,
-                id=node.id,
-                propertyTypes=[asdict(p) for p in node.propertyTypes],
+                name=node.name, id=node.id, property_types=node.propertyTypes
             )
 
 
@@ -75,9 +70,7 @@ def add_location_type(
         )
 
     location_type = LocationType(
-        name=result.name,
-        id=result.id,
-        propertyTypes=[asdict(p) for p in result.propertyTypes],
+        name=result.name, id=result.id, property_types=result.propertyTypes
     )
     client.locationTypes[result.name] = location_type
     return location_type

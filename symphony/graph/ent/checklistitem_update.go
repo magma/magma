@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -21,22 +21,9 @@ import (
 // CheckListItemUpdate is the builder for updating CheckListItem entities.
 type CheckListItemUpdate struct {
 	config
-	title            *string
-	_type            *string
-	index            *int
-	addindex         *int
-	clearindex       bool
-	checked          *bool
-	clearchecked     bool
-	string_val       *string
-	clearstring_val  bool
-	enum_values      *string
-	clearenum_values bool
-	help_text        *string
-	clearhelp_text   bool
-	work_order       map[int]struct{}
-	clearedWorkOrder bool
-	predicates       []predicate.CheckListItem
+	hooks      []Hook
+	mutation   *CheckListItemMutation
+	predicates []predicate.CheckListItem
 }
 
 // Where adds a new predicate for the builder.
@@ -47,20 +34,20 @@ func (cliu *CheckListItemUpdate) Where(ps ...predicate.CheckListItem) *CheckList
 
 // SetTitle sets the title field.
 func (cliu *CheckListItemUpdate) SetTitle(s string) *CheckListItemUpdate {
-	cliu.title = &s
+	cliu.mutation.SetTitle(s)
 	return cliu
 }
 
 // SetType sets the type field.
 func (cliu *CheckListItemUpdate) SetType(s string) *CheckListItemUpdate {
-	cliu._type = &s
+	cliu.mutation.SetType(s)
 	return cliu
 }
 
 // SetIndex sets the index field.
 func (cliu *CheckListItemUpdate) SetIndex(i int) *CheckListItemUpdate {
-	cliu.index = &i
-	cliu.addindex = nil
+	cliu.mutation.ResetIndex()
+	cliu.mutation.SetIndex(i)
 	return cliu
 }
 
@@ -74,24 +61,19 @@ func (cliu *CheckListItemUpdate) SetNillableIndex(i *int) *CheckListItemUpdate {
 
 // AddIndex adds i to index.
 func (cliu *CheckListItemUpdate) AddIndex(i int) *CheckListItemUpdate {
-	if cliu.addindex == nil {
-		cliu.addindex = &i
-	} else {
-		*cliu.addindex += i
-	}
+	cliu.mutation.AddIndex(i)
 	return cliu
 }
 
 // ClearIndex clears the value of index.
 func (cliu *CheckListItemUpdate) ClearIndex() *CheckListItemUpdate {
-	cliu.index = nil
-	cliu.clearindex = true
+	cliu.mutation.ClearIndex()
 	return cliu
 }
 
 // SetChecked sets the checked field.
 func (cliu *CheckListItemUpdate) SetChecked(b bool) *CheckListItemUpdate {
-	cliu.checked = &b
+	cliu.mutation.SetChecked(b)
 	return cliu
 }
 
@@ -105,14 +87,13 @@ func (cliu *CheckListItemUpdate) SetNillableChecked(b *bool) *CheckListItemUpdat
 
 // ClearChecked clears the value of checked.
 func (cliu *CheckListItemUpdate) ClearChecked() *CheckListItemUpdate {
-	cliu.checked = nil
-	cliu.clearchecked = true
+	cliu.mutation.ClearChecked()
 	return cliu
 }
 
 // SetStringVal sets the string_val field.
 func (cliu *CheckListItemUpdate) SetStringVal(s string) *CheckListItemUpdate {
-	cliu.string_val = &s
+	cliu.mutation.SetStringVal(s)
 	return cliu
 }
 
@@ -126,14 +107,13 @@ func (cliu *CheckListItemUpdate) SetNillableStringVal(s *string) *CheckListItemU
 
 // ClearStringVal clears the value of string_val.
 func (cliu *CheckListItemUpdate) ClearStringVal() *CheckListItemUpdate {
-	cliu.string_val = nil
-	cliu.clearstring_val = true
+	cliu.mutation.ClearStringVal()
 	return cliu
 }
 
 // SetEnumValues sets the enum_values field.
 func (cliu *CheckListItemUpdate) SetEnumValues(s string) *CheckListItemUpdate {
-	cliu.enum_values = &s
+	cliu.mutation.SetEnumValues(s)
 	return cliu
 }
 
@@ -147,14 +127,53 @@ func (cliu *CheckListItemUpdate) SetNillableEnumValues(s *string) *CheckListItem
 
 // ClearEnumValues clears the value of enum_values.
 func (cliu *CheckListItemUpdate) ClearEnumValues() *CheckListItemUpdate {
-	cliu.enum_values = nil
-	cliu.clearenum_values = true
+	cliu.mutation.ClearEnumValues()
+	return cliu
+}
+
+// SetEnumSelectionMode sets the enum_selection_mode field.
+func (cliu *CheckListItemUpdate) SetEnumSelectionMode(s string) *CheckListItemUpdate {
+	cliu.mutation.SetEnumSelectionMode(s)
+	return cliu
+}
+
+// SetNillableEnumSelectionMode sets the enum_selection_mode field if the given value is not nil.
+func (cliu *CheckListItemUpdate) SetNillableEnumSelectionMode(s *string) *CheckListItemUpdate {
+	if s != nil {
+		cliu.SetEnumSelectionMode(*s)
+	}
+	return cliu
+}
+
+// ClearEnumSelectionMode clears the value of enum_selection_mode.
+func (cliu *CheckListItemUpdate) ClearEnumSelectionMode() *CheckListItemUpdate {
+	cliu.mutation.ClearEnumSelectionMode()
+	return cliu
+}
+
+// SetSelectedEnumValues sets the selected_enum_values field.
+func (cliu *CheckListItemUpdate) SetSelectedEnumValues(s string) *CheckListItemUpdate {
+	cliu.mutation.SetSelectedEnumValues(s)
+	return cliu
+}
+
+// SetNillableSelectedEnumValues sets the selected_enum_values field if the given value is not nil.
+func (cliu *CheckListItemUpdate) SetNillableSelectedEnumValues(s *string) *CheckListItemUpdate {
+	if s != nil {
+		cliu.SetSelectedEnumValues(*s)
+	}
+	return cliu
+}
+
+// ClearSelectedEnumValues clears the value of selected_enum_values.
+func (cliu *CheckListItemUpdate) ClearSelectedEnumValues() *CheckListItemUpdate {
+	cliu.mutation.ClearSelectedEnumValues()
 	return cliu
 }
 
 // SetHelpText sets the help_text field.
 func (cliu *CheckListItemUpdate) SetHelpText(s string) *CheckListItemUpdate {
-	cliu.help_text = &s
+	cliu.mutation.SetHelpText(s)
 	return cliu
 }
 
@@ -168,17 +187,13 @@ func (cliu *CheckListItemUpdate) SetNillableHelpText(s *string) *CheckListItemUp
 
 // ClearHelpText clears the value of help_text.
 func (cliu *CheckListItemUpdate) ClearHelpText() *CheckListItemUpdate {
-	cliu.help_text = nil
-	cliu.clearhelp_text = true
+	cliu.mutation.ClearHelpText()
 	return cliu
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (cliu *CheckListItemUpdate) SetWorkOrderID(id int) *CheckListItemUpdate {
-	if cliu.work_order == nil {
-		cliu.work_order = make(map[int]struct{})
-	}
-	cliu.work_order[id] = struct{}{}
+	cliu.mutation.SetWorkOrderID(id)
 	return cliu
 }
 
@@ -197,16 +212,37 @@ func (cliu *CheckListItemUpdate) SetWorkOrder(w *WorkOrder) *CheckListItemUpdate
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
 func (cliu *CheckListItemUpdate) ClearWorkOrder() *CheckListItemUpdate {
-	cliu.clearedWorkOrder = true
+	cliu.mutation.ClearWorkOrder()
 	return cliu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (cliu *CheckListItemUpdate) Save(ctx context.Context) (int, error) {
-	if len(cliu.work_order) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"work_order\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(cliu.hooks) == 0 {
+		affected, err = cliu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*CheckListItemMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			cliu.mutation = mutation
+			affected, err = cliu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(cliu.hooks); i > 0; i-- {
+			mut = cliu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, cliu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	return cliu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -249,93 +285,119 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 		}
 	}
-	if value := cliu.title; value != nil {
+	if value, ok := cliu.mutation.Title(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldTitle,
 		})
 	}
-	if value := cliu._type; value != nil {
+	if value, ok := cliu.mutation.GetType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldType,
 		})
 	}
-	if value := cliu.index; value != nil {
+	if value, ok := cliu.mutation.Index(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldIndex,
 		})
 	}
-	if value := cliu.addindex; value != nil {
+	if value, ok := cliu.mutation.AddedIndex(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldIndex,
 		})
 	}
-	if cliu.clearindex {
+	if cliu.mutation.IndexCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: checklistitem.FieldIndex,
 		})
 	}
-	if value := cliu.checked; value != nil {
+	if value, ok := cliu.mutation.Checked(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldChecked,
 		})
 	}
-	if cliu.clearchecked {
+	if cliu.mutation.CheckedCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: checklistitem.FieldChecked,
 		})
 	}
-	if value := cliu.string_val; value != nil {
+	if value, ok := cliu.mutation.StringVal(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldStringVal,
 		})
 	}
-	if cliu.clearstring_val {
+	if cliu.mutation.StringValCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitem.FieldStringVal,
 		})
 	}
-	if value := cliu.enum_values; value != nil {
+	if value, ok := cliu.mutation.EnumValues(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldEnumValues,
 		})
 	}
-	if cliu.clearenum_values {
+	if cliu.mutation.EnumValuesCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitem.FieldEnumValues,
 		})
 	}
-	if value := cliu.help_text; value != nil {
+	if value, ok := cliu.mutation.EnumSelectionMode(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if cliu.mutation.EnumSelectionModeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if value, ok := cliu.mutation.SelectedEnumValues(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
+	if cliu.mutation.SelectedEnumValuesCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
+	if value, ok := cliu.mutation.HelpText(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
 			Column: checklistitem.FieldHelpText,
 		})
 	}
-	if cliu.clearhelp_text {
+	if cliu.mutation.HelpTextCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitem.FieldHelpText,
 		})
 	}
-	if cliu.clearedWorkOrder {
+	if cliu.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -351,7 +413,7 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cliu.work_order; len(nodes) > 0 {
+	if nodes := cliu.mutation.WorkOrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -365,7 +427,7 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -384,40 +446,26 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 // CheckListItemUpdateOne is the builder for updating a single CheckListItem entity.
 type CheckListItemUpdateOne struct {
 	config
-	id               int
-	title            *string
-	_type            *string
-	index            *int
-	addindex         *int
-	clearindex       bool
-	checked          *bool
-	clearchecked     bool
-	string_val       *string
-	clearstring_val  bool
-	enum_values      *string
-	clearenum_values bool
-	help_text        *string
-	clearhelp_text   bool
-	work_order       map[int]struct{}
-	clearedWorkOrder bool
+	hooks    []Hook
+	mutation *CheckListItemMutation
 }
 
 // SetTitle sets the title field.
 func (cliuo *CheckListItemUpdateOne) SetTitle(s string) *CheckListItemUpdateOne {
-	cliuo.title = &s
+	cliuo.mutation.SetTitle(s)
 	return cliuo
 }
 
 // SetType sets the type field.
 func (cliuo *CheckListItemUpdateOne) SetType(s string) *CheckListItemUpdateOne {
-	cliuo._type = &s
+	cliuo.mutation.SetType(s)
 	return cliuo
 }
 
 // SetIndex sets the index field.
 func (cliuo *CheckListItemUpdateOne) SetIndex(i int) *CheckListItemUpdateOne {
-	cliuo.index = &i
-	cliuo.addindex = nil
+	cliuo.mutation.ResetIndex()
+	cliuo.mutation.SetIndex(i)
 	return cliuo
 }
 
@@ -431,24 +479,19 @@ func (cliuo *CheckListItemUpdateOne) SetNillableIndex(i *int) *CheckListItemUpda
 
 // AddIndex adds i to index.
 func (cliuo *CheckListItemUpdateOne) AddIndex(i int) *CheckListItemUpdateOne {
-	if cliuo.addindex == nil {
-		cliuo.addindex = &i
-	} else {
-		*cliuo.addindex += i
-	}
+	cliuo.mutation.AddIndex(i)
 	return cliuo
 }
 
 // ClearIndex clears the value of index.
 func (cliuo *CheckListItemUpdateOne) ClearIndex() *CheckListItemUpdateOne {
-	cliuo.index = nil
-	cliuo.clearindex = true
+	cliuo.mutation.ClearIndex()
 	return cliuo
 }
 
 // SetChecked sets the checked field.
 func (cliuo *CheckListItemUpdateOne) SetChecked(b bool) *CheckListItemUpdateOne {
-	cliuo.checked = &b
+	cliuo.mutation.SetChecked(b)
 	return cliuo
 }
 
@@ -462,14 +505,13 @@ func (cliuo *CheckListItemUpdateOne) SetNillableChecked(b *bool) *CheckListItemU
 
 // ClearChecked clears the value of checked.
 func (cliuo *CheckListItemUpdateOne) ClearChecked() *CheckListItemUpdateOne {
-	cliuo.checked = nil
-	cliuo.clearchecked = true
+	cliuo.mutation.ClearChecked()
 	return cliuo
 }
 
 // SetStringVal sets the string_val field.
 func (cliuo *CheckListItemUpdateOne) SetStringVal(s string) *CheckListItemUpdateOne {
-	cliuo.string_val = &s
+	cliuo.mutation.SetStringVal(s)
 	return cliuo
 }
 
@@ -483,14 +525,13 @@ func (cliuo *CheckListItemUpdateOne) SetNillableStringVal(s *string) *CheckListI
 
 // ClearStringVal clears the value of string_val.
 func (cliuo *CheckListItemUpdateOne) ClearStringVal() *CheckListItemUpdateOne {
-	cliuo.string_val = nil
-	cliuo.clearstring_val = true
+	cliuo.mutation.ClearStringVal()
 	return cliuo
 }
 
 // SetEnumValues sets the enum_values field.
 func (cliuo *CheckListItemUpdateOne) SetEnumValues(s string) *CheckListItemUpdateOne {
-	cliuo.enum_values = &s
+	cliuo.mutation.SetEnumValues(s)
 	return cliuo
 }
 
@@ -504,14 +545,53 @@ func (cliuo *CheckListItemUpdateOne) SetNillableEnumValues(s *string) *CheckList
 
 // ClearEnumValues clears the value of enum_values.
 func (cliuo *CheckListItemUpdateOne) ClearEnumValues() *CheckListItemUpdateOne {
-	cliuo.enum_values = nil
-	cliuo.clearenum_values = true
+	cliuo.mutation.ClearEnumValues()
+	return cliuo
+}
+
+// SetEnumSelectionMode sets the enum_selection_mode field.
+func (cliuo *CheckListItemUpdateOne) SetEnumSelectionMode(s string) *CheckListItemUpdateOne {
+	cliuo.mutation.SetEnumSelectionMode(s)
+	return cliuo
+}
+
+// SetNillableEnumSelectionMode sets the enum_selection_mode field if the given value is not nil.
+func (cliuo *CheckListItemUpdateOne) SetNillableEnumSelectionMode(s *string) *CheckListItemUpdateOne {
+	if s != nil {
+		cliuo.SetEnumSelectionMode(*s)
+	}
+	return cliuo
+}
+
+// ClearEnumSelectionMode clears the value of enum_selection_mode.
+func (cliuo *CheckListItemUpdateOne) ClearEnumSelectionMode() *CheckListItemUpdateOne {
+	cliuo.mutation.ClearEnumSelectionMode()
+	return cliuo
+}
+
+// SetSelectedEnumValues sets the selected_enum_values field.
+func (cliuo *CheckListItemUpdateOne) SetSelectedEnumValues(s string) *CheckListItemUpdateOne {
+	cliuo.mutation.SetSelectedEnumValues(s)
+	return cliuo
+}
+
+// SetNillableSelectedEnumValues sets the selected_enum_values field if the given value is not nil.
+func (cliuo *CheckListItemUpdateOne) SetNillableSelectedEnumValues(s *string) *CheckListItemUpdateOne {
+	if s != nil {
+		cliuo.SetSelectedEnumValues(*s)
+	}
+	return cliuo
+}
+
+// ClearSelectedEnumValues clears the value of selected_enum_values.
+func (cliuo *CheckListItemUpdateOne) ClearSelectedEnumValues() *CheckListItemUpdateOne {
+	cliuo.mutation.ClearSelectedEnumValues()
 	return cliuo
 }
 
 // SetHelpText sets the help_text field.
 func (cliuo *CheckListItemUpdateOne) SetHelpText(s string) *CheckListItemUpdateOne {
-	cliuo.help_text = &s
+	cliuo.mutation.SetHelpText(s)
 	return cliuo
 }
 
@@ -525,17 +605,13 @@ func (cliuo *CheckListItemUpdateOne) SetNillableHelpText(s *string) *CheckListIt
 
 // ClearHelpText clears the value of help_text.
 func (cliuo *CheckListItemUpdateOne) ClearHelpText() *CheckListItemUpdateOne {
-	cliuo.help_text = nil
-	cliuo.clearhelp_text = true
+	cliuo.mutation.ClearHelpText()
 	return cliuo
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (cliuo *CheckListItemUpdateOne) SetWorkOrderID(id int) *CheckListItemUpdateOne {
-	if cliuo.work_order == nil {
-		cliuo.work_order = make(map[int]struct{})
-	}
-	cliuo.work_order[id] = struct{}{}
+	cliuo.mutation.SetWorkOrderID(id)
 	return cliuo
 }
 
@@ -554,16 +630,37 @@ func (cliuo *CheckListItemUpdateOne) SetWorkOrder(w *WorkOrder) *CheckListItemUp
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
 func (cliuo *CheckListItemUpdateOne) ClearWorkOrder() *CheckListItemUpdateOne {
-	cliuo.clearedWorkOrder = true
+	cliuo.mutation.ClearWorkOrder()
 	return cliuo
 }
 
 // Save executes the query and returns the updated entity.
 func (cliuo *CheckListItemUpdateOne) Save(ctx context.Context) (*CheckListItem, error) {
-	if len(cliuo.work_order) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"work_order\"")
+
+	var (
+		err  error
+		node *CheckListItem
+	)
+	if len(cliuo.hooks) == 0 {
+		node, err = cliuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*CheckListItemMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			cliuo.mutation = mutation
+			node, err = cliuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(cliuo.hooks); i > 0; i-- {
+			mut = cliuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, cliuo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return cliuo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -594,99 +691,129 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 			Table:   checklistitem.Table,
 			Columns: checklistitem.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  cliuo.id,
 				Type:   field.TypeInt,
 				Column: checklistitem.FieldID,
 			},
 		},
 	}
-	if value := cliuo.title; value != nil {
+	id, ok := cliuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing CheckListItem.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := cliuo.mutation.Title(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldTitle,
 		})
 	}
-	if value := cliuo._type; value != nil {
+	if value, ok := cliuo.mutation.GetType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldType,
 		})
 	}
-	if value := cliuo.index; value != nil {
+	if value, ok := cliuo.mutation.Index(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldIndex,
 		})
 	}
-	if value := cliuo.addindex; value != nil {
+	if value, ok := cliuo.mutation.AddedIndex(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldIndex,
 		})
 	}
-	if cliuo.clearindex {
+	if cliuo.mutation.IndexCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: checklistitem.FieldIndex,
 		})
 	}
-	if value := cliuo.checked; value != nil {
+	if value, ok := cliuo.mutation.Checked(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldChecked,
 		})
 	}
-	if cliuo.clearchecked {
+	if cliuo.mutation.CheckedCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: checklistitem.FieldChecked,
 		})
 	}
-	if value := cliuo.string_val; value != nil {
+	if value, ok := cliuo.mutation.StringVal(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldStringVal,
 		})
 	}
-	if cliuo.clearstring_val {
+	if cliuo.mutation.StringValCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitem.FieldStringVal,
 		})
 	}
-	if value := cliuo.enum_values; value != nil {
+	if value, ok := cliuo.mutation.EnumValues(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: checklistitem.FieldEnumValues,
 		})
 	}
-	if cliuo.clearenum_values {
+	if cliuo.mutation.EnumValuesCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitem.FieldEnumValues,
 		})
 	}
-	if value := cliuo.help_text; value != nil {
+	if value, ok := cliuo.mutation.EnumSelectionMode(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if cliuo.mutation.EnumSelectionModeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if value, ok := cliuo.mutation.SelectedEnumValues(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
+	if cliuo.mutation.SelectedEnumValuesCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
+	if value, ok := cliuo.mutation.HelpText(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
 			Column: checklistitem.FieldHelpText,
 		})
 	}
-	if cliuo.clearhelp_text {
+	if cliuo.mutation.HelpTextCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitem.FieldHelpText,
 		})
 	}
-	if cliuo.clearedWorkOrder {
+	if cliuo.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -702,7 +829,7 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cliuo.work_order; len(nodes) > 0 {
+	if nodes := cliuo.mutation.WorkOrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -716,7 +843,7 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

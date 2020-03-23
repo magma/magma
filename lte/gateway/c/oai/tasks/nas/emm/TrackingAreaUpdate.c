@@ -209,9 +209,7 @@ int emm_proc_tracking_area_update_request(
    * Get the UE's EMM context if it exists
    */
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_context = &ue_mm_context->emm_context;
   }
@@ -219,6 +217,7 @@ int emm_proc_tracking_area_update_request(
   // May be the MME APP module did not find the context, but if we have the GUTI, we may find it
   if (!ue_mm_context) {
     if (INVALID_M_TMSI != ies->old_guti.m_tmsi) {
+      mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
       ue_mm_context = mme_ue_context_exists_guti(
         &mme_app_desc_p->mme_ue_contexts, &ies->old_guti);
 
@@ -552,9 +551,7 @@ static int _emm_tracking_area_update_reject(
   /*
    * Setup EPS NAS security data
    */
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_context = &ue_mm_context->emm_context;
   }
@@ -637,10 +634,8 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
   ue_mm_context_t *ue_mm_context = NULL;
   emm_context_t *emm_context = NULL;
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   if ((tau_proc) && (tau_proc->ies)) {
-    ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, tau_proc->ue_id);
+    ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(tau_proc->ue_id);
     if (ue_mm_context) {
       emm_context = &ue_mm_context->emm_context;
     } else {

@@ -269,7 +269,7 @@ const (
 	lteAuthOpcLength = 16
 )
 
-func (m *Subscriber) ValidateModel() error {
+func (m *MutableSubscriber) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
@@ -340,6 +340,13 @@ func (m *MutableRatingGroup) ValidateModel() error {
 
 // ValidateModel does standard swagger validation and any custom validation
 func (m *Apn) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *IcmpStatus) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}

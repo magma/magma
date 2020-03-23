@@ -38,6 +38,10 @@ const (
 	UserAgentAttribute = "viewer.user_agent"
 )
 
+const (
+	UserIsDeactivatedError = "USER_IS_DEACTIVATED"
+)
+
 // The following tags are applied to context recorded by this package.
 var (
 	KeyTenant    = tag.MustNewKey(TenantAttribute)
@@ -51,6 +55,11 @@ type Viewer struct {
 	Tenant string `json:"organization"`
 	User   string `json:"email"`
 	Role   string `json:"role"`
+}
+
+type UserHandler struct {
+	Handler http.Handler
+	Logger  log.Logger
 }
 
 // MarshalLogObject implements zapcore.ObjectMarshaler interface.
@@ -165,27 +174,46 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 	})
 }
 
-// UserHandler adds users if request is from user that is not found.
-func UserHandler(h http.Handler, logger log.Logger) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		v := FromContext(ctx)
-		client := ent.FromContext(ctx)
-		exist, err := client.User.Query().Where(user.AuthID(v.User)).Exist(ctx)
+func (h UserHandler) getOrCreateUser(ctx context.Context) (*ent.User, error) {
+	ctx, span := trace.StartSpan(ctx, "viewer.getOrCreateUser")
+	defer span.End()
+	v := FromContext(ctx)
+	client := ent.FromContext(ctx)
+
+	u, err := client.User.Query().Where(user.AuthID(v.User)).Only(ctx)
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			return nil, err
+		}
+		role := user.RoleUSER
+		if v.Role == "superuser" {
+			role = user.RoleOWNER
+		}
+		u, err = client.User.Create().SetAuthID(v.User).SetEmail(v.User).SetRole(role).Save(ctx)
 		if err != nil {
-			http.Error(w, "query user ent", http.StatusServiceUnavailable)
-			return
-		}
-		if !exist {
-			_, err := client.User.Create().SetAuthID(v.User).Save(ctx)
-			if err != nil {
-				http.Error(w, "create user ent", http.StatusServiceUnavailable)
-				return
+			if !ent.IsConstraintError(err) {
+				return nil, err
 			}
-			logger.For(ctx).Info("New user created", zap.String("AuthID", v.User))
+			return client.User.Query().Where(user.AuthID(v.User)).Only(ctx)
 		}
-		h.ServeHTTP(w, r)
-	})
+		h.Logger.For(ctx).Info("New user created", zap.String("AuthID", v.User))
+	}
+	return u, nil
+}
+
+// UserHandler adds users if request is from user that is not found.
+func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	u, err := h.getOrCreateUser(ctx)
+	if err != nil {
+		http.Error(w, "get user ent", http.StatusServiceUnavailable)
+		return
+	}
+	if u.Status == user.StatusDEACTIVATED {
+		http.Error(w, "user is deactivated", http.StatusForbidden)
+		return
+	}
+	h.Handler.ServeHTTP(w, r)
 }
 
 type contextKey struct{}

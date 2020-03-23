@@ -15,9 +15,9 @@ import type {
 
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React from 'react';
+import useFilterBookmarks from './hooks/filterBookmarksHook';
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
-import {EntityTypeMap} from './ComparisonViewTypes';
 import {EquipmentCriteriaConfig} from './EquipmentSearchConfig';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
@@ -37,12 +37,12 @@ const EquipmentPowerSearchBar = (props: Props) => {
   );
 
   const locationTypesFilterConfigs = useLocationTypes();
+  const filterBookmarksFilterConfig = useFilterBookmarks('EQUIPMENT');
 
   const filterConfigs = EquipmentCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
     .concat(equipmentPropertiesFilterConfigs ?? [])
     .concat(locationTypesFilterConfigs ?? []);
-
   return (
     <PowerSearchBar
       filters={filters}
@@ -56,9 +56,10 @@ const EquipmentPowerSearchBar = (props: Props) => {
       }
       placeholder="Filter..."
       searchConfig={EquipmentCriteriaConfig}
+      savedSearches={filterBookmarksFilterConfig}
       filterConfigs={filterConfigs}
       footer={footer}
-      entity={EntityTypeMap.equipment}
+      entity="EQUIPMENT"
     />
   );
 };

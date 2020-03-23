@@ -40,6 +40,7 @@ module "eks" {
   worker_groups                        = var.eks_worker_groups
 
   map_roles = var.eks_map_roles
+  map_users = var.eks_map_users
 
   tags = var.global_tags
 }

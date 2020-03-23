@@ -23,18 +23,13 @@ import (
 // ProjectTypeCreate is the builder for creating a ProjectType entity.
 type ProjectTypeCreate struct {
 	config
-	create_time *time.Time
-	update_time *time.Time
-	name        *string
-	description *string
-	projects    map[int]struct{}
-	properties  map[int]struct{}
-	work_orders map[int]struct{}
+	mutation *ProjectTypeMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (ptc *ProjectTypeCreate) SetCreateTime(t time.Time) *ProjectTypeCreate {
-	ptc.create_time = &t
+	ptc.mutation.SetCreateTime(t)
 	return ptc
 }
 
@@ -48,7 +43,7 @@ func (ptc *ProjectTypeCreate) SetNillableCreateTime(t *time.Time) *ProjectTypeCr
 
 // SetUpdateTime sets the update_time field.
 func (ptc *ProjectTypeCreate) SetUpdateTime(t time.Time) *ProjectTypeCreate {
-	ptc.update_time = &t
+	ptc.mutation.SetUpdateTime(t)
 	return ptc
 }
 
@@ -62,13 +57,13 @@ func (ptc *ProjectTypeCreate) SetNillableUpdateTime(t *time.Time) *ProjectTypeCr
 
 // SetName sets the name field.
 func (ptc *ProjectTypeCreate) SetName(s string) *ProjectTypeCreate {
-	ptc.name = &s
+	ptc.mutation.SetName(s)
 	return ptc
 }
 
 // SetDescription sets the description field.
 func (ptc *ProjectTypeCreate) SetDescription(s string) *ProjectTypeCreate {
-	ptc.description = &s
+	ptc.mutation.SetDescription(s)
 	return ptc
 }
 
@@ -82,12 +77,7 @@ func (ptc *ProjectTypeCreate) SetNillableDescription(s *string) *ProjectTypeCrea
 
 // AddProjectIDs adds the projects edge to Project by ids.
 func (ptc *ProjectTypeCreate) AddProjectIDs(ids ...int) *ProjectTypeCreate {
-	if ptc.projects == nil {
-		ptc.projects = make(map[int]struct{})
-	}
-	for i := range ids {
-		ptc.projects[ids[i]] = struct{}{}
-	}
+	ptc.mutation.AddProjectIDs(ids...)
 	return ptc
 }
 
@@ -102,12 +92,7 @@ func (ptc *ProjectTypeCreate) AddProjects(p ...*Project) *ProjectTypeCreate {
 
 // AddPropertyIDs adds the properties edge to PropertyType by ids.
 func (ptc *ProjectTypeCreate) AddPropertyIDs(ids ...int) *ProjectTypeCreate {
-	if ptc.properties == nil {
-		ptc.properties = make(map[int]struct{})
-	}
-	for i := range ids {
-		ptc.properties[ids[i]] = struct{}{}
-	}
+	ptc.mutation.AddPropertyIDs(ids...)
 	return ptc
 }
 
@@ -122,12 +107,7 @@ func (ptc *ProjectTypeCreate) AddProperties(p ...*PropertyType) *ProjectTypeCrea
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrderDefinition by ids.
 func (ptc *ProjectTypeCreate) AddWorkOrderIDs(ids ...int) *ProjectTypeCreate {
-	if ptc.work_orders == nil {
-		ptc.work_orders = make(map[int]struct{})
-	}
-	for i := range ids {
-		ptc.work_orders[ids[i]] = struct{}{}
-	}
+	ptc.mutation.AddWorkOrderIDs(ids...)
 	return ptc
 }
 
@@ -142,21 +122,46 @@ func (ptc *ProjectTypeCreate) AddWorkOrders(w ...*WorkOrderDefinition) *ProjectT
 
 // Save creates the ProjectType in the database.
 func (ptc *ProjectTypeCreate) Save(ctx context.Context) (*ProjectType, error) {
-	if ptc.create_time == nil {
+	if _, ok := ptc.mutation.CreateTime(); !ok {
 		v := projecttype.DefaultCreateTime()
-		ptc.create_time = &v
+		ptc.mutation.SetCreateTime(v)
 	}
-	if ptc.update_time == nil {
+	if _, ok := ptc.mutation.UpdateTime(); !ok {
 		v := projecttype.DefaultUpdateTime()
-		ptc.update_time = &v
+		ptc.mutation.SetUpdateTime(v)
 	}
-	if ptc.name == nil {
+	if _, ok := ptc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if err := projecttype.NameValidator(*ptc.name); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+	if v, ok := ptc.mutation.Name(); ok {
+		if err := projecttype.NameValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
 	}
-	return ptc.sqlSave(ctx)
+	var (
+		err  error
+		node *ProjectType
+	)
+	if len(ptc.hooks) == 0 {
+		node, err = ptc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ProjectTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ptc.mutation = mutation
+			node, err = ptc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(ptc.hooks); i > 0; i-- {
+			mut = ptc.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ptc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -179,39 +184,39 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 			},
 		}
 	)
-	if value := ptc.create_time; value != nil {
+	if value, ok := ptc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: projecttype.FieldCreateTime,
 		})
-		pt.CreateTime = *value
+		pt.CreateTime = value
 	}
-	if value := ptc.update_time; value != nil {
+	if value, ok := ptc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: projecttype.FieldUpdateTime,
 		})
-		pt.UpdateTime = *value
+		pt.UpdateTime = value
 	}
-	if value := ptc.name; value != nil {
+	if value, ok := ptc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: projecttype.FieldName,
 		})
-		pt.Name = *value
+		pt.Name = value
 	}
-	if value := ptc.description; value != nil {
+	if value, ok := ptc.mutation.Description(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: projecttype.FieldDescription,
 		})
-		pt.Description = value
+		pt.Description = &value
 	}
-	if nodes := ptc.projects; len(nodes) > 0 {
+	if nodes := ptc.mutation.ProjectsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -225,12 +230,12 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ptc.properties; len(nodes) > 0 {
+	if nodes := ptc.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -244,12 +249,12 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ptc.work_orders; len(nodes) > 0 {
+	if nodes := ptc.mutation.WorkOrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -263,7 +268,7 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

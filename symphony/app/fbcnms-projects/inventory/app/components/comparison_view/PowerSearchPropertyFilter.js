@@ -54,7 +54,7 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
       name: 'property',
       operator: editedOperator,
       propertyValue: {
-        id: '0',
+        id: String(Math.floor(Math.random() * 10 ** 5)),
         name: newValue.propertyType
           ? newValue.propertyType.name
           : newValue.name,

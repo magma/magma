@@ -15,12 +15,13 @@ info:
 basePath: /magma/v1
 
 paths:
-  /events/{stream_name}:
+  /events/{network_id}/{stream_name}:
     get:
       summary: Query events logged by services
       tags:
         - Events
       parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: stream_name
           in: path
           description: The user-specified string to categorize events

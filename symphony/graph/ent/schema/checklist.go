@@ -93,6 +93,12 @@ func (CheckListItem) Fields() []ent.Field {
 		field.String("enum_values").
 			StructTag(`gqlgen:"enumValues"`).
 			Optional(),
+		field.String("enum_selection_mode").
+			StructTag(`gqlgen:"enumSelectionMode"`).
+			Optional(),
+		field.String("selected_enum_values").
+			StructTag(`gqlgen:"selectedEnumValues"`).
+			Optional(),
 		field.String("help_text").
 			StructTag(`gqlgen:"helpText"`).
 			Nillable().

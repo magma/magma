@@ -11,9 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from gql.gql.enum_utils import enum_field
-from .property_kind_enum import PropertyKind
-
+from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
 
 @dataclass
 class EquipmentPortTypeQuery(DataClassJsonMixin):
@@ -22,19 +20,8 @@ class EquipmentPortTypeQuery(DataClassJsonMixin):
         @dataclass
         class Node(DataClassJsonMixin):
             @dataclass
-            class PropertyType(DataClassJsonMixin):
-                id: str
-                name: str
-                type: PropertyKind = enum_field(PropertyKind)
-                index: Optional[int] = None
-                stringValue: Optional[str] = None
-                intValue: Optional[int] = None
-                booleanValue: Optional[bool] = None
-                floatValue: Optional[Number] = None
-                latitudeValue: Optional[Number] = None
-                longitudeValue: Optional[Number] = None
-                isEditable: Optional[bool] = None
-                isInstanceProperty: Optional[bool] = None
+            class PropertyType(PropertyTypeFragment):
+                pass
 
             id: str
             name: str
@@ -45,39 +32,17 @@ class EquipmentPortTypeQuery(DataClassJsonMixin):
 
     data: EquipmentPortTypeQueryData
 
-    __QUERY__: str = """
+    __QUERY__: str = PropertyTypeFragmentQuery + """
     query EquipmentPortTypeQuery($id: ID!) {
   port_type: node(id: $id) {
     ... on EquipmentPortType {
       id
       name
       propertyTypes {
-        id
-        name
-        type
-        index
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
-        isEditable
-        isInstanceProperty
+        ...PropertyTypeFragment
       }
       linkPropertyTypes {
-        id
-        name
-        type
-        index
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
-        isEditable
-        isInstanceProperty
+        ...PropertyTypeFragment
       }
     }
   }

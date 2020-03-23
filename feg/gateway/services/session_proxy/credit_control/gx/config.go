@@ -114,6 +114,18 @@ func GetGxClientConfiguration() *diameter.DiameterClientConfig {
 	}
 }
 
+func GetGxGlobalConfig() *GxGlobalConfig {
+	configsPtr := &mconfig.SessionProxyConfig{}
+	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
+	if err != nil || !validGxConfig(configsPtr) {
+		log.Printf("%s Managed Gx Server Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
+		return &GxGlobalConfig{}
+	}
+	return &GxGlobalConfig{
+		PCFROverwriteApn: configsPtr.GetGx().OverwriteApn,
+	}
+}
+
 // check if required fields related to Gx are valid in the config
 func validGxConfig(config *mconfig.SessionProxyConfig) bool {
 	if config == nil || config.Gx == nil || config.Gx.Server == nil || config.Gx.Server.Address == "" {

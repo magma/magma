@@ -25,6 +25,10 @@ def get_input_filename(input_name: str) -> str:
     return get_filename_by_extension(input_name, "input")
 
 
+def get_fragment_filename(fragment_name: str) -> str:
+    return get_filename_by_extension(fragment_name, "fragment")
+
+
 class CodeChunk:
     class Block:
         def __init__(self, codegen: "CodeChunk"):

@@ -51,6 +51,7 @@ class DPIController(MagmaController):
         self._dpi_enabled = kwargs['config']['dpi']['enabled']
         self._mon_port = kwargs['config']['dpi']['mon_port']
         self._mon_port_number = kwargs['config']['dpi']['mon_port_number']
+        self._idle_timeout = kwargs['config']['dpi']['idle_timeout']
         self._bridge_name = kwargs['config']['bridge_name']
         if self._dpi_enabled:
             self._create_monitor_port()
@@ -134,9 +135,8 @@ class DPIController(MagmaController):
         actions = [parser.OFPActionOutput(self._mon_port_number),
                    parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
         flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-                                             match, actions,
-                                             priority=flows.DEFAULT_PRIORITY,
-                                             resubmit_table=self.next_table)
+            match, actions, priority=flows.DEFAULT_PRIORITY,
+            resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
 
     def remove_classify_flow(self, match):
         try:

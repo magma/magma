@@ -20,6 +20,7 @@ class TestAttachDetachWithOVS(unittest.TestCase):
 
     SPGW_TABLE = 0
     GTP_PORT = 32768
+    LOCAL_PORT = "LOCAL"
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -93,7 +94,8 @@ class TestAttachDetachWithOVS(unittest.TestCase):
             downlink_flows = get_flows(datapath,
                                        {"table_id": self.SPGW_TABLE,
                                         "match": {"nw_dst": ue_ip,
-                                                  "eth_type": 2048}})
+                                                  "eth_type": 2048,
+                                                  "in_port": self.LOCAL_PORT}})
             if len(downlink_flows) > 0:
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying

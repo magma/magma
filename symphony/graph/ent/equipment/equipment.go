@@ -8,28 +8,38 @@ package equipment
 
 import (
 	"time"
-
-	"github.com/facebookincubator/ent"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the equipment type in the database.
 	Label = "equipment"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time"
-	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time"
-	// FieldName holds the string denoting the name vertex property in the database.
-	FieldName = "name"
-	// FieldFutureState holds the string denoting the future_state vertex property in the database.
-	FieldFutureState = "future_state"
-	// FieldDeviceID holds the string denoting the device_id vertex property in the database.
-	FieldDeviceID = "device_id"
-	// FieldExternalID holds the string denoting the external_id vertex property in the database.
-	FieldExternalID = "external_id"
+	FieldID          = "id"           // FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime  = "create_time"  // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime  = "update_time"  // FieldName holds the string denoting the name vertex property in the database.
+	FieldName        = "name"         // FieldFutureState holds the string denoting the future_state vertex property in the database.
+	FieldFutureState = "future_state" // FieldDeviceID holds the string denoting the device_id vertex property in the database.
+	FieldDeviceID    = "device_id"    // FieldExternalID holds the string denoting the external_id vertex property in the database.
+	FieldExternalID  = "external_id"
+
+	// EdgeType holds the string denoting the type edge name in mutations.
+	EdgeType = "type"
+	// EdgeLocation holds the string denoting the location edge name in mutations.
+	EdgeLocation = "location"
+	// EdgeParentPosition holds the string denoting the parent_position edge name in mutations.
+	EdgeParentPosition = "parent_position"
+	// EdgePositions holds the string denoting the positions edge name in mutations.
+	EdgePositions = "positions"
+	// EdgePorts holds the string denoting the ports edge name in mutations.
+	EdgePorts = "ports"
+	// EdgeWorkOrder holds the string denoting the work_order edge name in mutations.
+	EdgeWorkOrder = "work_order"
+	// EdgeProperties holds the string denoting the properties edge name in mutations.
+	EdgeProperties = "properties"
+	// EdgeFiles holds the string denoting the files edge name in mutations.
+	EdgeFiles = "files"
+	// EdgeHyperlinks holds the string denoting the hyperlinks edge name in mutations.
+	EdgeHyperlinks = "hyperlinks"
 
 	// Table holds the table name of the equipment in the database.
 	Table = "equipment"
@@ -118,31 +128,14 @@ var ForeignKeys = []string{
 }
 
 var (
-	mixin       = schema.Equipment{}.Mixin()
-	mixinFields = [...][]ent.Field{
-		mixin[0].Fields(),
-	}
-	fields = schema.Equipment{}.Fields()
-
-	// descCreateTime is the schema descriptor for create_time field.
-	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
-
-	// descUpdateTime is the schema descriptor for update_time field.
-	descUpdateTime = mixinFields[0][1].Descriptor()
+	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
+	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
-
-	// descName is the schema descriptor for name field.
-	descName = fields[0].Descriptor()
+	UpdateDefaultUpdateTime func() time.Time
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator = descName.Validators[0].(func(string) error)
-
-	// descDeviceID is the schema descriptor for device_id field.
-	descDeviceID = fields[2].Descriptor()
+	NameValidator func(string) error
 	// DeviceIDValidator is a validator for the "device_id" field. It is called by the builders before save.
-	DeviceIDValidator = descDeviceID.Validators[0].(func(string) error)
+	DeviceIDValidator func(string) error
 )

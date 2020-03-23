@@ -471,27 +471,19 @@ typedef struct ue_mm_context_s {
 } ue_mm_context_t;
 
 typedef struct mme_ue_context_s {
-  uint32_t nb_ue_managed;
-  uint32_t nb_ue_idle;
-
-  uint32_t nb_bearers_managed;
-
-  uint32_t nb_ue_since_last_stat;
-  uint32_t nb_bearers_since_last_stat;
-
-  hash_table_uint64_ts_t *imsi_ue_context_htbl;  // data is mme_ue_s1ap_id_t
-  hash_table_uint64_ts_t *tun11_ue_context_htbl; // data is mme_ue_s1ap_id_t
-  hash_table_ts_t *mme_ue_s1ap_id_ue_context_htbl;
-  hash_table_uint64_ts_t *enb_ue_s1ap_id_ue_context_htbl;
-  obj_hash_table_uint64_t *guti_ue_context_htbl; // data is mme_ue_s1ap_id_t
+  hash_table_uint64_ts_t* imsi_mme_ue_id_htbl;   // data is mme_ue_s1ap_id_t
+  hash_table_uint64_ts_t* tun11_ue_context_htbl; // data is mme_ue_s1ap_id_t
+  hash_table_uint64_ts_t*
+    enb_ue_s1ap_id_ue_context_htbl;              // data is mme_ue_s1ap_id_t
+  obj_hash_table_uint64_t* guti_ue_context_htbl; // data is mme_ue_s1ap_id_t
 } mme_ue_context_t;
 
 /** \brief Retrieve an UE context by selecting the provided IMSI
  * \param imsi Imsi to find in UE map
  * @returns an UE context matching the IMSI or NULL if the context doesn't exists
  **/
-ue_mm_context_t *mme_ue_context_exists_imsi(
-  mme_ue_context_t *const mme_ue_context,
+ue_mm_context_t* mme_ue_context_exists_imsi(
+  mme_ue_context_t* const mme_ue_context,
   const imsi64_t imsi);
 
 /** \brief Retrieve an UE context by selecting the provided S11 teid
@@ -506,8 +498,7 @@ ue_mm_context_t* mme_ue_context_exists_s11_teid(
  * \param mme_ue_s1ap_id The UE id identifier used in S1AP MME (and NAS)
  * @returns an UE context matching the mme_ue_s1ap_id or NULL if the context doesn't exists
  **/
-ue_mm_context_t *mme_ue_context_exists_mme_ue_s1ap_id(
-  mme_ue_context_t *const mme_ue_context,
+ue_mm_context_t* mme_ue_context_exists_mme_ue_s1ap_id(
   const mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 /** \brief Retrieve an UE context by selecting the provided enb_ue_s1ap_id
@@ -609,7 +600,7 @@ void mme_app_state_free_ue_context(void** ue_context_node);
 
 /** \brief Dump the UE contexts present in the tree
  **/
-void mme_app_dump_ue_contexts(const mme_ue_context_t *const mme_ue_context);
+void mme_app_dump_ue_contexts(void);
 
 void mme_app_handle_s1ap_ue_context_release_req(
   const itti_s1ap_ue_context_release_req_t* s1ap_ue_context_release_req);
@@ -636,11 +627,9 @@ void mme_app_send_delete_session_request(
   const pdn_cid_t cid);
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
-    mme_ue_context_t *mme_ue_contexts_p,
-    const itti_s1ap_ue_context_mod_resp_t *s1ap_ue_context_mod_resp);
+  const itti_s1ap_ue_context_mod_resp_t* s1ap_ue_context_mod_resp);
 void mme_app_handle_s1ap_ue_context_modification_fail(
-    mme_ue_context_t *mme_ue_contexts_p,
-    const itti_s1ap_ue_context_mod_resp_fail_t *s1ap_ue_context_mod_fail);
+  const itti_s1ap_ue_context_mod_resp_fail_t* s1ap_ue_context_mod_fail);
 
 void mme_app_ue_sgs_context_free_content(
   sgs_context_t* const sgs_context_p,

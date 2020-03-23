@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -30,34 +29,9 @@ import (
 // EquipmentUpdate is the builder for updating Equipment entities.
 type EquipmentUpdate struct {
 	config
-
-	update_time           *time.Time
-	name                  *string
-	future_state          *string
-	clearfuture_state     bool
-	device_id             *string
-	cleardevice_id        bool
-	external_id           *string
-	clearexternal_id      bool
-	_type                 map[int]struct{}
-	location              map[int]struct{}
-	parent_position       map[int]struct{}
-	positions             map[int]struct{}
-	ports                 map[int]struct{}
-	work_order            map[int]struct{}
-	properties            map[int]struct{}
-	files                 map[int]struct{}
-	hyperlinks            map[int]struct{}
-	clearedType           bool
-	clearedLocation       bool
-	clearedParentPosition bool
-	removedPositions      map[int]struct{}
-	removedPorts          map[int]struct{}
-	clearedWorkOrder      bool
-	removedProperties     map[int]struct{}
-	removedFiles          map[int]struct{}
-	removedHyperlinks     map[int]struct{}
-	predicates            []predicate.Equipment
+	hooks      []Hook
+	mutation   *EquipmentMutation
+	predicates []predicate.Equipment
 }
 
 // Where adds a new predicate for the builder.
@@ -68,13 +42,13 @@ func (eu *EquipmentUpdate) Where(ps ...predicate.Equipment) *EquipmentUpdate {
 
 // SetName sets the name field.
 func (eu *EquipmentUpdate) SetName(s string) *EquipmentUpdate {
-	eu.name = &s
+	eu.mutation.SetName(s)
 	return eu
 }
 
 // SetFutureState sets the future_state field.
 func (eu *EquipmentUpdate) SetFutureState(s string) *EquipmentUpdate {
-	eu.future_state = &s
+	eu.mutation.SetFutureState(s)
 	return eu
 }
 
@@ -88,14 +62,13 @@ func (eu *EquipmentUpdate) SetNillableFutureState(s *string) *EquipmentUpdate {
 
 // ClearFutureState clears the value of future_state.
 func (eu *EquipmentUpdate) ClearFutureState() *EquipmentUpdate {
-	eu.future_state = nil
-	eu.clearfuture_state = true
+	eu.mutation.ClearFutureState()
 	return eu
 }
 
 // SetDeviceID sets the device_id field.
 func (eu *EquipmentUpdate) SetDeviceID(s string) *EquipmentUpdate {
-	eu.device_id = &s
+	eu.mutation.SetDeviceID(s)
 	return eu
 }
 
@@ -109,14 +82,13 @@ func (eu *EquipmentUpdate) SetNillableDeviceID(s *string) *EquipmentUpdate {
 
 // ClearDeviceID clears the value of device_id.
 func (eu *EquipmentUpdate) ClearDeviceID() *EquipmentUpdate {
-	eu.device_id = nil
-	eu.cleardevice_id = true
+	eu.mutation.ClearDeviceID()
 	return eu
 }
 
 // SetExternalID sets the external_id field.
 func (eu *EquipmentUpdate) SetExternalID(s string) *EquipmentUpdate {
-	eu.external_id = &s
+	eu.mutation.SetExternalID(s)
 	return eu
 }
 
@@ -130,17 +102,13 @@ func (eu *EquipmentUpdate) SetNillableExternalID(s *string) *EquipmentUpdate {
 
 // ClearExternalID clears the value of external_id.
 func (eu *EquipmentUpdate) ClearExternalID() *EquipmentUpdate {
-	eu.external_id = nil
-	eu.clearexternal_id = true
+	eu.mutation.ClearExternalID()
 	return eu
 }
 
 // SetTypeID sets the type edge to EquipmentType by id.
 func (eu *EquipmentUpdate) SetTypeID(id int) *EquipmentUpdate {
-	if eu._type == nil {
-		eu._type = make(map[int]struct{})
-	}
-	eu._type[id] = struct{}{}
+	eu.mutation.SetTypeID(id)
 	return eu
 }
 
@@ -151,10 +119,7 @@ func (eu *EquipmentUpdate) SetType(e *EquipmentType) *EquipmentUpdate {
 
 // SetLocationID sets the location edge to Location by id.
 func (eu *EquipmentUpdate) SetLocationID(id int) *EquipmentUpdate {
-	if eu.location == nil {
-		eu.location = make(map[int]struct{})
-	}
-	eu.location[id] = struct{}{}
+	eu.mutation.SetLocationID(id)
 	return eu
 }
 
@@ -173,10 +138,7 @@ func (eu *EquipmentUpdate) SetLocation(l *Location) *EquipmentUpdate {
 
 // SetParentPositionID sets the parent_position edge to EquipmentPosition by id.
 func (eu *EquipmentUpdate) SetParentPositionID(id int) *EquipmentUpdate {
-	if eu.parent_position == nil {
-		eu.parent_position = make(map[int]struct{})
-	}
-	eu.parent_position[id] = struct{}{}
+	eu.mutation.SetParentPositionID(id)
 	return eu
 }
 
@@ -195,12 +157,7 @@ func (eu *EquipmentUpdate) SetParentPosition(e *EquipmentPosition) *EquipmentUpd
 
 // AddPositionIDs adds the positions edge to EquipmentPosition by ids.
 func (eu *EquipmentUpdate) AddPositionIDs(ids ...int) *EquipmentUpdate {
-	if eu.positions == nil {
-		eu.positions = make(map[int]struct{})
-	}
-	for i := range ids {
-		eu.positions[ids[i]] = struct{}{}
-	}
+	eu.mutation.AddPositionIDs(ids...)
 	return eu
 }
 
@@ -215,12 +172,7 @@ func (eu *EquipmentUpdate) AddPositions(e ...*EquipmentPosition) *EquipmentUpdat
 
 // AddPortIDs adds the ports edge to EquipmentPort by ids.
 func (eu *EquipmentUpdate) AddPortIDs(ids ...int) *EquipmentUpdate {
-	if eu.ports == nil {
-		eu.ports = make(map[int]struct{})
-	}
-	for i := range ids {
-		eu.ports[ids[i]] = struct{}{}
-	}
+	eu.mutation.AddPortIDs(ids...)
 	return eu
 }
 
@@ -235,10 +187,7 @@ func (eu *EquipmentUpdate) AddPorts(e ...*EquipmentPort) *EquipmentUpdate {
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (eu *EquipmentUpdate) SetWorkOrderID(id int) *EquipmentUpdate {
-	if eu.work_order == nil {
-		eu.work_order = make(map[int]struct{})
-	}
-	eu.work_order[id] = struct{}{}
+	eu.mutation.SetWorkOrderID(id)
 	return eu
 }
 
@@ -257,12 +206,7 @@ func (eu *EquipmentUpdate) SetWorkOrder(w *WorkOrder) *EquipmentUpdate {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (eu *EquipmentUpdate) AddPropertyIDs(ids ...int) *EquipmentUpdate {
-	if eu.properties == nil {
-		eu.properties = make(map[int]struct{})
-	}
-	for i := range ids {
-		eu.properties[ids[i]] = struct{}{}
-	}
+	eu.mutation.AddPropertyIDs(ids...)
 	return eu
 }
 
@@ -277,12 +221,7 @@ func (eu *EquipmentUpdate) AddProperties(p ...*Property) *EquipmentUpdate {
 
 // AddFileIDs adds the files edge to File by ids.
 func (eu *EquipmentUpdate) AddFileIDs(ids ...int) *EquipmentUpdate {
-	if eu.files == nil {
-		eu.files = make(map[int]struct{})
-	}
-	for i := range ids {
-		eu.files[ids[i]] = struct{}{}
-	}
+	eu.mutation.AddFileIDs(ids...)
 	return eu
 }
 
@@ -297,12 +236,7 @@ func (eu *EquipmentUpdate) AddFiles(f ...*File) *EquipmentUpdate {
 
 // AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
 func (eu *EquipmentUpdate) AddHyperlinkIDs(ids ...int) *EquipmentUpdate {
-	if eu.hyperlinks == nil {
-		eu.hyperlinks = make(map[int]struct{})
-	}
-	for i := range ids {
-		eu.hyperlinks[ids[i]] = struct{}{}
-	}
+	eu.mutation.AddHyperlinkIDs(ids...)
 	return eu
 }
 
@@ -317,30 +251,25 @@ func (eu *EquipmentUpdate) AddHyperlinks(h ...*Hyperlink) *EquipmentUpdate {
 
 // ClearType clears the type edge to EquipmentType.
 func (eu *EquipmentUpdate) ClearType() *EquipmentUpdate {
-	eu.clearedType = true
+	eu.mutation.ClearType()
 	return eu
 }
 
 // ClearLocation clears the location edge to Location.
 func (eu *EquipmentUpdate) ClearLocation() *EquipmentUpdate {
-	eu.clearedLocation = true
+	eu.mutation.ClearLocation()
 	return eu
 }
 
 // ClearParentPosition clears the parent_position edge to EquipmentPosition.
 func (eu *EquipmentUpdate) ClearParentPosition() *EquipmentUpdate {
-	eu.clearedParentPosition = true
+	eu.mutation.ClearParentPosition()
 	return eu
 }
 
 // RemovePositionIDs removes the positions edge to EquipmentPosition by ids.
 func (eu *EquipmentUpdate) RemovePositionIDs(ids ...int) *EquipmentUpdate {
-	if eu.removedPositions == nil {
-		eu.removedPositions = make(map[int]struct{})
-	}
-	for i := range ids {
-		eu.removedPositions[ids[i]] = struct{}{}
-	}
+	eu.mutation.RemovePositionIDs(ids...)
 	return eu
 }
 
@@ -355,12 +284,7 @@ func (eu *EquipmentUpdate) RemovePositions(e ...*EquipmentPosition) *EquipmentUp
 
 // RemovePortIDs removes the ports edge to EquipmentPort by ids.
 func (eu *EquipmentUpdate) RemovePortIDs(ids ...int) *EquipmentUpdate {
-	if eu.removedPorts == nil {
-		eu.removedPorts = make(map[int]struct{})
-	}
-	for i := range ids {
-		eu.removedPorts[ids[i]] = struct{}{}
-	}
+	eu.mutation.RemovePortIDs(ids...)
 	return eu
 }
 
@@ -375,18 +299,13 @@ func (eu *EquipmentUpdate) RemovePorts(e ...*EquipmentPort) *EquipmentUpdate {
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
 func (eu *EquipmentUpdate) ClearWorkOrder() *EquipmentUpdate {
-	eu.clearedWorkOrder = true
+	eu.mutation.ClearWorkOrder()
 	return eu
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (eu *EquipmentUpdate) RemovePropertyIDs(ids ...int) *EquipmentUpdate {
-	if eu.removedProperties == nil {
-		eu.removedProperties = make(map[int]struct{})
-	}
-	for i := range ids {
-		eu.removedProperties[ids[i]] = struct{}{}
-	}
+	eu.mutation.RemovePropertyIDs(ids...)
 	return eu
 }
 
@@ -401,12 +320,7 @@ func (eu *EquipmentUpdate) RemoveProperties(p ...*Property) *EquipmentUpdate {
 
 // RemoveFileIDs removes the files edge to File by ids.
 func (eu *EquipmentUpdate) RemoveFileIDs(ids ...int) *EquipmentUpdate {
-	if eu.removedFiles == nil {
-		eu.removedFiles = make(map[int]struct{})
-	}
-	for i := range ids {
-		eu.removedFiles[ids[i]] = struct{}{}
-	}
+	eu.mutation.RemoveFileIDs(ids...)
 	return eu
 }
 
@@ -421,12 +335,7 @@ func (eu *EquipmentUpdate) RemoveFiles(f ...*File) *EquipmentUpdate {
 
 // RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
 func (eu *EquipmentUpdate) RemoveHyperlinkIDs(ids ...int) *EquipmentUpdate {
-	if eu.removedHyperlinks == nil {
-		eu.removedHyperlinks = make(map[int]struct{})
-	}
-	for i := range ids {
-		eu.removedHyperlinks[ids[i]] = struct{}{}
-	}
+	eu.mutation.RemoveHyperlinkIDs(ids...)
 	return eu
 }
 
@@ -441,36 +350,49 @@ func (eu *EquipmentUpdate) RemoveHyperlinks(h ...*Hyperlink) *EquipmentUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (eu *EquipmentUpdate) Save(ctx context.Context) (int, error) {
-	if eu.update_time == nil {
+	if _, ok := eu.mutation.UpdateTime(); !ok {
 		v := equipment.UpdateDefaultUpdateTime()
-		eu.update_time = &v
+		eu.mutation.SetUpdateTime(v)
 	}
-	if eu.name != nil {
-		if err := equipment.NameValidator(*eu.name); err != nil {
+	if v, ok := eu.mutation.Name(); ok {
+		if err := equipment.NameValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if eu.device_id != nil {
-		if err := equipment.DeviceIDValidator(*eu.device_id); err != nil {
+	if v, ok := eu.mutation.DeviceID(); ok {
+		if err := equipment.DeviceIDValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"device_id\": %v", err)
 		}
 	}
-	if len(eu._type) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"type\"")
-	}
-	if eu.clearedType && eu._type == nil {
+
+	if _, ok := eu.mutation.TypeID(); eu.mutation.TypeCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"type\"")
 	}
-	if len(eu.location) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"location\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(eu.hooks) == 0 {
+		affected, err = eu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			eu.mutation = mutation
+			affected, err = eu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(eu.hooks); i > 0; i-- {
+			mut = eu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, eu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	if len(eu.parent_position) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"parent_position\"")
-	}
-	if len(eu.work_order) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"work_order\"")
-	}
-	return eu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -513,60 +435,60 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := eu.update_time; value != nil {
+	if value, ok := eu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldUpdateTime,
 		})
 	}
-	if value := eu.name; value != nil {
+	if value, ok := eu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldName,
 		})
 	}
-	if value := eu.future_state; value != nil {
+	if value, ok := eu.mutation.FutureState(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldFutureState,
 		})
 	}
-	if eu.clearfuture_state {
+	if eu.mutation.FutureStateCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldFutureState,
 		})
 	}
-	if value := eu.device_id; value != nil {
+	if value, ok := eu.mutation.DeviceID(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldDeviceID,
 		})
 	}
-	if eu.cleardevice_id {
+	if eu.mutation.DeviceIDCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldDeviceID,
 		})
 	}
-	if value := eu.external_id; value != nil {
+	if value, ok := eu.mutation.ExternalID(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldExternalID,
 		})
 	}
-	if eu.clearexternal_id {
+	if eu.mutation.ExternalIDCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldExternalID,
 		})
 	}
-	if eu.clearedType {
+	if eu.mutation.TypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -582,7 +504,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu._type; len(nodes) > 0 {
+	if nodes := eu.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -596,12 +518,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if eu.clearedLocation {
+	if eu.mutation.LocationCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -617,7 +539,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.location; len(nodes) > 0 {
+	if nodes := eu.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -631,12 +553,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if eu.clearedParentPosition {
+	if eu.mutation.ParentPositionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -652,7 +574,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.parent_position; len(nodes) > 0 {
+	if nodes := eu.mutation.ParentPositionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -666,12 +588,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := eu.removedPositions; len(nodes) > 0 {
+	if nodes := eu.mutation.RemovedPositionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -685,12 +607,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.positions; len(nodes) > 0 {
+	if nodes := eu.mutation.PositionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -704,12 +626,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := eu.removedPorts; len(nodes) > 0 {
+	if nodes := eu.mutation.RemovedPortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -723,12 +645,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.ports; len(nodes) > 0 {
+	if nodes := eu.mutation.PortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -742,12 +664,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if eu.clearedWorkOrder {
+	if eu.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -763,7 +685,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.work_order; len(nodes) > 0 {
+	if nodes := eu.mutation.WorkOrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -777,12 +699,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := eu.removedProperties; len(nodes) > 0 {
+	if nodes := eu.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -796,12 +718,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.properties; len(nodes) > 0 {
+	if nodes := eu.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -815,12 +737,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := eu.removedFiles; len(nodes) > 0 {
+	if nodes := eu.mutation.RemovedFilesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -834,12 +756,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.files; len(nodes) > 0 {
+	if nodes := eu.mutation.FilesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -853,12 +775,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := eu.removedHyperlinks; len(nodes) > 0 {
+	if nodes := eu.mutation.RemovedHyperlinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -872,12 +794,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := eu.hyperlinks; len(nodes) > 0 {
+	if nodes := eu.mutation.HyperlinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -891,7 +813,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -910,45 +832,19 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // EquipmentUpdateOne is the builder for updating a single Equipment entity.
 type EquipmentUpdateOne struct {
 	config
-	id int
-
-	update_time           *time.Time
-	name                  *string
-	future_state          *string
-	clearfuture_state     bool
-	device_id             *string
-	cleardevice_id        bool
-	external_id           *string
-	clearexternal_id      bool
-	_type                 map[int]struct{}
-	location              map[int]struct{}
-	parent_position       map[int]struct{}
-	positions             map[int]struct{}
-	ports                 map[int]struct{}
-	work_order            map[int]struct{}
-	properties            map[int]struct{}
-	files                 map[int]struct{}
-	hyperlinks            map[int]struct{}
-	clearedType           bool
-	clearedLocation       bool
-	clearedParentPosition bool
-	removedPositions      map[int]struct{}
-	removedPorts          map[int]struct{}
-	clearedWorkOrder      bool
-	removedProperties     map[int]struct{}
-	removedFiles          map[int]struct{}
-	removedHyperlinks     map[int]struct{}
+	hooks    []Hook
+	mutation *EquipmentMutation
 }
 
 // SetName sets the name field.
 func (euo *EquipmentUpdateOne) SetName(s string) *EquipmentUpdateOne {
-	euo.name = &s
+	euo.mutation.SetName(s)
 	return euo
 }
 
 // SetFutureState sets the future_state field.
 func (euo *EquipmentUpdateOne) SetFutureState(s string) *EquipmentUpdateOne {
-	euo.future_state = &s
+	euo.mutation.SetFutureState(s)
 	return euo
 }
 
@@ -962,14 +858,13 @@ func (euo *EquipmentUpdateOne) SetNillableFutureState(s *string) *EquipmentUpdat
 
 // ClearFutureState clears the value of future_state.
 func (euo *EquipmentUpdateOne) ClearFutureState() *EquipmentUpdateOne {
-	euo.future_state = nil
-	euo.clearfuture_state = true
+	euo.mutation.ClearFutureState()
 	return euo
 }
 
 // SetDeviceID sets the device_id field.
 func (euo *EquipmentUpdateOne) SetDeviceID(s string) *EquipmentUpdateOne {
-	euo.device_id = &s
+	euo.mutation.SetDeviceID(s)
 	return euo
 }
 
@@ -983,14 +878,13 @@ func (euo *EquipmentUpdateOne) SetNillableDeviceID(s *string) *EquipmentUpdateOn
 
 // ClearDeviceID clears the value of device_id.
 func (euo *EquipmentUpdateOne) ClearDeviceID() *EquipmentUpdateOne {
-	euo.device_id = nil
-	euo.cleardevice_id = true
+	euo.mutation.ClearDeviceID()
 	return euo
 }
 
 // SetExternalID sets the external_id field.
 func (euo *EquipmentUpdateOne) SetExternalID(s string) *EquipmentUpdateOne {
-	euo.external_id = &s
+	euo.mutation.SetExternalID(s)
 	return euo
 }
 
@@ -1004,17 +898,13 @@ func (euo *EquipmentUpdateOne) SetNillableExternalID(s *string) *EquipmentUpdate
 
 // ClearExternalID clears the value of external_id.
 func (euo *EquipmentUpdateOne) ClearExternalID() *EquipmentUpdateOne {
-	euo.external_id = nil
-	euo.clearexternal_id = true
+	euo.mutation.ClearExternalID()
 	return euo
 }
 
 // SetTypeID sets the type edge to EquipmentType by id.
 func (euo *EquipmentUpdateOne) SetTypeID(id int) *EquipmentUpdateOne {
-	if euo._type == nil {
-		euo._type = make(map[int]struct{})
-	}
-	euo._type[id] = struct{}{}
+	euo.mutation.SetTypeID(id)
 	return euo
 }
 
@@ -1025,10 +915,7 @@ func (euo *EquipmentUpdateOne) SetType(e *EquipmentType) *EquipmentUpdateOne {
 
 // SetLocationID sets the location edge to Location by id.
 func (euo *EquipmentUpdateOne) SetLocationID(id int) *EquipmentUpdateOne {
-	if euo.location == nil {
-		euo.location = make(map[int]struct{})
-	}
-	euo.location[id] = struct{}{}
+	euo.mutation.SetLocationID(id)
 	return euo
 }
 
@@ -1047,10 +934,7 @@ func (euo *EquipmentUpdateOne) SetLocation(l *Location) *EquipmentUpdateOne {
 
 // SetParentPositionID sets the parent_position edge to EquipmentPosition by id.
 func (euo *EquipmentUpdateOne) SetParentPositionID(id int) *EquipmentUpdateOne {
-	if euo.parent_position == nil {
-		euo.parent_position = make(map[int]struct{})
-	}
-	euo.parent_position[id] = struct{}{}
+	euo.mutation.SetParentPositionID(id)
 	return euo
 }
 
@@ -1069,12 +953,7 @@ func (euo *EquipmentUpdateOne) SetParentPosition(e *EquipmentPosition) *Equipmen
 
 // AddPositionIDs adds the positions edge to EquipmentPosition by ids.
 func (euo *EquipmentUpdateOne) AddPositionIDs(ids ...int) *EquipmentUpdateOne {
-	if euo.positions == nil {
-		euo.positions = make(map[int]struct{})
-	}
-	for i := range ids {
-		euo.positions[ids[i]] = struct{}{}
-	}
+	euo.mutation.AddPositionIDs(ids...)
 	return euo
 }
 
@@ -1089,12 +968,7 @@ func (euo *EquipmentUpdateOne) AddPositions(e ...*EquipmentPosition) *EquipmentU
 
 // AddPortIDs adds the ports edge to EquipmentPort by ids.
 func (euo *EquipmentUpdateOne) AddPortIDs(ids ...int) *EquipmentUpdateOne {
-	if euo.ports == nil {
-		euo.ports = make(map[int]struct{})
-	}
-	for i := range ids {
-		euo.ports[ids[i]] = struct{}{}
-	}
+	euo.mutation.AddPortIDs(ids...)
 	return euo
 }
 
@@ -1109,10 +983,7 @@ func (euo *EquipmentUpdateOne) AddPorts(e ...*EquipmentPort) *EquipmentUpdateOne
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (euo *EquipmentUpdateOne) SetWorkOrderID(id int) *EquipmentUpdateOne {
-	if euo.work_order == nil {
-		euo.work_order = make(map[int]struct{})
-	}
-	euo.work_order[id] = struct{}{}
+	euo.mutation.SetWorkOrderID(id)
 	return euo
 }
 
@@ -1131,12 +1002,7 @@ func (euo *EquipmentUpdateOne) SetWorkOrder(w *WorkOrder) *EquipmentUpdateOne {
 
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (euo *EquipmentUpdateOne) AddPropertyIDs(ids ...int) *EquipmentUpdateOne {
-	if euo.properties == nil {
-		euo.properties = make(map[int]struct{})
-	}
-	for i := range ids {
-		euo.properties[ids[i]] = struct{}{}
-	}
+	euo.mutation.AddPropertyIDs(ids...)
 	return euo
 }
 
@@ -1151,12 +1017,7 @@ func (euo *EquipmentUpdateOne) AddProperties(p ...*Property) *EquipmentUpdateOne
 
 // AddFileIDs adds the files edge to File by ids.
 func (euo *EquipmentUpdateOne) AddFileIDs(ids ...int) *EquipmentUpdateOne {
-	if euo.files == nil {
-		euo.files = make(map[int]struct{})
-	}
-	for i := range ids {
-		euo.files[ids[i]] = struct{}{}
-	}
+	euo.mutation.AddFileIDs(ids...)
 	return euo
 }
 
@@ -1171,12 +1032,7 @@ func (euo *EquipmentUpdateOne) AddFiles(f ...*File) *EquipmentUpdateOne {
 
 // AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
 func (euo *EquipmentUpdateOne) AddHyperlinkIDs(ids ...int) *EquipmentUpdateOne {
-	if euo.hyperlinks == nil {
-		euo.hyperlinks = make(map[int]struct{})
-	}
-	for i := range ids {
-		euo.hyperlinks[ids[i]] = struct{}{}
-	}
+	euo.mutation.AddHyperlinkIDs(ids...)
 	return euo
 }
 
@@ -1191,30 +1047,25 @@ func (euo *EquipmentUpdateOne) AddHyperlinks(h ...*Hyperlink) *EquipmentUpdateOn
 
 // ClearType clears the type edge to EquipmentType.
 func (euo *EquipmentUpdateOne) ClearType() *EquipmentUpdateOne {
-	euo.clearedType = true
+	euo.mutation.ClearType()
 	return euo
 }
 
 // ClearLocation clears the location edge to Location.
 func (euo *EquipmentUpdateOne) ClearLocation() *EquipmentUpdateOne {
-	euo.clearedLocation = true
+	euo.mutation.ClearLocation()
 	return euo
 }
 
 // ClearParentPosition clears the parent_position edge to EquipmentPosition.
 func (euo *EquipmentUpdateOne) ClearParentPosition() *EquipmentUpdateOne {
-	euo.clearedParentPosition = true
+	euo.mutation.ClearParentPosition()
 	return euo
 }
 
 // RemovePositionIDs removes the positions edge to EquipmentPosition by ids.
 func (euo *EquipmentUpdateOne) RemovePositionIDs(ids ...int) *EquipmentUpdateOne {
-	if euo.removedPositions == nil {
-		euo.removedPositions = make(map[int]struct{})
-	}
-	for i := range ids {
-		euo.removedPositions[ids[i]] = struct{}{}
-	}
+	euo.mutation.RemovePositionIDs(ids...)
 	return euo
 }
 
@@ -1229,12 +1080,7 @@ func (euo *EquipmentUpdateOne) RemovePositions(e ...*EquipmentPosition) *Equipme
 
 // RemovePortIDs removes the ports edge to EquipmentPort by ids.
 func (euo *EquipmentUpdateOne) RemovePortIDs(ids ...int) *EquipmentUpdateOne {
-	if euo.removedPorts == nil {
-		euo.removedPorts = make(map[int]struct{})
-	}
-	for i := range ids {
-		euo.removedPorts[ids[i]] = struct{}{}
-	}
+	euo.mutation.RemovePortIDs(ids...)
 	return euo
 }
 
@@ -1249,18 +1095,13 @@ func (euo *EquipmentUpdateOne) RemovePorts(e ...*EquipmentPort) *EquipmentUpdate
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
 func (euo *EquipmentUpdateOne) ClearWorkOrder() *EquipmentUpdateOne {
-	euo.clearedWorkOrder = true
+	euo.mutation.ClearWorkOrder()
 	return euo
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (euo *EquipmentUpdateOne) RemovePropertyIDs(ids ...int) *EquipmentUpdateOne {
-	if euo.removedProperties == nil {
-		euo.removedProperties = make(map[int]struct{})
-	}
-	for i := range ids {
-		euo.removedProperties[ids[i]] = struct{}{}
-	}
+	euo.mutation.RemovePropertyIDs(ids...)
 	return euo
 }
 
@@ -1275,12 +1116,7 @@ func (euo *EquipmentUpdateOne) RemoveProperties(p ...*Property) *EquipmentUpdate
 
 // RemoveFileIDs removes the files edge to File by ids.
 func (euo *EquipmentUpdateOne) RemoveFileIDs(ids ...int) *EquipmentUpdateOne {
-	if euo.removedFiles == nil {
-		euo.removedFiles = make(map[int]struct{})
-	}
-	for i := range ids {
-		euo.removedFiles[ids[i]] = struct{}{}
-	}
+	euo.mutation.RemoveFileIDs(ids...)
 	return euo
 }
 
@@ -1295,12 +1131,7 @@ func (euo *EquipmentUpdateOne) RemoveFiles(f ...*File) *EquipmentUpdateOne {
 
 // RemoveHyperlinkIDs removes the hyperlinks edge to Hyperlink by ids.
 func (euo *EquipmentUpdateOne) RemoveHyperlinkIDs(ids ...int) *EquipmentUpdateOne {
-	if euo.removedHyperlinks == nil {
-		euo.removedHyperlinks = make(map[int]struct{})
-	}
-	for i := range ids {
-		euo.removedHyperlinks[ids[i]] = struct{}{}
-	}
+	euo.mutation.RemoveHyperlinkIDs(ids...)
 	return euo
 }
 
@@ -1315,36 +1146,49 @@ func (euo *EquipmentUpdateOne) RemoveHyperlinks(h ...*Hyperlink) *EquipmentUpdat
 
 // Save executes the query and returns the updated entity.
 func (euo *EquipmentUpdateOne) Save(ctx context.Context) (*Equipment, error) {
-	if euo.update_time == nil {
+	if _, ok := euo.mutation.UpdateTime(); !ok {
 		v := equipment.UpdateDefaultUpdateTime()
-		euo.update_time = &v
+		euo.mutation.SetUpdateTime(v)
 	}
-	if euo.name != nil {
-		if err := equipment.NameValidator(*euo.name); err != nil {
+	if v, ok := euo.mutation.Name(); ok {
+		if err := equipment.NameValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if euo.device_id != nil {
-		if err := equipment.DeviceIDValidator(*euo.device_id); err != nil {
+	if v, ok := euo.mutation.DeviceID(); ok {
+		if err := equipment.DeviceIDValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"device_id\": %v", err)
 		}
 	}
-	if len(euo._type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
-	}
-	if euo.clearedType && euo._type == nil {
+
+	if _, ok := euo.mutation.TypeID(); euo.mutation.TypeCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"type\"")
 	}
-	if len(euo.location) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
+
+	var (
+		err  error
+		node *Equipment
+	)
+	if len(euo.hooks) == 0 {
+		node, err = euo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			euo.mutation = mutation
+			node, err = euo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(euo.hooks); i > 0; i-- {
+			mut = euo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, euo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(euo.parent_position) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"parent_position\"")
-	}
-	if len(euo.work_order) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"work_order\"")
-	}
-	return euo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1375,66 +1219,70 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			Table:   equipment.Table,
 			Columns: equipment.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  euo.id,
 				Type:   field.TypeInt,
 				Column: equipment.FieldID,
 			},
 		},
 	}
-	if value := euo.update_time; value != nil {
+	id, ok := euo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Equipment.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := euo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldUpdateTime,
 		})
 	}
-	if value := euo.name; value != nil {
+	if value, ok := euo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldName,
 		})
 	}
-	if value := euo.future_state; value != nil {
+	if value, ok := euo.mutation.FutureState(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldFutureState,
 		})
 	}
-	if euo.clearfuture_state {
+	if euo.mutation.FutureStateCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldFutureState,
 		})
 	}
-	if value := euo.device_id; value != nil {
+	if value, ok := euo.mutation.DeviceID(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldDeviceID,
 		})
 	}
-	if euo.cleardevice_id {
+	if euo.mutation.DeviceIDCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldDeviceID,
 		})
 	}
-	if value := euo.external_id; value != nil {
+	if value, ok := euo.mutation.ExternalID(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldExternalID,
 		})
 	}
-	if euo.clearexternal_id {
+	if euo.mutation.ExternalIDCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipment.FieldExternalID,
 		})
 	}
-	if euo.clearedType {
+	if euo.mutation.TypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1450,7 +1298,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo._type; len(nodes) > 0 {
+	if nodes := euo.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1464,12 +1312,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if euo.clearedLocation {
+	if euo.mutation.LocationCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1485,7 +1333,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.location; len(nodes) > 0 {
+	if nodes := euo.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -1499,12 +1347,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if euo.clearedParentPosition {
+	if euo.mutation.ParentPositionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -1520,7 +1368,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.parent_position; len(nodes) > 0 {
+	if nodes := euo.mutation.ParentPositionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -1534,12 +1382,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := euo.removedPositions; len(nodes) > 0 {
+	if nodes := euo.mutation.RemovedPositionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1553,12 +1401,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.positions; len(nodes) > 0 {
+	if nodes := euo.mutation.PositionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1572,12 +1420,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := euo.removedPorts; len(nodes) > 0 {
+	if nodes := euo.mutation.RemovedPortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1591,12 +1439,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.ports; len(nodes) > 0 {
+	if nodes := euo.mutation.PortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1610,12 +1458,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if euo.clearedWorkOrder {
+	if euo.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1631,7 +1479,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.work_order; len(nodes) > 0 {
+	if nodes := euo.mutation.WorkOrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1645,12 +1493,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := euo.removedProperties; len(nodes) > 0 {
+	if nodes := euo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1664,12 +1512,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.properties; len(nodes) > 0 {
+	if nodes := euo.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1683,12 +1531,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := euo.removedFiles; len(nodes) > 0 {
+	if nodes := euo.mutation.RemovedFilesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1702,12 +1550,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.files; len(nodes) > 0 {
+	if nodes := euo.mutation.FilesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1721,12 +1569,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := euo.removedHyperlinks; len(nodes) > 0 {
+	if nodes := euo.mutation.RemovedHyperlinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1740,12 +1588,12 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := euo.hyperlinks; len(nodes) > 0 {
+	if nodes := euo.mutation.HyperlinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1759,7 +1607,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

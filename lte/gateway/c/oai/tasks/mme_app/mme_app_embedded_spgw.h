@@ -23,7 +23,6 @@
 #include "mme_config.h"
 #include "spgw_config.h"
 #include "sgw_defs.h"
-#include "pgw_defs.h"
 
 int mme_config_embedded_spgw_parse_opt_line(
   int argc,

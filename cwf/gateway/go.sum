@@ -69,6 +69,8 @@ github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/elastic/gosigar v0.9.0/go.mod h1:cdorVVzy1fhmEqmtgqkoE3bYtCfSCkVyjTyCIo22xvs=
 github.com/elazarl/go-bindata-assetfs v1.0.0/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo7R71Vk1u8bnjau5yw4=
+github.com/emakeev/go-diameter v3.0.2+incompatible h1:S1yWVss0GEO+CG24cJAoV2MVVDuuk3TtT+XOuTRDdtI=
+github.com/emakeev/go-diameter v3.0.2+incompatible/go.mod h1:wV2EJVujQj7xekOSiT31aCkwOTx0uzVia8E8YkeKRKg=
 github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe/go.mod h1:kEQPRPTu2Cm00AIGJ0SWq8pOfa9kPZozrZ5/2XN2PB4=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
@@ -77,6 +79,8 @@ github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a/go.mod h1:7Ga40eg
 github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805 h1:Gqrw3IfjWQ1afKMX8OuKq3vTnjhccK0Apllv8qrLdfI=
 github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
+github.com/fiorix/go-diameter v3.0.2+incompatible h1:PLk2NkqMYILlEdeiz0hJVB3xcuuL+Gc9iCaEgjfbs5w=
+github.com/fiorix/go-diameter v3.0.2+incompatible/go.mod h1:GgNrDCADT8o3k8zV1UsI473j8CFdLGY9ikZYDNEeYU8=
 github.com/fiorix/go-diameter/v4 v4.0.1-0.20200120193412-55a1c21738f9 h1:6UPuzuDfCBakYddEJ5FslPAHxC+wdXUjK7JgcZw0i8o=
 github.com/fiorix/go-diameter/v4 v4.0.1-0.20200120193412-55a1c21738f9/go.mod h1:Qx/+pf+c9sBUHWq1d7EH3bkdwN8U0mUpdy9BieDw6UQ=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=

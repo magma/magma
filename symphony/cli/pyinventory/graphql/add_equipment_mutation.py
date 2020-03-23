@@ -20,8 +20,14 @@ class AddEquipmentMutation(DataClassJsonMixin):
     class AddEquipmentMutationData(DataClassJsonMixin):
         @dataclass
         class Equipment(DataClassJsonMixin):
+            @dataclass
+            class EquipmentType(DataClassJsonMixin):
+                id: str
+                name: str
+
             id: str
             name: str
+            equipmentType: EquipmentType
 
         addEquipment: Equipment
 
@@ -32,6 +38,10 @@ class AddEquipmentMutation(DataClassJsonMixin):
   addEquipment(input: $input) {
     id
     name
+    equipmentType {
+      id
+      name
+    }
   }
 }
 

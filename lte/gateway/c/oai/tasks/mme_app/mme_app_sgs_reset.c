@@ -36,6 +36,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <mme_app_state.h>
 
 #include "log.h"
 #include "mme_app_sgs_fsm.h"
@@ -65,7 +66,6 @@
  **                                                                        **
  ***************************************************************************/
 int mme_app_handle_sgsap_reset_indication(
-  mme_app_desc_t* mme_app_desc_p,
   itti_sgsap_vlr_reset_indication_t* const reset_indication_pP)
 {
   int rc = RETURNerror;
@@ -76,11 +76,9 @@ int mme_app_handle_sgsap_reset_indication(
     reset_indication_pP->vlr_name);
 
   /* Handle VLR Reset for each SGS associated UE */
+  hash_table_ts_t* mme_state_imsi_ht = get_mme_ue_state();
   hashtable_ts_apply_callback_on_elements(
-    mme_app_desc_p->mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl,
-    mme_app_handle_reset_indication,
-    NULL,
-    NULL);
+    mme_state_imsi_ht, mme_app_handle_reset_indication, NULL, NULL);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 

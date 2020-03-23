@@ -28,7 +28,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-SpgwStateManager::SpgwStateManager(): config_(nullptr), imsi_map_(nullptr) {}
+SpgwStateManager::SpgwStateManager(): config_(nullptr) {}
 
 SpgwStateManager::~SpgwStateManager()
 {
@@ -44,6 +44,7 @@ SpgwStateManager& SpgwStateManager::getInstance()
 void SpgwStateManager::init(bool persist_state, const spgw_config_t* config)
 {
   log_task = LOG_SPGW_APP;
+  task_name = SPGW_TASK_NAME;
   table_key = SPGW_STATE_TABLE_NAME;
   persist_state_enabled = persist_state;
   config_ = config;
@@ -59,42 +60,36 @@ void SpgwStateManager::create_state()
   // Allocating spgw_state_p
   state_cache_p = (spgw_state_t*) calloc(1, sizeof(spgw_state_t));
 
-  bstring b = bfromcstr(SGW_S11_TEID_MME_HT_NAME);
-  state_cache_p->sgw_state.s11teid2mme =
-    hashtable_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr, nullptr, b);
-  btrunc(b, 0);
-
-  bassigncstr(b, S11_BEARER_CONTEXT_INFO_HT_NAME);
-  state_cache_p->sgw_state.s11_bearer_context_information = hashtable_ts_create(
+  bstring b = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
+  state_imsi_ht = hashtable_ts_create(
     SGW_STATE_CONTEXT_HT_MAX_SIZE,
     nullptr,
     (void (*)(void**)) sgw_free_s11_bearer_context_information,
     b);
 
-  state_cache_p->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr =
+  state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
     config_->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
 
   // TODO: Refactor GTPv1u_data state
-  state_cache_p->sgw_state.gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
-    state_cache_p->sgw_state.sgw_ip_address_S1u_S12_S4_up;
+  state_cache_p->gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
+    state_cache_p->sgw_ip_address_S1u_S12_S4_up;
+
+  state_cache_p->imsi_teid_htbl = hashtable_uint64_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr, nullptr);
 
   // Creating PGW related state structs
-  state_cache_p->pgw_state.deactivated_predefined_pcc_rules =
+  state_cache_p->deactivated_predefined_pcc_rules =
     hashtable_ts_create(
       MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
 
-  state_cache_p->pgw_state.predefined_pcc_rules = hashtable_ts_create(
+  state_cache_p->predefined_pcc_rules = hashtable_ts_create(
     MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
 
   // TO DO: RANDOM
-  state_cache_p->sgw_state.tunnel_id = 0;
+  state_cache_p->tunnel_id = 0;
 
-  state_cache_p->sgw_state.gtpv1u_teid = 0;
+  state_cache_p->gtpv1u_teid = 0;
 
   bdestroy_wrapper(&b);
-
-  // Allocating SPGW UE ids => imsi map
-  create_spgw_imsi_map();
 }
 
 void SpgwStateManager::free_state()
@@ -108,64 +103,50 @@ void SpgwStateManager::free_state()
   }
 
   if (
-    hashtable_ts_destroy(state_cache_p->sgw_state.s11teid2mme) !=
-    HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR(
-      "An error occurred while destroying SGW s11teid2mme hashtable");
-  }
-
-  if (
-    hashtable_ts_destroy(
-      state_cache_p->sgw_state.s11_bearer_context_information) !=
+    hashtable_ts_destroy(state_imsi_ht) !=
     HASH_TABLE_OK) {
     OAI_FPRINTF_ERR(
       "An error occurred while destroying SGW s11_bearer_context_information "
       "hashtable");
   }
 
-  if (state_cache_p->pgw_state.deactivated_predefined_pcc_rules) {
+  hashtable_uint64_ts_destroy(state_cache_p->imsi_teid_htbl);
+
+  if (state_cache_p->deactivated_predefined_pcc_rules) {
     hashtable_ts_destroy(
-      state_cache_p->pgw_state.deactivated_predefined_pcc_rules);
+      state_cache_p->deactivated_predefined_pcc_rules);
   }
 
-  if (state_cache_p->pgw_state.predefined_pcc_rules) {
-    hashtable_ts_destroy(state_cache_p->pgw_state.predefined_pcc_rules);
+  if (state_cache_p->predefined_pcc_rules) {
+    hashtable_ts_destroy(state_cache_p->predefined_pcc_rules);
   }
   free_wrapper((void**) &state_cache_p);
-
-  free_spgw_imsi_map();
 }
 
-void SpgwStateManager::create_spgw_imsi_map() {
-  imsi_map_ = (spgw_imsi_map_t*) calloc(1, sizeof(spgw_imsi_map_t));
-
-  bstring b = bfromcstr(SPGW_TEID5_IMSI_HT_NAME);
-  imsi_map_->imsi_teid5_htbl =
-    hashtable_uint64_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr, b);
-  bdestroy_wrapper(&b);
-}
-
-void SpgwStateManager::free_spgw_imsi_map() {
-  if (imsi_map_ == nullptr) {
-    return;
+int SpgwStateManager::read_ue_state_from_db()
+{
+  if (!persist_state_enabled) {
+    return RETURNok;
   }
-  hashtable_uint64_ts_destroy(imsi_map_->imsi_teid5_htbl);
-  free_wrapper((void **) &imsi_map_);
-}
+  auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
+  for (const auto& key : keys) {
+    gateway::spgw::S11BearerContext ue_proto =
+      gateway::spgw::S11BearerContext();
+    s_plus_p_gw_eps_bearer_context_information_t* ue_context =
+      (s_plus_p_gw_eps_bearer_context_information_t*) (calloc(
+        1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
+    if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
+      return RETURNerror;
+    }
+    SpgwStateConverter::proto_to_ue(ue_proto, ue_context);
 
-void SpgwStateManager::put_spgw_imsi_map()
-{
-  gateway::spgw::SpgwImsiMap imsi_proto = gateway::spgw::SpgwImsiMap();
-  SpgwStateConverter::spgw_imsi_map_to_proto(imsi_map_, &imsi_proto);
-  redis_client->write_proto(SPGW_IMSI_MAP_TABLE_NAME, imsi_proto);
-}
-
-spgw_imsi_map_t* SpgwStateManager::get_spgw_imsi_map()
-{
-  gateway::spgw::SpgwImsiMap imsi_proto = gateway::spgw::SpgwImsiMap();
-  redis_client->read_proto(SPGW_IMSI_MAP_TABLE_NAME, imsi_proto);
-  SpgwStateConverter::proto_to_spgw_imsi_map(imsi_proto, imsi_map_);
-  return imsi_map_;
+    hashtable_ts_insert(
+      state_imsi_ht,
+      ue_context->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
+      (void*) ue_context);
+    OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
+  }
+  return RETURNok;
 }
 
 } // namespace lte

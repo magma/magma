@@ -23,7 +23,6 @@ magma_services:
   - dnsd
   - policydb
   - state
-  - eventd
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -66,11 +65,8 @@ bootstrap_config:
 enable_config_streamer: True
 enable_upgrade_manager: True
 enable_network_monitor: True
-enable_systemd_tailer: True
 enable_sync_rpc: True
 enable_kernel_version_checking: True
-
-systemd_tailer_poll_interval: 30 # seconds
 
 network_monitor_config:
   # How long to sleep between statistic collections

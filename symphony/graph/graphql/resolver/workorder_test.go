@@ -77,15 +77,25 @@ func createWorkOrder(ctx context.Context, t *testing.T, r TestResolver, name str
 }
 
 func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationResolver, workOrder ent.WorkOrder) (*models.WorkOrderExecutionResult, error) {
+	var ownerName *string
+	owner, _ := workOrder.QueryOwner().Only(ctx)
+	if owner != nil {
+		ownerName = &owner.Email
+	}
+	var assigneeName *string
+	assignee, _ := workOrder.QueryAssignee().Only(ctx)
+	if assignee != nil {
+		assigneeName = &assignee.Email
+	}
 	_, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   &workOrder.OwnerName,
+		OwnerName:   ownerName,
 		InstallDate: &workOrder.InstallDate,
 		Status:      models.WorkOrderStatusDone,
 		Priority:    models.WorkOrderPriorityNone,
-		Assignee:    &workOrder.Assignee,
+		Assignee:    assigneeName,
 	})
 	require.NoError(t, err)
 	return mr.ExecuteWorkOrder(ctx, workOrder.ID)
@@ -164,6 +174,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	description := longWorkOrderDesc
 	location := createLocation(ctx, t, *r)
 	assignee := longWorkOrderAssignee
+	viewertest.CreateUserEnt(ctx, r.client, assignee)
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
 	require.NoError(t, err)
 	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -173,13 +184,19 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 		LocationID:      &location.ID,
 	})
 	require.NoError(t, err)
-	require.Empty(t, workOrder.Assignee)
+	require.False(t, workOrder.QueryAssignee().ExistX(ctx))
+
+	var ownerName *string
+	owner, _ := workOrder.QueryOwner().Only(ctx)
+	if owner != nil {
+		ownerName = &owner.Email
+	}
 
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   &workOrder.OwnerName,
+		OwnerName:   ownerName,
 		Status:      models.WorkOrderStatusPending,
 		Priority:    models.WorkOrderPriorityNone,
 		Assignee:    &assignee,
@@ -190,7 +207,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	require.NoError(t, err)
 	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
 	require.True(t, ok)
-	require.Equal(t, &workOrder.Assignee, &assignee)
+	require.Equal(t, &workOrder.QueryAssignee().OnlyX(ctx).Email, &assignee)
 
 	fetchedWorkOrderType, err := wr.WorkOrderType(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -268,14 +285,20 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 		Priority:        &pri,
 	})
 	require.NoError(t, err)
-	require.Equal(t, workOrder.Assignee, "")
+	require.False(t, workOrder.QueryAssignee().ExistX(ctx))
 	require.EqualValues(t, pri, workOrder.Priority)
+
+	var ownerName *string
+	owner, _ := workOrder.QueryOwner().Only(ctx)
+	if owner != nil {
+		ownerName = &owner.Email
+	}
 
 	input := models.EditWorkOrderInput{
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   &workOrder.OwnerName,
+		OwnerName:   ownerName,
 		Status:      models.WorkOrderStatusPending,
 		Priority:    models.WorkOrderPriorityHigh,
 		Index:       pointer.ToInt(42),
@@ -332,10 +355,17 @@ func TestAddWorkOrderWithProject(t *testing.T) {
 	woNum, err = pr.NumberOfWorkOrders(ctx, project)
 	require.NoError(t, err)
 	require.Equal(t, 1, woNum)
+
+	var ownerName *string
+	owner, _ := workOrder.QueryOwner().Only(ctx)
+	if owner != nil {
+		ownerName = &owner.Email
+	}
+
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:        workOrder.ID,
 		Name:      workOrder.Name,
-		OwnerName: &workOrder.OwnerName,
+		OwnerName: ownerName,
 	})
 	require.NoError(t, err)
 	fetchProject, err := workOrder.QueryProject().Only(ctx)
@@ -1576,7 +1606,18 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 		Type:  "simple",
 		Index: &indexValue,
 	}
-	clInputs = []*models.CheckListItemInput{&barCL}
+	enumValues := "val1,val2,val3"
+	selectionMode := models.CheckListItemEnumSelectionModeMultiple
+	selectedValues := "val2,val3"
+	multiCL := models.CheckListItemInput{
+		Title:              "Multi",
+		Type:               "enum",
+		Index:              pointer.ToInt(2),
+		EnumValues:         &enumValues,
+		EnumSelectionMode:  &selectionMode,
+		SelectedEnumValues: &selectedValues,
+	}
+	clInputs = []*models.CheckListItemInput{&barCL, &multiCL}
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:        workOrder.ID,
 		Name:      longWorkOrderName,
@@ -1584,14 +1625,20 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 	})
 	require.NoError(t, err)
 	cls := workOrder.QueryCheckListItems().AllX(ctx)
-	require.Len(t, cls, 1)
+	require.Len(t, cls, 2)
 
 	fooCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
 	require.Equal(t, "Bar", fooCLFetched.Title, "verifying check list name")
 
+	multiCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("enum")).OnlyX(ctx)
+	require.Equal(t, "Multi", multiCLFetched.Title)
+	require.Equal(t, selectionMode.String(), multiCLFetched.EnumSelectionMode)
+	require.Equal(t, enumValues, multiCLFetched.EnumValues)
+	require.Equal(t, selectedValues, multiCLFetched.SelectedEnumValues)
+
 	cl, err := wr.CheckList(ctx, workOrder)
 	require.NoError(t, err)
-	require.Len(t, cl, 1)
+	require.Len(t, cl, 2)
 }
 
 func TestEditWorkOrderLocation(t *testing.T) {

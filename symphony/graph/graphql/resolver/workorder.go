@@ -15,15 +15,16 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/graph/viewer"
 
 	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
 	"go.uber.org/zap"
-	"golang.org/x/xerrors"
 )
 
 type workOrderDefinitionResolver struct{}
@@ -128,6 +129,22 @@ func (workOrderResolver) Comments(ctx context.Context, obj *ent.WorkOrder) ([]*e
 	return obj.QueryComments().All(ctx)
 }
 
+func (workOrderResolver) OwnerName(ctx context.Context, obj *ent.WorkOrder) (string, error) {
+	owner, err := obj.QueryOwner().Only(ctx)
+	if err != nil {
+		return "", err
+	}
+	return owner.Email, nil
+}
+
+func (workOrderResolver) Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error) {
+	assignee, err := obj.QueryAssignee().Only(ctx)
+	if err != nil {
+		return nil, ent.MaskNotFound(err)
+	}
+	return &assignee.Email, nil
+}
+
 func (r mutationResolver) AddWorkOrder(
 	ctx context.Context,
 	input models.AddWorkOrderInput,
@@ -153,19 +170,34 @@ func (r mutationResolver) internalAddWorkOrder(
 		SetNillableLocationID(input.LocationID).
 		SetNillableDescription(input.Description).
 		SetCreationDate(time.Now()).
-		SetNillableAssignee(input.Assignee).
 		SetNillableIndex(input.Index)
 	if input.Status != nil {
 		mutation.SetStatus(input.Status.String())
+		if *input.Status == models.WorkOrderStatusDone {
+			mutation.SetCloseDate(time.Now())
+		}
 	}
 	if input.Priority != nil {
 		mutation.SetPriority(input.Priority.String())
 	}
-	if input.OwnerName != nil {
-		mutation.SetOwnerName(*input.OwnerName)
-	} else {
-		mutation.SetOwnerName(r.Me(ctx).User)
+	if input.Assignee != nil && *input.Assignee != "" {
+		assigneeID, err := c.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("fetching assignee user: %w", err)
+		} else {
+			mutation = mutation.SetAssigneeID(assigneeID)
+		}
 	}
+	var owner *ent.User
+	if input.OwnerName != nil && *input.OwnerName != "" {
+		owner, err = c.User.Query().Where(user.AuthID(*input.OwnerName)).Only(ctx)
+	} else {
+		owner, err = viewer.UserFromContext(ctx)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("fetching own user: %w", err)
+	}
+	mutation = mutation.SetOwner(owner)
 	for _, clInput := range input.CheckListCategories {
 		checkListCategory, err := r.createOrUpdateCheckListCategory(ctx, clInput)
 		if err != nil {
@@ -215,12 +247,27 @@ func (r mutationResolver) EditWorkOrder(
 		UpdateOne(wo).
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
-		SetNillableAssignee(input.Assignee).
 		SetStatus(input.Status.String()).
 		SetPriority(input.Priority.String()).
 		SetNillableIndex(input.Index)
-	if input.OwnerName != nil {
-		mutation.SetOwnerName(*input.OwnerName)
+	if input.OwnerName != nil && *input.OwnerName != "" {
+		ownerID, err := client.User.Query().Where(user.AuthID(*input.OwnerName)).OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("fetching owner user: %w", err)
+		}
+		mutation = mutation.SetOwnerID(ownerID)
+	}
+	if input.Assignee != nil && *input.Assignee != "" {
+		assigneeID, err := client.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("fetching assignee user: %w", err)
+		}
+		mutation = mutation.SetAssigneeID(assigneeID)
+	}
+	if input.Status == models.WorkOrderStatusDone {
+		mutation.SetCloseDate(time.Now())
+	} else {
+		mutation.ClearCloseDate()
 	}
 	if input.InstallDate != nil {
 		mutation.SetInstallDate(*input.InstallDate)
@@ -375,6 +422,10 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 	input *models.CheckListItemInput) (*ent.CheckListItem, error) {
 	client := r.ClientFrom(ctx)
 	cl := client.CheckListItem
+	var selectionMode *string
+	if input.EnumSelectionMode != nil {
+		selectionMode = pointer.ToString(input.EnumSelectionMode.String())
+	}
 	if input.ID == nil {
 		cli, err := cl.Create().
 			SetTitle(input.Title).
@@ -384,6 +435,8 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableHelpText(input.HelpText).
 			SetNillableChecked(input.Checked).
 			SetNillableStringVal(input.StringValue).
+			SetNillableEnumSelectionMode(selectionMode).
+			SetNillableSelectedEnumValues(input.SelectedEnumValues).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list item")
@@ -398,6 +451,8 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 		SetNillableHelpText(input.HelpText).
 		SetNillableChecked(input.Checked).
 		SetNillableStringVal(input.StringValue).
+		SetNillableEnumSelectionMode(selectionMode).
+		SetNillableSelectedEnumValues(input.SelectedEnumValues).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating check list item")
@@ -538,7 +593,7 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		Count(ctx); {
 	case err != nil:
 		logger.Error("cannot query work order count of type", zap.Error(err))
-		return id, xerrors.Errorf("querying work orders for type: %w", err)
+		return id, fmt.Errorf("querying work orders for type: %w", err)
 	case count > 0:
 		logger.Warn("work order type has existing work orders", zap.Int("count", count))
 		return id, gqlerror.Errorf("cannot delete work order type with %d existing work orders", count)
@@ -547,7 +602,7 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		Where(propertytype.HasWorkOrderTypeWith(workordertype.ID(id))).
 		Exec(ctx); err != nil {
 		logger.Error("cannot delete properties of work order type", zap.Error(err))
-		return id, xerrors.Errorf("deleting work order property types: %w", err)
+		return id, fmt.Errorf("deleting work order property types: %w", err)
 	}
 	switch err := client.WorkOrderType.DeleteOneID(id).Exec(ctx); err.(type) {
 	case nil:
@@ -559,6 +614,6 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		return id, err
 	default:
 		logger.Error("cannot delete work order type", zap.Error(err))
-		return id, xerrors.Errorf("deleting work order type: %w", err)
+		return id, fmt.Errorf("deleting work order type: %w", err)
 	}
 }

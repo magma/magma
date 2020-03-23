@@ -152,7 +152,7 @@ class FileAttachment extends React.Component<Props, State> {
           className={classNames(classes.cell, classes.secondaryCell)}
           component="th"
           scope="row">
-          {file.uploaded && DateTimeFormat.dateOnly(file.uploaded)}
+          {file.uploaded && DateTimeFormat.dateTime(file.uploaded)}
         </TableCell>
         <TableCell
           padding="none"

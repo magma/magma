@@ -43,8 +43,8 @@
 
 #define INVALID_BEARER_INDEX -1
 
-int mme_app_handle_s1ap_ue_capabilities_ind(mme_app_desc_t *mme_app_desc_p,
-  const itti_s1ap_ue_cap_ind_t const *s1ap_ue_cap_ind_pP);
+int mme_app_handle_s1ap_ue_capabilities_ind(
+  const itti_s1ap_ue_cap_ind_t const* s1ap_ue_cap_ind_pP);
 
 void mme_app_handle_s1ap_ue_context_release_complete(
     mme_app_desc_t *mme_app_desc_p,
@@ -111,11 +111,10 @@ void mme_app_handle_release_access_bearers_resp(mme_app_desc_t *mme_app_desc_p,
 void mme_app_handle_s11_create_bearer_req(mme_app_desc_t *mme_app_desc_p,
   const itti_s11_create_bearer_request_t *const create_bearer_request_pP);
 
-void mme_app_handle_initial_context_setup_rsp(mme_app_desc_t *mme_app_desc_p,
+void mme_app_handle_initial_context_setup_rsp(
   itti_mme_app_initial_context_setup_rsp_t *const initial_ctxt_setup_rsp_pP);
 
 void mme_app_handle_initial_context_setup_failure(
-  mme_app_desc_t *mme_app_desc_p,
   const itti_mme_app_initial_context_setup_failure_t
     *const initial_ctxt_setup_failure_pP);
 
@@ -130,7 +129,7 @@ int mme_app_handle_nas_dl_req(
   bstring nas_msg,
   nas_error_code_t transaction_status);
 
-void mme_app_handle_e_rab_setup_rsp(mme_app_desc_t *mme_app_desc_p,
+void mme_app_handle_e_rab_setup_rsp(
   itti_s1ap_e_rab_setup_rsp_t *const e_rab_setup_rsp);
 
 void mme_app_handle_create_dedicated_bearer_rsp(
@@ -185,8 +184,7 @@ void mme_app_handle_suspend_acknowledge(mme_app_desc_t *mme_app_desc_p,
 int mme_app_send_s11_suspend_notification(
   struct ue_mm_context_s *const ue_context_pP, const pdn_cid_t cid);
 
-int mme_app_handle_s6a_reset_req(mme_app_desc_t *mme_app_desc_p,
-  const s6a_reset_req_t *const rsr_pP);
+int mme_app_handle_s6a_reset_req(const s6a_reset_req_t *const rsr_pP);
 
 int mme_app_send_s6a_reset_ans(int rsa_result, void *msg_rsa_p);
 
@@ -212,7 +210,7 @@ int mme_app_handle_sgsap_location_update_rej(mme_app_desc_t *mme_app_desc_p,
 
 void mme_app_handle_ts6_1_timer_expiry(void* args);
 
-int mme_app_handle_sgsap_reset_indication(mme_app_desc_t *mme_app_desc_p,
+int mme_app_handle_sgsap_reset_indication(
   itti_sgsap_vlr_reset_indication_t *const reset_indication_pP);
 
 int sgs_fsm_associated_reset_indication(const sgs_fsm_t *fsm_evt);

@@ -28,6 +28,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
@@ -53,6 +54,8 @@ type WorkOrderQuery struct {
 	withCheckListItems      *CheckListItemQuery
 	withTechnician          *TechnicianQuery
 	withProject             *ProjectQuery
+	withOwner               *UserQuery
+	withAssignee            *UserQuery
 	withFKs                 bool
 	// intermediate query.
 	sql *sql.Selector
@@ -221,6 +224,30 @@ func (woq *WorkOrderQuery) QueryProject() *ProjectQuery {
 		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
 		sqlgraph.To(project.Table, project.FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, workorder.ProjectTable, workorder.ProjectColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
+	return query
+}
+
+// QueryOwner chains the current query on the owner edge.
+func (woq *WorkOrderQuery) QueryOwner() *UserQuery {
+	query := &UserQuery{config: woq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorder.OwnerTable, workorder.OwnerColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
+	return query
+}
+
+// QueryAssignee chains the current query on the assignee edge.
+func (woq *WorkOrderQuery) QueryAssignee() *UserQuery {
+	query := &UserQuery{config: woq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorder.AssigneeTable, workorder.AssigneeColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
@@ -527,6 +554,28 @@ func (woq *WorkOrderQuery) WithProject(opts ...func(*ProjectQuery)) *WorkOrderQu
 	return woq
 }
 
+//  WithOwner tells the query-builder to eager-loads the nodes that are connected to
+// the "owner" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithOwner(opts ...func(*UserQuery)) *WorkOrderQuery {
+	query := &UserQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withOwner = query
+	return woq
+}
+
+//  WithAssignee tells the query-builder to eager-loads the nodes that are connected to
+// the "assignee" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithAssignee(opts ...func(*UserQuery)) *WorkOrderQuery {
+	query := &UserQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withAssignee = query
+	return woq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -573,7 +622,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		nodes       = []*WorkOrder{}
 		withFKs     = woq.withFKs
 		_spec       = woq.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [14]bool{
 			woq.withType != nil,
 			woq.withEquipment != nil,
 			woq.withLinks != nil,
@@ -586,9 +635,11 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			woq.withCheckListItems != nil,
 			woq.withTechnician != nil,
 			woq.withProject != nil,
+			woq.withOwner != nil,
+			woq.withAssignee != nil,
 		}
 	)
-	if woq.withType != nil || woq.withLocation != nil || woq.withTechnician != nil || woq.withProject != nil {
+	if woq.withType != nil || woq.withLocation != nil || woq.withTechnician != nil || woq.withProject != nil || woq.withOwner != nil || woq.withAssignee != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -938,6 +989,56 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.Project = n
+			}
+		}
+	}
+
+	if query := woq.withOwner; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkOrder)
+		for i := range nodes {
+			if fk := nodes[i].work_order_owner; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_owner" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Owner = n
+			}
+		}
+	}
+
+	if query := woq.withAssignee; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkOrder)
+		for i := range nodes {
+			if fk := nodes[i].work_order_assignee; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_assignee" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Assignee = n
 			}
 		}
 	}

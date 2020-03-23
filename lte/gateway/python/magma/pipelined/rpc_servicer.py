@@ -44,10 +44,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     gRPC based server for Pipelined.
     """
 
-    def __init__(self, loop, metering_stats, enforcer_app, enforcement_stats,
-                 dpi_app, ue_mac_app, check_quota_app, ipfix_app, service_manager):
+    def __init__(self, loop, enforcer_app, enforcement_stats, dpi_app,
+                 ue_mac_app, check_quota_app, ipfix_app, service_manager):
         self._loop = loop
-        self._metering_stats = metering_stats
         self._enforcer_app = enforcer_app
         self._enforcement_stats = enforcement_stats
         self._dpi_app = dpi_app

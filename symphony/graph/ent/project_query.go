@@ -22,6 +22,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -39,6 +40,7 @@ type ProjectQuery struct {
 	withComments   *CommentQuery
 	withWorkOrders *WorkOrderQuery
 	withProperties *PropertyQuery
+	withCreator    *UserQuery
 	withFKs        bool
 	// intermediate query.
 	sql *sql.Selector
@@ -123,6 +125,18 @@ func (pq *ProjectQuery) QueryProperties() *PropertyQuery {
 		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
 		sqlgraph.To(property.Table, property.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, project.PropertiesTable, project.PropertiesColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	return query
+}
+
+// QueryCreator chains the current query on the creator edge.
+func (pq *ProjectQuery) QueryCreator() *UserQuery {
+	query := &UserQuery{config: pq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, project.CreatorTable, project.CreatorColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
@@ -352,6 +366,17 @@ func (pq *ProjectQuery) WithProperties(opts ...func(*PropertyQuery)) *ProjectQue
 	return pq
 }
 
+//  WithCreator tells the query-builder to eager-loads the nodes that are connected to
+// the "creator" edge. The optional arguments used to configure the query builder of the edge.
+func (pq *ProjectQuery) WithCreator(opts ...func(*UserQuery)) *ProjectQuery {
+	query := &UserQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withCreator = query
+	return pq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -398,15 +423,16 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 		nodes       = []*Project{}
 		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			pq.withType != nil,
 			pq.withLocation != nil,
 			pq.withComments != nil,
 			pq.withWorkOrders != nil,
 			pq.withProperties != nil,
+			pq.withCreator != nil,
 		}
 	)
-	if pq.withType != nil || pq.withLocation != nil {
+	if pq.withType != nil || pq.withLocation != nil || pq.withCreator != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -567,6 +593,31 @@ func (pq *ProjectQuery) sqlAll(ctx context.Context) ([]*Project, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "project_properties" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Properties = append(node.Edges.Properties, n)
+		}
+	}
+
+	if query := pq.withCreator; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Project)
+		for i := range nodes {
+			if fk := nodes[i].project_creator; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "project_creator" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Creator = n
+			}
 		}
 	}
 

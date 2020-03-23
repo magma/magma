@@ -3,14 +3,17 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from dataclasses import asdict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
-from dacite import Config, from_dict
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 
-from .._utils import format_properties
+from .._utils import (
+    format_properties,
+    get_port_definition_input,
+    get_position_definition_input,
+    get_property_type_input,
+)
 from ..client import SymphonyClient
 from ..consts import Entity, Equipment, EquipmentPortType, EquipmentType, PropertyValue
 from ..exceptions import EntityNotFoundError, EquipmentTypeNotFoundException
@@ -42,11 +45,9 @@ def _populate_equipment_types(client: SymphonyClient) -> None:
                 name=node.name,
                 category=node.category,
                 id=node.id,
-                propertyTypes=list(map(lambda p: asdict(p), node.propertyTypes)),
-                positionDefinitions=list(
-                    map(lambda p: asdict(p), node.positionDefinitions)
-                ),
-                portDefinitions=list(map(lambda p: asdict(p), node.portDefinitions)),
+                property_types=node.propertyTypes,
+                position_definitions=node.positionDefinitions,
+                port_definitions=node.portDefinitions,
             )
 
 
@@ -59,38 +60,26 @@ def _populate_equipment_port_types(client: SymphonyClient) -> None:
             client.portTypes[node.name] = EquipmentPortType(
                 id=node.id,
                 name=node.name,
-                properties=list(map(lambda p: asdict(p), node.propertyTypes)),
-                link_properties=list(map(lambda p: asdict(p), node.linkPropertyTypes)),
+                property_types=node.propertyTypes,
+                link_property_types=node.linkPropertyTypes,
             )
 
 
 def _add_equipment_type(
     client: SymphonyClient,
     name: str,
-    category: str,
+    category: Optional[str],
     properties: List[PropertyTypeInput],
-    position_definitions: List[Dict[str, Any]],
-    port_definitions: List[Dict[str, Any]],
+    position_definitions: List[EquipmentPositionInput],
+    port_definitions: List[EquipmentPortInput],
 ) -> AddEquipmentTypeMutation.AddEquipmentTypeMutationData.EquipmentType:
     return AddEquipmentTypeMutation.execute(
         client,
         AddEquipmentTypeInput(
             name=name,
             category=category,
-            positions=[
-                from_dict(
-                    data_class=EquipmentPositionInput,
-                    data=pos,
-                    config=Config(strict=True),
-                )
-                for pos in position_definitions
-            ],
-            ports=[
-                from_dict(
-                    data_class=EquipmentPortInput, data=port, config=Config(strict=True)
-                )
-                for port in port_definitions
-            ],
+            positions=position_definitions,
+            ports=port_definitions,
             properties=properties,
         ),
     ).__dict__[ADD_EQUIPMENT_TYPE_MUTATION_NAME]
@@ -104,6 +93,42 @@ def get_or_create_equipment_type(
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
+    """This function checks equipment type existence, 
+        in case it is not found, creates one.
+
+        Args:
+            name (str): equipment name
+            category (str): category name
+            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]): 
+            - str - type name
+            - str - enum["string", "int", "bool", "float", "date", "enum", "range", 
+            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
+            - PropertyValue - default property value
+            - bool - fixed value flag
+
+            ports_dict (Dict[str, str]): dict of property name to property value
+            - str - port name
+            - str - port type name
+            
+            position_list (List[str]): list of positions names
+
+        Returns:
+            pyinventory.consts.EquipmentType object
+        
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            e_type = client.get_or_create_equipment_type(
+                name="Tp-Link T1600G",
+                category="Router",
+                properties=[("IP", "string", None, True)],
+                ports_dict={"Port 1": "eth port", "port 2": "eth port"},
+                position_list=[],
+            )
+            ```
+    """
     if name in client.equipmentTypes:
         return client.equipmentTypes[name]
     return add_equipment_type(
@@ -115,10 +140,10 @@ def _edit_equipment_type(
     client: SymphonyClient,
     equipment_type_id: str,
     name: str,
-    category: str,
-    properties: List[Dict[str, Any]],
-    position_definitions: List[Dict[str, Any]],
-    port_definitions: List[Dict[str, Any]],
+    category: Optional[str],
+    properties: List[PropertyTypeInput],
+    position_definitions: List[EquipmentPositionInput],
+    port_definitions: List[EquipmentPortInput],
 ) -> EditEquipmentTypeMutation.EditEquipmentTypeMutationData.EquipmentType:
     return EditEquipmentTypeMutation.execute(
         client,
@@ -126,26 +151,9 @@ def _edit_equipment_type(
             id=equipment_type_id,
             name=name,
             category=category,
-            positions=[
-                from_dict(
-                    data_class=EquipmentPositionInput,
-                    data=pos,
-                    config=Config(strict=True),
-                )
-                for pos in position_definitions
-            ],
-            ports=[
-                from_dict(
-                    data_class=EquipmentPortInput, data=port, config=Config(strict=True)
-                )
-                for port in port_definitions
-            ],
-            properties=[
-                from_dict(
-                    data_class=PropertyTypeInput, data=prop, config=Config(strict=True)
-                )
-                for prop in properties
-            ],
+            positions=position_definitions,
+            ports=port_definitions,
+            properties=properties,
         ),
     ).__dict__[EDIT_EQUIPMENT_TYPE_MUTATION_NAME]
 
@@ -158,11 +166,50 @@ def add_equipment_type(
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
+    """This function creates new equipment type.
 
+        Args:
+            name (str): equipment type name
+            category (str): category name
+            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]): 
+            - str - type name
+            - str - enum["string", "int", "bool", "float", "date", "enum", "range", 
+            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
+            - PropertyValue - default property value
+            - bool - fixed value flag
+
+            ports_dict (Dict[str, str]): dict of property name to property value
+            - str - port name
+            - str - port type name
+            
+            position_list (List[str]): list of positions names
+
+        Returns:
+            pyinventory.consts.EquipmentType object
+        
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            e_type = client.add_equipment_type(
+                name="Tp-Link T1600G",
+                category="Router",
+                properties=[("IP", "string", None, True)],
+                ports_dict={"Port 1": "eth port", "port 2": "eth port"},
+                position_list=[],
+            )
+            ```
+    """
     new_property_types = format_properties(properties)
 
-    port_definitions = [{"name": name} for name, _ in ports_dict.items()]
-    position_definitions = [{"name": position} for position in position_list]
+    port_definitions = [
+        EquipmentPortInput(name=name, portTypeID=client.portTypes[_type].id)
+        for name, _type in ports_dict.items()
+    ]
+    position_definitions = [
+        EquipmentPositionInput(name=position) for position in position_list
+    ]
 
     add_equipment_type_variables = {
         "name": name,
@@ -196,11 +243,9 @@ def add_equipment_type(
         name=equipment_type.name,
         category=equipment_type.category,
         id=equipment_type.id,
-        propertyTypes=list(map(lambda p: asdict(p), equipment_type.propertyTypes)),
-        positionDefinitions=list(
-            map(lambda p: asdict(p), equipment_type.positionDefinitions)
-        ),
-        portDefinitions=list(map(lambda p: asdict(p), equipment_type.portDefinitions)),
+        property_types=equipment_type.propertyTypes,
+        position_definitions=equipment_type.positionDefinitions,
+        port_definitions=equipment_type.portDefinitions,
     )
     client.equipmentTypes[equipment_type.name] = equipment_type
     return equipment_type
@@ -231,11 +276,15 @@ def edit_equipment_type(
     if name not in client.equipmentTypes:
         raise EquipmentTypeNotFoundException
     equipment_type = client.equipmentTypes[name]
-    position_definitions = equipment_type.positionDefinitions + [
-        {"name": position} for position in new_positions_list
-    ]
-    port_definitions = equipment_type.portDefinitions + [
-        {"name": name, "portTypeID": client.portTypes[_type].id}
+    position_definitions = [
+        get_position_definition_input(position_definition, is_new=False)
+        for position_definition in equipment_type.position_definitions
+    ] + [EquipmentPositionInput(name=position) for position in new_positions_list]
+    port_definitions = [
+        get_port_definition_input(port_definition, is_new=False)
+        for port_definition in equipment_type.port_definitions
+    ] + [
+        EquipmentPortInput(name=name, portTypeID=client.portTypes[_type].id)
         for name, _type in new_ports_dict.items()
     ]
 
@@ -244,7 +293,7 @@ def edit_equipment_type(
         "category": equipment_type.category,
         "positionDefinitions": position_definitions,
         "portDefinitions": port_definitions,
-        "properties": equipment_type.propertyTypes,
+        "properties": equipment_type.property_types,
     }
     try:
         equipment_type = _edit_equipment_type(
@@ -252,7 +301,10 @@ def edit_equipment_type(
             equipment_type.id,
             equipment_type.name,
             equipment_type.category,
-            equipment_type.propertyTypes,
+            [
+                get_property_type_input(property_type, is_new=False)
+                for property_type in equipment_type.property_types
+            ],
             position_definitions,
             port_definitions,
         )
@@ -272,11 +324,9 @@ def edit_equipment_type(
         name=equipment_type.name,
         category=equipment_type.category,
         id=equipment_type.id,
-        propertyTypes=list(map(lambda p: asdict(p), equipment_type.propertyTypes)),
-        positionDefinitions=list(
-            map(lambda p: asdict(p), equipment_type.positionDefinitions)
-        ),
-        portDefinitions=list(map(lambda p: asdict(p), equipment_type.portDefinitions)),
+        property_types=equipment_type.propertyTypes,
+        position_definitions=equipment_type.positionDefinitions,
+        port_definitions=equipment_type.portDefinitions,
     )
     client.equipmentTypes[equipment_type.name] = equipment_type
     return equipment_type
@@ -285,6 +335,26 @@ def edit_equipment_type(
 def copy_equipment_type(
     client: SymphonyClient, curr_equipment_type_name: str, new_equipment_type_name: str
 ) -> EquipmentType:
+    """Copy existing equipment type.
+
+        Args:
+            curr_equipment_type_name (str): existing equipment type name
+            new_equipment_type_name (str): new equipment type name
+
+        Returns:
+            pyinventory.consts.EquipmentType object
+        
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            e_type = client.copy_equipment_type(
+                curr_equipment_type_name="Card",
+                new_equipment_type_name="External_Card",
+            )
+            ```
+    """
     if curr_equipment_type_name not in client.equipmentTypes:
         raise Exception(
             "Equipment type " + curr_equipment_type_name + " does not exist"
@@ -293,18 +363,18 @@ def copy_equipment_type(
     equipment_type = client.equipmentTypes[curr_equipment_type_name]
 
     new_property_types = [
-        {key: value for (key, value) in property_type.items() if key != "id"}
-        for property_type in equipment_type.propertyTypes
+        get_property_type_input(property_type)
+        for property_type in equipment_type.property_types
     ]
 
     new_position_definitions = [
-        {key: value for (key, value) in position_definition.items() if key != "id"}
-        for position_definition in equipment_type.positionDefinitions
+        get_position_definition_input(position_definition)
+        for position_definition in equipment_type.position_definitions
     ]
 
     new_port_definitions = [
-        {key: value for (key, value) in port_definition.items() if key != "id"}
-        for port_definition in equipment_type.portDefinitions
+        get_port_definition_input(port_definition)
+        for port_definition in equipment_type.port_definitions
     ]
 
     equipment_type = _add_equipment_type(
@@ -320,11 +390,9 @@ def copy_equipment_type(
         name=equipment_type.name,
         category=equipment_type.category,
         id=equipment_type.id,
-        propertyTypes=list(map(lambda p: asdict(p), equipment_type.propertyTypes)),
-        positionDefinitions=list(
-            map(lambda p: asdict(p), equipment_type.positionDefinitions)
-        ),
-        portDefinitions=list(map(lambda p: asdict(p), equipment_type.portDefinitions)),
+        property_types=equipment_type.propertyTypes,
+        position_definitions=equipment_type.positionDefinitions,
+        port_definitions=equipment_type.portDefinitions,
     )
 
     client.equipmentTypes[new_equipment_type_name] = new_equipment_type
@@ -342,6 +410,13 @@ def delete_equipment_type_with_equipments(
             entity=Entity.EquipmentType, entity_id=equipment_type.id
         )
     for equipment in equipment_type_with_equipments.equipments:
-        delete_equipment(client, Equipment(id=equipment.id, name=equipment.name))
+        delete_equipment(
+            client,
+            Equipment(
+                id=equipment.id,
+                name=equipment.name,
+                equipment_type_name=equipment.equipmentType.name,
+            ),
+        )
 
     RemoveEquipmentTypeMutation.execute(client, id=equipment_type.id)

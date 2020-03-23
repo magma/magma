@@ -39,6 +39,11 @@
 </code></dt>
 <dd>
 <section class="desc"><p>PropertyInput(propertyTypeID: str, id: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[numbers.Number, NoneType] = None, latitudeValue: Union[numbers.Number, NoneType] = None, longitudeValue: Union[numbers.Number, NoneType] = None, rangeFromValue: Union[numbers.Number, NoneType] = None, rangeToValue: Union[numbers.Number, NoneType] = None, equipmentIDValue: Union[str, NoneType] = None, locationIDValue: Union[str, NoneType] = None, serviceIDValue: Union[str, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None)</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.property_input.PropertyInput.booleanValue"><code class="name">var <span class="ident">booleanValue</span></code></dt>
@@ -98,42 +103,6 @@
 <section class="desc"></section>
 </dd>
 </dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="pyinventory.graphql.property_input.PropertyInput.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_input.PropertyInput.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) -> ~A</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_input.PropertyInput.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) -> dataclasses_json.mm.SchemaF[~A]</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.property_input.PropertyInput.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_input.PropertyInput.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) -> str</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
 </dd>
 </dl>
 </section>
@@ -157,8 +126,6 @@
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.booleanValue" href="#pyinventory.graphql.property_input.PropertyInput.booleanValue">booleanValue</a></code></li>
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.equipmentIDValue" href="#pyinventory.graphql.property_input.PropertyInput.equipmentIDValue">equipmentIDValue</a></code></li>
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.floatValue" href="#pyinventory.graphql.property_input.PropertyInput.floatValue">floatValue</a></code></li>
-<li><code><a title="pyinventory.graphql.property_input.PropertyInput.from_dict" href="#pyinventory.graphql.property_input.PropertyInput.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.property_input.PropertyInput.from_json" href="#pyinventory.graphql.property_input.PropertyInput.from_json">from_json</a></code></li>
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.id" href="#pyinventory.graphql.property_input.PropertyInput.id">id</a></code></li>
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.intValue" href="#pyinventory.graphql.property_input.PropertyInput.intValue">intValue</a></code></li>
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.isEditable" href="#pyinventory.graphql.property_input.PropertyInput.isEditable">isEditable</a></code></li>
@@ -168,11 +135,8 @@
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.longitudeValue" href="#pyinventory.graphql.property_input.PropertyInput.longitudeValue">longitudeValue</a></code></li>
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.rangeFromValue" href="#pyinventory.graphql.property_input.PropertyInput.rangeFromValue">rangeFromValue</a></code></li>
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.rangeToValue" href="#pyinventory.graphql.property_input.PropertyInput.rangeToValue">rangeToValue</a></code></li>
-<li><code><a title="pyinventory.graphql.property_input.PropertyInput.schema" href="#pyinventory.graphql.property_input.PropertyInput.schema">schema</a></code></li>
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.serviceIDValue" href="#pyinventory.graphql.property_input.PropertyInput.serviceIDValue">serviceIDValue</a></code></li>
 <li><code><a title="pyinventory.graphql.property_input.PropertyInput.stringValue" href="#pyinventory.graphql.property_input.PropertyInput.stringValue">stringValue</a></code></li>
-<li><code><a title="pyinventory.graphql.property_input.PropertyInput.to_dict" href="#pyinventory.graphql.property_input.PropertyInput.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.property_input.PropertyInput.to_json" href="#pyinventory.graphql.property_input.PropertyInput.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

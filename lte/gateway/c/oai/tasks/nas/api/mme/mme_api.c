@@ -362,7 +362,7 @@ int mme_api_notify_imsi(
 
   OAILOG_FUNC_IN(LOG_NAS);
   ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts, id);
+    mme_ue_context_exists_mme_ue_s1ap_id(id);
 
   if (ue_mm_context) {
     mme_ue_context_update_coll_keys(
@@ -396,8 +396,7 @@ int mme_api_notify_new_guti(const mme_ue_s1ap_id_t id, guti_t* const guti)
   ue_mm_context_t* ue_mm_context = NULL;
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   OAILOG_FUNC_IN(LOG_NAS);
-  ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts, id);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(id);
 
   if (ue_mm_context) {
     mme_ue_context_update_coll_keys(

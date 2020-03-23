@@ -224,14 +224,16 @@ type CheckListDefinitionInput struct {
 }
 
 type CheckListItemInput struct {
-	ID          *int              `json:"id"`
-	Title       string            `json:"title"`
-	Type        CheckListItemType `json:"type"`
-	Index       *int              `json:"index"`
-	HelpText    *string           `json:"helpText"`
-	EnumValues  *string           `json:"enumValues"`
-	StringValue *string           `json:"stringValue"`
-	Checked     *bool             `json:"checked"`
+	ID                 *int                            `json:"id"`
+	Title              string                          `json:"title"`
+	Type               CheckListItemType               `json:"type"`
+	Index              *int                            `json:"index"`
+	HelpText           *string                         `json:"helpText"`
+	EnumValues         *string                         `json:"enumValues"`
+	EnumSelectionMode  *CheckListItemEnumSelectionMode `json:"enumSelectionMode"`
+	SelectedEnumValues *string                         `json:"selectedEnumValues"`
+	StringValue        *string                         `json:"stringValue"`
+	Checked            *bool                           `json:"checked"`
 }
 
 type CommentInput struct {
@@ -326,7 +328,6 @@ type EditUserInput struct {
 	ID        int          `json:"id"`
 	FirstName *string      `json:"firstName"`
 	LastName  *string      `json:"lastName"`
-	Email     *string      `json:"email"`
 	Status    *user.Status `json:"status"`
 	Role      *user.Role   `json:"role"`
 }
@@ -395,11 +396,13 @@ type FileInput struct {
 	ModificationTime *int      `json:"modificationTime"`
 	UploadTime       *int      `json:"uploadTime"`
 	FileType         *FileType `json:"fileType"`
+	MimeType         *string   `json:"mimeType"`
 	StoreKey         string    `json:"storeKey"`
 }
 
 type GeneralFilter struct {
 	FilterType    string            `json:"filterType"`
+	Key           string            `json:"key"`
 	Operator      FilterOperator    `json:"operator"`
 	StringValue   *string           `json:"stringValue"`
 	IDSet         []int             `json:"idSet"`
@@ -410,6 +413,7 @@ type GeneralFilter struct {
 
 type GeneralFilterInput struct {
 	FilterType    string             `json:"filterType"`
+	Key           string             `json:"key"`
 	Operator      FilterOperator     `json:"operator"`
 	StringValue   *string            `json:"stringValue"`
 	IDSet         []int              `json:"idSet"`
@@ -564,6 +568,22 @@ type SearchEntryEdge struct {
 	Node *SearchEntry `json:"node"`
 	// A cursor for use in pagination.
 	Cursor ent.Cursor `json:"cursor"`
+}
+
+// A search entry edge in a connection.
+type SearchNodeEdge struct {
+	// The search entry at the end of the edge.
+	Node ent.Noder `json:"node"`
+	// A cursor for use in pagination.
+	Cursor ent.Cursor `json:"cursor"`
+}
+
+// A connection to a list of search entries.
+type SearchNodesConnection struct {
+	// A list of search entry edges.
+	Edges []*SearchNodeEdge `json:"edges"`
+	// Information to aid in pagination.
+	PageInfo *ent.PageInfo `json:"pageInfo"`
 }
 
 type ServiceCreateData struct {
@@ -782,6 +802,47 @@ func (e *CellularNetworkType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CellularNetworkType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CheckListItemEnumSelectionMode string
+
+const (
+	CheckListItemEnumSelectionModeSingle   CheckListItemEnumSelectionMode = "single"
+	CheckListItemEnumSelectionModeMultiple CheckListItemEnumSelectionMode = "multiple"
+)
+
+var AllCheckListItemEnumSelectionMode = []CheckListItemEnumSelectionMode{
+	CheckListItemEnumSelectionModeSingle,
+	CheckListItemEnumSelectionModeMultiple,
+}
+
+func (e CheckListItemEnumSelectionMode) IsValid() bool {
+	switch e {
+	case CheckListItemEnumSelectionModeSingle, CheckListItemEnumSelectionModeMultiple:
+		return true
+	}
+	return false
+}
+
+func (e CheckListItemEnumSelectionMode) String() string {
+	return string(e)
+}
+
+func (e *CheckListItemEnumSelectionMode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CheckListItemEnumSelectionMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CheckListItemEnumSelectionMode", str)
+	}
+	return nil
+}
+
+func (e CheckListItemEnumSelectionMode) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

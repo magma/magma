@@ -18,6 +18,7 @@ supporting components into an EKS cluster.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:-----:|
 | deploy\_nms | Flag to deploy NMS | `bool` | n/a | yes |
+| deploy\_openvpn | Flag to deploy openvpn server into cluster. This is useful if you want to remotely access AGW's. | `bool` | `false` | no |
 | docker\_pass | Docker registry password | `string` | n/a | yes |
 | docker\_registry | Docker registry to pull orc8r containers from | `string` | n/a | yes |
 | docker\_user | Docker username to login to registry with | `string` | n/a | yes |

@@ -37,15 +37,15 @@ func TestUserService_Create(t *testing.T) {
 	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
 	ctx := context.Background()
 
-	u, err := us.Create(ctx, &UserInput{Tenant: "", Id: "XXX"})
+	u, err := us.Create(ctx, &AddUserInput{Tenant: "", Id: "XXX", IsOwner: false})
 	require.Nil(t, u)
 	require.IsType(t, codes.InvalidArgument, status.Code(err))
 
-	u, err = us.Create(ctx, &UserInput{Tenant: "XXX", Id: ""})
+	u, err = us.Create(ctx, &AddUserInput{Tenant: "XXX", Id: "", IsOwner: false})
 	require.Nil(t, u)
 	require.IsType(t, codes.InvalidArgument, status.Code(err))
 
-	u, err = us.Create(ctx, &UserInput{Tenant: "XXX", Id: "YYY"})
+	u, err = us.Create(ctx, &AddUserInput{Tenant: "XXX", Id: "YYY", IsOwner: false})
 	require.NoError(t, err)
 	userObject, err := client.User.Get(ctx, int(u.Id))
 	require.NoError(t, err)
@@ -83,10 +83,10 @@ func TestUserService_CreateAfterDelete(t *testing.T) {
 	_, err := us.Delete(ctx, &UserInput{Tenant: "XXX", Id: "YYY"})
 	require.NoError(t, err)
 
-	_, err = us.Create(ctx, &UserInput{Tenant: "XXX", Id: "YYY"})
+	_, err = us.Create(ctx, &AddUserInput{Tenant: "XXX", Id: "YYY", IsOwner: true})
 	require.NoError(t, err)
 	userObject, err := client.User.Get(ctx, u.ID)
 	require.NoError(t, err)
 	require.Equal(t, user.StatusACTIVE, userObject.Status)
-
+	require.Equal(t, user.RoleOWNER, userObject.Role)
 }

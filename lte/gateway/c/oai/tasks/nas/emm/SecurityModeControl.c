@@ -418,9 +418,7 @@ int emm_proc_security_mode_complete(
   /*
    * Get the UE context
    */
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {
@@ -535,9 +533,7 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
    * Get the UE context
    */
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {
@@ -747,9 +743,7 @@ static int _security_request(nas_emm_smc_proc_t *const smc_proc)
     emm_sap.u.emm_as.u.security.selected_eia = smc_proc->selected_eia;
     emm_sap.u.emm_as.u.security.imeisv_request = smc_proc->imeisv_request;
 
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, smc_proc->ue_id);
+    ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(smc_proc->ue_id);
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
     } else {

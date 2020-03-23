@@ -14,22 +14,19 @@ import (
 	"net/http"
 	"os"
 
-	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
-	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/services/dispatcher"
-	sync_rpc_broker "magma/orc8r/cloud/go/services/dispatcher/broker"
+	syncRpcBroker "magma/orc8r/cloud/go/services/dispatcher/broker"
 	"magma/orc8r/cloud/go/services/dispatcher/httpserver"
 	"magma/orc8r/cloud/go/services/dispatcher/servicers"
-	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 )
 
-const HTTP_SERVER_PORT = 9080
+const HttpServerPort = 9080
 
 func main() {
 	// Set MaxConnectionAge to infinity so Sync RPC stream doesn't restart
@@ -48,26 +45,14 @@ func main() {
 	}
 
 	// create a broker
-	broker := sync_rpc_broker.NewGatewayReqRespBroker()
+	broker := syncRpcBroker.NewGatewayReqRespBroker()
 
 	// get ec2 public host name
 	hostName := getHostName()
 	glog.V(2).Infof("hostName is: %v\n", hostName)
 
-	// create storage
-	db, err := sqorc.Open(blobstore.SQLDriver, blobstore.DatabaseSource)
-	if err != nil {
-		glog.Fatalf("Failed to open db: %s", err)
-	}
-	fact := blobstore.NewEntStorage(dstorage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
-	err = fact.InitializeFactory()
-	if err != nil {
-		glog.Fatalf("Failed to initialize storage factory: %s", err)
-	}
-	store := dstorage.NewDirectorydBlobstore(fact)
-
 	// create servicer
-	syncRpcServicer, err := servicers.NewSyncRPCService(hostName, broker, store)
+	syncRpcServicer, err := servicers.NewSyncRPCService(hostName, broker)
 	if err != nil {
 		glog.Fatalf("SyncRPCService Initialization Error: %s", err)
 	}
@@ -79,7 +64,7 @@ func main() {
 	srv.GrpcServer.RegisterService(protos.GetLegacyDispatcherDesc(), syncRpcServicer)
 
 	// run http server
-	go httpServer.Run(fmt.Sprintf(":%d", HTTP_SERVER_PORT))
+	go httpServer.Run(fmt.Sprintf(":%d", HttpServerPort))
 
 	err = srv.Run()
 	if err != nil {

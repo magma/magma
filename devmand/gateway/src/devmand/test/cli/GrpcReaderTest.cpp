@@ -32,27 +32,6 @@ using namespace devmand::devices::cli;
 using namespace devmand::channels::cli::plugin;
 using namespace devmand::test::utils::cli;
 
-class GrpcReaderTest : public ::testing::Test {
- protected:
-  shared_ptr<CPUThreadPoolExecutor> testExec;
-  shared_ptr<MockedCli> mockedCli;
-  Path somePath = "/somepath";
-
-  void SetUp() override {
-    devmand::test::utils::log::initLog();
-    testExec = make_shared<CPUThreadPoolExecutor>(5);
-    map<string, string> mockedResponses;
-    for (int i = 3; i > 0; i--) {
-      const string& s = somePath.str() + to_string(i);
-      mockedResponses[s] = s;
-    }
-    mockedResponses.insert(make_pair(
-        "show running-config interface 4/1",
-        "foo\nmtu 99\ndescription descr\nshutdown\ninterface '4/1'\n"));
-    mockedCli = make_shared<MockedCli>(mockedResponses);
-  }
-};
-
 static void sendCommandRequest(
     string cmd,
     ServerReaderWriter<ReadResponse, ReadRequest>* stream) {
@@ -72,6 +51,17 @@ static void sendActualResponse(
   actualReadResponse->set_json(json);
   readResponse.set_allocated_actualreadresponse(actualReadResponse);
   stream->Write(readResponse);
+}
+
+static std::unique_ptr<Server> startServer(
+    const string& address,
+    ReaderPlugin::Service& service) {
+  std::string server_address(address);
+  ServerBuilder builder;
+  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.RegisterService(&service);
+  std::unique_ptr<Server> server(builder.BuildAndStart());
+  return server;
 }
 
 // request 3 commands, then send final response
@@ -122,44 +112,48 @@ class DummyReader : public ReaderPlugin::Service {
   }
 };
 
-static std::unique_ptr<Server> startServer(
-    const string& address,
-    ReaderPlugin::Service& service) {
-  std::string server_address(address);
-  ServerBuilder builder;
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-  builder.RegisterService(&service);
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  return server;
-}
+class GrpcReaderTest : public ::testing::Test {
+ protected:
+  shared_ptr<CPUThreadPoolExecutor> testExec;
+  shared_ptr<MockedCli> mockedCli;
+  Path somePath = "/somepath";
+  unique_ptr<Server> server;
+  unsigned int port = 50052;
+  string address = "127.0.0.1:" + to_string(port);
+  DummyReader service;
+
+  void SetUp() override {
+    devmand::test::utils::log::initLog();
+    testExec = make_shared<CPUThreadPoolExecutor>(5);
+    map<string, string> mockedResponses;
+    for (int i = 3; i > 0; i--) {
+      const string& s = somePath.str() + to_string(i);
+      mockedResponses[s] = s;
+    }
+    mockedResponses.insert(make_pair(
+        "show running-config interface 4/1",
+        "foo\nmtu 99\ndescription descr\nshutdown\ninterface '4/1'\n"));
+    mockedCli = make_shared<MockedCli>(mockedResponses);
+
+    MLOG(MDEBUG) << "Starting server at " << address;
+
+    server = startServer(address, service);
+  }
+
+  void TearDown() override {
+    server->Shutdown();
+    server->Wait();
+    testExec->join();
+  }
+};
 
 TEST_F(GrpcReaderTest, testDummyReader) {
-  const unsigned int port = 50052;
-  const string& address = "localhost:" + to_string(port);
-
-  MLOG(MDEBUG) << "Starting server";
-  DummyReader service;
-  std::unique_ptr<Server> server = startServer(address, service);
-
   auto grpcClientChannel =
       grpc::CreateChannel(address, grpc::InsecureChannelCredentials());
   GrpcReader tested(grpcClientChannel, "tested", testExec);
   DeviceAccess deviceAccess = DeviceAccess(mockedCli, "test", testExec);
   dynamic result = tested.read(somePath, deviceAccess).get();
   EXPECT_EQ(result["path"], somePath.str());
-}
-
-// integration test for debugging remote plugins
-
-TEST_F(GrpcReaderTest, DISABLED_client) {
-  string address = "localhost:50051";
-  auto grpcClientChannel =
-      grpc::CreateChannel(address, grpc::InsecureChannelCredentials());
-  GrpcReader tested(grpcClientChannel, "tested", testExec);
-  Path path = "/openconfig-interfaces:interfaces/interface[name='4/1']/config";
-  DeviceAccess deviceAccess = DeviceAccess(mockedCli, "test", testExec);
-  dynamic result = tested.read(path, deviceAccess).get();
-  MLOG(MDEBUG) << "Received: " << toJson(result);
 }
 
 } // namespace cli

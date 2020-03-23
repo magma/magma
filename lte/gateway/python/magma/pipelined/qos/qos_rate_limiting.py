@@ -9,10 +9,21 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from collections import defaultdict
 from collections import deque
-from typing import Dict  # noqa
+from typing import Dict, List  # noqa
+import os
 import shlex
 import subprocess
 import logging
+
+
+# this code can run in either a docker container(CWAG) or as a native
+# python process(AG). When we are running as a root there is no need for
+# using sudo. (related to task T63499189 where tc commands failed since 
+# sudo wasn't available in the docker container)
+def argSplit(cmd: str) -> List[str]:
+    args = [] if os.geteuid() == 0 else ["sudo"]
+    args.extend(shlex.split(cmd))
+    return args
 
 
 class TrafficClass:
@@ -22,60 +33,59 @@ class TrafficClass:
     """
 
     @staticmethod
-    def delete_class(intf: str, qid: int) -> None:
-        tc_cmd = "sudo tc class del dev {} classid 1:{}".format(intf, qid)
-        filter_cmd = "sudo tc filter del dev {} protocol ip parent 1: prio 1 \
+    def delete_class(intf: str, qid: int) -> None:        
+        tc_cmd = "tc class del dev {} classid 1:{}".format(intf, qid)
+        filter_cmd = "tc filter del dev {} protocol ip parent 1: prio 1 \
                 handle {qid} fw flowid 1:{qid}".format(intf, qid=qid)
 
-        args = shlex.split(filter_cmd)
+        args = argSplit(filter_cmd)
         ret = subprocess.call(args)
         logging.debug("add filter ret %d", ret)
 
-        args = shlex.split(tc_cmd)
+        args = argSplit(tc_cmd)
         ret = subprocess.call(args)
         logging.debug("qdisc del q qid %s ret %d", qid, ret)
 
     @staticmethod
     def create_class(intf: str, qid: int, max_bw: int) -> None:
-        tc_cmd = "sudo tc class add dev {} parent 1:fffe classid 1:{} htb \
+        tc_cmd = "tc class add dev {} parent 1:fffe classid 1:{} htb \
         rate 12000 ceil {}".format(intf, qid, max_bw)
-        qdisc_cmd = "sudo tc qdisc add dev {} parent 1:{} \
+        qdisc_cmd = "tc qdisc add dev {} parent 1:{} \
                 fq_codel".format(intf, qid)
-        filter_cmd = "sudo tc filter add dev {} protocol ip parent 1: prio 1 \
+        filter_cmd = "tc filter add dev {} protocol ip parent 1: prio 1 \
                 handle {qid} fw flowid 1:{qid}".format(intf, qid=qid)
 
-        args = shlex.split(tc_cmd)
+        args = argSplit(tc_cmd)
         ret = subprocess.call(args)
         logging.debug("create class qid %s ret %d", qid, ret)
 
-        args = shlex.split(qdisc_cmd)
+        args = argSplit(qdisc_cmd)
         ret = subprocess.call(args)
         logging.debug("create qdisc ret %d", ret)
 
-        args = shlex.split(filter_cmd)
+        args = argSplit(filter_cmd)
         ret = subprocess.call(args)
         logging.debug("add filter ret %d", ret)
 
     @staticmethod
     def init_qdisc(intf: str) -> None:
-        qdisc_cmd = "sudo tc qdisc add dev {} root handle 1: htb".format(intf)
-        parent_q_cmd = "sudo tc class add dev {} parent 1: classid 1:fffe htb \
+        qdisc_cmd = "tc qdisc add dev {} root handle 1: htb".format(intf)
+        parent_q_cmd = "tc class add dev {} parent 1: classid 1:fffe htb \
                 rate 1Gbit ceil 1Gbit".format(intf)
-        tc_cmd = "sudo tc class add dev {} parent 1:fffe classid 1:1 htb \
+        tc_cmd = "tc class add dev {} parent 1:fffe classid 1:1 htb \
                 rate 12Kbit ceil 1Gbit".format(intf)
 
-        args = shlex.split(qdisc_cmd)
+        args = argSplit(qdisc_cmd)
         ret = subprocess.call(args)
         logging.debug("qdisc init ret %d", ret)
 
-        args = shlex.split(parent_q_cmd)
+        args = argSplit(parent_q_cmd)
         ret = subprocess.call(args)
         logging.debug("add class 1: ret %d", ret)
 
-        args = shlex.split(tc_cmd)
+        args = argSplit(tc_cmd)
         ret = subprocess.call(args)
         logging.debug("add class 1:fffe ret %d", ret)
-
 
 class QosQueueMap:
     """

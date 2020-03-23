@@ -14,15 +14,15 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
-	certifier_test_utils "magma/orc8r/lib/go/security/csr"
+	certifierTestUtils "magma/orc8r/lib/go/security/csr"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
@@ -37,17 +37,10 @@ func TestCertifierBlobstore(t *testing.T) {
 	testCertifierImpl(t, store)
 }
 
-func TestCertifierDatastore(t *testing.T) {
-	ds, err := datastore.NewSqlDb("sqlite3", ":memory:", sqorc.GetSqlBuilder())
-	assert.NoError(t, err)
-	store := storage.NewCertifierDatastore(ds)
-	testCertifierImpl(t, store)
-}
-
 func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	ctx := context.Background()
 
-	caCert, caKey, err := certifier_test_utils.CreateSignedCertAndPrivKey(time.Hour * 24 * 10)
+	caCert, caKey, err := certifierTestUtils.CreateSignedCertAndPrivKey(time.Hour * 24 * 10)
 	assert.NoError(t, err)
 
 	// just test with default
@@ -58,7 +51,7 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.NoError(t, err)
 
 	// sign and add
-	csrMsg, err := certifier_test_utils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	csrMsg, err := certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
 	assert.NoError(t, err)
 	certMsg, err := srv.SignAddCertificate(ctx, csrMsg)
 	assert.NoError(t, err)
@@ -85,7 +78,7 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.Error(t, err)
 
 	// test expiration
-	csrMsg, err = certifier_test_utils.CreateCSR(0, "cn", "cn")
+	csrMsg, err = certifierTestUtils.CreateCSR(0, "cn", "cn")
 	assert.NoError(t, err)
 	certMsg, err = srv.SignAddCertificate(ctx, csrMsg)
 	assert.NoError(t, err)
@@ -98,7 +91,7 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	servicers.CollectGarbageAfter = time.Duration(0)
 
 	for i := 0; i < 3; i++ {
-		csrMsg, err = certifier_test_utils.CreateCSR(0, "cn", "cn")
+		csrMsg, err = certifierTestUtils.CreateCSR(0, "cn", "cn")
 		assert.NoError(t, err)
 		_, err = srv.SignAddCertificate(ctx, csrMsg)
 		assert.NoError(t, err)
@@ -110,7 +103,7 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.Equal(t, 0, len(allSns))
 
 	// test csr longer than cert
-	csrMsg, err = certifier_test_utils.CreateCSR(time.Duration(time.Hour*24*100), "cn", "cn")
+	csrMsg, err = certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*100), "cn", "cn")
 	assert.NoError(t, err)
 	certMsg, err = srv.SignAddCertificate(ctx, csrMsg)
 	assert.NoError(t, err)
@@ -120,13 +113,13 @@ func testCertifierImpl(t *testing.T, store storage.CertifierStorage) {
 	assert.True(t, notAfter.Equal(caCert.NotAfter))
 
 	// test CN mismatch
-	csrMsg, err = certifier_test_utils.CreateCSR(time.Duration(time.Hour*1), "cn", "nc")
+	csrMsg, err = certifierTestUtils.CreateCSR(time.Duration(time.Hour*1), "cn", "nc")
 	assert.NoError(t, err)
 	certMsg, err = srv.SignAddCertificate(ctx, csrMsg)
 	assert.Error(t, err)
 
 	// test CN onverwrite
-	csrMsg, err = certifier_test_utils.CreateCSR(time.Duration(time.Hour*1), "", "cn")
+	csrMsg, err = certifierTestUtils.CreateCSR(time.Duration(time.Hour*1), "", "cn")
 	assert.NoError(t, err)
 	certMsg, err = srv.SignAddCertificate(ctx, csrMsg)
 	assert.NoError(t, err)

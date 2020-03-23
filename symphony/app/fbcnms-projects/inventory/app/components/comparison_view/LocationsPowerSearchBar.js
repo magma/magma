@@ -16,9 +16,9 @@ import type {
 
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React from 'react';
+import useFilterBookmarks from './hooks/filterBookmarksHook';
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
-import {EntityTypeMap} from './ComparisonViewTypes';
 import {LocationCriteriaConfig} from './LocationSearchConfig';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
@@ -37,6 +37,7 @@ const LocationsPowerSearchBar = (props: Props) => {
   const locationPropertiesFilterConfigs = buildPropertyFilterConfigs(
     possibleProperties,
   );
+  const filterBookmarksFilterConfig = useFilterBookmarks('LOCATION');
 
   const filterConfigs = LocationCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
@@ -55,9 +56,10 @@ const LocationsPowerSearchBar = (props: Props) => {
       placeholder="Filter..."
       searchConfig={LocationCriteriaConfig}
       filterConfigs={filterConfigs}
+      savedSearches={filterBookmarksFilterConfig}
       footer={footer}
       exportPath={'/locations'}
-      entity={EntityTypeMap.location}
+      entity="LOCATION"
     />
   );
 };

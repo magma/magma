@@ -112,6 +112,64 @@ const Path Path::prefixAllSegments() const {
   return Path(newPath.str());
 }
 
+const Path Path::unprefixAllSegments() const {
+  if (ROOT == *this) {
+    return ROOT;
+  }
+
+  vector<string> unkeyedSegments = unkeyed().getSegments();
+
+  string pathCopy = path;
+  stringstream newPath;
+  newPath << PATH_SEPARATOR;
+
+  for (unsigned int i = 0; i < unkeyedSegments.size(); ++i) {
+    smatch match;
+    if (regex_match(unkeyedSegments[i], match, PREFIXED_SEGMENT)) {
+      newPath << match[2];
+    } else {
+      newPath << unkeyedSegments[i];
+    }
+
+    if (i == unkeyedSegments.size() - 1) {
+      newPath << pathCopy.substr(unkeyedSegments[i].length() + 1);
+      break;
+    }
+
+    pathCopy = pathCopy.substr(unkeyedSegments[i].length() + 1);
+
+    unsigned long nextSegmentStart =
+        pathCopy.find(PATH_SEPARATOR + unkeyedSegments[i + 1]);
+    newPath << pathCopy.substr(0, nextSegmentStart) << PATH_SEPARATOR;
+
+    pathCopy = pathCopy.substr(nextSegmentStart);
+  }
+
+  return Path(newPath.str());
+}
+
+bool Path::isChildOfUnprefixed(const Path& parent) const {
+  return unprefixAllSegments().isChildOf(parent.unprefixAllSegments());
+}
+
+bool Path::isLastSegmentKeyed() const {
+  if (ROOT == *this) {
+    return false;
+  }
+  return unkeyed().getLastSegment() != getLastSegment();
+}
+
+Optional<string> Path::getFirstModuleName() const {
+  vector<string> segments = getSegments();
+  for (unsigned int i = 0; i < segments.size(); ++i) {
+    smatch match;
+    if (regex_match(segments[i], match, PREFIXED_SEGMENT)) {
+      return Optional<string>(match[1]);
+    }
+  }
+  return none;
+}
+
 static const auto KEYS_IN_PATH = regex("\\[([^\\]]+)\\]");
 
 const Path Path::unkeyed() const {
@@ -302,6 +360,19 @@ Path operator+(const Path& lhs, const string& rhs) {
 
 string Path::str() const {
   return path;
+}
+
+unsigned int Path::segmentDistance(Path other) const {
+  const vector<string>& otherSegments = other.getSegments();
+  const vector<string>& segments = getSegments();
+  unsigned int j = 0;
+  for (; j < otherSegments.size() && j < segments.size(); ++j) {
+    if (otherSegments[j] != segments[j]) {
+      return j;
+    }
+  }
+
+  return j;
 }
 
 } // namespace cli

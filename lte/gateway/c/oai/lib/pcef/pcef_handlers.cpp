@@ -26,12 +26,13 @@
 
 #include "pcef_handlers.h"
 #include "PCEFClient.h"
-#include "rpc_client.h"
+#include "MobilityClientAPI.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "lte/protos/session_manager.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
+#include "spgw_types.h"
 
 extern "C" {
 }
@@ -39,11 +40,13 @@ extern "C" {
 #define ULI_DATA_SIZE 13
 
 static void create_session_response(
+  spgw_state_t* state,
   const std::string& imsi,
   const std::string& apn,
   itti_sgi_create_end_point_response_t sgi_response,
   s5_create_session_request_t session_request,
-  const grpc::Status& status)
+  const grpc::Status& status,
+  s_plus_p_gw_eps_bearer_context_information_t* ctx_p)
 {
   s5_create_session_response_t s5_response = {0};
   s5_response.context_teid = session_request.context_teid;
@@ -52,14 +55,12 @@ static void create_session_response(
   s5_response.failure_cause = S5_OK;
 
   if (!status.ok()) {
-    struct in_addr addr;
     //BUFFER_TO_IN_ADDR (sgi_response.paa.ipv4_address, addr);
-    // TODO make asynchronous, or make part of create session call
     release_ipv4_address(imsi.c_str(), apn.c_str(),
                          &sgi_response.paa.ipv4_address);
     s5_response.failure_cause = PCEF_FAILURE;
   }
-  handle_s5_create_session_response(s5_response);
+  handle_s5_create_session_response(state, ctx_p, s5_response);
 }
 
 static void pcef_fill_create_session_req(
@@ -90,11 +91,13 @@ static void pcef_fill_create_session_req(
 }
 
 void pcef_create_session(
+  spgw_state_t* state,
   char* imsi,
   char* ip,
   const pcef_create_session_data* session_data,
   itti_sgi_create_end_point_response_t sgi_response,
-  s5_create_session_request_t session_request)
+  s5_create_session_request_t session_request,
+  s_plus_p_gw_eps_bearer_context_information_t* ctx_p)
 {
   auto imsi_str = std::string(imsi);
   auto ip_str = std::string(ip);
@@ -111,10 +114,10 @@ void pcef_create_session(
   // call the `CreateSession` gRPC method and execute the inline function
   magma::PCEFClient::create_session(
     sreq,
-    [imsi_str, apn, sgi_response, session_request](
+    [imsi_str, apn, sgi_response, session_request, ctx_p, state](
       grpc::Status status, magma::LocalCreateSessionResponse response) {
       create_session_response(
-        imsi_str, apn, sgi_response, session_request, status);
+        state, imsi_str, apn, sgi_response, session_request, status, ctx_p);
     });
 }
 

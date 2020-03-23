@@ -12,6 +12,15 @@ package storage
 
 import (
 	"fmt"
+
+	"magma/orc8r/lib/go/definitions"
+
+	"github.com/google/uuid"
+)
+
+var (
+	SQLDriver      = definitions.GetEnvWithDefault("SQL_DRIVER", "sqlite3")
+	DatabaseSource = definitions.GetEnvWithDefault("DATABASE_SOURCE", ":memory:")
 )
 
 type TypeAndKey struct {
@@ -44,4 +53,17 @@ func (tk TypeAndKey) String() string {
 
 func IsTKLessThan(a TypeAndKey, b TypeAndKey) bool {
 	return a.String() < b.String()
+}
+
+// IDGenerator is an interface which wraps the creation of unique IDs
+type IDGenerator interface {
+	// New returns a new unique ID
+	New() string
+}
+
+// UUIDGenerator is an implementation of IDGenerator which uses uuidv4
+type UUIDGenerator struct{}
+
+func (*UUIDGenerator) New() string {
+	return uuid.New().String()
 }

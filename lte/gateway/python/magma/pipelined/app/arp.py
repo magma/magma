@@ -47,7 +47,7 @@ class ArpController(MagmaController):
     ArpdConfig = namedtuple(
         'ArpdConfig',
         ['virtual_iface', 'virtual_mac', 'ue_ip_blocks', 'cwf_check_quota_ip',
-         'cwf_bridge_mac'],
+         'cwf_bridge_mac', 'mtr_ip', 'mtr_mac'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -71,6 +71,12 @@ class ArpController(MagmaController):
         virtual_mac = None
         if virtual_iface:
             virtual_mac = get_virtual_iface_mac(virtual_iface)
+        mtr_ip = None
+        if 'mtr_ip' in config_dict:
+            mtr_ip = config_dict['mtr_ip']
+        mtr_mac = None
+        if mtr_ip:
+            mtr_mac = get_virtual_iface_mac(config_dict['mtr_interface'])
         return self.ArpdConfig(
             #TODO failsafes for fields not existing or yml updates
             virtual_iface=virtual_iface,
@@ -78,6 +84,8 @@ class ArpController(MagmaController):
             ue_ip_blocks=[cidr_to_ip_netmask_tuple(mconfig.ue_ip_block)],
             cwf_check_quota_ip=config_dict.get('quota_check_ip', None),
             cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
+            mtr_ip=mtr_ip,
+            mtr_mac=mtr_mac,
         )
 
     def initialize_on_connect(self, datapath):
@@ -91,11 +99,17 @@ class ArpController(MagmaController):
                 self.add_ue_arp_flows(datapath, ip_block,
                                        self.config.virtual_mac)
             self._install_default_eth_dst_flow(datapath)
+            if self.config.mtr_ip:
+                self._install_local_eth_dst_flow(datapath)
+
         if self.setup_type == 'CWF':
             self.set_incoming_arp_flows(datapath,
                 self.config.cwf_check_quota_ip, self.config.cwf_bridge_mac)
             if self.allow_unknown_uplink_arps:
                 self._install_allow_incoming_arp_flow(datapath)
+        if self.config.mtr_ip:
+            self.set_incoming_arp_flows(datapath, self.config.mtr_ip,
+                                        self.config.mtr_mac)
 
         self._install_default_forward_flow(datapath)
         self._install_default_arp_drop_flow(datapath)
@@ -236,6 +250,24 @@ class ArpController(MagmaController):
         flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
                                              actions,
                                              priority=flows.DEFAULT_PRIORITY,
+                                             resubmit_table=self.next_table)
+
+    def _install_local_eth_dst_flow(self, datapath):
+        """
+        Add lower-pri flow rule to set `eth_dst` on outgoing packets to the
+        specified MAC address.
+        """
+        self.logger.info('Setting local eth_dst to %s for ip %s',
+                         self.config.virtual_iface, self.config.mtr_ip)
+        parser = datapath.ofproto_parser
+        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                           ipv4_dst=self.config.mtr_ip, direction=Direction.OUT)
+        actions = [
+            parser.NXActionRegLoad2(dst='eth_dst', value=self.config.mtr_mac),
+        ]
+        flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
+                                             actions,
+                                             priority=flows.UE_FLOW_PRIORITY,
                                              resubmit_table=self.next_table)
 
     def _install_default_forward_flow(self, datapath):

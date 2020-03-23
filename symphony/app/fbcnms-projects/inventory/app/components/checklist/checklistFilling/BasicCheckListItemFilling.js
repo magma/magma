@@ -13,7 +13,6 @@ import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutat
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import React, {useContext} from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 
@@ -26,10 +25,6 @@ const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
     flexDirection: 'row',
-  },
-  expandindPart: {
-    flexGrow: 1,
-    flexBasis: 0,
   },
 }));
 
@@ -51,9 +46,6 @@ const BasicCheckListItemFilling = ({item, onChange}: Props) => {
 
   return (
     <div className={classes.container}>
-      <Text className={classes.expandindPart} variant="body2" weight="regular">
-        {item.title}
-      </Text>
       {!validationContext.editLock.detected && (
         <Button onClick={_updateOnChange} variant="text">
           {item.checked

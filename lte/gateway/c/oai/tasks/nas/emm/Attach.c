@@ -294,9 +294,7 @@ int emm_proc_attach_request(
    * Get the UE's EMM context if it exists
    */
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts,
-        ue_id);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   // if is_mm_ctx_new==TRUE then ue_mm_context should always be not NULL
 
   // Actually uplink_nas_transport is sent from S1AP task to NAS task without passing by the MME_APP task...
@@ -677,9 +675,7 @@ int emm_proc_attach_complete(
   /*
    * Get the UE context
    */
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
   if (ue_mm_context) {
     if (is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {

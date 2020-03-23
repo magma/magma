@@ -31,18 +31,6 @@ using namespace devmand::devices::cli;
 using namespace devmand::channels::cli::plugin;
 using namespace devmand::test::utils::cli;
 
-class GrpcListReaderTest : public ::testing::Test {
- protected:
-  shared_ptr<CPUThreadPoolExecutor> testExec;
-  shared_ptr<Cli> cli;
-
-  void SetUp() override {
-    devmand::test::utils::log::initLog();
-    testExec = make_shared<CPUThreadPoolExecutor>(5);
-    cli = make_shared<EchoCli>();
-  }
-};
-
 static void sendActualResponse(
     string json,
     ServerReaderWriter<ReadResponse, ReadRequest>* stream) {
@@ -80,14 +68,31 @@ static std::unique_ptr<Server> startServer(
   return server;
 }
 
-TEST_F(GrpcListReaderTest, testDummyReader) {
-  const unsigned int port = 50052;
-  const string& address = "localhost:" + to_string(port);
-
-  MLOG(MDEBUG) << "Starting server";
+class GrpcListReaderTest : public ::testing::Test {
+ protected:
+  shared_ptr<CPUThreadPoolExecutor> testExec;
+  shared_ptr<Cli> cli;
+  unique_ptr<Server> server;
+  unsigned int port = 50052;
+  string address = "127.0.0.1:" + to_string(port);
   DummyListReader service;
-  std::unique_ptr<Server> server = startServer(address, service);
 
+  void SetUp() override {
+    devmand::test::utils::log::initLog();
+    testExec = make_shared<CPUThreadPoolExecutor>(5);
+    cli = make_shared<EchoCli>();
+    MLOG(MDEBUG) << "Starting server";
+    server = startServer(address, service);
+  }
+
+  void TearDown() override {
+    server->Shutdown();
+    server->Wait();
+    testExec->join();
+  }
+};
+
+TEST_F(GrpcListReaderTest, testDummyReader) {
   auto grpcClientChannel =
       grpc::CreateChannel(address, grpc::InsecureChannelCredentials());
   GrpcListReader tested(grpcClientChannel, "tested", testExec);

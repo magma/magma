@@ -49,6 +49,14 @@ message DisconnectResponse {
 message GenTrafficRequest {
     string imsi = 1;
     google.protobuf.StringValue volume = 2;
+    google.protobuf.StringValue bitrate = 3;
+    uint64 timeInSecs = 4;    
+    uint64 reportingIntervalInSecs = 5;    
+    bool reverseMode = 6;
+}
+
+message GenTrafficResponse {
+    bytes output = 1;
 }
 
 // --------------------------------------------------------------------------
@@ -66,5 +74,5 @@ service UESim {
     rpc Disconnect (DisconnectRequest) returns (DisconnectResponse) {}
 
     // Triggers iperf traffic towards the CWAG
-    rpc GenTraffic(GenTrafficRequest) returns (orc8r.Void) {}
+    rpc GenTraffic(GenTrafficRequest) returns (GenTrafficResponse) {}
 }

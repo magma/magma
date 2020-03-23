@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.service.add_service"><code class="name flex">
-<span>def <span class="ident">add_service</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, external_id: str, service_type: str, customer: Union[<a title="pyinventory.consts.Customer" href="../consts.html#pyinventory.consts.Customer">Customer</a>, NoneType], properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], links: List[<a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link">Link</a>]) -> <a title="pyinventory.consts.Service" href="../consts.html#pyinventory.consts.Service">Service</a></span>
+<span>def <span class="ident">add_service</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, external_id: Union[str, NoneType], service_type: str, customer: Union[<a title="pyinventory.consts.Customer" href="../consts.html#pyinventory.consts.Customer">Customer</a>, NoneType], properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], links: List[<a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link">Link</a>]) -> <a title="pyinventory.consts.Service" href="../consts.html#pyinventory.consts.Service">Service</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -44,7 +44,7 @@
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.service.add_service_type"><code class="name flex">
-<span>def <span class="ident">add_service_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, hasCustomer: bool, properties: List[<a title="pyinventory.consts.PropertyDefinition" href="../consts.html#pyinventory.consts.PropertyDefinition">PropertyDefinition</a>]) -> <a title="pyinventory.consts.ServiceType" href="../consts.html#pyinventory.consts.ServiceType">ServiceType</a></span>
+<span>def <span class="ident">add_service_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, hasCustomer: bool, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]]) -> <a title="pyinventory.consts.ServiceType" href="../consts.html#pyinventory.consts.ServiceType">ServiceType</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>

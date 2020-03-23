@@ -65,6 +65,7 @@ target_link_libraries(TASK_GRPC_SERVICE
     LIB_HASHTABLE
     ${PROTOBUF_LIBRARIES}
     grpc++
+    folly
     )
 target_include_directories(TASK_GRPC_SERVICE PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

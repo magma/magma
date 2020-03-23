@@ -2901,6 +2901,7 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 
 func validateFilterTypeEntity(input models.ReportFilterInput) error {
 	var validator interface{ IsValid() bool }
+	var msg error
 	for _, f := range input.Filters {
 		switch input.Entity {
 		case models.FilterEntityEquipment:
@@ -2917,7 +2918,13 @@ func validateFilterTypeEntity(input models.ReportFilterInput) error {
 			validator = models.WorkOrderFilterType(f.FilterType)
 		}
 		if validator == nil || !validator.IsValid() {
-			return fmt.Errorf("entity %q and filter type %q does not match", input.Entity, f.FilterType)
+			msg = fmt.Errorf("entity %q and filter type %q does not match", input.Entity, f.FilterType)
+		}
+		if f.Key == "" {
+			msg = fmt.Errorf("filter key was not provided for %s", input.Entity)
+		}
+		if msg != nil {
+			return msg
 		}
 	}
 	return nil
@@ -2931,19 +2938,39 @@ func (r mutationResolver) AddReportFilter(ctx context.Context, input models.Repo
 	if err != nil {
 		return nil, err
 	}
-	return r.ClientFrom(ctx).
+	rf, err := r.ClientFrom(ctx).
 		ReportFilter.
 		Create().
 		SetName(input.Name).
 		SetEntity(reportfilter.Entity(input.Entity)).
 		SetFilters(string(filters)).
 		Save(ctx)
+	if err != nil && ent.IsConstraintError(err) {
+		return nil, gqlerror.Errorf("a saved search with the name %s already exists", input.Name)
+	}
+	return rf, err
 }
 
 func (r mutationResolver) EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error) {
-	return r.ClientFrom(ctx).
+	rf, err := r.ClientFrom(ctx).
 		ReportFilter.
 		UpdateOneID(input.ID).
 		SetName(input.Name).
 		Save(ctx)
+	if err != nil && ent.IsConstraintError(err) {
+		return nil, gqlerror.Errorf("a saved search with the name %s already exists", input.Name)
+	}
+	return rf, err
+}
+
+func (r mutationResolver) DeleteReportFilter(ctx context.Context, id int) (bool, error) {
+	client := r.ClientFrom(ctx).ReportFilter
+	rf, err := client.Get(ctx, id)
+	if err != nil {
+		return false, errors.Wrapf(err, "querying report filter: id=%q", id)
+	}
+	if err := client.DeleteOne(rf).Exec(ctx); err != nil {
+		return false, errors.Wrapf(err, "deleting report filter: id=%q", id)
+	}
+	return true, nil
 }

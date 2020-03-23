@@ -19,6 +19,7 @@ import React, {useContext, useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
+import {isChecklistItemDone} from '../ChecklistUtils';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -66,7 +67,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
       value: item,
       responsesCount: item.checkList.reduce(
         (responsesCount, clItem) =>
-          clItem.checked ? responsesCount + 1 : responsesCount,
+          isChecklistItemDone(clItem) ? responsesCount + 1 : responsesCount,
         0,
       ),
     }));

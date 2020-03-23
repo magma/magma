@@ -27,6 +27,8 @@ magma-gen-meta:
       filename: allowed_gre_peer_swaggergen.go
     - go-struct-name: allowedGrePeers
       filename: allowed_gre_peers_swaggergen.go
+    - go-struct-name: ipdrExportDst
+      filename: ip_d_r_export_dst_swaggergen.go
     - go-struct-name: CwfSubscriberDirectoryRecord
       filename: cwf_subscriber_directory_record_swaggergen.go
 
@@ -804,11 +806,11 @@ definitions:
         items:
           type: string
           enum:
-          - 'metering'
           - 'dpi'
           - 'policy_enforcement'
         example:
-        - 'policy_enforcement'
+          - 'dpi'
+          - 'policy_enforcement'
       eap_aka:
         $ref: './feg-swagger.yml#/definitions/eap_aka'
       aaa_server:
@@ -833,6 +835,22 @@ definitions:
     type: array
     items:
       $ref: '#/definitions/allowed_gre_peer'
+  ipdr_export_dst:
+    type: object
+    required:
+      - ip
+      - port
+    properties:
+      ip:
+        type: string
+        format: ipv4
+        x-nullable: false
+        example: '192.168.128.88'
+      port:
+        type: integer
+        format: uint32
+        x-nullable: false
+        example: 2040
   gateway_cwf_configs:
     type: object
     description: CWF configuration for a gateway
@@ -841,6 +859,8 @@ definitions:
     properties:
       allowed_gre_peers:
         $ref: '#/definitions/allowed_gre_peers'
+      ipdr_export_dst:
+        $ref: '#/definitions/ipdr_export_dst'
 
   cwf_subscriber_directory_record:
     type: object
