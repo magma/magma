@@ -30,6 +30,15 @@ import (
 
 const maxFormSize = 5 << 20
 
+func findIndexAfter(a []string, x string, index int) int {
+	for i, n := range a[index:] {
+		if strings.EqualFold(x, n) {
+			return i + index
+		}
+	}
+	return -1
+}
+
 func findIndex(a []string, x string) int {
 	for i, n := range a {
 		if strings.EqualFold(x, n) {
