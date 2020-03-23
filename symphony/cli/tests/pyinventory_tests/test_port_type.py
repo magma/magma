@@ -32,9 +32,9 @@ class TestEquipmentPortType(BaseTest):
             ],
             link_properties=[
                 PropertyDefinition(
-                    property_name="link port property",
+                    property_name="link property",
                     property_kind=PropertyKind.string,
-                    default_value="link port property value",
+                    default_value="link property value",
                     is_fixed=False,
                 )
             ],
@@ -63,7 +63,7 @@ class TestEquipmentPortType(BaseTest):
             port_type=self.port_type1,
             new_name="new port type 1",
             new_properties={"port property": "new port property value"},
-            new_link_properties={"link port property": "new link port property value"},
+            new_link_properties={"link property": "new link property value"},
         )
         fetched_port_type = get_equipment_port_type(
             client=self.client, equipment_port_type_id=self.port_type1.id
@@ -76,5 +76,5 @@ class TestEquipmentPortType(BaseTest):
         self.assertEqual(len(fetched_port_type.link_property_types), 1)
         self.assertEqual(
             fetched_port_type.link_property_types[0].stringValue,
-            "new link port property value",
+            "new link property value",
         )
