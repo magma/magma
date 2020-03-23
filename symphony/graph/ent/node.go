@@ -206,7 +206,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		ID:     cli.ID,
 		Type:   "CheckListItem",
 		Fields: make([]*Field, 9),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(cli.Title); err != nil {
@@ -282,13 +282,24 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		Value: string(buf),
 	}
 	var ids []int
+	ids, err = cli.QueryFiles().
+		Select(file.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "File",
+		Name: "Files",
+	}
 	ids, err = cli.QueryWorkOrder().
 		Select(workorder.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[0] = &Edge{
+	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
 		Name: "WorkOrder",

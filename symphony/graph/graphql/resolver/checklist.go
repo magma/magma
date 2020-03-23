@@ -28,6 +28,10 @@ func (checkListItemResolver) EnumSelectionMode(_ context.Context, item *ent.Chec
 	return &selectionMode, nil
 }
 
+func (checkListItemResolver) Files(ctx context.Context, item *ent.CheckListItem) ([]*ent.File, error) {
+	return item.QueryFiles().All(ctx)
+}
+
 type checkListItemDefinitionResolver struct{}
 
 func (checkListItemDefinitionResolver) Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error) {

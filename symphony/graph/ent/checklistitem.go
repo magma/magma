@@ -47,17 +47,28 @@ type CheckListItem struct {
 
 // CheckListItemEdges holds the relations/edges for other nodes in the graph.
 type CheckListItemEdges struct {
+	// Files holds the value of the files edge.
+	Files []*File
 	// WorkOrder holds the value of the work_order edge.
 	WorkOrder *WorkOrder
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
+}
+
+// FilesOrErr returns the Files value or an error if the edge
+// was not loaded in eager-loading.
+func (e CheckListItemEdges) FilesOrErr() ([]*File, error) {
+	if e.loadedTypes[0] {
+		return e.Files, nil
+	}
+	return nil, &NotLoadedError{edge: "files"}
 }
 
 // WorkOrderOrErr returns the WorkOrder value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e CheckListItemEdges) WorkOrderOrErr() (*WorkOrder, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		if e.WorkOrder == nil {
 			// The edge work_order was loaded in eager-loading,
 			// but was not found.
@@ -166,6 +177,11 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryFiles queries the files edge of the CheckListItem.
+func (cli *CheckListItem) QueryFiles() *FileQuery {
+	return (&CheckListItemClient{config: cli.config}).QueryFiles(cli)
 }
 
 // QueryWorkOrder queries the work_order edge of the CheckListItem.

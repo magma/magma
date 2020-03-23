@@ -109,6 +109,7 @@ func (CheckListItem) Fields() []ent.Field {
 // Edges returns CheckListItem edges.
 func (CheckListItem) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.To("files", File.Type),
 		edge.From("work_order", WorkOrder.Type).
 			Unique().
 			Ref("check_list_items"),

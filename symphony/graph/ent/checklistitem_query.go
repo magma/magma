@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -16,6 +17,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
@@ -29,6 +31,7 @@ type CheckListItemQuery struct {
 	unique     []string
 	predicates []predicate.CheckListItem
 	// eager-loading edges.
+	withFiles     *FileQuery
 	withWorkOrder *WorkOrderQuery
 	withFKs       bool
 	// intermediate query.
@@ -57,6 +60,18 @@ func (cliq *CheckListItemQuery) Offset(offset int) *CheckListItemQuery {
 func (cliq *CheckListItemQuery) Order(o ...Order) *CheckListItemQuery {
 	cliq.order = append(cliq.order, o...)
 	return cliq
+}
+
+// QueryFiles chains the current query on the files edge.
+func (cliq *CheckListItemQuery) QueryFiles() *FileQuery {
+	query := &FileQuery{config: cliq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(checklistitem.Table, checklistitem.FieldID, cliq.sqlQuery()),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, checklistitem.FilesTable, checklistitem.FilesColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(cliq.driver.Dialect(), step)
+	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
@@ -240,6 +255,17 @@ func (cliq *CheckListItemQuery) Clone() *CheckListItemQuery {
 	}
 }
 
+//  WithFiles tells the query-builder to eager-loads the nodes that are connected to
+// the "files" edge. The optional arguments used to configure the query builder of the edge.
+func (cliq *CheckListItemQuery) WithFiles(opts ...func(*FileQuery)) *CheckListItemQuery {
+	query := &FileQuery{config: cliq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cliq.withFiles = query
+	return cliq
+}
+
 //  WithWorkOrder tells the query-builder to eager-loads the nodes that are connected to
 // the "work_order" edge. The optional arguments used to configure the query builder of the edge.
 func (cliq *CheckListItemQuery) WithWorkOrder(opts ...func(*WorkOrderQuery)) *CheckListItemQuery {
@@ -297,7 +323,8 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 		nodes       = []*CheckListItem{}
 		withFKs     = cliq.withFKs
 		_spec       = cliq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
+			cliq.withFiles != nil,
 			cliq.withWorkOrder != nil,
 		}
 	)
@@ -329,6 +356,34 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
+	}
+
+	if query := cliq.withFiles; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*CheckListItem)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.File(func(s *sql.Selector) {
+			s.Where(sql.InValues(checklistitem.FilesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.check_list_item_files
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "check_list_item_files" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "check_list_item_files" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Files = append(node.Edges.Files, n)
+		}
 	}
 
 	if query := cliq.withWorkOrder; query != nil {

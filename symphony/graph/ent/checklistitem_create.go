@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -132,6 +133,21 @@ func (clic *CheckListItemCreate) SetNillableHelpText(s *string) *CheckListItemCr
 		clic.SetHelpText(*s)
 	}
 	return clic
+}
+
+// AddFileIDs adds the files edge to File by ids.
+func (clic *CheckListItemCreate) AddFileIDs(ids ...int) *CheckListItemCreate {
+	clic.mutation.AddFileIDs(ids...)
+	return clic
+}
+
+// AddFiles adds the files edges to File.
+func (clic *CheckListItemCreate) AddFiles(f ...*File) *CheckListItemCreate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return clic.AddFileIDs(ids...)
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
@@ -278,6 +294,25 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 			Column: checklistitem.FieldHelpText,
 		})
 		cli.HelpText = &value
+	}
+	if nodes := clic.mutation.FilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   checklistitem.FilesTable,
+			Columns: []string{checklistitem.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := clic.mutation.WorkOrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
