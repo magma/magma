@@ -35,7 +35,6 @@ const (
 	queryParamTag        = "tag"
 
 	defaultQuerySize = 50
-	timestamp        = "timestamp"
 
 	// We use the ES "keyword" type for exact match
 	dotKeyword              = ".keyword"
@@ -78,16 +77,16 @@ func EventsHandler(c echo.Context, client *elastic.Client) error {
 			result.Error.Reason))
 	}
 
-	maps, err := getEventMaps(result.Hits.Hits)
+	eventResults, err := getEventResults(result.Hits.Hits)
 	if err != nil {
 		glog.Error(err)
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, maps)
+	return c.JSON(http.StatusOK, eventResults)
 }
 
-type eventResult struct {
+type eventElasticHit struct {
 	StreamName string `json:"stream_name"`
 	EventType  string `json:"event_type"`
 	// FluentBit logs sent from AGW are tagged with hw_id
@@ -98,39 +97,43 @@ type eventResult struct {
 	Value     string `json:"value"`
 }
 
+type eventResult struct {
+	StreamName string                 `json:"stream_name"`
+	EventType  string                 `json:"event_type"`
+	HardwareID string                 `json:"hardware_id"`
+	Tag        string                 `json:"tag"`
+	Timestamp  string                 `json:"timestamp"`
+	Value      map[string]interface{} `json:"value"`
+}
+
 // Retrieve Event properties from the _source of
 // ES Hits, including event metadata
-func getEventMaps(hits []*elastic.SearchHit) ([]map[string]interface{}, error) {
-	results := []map[string]interface{}{}
+func getEventResults(hits []*elastic.SearchHit) ([]eventResult, error) {
+	results := []eventResult{}
 	for _, hit := range hits {
-		var result eventResult
+		var eventHit eventElasticHit
 		// Get Value from the _source
-		if err := json.Unmarshal(hit.Source, &result); err != nil {
+		if err := json.Unmarshal(hit.Source, &eventHit); err != nil {
 			return nil, fmt.Errorf("Unable to Unmarshal JSON from elastic.Hit. "+
 				"elastic.Hit.Source: %s, Error: %s", hit.Source, err)
 		}
 		// Skip hits without an event value
-		if result.Value == "" {
-			return nil, fmt.Errorf("eventResult %s does not contain a value", result)
+		if eventHit.Value == "" {
+			return nil, fmt.Errorf("eventResult %s does not contain a value", eventHit)
 		}
-		// Get event metadata
-		mapToAdd := map[string]interface{}{
-			pathParamStreamName:  result.StreamName,
-			queryParamEventType:  result.EventType,
-			queryParamHardwareID: result.HardwareID,
-			queryParamTag:        result.Tag,
-			timestamp:            result.Timestamp,
-		}
-		// Get event value fields
-		var eventValueMap map[string]interface{}
-		if err := json.Unmarshal([]byte(result.Value), &eventValueMap); err != nil {
+		var eventValue map[string]interface{}
+		if err := json.Unmarshal([]byte(eventHit.Value), &eventValue); err != nil {
 			return nil, fmt.Errorf("Unable to Unmarshal JSON from eventResult.Value. "+
-				"eventResult.Value: %s, Error: %s", hit.Source, err)
+				"eventHit.Value: %s, Error: %s", hit.Source, err)
 		}
-		for k, v := range eventValueMap {
-			mapToAdd[k] = v
-		}
-		results = append(results, mapToAdd)
+		results = append(results, eventResult{
+			StreamName: eventHit.StreamName,
+			EventType:  eventHit.EventType,
+			HardwareID: eventHit.HardwareID,
+			Tag:        eventHit.Tag,
+			Timestamp:  eventHit.Timestamp,
+			Value:      eventValue,
+		})
 	}
 	return results, nil
 }
