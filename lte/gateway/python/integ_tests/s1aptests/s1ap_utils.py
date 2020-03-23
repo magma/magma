@@ -13,6 +13,7 @@ import logging
 import os
 import threading
 from queue import Queue
+import grpc
 
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
@@ -28,15 +29,16 @@ from lte.protos.session_manager_pb2 import (
     PolicyReAuthRequest,
     QoSInformation,
 )
-from lte.protos.session_manager_pb2_grpc import (
-    LocalSessionManagerStub,
-    SessionProxyResponderStub,
-)
 from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
 from magma.common.service_registry import ServiceRegistry
+from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
+from orc8r.protos.directoryd_pb2 import UpdateRecordRequest, \
+    GetDirectoryFieldRequest
+from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
+DEFAULT_GRPC_TIMEOUT = 10
 
 class S1ApUtil(object):
     """
@@ -546,8 +548,8 @@ class SessionManagerUtil(object):
         """
         Initialize sessionManager util.
         """
-        sessiond_chan = ServiceRegistry.get_rpc_channel("sessiond", ServiceRegistry.LOCAL)
-        self.sessiond_client = SessionProxyResponderStub(sessiond_chan)
+        self._session_stub = SessionProxyResponderStub(get_rpc_channel("sessiond"))
+        self._directorydstub = GatewayDirectoryServiceStub(get_rpc_channel("directoryd"))
 
     def create_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
         """
@@ -555,6 +557,9 @@ class SessionManagerUtil(object):
         """
         print("Sending Policy RAR message to session manager")
         flow_match_list = []
+        ipv4_src_addr = None
+        ipv4_dst_addr = None
+        res = None
         for flow in flow_list:
             if flow["direction"] == "UL":
                 flow_direction = FlowMatch.UPLINK
@@ -563,25 +568,28 @@ class SessionManagerUtil(object):
 
             ip_protocol = flow["ip_proto"]
             if ip_protocol == "TCP":
+                ip_protocol = FlowMatch.IPPROTO_TCP
                 udp_src_port = 0
                 udp_dst_port = 0
-                if flow["tcp_src_port"]:
-                    tcp_src_port = flow["tcp_src_port"]
+                if "tcp_src_port" in flow:
+                    tcp_src_port = int(flow["tcp_src_port"])
                 else:
                     tcp_src_port = 0
-                if flow["tcp_dst_port"]:
+                if "tcp_dst_port" in flow:
                     tcp_dst_port = flow["tcp_dst_port"]
                 else:
                     tcp_dst_port = 0
             elif ip_protocol == "UDP":
+                ip_protocol = FlowMatch.IPPROTO_UDP
                 tcp_src_port = 0
                 tcp_dst_port = 0
-                if flow["udp_src_port"]:
-                    udp_src_port = flow["udp_src_port"]
+                if "udp_src_port" in flow:
+                    udp_src_port = int(flow["udp_src_port"])
                 else:
                     udp_src_port = 0
-                if flow["udp_dst_port"]:
-                    udp_dst_port = flow["udp_dst_port"]
+
+                if "udp_dst_port" in flow:
+                    udp_dst_port = int(flow["udp_dst_port"]  )
                 else:
                     udp_dst_port = 0
             else:
@@ -590,21 +598,28 @@ class SessionManagerUtil(object):
                 tcp_src_port = 0
                 tcp_dst_port = 0
 
+            if "ipv4_src" in flow:
+                ipv4_src_addr = flow["ipv4_src"]
+            
+            if "ipv4_dst" in flow:
+                ipv4_dst_addr = flow["ipv4_dst"]
+
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
-                        direction=flow_direction,
-                        ip_proto=ip_protocol,
-                        ipv4_src=flow["ipv4_src"],
-                        ipv4_dst=flow["ipv4_dst"],
+                        ipv4_dst=ipv4_dst_addr,
+                        ipv4_src=ipv4_src_addr,
                         tcp_src=tcp_src_port,
                         tcp_dst=tcp_dst_port,
                         udp_src=udp_src_port,
                         udp_dst=udp_dst_port,
+                        ip_proto=ip_protocol,
+                        direction=flow_direction,
                     ),
                     action=FlowDescription.PERMIT,
                 )
             )
+
 
         policy_qos = FlowQos(
           qci=qos["qci"],
@@ -633,10 +648,18 @@ class SessionManagerUtil(object):
 
         # Get sessionid
         req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
+        try:
+            res = self._directorydstub.GetDirectoryField(req, DEFAULT_GRPC_TIMEOUT)
+        except grpc.RpcError as err:
+            logging.error(
+                "GetDirectoryFieldRequest error for id: %s! [%s] %s",
+                imsi,
+                err.code(),
+                err.details())
 
-        reauth_result = sessiond_client.PolicyReAuth(
+        reauth_result = self._session_stub.PolicyReAuth(
           PolicyReAuthRequest(
-            session_id=req.value,
+            session_id=res.value,
             imsi=imsi,
             rules_to_remove=[],
             rules_to_install=[],
