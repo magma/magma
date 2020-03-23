@@ -94,6 +94,12 @@ func (manager *RuleManager) AddOmniPresentRulesToDB(keyId string, ruleNames, bas
 	return manager.insertOmniPresentRuleIntoRedis(keyId, rule)
 }
 
+// RemoveOmniPresentRulesFromDB adds the network wide static rule to policyDB storage
+func (manager *RuleManager) RemoveOmniPresentRulesFromDB(keyId string) error {
+	fmt.Printf("************************* Removing a network wide rule\n")
+	return manager.removeOmniPresentRuleIntoRedis(keyId)
+}
+
 // GetInstalledRulesByIMSI returns all dynamic rule ids and static rules
 // referenced by dynamic rules keyed by the IMSI they are attached to.
 func (manager *RuleManager) GetInstalledRulesByIMSI() map[string][]string {
@@ -169,6 +175,14 @@ func (manager *RuleManager) insertOmniPresentRuleIntoRedis(keyID string, rule *l
 		return err
 	}
 	manager.omniPresentRules = append(manager.omniPresentRules, rule)
+	return nil
+}
+
+func (manager *RuleManager) removeOmniPresentRuleIntoRedis(keyID string) error {
+	err := manager.policyDBWrapper.omniPresentRules.Delete(keyID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
