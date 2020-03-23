@@ -52,7 +52,7 @@ class TestUser(BaseTest):
         new_password = self.random_string()
         u = add_user(self.client, user_name, user_name)
         edit_user(self.client, u, new_password, UserRole.OWNER)
-        client2 = InventoryClient(user_name, new_password, is_dev_mode=True)
+        client2 = init_client(user_name, new_password)
         active_users = get_active_users(client2)
         self.assertEqual(2, len(active_users))
 
