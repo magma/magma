@@ -35,11 +35,25 @@ export type FreeTextCheckListItemData = {|
   stringValue?: ?string,
 |};
 
+export type CheckListItemFile = {|
+  id?: ?string,
+  storeKey: string,
+  fileName: string,
+  sizeInBytes?: number,
+  modificationTime?: number,
+  uploadTime?: number,
+|};
+
+export type FilesCheckListItemData = {|
+  files?: ?Array<CheckListItemFile>,
+|};
+
 export type CheckListItem = {|
   ...CheckListItemBase,
   ...BasicCheckListItemData,
   ...EnumCheckListItemData,
   ...FreeTextCheckListItemData,
+  ...FilesCheckListItemData,
 |};
 
 export type ChecklistItemsDialogStateType = {
