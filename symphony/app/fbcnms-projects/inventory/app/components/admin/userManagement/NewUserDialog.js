@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {User, UserRole} from './TempTypes';
+import type {User} from './TempTypes';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -29,27 +29,18 @@ import UserAccountDetailsPane, {
 import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {USER_ROLES, USER_STATUSES} from './TempTypes';
+import {generateTempId} from '../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
-export const USER_ROLES = {
-  User: 'User',
-  Admin: 'Admin',
-  Owner: 'Owner',
-};
-
-export const USER_STATUSES = {
-  Active: 'Active',
-  Deactivated: 'Deactivated',
-  Deleted: 'Deleted',
-};
-
 const initialUserData: User = {
-  authId: '',
+  id: generateTempId(),
+  authID: '',
   firstName: '',
   lastName: '',
-  role: USER_ROLES.User,
-  status: USER_STATUSES.Active,
+  role: USER_ROLES.USER.key,
+  status: USER_STATUSES.ACTIVE.key,
 };
 
 const useStyles = makeStyles(() => ({
@@ -131,19 +122,10 @@ const NewUserDialog = (props: Props) => {
                     return;
                   }
                   setUser(currentUser => {
-                    currentUser.role = USER_ROLES[newValue];
+                    currentUser.role = USER_ROLES[newValue].key;
                     return currentUser;
                   });
                 },
-              }}
-              onChange={(newValue: UserRole) => {
-                if (USER_ROLES[newValue] == null) {
-                  return;
-                }
-                setUser(currentUser => {
-                  currentUser.role = USER_ROLES[newValue];
-                  return currentUser;
-                });
               }}
             />
           </div>
