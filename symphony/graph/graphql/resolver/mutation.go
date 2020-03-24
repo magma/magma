@@ -340,7 +340,6 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 			SetNillableFormName(sr.FormName).
 			SetNillableFormDescription(sr.FormDescription).
 			SetQuestionIndex(sr.QuestionIndex).
-			SetQuestionFormat(sr.QuestionFormat.String()).
 			SetQuestionText(sr.QuestionText).
 			SetNillableBoolData(sr.BoolData).
 			SetNillableEmailData(sr.EmailData).
@@ -352,11 +351,14 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 			SetNillableFloatData(sr.FloatData).
 			SetNillableIntData(sr.IntData).
 			SetSurvey(srv)
+		if sr.QuestionFormat != nil {
+			query.SetQuestionFormat(sr.QuestionFormat.String())
+		}
 		if sr.DateData != nil {
 			query.SetDateData(time.Unix(int64(*sr.DateData), 0))
 		}
 
-		if *sr.QuestionFormat == models.SurveyQuestionTypePhoto {
+		if sr.PhotoData != nil {
 			f, err :=
 				r.createImage(
 					ctx,
@@ -369,8 +371,13 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 							}
 							return 0
 						}(),
-						Modified:    time.Now(),
-						ContentType: models.FileTypeImage.String(),
+						Modified: time.Now(),
+						ContentType: func() string {
+							if sr.PhotoData.MimeType != nil {
+								return *sr.PhotoData.MimeType
+							}
+							return "image/jpeg"
+						}(),
 					},
 				)
 			if err != nil {
@@ -384,11 +391,13 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 			return BadID, errors.Wrap(err, "creating survey question")
 		}
 
-		switch *sr.QuestionFormat {
-		case models.SurveyQuestionTypeWifi:
-			_, err = r.CreateWiFiScans(ctx, sr.WifiData, &question.ID, nil)
-		case models.SurveyQuestionTypeCellular:
-			_, err = r.CreateCellScans(ctx, sr.CellData, &question.ID, nil)
+		if sr.QuestionFormat != nil {
+			switch *sr.QuestionFormat {
+			case models.SurveyQuestionTypeWifi:
+				_, err = r.CreateWiFiScans(ctx, sr.WifiData, &question.ID, nil)
+			case models.SurveyQuestionTypeCellular:
+				_, err = r.CreateCellScans(ctx, sr.CellData, &question.ID, nil)
+			}
 		}
 		if err != nil {
 			return BadID, err
@@ -985,6 +994,7 @@ func (r mutationResolver) MoveEquipmentToPosition(
 	return ep, nil
 }
 
+// NOTE: Be aware that this method is used to create both images and files. Will be renamed in another Diff.
 func (r mutationResolver) createImage(ctx context.Context, input *models.AddImageInput) (*ent.File, error) {
 	img, err := r.ClientFrom(ctx).
 		File.Create().
