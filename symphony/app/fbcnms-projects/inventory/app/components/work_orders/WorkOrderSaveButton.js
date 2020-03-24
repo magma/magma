@@ -83,6 +83,15 @@ const WorkOrderSaveButton = (props: Props) => {
               enumSelectionMode: item.enumSelectionMode,
               stringValue: item.stringValue,
               checked: item.checked,
+              files: item.files?.map(file => ({
+                id: file.id,
+                storeKey: file.storeKey,
+                fileName: file.fileName,
+                sizeInBytes: file.sizeInBytes,
+                modificationTime: file.modificationTime,
+                uploadTime: file.uploadTime,
+                fileType: 'FILE',
+              })),
             };
           },
         );
