@@ -14,7 +14,6 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-type DocumentMenu_document$ref = any;
 type ImageDialog_img$ref = any;
 export type FileType = "FILE" | "IMAGE" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
@@ -28,7 +27,7 @@ export type FileAttachment_file = {|
   +fileType: ?FileType,
   +storeKey: ?string,
   +category: ?string,
-  +$fragmentRefs: DocumentMenu_document$ref & ImageDialog_img$ref,
+  +$fragmentRefs: ImageDialog_img$ref,
   +$refType: FileAttachment_file$ref,
 |};
 export type FileAttachment_file$data = FileAttachment_file;
@@ -98,16 +97,11 @@ const node/*: ReaderFragment*/ = {
     },
     {
       "kind": "FragmentSpread",
-      "name": "DocumentMenu_document",
-      "args": null
-    },
-    {
-      "kind": "FragmentSpread",
       "name": "ImageDialog_img",
       "args": null
     }
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = '11f941857f0de845ab7b470ea1019f72';
+(node/*: any*/).hash = '281b6befd7d441674861d38032feb4e5';
 module.exports = node;

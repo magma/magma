@@ -8,13 +8,13 @@
  * @format
  */
 
-export type FileAttachmentType = {
+export type FileAttachmentType = $ReadOnly<{
   id: string,
   fileName: string,
-  sizeInBytes: number,
-  modified: string,
-  uploaded: string,
-  fileType: string,
-  storeKey: string,
-  category: string,
-};
+  sizeInBytes?: ?number,
+  modified?: ?string,
+  uploaded?: ?string,
+  fileType?: ?string,
+  storeKey?: ?string,
+  category?: ?string,
+}>;

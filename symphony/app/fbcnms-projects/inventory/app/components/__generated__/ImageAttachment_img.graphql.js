@@ -14,15 +14,20 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-type DocumentMenu_document$ref = any;
 type ImageDialog_img$ref = any;
+export type FileType = "FILE" | "IMAGE" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ImageAttachment_img$ref: FragmentReference;
 declare export opaque type ImageAttachment_img$fragmentType: ImageAttachment_img$ref;
 export type ImageAttachment_img = {
   +id: string,
+  +fileName: string,
+  +sizeInBytes: ?number,
+  +uploaded: ?any,
+  +fileType: ?FileType,
   +storeKey: ?string,
-  +$fragmentRefs: DocumentMenu_document$ref & ImageDialog_img$ref,
+  +category: ?string,
+  +$fragmentRefs: ImageDialog_img$ref,
   ...
 };
 export type ImageAttachment_img$data = ImageAttachment_img;
@@ -53,14 +58,44 @@ const node/*: ReaderFragment*/ = {
     {
       "kind": "ScalarField",
       "alias": null,
+      "name": "fileName",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "sizeInBytes",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "uploaded",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "fileType",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
       "name": "storeKey",
       "args": null,
       "storageKey": null
     },
     {
-      "kind": "FragmentSpread",
-      "name": "DocumentMenu_document",
-      "args": null
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "category",
+      "args": null,
+      "storageKey": null
     },
     {
       "kind": "FragmentSpread",
@@ -70,5 +105,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = '67ad749bfc49740be43bf4cb43cfa561';
+(node/*: any*/).hash = '94d064d47a4a69874394dea293d6bf62';
 module.exports = node;

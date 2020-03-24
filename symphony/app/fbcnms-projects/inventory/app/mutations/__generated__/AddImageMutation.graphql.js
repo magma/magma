@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 54bbbb2862dca90f8168b9027b871e97
+ * @relayHash 1962dd8e9b3873974ac8a2ef3d11212c
  */
 
 /* eslint-disable */
@@ -52,13 +52,6 @@ mutation AddImageMutation(
   }
 }
 
-fragment DocumentMenu_document on File {
-  id
-  fileName
-  storeKey
-  fileType
-}
-
 fragment FileAttachment_file on File {
   id
   fileName
@@ -67,7 +60,6 @@ fragment FileAttachment_file on File {
   fileType
   storeKey
   category
-  ...DocumentMenu_document
   ...ImageDialog_img
 }
 
@@ -191,7 +183,7 @@ return {
     "operationKind": "mutation",
     "name": "AddImageMutation",
     "id": null,
-    "text": "mutation AddImageMutation(\n  $input: AddImageInput!\n) {\n  addImage(input: $input) {\n    ...FileAttachment_file\n    id\n  }\n}\n\nfragment DocumentMenu_document on File {\n  id\n  fileName\n  storeKey\n  fileType\n}\n\nfragment FileAttachment_file on File {\n  id\n  fileName\n  sizeInBytes\n  uploaded\n  fileType\n  storeKey\n  category\n  ...DocumentMenu_document\n  ...ImageDialog_img\n}\n\nfragment ImageDialog_img on File {\n  storeKey\n  fileName\n}\n",
+    "text": "mutation AddImageMutation(\n  $input: AddImageInput!\n) {\n  addImage(input: $input) {\n    ...FileAttachment_file\n    id\n  }\n}\n\nfragment FileAttachment_file on File {\n  id\n  fileName\n  sizeInBytes\n  uploaded\n  fileType\n  storeKey\n  category\n  ...ImageDialog_img\n}\n\nfragment ImageDialog_img on File {\n  storeKey\n  fileName\n}\n",
     "metadata": {}
   }
 };
