@@ -56,6 +56,7 @@
 #include "spgw_config.h"
 #include "sgw_defs.h"
 #endif
+#include "udp_primitives_server.h"
 #include "s11_mme.h"
 #include "service303.h"
 #include "shared_ts_log.h"
@@ -134,6 +135,7 @@ int main(int argc, char *argv[])
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));
 #else
+  CHECK_INIT_RETURN(udp_init(&mme_config));  
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
 #endif
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
