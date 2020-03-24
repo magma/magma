@@ -30,49 +30,55 @@ const PERMISSIONS_GROUPS_HEADER = fbt(
 
 const VIEWS: Array<NavigatableView> = [
   {
-    navigation: {
+    menuItem: {
       label: USERS_HEADER,
       tooltip: `${USERS_HEADER}`,
     },
-    header: {
-      title: `${USERS_HEADER}`,
-      subtitle:
-        'Add and manage your organization users, and set their role to control their global settings',
-      actionButtons: [
-        {
-          title: fbt('Add User', ''),
-          action: emptyFunction,
-        },
-      ],
+    component: {
+      header: {
+        title: `${USERS_HEADER}`,
+        subtitle:
+          'Add and manage your organization users, and set their role to control their global settings',
+        actionButtons: [
+          {
+            title: fbt('Add User', ''),
+            action: emptyFunction,
+          },
+        ],
+      },
+      children: <UsersView />,
     },
-    children: <UsersView />,
   },
   {
-    navigation: {
+    menuItem: {
       label: PERMISSIONS_GROUPS_HEADER,
       tooltip: `${PERMISSIONS_GROUPS_HEADER}`,
     },
-    header: {
-      title: `${PERMISSIONS_GROUPS_HEADER}`,
-      subtitle:
-        'Create groups with different rules and add users to apply permissions',
-      actionButtons: [
-        {
-          title: fbt('Create Group', ''),
-          action: emptyFunction,
-        },
-      ],
+    component: {
+      header: {
+        title: `${PERMISSIONS_GROUPS_HEADER}`,
+        subtitle:
+          'Create groups with different rules and add users to apply permissions',
+        actionButtons: [
+          {
+            title: fbt('Create Group', ''),
+            action: emptyFunction,
+          },
+        ],
+      },
+      children: <PermissionsGroupsView />,
     },
-    children: <PermissionsGroupsView />,
   },
 ];
 
 export default function UserManaementView() {
   const [addingNewUser, setAddingNewUser] = useState(false);
 
-  const userActions = VIEWS[0].header?.actionButtons;
-  if (userActions != null && userActions.length > 0) {
-    userActions[0].action = () => setAddingNewUser(true);
+  if (VIEWS[0].component != null) {
+    const userActions = VIEWS[0].component.header?.actionButtons;
+    if (userActions != null && userActions.length > 0) {
+      userActions[0].action = () => setAddingNewUser(true);
+    }
   }
 
   return (
