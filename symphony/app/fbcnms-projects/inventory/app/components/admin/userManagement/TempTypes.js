@@ -84,3 +84,40 @@ export const TEMP_USERS: Array<User> = [...new Array(50)].map(_ => ({
     randomNaturalNumber(4, 10),
   )}`,
 }));
+
+export const GROUP_STATUSES = {
+  Active: 'Active',
+  Inactive: 'Inactive',
+};
+
+export type GroupStatus = $Keys<typeof GROUP_STATUSES>;
+
+export type UserPermissionsGroup = {|
+  id: string,
+  name: string,
+  description: string,
+  status: GroupStatus,
+  members: Array<string>,
+|};
+
+const generateGroupStatus = () => itemFromArray(Object.keys(GROUP_STATUSES));
+
+export const TEMP_GROUPS: Array<UserPermissionsGroup> = [...new Array(5)].map(
+  _ => ({
+    id: `${generateString(10)}`,
+    name: `${generateString(1).toUpperCase()}${generateString(
+      randomNaturalNumber(4, 8),
+    )} ${generateString(1).toUpperCase()}${generateString(
+      randomNaturalNumber(4, 10),
+    )}`,
+    description: `${generateString(1).toUpperCase()}${generateString(
+      randomNaturalNumber(4, 8),
+    )} ${[...new Array(randomNaturalNumber(1, 7))]
+      .map(_ => generateString(randomNaturalNumber(4, 10)))
+      .join(' ')}`,
+    // eslint-disable-next-line no-warning-comments
+    // $FlowFixMe: it is temporary
+    status: generateGroupStatus(),
+    members: [],
+  }),
+);

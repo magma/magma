@@ -27,6 +27,7 @@ const borderRadius = '4px';
 const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
+    maxHeight: '100%',
   },
   standalone: {
     borderRadius: borderRadius,

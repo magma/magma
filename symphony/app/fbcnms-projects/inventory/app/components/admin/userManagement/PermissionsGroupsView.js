@@ -8,25 +8,48 @@
  * @format
  */
 
+import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
+import type {UserPermissionsGroup} from './TempTypes';
+
 import * as React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
+import {GROUP_STATUSES, TEMP_GROUPS} from './TempTypes';
 import {makeStyles} from '@material-ui/styles';
+import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
-    display: 'flex',
-    height: '100%',
+    maxHeight: '100%',
+  },
+  narrowColumn: {
+    width: '70%',
+  },
+  wideColumn: {
+    width: '170%',
   },
 }));
 
+type GroupTableRow = TableRowDataType<UserPermissionsGroup>;
+type GroupTableData = Array<GroupTableRow>;
+
+const group2GroupTableRow: (
+  UserPermissionsGroup | GroupTableRow,
+) => GroupTableRow = group => ({
+  key: group.key || group.id,
+  ...group,
+});
+
 export default function UsersView() {
   const classes = useStyles();
+  const [groupsTable, _setGroupsTable] = useState<GroupTableData>(
+    TEMP_GROUPS.map(group2GroupTableRow),
+  );
 
   return (
     <div className={classes.root}>
       <Table
-        data={[]}
+        data={groupsTable}
         columns={[
           {
             key: 'name',
@@ -35,7 +58,18 @@ export default function UsersView() {
                 Group Name
               </fbt>
             ),
-            render: _row => 'No Value',
+            render: groupRow => groupRow.name,
+          },
+          {
+            key: 'description',
+            title: (
+              <fbt desc="Description column header in permission groups table">
+                Description
+              </fbt>
+            ),
+            render: groupRow => groupRow.description,
+            titleClassName: classes.wideColumn,
+            className: classes.wideColumn,
           },
           {
             key: 'members',
@@ -44,7 +78,9 @@ export default function UsersView() {
                 Members
               </fbt>
             ),
-            render: _row => 'No Value',
+            render: groupRow => groupRow.members.length,
+            titleClassName: classes.narrowColumn,
+            className: classes.narrowColumn,
           },
           {
             key: 'status',
@@ -53,7 +89,9 @@ export default function UsersView() {
                 Status
               </fbt>
             ),
-            render: _row => 'No Value',
+            render: groupRow => GROUP_STATUSES[groupRow.status],
+            titleClassName: classes.narrowColumn,
+            className: classes.narrowColumn,
           },
         ]}
       />
