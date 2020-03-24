@@ -14,15 +14,14 @@ import type {OptionProps} from '@fbcnms/ui/components/design-system/Select/Selec
 import * as React from 'react';
 import FileUploadArea from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormFieldTextInput from './FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
-import {useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -92,63 +91,14 @@ const EMPLOYMENT_TYPE_OPTIONS: Array<OptionProps<EmploymentType>> = [
   },
 ];
 
-type FormFieldTextInputProps = {
-  validationId?: string,
-  label: string,
-  value: string,
-  valueChanged: string => void,
-  className: string,
-};
-
-const FormFieldTextInput = (props: FormFieldTextInputProps) => {
-  const {value, valueChanged, validationId, label, className} = props;
-  const [fieldValue, setFieldValue] = useState<string>('');
-  useEffect(() => setFieldValue(value), [value]);
-  const isRequired = validationId != null;
-
-  return (
-    <FormField
-      className={className}
-      label={label}
-      required={isRequired}
-      validation={
-        isRequired
-          ? {
-              id: validationId || '',
-              value: fieldValue,
-            }
-          : undefined
-      }>
-      <TextInput
-        value={fieldValue}
-        onChange={e => setFieldValue(e.target.value)}
-        onBlur={() => {
-          const trimmedLastName = fieldValue.trim();
-          if (trimmedLastName.length === 0) {
-            setFieldValue(value);
-          } else {
-            valueChanged(trimmedLastName);
-          }
-        }}
-      />
-    </FormField>
-  );
-};
-
 type Props = {
   user: User,
-  onChange?: ?(User) => void,
+  onChange: User => void,
 };
 
 export default function UserProfilePane(props: Props) {
   const {user, onChange} = props;
   const classes = useStyles();
-
-  const userChanged = () => {
-    if (onChange) {
-      onChange(user);
-    }
-  };
 
   return (
     <div className={classes.root}>
@@ -178,9 +128,9 @@ export default function UserProfilePane(props: Props) {
                   label={`${fbt('First Name', '')}`}
                   validationId="first name"
                   value={user.firstName}
-                  valueChanged={newName => {
+                  onValueChanged={newName => {
                     user.firstName = newName;
-                    userChanged();
+                    onChange(user);
                   }}
                 />
               </Grid>
@@ -190,9 +140,9 @@ export default function UserProfilePane(props: Props) {
                   label={`${fbt('Last Name', '')}`}
                   validationId="last name"
                   value={user.lastName}
-                  valueChanged={newName => {
+                  onValueChanged={newName => {
                     user.lastName = newName;
-                    userChanged();
+                    onChange(user);
                   }}
                 />
               </Grid>
@@ -201,9 +151,9 @@ export default function UserProfilePane(props: Props) {
                   className={classes.field}
                   label={`${fbt('Phone Number', '')}`}
                   value={user.phoneNumber || ''}
-                  valueChanged={newPhoneNumber => {
+                  onValueChanged={newPhoneNumber => {
                     user.phoneNumber = newPhoneNumber;
-                    userChanged();
+                    onChange(user);
                   }}
                 />
               </Grid>
@@ -217,14 +167,14 @@ export default function UserProfilePane(props: Props) {
           value: user.role,
           onChange: newRole => {
             user.role = newRole;
-            userChanged();
+            onChange(user);
           },
         }}
         status={{
           value: user.status,
           onChange: newStatus => {
             user.status = newStatus;
-            userChanged();
+            onChange(user);
           },
         }}
       />
@@ -247,9 +197,9 @@ export default function UserProfilePane(props: Props) {
                 className={classes.field}
                 label={`${fbt('Job Title', '')}`}
                 value={user.jobTitle || ''}
-                valueChanged={newValue => {
+                onValueChanged={newValue => {
                   user.jobTitle = newValue;
-                  userChanged();
+                  onChange(user);
                 }}
               />
             </Grid>
@@ -258,9 +208,9 @@ export default function UserProfilePane(props: Props) {
                 className={classes.field}
                 label={`${fbt('Employee ID', '')}`}
                 value={user.employeeID || ''}
-                valueChanged={newValue => {
+                onValueChanged={newValue => {
                   user.employeeID = newValue;
-                  userChanged();
+                  onChange(user);
                 }}
               />
             </Grid>
@@ -273,7 +223,7 @@ export default function UserProfilePane(props: Props) {
                   selectedValue={user.employmentType}
                   onChange={newValue => {
                     user.employmentType = newValue;
-                    userChanged();
+                    onChange(user);
                   }}
                 />
               </FormField>

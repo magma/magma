@@ -11,7 +11,9 @@
 import type {User} from './TempTypes';
 
 import * as React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import UserAccountDetailsPane, {
+  ACCOUNT_DISPLAY_VARIANTS,
+} from './UserAccountDetailsPane';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -24,15 +26,20 @@ const useStyles = makeStyles(() => ({
 
 type Props = {
   user: User,
+  onChange: User => void,
 };
 
 export default function UserAccountPane(props: Props) {
-  const {user} = props;
+  const {user, onChange} = props;
   const classes = useStyles();
 
   return (
     <div className={classes.root}>
-      <Text>{user.authId}</Text>
+      <UserAccountDetailsPane
+        variant={ACCOUNT_DISPLAY_VARIANTS.userDetailsCard}
+        user={user}
+        onChange={(user, _password) => onChange(user)}
+      />
     </div>
   );
 }
