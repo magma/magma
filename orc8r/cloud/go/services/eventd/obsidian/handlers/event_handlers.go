@@ -15,6 +15,7 @@ import (
 	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/eventd/obsidian/models"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -97,19 +98,10 @@ type eventElasticHit struct {
 	Value     string `json:"value"`
 }
 
-type eventResult struct {
-	StreamName string                 `json:"stream_name"`
-	EventType  string                 `json:"event_type"`
-	HardwareID string                 `json:"hardware_id"`
-	Tag        string                 `json:"tag"`
-	Timestamp  string                 `json:"timestamp"`
-	Value      map[string]interface{} `json:"value"`
-}
-
 // Retrieve Event properties from the _source of
 // ES Hits, including event metadata
-func getEventResults(hits []*elastic.SearchHit) ([]eventResult, error) {
-	results := []eventResult{}
+func getEventResults(hits []*elastic.SearchHit) ([]models.Event, error) {
+	results := []models.Event{}
 	for _, hit := range hits {
 		var eventHit eventElasticHit
 		// Get Value from the _source
@@ -126,7 +118,7 @@ func getEventResults(hits []*elastic.SearchHit) ([]eventResult, error) {
 			return nil, fmt.Errorf("Unable to Unmarshal JSON from eventResult.Value. "+
 				"eventHit.Value: %s, Error: %s", hit.Source, err)
 		}
-		results = append(results, eventResult{
+		results = append(results, models.Event{
 			StreamName: eventHit.StreamName,
 			EventType:  eventHit.EventType,
 			HardwareID: eventHit.HardwareID,
