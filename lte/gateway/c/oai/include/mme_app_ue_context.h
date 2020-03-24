@@ -110,14 +110,6 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(mme_ue_s1ap_id_t*
 #define MME_APP_DELTA_T3412_REACHABILITY_TIMER 4           // in minutes
 #define MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER 0 // in minutes
 
-#define BEARER_STATE_NULL 0
-#define BEARER_STATE_SGW_CREATED (1 << 0)
-#define BEARER_STATE_MME_CREATED (1 << 1)
-#define BEARER_STATE_ENB_CREATED (1 << 2)
-#define BEARER_STATE_ACTIVE (1 << 3)
-#define BEARER_STATE_S1_RELEASED (1 << 4)
-typedef uint8_t mme_app_bearer_state_t;
-
 #define MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE 2 // In seconds
 #define MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE 2   // In seconds
 #define MME_APP_PAGING_RESPONSE_TIMER_VALUE 4           // In seconds
@@ -159,7 +151,6 @@ typedef struct bearer_context_s {
   fteid_t p_gw_fteid_s5_s8_up;
 
   pdn_cid_t pdn_cx_id;
-  mme_app_bearer_state_t bearer_state;
   esm_ebr_context_t esm_ebr_context;
   fteid_t enb_fteid_s1u;
 
@@ -612,11 +603,6 @@ bearer_context_t* mme_app_get_bearer_context(
 
 void mme_app_handle_enb_deregister_ind(
   const itti_s1ap_eNB_deregistered_ind_t* eNB_deregistered_ind);
-
-bearer_context_t* mme_app_get_bearer_context_by_state(
-  ue_mm_context_t* const ue_context,
-  const pdn_cid_t cid,
-  const mme_app_bearer_state_t state);
 
 ebi_t mme_app_get_free_bearer_id(ue_mm_context_t* const ue_context);
 

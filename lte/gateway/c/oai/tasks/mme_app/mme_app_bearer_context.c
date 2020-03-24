@@ -43,27 +43,10 @@
 static void mme_app_bearer_context_init(bearer_context_t* const bearer_context);
 
 //------------------------------------------------------------------------------
-bstring bearer_state2string(const mme_app_bearer_state_t bearer_state)
-{
-  bstring bsstr = NULL;
-  if (BEARER_STATE_NULL == bearer_state) {
-    bsstr = bfromcstr("BEARER_STATE_NULL");
-    return bsstr;
-  }
-  bsstr = bfromcstr(" ");
-  if (BEARER_STATE_SGW_CREATED & bearer_state) bcatcstr(bsstr, "SGW_CREATED ");
-  if (BEARER_STATE_MME_CREATED & bearer_state) bcatcstr(bsstr, "MME_CREATED ");
-  if (BEARER_STATE_ENB_CREATED & bearer_state) bcatcstr(bsstr, "ENB_CREATED ");
-  if (BEARER_STATE_ACTIVE & bearer_state) bcatcstr(bsstr, "ACTIVE");
-  return bsstr;
-}
-
-//------------------------------------------------------------------------------
 static void mme_app_bearer_context_init(bearer_context_t *const bearer_context)
 {
   if (bearer_context) {
     memset(bearer_context, 0, sizeof(*bearer_context));
-    bearer_context->bearer_state = BEARER_STATE_NULL;
 
     esm_bearer_context_init(&bearer_context->esm_ebr_context);
   }
@@ -113,28 +96,6 @@ bearer_context_t *mme_app_get_bearer_context(
     (EPS_BEARER_IDENTITY_FIRST <= ebi)) {
     return ue_context->bearer_contexts[EBI_TO_INDEX(ebi)];
   }
-  return NULL;
-}
-
-//------------------------------------------------------------------------------
-bearer_context_t *mme_app_get_bearer_context_by_state(
-  ue_mm_context_t *const ue_context,
-  const pdn_cid_t cid,
-  const mme_app_bearer_state_t state)
-{
-  for (int i = 0; i < BEARERS_PER_UE; i++) {
-    bearer_context_t *bc = ue_context->bearer_contexts[i];
-    if ((bc) && (state == bc->bearer_state)) {
-      if (cid == bc->pdn_cx_id) {
-        return bc;
-      }
-      // if no specific PDN id selected
-      if (MAX_APN_PER_UE == cid) {
-        return bc;
-      }
-    }
-  }
-
   return NULL;
 }
 
@@ -206,7 +167,6 @@ void mme_app_bearer_context_s1_release_enb_informations(
   bearer_context_t *const bc)
 {
   if (bc) {
-    bc->bearer_state = BEARER_STATE_S1_RELEASED;
     memset(&bc->enb_fteid_s1u, 0, sizeof(bc->enb_fteid_s1u));
     bc->enb_fteid_s1u.teid = INVALID_TEID;
   }

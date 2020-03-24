@@ -417,33 +417,30 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
   for (int i = 0; i < BEARERS_PER_UE; i++) {
     bearer_context_t *bc = ue_context_p->bearer_contexts[i];
     if (bc) {
-      if (BEARER_STATE_SGW_CREATED & bc->bearer_state) {
-        establishment_cnf_p->e_rab_id[j] =
-          bc->ebi; //+ EPS_BEARER_IDENTITY_FIRST;
-        establishment_cnf_p->e_rab_level_qos_qci[j] = bc->qci;
-        establishment_cnf_p->e_rab_level_qos_priority_level[j] =
-          bc->priority_level;
-        establishment_cnf_p->e_rab_level_qos_preemption_capability[j] =
-          bc->preemption_capability;
-        establishment_cnf_p->e_rab_level_qos_preemption_vulnerability[j] =
-          bc->preemption_vulnerability;
-        establishment_cnf_p->transport_layer_address[j] =
-          fteid_ip_address_to_bstring(&bc->s_gw_fteid_s1u);
-        establishment_cnf_p->gtp_teid[j] = bc->s_gw_fteid_s1u.teid;
-        if (!j) {
-          establishment_cnf_p->nas_pdu[j] = nas_conn_est_cnf_p->nas_msg;
-          nas_conn_est_cnf_p->nas_msg = NULL;
+      establishment_cnf_p->e_rab_id[j] = bc->ebi; //+ EPS_BEARER_IDENTITY_FIRST;
+      establishment_cnf_p->e_rab_level_qos_qci[j] = bc->qci;
+      establishment_cnf_p->e_rab_level_qos_priority_level[j] =
+        bc->priority_level;
+      establishment_cnf_p->e_rab_level_qos_preemption_capability[j] =
+        bc->preemption_capability;
+      establishment_cnf_p->e_rab_level_qos_preemption_vulnerability[j] =
+        bc->preemption_vulnerability;
+      establishment_cnf_p->transport_layer_address[j] =
+        fteid_ip_address_to_bstring(&bc->s_gw_fteid_s1u);
+      establishment_cnf_p->gtp_teid[j] = bc->s_gw_fteid_s1u.teid;
+      if (!j) {
+        establishment_cnf_p->nas_pdu[j] = nas_conn_est_cnf_p->nas_msg;
+        nas_conn_est_cnf_p->nas_msg = NULL;
 #if DEBUG_IS_ON
-          if (!establishment_cnf_p->nas_pdu[j]) {
-            OAILOG_ERROR(
-              LOG_MME_APP,
-              "No NAS PDU found ue " MME_UE_S1AP_ID_FMT "\n",
-              nas_conn_est_cnf_p->ue_id);
-          }
-#endif
+        if (!establishment_cnf_p->nas_pdu[j]) {
+          OAILOG_ERROR(
+            LOG_MME_APP,
+            "No NAS PDU found ue " MME_UE_S1AP_ID_FMT "\n",
+            nas_conn_est_cnf_p->ue_id);
         }
-        j = j + 1;
+#endif
       }
+      j = j + 1;
     }
   }
   establishment_cnf_p->no_of_e_rabs = j;
@@ -1097,7 +1094,6 @@ int mme_app_handle_create_sess_resp(
 
     update_mme_app_stats_default_bearer_add();
 
-    current_bearer_p->bearer_state |= BEARER_STATE_SGW_CREATED;
     if (!i) {
       pdn_cx_id = current_bearer_p->pdn_cx_id;
       /*
@@ -1481,9 +1477,6 @@ void mme_app_handle_s11_create_bearer_req(
     s11_proc_create_bearer->bearer_status[EBI_TO_INDEX(dedicated_bc->ebi)] =
       S11_PROC_BEARER_PENDING;
 
-    dedicated_bc->bearer_state |= BEARER_STATE_SGW_CREATED;
-    dedicated_bc->bearer_state |= BEARER_STATE_MME_CREATED;
-
     dedicated_bc->s_gw_fteid_s1u = msg_bc->s1u_sgw_fteid;
     dedicated_bc->p_gw_fteid_s5_s8_up = msg_bc->s5_s8_u_pgw_fteid;
 
@@ -1529,7 +1522,6 @@ void mme_app_handle_e_rab_setup_rsp(
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   struct ue_mm_context_s* ue_context_p = NULL;
-  bool send_s11_response = false;
   OAILOG_INFO(
     LOG_MME_APP,
     "Received S1AP_E_RAB_SETUP_RSP from S1AP for ue_id:" MME_UE_S1AP_ID_FMT
@@ -1552,151 +1544,51 @@ void mme_app_handle_e_rab_setup_rsp(
     e_rab_id_t e_rab_id = e_rab_setup_rsp->e_rab_setup_list.item[i].e_rab_id;
     bearer_context_t* bc =
       mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
-    if (bc->bearer_state & BEARER_STATE_SGW_CREATED) {
-      bc->enb_fteid_s1u.teid =
-        e_rab_setup_rsp->e_rab_setup_list.item[i].gtp_teid;
-      // Do not process transport_layer_address now
-      //bstring e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address;
-      ip_address_t enb_ip_address = {0};
-      bstring_to_ip_address(
-        e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address,
-        &enb_ip_address);
+    bc->enb_fteid_s1u.teid = e_rab_setup_rsp->e_rab_setup_list.item[i].gtp_teid;
+    // Do not process transport_layer_address now
+    // bstring e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address;
+    ip_address_t enb_ip_address = {0};
+    bstring_to_ip_address(
+      e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address,
+      &enb_ip_address);
 
-      bc->enb_fteid_s1u.interface_type = S1_U_ENODEB_GTP_U;
-      // TODO better than that later
-      switch (enb_ip_address.pdn_type) {
-        case IPv4:
-          bc->enb_fteid_s1u.ipv4 = 1;
-          bc->enb_fteid_s1u.ipv4_address = enb_ip_address.address.ipv4_address;
-          break;
-        case IPv6:
-          bc->enb_fteid_s1u.ipv6 = 1;
-          memcpy(
-            &bc->enb_fteid_s1u.ipv6_address,
-            &enb_ip_address.address.ipv6_address,
-            sizeof(enb_ip_address.address.ipv6_address));
-          break;
-        default:
-          OAILOG_ERROR(
-            LOG_MME_APP,
-            "Invalid eNB IP address PDN type received for MME UE S1AP "
-            "Id: " MME_UE_S1AP_ID_FMT "\n",
-            e_rab_setup_rsp->mme_ue_s1ap_id);
-          OAILOG_FUNC_OUT(LOG_MME_APP);
-      }
-      bdestroy_wrapper(
-        &e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address);
-
-      if (!(bc->bearer_state & BEARER_STATE_MME_CREATED)) {
+    bc->enb_fteid_s1u.interface_type = S1_U_ENODEB_GTP_U;
+    // TODO better than that later
+    switch (enb_ip_address.pdn_type) {
+      case IPv4:
+        bc->enb_fteid_s1u.ipv4 = 1;
+        bc->enb_fteid_s1u.ipv4_address = enb_ip_address.address.ipv4_address;
+        break;
+      case IPv6:
+        bc->enb_fteid_s1u.ipv6 = 1;
+        memcpy(
+          &bc->enb_fteid_s1u.ipv6_address,
+          &enb_ip_address.address.ipv6_address,
+          sizeof(enb_ip_address.address.ipv6_address));
+        break;
+      default:
         OAILOG_ERROR(
           LOG_MME_APP,
-          "Bearer not created in MME for bearer Id: %u\n",
-          e_rab_id);
+          "Invalid eNB IP address PDN type received for MME UE S1AP "
+          "Id: " MME_UE_S1AP_ID_FMT "\n",
+          e_rab_setup_rsp->mme_ue_s1ap_id);
         OAILOG_FUNC_OUT(LOG_MME_APP);
-      }
-      bc->bearer_state |= BEARER_STATE_ENB_CREATED;
     }
+    bdestroy_wrapper(
+      &e_rab_setup_rsp->e_rab_setup_list.item[i].transport_layer_address);
   }
+
   for (int i = 0; i < e_rab_setup_rsp->e_rab_failed_to_setup_list.no_of_items;
        i++) {
     e_rab_id_t e_rab_id =
       e_rab_setup_rsp->e_rab_failed_to_setup_list.item[i].e_rab_id;
-    bearer_context_t* bc =
-      mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
-    if (bc->bearer_state & BEARER_STATE_SGW_CREATED) {
-      if (bc->bearer_state & BEARER_STATE_MME_CREATED) {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "Bearer creation failed in eNB, but successfully created in "
-          "MME/SGW for bearer Id: %u\n",
-          e_rab_id);
-        esm_proc_dedicated_eps_bearer_context_reject(
-          &ue_context_p->emm_context, e_rab_id);
-        OAILOG_FUNC_OUT(LOG_MME_APP);
-      } else {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "Bearer creation failed in eNB and MME for bearer Id: %u\n",
-          e_rab_id);
-      }
-      bc->bearer_state &= (~BEARER_STATE_ENB_CREATED);
-      bc->bearer_state &= (~BEARER_STATE_MME_CREATED);
-    }
-  }
-
-  // check if UE already responded with NAS (may depend on eNB implementation?) -> send response to SGW
-  if (send_s11_response) {
-    MessageDef *message_p =
-      itti_alloc_new_message(TASK_MME_APP, S11_CREATE_BEARER_RESPONSE);
-    if (message_p == NULL) {
-      OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate new ITTI message for S11 Create Bearer Response "
-        "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-        e_rab_setup_rsp->mme_ue_s1ap_id);
-      OAILOG_FUNC_OUT(LOG_MME_APP);
-    }
-    itti_s11_create_bearer_response_t *s11_create_bearer_response =
-      &message_p->ittiMsg.s11_create_bearer_response;
-    s11_create_bearer_response->local_teid = ue_context_p->mme_teid_s11;
-    s11_create_bearer_response->trxn = NULL;
-    s11_create_bearer_response->cause.cause_value = 0;
-    int msg_bearer_index = 0;
-
-    for (int i = 0; i < e_rab_setup_rsp->e_rab_setup_list.no_of_items; i++) {
-      e_rab_id_t e_rab_id = e_rab_setup_rsp->e_rab_setup_list.item[i].e_rab_id;
-      bearer_context_t *bc =
-        mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
-      if (bc->bearer_state & BEARER_STATE_ENB_CREATED) {
-        s11_create_bearer_response->cause.cause_value = REQUEST_ACCEPTED;
-        s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .eps_bearer_id = e_rab_id;
-        s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .cause.cause_value = REQUEST_ACCEPTED;
-        //  FTEID eNB
-        s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .s1u_enb_fteid = bc->enb_fteid_s1u;
-
-        // FTEID SGW S1U
-        s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .s1u_sgw_fteid =
-          bc->s_gw_fteid_s1u; ///< This IE shall be sent on the S11 interface. It shall be used
-        s11_create_bearer_response->bearer_contexts.num_bearer_context++;
-      }
-    }
-
-    for (int i = 0; i < e_rab_setup_rsp->e_rab_setup_list.no_of_items; i++) {
-      e_rab_id_t e_rab_id = e_rab_setup_rsp->e_rab_setup_list.item[i].e_rab_id;
-      bearer_context_t *bc =
-        mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
-      if (bc->bearer_state & BEARER_STATE_MME_CREATED) {
-        if (REQUEST_ACCEPTED == s11_create_bearer_response->cause.cause_value) {
-          s11_create_bearer_response->cause.cause_value =
-            REQUEST_ACCEPTED_PARTIALLY;
-        } else {
-          s11_create_bearer_response->cause.cause_value = REQUEST_REJECTED;
-        }
-        s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .eps_bearer_id = e_rab_id;
-        s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .cause.cause_value =
-          REQUEST_REJECTED; // TODO translation of S1AP cause to SGW cause
-        s11_create_bearer_response->bearer_contexts.num_bearer_context++;
-        bc->bearer_state = BEARER_STATE_NULL;
-      }
-    }
-
-    message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-    itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, message_p);
-  } else {
-    // not send S11 response
-    // TODO create a procedure with bearers to receive a response from NAS
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Bearer creation failed in eNB, for bearer Id: %u\n",
+      e_rab_id);
+    esm_proc_dedicated_eps_bearer_context_reject(
+      &ue_context_p->emm_context, e_rab_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
