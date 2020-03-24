@@ -516,6 +516,8 @@ def delete_location(client: SymphonyClient, location: Location) -> None:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
     if len(location_with_deps.files) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "files")
+    if len(location_with_deps.images) > 0:
+        raise LocationCannotBeDeletedWithDependency(location.name, "images")
     if len(location_with_deps.children) > 0:
         raise LocationCannotBeDeletedWithDependency(location.name, "children")
     if len(location_with_deps.surveys) > 0:
@@ -655,7 +657,7 @@ def get_location_documents(
     ).location
     if not location_with_documents:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
-    return [
+    files = [
         Document(
             name=file.fileName,
             id=file.id,
@@ -665,3 +667,15 @@ def get_location_documents(
         )
         for file in location_with_documents.files
     ]
+    images = [
+        Document(
+            name=file.fileName,
+            id=file.id,
+            parentId=location.id,
+            parentEntity=ImageEntity.LOCATION,
+            category=file.category,
+        )
+        for file in location_with_documents.images
+    ]
+
+    return files + images
