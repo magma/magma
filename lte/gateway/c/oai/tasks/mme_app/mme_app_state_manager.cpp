@@ -112,6 +112,7 @@ mme_app_desc_t* MmeNasStateManager::get_state(bool read_from_db)
     create_hashtables();
     // read the state from data store
     int rc = read_state_from_db();
+    read_ue_state_from_db();
     AssertFatal(state_cache_p, "mme_nas_state is NULL");
   }
   return state_cache_p;
@@ -192,6 +193,8 @@ void MmeNasStateManager::create_state()
   if (!state_cache_p) {
     return;
   }
+  state_cache_p->mme_app_ue_s1ap_id_generator = 1;
+
   create_hashtables();
   // Initialize the local timers, which are non-persistent
   mme_nas_state_init_local_state();

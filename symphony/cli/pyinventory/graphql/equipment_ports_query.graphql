@@ -4,29 +4,7 @@ query EquipmentPortsQuery($id: ID!) {
       ports {
         id
         properties {
-          id
-          propertyType {
-            id
-            name
-            type
-            index
-            stringValue
-            intValue
-            booleanValue
-            floatValue
-            latitudeValue
-            longitudeValue
-            isEditable
-            isInstanceProperty
-          }
-          stringValue
-          intValue
-          floatValue
-          booleanValue
-          latitudeValue
-          longitudeValue
-          rangeFromValue
-          rangeToValue
+          ...PropertyFragment
         }
         definition {
           id
@@ -38,6 +16,9 @@ query EquipmentPortsQuery($id: ID!) {
         }
         link {
           id
+          properties {
+            ...PropertyFragment
+          }
           services {
             id
           }

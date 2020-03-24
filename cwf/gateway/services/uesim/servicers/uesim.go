@@ -162,7 +162,7 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 	}
 	var cmd *exec.Cmd
 
-	argList := []string{"--json", "-c", trafficSrvIP, "-M", trafficMSS}
+	argList := []string{"--json", "--get-server-output", "-c", trafficSrvIP, "-M", trafficMSS}
 	if req.Volume != nil {
 		argList = append(argList, []string{"-n", req.Volume.Value}...)
 	}
@@ -177,6 +177,10 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 
 	if req.TimeInSecs != 0 {
 		argList = append(argList, []string{"-t", strconv.FormatUint(req.TimeInSecs, 10)}...)
+	}
+
+	if req.ReportingIntervalInSecs != 0 {
+		argList = append(argList, []string{"-i", strconv.FormatUint(req.ReportingIntervalInSecs, 10)}...)
 	}
 
 	cmd = exec.Command("iperf3", argList...)

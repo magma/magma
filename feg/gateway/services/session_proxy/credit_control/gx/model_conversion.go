@@ -118,7 +118,7 @@ func (rd *RuleDefinition) GetFlowList() []*protos.FlowDescription {
 	return flowList
 }
 
-func (rar *ReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.PolicyDBClient) *protos.PolicyReAuthRequest {
+func (rar *PolicyReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.PolicyDBClient) *protos.PolicyReAuthRequest {
 	var rulesToRemove, baseNamesToRemove []string
 
 	for _, ruleRemove := range rar.RulesToRemove {
@@ -151,7 +151,7 @@ func (rar *ReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.Poli
 	}
 }
 
-func (raa *ReAuthAnswer) FromProto(sessionID string, answer *protos.PolicyReAuthAnswer) *ReAuthAnswer {
+func (raa *PolicyReAuthAnswer) FromProto(sessionID string, answer *protos.PolicyReAuthAnswer) *PolicyReAuthAnswer {
 	raa.SessionID = sessionID
 	raa.ResultCode = diam.Success
 	raa.RuleReports = make([]*ChargingRuleReport, 0, len(answer.FailedRules))

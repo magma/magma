@@ -5,19 +5,7 @@ query LocationTypesQuery {
         id
         name
         propertyTypes {
-          id
-          name
-          type
-          index
-          category
-          stringValue
-          intValue
-          booleanValue
-          floatValue
-          latitudeValue
-          longitudeValue
-          isEditable
-          isInstanceProperty
+          ...PropertyTypeFragment
         }
       }
     }

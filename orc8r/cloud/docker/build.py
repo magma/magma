@@ -65,8 +65,10 @@ def main() -> None:
         return
 
     if args.mount:
+        _run_docker(['up', '-d', 'postgres_test'])
         # Mount the source code and run a container with bash shell
         _run_docker(['run', '--rm'] + _get_mount_volumes() + ['test', 'bash'])
+        _run_docker(['down'])
     elif args.generate:
         _run_docker(
             ['run', '--rm'] + _get_mount_volumes() + ['test', 'make gen'],

@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
 )
@@ -34,7 +35,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating service: %s", err)
 	}
-	db, err := sqorc.Open(blobstore.SQLDriver, blobstore.DatabaseSource)
+	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}

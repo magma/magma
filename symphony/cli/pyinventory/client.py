@@ -173,6 +173,11 @@ class SymphonyClient(GraphqlClient):
             self._login()
         return self.session.post("".join([self.address, url]), json=json)
 
+    def put(self, url: str, json: Optional[Dict[str, Any]] = None) -> Response:
+        if "x-csrf-token" not in self.session.headers:
+            self._login()
+        return self.session.put("".join([self.address, url]), json=json)
+
     def _login(self) -> None:
         login_endpoint = self.address + INVENTORY_LOGIN_ENDPOINT
         response = self.session.get(login_endpoint)

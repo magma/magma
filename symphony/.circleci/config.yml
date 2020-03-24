@@ -28,9 +28,9 @@ aliases:
 
 orbs:
   artifactory: circleci/artifactory@1.0.0
-  docker: circleci/docker@0.5.13
-  go: circleci/go@0.2.0
-  helm: circleci/helm@0.2.0
+  docker: circleci/docker@1.0.0
+  go: circleci/go@1.1.0
+  helm: circleci/helm@0.2.3
 
 executors:
   node:
@@ -39,14 +39,14 @@ executors:
   golangci:
     parameters:
       tag:
-        default: v1.23
+        default: v1.23.8
         type: string
     docker:
       - image: golangci/golangci-lint:<<parameters.tag>>
   terraform:
     parameters:
       tag:
-        default: 0.12.23
+        default: 0.12.24
         type: string
     docker:
       - image: hashicorp/terraform:<<parameters.tag>>

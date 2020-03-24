@@ -11,9 +11,9 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from gql.gql.enum_utils import enum_field
-from .property_kind_enum import PropertyKind
-
+from .equipment_port_definition_fragment import EquipmentPortDefinitionFragment, QUERY as EquipmentPortDefinitionFragmentQuery
+from .equipment_position_definition_fragment import EquipmentPositionDefinitionFragment, QUERY as EquipmentPositionDefinitionFragmentQuery
+from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
 from .add_equipment_type_input import AddEquipmentTypeInput
 
 
@@ -24,33 +24,16 @@ class AddEquipmentTypeMutation(DataClassJsonMixin):
         @dataclass
         class EquipmentType(DataClassJsonMixin):
             @dataclass
-            class PropertyType(DataClassJsonMixin):
-                id: str
-                name: str
-                type: PropertyKind = enum_field(PropertyKind)
-                index: Optional[int] = None
-                stringValue: Optional[str] = None
-                intValue: Optional[int] = None
-                booleanValue: Optional[bool] = None
-                floatValue: Optional[Number] = None
-                latitudeValue: Optional[Number] = None
-                longitudeValue: Optional[Number] = None
-                isEditable: Optional[bool] = None
-                isInstanceProperty: Optional[bool] = None
+            class PropertyType(PropertyTypeFragment):
+                pass
 
             @dataclass
-            class EquipmentPositionDefinition(DataClassJsonMixin):
-                id: str
-                name: str
-                index: Optional[int] = None
-                visibleLabel: Optional[str] = None
+            class EquipmentPositionDefinition(EquipmentPositionDefinitionFragment):
+                pass
 
             @dataclass
-            class EquipmentPortDefinition(DataClassJsonMixin):
-                id: str
-                name: str
-                index: Optional[int] = None
-                visibleLabel: Optional[str] = None
+            class EquipmentPortDefinition(EquipmentPortDefinitionFragment):
+                pass
 
             id: str
             name: str
@@ -63,37 +46,20 @@ class AddEquipmentTypeMutation(DataClassJsonMixin):
 
     data: AddEquipmentTypeMutationData
 
-    __QUERY__: str = """
+    __QUERY__: str = EquipmentPortDefinitionFragmentQuery + EquipmentPositionDefinitionFragmentQuery + PropertyTypeFragmentQuery + """
     mutation AddEquipmentTypeMutation($input: AddEquipmentTypeInput!) {
   addEquipmentType(input: $input) {
     id
     name
     category
     propertyTypes {
-      id
-      name
-      type
-      index
-      stringValue
-      intValue
-      booleanValue
-      floatValue
-      latitudeValue
-      longitudeValue
-      isEditable
-      isInstanceProperty
+      ...PropertyTypeFragment
     }
     positionDefinitions {
-      id
-      name
-      index
-      visibleLabel
+      ...EquipmentPositionDefinitionFragment
     }
     portDefinitions {
-      id
-      name
-      index
-      visibleLabel
+      ...EquipmentPortDefinitionFragment
     }
   }
 }

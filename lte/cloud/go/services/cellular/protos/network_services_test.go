@@ -49,7 +49,6 @@ func TestGetPipelineDServicesConfig(t *testing.T) {
 	apps, err = protos.GetPipelineDServicesConfig([]protos.NetworkEPCConfig_NetworkServices{})
 	assert.NoError(t, err)
 	assert.Equal(t, apps, []mconfig.PipelineD_NetworkServices{
-		mconfig.PipelineD_DPI,
 		mconfig.PipelineD_ENFORCEMENT,
 	})
 

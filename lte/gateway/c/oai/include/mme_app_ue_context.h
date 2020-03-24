@@ -98,7 +98,8 @@ void mme_app_convert_imsi_to_imsi_mme(
   mme_app_imsi_t* imsi_dst,
   const imsi_t* imsi_src);
 
-mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(void);
+mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(mme_ue_s1ap_id_t*
+                                           mme_app_ue_s1ap_id_generator_p);
 
 /*
  * Timer identifier returned when in inactive state (timer is stopped or has

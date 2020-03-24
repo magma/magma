@@ -70,6 +70,8 @@ var (
 		{Name: "checked", Type: field.TypeBool, Nullable: true},
 		{Name: "string_val", Type: field.TypeString, Nullable: true},
 		{Name: "enum_values", Type: field.TypeString, Nullable: true},
+		{Name: "enum_selection_mode", Type: field.TypeString, Nullable: true},
+		{Name: "selected_enum_values", Type: field.TypeString, Nullable: true},
 		{Name: "help_text", Type: field.TypeString, Nullable: true},
 		{Name: "check_list_category_check_list_items", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_check_list_items", Type: field.TypeInt, Nullable: true},
@@ -82,14 +84,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "check_list_items_check_list_categories_check_list_items",
-				Columns: []*schema.Column{CheckListItemsColumns[8]},
+				Columns: []*schema.Column{CheckListItemsColumns[10]},
 
 				RefColumns: []*schema.Column{CheckListCategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "check_list_items_work_orders_check_list_items",
-				Columns: []*schema.Column{CheckListItemsColumns[9]},
+				Columns: []*schema.Column{CheckListItemsColumns[11]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -99,7 +101,7 @@ var (
 			{
 				Name:    "checklistitem_title_work_order_check_list_items",
 				Unique:  true,
-				Columns: []*schema.Column{CheckListItemsColumns[1], CheckListItemsColumns[9]},
+				Columns: []*schema.Column{CheckListItemsColumns[1], CheckListItemsColumns[11]},
 			},
 		},
 	}
@@ -439,6 +441,7 @@ var (
 		{Name: "content_type", Type: field.TypeString},
 		{Name: "store_key", Type: field.TypeString},
 		{Name: "category", Type: field.TypeString, Nullable: true},
+		{Name: "check_list_item_files", Type: field.TypeInt, Nullable: true},
 		{Name: "equipment_files", Type: field.TypeInt, Nullable: true},
 		{Name: "location_files", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_question_photo_data", Type: field.TypeInt, Nullable: true},
@@ -451,29 +454,36 @@ var (
 		PrimaryKey: []*schema.Column{FilesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "files_equipment_files",
+				Symbol:  "files_check_list_items_files",
 				Columns: []*schema.Column{FilesColumns[11]},
+
+				RefColumns: []*schema.Column{CheckListItemsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "files_equipment_files",
+				Columns: []*schema.Column{FilesColumns[12]},
 
 				RefColumns: []*schema.Column{EquipmentColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_locations_files",
-				Columns: []*schema.Column{FilesColumns[12]},
+				Columns: []*schema.Column{FilesColumns[13]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_survey_questions_photo_data",
-				Columns: []*schema.Column{FilesColumns[13]},
+				Columns: []*schema.Column{FilesColumns[14]},
 
 				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_work_orders_files",
-				Columns: []*schema.Column{FilesColumns[14]},
+				Columns: []*schema.Column{FilesColumns[15]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1597,10 +1607,11 @@ func init() {
 	EquipmentPositionsTable.ForeignKeys[1].RefTable = EquipmentPositionDefinitionsTable
 	EquipmentPositionDefinitionsTable.ForeignKeys[0].RefTable = EquipmentTypesTable
 	EquipmentTypesTable.ForeignKeys[0].RefTable = EquipmentCategoriesTable
-	FilesTable.ForeignKeys[0].RefTable = EquipmentTable
-	FilesTable.ForeignKeys[1].RefTable = LocationsTable
-	FilesTable.ForeignKeys[2].RefTable = SurveyQuestionsTable
-	FilesTable.ForeignKeys[3].RefTable = WorkOrdersTable
+	FilesTable.ForeignKeys[0].RefTable = CheckListItemsTable
+	FilesTable.ForeignKeys[1].RefTable = EquipmentTable
+	FilesTable.ForeignKeys[2].RefTable = LocationsTable
+	FilesTable.ForeignKeys[3].RefTable = SurveyQuestionsTable
+	FilesTable.ForeignKeys[4].RefTable = WorkOrdersTable
 	FloorPlansTable.ForeignKeys[0].RefTable = LocationsTable
 	FloorPlansTable.ForeignKeys[1].RefTable = FloorPlanReferencePointsTable
 	FloorPlansTable.ForeignKeys[2].RefTable = FloorPlanScalesTable

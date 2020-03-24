@@ -106,8 +106,8 @@ const WorkOrdersView = (props: Props) => {
         },
         {
           key: 'creationDate',
-          title: 'Creation Date',
-          render: row => DateTimeFormat.dateOnly(row.creationDate),
+          title: 'Creation Time',
+          render: row => DateTimeFormat.dateTime(row.creationDate),
         },
         {
           key: 'dueDate',

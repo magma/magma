@@ -224,14 +224,17 @@ type CheckListDefinitionInput struct {
 }
 
 type CheckListItemInput struct {
-	ID          *int              `json:"id"`
-	Title       string            `json:"title"`
-	Type        CheckListItemType `json:"type"`
-	Index       *int              `json:"index"`
-	HelpText    *string           `json:"helpText"`
-	EnumValues  *string           `json:"enumValues"`
-	StringValue *string           `json:"stringValue"`
-	Checked     *bool             `json:"checked"`
+	ID                 *int                            `json:"id"`
+	Title              string                          `json:"title"`
+	Type               CheckListItemType               `json:"type"`
+	Index              *int                            `json:"index"`
+	HelpText           *string                         `json:"helpText"`
+	EnumValues         *string                         `json:"enumValues"`
+	EnumSelectionMode  *CheckListItemEnumSelectionMode `json:"enumSelectionMode"`
+	SelectedEnumValues *string                         `json:"selectedEnumValues"`
+	StringValue        *string                         `json:"stringValue"`
+	Checked            *bool                           `json:"checked"`
+	Files              []*FileInput                    `json:"files"`
 }
 
 type CommentInput struct {
@@ -388,7 +391,7 @@ type EquipmentSearchResult struct {
 }
 
 type FileInput struct {
-	ID               int       `json:"id"`
+	ID               *int      `json:"id"`
 	FileName         string    `json:"fileName"`
 	SizeInBytes      *int      `json:"sizeInBytes"`
 	ModificationTime *int      `json:"modificationTime"`
@@ -803,23 +806,66 @@ func (e CellularNetworkType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type CheckListItemEnumSelectionMode string
+
+const (
+	CheckListItemEnumSelectionModeSingle   CheckListItemEnumSelectionMode = "single"
+	CheckListItemEnumSelectionModeMultiple CheckListItemEnumSelectionMode = "multiple"
+)
+
+var AllCheckListItemEnumSelectionMode = []CheckListItemEnumSelectionMode{
+	CheckListItemEnumSelectionModeSingle,
+	CheckListItemEnumSelectionModeMultiple,
+}
+
+func (e CheckListItemEnumSelectionMode) IsValid() bool {
+	switch e {
+	case CheckListItemEnumSelectionModeSingle, CheckListItemEnumSelectionModeMultiple:
+		return true
+	}
+	return false
+}
+
+func (e CheckListItemEnumSelectionMode) String() string {
+	return string(e)
+}
+
+func (e *CheckListItemEnumSelectionMode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CheckListItemEnumSelectionMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CheckListItemEnumSelectionMode", str)
+	}
+	return nil
+}
+
+func (e CheckListItemEnumSelectionMode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type CheckListItemType string
 
 const (
 	CheckListItemTypeSimple CheckListItemType = "simple"
 	CheckListItemTypeString CheckListItemType = "string"
 	CheckListItemTypeEnum   CheckListItemType = "enum"
+	CheckListItemTypeFiles  CheckListItemType = "files"
 )
 
 var AllCheckListItemType = []CheckListItemType{
 	CheckListItemTypeSimple,
 	CheckListItemTypeString,
 	CheckListItemTypeEnum,
+	CheckListItemTypeFiles,
 }
 
 func (e CheckListItemType) IsValid() bool {
 	switch e {
-	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum:
+	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum, CheckListItemTypeFiles:
 		return true
 	}
 	return false
@@ -1118,11 +1164,12 @@ func (e FutureState) MarshalGQL(w io.Writer) {
 type ImageEntity string
 
 const (
-	ImageEntityLocation   ImageEntity = "LOCATION"
-	ImageEntityWorkOrder  ImageEntity = "WORK_ORDER"
-	ImageEntitySiteSurvey ImageEntity = "SITE_SURVEY"
-	ImageEntityEquipment  ImageEntity = "EQUIPMENT"
-	ImageEntityUser       ImageEntity = "USER"
+	ImageEntityLocation      ImageEntity = "LOCATION"
+	ImageEntityWorkOrder     ImageEntity = "WORK_ORDER"
+	ImageEntitySiteSurvey    ImageEntity = "SITE_SURVEY"
+	ImageEntityEquipment     ImageEntity = "EQUIPMENT"
+	ImageEntityUser          ImageEntity = "USER"
+	ImageEntityChecklistItem ImageEntity = "CHECKLIST_ITEM"
 )
 
 var AllImageEntity = []ImageEntity{
@@ -1131,11 +1178,12 @@ var AllImageEntity = []ImageEntity{
 	ImageEntitySiteSurvey,
 	ImageEntityEquipment,
 	ImageEntityUser,
+	ImageEntityChecklistItem,
 }
 
 func (e ImageEntity) IsValid() bool {
 	switch e {
-	case ImageEntityLocation, ImageEntityWorkOrder, ImageEntitySiteSurvey, ImageEntityEquipment, ImageEntityUser:
+	case ImageEntityLocation, ImageEntityWorkOrder, ImageEntitySiteSurvey, ImageEntityEquipment, ImageEntityUser, ImageEntityChecklistItem:
 		return true
 	}
 	return false

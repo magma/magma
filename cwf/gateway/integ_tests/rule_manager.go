@@ -53,7 +53,7 @@ func NewRuleManager() (*RuleManager, error) {
 // storage
 func (manager *RuleManager) AddStaticPassAllToDB(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) error {
 	fmt.Printf("************************* Adding a Pass-All static rule: %s\n", ruleID)
-	staticPassAll := getStaticPassAll(ruleID, monitoringKey, ratingGroup, trackingType, priority)
+	staticPassAll := getStaticPassAll(ruleID, monitoringKey, ratingGroup, trackingType, priority, nil)
 	return manager.insertStaticRuleIntoRedis(staticPassAll)
 }
 
@@ -92,6 +92,12 @@ func (manager *RuleManager) AddOmniPresentRulesToDB(keyId string, ruleNames, bas
 	fmt.Printf("************************* Adding a network wide rule\n")
 	rule := makeAssignedRules(ruleNames, baseNames)
 	return manager.insertOmniPresentRuleIntoRedis(keyId, rule)
+}
+
+// RemoveOmniPresentRulesFromDB adds the network wide static rule to policyDB storage
+func (manager *RuleManager) RemoveOmniPresentRulesFromDB(keyId string) error {
+	fmt.Printf("************************* Removing a network wide rule\n")
+	return manager.removeOmniPresentRuleIntoRedis(keyId)
 }
 
 // GetInstalledRulesByIMSI returns all dynamic rule ids and static rules
@@ -169,6 +175,14 @@ func (manager *RuleManager) insertOmniPresentRuleIntoRedis(keyID string, rule *l
 		return err
 	}
 	manager.omniPresentRules = append(manager.omniPresentRules, rule)
+	return nil
+}
+
+func (manager *RuleManager) removeOmniPresentRuleIntoRedis(keyID string) error {
+	err := manager.policyDBWrapper.omniPresentRules.Delete(keyID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

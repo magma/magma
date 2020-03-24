@@ -11,8 +11,8 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 from gql.gql.enum_utils import enum_field
-from .property_kind_enum import PropertyKind
 from .service_endpoint_role_enum import ServiceEndpointRole
 
 
@@ -33,32 +33,8 @@ class ServiceDetailsQuery(DataClassJsonMixin):
                 @dataclass
                 class EquipmentPort(DataClassJsonMixin):
                     @dataclass
-                    class Property(DataClassJsonMixin):
-                        @dataclass
-                        class PropertyType(DataClassJsonMixin):
-                            id: str
-                            name: str
-                            type: PropertyKind = enum_field(PropertyKind)
-                            index: Optional[int] = None
-                            stringValue: Optional[str] = None
-                            intValue: Optional[int] = None
-                            booleanValue: Optional[bool] = None
-                            floatValue: Optional[Number] = None
-                            latitudeValue: Optional[Number] = None
-                            longitudeValue: Optional[Number] = None
-                            isEditable: Optional[bool] = None
-                            isInstanceProperty: Optional[bool] = None
-
-                        id: str
-                        propertyType: PropertyType
-                        stringValue: Optional[str] = None
-                        intValue: Optional[int] = None
-                        floatValue: Optional[Number] = None
-                        booleanValue: Optional[bool] = None
-                        latitudeValue: Optional[Number] = None
-                        longitudeValue: Optional[Number] = None
-                        rangeFromValue: Optional[Number] = None
-                        rangeToValue: Optional[Number] = None
+                    class Property(PropertyFragment):
+                        pass
 
                     @dataclass
                     class EquipmentPortDefinition(DataClassJsonMixin):
@@ -68,10 +44,15 @@ class ServiceDetailsQuery(DataClassJsonMixin):
                     @dataclass
                     class Link(DataClassJsonMixin):
                         @dataclass
+                        class Property(PropertyFragment):
+                            pass
+
+                        @dataclass
                         class Service(DataClassJsonMixin):
                             id: str
 
                         id: str
+                        properties: List[Property]
                         services: List[Service]
 
                     id: str
@@ -86,10 +67,15 @@ class ServiceDetailsQuery(DataClassJsonMixin):
             @dataclass
             class Link(DataClassJsonMixin):
                 @dataclass
+                class Property(PropertyFragment):
+                    pass
+
+                @dataclass
                 class Service(DataClassJsonMixin):
                     id: str
 
                 id: str
+                properties: List[Property]
                 services: List[Service]
 
             id: str
@@ -103,7 +89,7 @@ class ServiceDetailsQuery(DataClassJsonMixin):
 
     data: ServiceDetailsQueryData
 
-    __QUERY__: str = """
+    __QUERY__: str = PropertyFragmentQuery + """
     query ServiceDetailsQuery($id: ID!) {
   service: node(id: $id) {
     ... on Service {
@@ -120,29 +106,7 @@ class ServiceDetailsQuery(DataClassJsonMixin):
         port {
           id
           properties {
-            id
-            propertyType {
-              id
-              name
-              type
-              index
-              stringValue
-              intValue
-              booleanValue
-              floatValue
-              latitudeValue
-              longitudeValue
-              isEditable
-              isInstanceProperty
-            }
-            stringValue
-            intValue
-            floatValue
-            booleanValue
-            latitudeValue
-            longitudeValue
-            rangeFromValue
-            rangeToValue
+            ...PropertyFragment
           }
           definition {
             id
@@ -150,6 +114,9 @@ class ServiceDetailsQuery(DataClassJsonMixin):
           }
           link {
             id
+            properties {
+              ...PropertyFragment
+            }
             services {
               id
             }
@@ -159,6 +126,9 @@ class ServiceDetailsQuery(DataClassJsonMixin):
       }
       links {
         id
+        properties {
+          ...PropertyFragment
+        }
         services {
           id
         }

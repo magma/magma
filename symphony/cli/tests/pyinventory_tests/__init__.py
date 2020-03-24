@@ -4,6 +4,7 @@
 # license that can be found in the LICENSE file.
 
 from .test_equipment import TestEquipment
+from .test_equipment_type import TestEquipmentType
 from .test_link import TestLink
 from .test_location import TestLocation
 from .test_port_type import TestEquipmentPortType
@@ -14,6 +15,7 @@ from .test_user import TestUser
 
 __all__ = [
     "TestEquipment",
+    "TestEquipmentType",
     "TestLink",
     "TestLocation",
     "TestEquipmentPortType",

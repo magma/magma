@@ -9,6 +9,7 @@ class ImageEntity(Enum):
     SITE_SURVEY = "SITE_SURVEY"
     EQUIPMENT = "EQUIPMENT"
     USER = "USER"
+    CHECKLIST_ITEM = "CHECKLIST_ITEM"
     MISSING_ENUM = ""
 
     @classmethod

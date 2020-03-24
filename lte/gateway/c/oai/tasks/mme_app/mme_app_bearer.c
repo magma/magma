@@ -554,7 +554,7 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
 
 // sent by S1AP
 //------------------------------------------------------------------------------
-void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
+imsi64_t mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
   itti_s1ap_initial_ue_message_t *const initial_pP)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -562,6 +562,7 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
   bool is_guti_valid = false;
   bool is_mm_ctx_new = false;
   enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_INFO(LOG_MME_APP, "Received MME_APP_INITIAL_UE_MESSAGE from S1AP\n");
 
@@ -570,7 +571,7 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
       LOG_MME_APP,
       "MME UE S1AP Id (" MME_UE_S1AP_ID_FMT ") is already assigned\n",
       initial_pP->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
   }
 
   // Check if there is any existing UE context using S-TMSI/GUTI
@@ -640,6 +641,7 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
           ue_context_p->emm_context._imsi64,
           ue_context_p->mme_teid_s11,
           &guti);
+        imsi64 = ue_context_p->emm_context._imsi64;
         // Check if paging timer exists for UE and remove
         if (
           ue_context_p->paging_response_timer.id !=
@@ -679,17 +681,18 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
        * Error during ue context malloc
        */
       OAILOG_ERROR(LOG_MME_APP, "Failed to create new ue context \n");
-      OAILOG_FUNC_OUT(LOG_MME_APP);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
     }
     is_mm_ctx_new = true;
     // Allocate new mme_ue_s1ap_id
-    ue_context_p->mme_ue_s1ap_id = mme_app_ctx_get_new_ue_id();
+    ue_context_p->mme_ue_s1ap_id =
+      mme_app_ctx_get_new_ue_id(&mme_app_desc_p->mme_app_ue_s1ap_id_generator);
     if (ue_context_p->mme_ue_s1ap_id == INVALID_MME_UE_S1AP_ID) {
       OAILOG_CRITICAL(
         LOG_MME_APP,
         "MME_APP_INITIAL_UE_MESSAGE. MME_UE_S1AP_ID allocation Failed.\n");
       mme_remove_ue_context(&mme_app_desc_p->mme_ue_contexts, ue_context_p);
-      OAILOG_FUNC_OUT(LOG_MME_APP);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
     }
     OAILOG_DEBUG(
       LOG_MME_APP,
@@ -709,7 +712,7 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
         LOG_MME_APP,
         "Failed to insert UE contxt, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
-      OAILOG_FUNC_OUT(LOG_MME_APP);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
     }
   }
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
@@ -751,8 +754,9 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
   //   sizeof (message_p->ittiMsg.nas_initial_ue_message.transparent));
 
   initial_pP->nas = NULL;
+  imsi64 = ue_context_p->emm_context._imsi64;
 
-  OAILOG_FUNC_OUT(LOG_MME_APP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
 }
 
 //------------------------------------------------------------------------------

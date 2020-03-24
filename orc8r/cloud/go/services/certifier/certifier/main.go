@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/services/certifier/servicers"
 	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/sqorc"
+	storage2 "magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 
@@ -45,7 +46,7 @@ func main() {
 	}
 
 	// Init storage
-	db, err := sqorc.Open(blobstore.SQLDriver, blobstore.DatabaseSource)
+	db, err := sqorc.Open(storage2.SQLDriver, storage2.DatabaseSource)
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}

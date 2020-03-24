@@ -160,7 +160,6 @@ const PowerSearchBar = (props: Props) => {
     const newFilterValues = update(filterValues, {
       [index]: {$set: filterValue},
     });
-    setBookmark(null);
     setFilterValues(newFilterValues);
     onFiltersChanged(newFilterValues);
   };
