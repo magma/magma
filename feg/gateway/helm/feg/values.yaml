@@ -20,8 +20,6 @@ imagePullSecrets: []
 # Define which secrets should be mounted by pods.
 secret:
   certs: orc8r-secrets-certs
-  configs:
-    feg: feg01-secrets-configs
 
 ## Key Values for docker inside VM
 feg:
@@ -40,19 +38,8 @@ feg:
   repo:
     url: https://github.com/facebookincubator/magma/
     branch: master
-  bind:
-    S6A_LOCAL_PORT: 3871
-    S6A_HOST_PORT: 3871
-    S6A_NETWORK: sctp
-    SWX_LOCAL_PORT: 3868
-    SWX_HOST_PORT: 3868
-    SWX_NETWORK: sctp
-    GX_LOCAL_PORT: 3870
-    GX_HOST_PORT: 3870
-    GX_NETWORK: tcp
-    GY_LOCAL_PORT: 3869
-    GY_HOST_PORT: 3869
-    GY_NETWORK: tcp
+#  env: |
+#    test=test
 
 ## Key Values for VM running using virtlet runtime
 image:
