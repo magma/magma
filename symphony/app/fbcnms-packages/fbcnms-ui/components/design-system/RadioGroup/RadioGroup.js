@@ -101,6 +101,7 @@ const RadioGroup = (props: Props) => {
         const isDisabled = disabled || option.disabled;
         return (
           <div
+            key={`radio_option_${option.value}`}
             className={classNames(
               classes.option,
               optionClassName,
