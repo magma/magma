@@ -44,10 +44,15 @@ class ServiceDetailsQuery(DataClassJsonMixin):
                     @dataclass
                     class Link(DataClassJsonMixin):
                         @dataclass
+                        class Property(PropertyFragment):
+                            pass
+
+                        @dataclass
                         class Service(DataClassJsonMixin):
                             id: str
 
                         id: str
+                        properties: List[Property]
                         services: List[Service]
 
                     id: str
@@ -62,10 +67,15 @@ class ServiceDetailsQuery(DataClassJsonMixin):
             @dataclass
             class Link(DataClassJsonMixin):
                 @dataclass
+                class Property(PropertyFragment):
+                    pass
+
+                @dataclass
                 class Service(DataClassJsonMixin):
                     id: str
 
                 id: str
+                properties: List[Property]
                 services: List[Service]
 
             id: str
@@ -104,6 +114,9 @@ class ServiceDetailsQuery(DataClassJsonMixin):
           }
           link {
             id
+            properties {
+              ...PropertyFragment
+            }
             services {
               id
             }
@@ -113,6 +126,9 @@ class ServiceDetailsQuery(DataClassJsonMixin):
       }
       links {
         id
+        properties {
+          ...PropertyFragment
+        }
         services {
           id
         }

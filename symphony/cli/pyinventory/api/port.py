@@ -86,7 +86,11 @@ def get_port(
             name=ports[0].definition.name,
             port_type_name=port_type_name,
         ),
-        link=Link(id=link.id, service_ids=[s.id for s in link.services])
+        link=Link(
+            id=link.id,
+            properties=link.properties,
+            service_ids=[s.id for s in link.services],
+        )
         if link
         else None,
     )
@@ -168,7 +172,11 @@ def edit_port_properties(
             name=result.definition.name,
             port_type_name=result.definition.portType.name,
         ),
-        link=Link(id=result.link.id, service_ids=[s.id for s in result.link.services])
+        link=Link(
+            id=result.link.id,
+            properties=result.link.properties,
+            service_ids=[s.id for s in result.link.services],
+        )
         if result.link
         else None,
     )
@@ -250,14 +258,18 @@ def edit_link_properties(
         )
 
     return EquipmentPort(
-        id=result.id,
-        properties=result.properties,
+        id=port.id,
+        properties=port.properties,
         definition=EquipmentPortDefinition(
-            id=result.definition.id,
-            name=result.definition.name,
-            port_type_name=result.definition.portType.name,
+            id=port.definition.id,
+            name=port.definition.name,
+            port_type_name=port.definition.port_type_name,
         ),
-        link=Link(result.link.id, service_ids=[s.id for s in result.link.services])
-        if result.link
+        link=Link(
+            id=result.id,
+            properties=result.properties,
+            service_ids=[s.id for s in result.services],
+        )
+        if result
         else None,
     )

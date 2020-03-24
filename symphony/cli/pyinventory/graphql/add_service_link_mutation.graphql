@@ -25,6 +25,9 @@ mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
         }
         link {
           id
+          properties {
+            ...PropertyFragment
+          }
           services {
             id
           }
@@ -34,6 +37,9 @@ mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
     }
     links {
       id
+      properties {
+        ...PropertyFragment
+      }
       services {
         id
       }
