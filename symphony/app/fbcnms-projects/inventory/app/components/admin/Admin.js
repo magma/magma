@@ -21,6 +21,7 @@ import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
 import SecuritySettings from '@fbcnms/magmalte/app/components/SecuritySettings';
 import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
+import UserManaementView from './userManagement/UserManaementView';
 import UsersSettings from './userManagement/UsersSettings';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
@@ -58,6 +59,11 @@ function NavItems() {
         path={relativeUrl('/networks')}
         icon={<SignalCellularAlt />}
       />
+      <NavListItem
+        label="User Management"
+        path={relativeUrl('/user_management')}
+        icon={<PeopleIcon />}
+      />
     </>
   );
 }
@@ -67,6 +73,10 @@ function NavRoutes() {
   const relativeUrl = useRelativeUrl();
   return (
     <Switch>
+      <Route
+        path={relativeUrl('/user_management')}
+        component={UserManaementView}
+      />
       <Route path={relativeUrl('/users')} component={UsersSettings} />
       <Route path={relativeUrl('/audit_log')} component={AuditLog} />
       <Route path={relativeUrl('/networks')} component={Networks} />
@@ -78,7 +88,7 @@ function NavRoutes() {
           </Paper>
         )}
       />
-      <Redirect to={relativeUrl('/users')} />
+      <Redirect to={relativeUrl('/user_management')} />
     </Switch>
   );
 }
