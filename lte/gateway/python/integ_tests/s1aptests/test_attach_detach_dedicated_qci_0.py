@@ -63,15 +63,19 @@ class TestAttachDetachDedicatedQci0(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_FW_ERAB_SETUP_REQ_FAILED_FOR_ERABS.value
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_FW_ERAB_SETUP_REQ_FAILED_FOR_ERABS.value
             )
             erab_setup_failed_for_bearers = response.cast(
                 s1ap_types.FwErabSetupFailedTosetup
             )
             print(
-               "*** Received UE_FW_ERAB_SETUP_REQ_FAILED_FOR_ERABS for bearer-id:",
+               "*** Received UE_FW_ERAB_SETUP_REQ_FAILED_FOR_ERABS for "
+               "bearer-id:",
                erab_setup_failed_for_bearers.failedErablist[0].erabId, end=" ")
-            print(" with qci:", erab_setup_failed_for_bearers.failedErablist[0].qci)
+            print(
+                " with qci:",
+                erab_setup_failed_for_bearers.failedErablist[0].qci)
 
             time.sleep(5)
             print(
