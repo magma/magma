@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.2" />
-<title>pyinventory.graphql.location_deps_query API documentation</title>
+<title>pyinventory.graphql.get_locations_query API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pyinventory.graphql.location_deps_query</code></h1>
+<h1 class="title">Module <code>pyinventory.graphql.get_locations_query</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -33,29 +33,24 @@
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.graphql.location_deps_query.LocationDepsQuery"><code class="flex name class">
-<span>class <span class="ident">LocationDepsQuery</span></span>
-<span>(</span><span>data: <a title="pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData" href="#pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData">LocationDepsQuery.LocationDepsQueryData</a>)</span>
+<dt id="pyinventory.graphql.get_locations_query.GetLocationsQuery"><code class="flex name class">
+<span>class <span class="ident">GetLocationsQuery</span></span>
+<span>(</span><span>data: <a title="pyinventory.graphql.get_locations_query.GetLocationsQuery.GetLocationsQueryData" href="#pyinventory.graphql.get_locations_query.GetLocationsQuery.GetLocationsQueryData">GetLocationsQuery.GetLocationsQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>LocationDepsQuery(data: pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData, <strong>QUERY</strong>: str = '\n
-query LocationDepsQuery($id: ID!) {\n
-location: node(id: $id) {\n
-&hellip; on Location {\n
-files {\n
+<section class="desc"><p>GetLocationsQuery(data: pyinventory.graphql.get_locations_query.GetLocationsQuery.GetLocationsQueryData, <strong>QUERY</strong>: str = '\n
+query GetLocationsQuery {\n
+locations {\n
+edges {\n
+node {\n
 id\n
+name\n
+latitude\n
+longitude\n
+externalId\n
+locationType {\n
+name\n
 }\n
-images {\n
-id\n
-}\n
-children {\n
-id\n
-}\n
-surveys {\n
-id\n
-}\n
-equipments {\n
-id\n
 }\n
 }\n
 }\n}\n\n
@@ -67,15 +62,15 @@ id\n
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData"><code class="name">var <span class="ident">LocationDepsQueryData</span></code></dt>
+<dt id="pyinventory.graphql.get_locations_query.GetLocationsQuery.GetLocationsQueryData"><code class="name">var <span class="ident">GetLocationsQueryData</span></code></dt>
 <dd>
-<section class="desc"><p>LocationDepsQueryData(location: Union[pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData.Node, NoneType] = None)</p></section>
+<section class="desc"><p>GetLocationsQueryData(locations: Union[pyinventory.graphql.get_locations_query.GetLocationsQuery.GetLocationsQueryData.LocationConnection, NoneType] = None)</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
-<dt id="pyinventory.graphql.location_deps_query.LocationDepsQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, id: str) -> <a title="pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData" href="#pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData">LocationDepsQuery.LocationDepsQueryData</a></span>
+<dt id="pyinventory.graphql.get_locations_query.GetLocationsQuery.execute"><code class="name flex">
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient) -> <a title="pyinventory.graphql.get_locations_query.GetLocationsQuery.GetLocationsQueryData" href="#pyinventory.graphql.get_locations_query.GetLocationsQuery.GetLocationsQueryData">GetLocationsQuery.GetLocationsQueryData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -99,10 +94,10 @@ id\n
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="pyinventory.graphql.location_deps_query.LocationDepsQuery" href="#pyinventory.graphql.location_deps_query.LocationDepsQuery">LocationDepsQuery</a></code></h4>
+<h4><code><a title="pyinventory.graphql.get_locations_query.GetLocationsQuery" href="#pyinventory.graphql.get_locations_query.GetLocationsQuery">GetLocationsQuery</a></code></h4>
 <ul class="">
-<li><code><a title="pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData" href="#pyinventory.graphql.location_deps_query.LocationDepsQuery.LocationDepsQueryData">LocationDepsQueryData</a></code></li>
-<li><code><a title="pyinventory.graphql.location_deps_query.LocationDepsQuery.execute" href="#pyinventory.graphql.location_deps_query.LocationDepsQuery.execute">execute</a></code></li>
+<li><code><a title="pyinventory.graphql.get_locations_query.GetLocationsQuery.GetLocationsQueryData" href="#pyinventory.graphql.get_locations_query.GetLocationsQuery.GetLocationsQueryData">GetLocationsQueryData</a></code></li>
+<li><code><a title="pyinventory.graphql.get_locations_query.GetLocationsQuery.execute" href="#pyinventory.graphql.get_locations_query.GetLocationsQuery.execute">execute</a></code></li>
 </ul>
 </li>
 </ul>
