@@ -9,10 +9,7 @@
  */
 
 import type {RadioOption} from '@fbcnms/ui/components/design-system/RadioGroup/RadioGroup';
-import type {
-  UserRole,
-  UserStatus,
-} from './__generated__/UserManagementContext_UsersQuery.graphql';
+import type {User} from './TempTypes';
 
 import * as React from 'react';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
@@ -23,7 +20,7 @@ import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {USER_ROLES, USER_STATUSES} from './TempTypes';
 import {makeStyles} from '@material-ui/styles';
-import {useMemo} from 'react';
+import {useCallback, useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   sectionHeader: {
@@ -40,17 +37,13 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type PropValue<T> = {
-  value?: ?T,
-  onChange: T => void,
-};
-
-type Props = {
-  role: PropValue<UserRole>,
-  status?: PropValue<UserStatus>,
+type Props = $ReadOnly<{
+  user: User,
+  onChange: User => void,
+  canSetDeactivated?: ?boolean,
   className?: ?string,
   disabled?: ?boolean,
-};
+}>;
 
 const ROLES_OPTIONS: Array<RadioOption> = [
   {
@@ -86,20 +79,21 @@ const STATUS_OPT: RadioOption = {
   ),
 };
 
-const UserRoleAndStatusPane = ({
-  role,
-  status,
-  className,
-  disabled = false,
-}: Props) => {
-  const userIsDeactivated = status?.value === USER_STATUSES.DEACTIVATED.key;
+const UserRoleAndStatusPane = (props: Props) => {
+  const {
+    user,
+    className,
+    onChange,
+    canSetDeactivated = true,
+    disabled = false,
+  } = props;
+  const userIsDeactivated = user.status === USER_STATUSES.DEACTIVATED.key;
   const classes = useStyles();
   const selectedOptionClass = classNames({
     [classes.deactivateOptionSelected]: userIsDeactivated,
   });
-  const handleStatus = status != null;
   const options = useMemo(() => {
-    if (!handleStatus) {
+    if (!canSetDeactivated) {
       return ROLES_OPTIONS;
     }
     const {label, ...partialDeactivateOption} = STATUS_OPT;
@@ -108,11 +102,42 @@ const UserRoleAndStatusPane = ({
       label: <div className={selectedOptionClass}>{label}</div>,
     };
     return [...ROLES_OPTIONS, deactivateOption];
-  }, [handleStatus, selectedOptionClass]);
+  }, [canSetDeactivated, selectedOptionClass]);
+
+  const onRoleChanged = useCallback(
+    newValue => {
+      const newUser = {...user};
+      if (canSetDeactivated) {
+        if (newValue === USER_STATUSES.DEACTIVATED.key) {
+          newUser.status = USER_STATUSES.DEACTIVATED.key;
+          onChange(newUser);
+          return;
+        }
+        if (userIsDeactivated) {
+          newUser.status = USER_STATUSES.ACTIVE.key;
+        }
+      }
+      switch (newValue) {
+        case USER_ROLES.USER.key:
+          newUser.role = USER_ROLES.USER.key;
+          break;
+        case USER_ROLES.ADMIN.key:
+          newUser.role = USER_ROLES.ADMIN.key;
+          break;
+        case USER_ROLES.OWNER.key:
+          newUser.role = USER_ROLES.OWNER.key;
+          break;
+        default:
+          return;
+      }
+      onChange(newUser);
+    },
+    [canSetDeactivated, onChange, user, userIsDeactivated],
+  );
 
   const value = userIsDeactivated
     ? USER_STATUSES.DEACTIVATED.key
-    : role.value ?? USER_ROLES.USER.key;
+    : user.role ?? USER_ROLES.USER.key;
 
   return (
     <div className={className}>
@@ -133,32 +158,7 @@ const UserRoleAndStatusPane = ({
           options={options}
           selectedOptionClassName={selectedOptionClass}
           value={value}
-          onChange={newValue => {
-            if (handleStatus) {
-              if (newValue === USER_STATUSES.DEACTIVATED.key) {
-                status?.onChange(USER_STATUSES.DEACTIVATED.key);
-                return;
-              }
-              if (userIsDeactivated) {
-                status?.onChange(USER_STATUSES.ACTIVE.key);
-              }
-            }
-            let typedNewValue = null;
-            switch (newValue) {
-              case USER_ROLES.USER.key:
-                typedNewValue = USER_ROLES.USER.key;
-                break;
-              case USER_ROLES.ADMIN.key:
-                typedNewValue = USER_ROLES.ADMIN.key;
-                break;
-              case USER_ROLES.OWNER.key:
-                typedNewValue = USER_ROLES.OWNER.key;
-                break;
-            }
-            if (typedNewValue != null) {
-              role.onChange(typedNewValue);
-            }
-          }}
+          onChange={onRoleChanged}
         />
       </FormField>
     </div>

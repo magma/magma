@@ -147,18 +147,9 @@ const NewUserDialog = ({onClose}: Props) => {
                   </div>
                   <div className={classes.section}>
                     <UserRoleAndStatusPane
-                      role={{
-                        value: user.role,
-                        onChange: newValue => {
-                          if (USER_ROLES[newValue] == null) {
-                            return;
-                          }
-                          setUser(currentUser => {
-                            currentUser.role = newValue;
-                            return currentUser;
-                          });
-                        },
-                      }}
+                      user={user}
+                      onChange={setUser}
+                      canSetDeactivated={false}
                     />
                   </div>
                   <UserAccountDetailsPane
