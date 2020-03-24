@@ -163,20 +163,8 @@ export default function UserProfilePane(props: Props) {
       </div>
       <UserRoleAndStatusPane
         className={classes.section}
-        role={{
-          value: user.role,
-          onChange: newRole => {
-            user.role = newRole;
-            onChange(user);
-          },
-        }}
-        status={{
-          value: user.status,
-          onChange: newStatus => {
-            user.status = newStatus;
-            onChange(user);
-          },
-        }}
+        user={user}
+        onChange={onChange}
       />
       <div className={classes.section}>
         <div className={classes.sectionHeader}>
