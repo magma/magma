@@ -88,6 +88,8 @@ func TestPCRFExpectations(t *testing.T) {
 		[]*fegprotos.GxCreditControlExpectation{expectedInit, expectedUpdate, expectationNotMet},
 		fegprotos.UnexpectedRequestBehavior_CONTINUE_WITH_DEFAULT_ANSWER,
 		defaultCCA)
+	pcrf.CreateAccount(context.Background(), &lteprotos.SubscriberID{Id: test.IMSI1, Type: lteprotos.SubscriberID_IMSI})
+	pcrf.CreateAccount(context.Background(), &lteprotos.SubscriberID{Id: test.IMSI2, Type: lteprotos.SubscriberID_IMSI})
 	gxClient := gx.NewGxClient(clientConfig, &serverConfig, getMockReAuthHandler(), nil, nil)
 	// send init
 	ccrInit := &gx.CreditControlRequest{

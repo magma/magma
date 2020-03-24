@@ -169,35 +169,6 @@ func addPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorConfiguration) erro
 	return err
 }
 
-/**  ========== OCS Helpers ========== **/
-// getOCSClient is a utility function to an RPC connection to a
-// remote OCS service.
-func getOCSClient() (*ocsClient, error) {
-	var conn *grpc.ClientConn
-	var err error
-	conn, err = registry.GetConnection(MockOCSRemote)
-	if err != nil {
-		errMsg := fmt.Sprintf("PCRF client initialization error: %s", err)
-		glog.Error(errMsg)
-		return nil, errors.New(errMsg)
-	}
-	return &ocsClient{
-		fegprotos.NewMockOCSClient(conn),
-		conn,
-	}, err
-}
-
-// setNewOCSConfig tries to override the default ocs settings
-// Input: ocsConfig data
-func setNewOCSConfig(ocsConfig *fegprotos.OCSConfig) error {
-	cli, err := getOCSClient()
-	if err != nil {
-		return err
-	}
-	_, err = cli.SetOCSSettings(context.Background(), ocsConfig)
-	return err
-}
-
 func usePCRFMockDriver() error {
 	cli, err := getPCRFClient()
 	if err != nil {
@@ -242,6 +213,35 @@ func getAssertExpectationsResult() ([]*fegprotos.ExpectationResult, []*fegprotos
 		return nil, nil, err
 	}
 	return res.Results, res.Errors, nil
+}
+
+/**  ========== OCS Helpers ========== **/
+// getOCSClient is a utility function to an RPC connection to a
+// remote OCS service.
+func getOCSClient() (*ocsClient, error) {
+	var conn *grpc.ClientConn
+	var err error
+	conn, err = registry.GetConnection(MockOCSRemote)
+	if err != nil {
+		errMsg := fmt.Sprintf("PCRF client initialization error: %s", err)
+		glog.Error(errMsg)
+		return nil, errors.New(errMsg)
+	}
+	return &ocsClient{
+		fegprotos.NewMockOCSClient(conn),
+		conn,
+	}, err
+}
+
+// setNewOCSConfig tries to override the default ocs settings
+// Input: ocsConfig data
+func setNewOCSConfig(ocsConfig *fegprotos.OCSConfig) error {
+	cli, err := getOCSClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetOCSSettings(context.Background(), ocsConfig)
+	return err
 }
 
 // addSubscriber tries to add this subscriber to the OCS server.
