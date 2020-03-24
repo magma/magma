@@ -30,5 +30,4 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../mme_app")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../s1ap/messages/asn1/${ASN1RELDIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../s1ap")
 
-
 add_library(TASK_UDP udp_primitives_server.c)

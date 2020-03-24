@@ -12,6 +12,6 @@ add_subdirectory(gtpv1-u) # TASK_GTPV1U
 add_subdirectory(sgw) # TASK_SGW
 else (EMBEDDED_SGW)
 add_subdirectory(s11) # TASK_S11
-add_subdirectory(udp)
+add_subdirectory(udp) #TASK_UDP
 endif (EMBEDDED_SGW)
 
