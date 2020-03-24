@@ -50,10 +50,15 @@ class AddServiceLinkMutation(DataClassJsonMixin):
                     @dataclass
                     class Link(DataClassJsonMixin):
                         @dataclass
+                        class Property(PropertyFragment):
+                            pass
+
+                        @dataclass
                         class Service(DataClassJsonMixin):
                             id: str
 
                         id: str
+                        properties: List[Property]
                         services: List[Service]
 
                     id: str
@@ -68,10 +73,15 @@ class AddServiceLinkMutation(DataClassJsonMixin):
             @dataclass
             class Link(DataClassJsonMixin):
                 @dataclass
+                class Property(PropertyFragment):
+                    pass
+
+                @dataclass
                 class Service(DataClassJsonMixin):
                     id: str
 
                 id: str
+                properties: List[Property]
                 services: List[Service]
 
             id: str
@@ -113,6 +123,9 @@ class AddServiceLinkMutation(DataClassJsonMixin):
         }
         link {
           id
+          properties {
+            ...PropertyFragment
+          }
           services {
             id
           }
@@ -122,6 +135,9 @@ class AddServiceLinkMutation(DataClassJsonMixin):
     }
     links {
       id
+      properties {
+        ...PropertyFragment
+      }
       services {
         id
       }
