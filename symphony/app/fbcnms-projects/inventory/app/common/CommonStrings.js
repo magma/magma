@@ -11,7 +11,11 @@
 import fbt from 'fbt';
 
 const Strings = {
+  helpers: {
+    productNameParam: 'product name',
+  },
   common: {
+    productName: `${fbt('Symphony', '')}`,
     emptyField: `${fbt(
       'None',
       'Text to be displayed in case a user input field has no value',

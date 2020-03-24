@@ -47,7 +47,7 @@ const generateString = length =>
     .toString(36)
     .replace(/[^a-z]+/g, '')
     .substr(0, length || 5);
-const randomNaturalNumber = (from, to) => {
+const randomNaturalNumber = (from: number, to: number) => {
   from = from ?? 1;
   to = to > from ? to : from + 1;
   const range = to - from;

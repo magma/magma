@@ -39,7 +39,7 @@ const useStyles = makeStyles(() => ({
 
 export type Props = {
   user: User,
-  onChange?: ?(User) => void,
+  onChange: User => void,
 };
 
 type ViewTab = {|
@@ -62,7 +62,7 @@ export default function UserDetailsCard(props: Props) {
         tab: {
           label: `${fbt('Account', '')}`,
         },
-        view: <UserAccountPane user={user} />,
+        view: <UserAccountPane user={user} onChange={onChange} />,
       },
       {
         tab: {
