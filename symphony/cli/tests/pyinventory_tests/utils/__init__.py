@@ -7,15 +7,18 @@ import time
 import requests
 from pyinventory import InventoryClient
 
-from .constant import PLATFORM_SERVER_HEALTH_CHECK_URL
+from .constant import PLATFORM_SERVER_HEALTH_CHECK_URL, TestMode
 
 
-RUN_LOCALLY = False
+TEST_MODE: TestMode = TestMode.DEV
+TENANT = "fb-test"
 
 
 def wait_for_platform() -> None:
+    if TEST_MODE == TestMode.REMOTE:
+        return
     platform_server_health_check = PLATFORM_SERVER_HEALTH_CHECK_URL
-    if RUN_LOCALLY:
+    if TEST_MODE == TestMode.LOCAL:
         platform_server_health_check = "http://fb-test.localtest.me/healthz"
 
     deadline = time.monotonic() + 60
@@ -35,7 +38,9 @@ def wait_for_platform() -> None:
 
 
 def init_client(email: str, password: str) -> InventoryClient:
-    if RUN_LOCALLY:
+    if TEST_MODE == TestMode.LOCAL:
         return InventoryClient(email, password, is_local_host=True)
+    elif TEST_MODE == TestMode.REMOTE:
+        return InventoryClient(email, password, tenant=f"{TENANT}.staging")
     else:
         return InventoryClient(email, password, is_dev_mode=True)
