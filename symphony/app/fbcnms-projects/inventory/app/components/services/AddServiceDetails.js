@@ -145,7 +145,7 @@ const AddServiceDetails = (props: Props) => {
 
   const getService = () => {
     if (!serviceState) {
-      const serviceType = data.serviceType;
+      const serviceType = data.node;
       const initialProps = (serviceType.propertyTypes || [])
         .map(propType => getInitialPropertyFromType(propType))
         .sort(sortPropertiesByIndex);

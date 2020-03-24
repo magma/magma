@@ -37,8 +37,8 @@ const ServiceCardQueryRenderer = (props: Props) => {
         serviceId,
       }}
       render={props => {
-        const {service} = props;
-        return <ServiceCard service={service} />;
+        const {node} = props;
+        return <ServiceCard service={node} />;
       }}
     />
   );
