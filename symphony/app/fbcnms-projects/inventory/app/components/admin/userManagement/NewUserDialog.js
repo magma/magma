@@ -102,7 +102,7 @@ const NewUserDialog = (props: Props) => {
                   <div className={classes.section}>
                     <div className={classes.sectionHeader}>
                       <Text variant="subtitle1">
-                        <fbt desc="">Profile</fbt>
+                        <fbt desc="">Personal Details</fbt>
                       </Text>
                     </div>
                     <Grid container spacing={2}>
@@ -151,15 +151,17 @@ const NewUserDialog = (props: Props) => {
 
                   <div className={classes.section}>
                     <UserRoleAndStatusPane
-                      value={user.role}
-                      onChange={newValue => {
-                        if (USER_ROLES[newValue] == null) {
-                          return;
-                        }
-                        setUser(currentUser => {
-                          currentUser.role = USER_ROLES[newValue];
-                          return currentUser;
-                        });
+                      role={{
+                        value: user.role,
+                        onChange: newValue => {
+                          if (USER_ROLES[newValue] == null) {
+                            return;
+                          }
+                          setUser(currentUser => {
+                            currentUser.role = USER_ROLES[newValue];
+                            return currentUser;
+                          });
+                        },
                       }}
                     />
                   </div>

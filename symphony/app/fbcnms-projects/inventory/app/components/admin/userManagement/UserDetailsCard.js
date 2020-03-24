@@ -17,15 +17,23 @@ import UserAccountPane from './UserAccountPane';
 import UserPermissionsPane from './UserPermissionsPane';
 import UserProfilePane from './UserProfilePane';
 import fbt from 'fbt';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
+  root: {
+    maxHeight: '100%',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+  },
   tabsContainer: {
     paddingLeft: '24px',
   },
   viewContainer: {
     padding: '24px',
+    overflowY: 'auto',
   },
 }));
 
@@ -68,17 +76,19 @@ export default function UserDetailsCard(props: Props) {
   const [activePart, setActivePart] = useState(0);
 
   return (
-    <div>
-      <TabsBar
-        className={classes.tabsContainer}
-        tabs={userDetailParts.map(part => part.tab)}
-        activeTabIndex={activePart}
-        onChange={setActivePart}
-        spread={false}
-      />
-      <div className={classes.viewContainer}>
-        {userDetailParts[activePart].view}
-      </div>
+    <div className={classes.root}>
+      <FormValidationContextProvider>
+        <TabsBar
+          className={classes.tabsContainer}
+          tabs={userDetailParts.map(part => part.tab)}
+          activeTabIndex={activePart}
+          onChange={setActivePart}
+          spread={false}
+        />
+        <div className={classes.viewContainer}>
+          {userDetailParts[activePart].view}
+        </div>
+      </FormValidationContextProvider>
     </div>
   );
 }

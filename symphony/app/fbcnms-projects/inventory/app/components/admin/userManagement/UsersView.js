@@ -20,7 +20,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import UserDetailsCard from './UserDetailsCard';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {TEMP_USERS} from './TempTypes';
+import {TEMP_USERS, USER_STATUSES} from './TempTypes';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo, useState} from 'react';
 
@@ -105,7 +105,14 @@ export default function UsersView() {
       {
         key: 'status',
         title: <fbt desc="Status column header in users table">Status</fbt>,
-        render: userRow => userRow.status,
+        render: userRow => (
+          <Text
+            color={
+              userRow.status === USER_STATUSES.Deactivated ? 'error' : undefined
+            }>
+            {userRow.status}
+          </Text>
+        ),
       },
     ];
   }, [classes.nameColumn, classes.field, activeUserId]);
@@ -139,8 +146,8 @@ export default function UsersView() {
       <Table
         dataRowsSeparator="border"
         showSelection={true}
-        activeId={activeUserId}
-        onActiveChanged={setActiveUserId}
+        activeRowId={activeUserId}
+        onActiveRowIdChanged={setActiveUserId}
         selectedIds={selectedUserIds}
         onSelectionChanged={ids => setSelectedUserIds(ids)}
         data={usersTable}
