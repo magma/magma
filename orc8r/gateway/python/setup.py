@@ -26,6 +26,7 @@ setup(
         'magma.configuration',
         'magma.directoryd',
         'magma.magmad',
+        'magma.magmad.events',
         'magma.magmad.generic_command',
         'magma.magmad.check',
         'magma.magmad.check.kernel_check',
