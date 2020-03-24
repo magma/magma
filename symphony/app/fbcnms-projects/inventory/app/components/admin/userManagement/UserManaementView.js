@@ -21,6 +21,7 @@ import Strings from '../../../common/CommonStrings';
 import UsersView from './UsersView';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import fbt from 'fbt';
+import {UserManagementContextProvider} from './UserManagementContext';
 import {useHistory, withRouter} from 'react-router-dom';
 import {useMemo, useState} from 'react';
 
@@ -96,7 +97,7 @@ const UserManaementView = ({match}: Props) => {
   );
 
   return (
-    <>
+    <UserManagementContextProvider>
       <NavigatableViews
         header={Strings.admin.users.viewHeader}
         views={VIEWS}
@@ -108,7 +109,7 @@ const UserManaementView = ({match}: Props) => {
           onClose={() => setAddingNewUser(false)}
         />
       )}
-    </>
+    </UserManagementContextProvider>
   );
 };
 

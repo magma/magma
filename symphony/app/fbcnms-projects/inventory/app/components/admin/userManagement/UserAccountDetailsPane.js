@@ -19,7 +19,7 @@ import Strings from '../../../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   sectionHeader: {
@@ -66,16 +66,24 @@ const UserAccountDetailsPane = (props: Props) => {
   );
 
   const formValidationContext = useContext(FormValidationContext);
+  const passwordRules = formValidationContext.error.check({
+    fieldId: 'password_rules',
+    fieldDisplayName: 'password rules',
+    value: password,
+    checkCallback: enteredPassword =>
+      enteredPassword == null || enteredPassword.length < 10
+        ? `${fbt('Password must contain at least 10 characters', '')}`
+        : '',
+  });
   const passwordMismatch = formValidationContext.error.check({
-    fieldId: 'password match',
+    fieldId: 'password_match',
     fieldDisplayName: 'password match',
     value: !!passwordVerfication && passwordVerfication !== password,
     checkCallback: mismatch =>
       mismatch ? `${fbt("Passwords don't match", '')}` : '',
   });
 
-  const onPasswordChanged = newPasswordValue => {
-    setPassword(newPasswordValue);
+  useEffect(() => {
     if (
       !isEditable ||
       onChange == null ||
@@ -83,13 +91,13 @@ const UserAccountDetailsPane = (props: Props) => {
     ) {
       return;
     }
-    onChange(user, newPasswordValue);
-  };
+    onChange(user, password);
+  });
 
   const exitEditMode = () => {
     setIsEditable(false);
     setPasswordVerification('');
-    onPasswordChanged('');
+    setPassword('');
   };
 
   const emailField = (
@@ -122,8 +130,10 @@ const UserAccountDetailsPane = (props: Props) => {
       disabled={!isEditable}
       validationId={isEditable ? 'password' : undefined}
       label={`${fbt('Password', '')}`}
-      value={isEditable ? password : '******'}
-      onValueChanged={onPasswordChanged}
+      value={isEditable ? password : '**********'}
+      onValueChanged={setPassword}
+      hasError={isEditable && !!passwordRules}
+      errorText={isEditable ? passwordRules : ''}
       immediateUpdate={true}
     />
   );
@@ -185,10 +195,7 @@ const UserAccountDetailsPane = (props: Props) => {
                     {Strings.common.cancelButton}
                   </Button>
                   <Button
-                    onClick={() => {
-                      onPasswordChanged(password);
-                      exitEditMode();
-                    }}
+                    onClick={exitEditMode}
                     disabled={formValidationContext.error.detected}
                     title={formValidationContext.error.message}>
                     <fbt desc="">Save Changes</fbt>
