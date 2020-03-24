@@ -21,6 +21,7 @@ type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type WorkOrderDetailsPane_workOrder$ref = any;
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
 export type CheckListItemType = "enum" | "files" | "simple" | "string" | "%future added value";
+export type FileType = "FILE" | "IMAGE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
@@ -119,6 +120,16 @@ export type WorkOrderDetails_workOrder = {|
       +stringValue: ?string,
       +enumSelectionMode: ?CheckListItemEnumSelectionMode,
       +selectedEnumValues: ?string,
+      +files: $ReadOnlyArray<{|
+        +id: string,
+        +fileName: string,
+        +sizeInBytes: ?number,
+        +modified: ?any,
+        +uploaded: ?any,
+        +fileType: ?FileType,
+        +storeKey: ?string,
+        +category: ?string,
+      |}>,
     |}>,
   |}>,
   +$fragmentRefs: WorkOrderDetailsPane_workOrder$ref,
@@ -578,6 +589,67 @@ return {
               "name": "selectedEnumValues",
               "args": null,
               "storageKey": null
+            },
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "files",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "File",
+              "plural": true,
+              "selections": [
+                (v0/*: any*/),
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "fileName",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "sizeInBytes",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "modified",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "uploaded",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "fileType",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "storeKey",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "category",
+                  "args": null,
+                  "storageKey": null
+                }
+              ]
             }
           ]
         }
@@ -592,5 +664,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b476de193c2de4c79deae64766aefd39';
+(node/*: any*/).hash = '1c3ca20f1f9ce3cdac5b4472544f43bb';
 module.exports = node;

@@ -28,7 +28,7 @@ const FileUploadAreaRoot = () => {
 
   return (
     <div className={classes.root}>
-      <FileUploadArea onFileChanged={files => alert(files[0].name)} />
+      <FileUploadArea onClick={() => alert('Choose a file')} />
     </div>
   );
 };
