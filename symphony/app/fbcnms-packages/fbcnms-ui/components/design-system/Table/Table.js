@@ -75,6 +75,7 @@ const useStyles = makeStyles(() => ({
     backgroundColor: SymphonyTheme.palette.white,
     borderLeft: '1px solid',
     borderColor: SymphonyTheme.palette.separatorLight,
+    flexBasis: '10px',
     flexGrow: 1,
     borderTopRightRadius: borderRadius,
     borderBottomRightRadius: borderRadius,

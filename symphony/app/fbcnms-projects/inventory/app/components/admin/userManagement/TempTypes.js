@@ -37,7 +37,9 @@ export type User = {|
   status: UserStatus,
   photoId?: string,
   employmentType?: EmploymentType,
+  employeeID?: string,
   jobTitle?: string,
+  phoneNumber?: string,
 |};
 
 const generateString = length =>
@@ -75,6 +77,7 @@ export const TEMP_USERS: Array<User> = [...new Array(50)].map(_ => ({
   // eslint-disable-next-line no-warning-comments
   // $FlowFixMe: it is temporary
   employmentType: generateEmployment(),
+  employeeID: `${randomNaturalNumber(1000, 9999)}`,
   jobTitle: `${generateString(1).toUpperCase()}${generateString(
     randomNaturalNumber(3, 6),
   )} ${generateString(1).toUpperCase()}${generateString(
