@@ -315,7 +315,6 @@ int s1ap_mme_handle_s1_setup_request(
   uint32_t enb_id = 0;
   char *enb_name = NULL;
   int ta_ret = 0;
-  uint16_t max_enb_connected = 0;
   uint8_t bplmn_list_count = 0; //Broadcast PLMN list count
 
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -447,38 +446,6 @@ int s1ap_mme_handle_s1_setup_request(
 
   OAILOG_MESSAGE_FINISH((void *) context);
 
-  mme_config_read_lock(&mme_config);
-  max_enb_connected = mme_config.max_enbs;
-  mme_config_unlock(&mme_config);
-
-  if (state->num_enbs == max_enb_connected) {
-    OAILOG_ERROR(
-      LOG_S1AP,
-      "There is too much eNB connected to MME, rejecting the association\n");
-    OAILOG_DEBUG(
-      LOG_S1AP,
-      "Connected = %d, maximum allowed = %d\n",
-      state->num_enbs,
-      max_enb_connected);
-    /*
-     * Send an overload cause...
-     */
-    rc = s1ap_mme_generate_s1_setup_failure(
-      assoc_id,
-      S1ap_Cause_PR_misc,
-      S1ap_CauseMisc_control_processing_overload,
-      S1ap_TimeToWait_v20s);
-
-    increment_counter(
-      "s1_setup",
-      1,
-      2,
-      "result",
-      "failure",
-      "cause",
-      "max_allowed_enb_connected");
-    OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-  }
   /* Requirement MME36.413R10_8.7.3.4 Abnormal Conditions
    * If the eNB initiates the procedure by sending a S1 SETUP REQUEST message including the PLMN Identity IEs and
    * none of the PLMNs provided by the eNB is identified by the MME, then the MME shall reject the eNB S1 Setup
