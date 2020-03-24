@@ -179,6 +179,7 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 		if len(certPool.Subjects()) > 0 {
 			tlsCfg.RootCAs = certPool
 		} else {
+			log.Print("Empty server certificate pool, using TLS InsecureSkipVerify")
 			tlsCfg.InsecureSkipVerify = true
 		}
 		if clientCaFile, err := serviceConfig.GetStringParam("gateway_cert"); err == nil && len(clientCaFile) > 0 {
@@ -187,10 +188,14 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 				if err == nil {
 					tlsCfg.Certificates = []tls.Certificate{clientCert}
 				} else {
-					log.Printf("failed to load Client Certificate/Key from '%s', '%s': %v",
+					log.Printf("failed to load Client Certificate & Key from '%s', '%s': %v",
 						clientCaFile, clientKeyFile, err)
 				}
+			} else {
+				log.Printf("failed to get gateway certificate key location: %v", err)
 			}
+		} else {
+			log.Printf("failed to get gateway certificate location: %v", err)
 		}
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsCfg)))
 	}

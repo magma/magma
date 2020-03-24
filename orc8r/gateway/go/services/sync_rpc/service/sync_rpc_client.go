@@ -132,6 +132,7 @@ func (c *SyncRpcClient) Run() {
 			continue
 		} else {
 			currentBackoffInterval = MinRetryInterval // reset backoff interval
+			log.Printf("[SyncRpc] successfully connected to cloud '%s' service", definitions.DispatcherServiceName)
 		}
 
 		// this should simply wait here for requests and process responses
