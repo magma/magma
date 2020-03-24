@@ -37,9 +37,6 @@ Spin up and provision the s1ap tester's VM, make, then make in the integ_tests d
     1. cd `$MAGMA_ROOT/lte/gateway/python && make`
     1. cd `$MAGMA_ROOT/lte/gateway/python/integ_tests && make`
 
-You will see "-bash: deactivate: command not found" if this is the first time
-you are compiling the tester code. It can be ignored.
-
 ### Run tests
 
 From `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM, run
