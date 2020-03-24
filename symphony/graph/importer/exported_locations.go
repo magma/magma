@@ -339,12 +339,9 @@ func (m *importer) validateHierarchyForLocation(ctx context.Context, location *e
 	}
 	prevIdx := 0
 	for _, loc := range hierarchy {
-		currIdx := findIndex(importLine.line, strings.Trim(loc.Name, " "))
+		currIdx := findIndexAfter(importLine.line, strings.Trim(loc.Name, " "), prevIdx)
 		if currIdx == -1 {
-			return fmt.Errorf("missing location from hierarchy (%v)", loc.Name)
-		}
-		if prevIdx > currIdx {
-			return fmt.Errorf("location not in the right order (%v)", loc.Name)
+			return fmt.Errorf("missing location %v from hierarchy (started on index %d)", loc.Name, prevIdx)
 		}
 		prevIdx = currIdx
 	}

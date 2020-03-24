@@ -19,51 +19,73 @@ export function reducer(
   state: ChecklistItemsDialogStateType,
   action: ChecklistItemsDialogMutateStateActionType,
 ): ChecklistItemsDialogStateType {
+  const {items} = state;
   switch (action.type) {
     case 'EDIT_ITEM':
-      const itemIndex = state.findIndex(i => i.id === action.value.id);
-      return [
-        ...state.slice(0, itemIndex),
-        {
-          ...state[itemIndex],
-          ...action.value,
-        },
-        ...state.slice(itemIndex + 1),
-      ];
-    case 'ADD_ITEM':
-      return [
+      const itemIndex = items.findIndex(i => i.id === action.value.id);
+      return {
         ...state,
-        {
-          id: shortid.generate(),
-          title: '',
-          type: 'simple',
-          index: state.length,
-        },
-      ];
+        items: [
+          ...items.slice(0, itemIndex),
+          {
+            ...items[itemIndex],
+            ...action.value,
+          },
+          ...items.slice(itemIndex + 1),
+        ],
+      };
+    case 'ADD_ITEM':
+      const newId = shortid.generate();
+      return {
+        editedDefinitionId: newId,
+        items: [
+          ...items,
+          {
+            id: newId,
+            title: '',
+            type: 'simple',
+            index: items.length,
+          },
+        ],
+      };
     case 'CHANGE_ITEM_POSITION':
-      return reorder<CheckListItem>(
-        state,
-        action.sourceIndex,
-        action.destinationIndex,
-      ).map((item, index) => {
-        return {
-          ...item,
-          index,
-        };
-      });
+      return {
+        ...state,
+        items: reorder<CheckListItem>(
+          items,
+          action.sourceIndex,
+          action.destinationIndex,
+        ).map((item, index) => {
+          return {
+            ...item,
+            index,
+          };
+        }),
+      };
     case 'REMOVE_ITEM':
-      const itemToRemoveIndex = state.findIndex(c => c.id === action.itemId);
-      return [
-        ...state.slice(0, itemToRemoveIndex),
-        ...state.slice(itemToRemoveIndex + 1, state.length),
-      ];
+      const itemToRemoveIndex = items.findIndex(c => c.id === action.itemId);
+      return {
+        ...state,
+        items: [
+          ...items.slice(0, itemToRemoveIndex),
+          ...items.slice(itemToRemoveIndex + 1, items.length),
+        ],
+      };
+    case 'SET_EDITED_DEFINITION_ID':
+      return {
+        ...state,
+        editedDefinitionId: action.itemId,
+      };
     default:
       return state;
   }
 }
 
 export function getInitialState(
-  items: ChecklistItemsDialogStateType,
+  initialItems: Array<CheckListItem>,
 ): ChecklistItemsDialogStateType {
-  return items.slice().map(item => ({...item}));
+  return {
+    items: initialItems.slice().map(item => ({...item})),
+    editedDefinitionId: null,
+  };
 }

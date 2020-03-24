@@ -200,7 +200,7 @@ def _start_ue_simulator():
 
 def _start_trfserver():
     """ Starts the traffic gen server"""
-    run('nohup iperf3 -s -B %s > /dev/null &' % TRF_SERVER_IP, pty=False)
+    run('nohup iperf3 -s --json -B %s > /dev/null &' % TRF_SERVER_IP, pty=False)
 
 
 def _run_unit_tests():

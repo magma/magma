@@ -7,7 +7,7 @@
 ################################################################################
 
 data "terraform_remote_state" "current" {
-  backend = "local"
+  backend = var.state_backend
 
   defaults = {
     orc8r_tag = "latest"

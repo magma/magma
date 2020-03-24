@@ -50,17 +50,17 @@ func ccaHandler(message *diam.Message) diameter.KeyAndAnswer {
 	}
 }
 
-type ReAuthHandler func(request *ReAuthRequest) *ReAuthAnswer
+type PolicyReAuthHandler func(request *PolicyReAuthRequest) *PolicyReAuthAnswer
 
 // Factory function for a RAR message handler which relays to the corresponding
 // gateway.
-func GetGxReAuthHandler(cloudRegistry service_registry.GatewayRegistry, policyDBClient policydb.PolicyDBClient) ReAuthHandler {
-	return func(request *ReAuthRequest) *ReAuthAnswer {
+func GetGxReAuthHandler(cloudRegistry service_registry.GatewayRegistry, policyDBClient policydb.PolicyDBClient) PolicyReAuthHandler {
+	return func(request *PolicyReAuthRequest) *PolicyReAuthAnswer {
 		sid := diameter.DecodeSessionID(request.SessionID)
 		imsi, err := relay.GetIMSIFromSessionID(sid)
 		if err != nil {
 			glog.Errorf("Error retrieving IMSI from session ID %s: %s", request.SessionID, err)
-			return &ReAuthAnswer{
+			return &PolicyReAuthAnswer{
 				SessionID:  request.SessionID,
 				ResultCode: diam.UnknownSessionID,
 			}
@@ -69,7 +69,7 @@ func GetGxReAuthHandler(cloudRegistry service_registry.GatewayRegistry, policyDB
 		client, err := relay.GetSessionProxyResponderClient(cloudRegistry)
 		if err != nil {
 			glog.Error(err)
-			return &ReAuthAnswer{
+			return &PolicyReAuthAnswer{
 				SessionID:  request.SessionID,
 				ResultCode: diam.UnableToDeliver,
 			}
@@ -80,11 +80,11 @@ func GetGxReAuthHandler(cloudRegistry service_registry.GatewayRegistry, policyDB
 		ans, err := client.PolicyReAuth(context.Background(), gwReq)
 		if err != nil {
 			glog.Errorf("Error relaying Gx reauth request to gateway: %s", err)
-			return &ReAuthAnswer{
+			return &PolicyReAuthAnswer{
 				SessionID:  request.SessionID,
 				ResultCode: diam.UnableToDeliver,
 			}
 		}
-		return (&ReAuthAnswer{}).FromProto(request.SessionID, ans)
+		return (&PolicyReAuthAnswer{}).FromProto(request.SessionID, ans)
 	}
 }

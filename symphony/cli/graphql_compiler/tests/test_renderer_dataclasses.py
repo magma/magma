@@ -17,7 +17,7 @@ from graphql import (
 )
 from graphql_compiler.gql.query_parser import QueryParser
 from graphql_compiler.gql.renderer_dataclasses import DataclassesRenderer
-from graphql_compiler.gql.utils_codegen import get_enum_filename
+from graphql_compiler.gql.utils_codegen import get_enum_filename, get_fragment_filename
 
 from .base_test import BaseTest
 
@@ -93,22 +93,30 @@ class TestRendererDataclasses(BaseTest):
         assert result.returnOfTheJedi.director == "George Lucas"
 
     def test_simple_query_with_fragment(self):
-        query = """
-            query GetFilm {
-              returnOfTheJedi: film(id: "1") {
-                ...FilmFields
-                openingCrawl
-
-              }
-            }
-
+        fragment_query = """
             fragment FilmFields on Film {
                 title
                 director
             }
         """
 
-        parsed = self.swapi_parser.parse(query)
+        query = """
+            query GetFilm {
+              returnOfTheJedi: film(id: "1") {
+                ...FilmFields
+                openingCrawl
+              }
+            }
+        """
+
+        parsed_fragment = self.swapi_parser.parse(fragment_query, is_fragment=True)
+        rendered_fragment = self.swapi_dataclass_renderer.render(parsed_fragment)
+
+        self.load_module(
+            rendered_fragment, module_name=get_fragment_filename("FilmFields")
+        )
+
+        parsed = self.swapi_parser.parse(query, fragment_query)
         rendered = self.swapi_dataclass_renderer.render(parsed)
 
         m = self.load_module(rendered)
@@ -134,13 +142,7 @@ class TestRendererDataclasses(BaseTest):
         assert data.returnOfTheJedi.openingCrawl == "la la la"
 
     def test_simple_query_with_complex_fragment(self):
-        query = """
-            query GetPerson {
-              luke: character(id: "luke") {
-                ...CharacterFields
-              }
-            }
-
+        fragment_query = """
             fragment CharacterFields on Person {
                 name
 
@@ -149,8 +151,22 @@ class TestRendererDataclasses(BaseTest):
                 }
             }
         """
+        query = """
+            query GetPerson {
+              luke: character(id: "luke") {
+                ...CharacterFields
+              }
+            }
+        """
 
-        parsed = self.swapi_parser.parse(query)
+        parsed_fragment = self.swapi_parser.parse(fragment_query, is_fragment=True)
+        rendered_fragment = self.swapi_dataclass_renderer.render(parsed_fragment)
+
+        self.load_module(
+            rendered_fragment, module_name=get_fragment_filename("CharacterFields")
+        )
+
+        parsed = self.swapi_parser.parse(query, fragment_query)
         rendered = self.swapi_dataclass_renderer.render(parsed)
 
         m = self.load_module(rendered)
@@ -176,20 +192,22 @@ class TestRendererDataclasses(BaseTest):
         assert data.luke.home.name == "Arakis"
 
     def test_simple_query_with_complex_fragments(self):
-        query = """
+        fragment_query1 = """
             fragment PlanetFields on Planet {
               name
               population
               terrains
             }
-
+        """
+        fragment_query2 = """
             fragment CharacterFields on Person {
               name
               home: homeworld {
                 ...PlanetFields
               }
             }
-
+        """
+        query = """
             query GetPerson {
               luke: character(id: "luke") {
                 ...CharacterFields
@@ -197,7 +215,23 @@ class TestRendererDataclasses(BaseTest):
             }
         """
 
-        parsed = self.swapi_parser.parse(query)
+        parsed_fragment1 = self.swapi_parser.parse(fragment_query1, is_fragment=True)
+        rendered_fragment1 = self.swapi_dataclass_renderer.render(parsed_fragment1)
+
+        self.load_module(
+            rendered_fragment1, module_name=get_fragment_filename("PlanetFields")
+        )
+
+        parsed_fragment2 = self.swapi_parser.parse(
+            fragment_query2, fragment_query1, is_fragment=True
+        )
+        rendered_fragment2 = self.swapi_dataclass_renderer.render(parsed_fragment2)
+
+        self.load_module(
+            rendered_fragment2, module_name=get_fragment_filename("CharacterFields")
+        )
+
+        parsed = self.swapi_parser.parse(query, fragment_query1 + fragment_query2)
         rendered = self.swapi_dataclass_renderer.render(parsed)
 
         m = self.load_module(rendered)

@@ -17,12 +17,14 @@ import Button from '../Button';
 import MultiSelectMenu from './MultiSelectMenu';
 import classNames from 'classnames';
 import fbt from 'fbt';
+import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
   root: {
     justifyContent: 'flex-start',
     padding: '4px',
+    border: `1px solid ${symphony.palette.D100}`,
   },
   value: {
     fontWeight: 500,

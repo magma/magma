@@ -22,6 +22,8 @@ from graphql import (
     validate,
     visit,
 )
+from graphql.validation.rules.no_unused_fragments import NoUnusedFragmentsRule
+from graphql.validation.specified_rules import specified_rules
 
 
 @dataclass
@@ -76,6 +78,8 @@ class ParsedQuery:
     enums: List[ParsedEnum] = field(default_factory=list)
     internal_enums: List[ParsedEnum] = field(default_factory=list)
     internal_inputs: List[ParsedEnum] = field(default_factory=list)
+    fragment_objects: List[ParsedObject] = field(default_factory=list)
+    used_fragments: List[str] = field(default_factory=list)
 
 
 class FieldToTypeMatcherVisitor(Visitor):
@@ -201,12 +205,13 @@ class FieldToTypeMatcherVisitor(Visitor):
     def enter_fragment_definition(self, node, *_):
         # Same as operation definition
         obj = ParsedObject(name=node.name.value)
-        self.parsed.objects.append(obj)  # pylint:disable=no-member
+        self.parsed.fragment_objects.append(obj)  # pylint:disable=no-member
         self.push(obj)
         return node
 
     def enter_fragment_spread(self, node, *_):
         self.current.parents.append(node.name.value)
+        self.parsed.used_fragments.append(node.name.value)
         return node
 
     # def enter_inline_fragment(self, node, *_):
@@ -334,15 +339,26 @@ class QueryParser:
         self.schema = schema
         self.__jinja2_env = None
 
-    def parse(self, query: str, should_validate: bool = True) -> ParsedQuery:
+    def parse(
+        self,
+        query: str,
+        full_fragments: str = "",
+        should_validate: bool = True,
+        is_fragment: bool = False,
+    ) -> ParsedQuery:
+        query_document_ast = parse("".join([full_fragments, query]))
         document_ast = parse(query)
-        operation = get_operation_ast(document_ast)
-
-        if not operation.name:
-            raise AnonymousQueryError()
+        if not is_fragment:
+            operation = get_operation_ast(document_ast)
+            if not operation.name:
+                raise AnonymousQueryError()
 
         if should_validate:
-            errors = validate(self.schema, document_ast)
+            errors = validate(
+                self.schema,
+                query_document_ast,
+                [rule for rule in specified_rules if rule is not NoUnusedFragmentsRule],
+            )
             if errors:
                 raise InvalidQueryError(errors)
 

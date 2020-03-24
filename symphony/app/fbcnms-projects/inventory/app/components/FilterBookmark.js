@@ -116,6 +116,16 @@ const FilterBookmark = (props: Props) => {
     handleClose();
   };
 
+  const toCapitalLetter = (x: string): string => {
+    return x[0].toUpperCase() + x.substring(1).toLowerCase();
+  };
+
+  const entityToLabel = (entity: FilterEntity): string => {
+    let entitySplit = entity.split('_');
+    entitySplit = entitySplit.map(w => toCapitalLetter(w));
+    return entitySplit.join(' ');
+  };
+
   const filtersQueryToFilterInput = (filterQuery: FiltersQuery) => {
     return filterQuery.map(f => {
       if (
@@ -314,8 +324,7 @@ const FilterBookmark = (props: Props) => {
                     <fbt desc="">
                       You can find it under the
                       <fbt:param name="entity name">
-                        '`' +{entity[0] + entity.substring(1).toLowerCase()}
-                        +'`'
+                        {"'" + entityToLabel(entity) + "'"}
                       </fbt:param>{' '}
                       filter search bar.
                     </fbt>
@@ -324,7 +333,9 @@ const FilterBookmark = (props: Props) => {
               </div>
               <TextInput
                 type="string"
-                placeholder={isBookmark ? name : `${fbt('Bookmark name', '')}`}
+                placeholder={
+                  isBookmark ? name : `${fbt('Saved search name', '')}`
+                }
                 onChange={({target}) => setName(target.value)}
                 value={name}
               />

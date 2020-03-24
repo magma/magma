@@ -4,18 +4,22 @@ title: S1AP Integration Tests
 hide_title: true
 ---
 # S1AP Integration Tests
-Current testing workflow for VM-only S1AP integration tests. We cover gateway-only tests, cloud-included tests, and some general notes.
+Current testing workflow for VM-only S1AP integration tests. We cover
+gateway-only tests and some general notes.
 
-Our VM-only tests use 2 to 4 Vagrant-managed VMs hosted on the local device (laptop):
+TODO: Update this document once integration tests with cloud are also supported
+
+Our VM-only tests use 3 Vagrant-managed VMs hosted on the local device (laptop):
 
 - *magma*, i.e. magma-dev or gateway
 - *magma_test*, i.e. s1ap_tester
-- *cloud*
-- *datastore*
+- *magma_trfserver*, i.e. an Iperf server to generate uplink/downlink traffic
 
 ## Gateway-only tests
 
-These tests use only the *magma* and *magma_test* VMs. The *magma_test* VM abstracts away the UE and eNodeB, while the *magma* VM acts as the gateway.
+These tests use all 3 VMs listed above. The *magma_test* VM abstracts away the
+UE and eNodeB, the *magma_trfserver* emulates the Internet, while the *magma* VM
+acts as the gateway between *magma_test* and *magma_trfserver*.
 
 ### Gateway VM setup
 
@@ -32,7 +36,6 @@ Spin up and provision the s1ap tester's VM, make, then make in the integ_tests d
 1. Now in the *magma_test* VM:
     1. cd `$MAGMA_ROOT/lte/gateway/python && make`
     1. cd `$MAGMA_ROOT/lte/gateway/python/integ_tests && make`
-    1. `deactivate; magtivate`
 
 You will see "-bash: deactivate: command not found" if this is the first time
 you are compiling the tester code. It can be ignored.
@@ -40,17 +43,14 @@ you are compiling the tester code. It can be ignored.
 ### Run tests
 
 From `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM, run
-either individual tests or the full suite of tests. A safe, non-flaky test to run is `s1aptests/test_attach_detach.py`.
-
-**Note**: after make-ing, run `deactivate; magtivate`. Make sure that you are "magtivate-d" before all tests (your command prompt will include `(python)`).
+either individual tests or the full suite of tests. A safe, non-flaky test to
+run is `s1aptests/test_attach_detach.py`.
 
 * Individual test(s): `make integ_test TESTS=<test(s)_to_run>`
 * All tests: `make integ_test`
 
 **Note**: The traffic tests will fail as traffic server is not running in this
 setup. Look at the section below on running traffic tests.
-
-To run the tests when upstreaming to OAI use the environment variable `TEST_OAI_UPSTREAM` from the *magma_test* vm. This will use OAI's HSS and disable our mobilityd e.g. `TEST_OAI_UPSTREAM make integ_test`
 
 ### Running uplink/downlink traffic tests
 
@@ -63,44 +63,6 @@ To run the tests when upstreaming to OAI use the environment variable `TEST_OAI_
 1. From *magma_trfserver* VM, run `disable-tcp-checksumming && trfgen-server`
 
 Running `make integ_test` in *magma_test* VM should succeed now.
-
-## Cloud-included
-
-These tests mirror the gateway-only tests, except they make their calls to the cloud's REST API, rather than directly to the gateway over gRPC. For a given update made via the REST API (e.g. add a subscriber, update a mobility config), these tests poll the gateway over gRPC until the cloud and gateway responses match. Thus, these tests are much slower than the gateway-only tests since the gateway's polling mechanism is a bit slow.
-
-These tests use all 4 VMs.
-
-**Note**. Cloud-included tests are currently only supported for `test_attach_detach.py`, but will and can easily be added for the rest of our suite of integration tests.
-
-### Gateway setup
-
-Same as for gateway-only tests.
-
-### Magma_test setup
-
-Same as for gateway-only tests.
-
-### Cloud setup
-
-Spin up and provision the *cloud* and *datastore* VMs, then make.
-
-1. From `magma/orc8r/cloud` on the host machine: `vagrant up datastore && vagrant up cloud && vagrant ssh cloud`
-1. Now in the *cloud* VM: `cd ~/magma/orc8r/cloud && make run`
-
-### Other setup
-
-From `magma/lte/gateway` on your host device run `fab s1ap_setup_cloud`
-
-Using the *cloud* VM requires a few extra steps, which are handled by the above [fab](http://www.fabfile.org/) command. In summary:
-
-- Tell the *magma* VM to use the *cloud* VM for its REST API calls (clean up previous prod certs if any)
-- Decrease the gateway's streamer timeout
-
-### Run tests
-
-The integration tests are told to use the cloud by setting the environment variable `MAGMA_S1APTEST_USE_CLOUD` on the *magma_test* VM.
-
-So from `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM run e.g. `MAGMA_S1APTEST_USE_CLOUD=1 make integ_test TESTS=s1aptests/test_attach_detach.py` to run a cloud-included version of `test_attach_detach`.
 
 ## Notes
 

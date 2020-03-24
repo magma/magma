@@ -272,9 +272,9 @@ func getClientConfig() *diameter.DiameterClientConfig {
 	}
 }
 
-func getMockReAuthHandler() gx.ReAuthHandler {
-	return func(request *gx.ReAuthRequest) *gx.ReAuthAnswer {
-		return &gx.ReAuthAnswer{
+func getMockReAuthHandler() gx.PolicyReAuthHandler {
+	return func(request *gx.PolicyReAuthRequest) *gx.PolicyReAuthAnswer {
+		return &gx.PolicyReAuthAnswer{
 			SessionID:  request.SessionID,
 			ResultCode: diam.Success,
 		}

@@ -5,7 +5,7 @@
 
 import warnings
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Tuple, Union, cast
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 from dacite import Config, from_dict
 
@@ -18,8 +18,16 @@ from .consts import (
     ReturnType,
 )
 from .exceptions import EntityNotFoundError
+from .graphql.equipment_port_definition_fragment import EquipmentPortDefinitionFragment
+from .graphql.equipment_port_input import EquipmentPortInput
+from .graphql.equipment_position_definition_fragment import (
+    EquipmentPositionDefinitionFragment,
+)
+from .graphql.equipment_position_input import EquipmentPositionInput
+from .graphql.property_fragment import PropertyFragment
 from .graphql.property_input import PropertyInput
 from .graphql.property_kind_enum import PropertyKind
+from .graphql.property_type_fragment import PropertyTypeFragment
 from .graphql.property_type_input import PropertyTypeInput
 
 
@@ -63,14 +71,14 @@ def get_graphql_input_field(
 
 
 def get_graphql_property_type_inputs(
-    property_types: List[Dict[str, PropertyValue]],
+    property_types: Sequence[PropertyTypeFragment],
     properties_dict: Dict[str, PropertyValue],
 ) -> List[PropertyTypeInput]:
     """This function gets existing property types and dictionary, where key - are type names, and keys - new values
     formats data, validates existence of keys from properties_dict in property_types and returns list of PropertyTypeInput
  
         Args:
-            property_types (List[Dict[str, pyinventory.graphql.property_type_input.PropertyTypeInput]]): list of existing property types
+            property_types (List[pyinventory.graphql.property_type_fragment.PropertyTypeFragment]): list of existing property types
             properties_dict (Dict[str, pyinventory.consts.PropertyValue]): dictionary of properties, where
                 str: name of existing property
                 PropertyValue: new value of existing type for this property
@@ -85,23 +93,23 @@ def get_graphql_property_type_inputs(
     property_type_names = {}
 
     for property_type in property_types:
-        property_type_names[property_type["name"]] = property_type
+        property_type_names[property_type.name] = property_type
 
     for name, value in properties_dict.items():
         if name not in property_type_names:
             raise EntityNotFoundError(entity=Entity.PropertyType, entity_name=name)
-        assert property_type_names[name][
-            "isInstanceProperty"
-        ], f"property {name} is not instance property"
+        assert property_type_names[
+            name
+        ].isInstanceProperty, f"property {name} is not instance property"
         result = {
-            "id": property_type_names[name]["id"],
+            "id": property_type_names[name].id,
             "name": name,
-            "type": PropertyKind(property_type_names[name]["type"]),
+            "type": PropertyKind(property_type_names[name].type),
         }
         result.update(
             get_graphql_input_field(
                 property_type_name=name,
-                type_key=property_type_names[name]["type"].value,
+                type_key=property_type_names[name].type.value,
                 value=value,
             )
         )
@@ -115,14 +123,14 @@ def get_graphql_property_type_inputs(
 
 
 def get_graphql_property_inputs(
-    property_types: List[Dict[str, PropertyValue]],
+    property_types: Sequence[PropertyTypeFragment],
     properties_dict: Dict[str, PropertyValue],
 ) -> List[PropertyInput]:
     """This function gets existing property types and dictionary, where key - are type names, and keys - new values
     formats data, validates existence of keys from properties_dict in property_types and returns list of PropertyInput
  
         Args:
-            property_types (List[Dict[str, pyinventory.graphql.property_type_input.PropertyTypeInput]]): list of existing property types
+            property_types (List[pyinventory.graphql.property_type_fragment.PropertyTypeFragment]): list of existing property types
             properties_dict (Dict[str, pyinventory.consts.PropertyValue]): dictionary of properties, where
                 str: name of existing property
                 PropertyValue: new value of existing type for this property
@@ -135,7 +143,7 @@ def get_graphql_property_inputs(
        
         Example:
         ```
-            property_types = client.locationTypes[location_type].propertyTypes
+            property_types = client.locationTypes[location_type].property_types
             properties = get_graphql_property_inputs(property_types, properties_dict)
         ```
     """
@@ -143,19 +151,19 @@ def get_graphql_property_inputs(
     property_type_names = {}
 
     for property_type in property_types:
-        property_type_names[property_type["name"]] = property_type
+        property_type_names[property_type.name] = property_type
 
     for name, value in properties_dict.items():
         if name not in property_type_names:
             raise EntityNotFoundError(entity=Entity.PropertyType, entity_name=name)
-        assert property_type_names[name][
-            "isInstanceProperty"
-        ], f"property {name} is not instance property"
-        result = {"propertyTypeID": property_type_names[name]["id"]}
+        assert property_type_names[
+            name
+        ].isInstanceProperty, f"property {name} is not instance property"
+        result = {"propertyTypeID": property_type_names[name].id}
         result.update(
             get_graphql_input_field(
                 property_type_name=name,
-                type_key=property_type_names[name]["type"].value,
+                type_key=property_type_names[name].type.value,
                 value=value,
             )
         )
@@ -167,7 +175,7 @@ def get_graphql_property_inputs(
 
 
 def _get_property_value(
-    property_type: str, property: Dict[str, PropertyValue]
+    property_type: str, property: PropertyFragment
 ) -> Tuple[PropertyValue, ...]:
     formated_name = format_to_type_and_field_name(property_type)
     if formated_name is None:
@@ -177,10 +185,10 @@ def _get_property_value(
     values = []
     for str_field in str_fields:
         if property_type == "date":
-            date_data = property[str_field]
+            date_data = property.__dict__[str_field]
             values.append(datetime.strptime(cast(str, date_data), "%Y-%m-%d").date())
         else:
-            values.append(property[str_field])
+            values.append(property.__dict__[str_field])
     return tuple(value for value in values)
 
 
@@ -225,6 +233,52 @@ def format_properties(
 ) -> List[PropertyTypeInput]:
     property_types = _make_property_types(properties)
     return property_types
+
+
+def get_property_type_input(
+    property_type: PropertyTypeFragment, is_new: bool = True
+) -> PropertyTypeInput:
+    return PropertyTypeInput(
+        name=property_type.name,
+        type=property_type.type,
+        id=property_type.id if not is_new else None,
+        index=property_type.index,
+        category=property_type.category,
+        stringValue=property_type.stringValue,
+        intValue=property_type.intValue,
+        booleanValue=property_type.booleanValue,
+        floatValue=property_type.floatValue,
+        latitudeValue=property_type.latitudeValue,
+        longitudeValue=property_type.longitudeValue,
+        rangeFromValue=property_type.rangeFromValue,
+        rangeToValue=property_type.rangeToValue,
+        isEditable=property_type.isEditable,
+        isInstanceProperty=property_type.isInstanceProperty,
+        isMandatory=property_type.isMandatory,
+        isDeleted=property_type.isDeleted,
+    )
+
+
+def get_position_definition_input(
+    position_definition: EquipmentPositionDefinitionFragment, is_new: bool = True
+) -> EquipmentPositionInput:
+    return EquipmentPositionInput(
+        name=position_definition.name,
+        id=position_definition.id if not is_new else None,
+        index=position_definition.index,
+        visibleLabel=position_definition.visibleLabel,
+    )
+
+
+def get_port_definition_input(
+    port_definition: EquipmentPortDefinitionFragment, is_new: bool = True
+) -> EquipmentPortInput:
+    return EquipmentPortInput(
+        name=port_definition.name,
+        id=port_definition.id if not is_new else None,
+        index=port_definition.index,
+        visibleLabel=port_definition.visibleLabel,
+    )
 
 
 def format_property_definitions(

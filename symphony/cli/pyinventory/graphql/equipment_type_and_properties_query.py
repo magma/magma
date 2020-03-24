@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 
 @dataclass
 class EquipmentTypeAndPropertiesQuery(DataClassJsonMixin):
@@ -23,18 +24,8 @@ class EquipmentTypeAndPropertiesQuery(DataClassJsonMixin):
                 name: str
 
             @dataclass
-            class Property(DataClassJsonMixin):
-                @dataclass
-                class PropertyType(DataClassJsonMixin):
-                    id: str
-
-                propertyType: PropertyType
-                stringValue: Optional[str] = None
-                intValue: Optional[int] = None
-                booleanValue: Optional[bool] = None
-                floatValue: Optional[Number] = None
-                latitudeValue: Optional[Number] = None
-                longitudeValue: Optional[Number] = None
+            class Property(PropertyFragment):
+                pass
 
             equipmentType: EquipmentType
             properties: List[Property]
@@ -43,7 +34,7 @@ class EquipmentTypeAndPropertiesQuery(DataClassJsonMixin):
 
     data: EquipmentTypeAndPropertiesQueryData
 
-    __QUERY__: str = """
+    __QUERY__: str = PropertyFragmentQuery + """
     query EquipmentTypeAndPropertiesQuery($id: ID!) {
   equipment: node(id: $id) {
     ... on Equipment {
@@ -51,15 +42,7 @@ class EquipmentTypeAndPropertiesQuery(DataClassJsonMixin):
         name
       }
       properties {
-        propertyType {
-          id
-        }
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
+        ...PropertyFragment
       }
     }
   }

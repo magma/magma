@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
@@ -131,6 +132,46 @@ func (cliu *CheckListItemUpdate) ClearEnumValues() *CheckListItemUpdate {
 	return cliu
 }
 
+// SetEnumSelectionMode sets the enum_selection_mode field.
+func (cliu *CheckListItemUpdate) SetEnumSelectionMode(s string) *CheckListItemUpdate {
+	cliu.mutation.SetEnumSelectionMode(s)
+	return cliu
+}
+
+// SetNillableEnumSelectionMode sets the enum_selection_mode field if the given value is not nil.
+func (cliu *CheckListItemUpdate) SetNillableEnumSelectionMode(s *string) *CheckListItemUpdate {
+	if s != nil {
+		cliu.SetEnumSelectionMode(*s)
+	}
+	return cliu
+}
+
+// ClearEnumSelectionMode clears the value of enum_selection_mode.
+func (cliu *CheckListItemUpdate) ClearEnumSelectionMode() *CheckListItemUpdate {
+	cliu.mutation.ClearEnumSelectionMode()
+	return cliu
+}
+
+// SetSelectedEnumValues sets the selected_enum_values field.
+func (cliu *CheckListItemUpdate) SetSelectedEnumValues(s string) *CheckListItemUpdate {
+	cliu.mutation.SetSelectedEnumValues(s)
+	return cliu
+}
+
+// SetNillableSelectedEnumValues sets the selected_enum_values field if the given value is not nil.
+func (cliu *CheckListItemUpdate) SetNillableSelectedEnumValues(s *string) *CheckListItemUpdate {
+	if s != nil {
+		cliu.SetSelectedEnumValues(*s)
+	}
+	return cliu
+}
+
+// ClearSelectedEnumValues clears the value of selected_enum_values.
+func (cliu *CheckListItemUpdate) ClearSelectedEnumValues() *CheckListItemUpdate {
+	cliu.mutation.ClearSelectedEnumValues()
+	return cliu
+}
+
 // SetHelpText sets the help_text field.
 func (cliu *CheckListItemUpdate) SetHelpText(s string) *CheckListItemUpdate {
 	cliu.mutation.SetHelpText(s)
@@ -151,6 +192,21 @@ func (cliu *CheckListItemUpdate) ClearHelpText() *CheckListItemUpdate {
 	return cliu
 }
 
+// AddFileIDs adds the files edge to File by ids.
+func (cliu *CheckListItemUpdate) AddFileIDs(ids ...int) *CheckListItemUpdate {
+	cliu.mutation.AddFileIDs(ids...)
+	return cliu
+}
+
+// AddFiles adds the files edges to File.
+func (cliu *CheckListItemUpdate) AddFiles(f ...*File) *CheckListItemUpdate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cliu.AddFileIDs(ids...)
+}
+
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (cliu *CheckListItemUpdate) SetWorkOrderID(id int) *CheckListItemUpdate {
 	cliu.mutation.SetWorkOrderID(id)
@@ -168,6 +224,21 @@ func (cliu *CheckListItemUpdate) SetNillableWorkOrderID(id *int) *CheckListItemU
 // SetWorkOrder sets the work_order edge to WorkOrder.
 func (cliu *CheckListItemUpdate) SetWorkOrder(w *WorkOrder) *CheckListItemUpdate {
 	return cliu.SetWorkOrderID(w.ID)
+}
+
+// RemoveFileIDs removes the files edge to File by ids.
+func (cliu *CheckListItemUpdate) RemoveFileIDs(ids ...int) *CheckListItemUpdate {
+	cliu.mutation.RemoveFileIDs(ids...)
+	return cliu
+}
+
+// RemoveFiles removes files edges to File.
+func (cliu *CheckListItemUpdate) RemoveFiles(f ...*File) *CheckListItemUpdate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cliu.RemoveFileIDs(ids...)
 }
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
@@ -318,6 +389,32 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Column: checklistitem.FieldEnumValues,
 		})
 	}
+	if value, ok := cliu.mutation.EnumSelectionMode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if cliu.mutation.EnumSelectionModeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if value, ok := cliu.mutation.SelectedEnumValues(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
+	if cliu.mutation.SelectedEnumValuesCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
 	if value, ok := cliu.mutation.HelpText(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -330,6 +427,44 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Type:   field.TypeString,
 			Column: checklistitem.FieldHelpText,
 		})
+	}
+	if nodes := cliu.mutation.RemovedFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   checklistitem.FilesTable,
+			Columns: []string{checklistitem.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cliu.mutation.FilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   checklistitem.FilesTable,
+			Columns: []string{checklistitem.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if cliu.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -483,6 +618,46 @@ func (cliuo *CheckListItemUpdateOne) ClearEnumValues() *CheckListItemUpdateOne {
 	return cliuo
 }
 
+// SetEnumSelectionMode sets the enum_selection_mode field.
+func (cliuo *CheckListItemUpdateOne) SetEnumSelectionMode(s string) *CheckListItemUpdateOne {
+	cliuo.mutation.SetEnumSelectionMode(s)
+	return cliuo
+}
+
+// SetNillableEnumSelectionMode sets the enum_selection_mode field if the given value is not nil.
+func (cliuo *CheckListItemUpdateOne) SetNillableEnumSelectionMode(s *string) *CheckListItemUpdateOne {
+	if s != nil {
+		cliuo.SetEnumSelectionMode(*s)
+	}
+	return cliuo
+}
+
+// ClearEnumSelectionMode clears the value of enum_selection_mode.
+func (cliuo *CheckListItemUpdateOne) ClearEnumSelectionMode() *CheckListItemUpdateOne {
+	cliuo.mutation.ClearEnumSelectionMode()
+	return cliuo
+}
+
+// SetSelectedEnumValues sets the selected_enum_values field.
+func (cliuo *CheckListItemUpdateOne) SetSelectedEnumValues(s string) *CheckListItemUpdateOne {
+	cliuo.mutation.SetSelectedEnumValues(s)
+	return cliuo
+}
+
+// SetNillableSelectedEnumValues sets the selected_enum_values field if the given value is not nil.
+func (cliuo *CheckListItemUpdateOne) SetNillableSelectedEnumValues(s *string) *CheckListItemUpdateOne {
+	if s != nil {
+		cliuo.SetSelectedEnumValues(*s)
+	}
+	return cliuo
+}
+
+// ClearSelectedEnumValues clears the value of selected_enum_values.
+func (cliuo *CheckListItemUpdateOne) ClearSelectedEnumValues() *CheckListItemUpdateOne {
+	cliuo.mutation.ClearSelectedEnumValues()
+	return cliuo
+}
+
 // SetHelpText sets the help_text field.
 func (cliuo *CheckListItemUpdateOne) SetHelpText(s string) *CheckListItemUpdateOne {
 	cliuo.mutation.SetHelpText(s)
@@ -503,6 +678,21 @@ func (cliuo *CheckListItemUpdateOne) ClearHelpText() *CheckListItemUpdateOne {
 	return cliuo
 }
 
+// AddFileIDs adds the files edge to File by ids.
+func (cliuo *CheckListItemUpdateOne) AddFileIDs(ids ...int) *CheckListItemUpdateOne {
+	cliuo.mutation.AddFileIDs(ids...)
+	return cliuo
+}
+
+// AddFiles adds the files edges to File.
+func (cliuo *CheckListItemUpdateOne) AddFiles(f ...*File) *CheckListItemUpdateOne {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cliuo.AddFileIDs(ids...)
+}
+
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (cliuo *CheckListItemUpdateOne) SetWorkOrderID(id int) *CheckListItemUpdateOne {
 	cliuo.mutation.SetWorkOrderID(id)
@@ -520,6 +710,21 @@ func (cliuo *CheckListItemUpdateOne) SetNillableWorkOrderID(id *int) *CheckListI
 // SetWorkOrder sets the work_order edge to WorkOrder.
 func (cliuo *CheckListItemUpdateOne) SetWorkOrder(w *WorkOrder) *CheckListItemUpdateOne {
 	return cliuo.SetWorkOrderID(w.ID)
+}
+
+// RemoveFileIDs removes the files edge to File by ids.
+func (cliuo *CheckListItemUpdateOne) RemoveFileIDs(ids ...int) *CheckListItemUpdateOne {
+	cliuo.mutation.RemoveFileIDs(ids...)
+	return cliuo
+}
+
+// RemoveFiles removes files edges to File.
+func (cliuo *CheckListItemUpdateOne) RemoveFiles(f ...*File) *CheckListItemUpdateOne {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cliuo.RemoveFileIDs(ids...)
 }
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
@@ -668,6 +873,32 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 			Column: checklistitem.FieldEnumValues,
 		})
 	}
+	if value, ok := cliuo.mutation.EnumSelectionMode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if cliuo.mutation.EnumSelectionModeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldEnumSelectionMode,
+		})
+	}
+	if value, ok := cliuo.mutation.SelectedEnumValues(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
+	if cliuo.mutation.SelectedEnumValuesCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
 	if value, ok := cliuo.mutation.HelpText(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -680,6 +911,44 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 			Type:   field.TypeString,
 			Column: checklistitem.FieldHelpText,
 		})
+	}
+	if nodes := cliuo.mutation.RemovedFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   checklistitem.FilesTable,
+			Columns: []string{checklistitem.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cliuo.mutation.FilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   checklistitem.FilesTable,
+			Columns: []string{checklistitem.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if cliuo.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{

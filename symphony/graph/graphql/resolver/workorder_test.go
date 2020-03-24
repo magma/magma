@@ -12,6 +12,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
@@ -1606,7 +1607,18 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 		Type:  "simple",
 		Index: &indexValue,
 	}
-	clInputs = []*models.CheckListItemInput{&barCL}
+	enumValues := "val1,val2,val3"
+	selectionMode := models.CheckListItemEnumSelectionModeMultiple
+	selectedValues := "val2,val3"
+	multiCL := models.CheckListItemInput{
+		Title:              "Multi",
+		Type:               "enum",
+		Index:              pointer.ToInt(2),
+		EnumValues:         &enumValues,
+		EnumSelectionMode:  &selectionMode,
+		SelectedEnumValues: &selectedValues,
+	}
+	clInputs = []*models.CheckListItemInput{&barCL, &multiCL}
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:        workOrder.ID,
 		Name:      longWorkOrderName,
@@ -1614,14 +1626,109 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 	})
 	require.NoError(t, err)
 	cls := workOrder.QueryCheckListItems().AllX(ctx)
-	require.Len(t, cls, 1)
+	require.Len(t, cls, 2)
 
 	fooCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
 	require.Equal(t, "Bar", fooCLFetched.Title, "verifying check list name")
 
+	multiCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("enum")).OnlyX(ctx)
+	require.Equal(t, "Multi", multiCLFetched.Title)
+	require.Equal(t, selectionMode.String(), multiCLFetched.EnumSelectionMode)
+	require.Equal(t, enumValues, multiCLFetched.EnumValues)
+	require.Equal(t, selectedValues, multiCLFetched.SelectedEnumValues)
+
 	cl, err := wr.CheckList(ctx, workOrder)
 	require.NoError(t, err)
-	require.Len(t, cl, 1)
+	require.Len(t, cl, 2)
+}
+
+func TestEditCheckListItemFiles(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr := r.Mutation()
+	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name: "example_type",
+	})
+	require.NoError(t, err)
+	indexValue := 0
+
+	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            longWorkOrderName,
+		WorkOrderTypeID: woType.ID,
+		CheckListCategories: []*models.CheckListCategoryInput{{
+			Title: "Category1",
+			CheckList: []*models.CheckListItemInput{{
+				Title: "Files",
+				Type:  "files",
+				Index: &indexValue,
+				Files: []*models.FileInput{
+					{
+						FileName: "File1",
+						StoreKey: "File1StoreKey",
+					},
+					{
+						FileName: "File2",
+						StoreKey: "File2StoreKey",
+					},
+				},
+			}},
+		}},
+	})
+	require.NoError(t, err)
+
+	queriedFiles, err := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().All(ctx)
+	require.NoError(t, err)
+	require.Len(t, queriedFiles, 2)
+	file1, err := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().Where(file.Name("File1")).Only(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, file1)
+
+	checklistCategoryID, err := workOrder.QueryCheckListCategories().OnlyID(ctx)
+	require.NoError(t, err)
+	filesItemID, err := workOrder.QueryCheckListCategories().QueryCheckListItems().OnlyID(ctx)
+	require.NoError(t, err)
+	updatedWorkOrder, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
+		ID:   workOrder.ID,
+		Name: longWorkOrderName,
+		CheckListCategories: []*models.CheckListCategoryInput{{
+			ID: &checklistCategoryID,
+			CheckList: []*models.CheckListItemInput{{
+				ID:    &filesItemID,
+				Title: "Files",
+				Type:  "files",
+				Index: &indexValue,
+				Files: []*models.FileInput{
+					{
+						ID:       &file1.ID,
+						FileName: "File1 Renamed",
+						StoreKey: "File1StoreKey",
+					},
+					{
+						FileName: "File3",
+						StoreKey: "File3StoreKey",
+					},
+				},
+			}},
+		}},
+	})
+	require.NoError(t, err)
+
+	queriedUpdatedFiles, err := updatedWorkOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().All(ctx)
+	require.NoError(t, err)
+	require.Len(t, queriedUpdatedFiles, 2)
+
+	file2Exists, err := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().Where(file.Name("File2")).Exist(ctx)
+	require.NoError(t, err)
+	require.False(t, file2Exists)
+
+	updatedFile1Exists, err := workOrder.QueryCheckListItems().QueryFiles().Where(file.Name("File1 Renamed")).Exist(ctx)
+	require.NoError(t, err)
+	require.False(t, updatedFile1Exists)
+
+	file3Exists, err := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().Where(file.Name("File3")).Exist(ctx)
+	require.NoError(t, err)
+	require.True(t, file3Exists)
 }
 
 func TestEditWorkOrderLocation(t *testing.T) {

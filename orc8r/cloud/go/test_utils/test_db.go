@@ -16,6 +16,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
+	storage2 "magma/orc8r/cloud/go/storage"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
@@ -29,7 +30,7 @@ var (
 // GetSharedTestDB returns a singleton in-memory database connection.
 func GetSharedTestDB(t *testing.T) *sql.DB {
 	once.Do(func() {
-		db, err := sqorc.Open(blobstore.SQLDriver, ":memory:")
+		db, err := sqorc.Open(storage2.SQLDriver, ":memory:")
 		assert.NoError(t, err)
 		instance = db
 	})

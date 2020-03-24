@@ -651,6 +651,8 @@ export default withRouter(
               checked
               enumValues
               stringValue
+              enumSelectionMode
+              selectedEnumValues
             }
           }
         }

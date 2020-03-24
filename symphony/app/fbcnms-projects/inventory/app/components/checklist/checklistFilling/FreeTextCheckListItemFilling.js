@@ -8,38 +8,23 @@
  * @format
  */
 
-import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+import type {CheckListItemFillingProps} from './CheckListItemFilling';
 
+import * as React from 'react';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import {makeStyles} from '@material-ui/styles';
 
-type Props = {
-  item: CheckListItem,
-  onChange?: (updatedChecklistItem: CheckListItem) => void,
-};
-
 const useStyles = makeStyles(() => ({
-  container: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  expandindPart: {
-    flexGrow: 1,
-    flexBasis: 0,
-    '&:not(:first-child)': {
-      marginLeft: '8px',
-    },
-    '&:not(:last-child)': {
-      marginRight: '8px',
-    },
+  textInput: {
+    width: '100%',
   },
 }));
 
-const FreeTextCheckListItemFilling = ({item, onChange}: Props) => {
+const FreeTextCheckListItemFilling = ({
+  item,
+  onChange,
+}: CheckListItemFillingProps): React.Node => {
   const classes = useStyles();
 
   const _updateOnChange = newValue => {
@@ -55,20 +40,16 @@ const FreeTextCheckListItemFilling = ({item, onChange}: Props) => {
   };
 
   return (
-    <div className={classes.container}>
-      <Text className={classes.expandindPart} variant="body2" weight="regular">
-        {item.title}
-      </Text>
-      <FormField>
-        <TextInput
-          className={classes.expandindPart}
-          type="string"
-          placeholder={item.helpText || ''}
-          value={item.stringValue || ''}
-          onChange={event => _updateOnChange(event.target.value)}
-        />
-      </FormField>
-    </div>
+    <FormField>
+      <TextInput
+        className={classes.textInput}
+        type="multiline"
+        rows={5}
+        placeholder={item.helpText || ''}
+        value={item.stringValue || ''}
+        onChange={event => _updateOnChange(event.target.value)}
+      />
+    </FormField>
   );
 };
 

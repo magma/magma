@@ -47,6 +47,7 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the File type.
 var ForeignKeys = []string{
+	"check_list_item_files",
 	"equipment_files",
 	"location_files",
 	"survey_question_photo_data",

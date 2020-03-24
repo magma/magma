@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-from dataclasses import asdict
 from typing import Dict, List, Optional, Tuple
-
-from dacite import Config, from_dict
 
 from .._utils import PropertyValue, format_properties, get_graphql_property_inputs
 from ..client import SymphonyClient
@@ -47,7 +44,7 @@ def _populate_service_types(client: SymphonyClient) -> None:
                 name=node.name,
                 id=node.id,
                 hasCustomer=node.hasCustomer,
-                propertyTypes=[asdict(p) for p in node.propertyTypes],
+                property_types=node.propertyTypes,
             )
 
 
@@ -70,7 +67,7 @@ def add_service_type(
         name=result.name,
         id=result.id,
         hasCustomer=result.hasCustomer,
-        propertyTypes=[asdict(p) for p in result.propertyTypes],
+        property_types=result.propertyTypes,
     )
     client.serviceTypes[name] = service_type
     return service_type
@@ -85,7 +82,7 @@ def add_service(
     properties_dict: Dict[str, PropertyValue],
     links: List[Link],
 ) -> Service:
-    property_types = client.serviceTypes[service_type].propertyTypes
+    property_types = client.serviceTypes[service_type].property_types
     properties = get_graphql_property_inputs(property_types, properties_dict)
     service_create_data = ServiceCreateData(
         name=name,
@@ -110,7 +107,7 @@ def add_service(
                 id=e.id,
                 port=EquipmentPort(
                     id=e.port.id,
-                    properties=[asdict(p) for p in e.port.properties],
+                    properties=e.port.properties,
                     definition=EquipmentPortDefinition(
                         id=e.port.definition.id, name=e.port.definition.name
                     ),
@@ -163,7 +160,7 @@ def get_service(client: SymphonyClient, id: str) -> Service:
                 id=e.id,
                 port=EquipmentPort(
                     id=e.port.id,
-                    properties=[asdict(p) for p in e.port.properties],
+                    properties=e.port.properties,
                     definition=EquipmentPortDefinition(
                         id=e.port.definition.id, name=e.port.definition.name
                     ),

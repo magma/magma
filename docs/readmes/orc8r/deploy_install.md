@@ -156,7 +156,7 @@ directly (on MacOS, double-click this file and add it to your keychain).
 We can now upload these new certificates to AWS Secretsmanager:
 
 ```bash
-$ terraform taint -target=module.orc8r-app.null_resource.orc8r_seed_secrets
+$ terraform taint module.orc8r-app.null_resource.orc8r_seed_secrets
 $ terraform apply
 
 Apply complete! Resources: 1 added, 0 changed, 1 destroyed.

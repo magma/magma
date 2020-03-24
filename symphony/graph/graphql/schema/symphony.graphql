@@ -869,6 +869,7 @@ enum ImageEntity {
   SITE_SURVEY
   EQUIPMENT
   USER
+  CHECKLIST_ITEM
 }
 
 enum PropertyEntity {
@@ -930,6 +931,12 @@ enum CheckListItemType {
   simple
   string
   enum
+  files
+}
+
+enum CheckListItemEnumSelectionMode {
+  single
+  multiple
 }
 
 type CheckListItemDefinition {
@@ -964,8 +971,11 @@ type CheckListItem implements Node {
   index: Int
   helpText: String
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
+  selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  files: [File!]!
 }
 
 input CheckListCategoryInput {
@@ -982,8 +992,11 @@ input CheckListItemInput {
   index: Int
   helpText: String
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
+  selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  files: [FileInput!]
 }
 
 enum FilterEntity {
@@ -1651,7 +1664,7 @@ type FloorPlanReferencePoint {
 }
 
 input FileInput {
-  id: ID!
+  id: ID
   fileName: String!
   sizeInBytes: Int
   modificationTime: Int

@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import List
+from typing import List, Optional
 
 from ..client import SymphonyClient
 from ..consts import Entity, User
@@ -11,11 +11,13 @@ from ..exceptions import EntityNotFoundError
 from ..graphql.edit_user_input import EditUserInput
 from ..graphql.edit_user_mutation import EditUserMutation
 from ..graphql.user_query import UserQuery
+from ..graphql.user_role_enum import UserRole
 from ..graphql.user_status_enum import UserStatus
 from ..graphql.users_query import UsersQuery
 
 
-USER_ROLE = 1
+USER_ROLE = 0
+SUPERUSER_ROLE = 3
 
 
 def get_user(client: SymphonyClient, email: str) -> User:
@@ -82,6 +84,49 @@ def add_user(client: SymphonyClient, email: str, password: str) -> User:
         raise
 
     return get_user(client, email)
+
+
+def edit_user(
+    client: SymphonyClient,
+    user: User,
+    new_password: Optional[str] = None,
+    new_role: Optional[UserRole] = None,
+) -> None:
+    """Edit user password and role
+
+        Args:
+            user: user to edit
+            new_password: new password the user would connect with
+            new_role: new role of the user
+            
+        Raises:
+            FailedOperationException: internal inventory error
+            AssertionError: The user was not edited for some known reason
+            HTTPError: Error with connection
+
+        Example:
+    
+            user = client.add_user("user@test.com", "P0ssW!rd0f43")
+            client.edit_user(user, "New_Password4Ever", UserRole.ADMIN)
+            ```
+    """
+    params = {}
+    if new_password is not None:
+        params.update({"password": new_password})
+    if new_role is not None:
+        params.update(
+            {"role": USER_ROLE if new_role == UserRole.USER else SUPERUSER_ROLE}
+        )
+    resp = client.put(f"/user/set/{user.email}", params)
+
+    if not resp.ok:
+        error_message = resp.json().get("error", None)
+        if error_message is not None:
+            raise AssertionError(error_message)
+        raise
+
+    if new_role is not None:
+        EditUserMutation.execute(client, input=EditUserInput(id=user.id, role=new_role))
 
 
 def deactivate_user(client: SymphonyClient, user: User) -> None:

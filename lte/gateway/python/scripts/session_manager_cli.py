@@ -92,7 +92,7 @@ def create_account_in_OCS(imsi):
 def send_policy_rar(client, args):
     sessiond_chan = ServiceRegistry.get_rpc_channel("sessiond", ServiceRegistry.LOCAL)
     sessiond_client = SessionProxyResponderStub(sessiond_chan)
-    flow_list_str = args.flow_rules.split("/")
+    flow_list_str = args.flow_rules.split(";")
     flow_match_list = []
     for i, flow_str in enumerate(flow_list_str):
         print("%d: %s" % (i, flow_str))
@@ -243,8 +243,8 @@ def create_parser():
         "flow_rules",
         help="List of 6-tuples: "
         "[direction,protocol,src_ip,src_port,dst_ip,dst_port] "
-        "separated by '/',e.g., "
-        "UL,6,192.168.50.1,0,192.168.40.2,12345/DL,1,8.8.8.8,0,192.168.50.1,0",
+        "separated by ';',e.g., "
+        "UL,6,192.168.50.1,0,192.168.40.2,12345;DL,1,8.8.8.8,0,192.168.50.1,0",
     )
     create_session_parser.add_argument(
         "qos",

@@ -39,24 +39,24 @@ func TestReAuthRelay(t *testing.T) {
 	mockPolicyClient.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{})
 
 	// Happy path
-	req := &gx.ReAuthRequest{SessionID: sessionID}
+	req := &gx.PolicyReAuthRequest{SessionID: sessionID}
 	sm.On("PolicyReAuth", mock.Anything, &protos.PolicyReAuthRequest{SessionId: sessionID, Imsi: imsi}).
 		Return(&protos.PolicyReAuthAnswer{SessionId: "mock_ret"}, nil).Once()
 	actual := handler(req)
 	// Handler should use session ID from request instead of response
-	assert.Equal(t, &gx.ReAuthAnswer{SessionID: sessionID, ResultCode: diam.Success, RuleReports: []*gx.ChargingRuleReport{}}, actual)
+	assert.Equal(t, &gx.PolicyReAuthAnswer{SessionID: sessionID, ResultCode: diam.Success, RuleReports: []*gx.ChargingRuleReport{}}, actual)
 
 	// Bad session ID
-	req = &gx.ReAuthRequest{SessionID: "bad"}
+	req = &gx.PolicyReAuthRequest{SessionID: "bad"}
 	actual = handler(req)
-	assert.Equal(t, &gx.ReAuthAnswer{SessionID: "bad", ResultCode: diam.UnknownSessionID}, actual)
+	assert.Equal(t, &gx.PolicyReAuthAnswer{SessionID: "bad", ResultCode: diam.UnknownSessionID}, actual)
 
 	// Error from client
-	req = &gx.ReAuthRequest{SessionID: sessionID}
+	req = &gx.PolicyReAuthRequest{SessionID: sessionID}
 	sm.On("PolicyReAuth", mock.Anything, &protos.PolicyReAuthRequest{SessionId: sessionID, Imsi: imsi}).
 		Return(nil, errors.New("oops")).Once()
 	actual = handler(req)
-	assert.Equal(t, &gx.ReAuthAnswer{SessionID: sessionID, ResultCode: diam.UnableToDeliver}, actual)
+	assert.Equal(t, &gx.PolicyReAuthAnswer{SessionID: sessionID, ResultCode: diam.UnableToDeliver}, actual)
 	sm.AssertExpectations(t)
 }
 
@@ -163,7 +163,7 @@ func TestGxReauthConversions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	reauthReq := &gx.ReAuthRequest{}
+	reauthReq := &gx.PolicyReAuthRequest{}
 	if err := msg.Unmarshal(reauthReq); err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +172,7 @@ func TestGxReauthConversions(t *testing.T) {
 		ptrVal uint32 = 100000
 		qci    uint32 = 5
 	)
-	expected := &gx.ReAuthRequest{
+	expected := &gx.PolicyReAuthRequest{
 		SessionID:  "epc.mnc001.mcc001.3gppnetwork.org;698;729;IMSI001010000000122",
 		OriginHost: "pcrf.epc.mnc001.mcc001.3gppnetwork.org",
 		RulesToInstall: []*gx.RuleInstallAVP{
