@@ -181,7 +181,7 @@ function UsersSettings(props: Props) {
   return (
     <div className={classes.paper}>
       <div className={classes.header}>
-        <Text variant="h5">Users - a</Text>
+        <Text variant="h5">Users</Text>
         <Button onClick={() => setShowDialog(true)}>Add User</Button>
       </div>
       <Paper elevation={2}>
