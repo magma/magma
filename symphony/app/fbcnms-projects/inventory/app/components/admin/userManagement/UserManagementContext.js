@@ -29,6 +29,7 @@ export type UserManagementContextValue = {
   users: Array<User>,
   addUser: (user: User, password: string) => Promise<User>,
   editUser: (newUserValue: User, updater?: StoreUpdater) => Promise<User>,
+  changeUserPassword: (user: User, password: string) => Promise<User>,
 };
 
 const editUser = (newUserValue: User, updater?: StoreUpdater) => {
@@ -123,10 +124,21 @@ const addUser = (newUserValue: User, password: string) => {
     .then(() => getUserEntIdByAuthID(newUserValue.authID))
     .then(userId => setNewUserEntValues(userId, newUserValue));
 };
+
+const changeUserPassword = (user: User, password: string) => {
+  const updateUserPayload = {
+    password: password,
+  };
+  return axios
+    .put(`/user/set/${user.authID}`, updateUserPayload)
+    .then(() => user);
+};
+
 const UserManagementContext = React.createContext<UserManagementContextValue>({
   users: [],
   addUser,
   editUser,
+  changeUserPassword,
 });
 
 export function useUserManagement() {
@@ -165,6 +177,7 @@ export function UserManagementContextProvider(props: Props) {
     users,
     addUser,
     editUser,
+    changeUserPassword,
   });
   return (
     <InventoryQueryRenderer
