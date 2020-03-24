@@ -13,6 +13,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"magma/orc8r/cloud/go/services/eventd/obsidian/models"
+
 	"github.com/labstack/echo"
 	"github.com/olivere/elastic/v7"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +38,7 @@ type queryParamTestCase struct {
 type eventResultTestCase struct {
 	name            string
 	jsonSource      string
-	expectedResults []eventResult
+	expectedResults []models.Event
 	expectsError    bool
 }
 
@@ -132,7 +134,7 @@ var (
 				"event_tag": "d",
 				"value":"{ \"some_property\": true }"
 			}`,
-			expectedResults: []eventResult{
+			expectedResults: []models.Event{
 				{
 					StreamName: "a",
 					EventType:  "b",
@@ -149,7 +151,7 @@ var (
 				"event_type": "b",
 				"value":"{}"
 			}`,
-			expectedResults: []eventResult{
+			expectedResults: []models.Event{
 				{
 					StreamName: "a",
 					EventType:  "b",
