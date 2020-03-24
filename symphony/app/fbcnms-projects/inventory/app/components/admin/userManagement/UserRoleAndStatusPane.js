@@ -12,9 +12,10 @@ import type {RadioOption} from '@fbcnms/ui/components/design-system/RadioGroup/R
 import type {
   UserRole,
   UserStatus,
-} from './__generated__/UsersView_UsersQuery.graphql';
+} from './__generated__/UserManagementContext_UsersQuery.graphql';
 
 import * as React from 'react';
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import RadioGroup from '@fbcnms/ui/components/design-system/RadioGroup/RadioGroup';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
@@ -48,6 +49,7 @@ type Props = {
   role: PropValue<UserRole>,
   status?: PropValue<UserStatus>,
   className?: ?string,
+  disabled?: ?boolean,
 };
 
 const ROLES_OPTIONS: Array<RadioOption> = [
@@ -84,14 +86,18 @@ const STATUS_OPT: RadioOption = {
   ),
 };
 
-const UserRoleAndStatusPane = (props: Props) => {
-  const userIsDeactivated =
-    props.status?.value === USER_STATUSES.DEACTIVATED.key;
+const UserRoleAndStatusPane = ({
+  role,
+  status,
+  className,
+  disabled = false,
+}: Props) => {
+  const userIsDeactivated = status?.value === USER_STATUSES.DEACTIVATED.key;
   const classes = useStyles();
   const selectedOptionClass = classNames({
     [classes.deactivateOptionSelected]: userIsDeactivated,
   });
-  const handleStatus = props.status != null;
+  const handleStatus = status != null;
   const options = useMemo(() => {
     if (!handleStatus) {
       return ROLES_OPTIONS;
@@ -106,10 +112,10 @@ const UserRoleAndStatusPane = (props: Props) => {
 
   const value = userIsDeactivated
     ? USER_STATUSES.DEACTIVATED.key
-    : props.role.value ?? USER_ROLES.USER.key;
+    : role.value ?? USER_ROLES.USER.key;
 
   return (
-    <div className={props.className}>
+    <div className={className}>
       <div className={classes.sectionHeader}>
         <Text variant="subtitle1">
           <fbt desc="">Role</fbt>
@@ -122,37 +128,39 @@ const UserRoleAndStatusPane = (props: Props) => {
           </fbt>
         </Text>
       </div>
-      <RadioGroup
-        options={options}
-        selectedOptionClassName={selectedOptionClass}
-        value={value}
-        onChange={newValue => {
-          if (handleStatus) {
-            if (newValue === USER_STATUSES.DEACTIVATED.key) {
-              props.status?.onChange(USER_STATUSES.DEACTIVATED.key);
-              return;
+      <FormField disabled={!!disabled}>
+        <RadioGroup
+          options={options}
+          selectedOptionClassName={selectedOptionClass}
+          value={value}
+          onChange={newValue => {
+            if (handleStatus) {
+              if (newValue === USER_STATUSES.DEACTIVATED.key) {
+                status?.onChange(USER_STATUSES.DEACTIVATED.key);
+                return;
+              }
+              if (userIsDeactivated) {
+                status?.onChange(USER_STATUSES.ACTIVE.key);
+              }
             }
-            if (userIsDeactivated) {
-              props.status?.onChange(USER_STATUSES.ACTIVE.key);
+            let typedNewValue = null;
+            switch (newValue) {
+              case USER_ROLES.USER.key:
+                typedNewValue = USER_ROLES.USER.key;
+                break;
+              case USER_ROLES.ADMIN.key:
+                typedNewValue = USER_ROLES.ADMIN.key;
+                break;
+              case USER_ROLES.OWNER.key:
+                typedNewValue = USER_ROLES.OWNER.key;
+                break;
             }
-          }
-          let typedNewValue = null;
-          switch (newValue) {
-            case USER_ROLES.USER.key:
-              typedNewValue = USER_ROLES.USER.key;
-              break;
-            case USER_ROLES.ADMIN.key:
-              typedNewValue = USER_ROLES.ADMIN.key;
-              break;
-            case USER_ROLES.OWNER.key:
-              typedNewValue = USER_ROLES.OWNER.key;
-              break;
-          }
-          if (typedNewValue != null) {
-            props.role.onChange(typedNewValue);
-          }
-        }}
-      />
+            if (typedNewValue != null) {
+              role.onChange(typedNewValue);
+            }
+          }}
+        />
+      </FormField>
     </div>
   );
 };

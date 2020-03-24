@@ -23,6 +23,7 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import {USER_ROLES, USER_STATUSES} from './TempTypes';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
+import {useUserManagement} from './UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -47,15 +48,11 @@ const user2UserTableRow: (User | UserTableRow) => UserTableRow = user => ({
   ...user,
 });
 
-type Props = {
-  users: Array<User>,
-  onUseredit: User => Promise<User> | void,
-};
-
-export default function UsersTable({users, onUseredit}: Props) {
+export default function UsersTable() {
   const classes = useStyles();
-  const [usersTable, setUsersTable] = useState<UserTableData>([]);
-  useEffect(() => setUsersTable(users.map(user2UserTableRow)), [users]);
+  const [usersTableData, setUsersTableData] = useState<UserTableData>([]);
+  const {users, editUser} = useUserManagement();
+  useEffect(() => setUsersTableData(users.map(user2UserTableRow)), [users]);
   const [selectedUserIds, setSelectedUserIds] = useState<Array<TableRowId>>([]);
   const [activeUserId, setActiveUserId] = useState(null);
 
@@ -138,11 +135,11 @@ export default function UsersTable({users, onUseredit}: Props) {
       <UserDetailsCard
         user={users[userIndex]}
         onChange={user => {
-          onUseredit(user);
+          editUser(user);
         }}
       />
     );
-  }, [activeUserId, onUseredit, users]);
+  }, [activeUserId, editUser, users]);
   return (
     <div className={classes.root}>
       <Table
@@ -152,7 +149,7 @@ export default function UsersTable({users, onUseredit}: Props) {
         onActiveRowIdChanged={setActiveUserId}
         selectedIds={selectedUserIds}
         onSelectionChanged={ids => setSelectedUserIds(ids)}
-        data={usersTable}
+        data={usersTableData}
         columns={columns}
         detailsCard={userDetailsCard}
       />

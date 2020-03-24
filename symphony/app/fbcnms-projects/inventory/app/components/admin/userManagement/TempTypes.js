@@ -11,7 +11,7 @@
 import type {
   UserRole,
   UserStatus,
-} from './__generated__/UsersView_UsersQuery.graphql';
+} from './__generated__/UserManagementContext_UsersQuery.graphql';
 
 import fbt from 'fbt';
 

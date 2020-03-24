@@ -32,7 +32,9 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import {USER_ROLES, USER_STATUSES} from './TempTypes';
 import {generateTempId} from '../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useState} from 'react';
+import {useUserManagement} from './UserManagementContext';
 
 const initialUserData: User = {
   id: generateTempId(),
@@ -64,98 +66,128 @@ type Props = {
   onClose: (?User) => void,
 };
 
-const NewUserDialog = (props: Props) => {
+const NewUserDialog = ({onClose}: Props) => {
   const classes = useStyles();
-  const [user, setUser] = useState<User>(initialUserData);
-  const [_password, setPassword] = useState('');
+  const userManagegemtContext = useUserManagement();
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [user, setUser] = useState<User>({...initialUserData});
+  const [password, setPassword] = useState('');
+
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const handleError = error => {
+    setCreatingUser(false);
+    enqueueSnackbar(error.response?.data?.error || error, {variant: 'error'});
+  };
+
+  const addUser = () => {
+    setCreatingUser(true);
+    userManagegemtContext
+      .addUser(user, password)
+      .finally(() => setCreatingUser(false))
+      .then(newUser => {
+        onClose(newUser);
+      })
+      .catch(handleError);
+  };
 
   return (
     <Dialog fullWidth={true} maxWidth="md" open={true}>
       <FormValidationContextProvider>
-        <DialogTitle disableTypography={true}>
-          <Text variant="h6">
-            <fbt desc="">New User Account</fbt>
-          </Text>
-        </DialogTitle>
-        <DialogContent>
-          <div className={classes.section}>
-            <div className={classes.sectionHeader}>
-              <Text variant="subtitle1">
-                <fbt desc="">Personal Details</fbt>
-              </Text>
-            </div>
-            <Grid container spacing={2}>
-              <Grid key="first_name" item xs={12} sm={6} lg={4} xl={4}>
-                <FormFieldTextInput
-                  validationId="first_name"
-                  label={`${fbt('First Name', '')}`}
-                  value={user.firstName || ''}
-                  onValueChanged={newValue =>
-                    setUser(currentUser => {
-                      currentUser.firstName = newValue;
-                      return currentUser;
-                    })
-                  }
-                />
-              </Grid>
-              <Grid key="last_name" item xs={12} sm={6} lg={4} xl={4}>
-                <FormFieldTextInput
-                  validationId="last_name"
-                  label={`${fbt('Last Name', '')}`}
-                  value={user.lastName || ''}
-                  onValueChanged={newValue =>
-                    setUser(currentUser => {
-                      currentUser.lastName = newValue;
-                      return currentUser;
-                    })
-                  }
-                />
-              </Grid>
-            </Grid>
-          </div>
-          <div className={classes.section}>
-            <UserRoleAndStatusPane
-              role={{
-                value: user.role,
-                onChange: newValue => {
-                  if (USER_ROLES[newValue] == null) {
-                    return;
-                  }
-                  setUser(currentUser => {
-                    currentUser.role = USER_ROLES[newValue].key;
-                    return currentUser;
-                  });
-                },
-              }}
-            />
-          </div>
-          <UserAccountDetailsPane
-            variant={ACCOUNT_DISPLAY_VARIANTS.newUserDialog}
-            className={classes.section}
-            user={user}
-            onChange={(updatedUser, updatedPassword) => {
-              setUser(updatedUser);
-              setPassword(updatedPassword);
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <FormValidationContext.Consumer>
-            {formValidationContext => (
+        <FormValidationContext.Consumer>
+          {formValidationContext => {
+            formValidationContext.editLock.check({
+              fieldId: 'async_save',
+              fieldDisplayName: 'Lock while saving',
+              value: creatingUser,
+              checkCallback: isOnSavingProcess =>
+                isOnSavingProcess == true ? 'Saving new user' : '',
+            });
+            return (
               <>
-                <Button onClick={() => props.onClose(null)}>
-                  {Strings.common.cancelButton}
-                </Button>
-                <Button
-                  onClick={() => props.onClose(user)}
-                  title={formValidationContext.error.message}
-                  disabled={formValidationContext.error.detected}>
-                  {Strings.common.saveButton}
-                </Button>
+                <DialogTitle disableTypography={true}>
+                  <Text variant="h6">
+                    <fbt desc="">New User Account</fbt>
+                  </Text>
+                </DialogTitle>
+                <DialogContent>
+                  <div className={classes.section}>
+                    <div className={classes.sectionHeader}>
+                      <Text variant="subtitle1">
+                        <fbt desc="">Personal Details</fbt>
+                      </Text>
+                    </div>
+                    <Grid container spacing={2}>
+                      <Grid key="first_name" item xs={12} sm={6} lg={4} xl={4}>
+                        <FormFieldTextInput
+                          validationId="first_name"
+                          label={`${fbt('First Name', '')}`}
+                          value={user.firstName || ''}
+                          onValueChanged={newValue =>
+                            setUser(currentUser => {
+                              currentUser.firstName = newValue;
+                              return currentUser;
+                            })
+                          }
+                        />
+                      </Grid>
+                      <Grid key="last_name" item xs={12} sm={6} lg={4} xl={4}>
+                        <FormFieldTextInput
+                          validationId="last_name"
+                          label={`${fbt('Last Name', '')}`}
+                          value={user.lastName || ''}
+                          onValueChanged={newValue =>
+                            setUser(currentUser => {
+                              currentUser.lastName = newValue;
+                              return currentUser;
+                            })
+                          }
+                        />
+                      </Grid>
+                    </Grid>
+                  </div>
+                  <div className={classes.section}>
+                    <UserRoleAndStatusPane
+                      role={{
+                        value: user.role,
+                        onChange: newValue => {
+                          if (USER_ROLES[newValue] == null) {
+                            return;
+                          }
+                          setUser(currentUser => {
+                            currentUser.role = newValue;
+                            return currentUser;
+                          });
+                        },
+                      }}
+                    />
+                  </div>
+                  <UserAccountDetailsPane
+                    variant={ACCOUNT_DISPLAY_VARIANTS.newUserDialog}
+                    className={classes.section}
+                    user={user}
+                    onChange={(updatedUser, updatedPassword) => {
+                      setUser(updatedUser);
+                      setPassword(updatedPassword);
+                    }}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={onClose} disabled={creatingUser}>
+                    {Strings.common.cancelButton}
+                  </Button>
+                  <Button
+                    onClick={addUser}
+                    title={formValidationContext.error.message}
+                    disabled={
+                      formValidationContext.error.detected || creatingUser
+                    }>
+                    {Strings.common.saveButton}
+                  </Button>
+                </DialogActions>
               </>
-            )}
-          </FormValidationContext.Consumer>
-        </DialogActions>
+            );
+          }}
+        </FormValidationContext.Consumer>
       </FormValidationContextProvider>
     </Dialog>
   );
