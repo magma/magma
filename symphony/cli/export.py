@@ -11,7 +11,6 @@ from distutils.version import LooseVersion
 
 from export_doc import export_doc
 from pyinventory import InventoryClient
-from pyinventory.api.file import delete_file, store_file
 from utils import archive_zip, extract_zip
 
 
@@ -57,7 +56,7 @@ def export(email, password, useLocally, replaceLatestVersion, hasBreakingChange)
                 print("Replace version {} with new version".format(version))
                 latestPackage = packages.pop(0)
                 try:
-                    delete_file(client, latestPackage["whlFileKey"], True)
+                    client.delete_file(latestPackage["whlFileKey"], True)
                 except Exception:
                     print(
                         f'whlFileKey {latestPackage["whlFileKey"]} cannot ' "be deleted"
@@ -72,8 +71,8 @@ def export(email, password, useLocally, replaceLatestVersion, hasBreakingChange)
             )
             return
 
-    whlFileKey = store_file(
-        client, os.path.join("./dist", whlFiles[0]), "application/zip", True
+    whlFileKey = client.store_file(
+        os.path.join("./dist", whlFiles[0]), "application/zip", True
     )
 
     newPackage = {
