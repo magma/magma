@@ -29,7 +29,6 @@ log_level: INFO
 static_services: [
   'tunnel_learn',
   'vlan_learn',
-  'ryu_rest_service',
   'startup_flows',
 ]
 
