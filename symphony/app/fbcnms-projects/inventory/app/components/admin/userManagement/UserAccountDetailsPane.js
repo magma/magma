@@ -85,14 +85,22 @@ const UserAccountDetailsPane = (props: Props) => {
 
   useEffect(() => {
     if (
-      !isEditable ||
+      variant != ACCOUNT_DISPLAY_VARIANTS.newUserDialog ||
       onChange == null ||
       formValidationContext.error.detected
     ) {
       return;
     }
     onChange(user, password);
-  });
+  }, [
+    formValidationContext.error.detected,
+    isEditable,
+    onChange,
+    password,
+    passwordVerfication,
+    user,
+    variant,
+  ]);
 
   const exitEditMode = () => {
     setIsEditable(false);
@@ -195,7 +203,12 @@ const UserAccountDetailsPane = (props: Props) => {
                     {Strings.common.cancelButton}
                   </Button>
                   <Button
-                    onClick={exitEditMode}
+                    onClick={() => {
+                      if (onChange) {
+                        onChange(user, password);
+                      }
+                      exitEditMode();
+                    }}
                     disabled={formValidationContext.error.detected}
                     title={formValidationContext.error.message}>
                     <fbt desc="">Save Changes</fbt>

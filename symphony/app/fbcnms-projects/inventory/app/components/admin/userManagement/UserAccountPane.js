@@ -15,6 +15,8 @@ import UserAccountDetailsPane, {
   ACCOUNT_DISPLAY_VARIANTS,
 } from './UserAccountDetailsPane';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useUserManagement} from './UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -26,19 +28,26 @@ const useStyles = makeStyles(() => ({
 
 type Props = {
   user: User,
-  onChange: User => void,
 };
 
 export default function UserAccountPane(props: Props) {
-  const {user, onChange} = props;
+  const {user} = props;
   const classes = useStyles();
+  const userManagement = useUserManagement();
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const handleError = error => {
+    enqueueSnackbar(error.response?.data?.error || error, {variant: 'error'});
+  };
 
   return (
     <div className={classes.root}>
       <UserAccountDetailsPane
         variant={ACCOUNT_DISPLAY_VARIANTS.userDetailsCard}
         user={user}
-        onChange={(user, _password) => onChange(user)}
+        onChange={(user, password) => {
+          userManagement.changeUserPassword(user, password).catch(handleError);
+        }}
       />
     </div>
   );
