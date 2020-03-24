@@ -27,6 +27,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "log.h"
+#include "ip_forward_messages_types.h"
+#include "intertask_interface.h"
+#include "spgw_state.h"
 
 // Status codes from gRPC
 #define RPC_STATUS_OK 0
@@ -62,22 +66,55 @@ int get_assigned_ipv4_block(
   struct in_addr* netaddr,
   uint32_t* netmask);
 
-/*
- * Allocate an IP address from the MobilityService over gRPC
- *
+/**
+ * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
+ * and handle response for PGW handler.
  * @param subscriber_id: subscriber id string, i.e. IMSI
  * @param apn: access point name string, e.g., "ims", "internet", etc.
  * @param addr: contains the IP address allocated upon returning in
  * "host byte order"
- * @return 0 on success
- * @return -RPC_STATUS_RESOURCE_EXHAUSTED if no free IP available
- * @return -RPC_STATUS_ALREADY_EXISTS if an IP has been allocated for the
- *         subscriber
+ * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
+ * @param pdn_type str for PDN type (ipv4, ipv6...)
+ * @param context_teid tunnel id
+ * @param eps_bearer_id bearer id
+ * @param spgw_state spgw_state_t struct
+ * @param new_bearer_ctxt_info_p SPGW ue context struct
+ * @param s5_response itti message for s5_create_session response
+ * @return status of gRPC call
  */
-int allocate_ipv4_address(
+int pgw_handle_allocate_ipv4_address(
   const char* subscriber_id,
   const char* apn,
-  struct in_addr* addr);
+  struct in_addr *addr,
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+  const char* pdn_type,
+  teid_t context_teid,
+  ebi_t eps_bearer_id,
+  spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+  s5_create_session_response_t s5_response);
+
+/**
+* Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
+* and handle response for SGW handler.
+* @param subscriber_id: subscriber id string, i.e. IMSI
+* @param apn: access point name string, e.g., "ims", "internet", etc.
+* @param addr: contains the IP address allocated upon returning in
+* "host byte order"
+* @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
+* @param pdn_type str for PDN type (ipv4, ipv6...)
+* @param spgw_state spgw_state_t struct
+* @param new_bearer_ctxt_info_p SPGW ue context struct
+ * @return status of gRPC call
+*/
+int sgw_handle_allocate_ipv4_address(
+  const char* subscriber_id,
+  const char* apn,
+  struct in_addr* addr,
+  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+  const char* pdn_type,
+  spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p);
 
 /*
  * Release an allocated IP address.

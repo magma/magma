@@ -30,6 +30,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <log.h>
+#include <thread>
 
 #include "lte/protos/mobilityd.grpc.pb.h"
 #include "lte/protos/mobilityd.pb.h"
@@ -49,10 +51,10 @@ using magma::orc8r::Void;
 namespace magma {
 namespace lte {
 
-int MobilityServiceClient::AllocateIPv4Address(
+int MobilityServiceClient::AllocateIPv4AddressAsync(
   const std::string& imsi,
   const std::string& apn,
-  struct in_addr* addr)
+  const std::function<void(Status, IPAddress)>& callback)
 {
   AllocateIPRequest request = AllocateIPRequest();
   request.set_version(AllocateIPRequest::IPV4);
@@ -63,17 +65,7 @@ int MobilityServiceClient::AllocateIPv4Address(
 
   request.set_apn(apn);
 
-  ClientContext context;
-  IPAddress ip_msg;
-  // TODO: Add AllocateIPv4Address response handler here
-  Status status = stub_->AllocateIPAddress(&context, request, &ip_msg);
-  if (!status.ok()) {
-    // TODO: use logging
-    std::cout << "AllocateIPAddress fails with code " << status.error_code()
-              << ", msg: " << status.error_message() << std::endl;
-    return status.error_code();
-  }
-  memcpy(addr, ip_msg.mutable_address()->c_str(), sizeof(in_addr));
+  AllocateIPv4AddressRPC(request, callback);
   return 0;
 }
 
@@ -209,6 +201,8 @@ MobilityServiceClient::MobilityServiceClient()
   const std::shared_ptr<Channel> channel =
     CreateChannel(MOBILITYD_ENDPOINT, cred);
   stub_ = MobilityService::NewStub(channel);
+  std::thread resp_loop_thread([&]() { rpc_response_loop(); });
+  resp_loop_thread.detach();
 }
 
 MobilityServiceClient& MobilityServiceClient::getInstance()

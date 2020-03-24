@@ -24,7 +24,9 @@
 #include <grpc++/grpc++.h>
 #include <cstdint>
 #include <memory>
+#include <functional>
 #include <string>
+#include <memory>
 
 #include "lte/protos/mobilityd.grpc.pb.h"
 
@@ -60,35 +62,31 @@ class MobilityServiceClient : public GRPCReceiver {
     struct in_addr* netaddr,
     uint32_t* netmask);
 
-  /*
-     * Allocate an IPv4 address from the free IP pool
-     *
-     * @param imsi: IMSI string
-     * @param apn:  APN string
-     * @param addr (out): contains the IP address allocated upon returning in
-     * "network byte order"
-     * @return 0 on success
-     * @return -RPC_STATUS_RESOURCE_EXHAUSTED if no free IP available
-     * @return -RPC_STATUS_ALREADY_EXISTS if an IP has been allocated for the
-     *         subscriber
-     */
-  int AllocateIPv4Address(
+  /**
+   * Allocate an IPv4 address from the free IP pool (non-blocking)
+   * @param imsi: IMSI string
+   * @param apn:  APN string
+   * @param addr (out): contains the IP address allocated upon returning in
+   * "network byte order"
+   * @return status of gRPC call
+   */
+  int AllocateIPv4AddressAsync(
     const std::string& imsi,
     const std::string& apn,
-    struct in_addr* addr);
+    const std::function<void(grpc::Status, IPAddress)>& callback);
 
-  /*
-     * Release an allocated IPv4 address.
-     *
-     * The released IP address is put into a tombstone state, and recycled
-     * periodically.
-     *
-     * @param imsi: IMSI string
-     * @param apn:  APN string
-     * @param addr: IP address to release in "network byte order"
-     * @return 0 on success
-     * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
-     */
+  /**
+   * Release an allocated IPv4 address. (non-blocking)
+   *
+   * The released IP address is put into a tombstone state, and recycled
+   * periodically.
+   *
+   * @param imsi: IMSI string
+   * @param apn:  APN string
+   * @param addr: IP address to release in "network byte order"
+   * @return 0 on success
+   * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
+   */
   int ReleaseIPv4Address(
     const std::string& imsi,
     const std::string& apn,
@@ -125,8 +123,8 @@ class MobilityServiceClient : public GRPCReceiver {
 
  private:
   MobilityServiceClient();
-  static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
-  std::shared_ptr<MobilityService::Stub> stub_{};
+  static const uint32_t RESPONSE_TIMEOUT = 3; // seconds
+  std::unique_ptr<MobilityService::Stub> stub_{};
 
   /**
   * Helper function to chain callback for gRPC response
