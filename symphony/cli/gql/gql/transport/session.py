@@ -11,6 +11,7 @@ from typing import Any, Dict, Optional, Union
 from gql.gql.transport.http import HTTPTransport
 from graphql.language.ast import DocumentNode
 from graphql.language.printer import print_ast
+from requests.auth import AuthBase
 from requests.sessions import Session
 
 from .transport import ExtendedExecutionResult
@@ -51,13 +52,18 @@ def encode_variable(
 
 class RequestsHTTPSessionTransport(HTTPTransport):
     def __init__(
-        self, session: Session, url: str, headers: Optional[Dict[str, str]] = None
+        self,
+        session: Session,
+        url: str,
+        headers: Optional[Dict[str, str]] = None,
+        auth: Optional[AuthBase] = None,
     ) -> None:
         """
         :param session: The session
         """
         super(RequestsHTTPSessionTransport, self).__init__(url, headers)
         self.session: Session = session
+        self.auth = auth
 
     def execute(
         self, document: DocumentNode, variable_values: Dict[str, Any] = {}  # noqa: B006
@@ -69,6 +75,7 @@ class RequestsHTTPSessionTransport(HTTPTransport):
             self.url,
             data=json.dumps(payload, default=encode_variable).encode("utf-8"),
             headers=self.headers,
+            auth=self.auth,
         )
 
         if (
