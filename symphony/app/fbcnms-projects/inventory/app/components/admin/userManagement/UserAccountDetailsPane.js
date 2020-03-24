@@ -101,15 +101,15 @@ const UserAccountDetailsPane = (props: Props) => {
           : undefined
       }
       label={`${fbt('Email', '')}`}
-      value={user.authId}
+      value={user.authID}
       onValueChanged={
         onChange == null
           ? undefined
-          : newAuthId =>
+          : newAuthID =>
               onChange(
                 {
                   ...user,
-                  authId: newAuthId,
+                  authID: newAuthID,
                 },
                 password,
               )
