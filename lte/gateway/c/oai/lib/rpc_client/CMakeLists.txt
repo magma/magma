@@ -47,6 +47,7 @@ add_library(LIB_RPC_CLIENT
 target_link_libraries(LIB_RPC_CLIENT
         COMMON
         LIB_BSTR
+        LIB_PCEF
 )
 
 target_include_directories(LIB_RPC_CLIENT PUBLIC

@@ -34,6 +34,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <MobilityClientAPI.h>
 
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
@@ -452,15 +453,13 @@ int sgw_handle_gtpv1uCreateTunnelResp(
   imsi64_t imsi64)
 {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  itti_s11_create_session_response_t *create_session_response_p = NULL;
-  MessageDef *message_p = NULL;
   sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = NULL;
   struct in_addr inaddr;
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
   int rv = RETURNok;
   char *imsi = NULL;
   char *apn = NULL;
-  gtpv2c_cause_value_t cause = REQUEST_ACCEPTED;
+  gtpv2c_cause_value_t cause;
 
   OAILOG_DEBUG(
     LOG_SPGW_APP,
@@ -550,95 +549,40 @@ int sgw_handle_gtpv1uCreateTunnelResp(
         // and using them here in conditional logic. We will also want to
         // implement different logic between the PDN types.
         if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
-          if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
-            increment_counter(
-              "ue_pdn_connection",
-              1,
-              2,
-              "pdn_type",
-              "ipv4",
-              "result",
-              "success");
-            sgi_create_endpoint_resp.paa.ipv4_address.s_addr = inaddr.s_addr;
-            sgi_create_endpoint_resp.status = SGI_STATUS_OK;
-          } else {
-            increment_counter(
-              "ue_pdn_connection",
-              1,
-              2,
-              "pdn_type",
-              "ipv4",
-              "result",
-              "failure");
-            OAILOG_ERROR(
-              LOG_SPGW_APP, "Failed to allocate IPv4 PAA for PDN type IPv4\n");
-            sgi_create_endpoint_resp.status =
-              SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
-          }
+          sgw_handle_allocate_ipv4_address(
+            imsi,
+            apn,
+            &inaddr,
+            sgi_create_endpoint_resp,
+            "ipv4",
+            state,
+            new_bearer_ctxt_info_p);
         }
-
         break;
-
       case IPv6:
         increment_counter(
-          "ue_pdn_connection", 1, 2, "pdn_type", "ipv4v6", "result", "failure");
+          "ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result", "failure");
         OAILOG_ERROR(LOG_SPGW_APP, "IPV6 PDN type NOT Supported\n");
         sgi_create_endpoint_resp.status =
           SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED;
-
         break;
-
       case IPv4_AND_v6:
-        if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
-          increment_counter(
-            "ue_pdn_connection",
-            1,
-            2,
-            "pdn_type",
-            "ipv4v6",
-            "result",
-            "success");
-          sgi_create_endpoint_resp.paa.ipv4_address.s_addr = inaddr.s_addr;
-          sgi_create_endpoint_resp.status = SGI_STATUS_OK;
-        } else {
-          increment_counter(
-            "ue_pdn_connection",
-            1,
-            2,
-            "pdn_type",
-            "ipv4v6",
-            "result",
-            "failure");
-          OAILOG_ERROR(
-            LOG_SPGW_APP,
-            "Failed to allocate IPv4 PAA for PDN type IPv4_AND_v6\n");
-          sgi_create_endpoint_resp.status =
-            SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
-        }
+        sgw_handle_allocate_ipv4_address(
+          imsi,
+          apn,
+          &inaddr,
+          sgi_create_endpoint_resp,
+          "ipv4v6",
+          state,
+          new_bearer_ctxt_info_p);
         break;
-
       default:
         AssertFatal(
           0, "BAD paa.pdn_type %d", sgi_create_endpoint_resp.paa.pdn_type);
         break;
     }
-  } else { // if (HASH_TABLE_OK == hash_rc)
-    OAILOG_DEBUG(
-      LOG_SPGW_APP,
-      "Rx S11_S1U_ENDPOINT_CREATED, Context: teid %u NOT FOUND\n",
-      endpoint_created_pP->context_teid);
-    sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
   }
-
   switch (sgi_create_endpoint_resp.status) {
-    case SGI_STATUS_OK:
-      // Send Create Session Response with ack
-      sgw_handle_sgi_endpoint_created(state, &sgi_create_endpoint_resp, imsi64);
-      increment_counter("spgw_create_session", 1, 1, "result", "success");
-      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
-
-      break;
-
     case SGI_STATUS_ERROR_CONTEXT_NOT_FOUND:
       cause = CONTEXT_NOT_FOUND;
       increment_counter(
@@ -649,20 +593,10 @@ int sgw_handle_gtpv1uCreateTunnelResp(
         "failure",
         "cause",
         "context_not_found");
-
-      break;
-
-    case SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED:
-      increment_counter(
-        "spgw_create_session",
-        1,
-        1,
-        "result",
-        "failure",
-        "cause",
-        "resource_not_available");
-      cause = ALL_DYNAMIC_ADDRESSES_ARE_OCCUPIED;
-
+      OAILOG_DEBUG(
+        LOG_SPGW_APP,
+        "Rx S11_S1U_ENDPOINT_CREATED, Context: teid %u NOT FOUND\n",
+        endpoint_created_pP->context_teid);
       break;
 
     case SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED:
@@ -675,35 +609,14 @@ int sgw_handle_gtpv1uCreateTunnelResp(
         "failure",
         "cause",
         "pdn_type_ipv6_not_supported");
-
       break;
 
     default:
       cause = REQUEST_REJECTED; // Unspecified reason
-
       break;
   }
   // Send Create Session Response with Nack
-  message_p =
-    itti_alloc_new_message(TASK_SPGW_APP, S11_CREATE_SESSION_RESPONSE);
-  if (!message_p) {
-    OAILOG_ERROR(
-      LOG_SPGW_APP, "Message Create Session Response alloction failed\n");
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
-  create_session_response_p = &message_p->ittiMsg.s11_create_session_response;
-  create_session_response_p->cause.cause_value = cause;
-  create_session_response_p->bearer_contexts_created.bearer_contexts[0]
-    .cause.cause_value = cause;
-  create_session_response_p->bearer_contexts_created.num_bearer_context += 1;
-  if (new_bearer_ctxt_info_p) {
-    create_session_response_p->teid =
-      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_teid_S11;
-    create_session_response_p->trxn =
-      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.trxn;
-  }
-  message_p->ittiMsgHeader.imsi = imsi64;
-  rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+  rv = sgw_send_s11_create_session_response(new_bearer_ctxt_info_p, cause, imsi64);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
 //------------------------------------------------------------------------------
