@@ -186,7 +186,7 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	// At this point both static-pass-all-1 & static-pass-all-3 are installed.
 	// Since static-pass-all-1 has higher precedence, it will get hit.
 	// Wait for some traffic to go through
-	time.Sleep(1 * time.Second)
+	time.Sleep(4 * time.Second)
 
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through
@@ -222,13 +222,13 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	// Generate traffic to trigger the CCR-U so that the rule removal/install happens
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	time.Sleep(3 * time.Second)
+	time.Sleep(4 * time.Second)
 
 	fmt.Println("Generating traffic again to put data through static-pass-all-2")
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	// Wait for some traffic to go through
-	time.Sleep(1 * time.Second)
+	time.Sleep(4 * time.Second)
 
 	// Assert that we sent back a CCA-Update with RuleRemovals
 	resultByIndex, errByIndex, err = getAssertExpectationsResult()
@@ -241,12 +241,7 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 
 	recordsBySubID, err = tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	record2 := recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"]
-	assert.NotNil(t, record1, fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-2", imsi))
-	if record2 != nil {
-		// This rule should have passed some traffic
-		assert.True(t, record2.BytesTx > 0, fmt.Sprintf("%s did not pass any data", record2.RuleId))
-	}
+	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"], fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-2", imsi))
 
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)

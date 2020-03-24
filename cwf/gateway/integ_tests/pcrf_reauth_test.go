@@ -19,6 +19,7 @@ import (
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
@@ -269,7 +270,7 @@ func TestMidSessionRuleInstallWithPolicyReAuth(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Wait for RAR to be processed
-	time.Sleep(1 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	// Check ReAuth success
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
@@ -284,10 +285,13 @@ func TestMidSessionRuleInstallWithPolicyReAuth(t *testing.T) {
 	recordsBySubID, err = tr.GetPolicyUsage()
 	assert.NoError(t, err)
 
+	glog.Error(recordsBySubID)
 	record2 := recordsBySubID["IMSI"+imsi]["pcrf-reauth-raa1"]
 	assert.NotNil(t, record2, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
-	assert.True(t, record2.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record2.RuleId))
-	assert.True(t, record2.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record2))
+	if record2 != nil {
+		assert.True(t, record2.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record2.RuleId))
+		assert.True(t, record2.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record2))
+	}
 
 	// trigger disconnection
 	_, err = tr.Disconnect(imsi)
