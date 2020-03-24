@@ -117,13 +117,9 @@ const TableHeader = <T>({
               col.sortable && onSortClicked && onSortClicked(col.key)
             }>
             <div className={classes.cellContent}>
-              {typeof col.title === 'string' ? (
-                <Text className={classes.cellText} variant="body2">
-                  {col.title}
-                </Text>
-              ) : (
-                col.title
-              )}
+              <Text className={classes.cellText} variant="body2">
+                {col.title}
+              </Text>
               {getSortIcon(col)}
             </div>
           </th>

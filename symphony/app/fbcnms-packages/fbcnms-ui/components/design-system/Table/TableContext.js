@@ -12,10 +12,12 @@ import React from 'react';
 
 export type TableContextValue = {
   showSelection: boolean,
+  clickableRows: boolean,
 };
 
 const TableContext = React.createContext<TableContextValue>({
   showSelection: false,
+  clickableRows: false,
 });
 
 export function useTable() {
