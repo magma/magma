@@ -236,6 +236,8 @@ copied_equipment = client.copy_equipment_in_position(equipment=equipment, dest_p
 <section class="desc"><p>Edit existing equipment.</p>
 <h2 id="args">Args</h2>
 <dl>
+<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
+<dd>equipment object</dd>
 <dt><strong><code>new_name</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
 <dd>equipment new name</dd>
 <dt><strong><code>new_properties</code></strong> :&ensp;<code>Optional</code>[<code>Dict</code>[<code>str</code>, <code>pyinventory.consts.PropertyValue</code>]]</dt>
@@ -312,6 +314,10 @@ equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
 <li><a title="pyinventory.api.equipment.add_equipment" href="#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
 <li><a title="pyinventory.api.equipment.add_equipment_to_position" href="#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
 </ul>
+<dl>
+<dt><strong><code>position_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>position name</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code>:</dt>
@@ -334,6 +340,26 @@ p_equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
 equipment = client.get_equipment_in_position(p_equipment, &quot;some_position&quot;)
 </code></pre></section>
 </dd>
+<dt id="pyinventory.api.equipment.get_equipment_properties"><code class="name flex">
+<span>def <span class="ident">get_equipment_properties</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>) -> Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get specific equipment properties.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
+<dd>equipment object</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dict[str, PropertyValue]: dict of property name to property value
+- str - property name
+- PropertyValue - new value of the same type for this property</p>
+<h2 id="example">Example</h2>
+<pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
+equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location) 
+properties = client.get_equipment_properties(equipment=equipment)
+</code></pre></section>
+</dd>
 <dt id="pyinventory.api.equipment.get_equipment_type_of_equipment"><code class="name flex">
 <span>def <span class="ident">get_equipment_type_of_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>) -> <a title="pyinventory.consts.EquipmentType" href="../consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
@@ -342,7 +368,7 @@ equipment = client.get_equipment_in_position(p_equipment, &quot;some_position&qu
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>equipment object to be copied</dd>
+<dd>equipment object</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -510,6 +536,7 @@ equipment_in_position = client.get_or_create_equipment_in_position(
 <li><code><a title="pyinventory.api.equipment.edit_equipment" href="#pyinventory.api.equipment.edit_equipment">edit_equipment</a></code></li>
 <li><code><a title="pyinventory.api.equipment.get_equipment" href="#pyinventory.api.equipment.get_equipment">get_equipment</a></code></li>
 <li><code><a title="pyinventory.api.equipment.get_equipment_in_position" href="#pyinventory.api.equipment.get_equipment_in_position">get_equipment_in_position</a></code></li>
+<li><code><a title="pyinventory.api.equipment.get_equipment_properties" href="#pyinventory.api.equipment.get_equipment_properties">get_equipment_properties</a></code></li>
 <li><code><a title="pyinventory.api.equipment.get_equipment_type_of_equipment" href="#pyinventory.api.equipment.get_equipment_type_of_equipment">get_equipment_type_of_equipment</a></code></li>
 <li><code><a title="pyinventory.api.equipment.get_or_create_equipment" href="#pyinventory.api.equipment.get_or_create_equipment">get_or_create_equipment</a></code></li>
 <li><code><a title="pyinventory.api.equipment.get_or_create_equipment_in_position" href="#pyinventory.api.equipment.get_or_create_equipment_in_position">get_or_create_equipment_in_position</a></code></li>

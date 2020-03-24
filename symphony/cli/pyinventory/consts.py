@@ -161,7 +161,7 @@ class EquipmentPort(NamedTuple):
     Attributes:
         id (str): equipment port ID
         properties (List[Dict[str, PropertyValue]]): list of equipment port properties
-        definition (pyinventory.Consts.EquipmentPortDefinition): port definition
+        definition (pyinventory.consts.EquipmentPortDefinition): port definition
         link (Optional[pyinventory.consts.Link]): link
     """
 

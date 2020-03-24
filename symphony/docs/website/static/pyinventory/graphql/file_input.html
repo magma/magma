@@ -35,10 +35,10 @@
 <dl>
 <dt id="pyinventory.graphql.file_input.FileInput"><code class="flex name class">
 <span>class <span class="ident">FileInput</span></span>
-<span>(</span><span>id: str, fileName: str, storeKey: str, sizeInBytes: Union[int, NoneType] = None, modificationTime: Union[int, NoneType] = None, uploadTime: Union[int, NoneType] = None, fileType: Union[<a title="pyinventory.graphql.file_type_enum.FileType" href="file_type_enum.html#pyinventory.graphql.file_type_enum.FileType">FileType</a>, NoneType] = None)</span>
+<span>(</span><span>fileName: str, storeKey: str, id: Union[str, NoneType] = None, sizeInBytes: Union[int, NoneType] = None, modificationTime: Union[int, NoneType] = None, uploadTime: Union[int, NoneType] = None, fileType: Union[<a title="pyinventory.graphql.file_type_enum.FileType" href="file_type_enum.html#pyinventory.graphql.file_type_enum.FileType">FileType</a>, NoneType] = None, mimeType: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>FileInput(id: str, fileName: str, storeKey: str, sizeInBytes: Union[int, NoneType] = None, modificationTime: Union[int, NoneType] = None, uploadTime: Union[int, NoneType] = None, fileType: Union[pyinventory.graphql.file_type_enum.FileType, NoneType] = None)</p></section>
+<section class="desc"><p>FileInput(fileName: str, storeKey: str, id: Union[str, NoneType] = None, sizeInBytes: Union[int, NoneType] = None, modificationTime: Union[int, NoneType] = None, uploadTime: Union[int, NoneType] = None, fileType: Union[pyinventory.graphql.file_type_enum.FileType, NoneType] = None, mimeType: Union[str, NoneType] = None)</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>dataclasses_json.api.DataClassJsonMixin</li>
@@ -47,6 +47,14 @@
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.file_input.FileInput.fileType"><code class="name">var <span class="ident">fileType</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.graphql.file_input.FileInput.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.graphql.file_input.FileInput.mimeType"><code class="name">var <span class="ident">mimeType</span></code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
@@ -82,8 +90,10 @@
 <ul>
 <li>
 <h4><code><a title="pyinventory.graphql.file_input.FileInput" href="#pyinventory.graphql.file_input.FileInput">FileInput</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="pyinventory.graphql.file_input.FileInput.fileType" href="#pyinventory.graphql.file_input.FileInput.fileType">fileType</a></code></li>
+<li><code><a title="pyinventory.graphql.file_input.FileInput.id" href="#pyinventory.graphql.file_input.FileInput.id">id</a></code></li>
+<li><code><a title="pyinventory.graphql.file_input.FileInput.mimeType" href="#pyinventory.graphql.file_input.FileInput.mimeType">mimeType</a></code></li>
 <li><code><a title="pyinventory.graphql.file_input.FileInput.modificationTime" href="#pyinventory.graphql.file_input.FileInput.modificationTime">modificationTime</a></code></li>
 <li><code><a title="pyinventory.graphql.file_input.FileInput.sizeInBytes" href="#pyinventory.graphql.file_input.FileInput.sizeInBytes">sizeInBytes</a></code></li>
 <li><code><a title="pyinventory.graphql.file_input.FileInput.uploadTime" href="#pyinventory.graphql.file_input.FileInput.uploadTime">uploadTime</a></code></li>

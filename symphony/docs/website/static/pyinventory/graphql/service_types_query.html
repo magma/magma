@@ -38,15 +38,7 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.service_types_query.ServiceTypesQuery.ServiceTypesQueryData" href="#pyinventory.graphql.service_types_query.ServiceTypesQuery.ServiceTypesQueryData">ServiceTypesQuery.ServiceTypesQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>ServiceTypesQuery(data: pyinventory.graphql.service_types_query.ServiceTypesQuery.ServiceTypesQueryData, <strong>QUERY</strong>: str = '\n
-query ServiceTypesQuery {\n
-serviceTypes {\n
-edges {\n
-node {\n
-id\n
-name\n
-hasCustomer\n
-propertyTypes {\n
+<section class="desc"><p>ServiceTypesQuery(data: pyinventory.graphql.service_types_query.ServiceTypesQuery.ServiceTypesQueryData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
 id\n
 name\n
 type\n
@@ -58,8 +50,21 @@ booleanValue\n
 floatValue\n
 latitudeValue\n
 longitudeValue\n
+rangeFromValue\n
+rangeToValue\n
 isEditable\n
 isInstanceProperty\n
+isMandatory\n
+isDeleted\n}\n\n\n
+query ServiceTypesQuery {\n
+serviceTypes {\n
+edges {\n
+node {\n
+id\n
+name\n
+hasCustomer\n
+propertyTypes {\n
+&hellip;PropertyTypeFragment\n
 }\n
 }\n
 }\n

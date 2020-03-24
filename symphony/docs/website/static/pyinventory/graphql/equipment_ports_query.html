@@ -38,27 +38,27 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData">EquipmentPortsQuery.EquipmentPortsQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentPortsQuery(data: pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData, <strong>QUERY</strong>: str = '\n
-query EquipmentPortsQuery($id: ID!) {\n
-equipment: node(id: $id) {\n
-&hellip; on Equipment {\n
-ports {\n
-id\n
-properties {\n
-id\n
-propertyType {\n
+<section class="desc"><p>EquipmentPortsQuery(data: pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
 id\n
 name\n
 type\n
 index\n
+category\n
 stringValue\n
 intValue\n
 booleanValue\n
 floatValue\n
 latitudeValue\n
 longitudeValue\n
+rangeFromValue\n
+rangeToValue\n
 isEditable\n
 isInstanceProperty\n
+isMandatory\n
+isDeleted\n}\n\n\nfragment PropertyFragment on Property {\n
+id\n
+propertyType {\n
+&hellip;PropertyTypeFragment\n
 }\n
 stringValue\n
 intValue\n
@@ -67,7 +67,14 @@ booleanValue\n
 latitudeValue\n
 longitudeValue\n
 rangeFromValue\n
-rangeToValue\n
+rangeToValue\n}\n\n\n
+query EquipmentPortsQuery($id: ID!) {\n
+equipment: node(id: $id) {\n
+&hellip; on Equipment {\n
+ports {\n
+id\n
+properties {\n
+&hellip;PropertyFragment\n
 }\n
 definition {\n
 id\n
@@ -79,6 +86,9 @@ name\n
 }\n
 link {\n
 id\n
+properties {\n
+&hellip;PropertyFragment\n
+}\n
 services {\n
 id\n
 }\n
