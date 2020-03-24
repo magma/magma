@@ -39,14 +39,23 @@ function NavItems() {
   const relativeUrl = useRelativeUrl();
   const {isFeatureEnabled} = useContext(AppContext);
   const auditLogEnabled = isFeatureEnabled('audit_log_view');
+  const userManagementEnabled = isFeatureEnabled('user_management');
 
   return (
     <>
-      <NavListItem
-        label="Users"
-        path={relativeUrl('/users')}
-        icon={<PeopleIcon />}
-      />
+      {userManagementEnabled ? (
+        <NavListItem
+          label="User Management"
+          path={relativeUrl('/user_management')}
+          icon={<PeopleIcon />}
+        />
+      ) : (
+        <NavListItem
+          label="Users"
+          path={relativeUrl('/users')}
+          icon={<PeopleIcon />}
+        />
+      )}
       {auditLogEnabled && (
         <NavListItem
           label="Audit Log"
@@ -59,11 +68,6 @@ function NavItems() {
         path={relativeUrl('/networks')}
         icon={<SignalCellularAlt />}
       />
-      <NavListItem
-        label="User Management"
-        path={relativeUrl('/user_management')}
-        icon={<PeopleIcon />}
-      />
     </>
   );
 }
@@ -71,13 +75,18 @@ function NavItems() {
 function NavRoutes() {
   const classes = useStyles();
   const relativeUrl = useRelativeUrl();
+  const appContext = useContext(AppContext);
+  const userManagementEnabled = appContext.isFeatureEnabled('user_management');
   return (
     <Switch>
-      <Route
-        path={relativeUrl('/user_management')}
-        component={UserManaementView}
-      />
-      <Route path={relativeUrl('/users')} component={UsersSettings} />
+      {userManagementEnabled ? (
+        <Route
+          path={relativeUrl('/user_management')}
+          component={UserManaementView}
+        />
+      ) : (
+        <Route path={relativeUrl('/users')} component={UsersSettings} />
+      )}
       <Route path={relativeUrl('/audit_log')} component={AuditLog} />
       <Route path={relativeUrl('/networks')} component={Networks} />
       <Route
@@ -88,7 +97,9 @@ function NavRoutes() {
           </Paper>
         )}
       />
-      <Redirect to={relativeUrl('/user_management')} />
+      <Redirect
+        to={relativeUrl(userManagementEnabled ? '/user_management' : '/users')}
+      />
     </Switch>
   );
 }
