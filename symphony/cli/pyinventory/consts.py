@@ -139,6 +139,7 @@ class Link(NamedTuple):
     """
 
     id: str
+    properties: Sequence[PropertyFragment]
     service_ids: List[str]
 
 

@@ -39,10 +39,15 @@ class EquipmentPortsQuery(DataClassJsonMixin):
                 @dataclass
                 class Link(DataClassJsonMixin):
                     @dataclass
+                    class Property(PropertyFragment):
+                        pass
+
+                    @dataclass
                     class Service(DataClassJsonMixin):
                         id: str
 
                     id: str
+                    properties: List[Property]
                     services: List[Service]
 
                 id: str
@@ -75,6 +80,9 @@ class EquipmentPortsQuery(DataClassJsonMixin):
         }
         link {
           id
+          properties {
+            ...PropertyFragment
+          }
           services {
             id
           }

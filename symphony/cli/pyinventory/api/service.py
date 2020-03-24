@@ -111,7 +111,11 @@ def add_service(
                     definition=EquipmentPortDefinition(
                         id=e.port.definition.id, name=e.port.definition.name
                     ),
-                    link=Link(link.id, service_ids=[s.id for s in link.services])
+                    link=Link(
+                        link.id,
+                        properties=link.properties,
+                        service_ids=[s.id for s in link.services],
+                    )
                     if link
                     else None,
                 ),
@@ -131,7 +135,10 @@ def add_service(
         else None,
         endpoints=endpoints,
         links=[
-            Link(id=l.id, service_ids=[s.id for s in l.services]) for l in result.links
+            Link(
+                id=l.id, properties=l.properties, service_ids=[s.id for s in l.services]
+            )
+            for l in result.links
         ],
     )
 
@@ -164,7 +171,11 @@ def get_service(client: SymphonyClient, id: str) -> Service:
                     definition=EquipmentPortDefinition(
                         id=e.port.definition.id, name=e.port.definition.name
                     ),
-                    link=Link(id=link.id, service_ids=[s.id for s in link.services])
+                    link=Link(
+                        id=link.id,
+                        properties=link.properties,
+                        service_ids=[s.id for s in link.services],
+                    )
                     if link
                     else None,
                 ),
@@ -182,7 +193,10 @@ def get_service(client: SymphonyClient, id: str) -> Service:
         else None,
         endpoints=endpoints,
         links=[
-            Link(id=l.id, service_ids=[s.id for s in l.services]) for l in result.links
+            Link(
+                id=l.id, properties=l.properties, service_ids=[s.id for s in l.services]
+            )
+            for l in result.links
         ],
     )
 
