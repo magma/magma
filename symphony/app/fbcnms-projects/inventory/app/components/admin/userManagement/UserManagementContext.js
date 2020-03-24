@@ -14,6 +14,7 @@ import type {StoreUpdater} from '../../../common/RelayEnvironment';
 import type {User} from './TempTypes';
 import type {UserManagementContext_UserQuery} from './__generated__/UserManagementContext_UserQuery.graphql';
 import type {UserManagementContext_UsersQueryResponse} from './__generated__/UserManagementContext_UsersQuery.graphql';
+import type {UserRole} from './__generated__/UserManagementContext_UsersQuery.graphql';
 
 import * as React from 'react';
 import EditUserMutation from '../../../mutations/EditUserMutation';
@@ -22,6 +23,7 @@ import RelayEnvironment from '../../../common/RelayEnvironment';
 import axios from 'axios';
 import nullthrows from 'nullthrows';
 import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
+import {LogEvents, ServerLogger} from '../../../common/LoggingUtils';
 import {USER_ROLES} from './TempTypes';
 import {useContext} from 'react';
 
@@ -32,42 +34,6 @@ export type UserManagementContextValue = {
   changeUserPassword: (user: User, password: string) => Promise<User>,
 };
 
-const editUser = (newUserValue: User, updater?: StoreUpdater) => {
-  return new Promise<User>((resolve, reject) => {
-    const callbacks: MutationCallbacks<EditUserMutationResponse> = {
-      onCompleted: (response, errors) => {
-        if (errors && errors[0]) {
-          reject(errors[0].message);
-        }
-        resolve({
-          id: response.editUser.id,
-          authID: response.editUser.authID,
-          firstName: response.editUser.firstName,
-          lastName: response.editUser.lastName,
-          role: response.editUser.role,
-          status: response.editUser.status,
-        });
-      },
-      onError: e => {
-        reject(e.message);
-      },
-    };
-    EditUserMutation(
-      {
-        input: {
-          id: newUserValue.id,
-          firstName: newUserValue.firstName,
-          lastName: newUserValue.lastName,
-          role: newUserValue.role,
-          status: newUserValue.status,
-        },
-      },
-      callbacks,
-      updater,
-    );
-  });
-};
-
 const userQuery = graphql`
   query UserManagementContext_UserQuery($authID: String!) {
     user(authID: $authID) {
@@ -76,11 +42,14 @@ const userQuery = graphql`
   }
 `;
 
+const roleToNodeRole = (role: UserRole) =>
+  role === USER_ROLES.USER.key ? 0 : 3;
+
 const createNewUserInNode = (newUserValue: User, password: string) => {
   const newUserPayload = {
     email: newUserValue.authID,
     password,
-    role: newUserValue.role === USER_ROLES.USER.key ? 0 : 3,
+    role: roleToNodeRole(newUserValue.role),
     networkIDs: [],
   };
   return axios.post('/user/async/', newUserPayload);
@@ -125,15 +94,76 @@ const addUser = (newUserValue: User, password: string) => {
     .then(userId => setNewUserEntValues(userId, newUserValue));
 };
 
-const changeUserPassword = (user: User, password: string) => {
-  const updateUserPayload = {
-    password: password,
-  };
-  return axios
-    .put(`/user/set/${user.authID}`, updateUserPayload)
-    .then(() => user);
+const updateUserInNode = (
+  email: string,
+  role?: UserRole,
+  password?: string,
+) => {
+  const updateUserPayload = {};
+  if (password != null) {
+    updateUserPayload.password = password;
+  }
+  if (role != null) {
+    updateUserPayload.role = roleToNodeRole(role);
+  }
+  if (Object.keys(updateUserPayload).length === 0) {
+    return Promise.resolve();
+  }
+  return axios.put(`/user/set/${email}`, updateUserPayload);
 };
 
+const changeUserPassword = (user: User, password: string) => {
+  return updateUserInNode(user.authID, undefined, password).then(() => user);
+};
+
+const editUser = (newUserValue: User, updater?: StoreUpdater) => {
+  const graphCall = new Promise<User>((resolve, reject) => {
+    const callbacks: MutationCallbacks<EditUserMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(errors[0].message);
+        }
+        resolve({
+          id: response.editUser.id,
+          authID: response.editUser.authID,
+          firstName: response.editUser.firstName,
+          lastName: response.editUser.lastName,
+          role: response.editUser.role,
+          status: response.editUser.status,
+        });
+        // TEMP: Need to update Node with the new role.
+        // (Once Node is changed to take the role from graph,
+        //  we can remove this)
+        updateUserInNode(newUserValue.authID, newUserValue.role).catch(
+          error => {
+            ServerLogger.error(LogEvents.CLIENT_FATAL_ERROR, {
+              message: error.message,
+              stack: error.stack,
+            });
+          },
+        );
+      },
+      onError: e => {
+        reject(e.message);
+      },
+    };
+    EditUserMutation(
+      {
+        input: {
+          id: newUserValue.id,
+          firstName: newUserValue.firstName,
+          lastName: newUserValue.lastName,
+          role: newUserValue.role,
+          status: newUserValue.status,
+        },
+      },
+      callbacks,
+      updater,
+    );
+  });
+
+  return graphCall.then();
+};
 const UserManagementContext = React.createContext<UserManagementContextValue>({
   users: [],
   addUser,
