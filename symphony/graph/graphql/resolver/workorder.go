@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/link"
@@ -423,8 +424,18 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 	client := r.ClientFrom(ctx)
 	cl := client.CheckListItem
 	var selectionMode *string
+	var yesNoVal *checklistitem.YesNoVal
 	if input.EnumSelectionMode != nil {
 		selectionMode = pointer.ToString(input.EnumSelectionMode.String())
+	}
+	if input.YesNoResponse != nil {
+		var yesNo checklistitem.YesNoVal
+		if *input.YesNoResponse == models.YesNoResponseYes {
+			yesNo = checklistitem.YesNoValYES
+		} else {
+			yesNo = checklistitem.YesNoValNO
+		}
+		yesNoVal = &yesNo
 	}
 
 	var cli *ent.CheckListItem
@@ -440,6 +451,7 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableStringVal(input.StringValue).
 			SetNillableEnumSelectionMode(selectionMode).
 			SetNillableSelectedEnumValues(input.SelectedEnumValues).
+			SetNillableYesNoVal(yesNoVal).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list item")
@@ -455,6 +467,7 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableStringVal(input.StringValue).
 			SetNillableEnumSelectionMode(selectionMode).
 			SetNillableSelectedEnumValues(input.SelectedEnumValues).
+			SetNillableYesNoVal(yesNoVal).
 			Save(ctx)
 	}
 	if err != nil {

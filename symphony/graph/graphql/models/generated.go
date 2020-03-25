@@ -235,6 +235,7 @@ type CheckListItemInput struct {
 	StringValue        *string                         `json:"stringValue"`
 	Checked            *bool                           `json:"checked"`
 	Files              []*FileInput                    `json:"files"`
+	YesNoResponse      *YesNoResponse                  `json:"yesNoResponse"`
 }
 
 type CommentInput struct {
@@ -854,6 +855,7 @@ const (
 	CheckListItemTypeString CheckListItemType = "string"
 	CheckListItemTypeEnum   CheckListItemType = "enum"
 	CheckListItemTypeFiles  CheckListItemType = "files"
+	CheckListItemTypeYesNo  CheckListItemType = "yes_no"
 )
 
 var AllCheckListItemType = []CheckListItemType{
@@ -861,11 +863,12 @@ var AllCheckListItemType = []CheckListItemType{
 	CheckListItemTypeString,
 	CheckListItemTypeEnum,
 	CheckListItemTypeFiles,
+	CheckListItemTypeYesNo,
 }
 
 func (e CheckListItemType) IsValid() bool {
 	switch e {
-	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum, CheckListItemTypeFiles:
+	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum, CheckListItemTypeFiles, CheckListItemTypeYesNo:
 		return true
 	}
 	return false
@@ -1939,5 +1942,46 @@ func (e *WorkOrderStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e WorkOrderStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type YesNoResponse string
+
+const (
+	YesNoResponseYes YesNoResponse = "YES"
+	YesNoResponseNo  YesNoResponse = "NO"
+)
+
+var AllYesNoResponse = []YesNoResponse{
+	YesNoResponseYes,
+	YesNoResponseNo,
+}
+
+func (e YesNoResponse) IsValid() bool {
+	switch e {
+	case YesNoResponseYes, YesNoResponseNo:
+		return true
+	}
+	return false
+}
+
+func (e YesNoResponse) String() string {
+	return string(e)
+}
+
+func (e *YesNoResponse) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = YesNoResponse(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid YesNoResponse", str)
+	}
+	return nil
+}
+
+func (e YesNoResponse) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

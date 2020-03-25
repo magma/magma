@@ -927,11 +927,17 @@ input WorkOrderDefinitionInput {
   type: ID!
 }
 
+enum YesNoResponse {
+  YES
+  NO
+}
+
 enum CheckListItemType {
   simple
   string
   enum
   files
+  yes_no
 }
 
 enum CheckListItemEnumSelectionMode {
@@ -976,6 +982,7 @@ type CheckListItem implements Node {
   stringValue: String
   checked: Boolean
   files: [File!]!
+  yesNoResponse: YesNoResponse
 }
 
 input CheckListCategoryInput {
@@ -997,6 +1004,7 @@ input CheckListItemInput {
   stringValue: String
   checked: Boolean
   files: [FileInput!]
+  yesNoResponse: YesNoResponse
 }
 
 enum FilterEntity {

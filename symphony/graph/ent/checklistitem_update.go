@@ -172,6 +172,26 @@ func (cliu *CheckListItemUpdate) ClearSelectedEnumValues() *CheckListItemUpdate 
 	return cliu
 }
 
+// SetYesNoVal sets the yes_no_val field.
+func (cliu *CheckListItemUpdate) SetYesNoVal(cnv checklistitem.YesNoVal) *CheckListItemUpdate {
+	cliu.mutation.SetYesNoVal(cnv)
+	return cliu
+}
+
+// SetNillableYesNoVal sets the yes_no_val field if the given value is not nil.
+func (cliu *CheckListItemUpdate) SetNillableYesNoVal(cnv *checklistitem.YesNoVal) *CheckListItemUpdate {
+	if cnv != nil {
+		cliu.SetYesNoVal(*cnv)
+	}
+	return cliu
+}
+
+// ClearYesNoVal clears the value of yes_no_val.
+func (cliu *CheckListItemUpdate) ClearYesNoVal() *CheckListItemUpdate {
+	cliu.mutation.ClearYesNoVal()
+	return cliu
+}
+
 // SetHelpText sets the help_text field.
 func (cliu *CheckListItemUpdate) SetHelpText(s string) *CheckListItemUpdate {
 	cliu.mutation.SetHelpText(s)
@@ -249,6 +269,11 @@ func (cliu *CheckListItemUpdate) ClearWorkOrder() *CheckListItemUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (cliu *CheckListItemUpdate) Save(ctx context.Context) (int, error) {
+	if v, ok := cliu.mutation.YesNoVal(); ok {
+		if err := checklistitem.YesNoValValidator(v); err != nil {
+			return 0, fmt.Errorf("ent: validator failed for field \"yes_no_val\": %v", err)
+		}
+	}
 
 	var (
 		err      error
@@ -413,6 +438,19 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
+	if value, ok := cliu.mutation.YesNoVal(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: checklistitem.FieldYesNoVal,
+		})
+	}
+	if cliu.mutation.YesNoValCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Column: checklistitem.FieldYesNoVal,
 		})
 	}
 	if value, ok := cliu.mutation.HelpText(); ok {
@@ -658,6 +696,26 @@ func (cliuo *CheckListItemUpdateOne) ClearSelectedEnumValues() *CheckListItemUpd
 	return cliuo
 }
 
+// SetYesNoVal sets the yes_no_val field.
+func (cliuo *CheckListItemUpdateOne) SetYesNoVal(cnv checklistitem.YesNoVal) *CheckListItemUpdateOne {
+	cliuo.mutation.SetYesNoVal(cnv)
+	return cliuo
+}
+
+// SetNillableYesNoVal sets the yes_no_val field if the given value is not nil.
+func (cliuo *CheckListItemUpdateOne) SetNillableYesNoVal(cnv *checklistitem.YesNoVal) *CheckListItemUpdateOne {
+	if cnv != nil {
+		cliuo.SetYesNoVal(*cnv)
+	}
+	return cliuo
+}
+
+// ClearYesNoVal clears the value of yes_no_val.
+func (cliuo *CheckListItemUpdateOne) ClearYesNoVal() *CheckListItemUpdateOne {
+	cliuo.mutation.ClearYesNoVal()
+	return cliuo
+}
+
 // SetHelpText sets the help_text field.
 func (cliuo *CheckListItemUpdateOne) SetHelpText(s string) *CheckListItemUpdateOne {
 	cliuo.mutation.SetHelpText(s)
@@ -735,6 +793,11 @@ func (cliuo *CheckListItemUpdateOne) ClearWorkOrder() *CheckListItemUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (cliuo *CheckListItemUpdateOne) Save(ctx context.Context) (*CheckListItem, error) {
+	if v, ok := cliuo.mutation.YesNoVal(); ok {
+		if err := checklistitem.YesNoValValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"yes_no_val\": %v", err)
+		}
+	}
 
 	var (
 		err  error
@@ -897,6 +960,19 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: checklistitem.FieldSelectedEnumValues,
+		})
+	}
+	if value, ok := cliuo.mutation.YesNoVal(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: checklistitem.FieldYesNoVal,
+		})
+	}
+	if cliuo.mutation.YesNoValCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Column: checklistitem.FieldYesNoVal,
 		})
 	}
 	if value, ok := cliuo.mutation.HelpText(); ok {

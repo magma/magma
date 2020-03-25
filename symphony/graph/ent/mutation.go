@@ -952,6 +952,7 @@ type CheckListItemMutation struct {
 	enum_values          *string
 	enum_selection_mode  *string
 	selected_enum_values *string
+	yes_no_val           *checklistitem.YesNoVal
 	help_text            *string
 	clearedFields        map[string]bool
 	files                map[int]struct{}
@@ -1245,6 +1246,37 @@ func (m *CheckListItemMutation) ResetSelectedEnumValues() {
 	delete(m.clearedFields, checklistitem.FieldSelectedEnumValues)
 }
 
+// SetYesNoVal sets the yes_no_val field.
+func (m *CheckListItemMutation) SetYesNoVal(cnv checklistitem.YesNoVal) {
+	m.yes_no_val = &cnv
+}
+
+// YesNoVal returns the yes_no_val value in the mutation.
+func (m *CheckListItemMutation) YesNoVal() (r checklistitem.YesNoVal, exists bool) {
+	v := m.yes_no_val
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearYesNoVal clears the value of yes_no_val.
+func (m *CheckListItemMutation) ClearYesNoVal() {
+	m.yes_no_val = nil
+	m.clearedFields[checklistitem.FieldYesNoVal] = true
+}
+
+// YesNoValCleared returns if the field yes_no_val was cleared in this mutation.
+func (m *CheckListItemMutation) YesNoValCleared() bool {
+	return m.clearedFields[checklistitem.FieldYesNoVal]
+}
+
+// ResetYesNoVal reset all changes of the yes_no_val field.
+func (m *CheckListItemMutation) ResetYesNoVal() {
+	m.yes_no_val = nil
+	delete(m.clearedFields, checklistitem.FieldYesNoVal)
+}
+
 // SetHelpText sets the help_text field.
 func (m *CheckListItemMutation) SetHelpText(s string) {
 	m.help_text = &s
@@ -1371,7 +1403,7 @@ func (m *CheckListItemMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *CheckListItemMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.title != nil {
 		fields = append(fields, checklistitem.FieldTitle)
 	}
@@ -1395,6 +1427,9 @@ func (m *CheckListItemMutation) Fields() []string {
 	}
 	if m.selected_enum_values != nil {
 		fields = append(fields, checklistitem.FieldSelectedEnumValues)
+	}
+	if m.yes_no_val != nil {
+		fields = append(fields, checklistitem.FieldYesNoVal)
 	}
 	if m.help_text != nil {
 		fields = append(fields, checklistitem.FieldHelpText)
@@ -1423,6 +1458,8 @@ func (m *CheckListItemMutation) Field(name string) (ent.Value, bool) {
 		return m.EnumSelectionMode()
 	case checklistitem.FieldSelectedEnumValues:
 		return m.SelectedEnumValues()
+	case checklistitem.FieldYesNoVal:
+		return m.YesNoVal()
 	case checklistitem.FieldHelpText:
 		return m.HelpText()
 	}
@@ -1489,6 +1526,13 @@ func (m *CheckListItemMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSelectedEnumValues(v)
+		return nil
+	case checklistitem.FieldYesNoVal:
+		v, ok := value.(checklistitem.YesNoVal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetYesNoVal(v)
 		return nil
 	case checklistitem.FieldHelpText:
 		v, ok := value.(string)
@@ -1560,6 +1604,9 @@ func (m *CheckListItemMutation) ClearedFields() []string {
 	if m.clearedFields[checklistitem.FieldSelectedEnumValues] {
 		fields = append(fields, checklistitem.FieldSelectedEnumValues)
 	}
+	if m.clearedFields[checklistitem.FieldYesNoVal] {
+		fields = append(fields, checklistitem.FieldYesNoVal)
+	}
 	if m.clearedFields[checklistitem.FieldHelpText] {
 		fields = append(fields, checklistitem.FieldHelpText)
 	}
@@ -1593,6 +1640,9 @@ func (m *CheckListItemMutation) ClearField(name string) error {
 		return nil
 	case checklistitem.FieldSelectedEnumValues:
 		m.ClearSelectedEnumValues()
+		return nil
+	case checklistitem.FieldYesNoVal:
+		m.ClearYesNoVal()
 		return nil
 	case checklistitem.FieldHelpText:
 		m.ClearHelpText()
@@ -1629,6 +1679,9 @@ func (m *CheckListItemMutation) ResetField(name string) error {
 		return nil
 	case checklistitem.FieldSelectedEnumValues:
 		m.ResetSelectedEnumValues()
+		return nil
+	case checklistitem.FieldYesNoVal:
+		m.ResetYesNoVal()
 		return nil
 	case checklistitem.FieldHelpText:
 		m.ResetHelpText()

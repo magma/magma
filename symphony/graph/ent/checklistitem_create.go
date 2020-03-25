@@ -121,6 +121,20 @@ func (clic *CheckListItemCreate) SetNillableSelectedEnumValues(s *string) *Check
 	return clic
 }
 
+// SetYesNoVal sets the yes_no_val field.
+func (clic *CheckListItemCreate) SetYesNoVal(cnv checklistitem.YesNoVal) *CheckListItemCreate {
+	clic.mutation.SetYesNoVal(cnv)
+	return clic
+}
+
+// SetNillableYesNoVal sets the yes_no_val field if the given value is not nil.
+func (clic *CheckListItemCreate) SetNillableYesNoVal(cnv *checklistitem.YesNoVal) *CheckListItemCreate {
+	if cnv != nil {
+		clic.SetYesNoVal(*cnv)
+	}
+	return clic
+}
+
 // SetHelpText sets the help_text field.
 func (clic *CheckListItemCreate) SetHelpText(s string) *CheckListItemCreate {
 	clic.mutation.SetHelpText(s)
@@ -176,6 +190,11 @@ func (clic *CheckListItemCreate) Save(ctx context.Context) (*CheckListItem, erro
 	}
 	if _, ok := clic.mutation.GetType(); !ok {
 		return nil, errors.New("ent: missing required field \"type\"")
+	}
+	if v, ok := clic.mutation.YesNoVal(); ok {
+		if err := checklistitem.YesNoValValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"yes_no_val\": %v", err)
+		}
 	}
 	var (
 		err  error
@@ -286,6 +305,14 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 			Column: checklistitem.FieldSelectedEnumValues,
 		})
 		cli.SelectedEnumValues = value
+	}
+	if value, ok := clic.mutation.YesNoVal(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: checklistitem.FieldYesNoVal,
+		})
+		cli.YesNoVal = value
 	}
 	if value, ok := clic.mutation.HelpText(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

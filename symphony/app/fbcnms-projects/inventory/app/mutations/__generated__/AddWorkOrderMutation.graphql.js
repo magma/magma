@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash adc45e3b6679599ffbdf20cfce0585fa
+ * @relayHash 2b1887689dbb36262f3030c7705202d5
  */
 
 /* eslint-disable */
@@ -16,10 +16,11 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
-export type CheckListItemType = "enum" | "files" | "simple" | "string" | "%future added value";
+export type CheckListItemType = "enum" | "files" | "simple" | "string" | "yes_no" | "%future added value";
 export type FileType = "FILE" | "IMAGE" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
+export type YesNoResponse = "NO" | "YES" | "%future added value";
 export type AddWorkOrderInput = {|
   name: string,
   description?: ?string,
@@ -64,6 +65,7 @@ export type CheckListItemInput = {|
   stringValue?: ?string,
   checked?: ?boolean,
   files?: ?$ReadOnlyArray<FileInput>,
+  yesNoResponse?: ?YesNoResponse,
 |};
 export type FileInput = {|
   id?: ?string,
