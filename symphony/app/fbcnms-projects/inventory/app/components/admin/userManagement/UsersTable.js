@@ -89,7 +89,10 @@ export default function UsersTable() {
       {
         key: 'role',
         title: <fbt desc="Role column header in users table">Role</fbt>,
-        render: userRow => USER_ROLES[userRow.role].value || userRow.role,
+        render: userRow =>
+          userRow.status === USER_STATUSES.DEACTIVATED.key
+            ? null
+            : USER_ROLES[userRow.role].value || userRow.role,
       },
       {
         key: 'job_title',
