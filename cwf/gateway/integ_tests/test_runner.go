@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+	"time"
 
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2869"
@@ -218,6 +219,18 @@ func (tr *TestRunner) GetPolicyUsage() (RecordByIMSI, error) {
 		recordsBySubID[record.Sid][record.RuleId] = record
 	}
 	return recordsBySubID, nil
+}
+
+func (tr *TestRunner) WaitForEnforcementStatsToSync() {
+	// TODO load this value from pipelined.yml
+	enforcementPollPeriod := 1 * time.Second
+	time.Sleep(3 * enforcementPollPeriod)
+}
+
+func (tr *TestRunner) WaitForPoliciesToSync() {
+	// TODO load this value from sessiond.yml (rule_update_interval_sec)
+	ruleUpdatePeriod := 1 * time.Second
+	time.Sleep(2 * ruleUpdatePeriod)
 }
 
 // getRandomIMSI makes a random 15-digit IMSI that is not added to the UESim or HSS.
