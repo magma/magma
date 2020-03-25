@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ab22ca43e41b9d10e60de386fa9725b9
+ * @relayHash a8dbfe3cdc6cb98b66075c37db27811b
  */
 
 /* eslint-disable */
@@ -19,7 +19,7 @@ type WorkOrdersMap_workOrders$ref = any;
 type WorkOrdersView_workOrder$ref = any;
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
-export type WorkOrderFilterType = "LOCATION_INST" | "WORK_ORDER_ASSIGNEE" | "WORK_ORDER_CREATION_DATE" | "WORK_ORDER_INSTALL_DATE" | "WORK_ORDER_LOCATION_INST" | "WORK_ORDER_NAME" | "WORK_ORDER_OWNER" | "WORK_ORDER_PRIORITY" | "WORK_ORDER_STATUS" | "WORK_ORDER_TYPE" | "%future added value";
+export type WorkOrderFilterType = "LOCATION_INST" | "WORK_ORDER_ASSIGNED_TO" | "WORK_ORDER_ASSIGNEE" | "WORK_ORDER_CREATION_DATE" | "WORK_ORDER_INSTALL_DATE" | "WORK_ORDER_LOCATION_INST" | "WORK_ORDER_NAME" | "WORK_ORDER_OWNED_BY" | "WORK_ORDER_OWNER" | "WORK_ORDER_PRIORITY" | "WORK_ORDER_STATUS" | "WORK_ORDER_TYPE" | "%future added value";
 export type WorkOrderFilterInput = {|
   filterType: WorkOrderFilterType,
   operator: FilterOperator,

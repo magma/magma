@@ -568,6 +568,7 @@ type ComplexityRoot struct {
 
 	Project struct {
 		Comments           func(childComplexity int) int
+		CreatedBy          func(childComplexity int) int
 		Creator            func(childComplexity int) int
 		Description        func(childComplexity int) int
 		ID                 func(childComplexity int) int
@@ -905,6 +906,7 @@ type ComplexityRoot struct {
 	}
 
 	WorkOrder struct {
+		AssignedTo          func(childComplexity int) int
 		Assignee            func(childComplexity int) int
 		CheckList           func(childComplexity int) int
 		CheckListCategories func(childComplexity int) int
@@ -924,6 +926,7 @@ type ComplexityRoot struct {
 		LinksToRemove       func(childComplexity int) int
 		Location            func(childComplexity int) int
 		Name                func(childComplexity int) int
+		Owner               func(childComplexity int) int
 		OwnerName           func(childComplexity int) int
 		Priority            func(childComplexity int) int
 		Project             func(childComplexity int) int
@@ -1175,6 +1178,7 @@ type MutationResolver interface {
 }
 type ProjectResolver interface {
 	Creator(ctx context.Context, obj *ent.Project) (*string, error)
+	CreatedBy(ctx context.Context, obj *ent.Project) (*ent.User, error)
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
 	Location(ctx context.Context, obj *ent.Project) (*ent.Location, error)
 	WorkOrders(ctx context.Context, obj *ent.Project) ([]*ent.WorkOrder, error)
@@ -1308,8 +1312,10 @@ type WorkOrderResolver interface {
 	WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error)
 
 	OwnerName(ctx context.Context, obj *ent.WorkOrder) (string, error)
+	Owner(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error)
 
 	Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error)
+	AssignedTo(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error)
 
 	Status(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderStatus, error)
 	Priority(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderPriority, error)
@@ -3895,6 +3901,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Project.Comments(childComplexity), true
 
+	case "Project.createdBy":
+		if e.complexity.Project.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.Project.CreatedBy(childComplexity), true
+
 	case "Project.creator":
 		if e.complexity.Project.Creator == nil {
 			break
@@ -5715,6 +5728,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Viewer.User(childComplexity), true
 
+	case "WorkOrder.assignedTo":
+		if e.complexity.WorkOrder.AssignedTo == nil {
+			break
+		}
+
+		return e.complexity.WorkOrder.AssignedTo(childComplexity), true
+
 	case "WorkOrder.assignee":
 		if e.complexity.WorkOrder.Assignee == nil {
 			break
@@ -5847,6 +5867,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.WorkOrder.Name(childComplexity), true
+
+	case "WorkOrder.owner":
+		if e.complexity.WorkOrder.Owner == nil {
+			break
+		}
+
+		return e.complexity.WorkOrder.Owner(childComplexity), true
 
 	case "WorkOrder.ownerName":
 		if e.complexity.WorkOrder.OwnerName == nil {
@@ -6213,7 +6240,11 @@ type User implements Node {
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
-  email: String! @goField(name: "user")
+  email: String!
+    @goField(name: "user")
+    @deprecated(
+      reason: "Use ` + "`" + `Viewer.user.email` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
   user: User!
 }
 
@@ -6566,8 +6597,18 @@ input AddWorkOrderInput {
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      reason: "Use ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` together"
+    )
+  ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      reason: "Use ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.assignee` + "`" + ` and ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus
   priority: WorkOrderPriority
@@ -6578,8 +6619,18 @@ input EditWorkOrderInput {
   name: String!
   description: String
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      reason: "Use ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` together"
+    )
+  ownerId: ID
   installDate: Time
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      reason: "Use ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.assignee` + "`" + ` and ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -7260,9 +7311,17 @@ type WorkOrder implements Node {
   name: String!
   description: String
   ownerName: String!
+    @deprecated(
+      reason: "Use ` + "`" + `WorkOrder.owner.email` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  owner: User!
   creationDate: Time!
   installDate: Time
   assignee: String
+    @deprecated(
+      reason: "Use ` + "`" + `WorkOrder.assignedTo.email` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  assignedTo: User
   index: Int!
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -7450,6 +7509,10 @@ type Project implements Node {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecated(
+      reason: "Use ` + "`" + `Project.createdBy.email` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  createdBy: User
   type: ProjectType!
   location: Location
   workOrders: [WorkOrder!]!
@@ -7462,6 +7525,11 @@ input AddProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      reason: "Use ` + "`" + `AddProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddProjectInput.creator` + "`" + ` and ` + "`" + `AddProjectInput.creatorId` + "`" + ` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -7472,6 +7540,11 @@ input EditProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      reason: "Use ` + "`" + `EditProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditProjectInput.creator` + "`" + ` and ` + "`" + `EditProjectInput.creatorId` + "`" + ` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -7631,10 +7704,18 @@ enum WorkOrderFilterType {
   WORK_ORDER_NAME
   WORK_ORDER_STATUS
   WORK_ORDER_OWNER
+    @deprecated(
+      reason: "Use ` + "`" + `WorkOrderFilterType.WORK_ORDER_OWNED_BY` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_OWNED_BY
   WORK_ORDER_TYPE
   WORK_ORDER_CREATION_DATE
   WORK_ORDER_INSTALL_DATE
   WORK_ORDER_ASSIGNEE
+    @deprecated(
+      reason: "Use ` + "`" + `WorkOrderFilterType.WORK_ORDER_ASSIGNED_TO` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_ASSIGNED_TO
   WORK_ORDER_LOCATION_INST
   WORK_ORDER_PRIORITY
   LOCATION_INST
@@ -8200,9 +8281,9 @@ type Query {
   ): Node
   user(authID: String!): User
   location(id: ID!): Location
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   locationType(id: ID!): LocationType
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   locationTypes(
     after: Cursor
     first: Int
@@ -8220,9 +8301,9 @@ type Query {
     last: Int
   ): LocationConnection
   equipment(id: ID!): Equipment
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -8242,9 +8323,9 @@ type Query {
     last: Int
   ): EquipmentTypeConnection!
   service(id: ID!): Service
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   serviceType(id: ID!): ServiceType
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   serviceTypes(
     after: Cursor
     first: Int
@@ -8252,7 +8333,7 @@ type Query {
     last: Int
   ): ServiceTypeConnection
   workOrder(id: ID!): WorkOrder
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   workOrders(
     after: Cursor
     first: Int
@@ -8275,7 +8356,7 @@ type Query {
     last: Int
   ): SearchEntriesConnection!
     @deprecated(
-      reason: "Use ` + "`" + `searchForNode` + "`" + ` instead. Will be removed on 1/5/2020"
+      reason: "Use ` + "`" + `searchForNode` + "`" + ` instead. Will be removed on 2020-05-01"
     )
   searchForNode(
     name: String!
@@ -8320,7 +8401,7 @@ type Query {
   ): [Location!]!
   vertex(id: ID!): Vertex
   projectType(id: ID!): ProjectType
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   projectTypes(
     after: Cursor
     first: Int
@@ -8508,7 +8589,9 @@ type Mutation {
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
-  technicianWorkOrderUploadData(input: TechnicianWorkOrderUploadInput!): WorkOrder!
+  technicianWorkOrderUploadData(
+    input: TechnicianWorkOrderUploadInput!
+  ): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!
@@ -22675,6 +22758,40 @@ func (ec *executionContext) _Project_creator(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Project_createdBy(ctx context.Context, field graphql.CollectedField, obj *ent.Project) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Project",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Project().CreatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Project_type(ctx context.Context, field graphql.CollectedField, obj *ent.Project) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -31519,6 +31636,43 @@ func (ec *executionContext) _WorkOrder_ownerName(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _WorkOrder_owner(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkOrder().Owner(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _WorkOrder_creationDate(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -31622,6 +31776,40 @@ func (ec *executionContext) _WorkOrder_assignee(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrder_assignedTo(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkOrder().AssignedTo(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrder_index(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
@@ -35084,7 +35272,36 @@ func (ec *executionContext) unmarshalInputAddProjectInput(ctx context.Context, o
 			}
 		case "creator":
 			var err error
-			it.Creator, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.Creator = data
+			} else if tmp == nil {
+				it.Creator = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "creatorId":
+			var err error
+			it.CreatorID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35268,7 +35485,36 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			}
 		case "ownerName":
 			var err error
-			it.OwnerName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.OwnerName = data
+			} else if tmp == nil {
+				it.OwnerName = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "ownerId":
+			var err error
+			it.OwnerID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35280,7 +35526,36 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			}
 		case "assignee":
 			var err error
-			it.Assignee, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.Assignee = data
+			} else if tmp == nil {
+				it.Assignee = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "assigneeId":
+			var err error
+			it.AssigneeID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -36005,7 +36280,36 @@ func (ec *executionContext) unmarshalInputEditProjectInput(ctx context.Context, 
 			}
 		case "creator":
 			var err error
-			it.Creator, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.Creator = data
+			} else if tmp == nil {
+				it.Creator = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "creatorId":
+			var err error
+			it.CreatorID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -36207,7 +36511,36 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			}
 		case "ownerName":
 			var err error
-			it.OwnerName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.OwnerName = data
+			} else if tmp == nil {
+				it.OwnerName = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "ownerId":
+			var err error
+			it.OwnerID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -36219,7 +36552,36 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			}
 		case "assignee":
 			var err error
-			it.Assignee, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.Assignee = data
+			} else if tmp == nil {
+				it.Assignee = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "assigneeId":
+			var err error
+			it.AssigneeID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41492,6 +41854,17 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 				res = ec._Project_creator(ctx, field, obj)
 				return res
 			})
+		case "createdBy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Project_createdBy(ctx, field, obj)
+				return res
+			})
 		case "type":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -43929,6 +44302,20 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 				}
 				return res
 			})
+		case "owner":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_owner(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "creationDate":
 			out.Values[i] = ec._WorkOrder_creationDate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -43945,6 +44332,17 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._WorkOrder_assignee(ctx, field, obj)
+				return res
+			})
+		case "assignedTo":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_assignedTo(ctx, field, obj)
 				return res
 			})
 		case "index":

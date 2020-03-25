@@ -48,7 +48,11 @@ type User implements Node {
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
-  email: String! @goField(name: "user")
+  email: String!
+    @goField(name: "user")
+    @deprecated(
+      reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
+    )
   user: User!
 }
 
@@ -401,8 +405,18 @@ input AddWorkOrderInput {
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      reason: "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together"
+    )
+  ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      reason: "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus
   priority: WorkOrderPriority
@@ -413,8 +427,18 @@ input EditWorkOrderInput {
   name: String!
   description: String
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      reason: "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together"
+    )
+  ownerId: ID
   installDate: Time
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      reason: "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -1095,9 +1119,17 @@ type WorkOrder implements Node {
   name: String!
   description: String
   ownerName: String!
+    @deprecated(
+      reason: "Use `WorkOrder.owner.email` instead. Will be removed on 2020-05-01"
+    )
+  owner: User!
   creationDate: Time!
   installDate: Time
   assignee: String
+    @deprecated(
+      reason: "Use `WorkOrder.assignedTo.email` instead. Will be removed on 2020-05-01"
+    )
+  assignedTo: User
   index: Int!
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -1285,6 +1317,10 @@ type Project implements Node {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecated(
+      reason: "Use `Project.createdBy.email` instead. Will be removed on 2020-05-01"
+    )
+  createdBy: User
   type: ProjectType!
   location: Location
   workOrders: [WorkOrder!]!
@@ -1297,6 +1333,11 @@ input AddProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      reason: "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -1307,6 +1348,11 @@ input EditProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      reason: "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -1466,10 +1512,18 @@ enum WorkOrderFilterType {
   WORK_ORDER_NAME
   WORK_ORDER_STATUS
   WORK_ORDER_OWNER
+    @deprecated(
+      reason: "Use `WorkOrderFilterType.WORK_ORDER_OWNED_BY` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_OWNED_BY
   WORK_ORDER_TYPE
   WORK_ORDER_CREATION_DATE
   WORK_ORDER_INSTALL_DATE
   WORK_ORDER_ASSIGNEE
+    @deprecated(
+      reason: "Use `WorkOrderFilterType.WORK_ORDER_ASSIGNED_TO` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_ASSIGNED_TO
   WORK_ORDER_LOCATION_INST
   WORK_ORDER_PRIORITY
   LOCATION_INST
@@ -2035,9 +2089,9 @@ type Query {
   ): Node
   user(authID: String!): User
   location(id: ID!): Location
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   locationType(id: ID!): LocationType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   locationTypes(
     after: Cursor
     first: Int
@@ -2055,9 +2109,9 @@ type Query {
     last: Int
   ): LocationConnection
   equipment(id: ID!): Equipment
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -2077,9 +2131,9 @@ type Query {
     last: Int
   ): EquipmentTypeConnection!
   service(id: ID!): Service
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   serviceType(id: ID!): ServiceType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   serviceTypes(
     after: Cursor
     first: Int
@@ -2087,7 +2141,7 @@ type Query {
     last: Int
   ): ServiceTypeConnection
   workOrder(id: ID!): WorkOrder
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   workOrders(
     after: Cursor
     first: Int
@@ -2110,7 +2164,7 @@ type Query {
     last: Int
   ): SearchEntriesConnection!
     @deprecated(
-      reason: "Use `searchForNode` instead. Will be removed on 1/5/2020"
+      reason: "Use `searchForNode` instead. Will be removed on 2020-05-01"
     )
   searchForNode(
     name: String!
@@ -2155,7 +2209,7 @@ type Query {
   ): [Location!]!
   vertex(id: ID!): Vertex
   projectType(id: ID!): ProjectType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   projectTypes(
     after: Cursor
     first: Int

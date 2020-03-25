@@ -201,6 +201,14 @@ func (projectResolver) Creator(ctx context.Context, obj *ent.Project) (*string, 
 	return &assignee.Email, nil
 }
 
+func (projectResolver) CreatedBy(ctx context.Context, obj *ent.Project) (*ent.User, error) {
+	c, err := obj.QueryCreator().Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, fmt.Errorf("querying creator: %w", err)
+	}
+	return c, nil
+}
+
 func (projectResolver) Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error) {
 	typ, err := obj.QueryType().Only(ctx)
 	if err != nil {
@@ -255,21 +263,25 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 	if err != nil {
 		return nil, fmt.Errorf("fetching template: %w", err)
 	}
+
+	creatorID := input.CreatorID
+	if input.Creator != nil && *input.Creator != "" {
+		id, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("fetching creator user: %w", err)
+		}
+		creatorID = &id
+	}
+
 	query := client.
 		Project.Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetTypeID(input.Type).
 		SetNillableLocationID(input.Location).
-		AddProperties(properties...)
+		AddProperties(properties...).
+		SetNillableCreatorID(creatorID)
 
-	if input.Creator != nil && *input.Creator != "" {
-		creatorID, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching creator user: %w", err)
-		}
-		query = query.SetCreatorID(creatorID)
-	}
 	proj, err := query.Save(ctx)
 
 	if err != nil {
@@ -324,12 +336,18 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		UpdateOne(proj).
 		SetName(input.Name).
 		SetNillableDescription(input.Description)
+
+	creatorID := input.CreatorID
 	if input.Creator != nil && *input.Creator != "" {
-		creatorID, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
+		id, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("fetching creator user: %w", err)
 		}
-		mutation.SetCreatorID(creatorID)
+		creatorID = &id
+	}
+
+	if creatorID != nil {
+		mutation.SetCreatorID(*creatorID)
 	} else {
 		mutation.ClearCreator()
 	}
