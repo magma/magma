@@ -28,12 +28,16 @@ title: Graphql API Breaking Changes
 ## Deprecated Fields
 {}
 
+## Deprecated Input Fields
+{}
+
 """
 
 
 def document_all_deprecated_functions(schema_library: str, doc_filepath: str) -> None:
     deprecated_queries = []
     deprecated_mutations = []
+    deprecated_inputs = []
     deprecated_fields = []
     schema = compile_schema_library(schema_library)
     for query_name, query_field in schema.query_type.fields.items():
@@ -48,8 +52,27 @@ def document_all_deprecated_functions(schema_library: str, doc_filepath: str) ->
             )
     for type_name, type_object in schema.type_map.items():
         if isinstance(
-            type_object, (GraphQLScalarType, GraphQLEnumType, GraphQLInputObjectType)
+            type_object, (GraphQLScalarType, GraphQLEnumType)
         ) or type_name in ("Query", "Mutation"):
+            continue
+        if isinstance(type_object, GraphQLInputObjectType):
+            for field_name, field_object in type_object.fields.items():
+                directives = field_object.ast_node.directives
+                for directive in directives:
+                    if directive.name.value == "deprecatedInput":
+                        field_long_name = ".".join([type_name, field_name])
+                        for argument in directive.arguments:
+                            if argument.name.value == "reason":
+                                deprecation_reason = (
+                                    argument.value.value
+                                    if directive.arguments
+                                    else None
+                                )
+                                deprecated_inputs.append(
+                                    " - ".join(
+                                        [f"`{field_long_name}`", deprecation_reason]
+                                    )
+                                )
             continue
         for field_name, field_object in type_object.fields.items():
             if field_object.is_deprecated:
@@ -68,6 +91,7 @@ def document_all_deprecated_functions(schema_library: str, doc_filepath: str) ->
                 "\n".join(map(lambda s: "* " + s, deprecated_queries)),
                 "\n".join(map(lambda s: "* " + s, deprecated_mutations)),
                 "\n".join(map(lambda s: "* " + s, deprecated_fields)),
+                "\n".join(map(lambda s: "* " + s, deprecated_inputs)),
             )
         )
 

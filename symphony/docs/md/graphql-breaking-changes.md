@@ -22,3 +22,6 @@ title: Graphql API Breaking Changes
 ## Deprecated Fields
 
 
+## Deprecated Input Fields
+
+

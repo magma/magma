@@ -26,9 +26,10 @@ type directive struct {
 func New(logger log.Logger) generated.DirectiveRoot {
 	d := &directive{logger}
 	return generated.DirectiveRoot{
-		Length:      d.Length,
-		Range:       d.Range,
-		UniqueField: d.UniqueField,
+		DeprecatedInput: d.DeprecatedInput,
+		Length:          d.Length,
+		Range:           d.Range,
+		UniqueField:     d.UniqueField,
 	}
 }
 
@@ -127,4 +128,34 @@ func (d *directive) uniqueField(objs interface{}, objType, field string) *gqlerr
 		values[value] = struct{}{}
 	}
 	return nil
+}
+
+func (d *directive) isNil(i interface{}) (result bool) {
+	if i == nil {
+		return true
+	}
+	defer func() {
+		if err := recover(); err != nil {
+			result = false
+		}
+	}()
+	return reflect.ValueOf(i).IsNil()
+}
+
+func (d *directive) DeprecatedInput(ctx context.Context, obj interface{}, next graphql.Resolver, newField *string, reason *string) (res interface{}, err error) {
+	if newField == nil {
+		return next(ctx)
+	}
+	value, err := next(ctx)
+	if err != nil || d.isNil(value) {
+		return value, err
+	}
+	m, ok := obj.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("unexpected obj type %T", obj)
+	}
+	if _, ok := m[*newField]; ok {
+		return nil, gqlerror.Errorf(*reason)
+	}
+	return value, nil
 }

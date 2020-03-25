@@ -14,6 +14,11 @@
 #    %> sudo python3 setup_pyinventory.py develop
 #    %> ./compile_graphql.sh
 
+directive @deprecatedInput(
+  newField: String
+  reason: String = "Deprecated field is no longer supported"
+) on INPUT_FIELD_DEFINITION
+
 enum UserStatus
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/ent/user.Status"
