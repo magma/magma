@@ -102,6 +102,11 @@
       "throttleRate": 1000,
       "throttleWindow": 5,
       "throttleInterval": "1m"
+    },
+     "monitord": {
+      "@type": "type.googleapis.com/magma.mconfig.MonitorD",
+      "logLevel": "INFO",
+      "pollingInterval": 60
     }
   }
 }
