@@ -10,37 +10,46 @@ package integ_tests
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
-	"fbc/lib/go/radius/rfc2869"
 	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/eap"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/stretchr/testify/assert"
 )
 
+// - Initialize 3 UEs and initiate Authentication. Assert that it is successful.
+// - Disconnect all UEs.
 func TestAuthenticateMultipleUEs(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticate...")
-	tr := NewTestRunner()
+	tr := NewTestRunner(t)
 	ues, err := tr.ConfigUEs(3)
 	assert.NoError(t, err)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, tr.CleanUp())
+	}()
 
 	for _, ue := range ues {
-		tr.AuthenticateAndAssertSuccess(t, ue.GetImsi())
+		tr.AuthenticateAndAssertSuccess(ue.GetImsi())
 		tr.Disconnect(ue.GetImsi())
 	}
 	time.Sleep(1 * time.Second)
-	// Clear hss, ocs, and pcrf
-	assert.NoError(t, tr.CleanUp())
 }
 
+// - Expect a CCR-I to come into PCRF, and return with Authentication Reject.
+// - Configure a UE and trigger a authentication. Assert that the expectation was
+//   met, and the authentication failed.
 func TestAuthenticateFail(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticateFail...")
-	tr := NewTestRunner()
+	tr := NewTestRunner(t)
 	assert.NoError(t, usePCRFMockDriver())
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, tr.CleanUp())
+	}()
 
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
@@ -55,12 +64,7 @@ func TestAuthenticateFail(t *testing.T) {
 	defaultAnswer := protos.NewGxCCAnswer(diam.AuthenticationRejected)
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
 
-	radiusP, err := tr.Authenticate(imsiFail)
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage)
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.FailureCode))
+	tr.AuthenticateAndAssertFail(imsiFail)
 
 	resultByIndex, errByIndex, err := getAssertExpectationsResult()
 	assert.NoError(t, err)
@@ -71,8 +75,4 @@ func TestAuthenticateFail(t *testing.T) {
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
 	assert.Empty(t, recordsBySubID["IMSI"+imsiFail])
-
-	// Clear hss, ocs, and pcrf
-	assert.NoError(t, clearPCRFMockDriver())
-	assert.NoError(t, tr.CleanUp())
 }
