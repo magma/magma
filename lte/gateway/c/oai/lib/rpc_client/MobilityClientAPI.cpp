@@ -221,6 +221,7 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
       "result",
       "success");
     sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
+    sgi_create_endpoint_resp.paa.pdn_type = IPv4;
     OAILOG_DEBUG(
       LOG_UTIL,
       "Allocated IPv4 address for imsi <%s>, apn <%s>\n",

@@ -89,6 +89,14 @@ static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(
   bool delete_default_bearer,
   teid_t mme_teid_S11);
 
+static void _spgw_handle_s5_response_with_error(
+  spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+  teid_t context_teid,
+  ebi_t eps_bearer_id,
+  itti_sgi_create_end_point_response_t* sgi_create_endpoint_resp,
+  s5_create_session_response_t* s5_response);
+
 //--------------------------------------------------------------------------------
 
 void handle_s5_create_session_request(
@@ -118,7 +126,13 @@ void handle_s5_create_session_request(
       "teid" TEID_FMT "\n",
       context_teid);
     sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
-    goto err;
+    _spgw_handle_s5_response_with_error(
+      spgw_state,
+      new_bearer_ctxt_info_p,
+      context_teid,
+      eps_bearer_id,
+      &sgi_create_endpoint_resp,
+      &s5_response);
   }
 
   // PCO processing
@@ -136,7 +150,13 @@ void handle_s5_create_session_request(
       "context_id: " TEID_FMT "\n",
       context_teid);
     sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
-    goto err;
+    _spgw_handle_s5_response_with_error(
+      spgw_state,
+      new_bearer_ctxt_info_p,
+      context_teid,
+      eps_bearer_id,
+      &sgi_create_endpoint_resp,
+      &s5_response);
   }
   copy_protocol_configuration_options(&sgi_create_endpoint_resp.pco, &pco_resp);
   clear_protocol_configuration_options(&pco_resp);
@@ -218,6 +238,30 @@ void handle_s5_create_session_request(
         0, "BAD paa.pdn_type %d", sgi_create_endpoint_resp.paa.pdn_type);
       break;
   }
+}
+
+void _spgw_handle_s5_response_with_error(
+  spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+  teid_t context_teid,
+  ebi_t eps_bearer_id,
+  itti_sgi_create_end_point_response_t* sgi_create_endpoint_resp,
+  s5_create_session_response_t* s5_response)
+{
+  s5_response->context_teid = context_teid;
+  s5_response->eps_bearer_id = eps_bearer_id;
+  s5_response->sgi_create_endpoint_resp = (*sgi_create_endpoint_resp);
+  s5_response->failure_cause = S5_OK;
+
+  OAILOG_DEBUG(
+    LOG_PGW_APP,
+    "Sending S5 Create Session Response to SGW: with context teid, " TEID_FMT
+    "EPS Bearer Id = %u\n",
+    s5_response->context_teid,
+    s5_response->eps_bearer_id);
+  handle_s5_create_session_response(
+    spgw_state, new_bearer_ctxt_info_p, (*s5_response));
+  OAILOG_FUNC_OUT(LOG_PGW_APP);
 }
 
 /*
