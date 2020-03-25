@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# SUPER HACK: set CONTROLLER_SERVICES to only metricsd if this is a proxy
-# instance
-# This is because we currently put the same environment and configs onto all
-# ec2 machines. This will change when we move to a containerized deployment,
-# so we're just hacking this in for now.
-echo "METRICSD" > /var/opt/magma/envdir/CONTROLLER_SERVICES
