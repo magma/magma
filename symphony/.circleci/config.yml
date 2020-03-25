@@ -553,7 +553,7 @@ workflows:
           <<: *onlymaster
     jobs:
       - tfdiff:
-          workspace: staging
+          workspace: default
           <<: *tfvardir
       - tfapply:
           name: staging/deploy
