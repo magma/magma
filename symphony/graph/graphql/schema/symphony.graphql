@@ -1410,6 +1410,11 @@ type ServiceSearchResult {
   count: Int!
 }
 
+type UserSearchResult {
+  users: [User]!
+  count: Int!
+}
+
 type WorkOrderSearchResult {
   workOrders: [WorkOrder]!
   count: Int!
@@ -1463,6 +1468,13 @@ enum ServiceFilterType {
   EQUIPMENT_IN_SERVICE
 }
 
+"""
+what filters should we apply on users
+"""
+enum UserFilterType {
+  USER_NAME
+}
+
 input PortFilterInput {
   filterType: PortFilterType!
   operator: FilterOperator!
@@ -1497,6 +1509,16 @@ input LocationFilterInput {
 
 input ServiceFilterInput {
   filterType: ServiceFilterType!
+  operator: FilterOperator!
+  stringValue: String
+  propertyValue: PropertyTypeInput
+  idSet: [ID!]
+  stringSet: [String!]
+  maxDepth: Int = 5
+}
+
+input UserFilterInput {
+  filterType: UserFilterType!
   operator: FilterOperator!
   stringValue: String
   propertyValue: PropertyTypeInput
@@ -2199,6 +2221,7 @@ type Query {
     filters: [ServiceFilterInput!]!
     limit: Int = 500
   ): ServiceSearchResult!
+  userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
