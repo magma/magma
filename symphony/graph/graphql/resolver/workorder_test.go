@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
+	"github.com/99designs/gqlgen/client"
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1781,4 +1782,72 @@ func TestTechnicianCheckinToWorkOrder(t *testing.T) {
 	comments, err := w.QueryComments().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, comments, 1)
+}
+
+func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr := r.Mutation()
+	c := newGraphClient(t, r)
+
+	wo := createWorkOrder(ctx, t, *r, "Foo")
+	wo, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
+		ID:       wo.ID,
+		Name:     longWorkOrderName,
+		Assignee: pointer.ToString("tester@example.com"),
+		CheckListCategories: []*models.CheckListCategoryInput{{
+			Title: "Bar",
+			CheckList: []*models.CheckListItemInput{{
+				Title:   "Foo",
+				Type:    "simple",
+				Index:   pointer.ToInt(0),
+				Checked: pointer.ToBool(false),
+			}},
+		}},
+	})
+	require.NoError(t, err)
+
+	fooID, err := wo.QueryCheckListCategories().QueryCheckListItems().OnlyID(ctx)
+	require.NoError(t, err)
+	techInput := models.TechnicianWorkOrderUploadInput{
+		WorkOrderID: wo.ID,
+		Checklist: []*models.TechnicianCheckListItemInput{
+			{
+				ID:      fooID,
+				Checked: pointer.ToBool(true),
+			},
+		},
+	}
+
+	var rsp struct {
+		TechnicianWorkOrderUploadData struct {
+			ID                  string
+			CheckListCategories []struct {
+				CheckList []struct {
+					ID      string
+					Checked *bool
+				}
+			}
+		}
+	}
+	c.MustPost(
+		`mutation($input: TechnicianWorkOrderUploadInput!) {
+			technicianWorkOrderUploadData(input: $input) {
+				id
+				checkListCategories {
+					checkList {
+						id
+						checked
+					}
+				}
+			}
+		}`,
+		&rsp,
+		client.Var("input", techInput),
+	)
+
+	require.Len(t, rsp.TechnicianWorkOrderUploadData.CheckListCategories, 1)
+	require.Len(t, rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList, 1)
+	require.True(t, *rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList[0].Checked)
 }
