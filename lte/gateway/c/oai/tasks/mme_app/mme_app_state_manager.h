@@ -37,13 +37,9 @@ namespace lte {
  * and freeing state structs, and writing/reading state to db.
  */
 
-class MmeNasStateManager :
-  public StateManager<
-    mme_app_desc_t,
-    ue_mm_context_t,
-    MmeNasState,
-    UeContext,
-    MmeNasStateConverter> {
+class MmeNasStateManager : public StateManager<
+                               mme_app_desc_t, ue_mm_context_t, MmeNasState,
+                               UeContext, MmeNasStateConverter> {
  public:
   /**
    * Returns an instance of MmeNasStateManager, guaranteed to be thread safe and
@@ -55,16 +51,16 @@ class MmeNasStateManager :
   int initialize_state(const mme_config_t* mme_config_p);
 
   /**
-    * Retrieve the state pointer from state manager. The read_from_db flag is a
-    * debug flag; if set to true, the state is loaded from the data store on
-    * every get.
-    */
+   * Retrieve the state pointer from state manager. The read_from_db flag is a
+   * debug flag; if set to true, the state is loaded from the data store on
+   * every get.
+   */
   mme_app_desc_t* get_state(bool read_from_db) override;
 
   /**
-    * Release the memory for MME NAS state and destroy the read-write lock. This
-    * is only called when task terminates
-    */
+   * Release the memory for MME NAS state and destroy the read-write lock. This
+   * is only called when task terminates
+   */
 
   void free_state() override;
 
@@ -106,5 +102,5 @@ class MmeNasStateManager :
   // Clean-up the in-memory hashtables
   void clear_mme_nas_hashtables();
 };
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma
