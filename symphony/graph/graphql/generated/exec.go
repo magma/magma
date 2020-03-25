@@ -89,6 +89,8 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	DeprecatedInput func(ctx context.Context, obj interface{}, next graphql.Resolver, newField *string, reason *string) (res interface{}, err error)
+
 	Length func(ctx context.Context, obj interface{}, next graphql.Resolver, min int, max *int) (res interface{}, err error)
 
 	Range func(ctx context.Context, obj interface{}, next graphql.Resolver, min *float64, max *float64) (res interface{}, err error)
@@ -6177,6 +6179,11 @@ var parsedSchema = gqlparser.MustLoadSchema(
 #    %> sudo python3 setup_pyinventory.py develop
 #    %> ./compile_graphql.sh
 
+directive @deprecatedInput(
+  newField: String
+  reason: String = "Deprecated field is no longer supported"
+) on INPUT_FIELD_DEFINITION
+
 enum UserStatus
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/ent/user.Status"
@@ -8517,6 +8524,28 @@ type Subscription {
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_deprecatedInput_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["newField"]; ok {
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["newField"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["reason"]; ok {
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["reason"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) dir_length_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
