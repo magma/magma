@@ -26,7 +26,8 @@ s1aptests/test_attach_service.py \
 s1aptests/test_attach_detach_service.py \
 s1aptests/test_attach_service_ue_radio_capability.py \
 s1aptests/test_attach_service_multi_ue.py \
-s1aptests/test_attach_ipv4v6_pdn_type.py \
+s1aptests/test_attach_ipv4orv6_pdn_type.py \
+s1aptests/test_attach_ipv4andv6_pdn_type.py \
 s1aptests/test_service_info.py \
 s1aptests/test_attach_detach_with_ovs.py \
 s1aptests/test_resync.py \

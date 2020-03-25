@@ -8,13 +8,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 
-import unittest
-
 import s1ap_types
 import s1ap_wrapper
+import unittest
 
 
-class TestAttachIpv4v6PdnType(unittest.TestCase):
+class TestAttachIpv4andIPv6PdnType(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
@@ -22,29 +21,28 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_ipv4v6_pdn_type(self):
-        """ Test Attach for the UEs that are dual IP stack IPv4v6
+        """ Test Attach for the UEs that are dual IP stack IPv4IPv6
             capable """
         # Ground work.
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
 
-        # Trigger Attach Request with PDN_Type = IPv4v6
+        # Trigger Attach Request with PDN_Type = IPv4andv6
         attach_req = s1ap_types.ueAttachRequest_t()
         sec_ctxt = s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT
         id_type = s1ap_types.TFW_MID_TYPE_IMSI
         eps_type = s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH
         pdn_type = s1ap_types.pdn_Type()
         pdn_type.pres = True
-        # Set PDN TYPE to IPv4V6 i.e. 3. IPV4 is equal to 1
-        # IPV6 is equal to 2 in value
-        pdn_type.pdn_type = 3
+        # Set PDN TYPE to IPv4andIPv6
+        pdn_type.pdn_type = 2
         attach_req.ue_Id = req.ue_id
         attach_req.mIdType = id_type
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt
         attach_req.pdnType_pr = pdn_type
 
-        print("********Triggering Attach Request with PND Type IPv4v6 test")
+        print("********Triggering Attach Request with PDN Type IPv4andIPv6 test")
 
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
