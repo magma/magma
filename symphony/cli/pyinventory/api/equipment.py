@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Mapping, Optional, Tuple
 
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
@@ -178,7 +178,7 @@ def add_equipment(
     name: str,
     equipment_type: str,
     location: Location,
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Mapping[str, PropertyValue],
 ) -> Equipment:
     """Create a new equipment in a given location. 
         The equipment will be of the given equipment type, 
@@ -193,7 +193,7 @@ def add_equipment(
             - `pyinventory.api.location.get_location`
             - `pyinventory.api.location.add_location`
             
-            properties_dict (Dict[str, PropertyValue]): dict of property name to property value
+            properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
 
@@ -365,7 +365,7 @@ def add_equipment_to_position(
     equipment_type: str,
     existing_equipment: Equipment,
     position_name: str,
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Mapping[str, PropertyValue],
 ) -> Equipment:
     """Create a new equipment inside a given positionName of the given existingEquipment.
         The equipment will be of the given equipment type, with the given name and with the given properties.
@@ -381,7 +381,7 @@ def add_equipment_to_position(
             - `pyinventory.api.equipment.add_equipment_to_position`
             
             position_name (str): position name in the equipment type.            
-            properties_dict (Dict[str, PropertyValue]): dict of property name to property value
+            properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
 
@@ -647,7 +647,7 @@ def get_or_create_equipment(
     name: str,
     equipment_type: str,
     location: Location,
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Mapping[str, PropertyValue],
 ) -> Equipment:
     """This function checks if equipment existence in specific location by name, 
         in case it is not found by name, creates one.
@@ -658,7 +658,7 @@ def get_or_create_equipment(
             location (pyinventory.consts.Location object): location object could be retrieved from 
             - `pyinventory.api.location.get_location`
             - `pyinventory.api.location.add_location`            
-            properties_dict (Dict[str, PropertyValue]): dict of property name to property value
+            properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
 
@@ -699,7 +699,7 @@ def get_or_create_equipment_in_position(
     equipment_type: str,
     existing_equipment: Equipment,
     position_name: str,
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Mapping[str, PropertyValue],
 ) -> Equipment:
     """This function checks equipment existence in specific location by name, 
         in case it is not found by name, creates one.
@@ -709,7 +709,7 @@ def get_or_create_equipment_in_position(
             equipment_type (str): equipment type name
             existing_equipment (pyinventory.consts.Equipment object): existing equipment
             position_name (str): position name
-            properties_dict (Dict[str, PropertyValue]): dict of property name to property value
+            properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
 

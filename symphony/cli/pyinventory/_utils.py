@@ -5,7 +5,7 @@
 
 import warnings
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, cast
+from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union, cast
 
 from dacite import Config, from_dict
 
@@ -124,14 +124,14 @@ def get_graphql_property_type_inputs(
 
 def get_graphql_property_inputs(
     property_types: Sequence[PropertyTypeFragment],
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Mapping[str, PropertyValue],
 ) -> List[PropertyInput]:
     """This function gets existing property types and dictionary, where key - are type names, and keys - new values
     formats data, validates existence of keys from properties_dict in property_types and returns list of PropertyInput
  
         Args:
-            property_types (List[pyinventory.graphql.property_type_fragment.PropertyTypeFragment]): list of existing property types
-            properties_dict (Dict[str, pyinventory.consts.PropertyValue]): dictionary of properties, where
+            property_types (Sequence[pyinventory.graphql.property_type_fragment.PropertyTypeFragment]): list of existing property types
+            properties_dict (Mapping[str, pyinventory.consts.PropertyValue]): dictionary of properties, where
                 str: name of existing property
                 PropertyValue: new value of existing type for this property
        
@@ -201,7 +201,7 @@ def _get_property_default_value(
 
 
 def _make_property_types(
-    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]
+    properties: Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]
 ) -> List[PropertyTypeInput]:
     property_types = [
         from_dict(
@@ -229,7 +229,7 @@ def property_type_to_kind(
 
 # TODO(T63055378): remove and change usage to format_property_definitions
 def format_properties(
-    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]
+    properties: Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]
 ) -> List[PropertyTypeInput]:
     property_types = _make_property_types(properties)
     return property_types
