@@ -28,10 +28,12 @@ func WithViewer(override *viewer.Viewer) Option {
 	}
 }
 
-func CreateUserEnt(ctx context.Context, client *ent.Client, userName string) {
+func CreateUserEnt(ctx context.Context, client *ent.Client, userName string) *ent.User {
 	if client.User != nil {
-		_, _ = client.User.Create().SetAuthID(userName).SetEmail(userName).Save(ctx)
+		u, _ := client.User.Create().SetAuthID(userName).SetEmail(userName).Save(ctx)
+		return u
 	}
+	return nil
 }
 
 // NewContext returns viewer context for tests.

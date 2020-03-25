@@ -16,7 +16,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -180,13 +179,9 @@ func (r mutationResolver) internalAddWorkOrder(
 	if err != nil {
 		return nil, fmt.Errorf("validating property for template : %w", err)
 	}
-	assigneeID := input.AssigneeID
-	if input.Assignee != nil && *input.Assignee != "" {
-		id, err := c.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching assignee user: %w", err)
-		}
-		assigneeID = &id
+	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
+	if err != nil {
+		return nil, err
 	}
 	mutation := r.ClientFrom(ctx).
 		WorkOrder.Create().
@@ -207,16 +202,10 @@ func (r mutationResolver) internalAddWorkOrder(
 	if input.Priority != nil {
 		mutation.SetPriority(input.Priority.String())
 	}
-
-	ownerID := input.OwnerID
-	if input.OwnerName != nil && *input.OwnerName != "" {
-		id, err := c.User.Query().Where(user.AuthID(*input.OwnerName)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching own user: %w", err)
-		}
-		ownerID = &id
+	ownerID, err := resolverutil.GetUserID(ctx, input.OwnerID, input.OwnerName)
+	if err != nil {
+		return nil, err
 	}
-
 	if ownerID != nil {
 		mutation = mutation.SetOwnerID(*ownerID)
 	} else {
@@ -269,13 +258,9 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 	if err != nil {
 		return nil, errors.Wrap(err, "querying work order")
 	}
-	assigneeID := input.AssigneeID
-	if input.Assignee != nil && *input.Assignee != "" {
-		id, err := client.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching assignee user: %w", err)
-		}
-		assigneeID = &id
+	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
+	if err != nil {
+		return nil, err
 	}
 	mutation := client.WorkOrder.
 		UpdateOne(wo).
@@ -286,13 +271,9 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 		SetNillableIndex(input.Index).
 		SetNillableAssigneeID(assigneeID)
 
-	ownerID := input.OwnerID
-	if input.OwnerName != nil && *input.OwnerName != "" {
-		id, err := client.User.Query().Where(user.AuthID(*input.OwnerName)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching own user: %w", err)
-		}
-		ownerID = &id
+	ownerID, err := resolverutil.GetUserID(ctx, input.OwnerID, input.OwnerName)
+	if err != nil {
+		return nil, err
 	}
 	if ownerID != nil {
 		mutation.SetOwnerID(*ownerID)

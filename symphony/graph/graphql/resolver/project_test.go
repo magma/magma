@@ -262,13 +262,13 @@ func TestEditProject(t *testing.T) {
 			Description: pointer.ToString("desc"),
 			Type:        typ.ID,
 			Location:    &loc.ID,
-			Creator:     &u.Email,
+			CreatorID:   &u.ID,
 		}
 		project, err = mutation.CreateProject(ctx, input)
 		require.NoError(t, err)
 		assert.Equal(t, input.Name, project.Name)
 		assert.Equal(t, *input.Location, project.QueryLocation().OnlyX(ctx).ID)
-		assert.Equal(t, *input.Creator, project.QueryCreator().OnlyX(ctx).Email)
+		assert.Equal(t, *input.CreatorID, project.QueryCreator().OnlyXID(ctx))
 
 		updateInput := models.EditProjectInput{
 			ID:          project.ID,
@@ -369,7 +369,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 		Name:        "test",
 		Description: pointer.ToString("desc"),
 		Type:        typ.ID,
-		Creator:     &u.Email,
+		CreatorID:   &u.ID,
 		Properties:  propInputs,
 	}
 	p, err := mutation.CreateProject(ctx, input)

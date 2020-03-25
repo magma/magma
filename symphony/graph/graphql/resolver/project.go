@@ -13,7 +13,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
@@ -263,16 +262,10 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 	if err != nil {
 		return nil, fmt.Errorf("fetching template: %w", err)
 	}
-
-	creatorID := input.CreatorID
-	if input.Creator != nil && *input.Creator != "" {
-		id, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching creator user: %w", err)
-		}
-		creatorID = &id
+	creatorID, err := resolverutil.GetUserID(ctx, input.CreatorID, input.Creator)
+	if err != nil {
+		return nil, err
 	}
-
 	query := client.
 		Project.Create().
 		SetName(input.Name).
@@ -337,15 +330,10 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		SetName(input.Name).
 		SetNillableDescription(input.Description)
 
-	creatorID := input.CreatorID
-	if input.Creator != nil && *input.Creator != "" {
-		id, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching creator user: %w", err)
-		}
-		creatorID = &id
+	creatorID, err := resolverutil.GetUserID(ctx, input.CreatorID, input.Creator)
+	if err != nil {
+		return nil, err
 	}
-
 	if creatorID != nil {
 		mutation.SetCreatorID(*creatorID)
 	} else {

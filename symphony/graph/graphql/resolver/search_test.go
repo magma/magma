@@ -49,9 +49,9 @@ type (
 	woSearchDataModels struct {
 		loc1        int
 		woType1     int
-		assignee1   string
+		assignee1   int
 		wo1         int
-		owner       string
+		owner       int
 		installDate time.Time
 	}
 
@@ -134,10 +134,10 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 
 	woType1, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "wo_type_a"})
 	woType2, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "wo_type_b"})
-	assignee1 := "user1@fb.com"
-	assignee2 := "user2@fb.com"
-	viewertest.CreateUserEnt(ctx, r.client, assignee1)
-	viewertest.CreateUserEnt(ctx, r.client, assignee2)
+	assigneeName1 := "user1@fb.com"
+	assigneeName2 := "user2@fb.com"
+	assignee1 := viewertest.CreateUserEnt(ctx, r.client, assigneeName1)
+	assignee2 := viewertest.CreateUserEnt(ctx, r.client, assigneeName2)
 	desc := "random description"
 
 	wo1, _ := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -145,20 +145,20 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 		Description:     &desc,
 		WorkOrderTypeID: woType1.ID,
 		LocationID:      &loc1.ID,
-		Assignee:        &assignee1,
+		AssigneeID:      &assignee1.ID,
 	})
 	_, _ = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name + "wo_2",
 		Description:     &desc,
 		WorkOrderTypeID: woType1.ID,
-		Assignee:        &assignee1,
+		AssigneeID:      &assignee1.ID,
 	})
 	_, _ = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name + "wo_3",
 		Description:     &desc,
 		WorkOrderTypeID: woType2.ID,
 		LocationID:      &loc1.ID,
-		Assignee:        &assignee2,
+		AssigneeID:      &assignee2.ID,
 	})
 	_, _ = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name + "wo_4",
@@ -168,25 +168,25 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 	})
 
 	installDate := time.Now()
-	owner := "owner"
-	viewertest.CreateUserEnt(ctx, r.client, owner)
+	ownerName := "owner"
+	owner := viewertest.CreateUserEnt(ctx, r.client, ownerName)
 	_, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          wo1.ID,
 		Name:        wo1.Name,
-		OwnerName:   &owner,
+		OwnerID:     &owner.ID,
 		InstallDate: &installDate,
 		Status:      models.WorkOrderStatusDone,
 		Priority:    models.WorkOrderPriorityHigh,
 		LocationID:  &loc1.ID,
-		Assignee:    &assignee1,
+		AssigneeID:  &assignee1.ID,
 	})
 
 	return woSearchDataModels{
 		loc1.ID,
 		woType1.ID,
-		assignee1,
+		assignee1.ID,
 		wo1.ID,
-		owner,
+		owner.ID,
 		installDate,
 	}
 }
@@ -621,9 +621,9 @@ func TestSearchWO(t *testing.T) {
 	require.Equal(t, 2, result.WorkOrderSearch.Count)
 
 	f4 := models.WorkOrderFilterInput{
-		FilterType: models.WorkOrderFilterTypeWorkOrderAssignee,
+		FilterType: models.WorkOrderFilterTypeWorkOrderAssignedTo,
 		Operator:   models.FilterOperatorIsOneOf,
-		StringSet:  []string{data.assignee1},
+		IDSet:      []int{data.assignee1},
 	}
 	c.MustPost(
 		woCountQuery,
@@ -652,9 +652,9 @@ func TestSearchWO(t *testing.T) {
 	require.Equal(t, 1, result.WorkOrderSearch.Count)
 
 	f7 := models.WorkOrderFilterInput{
-		FilterType: models.WorkOrderFilterTypeWorkOrderOwner,
+		FilterType: models.WorkOrderFilterTypeWorkOrderOwnedBy,
 		Operator:   models.FilterOperatorIsOneOf,
-		StringSet:  []string{data.owner},
+		IDSet:      []int{data.owner},
 	}
 	c.MustPost(
 		woCountQuery,
