@@ -653,6 +653,7 @@ export default withRouter(
               stringValue
               enumSelectionMode
               selectedEnumValues
+              yesNoResponse
               files {
                 id
                 fileName

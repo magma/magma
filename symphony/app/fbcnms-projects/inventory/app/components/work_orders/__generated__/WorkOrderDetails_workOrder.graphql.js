@@ -25,6 +25,7 @@ export type FileType = "FILE" | "IMAGE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
+export type YesNoResponse = "NO" | "YES" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type WorkOrderDetails_workOrder$ref: FragmentReference;
 declare export opaque type WorkOrderDetails_workOrder$fragmentType: WorkOrderDetails_workOrder$ref;
@@ -120,6 +121,7 @@ export type WorkOrderDetails_workOrder = {|
       +stringValue: ?string,
       +enumSelectionMode: ?CheckListItemEnumSelectionMode,
       +selectedEnumValues: ?string,
+      +yesNoResponse: ?YesNoResponse,
       +files: $ReadOnlyArray<{|
         +id: string,
         +fileName: string,
@@ -591,6 +593,13 @@ return {
               "storageKey": null
             },
             {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "yesNoResponse",
+              "args": null,
+              "storageKey": null
+            },
+            {
               "kind": "LinkedField",
               "alias": null,
               "name": "files",
@@ -664,5 +673,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '1c3ca20f1f9ce3cdac5b4472544f43bb';
+(node/*: any*/).hash = '1a3c8e5ce6150a007887c55714c726e8';
 module.exports = node;

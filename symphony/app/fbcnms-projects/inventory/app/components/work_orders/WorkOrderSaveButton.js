@@ -83,6 +83,7 @@ const WorkOrderSaveButton = (props: Props) => {
               enumSelectionMode: item.enumSelectionMode,
               stringValue: item.stringValue,
               checked: item.checked,
+              yesNoResponse: item.yesNoResponse,
               files: item.files?.map(file => ({
                 id: file.id,
                 storeKey: file.storeKey,
