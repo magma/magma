@@ -279,33 +279,3 @@ func WorkOrderSearch(ctx context.Context, client *ent.Client, filters []*models.
 	}
 	return &woResult, nil
 }
-
-func UserSearch(ctx context.Context, client *ent.Client, filters []*models.UserFilterInput, limit *int) (*models.UserSearchResult, error) {
-	var (
-		query = client.User.Query()
-		err   error
-	)
-	for _, f := range filters {
-		if strings.HasPrefix(f.FilterType.String(), "USER_") {
-			if query, err = handleUserFilter(query, f); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	count, err := query.Clone().Count(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Count query failed")
-	}
-	if limit != nil {
-		query.Limit(*limit)
-	}
-	users, err := query.All(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Querying users failed")
-	}
-	return &models.UserSearchResult{
-		Users: users,
-		Count: count,
-	}, nil
-}

@@ -678,7 +678,6 @@ type ComplexityRoot struct {
 		ServiceTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Surveys                  func(childComplexity int) int
 		User                     func(childComplexity int, authID string) int
-		UserSearch               func(childComplexity int, filters []*models.UserFilterInput, limit *int) int
 		Users                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Vertex                   func(childComplexity int, id int) int
 		WorkOrder                func(childComplexity int, id int) int
@@ -892,11 +891,6 @@ type ComplexityRoot struct {
 	UserEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
-	}
-
-	UserSearchResult struct {
-		Count func(childComplexity int) int
-		Users func(childComplexity int) int
 	}
 
 	Vertex struct {
@@ -1238,7 +1232,6 @@ type QueryResolver interface {
 	ProjectSearch(ctx context.Context, filters []*models.ProjectFilterInput, limit *int) ([]*ent.Project, error)
 	CustomerSearch(ctx context.Context, limit *int) ([]*ent.Customer, error)
 	ServiceSearch(ctx context.Context, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error)
-	UserSearch(ctx context.Context, filters []*models.UserFilterInput, limit *int) (*models.UserSearchResult, error)
 	PossibleProperties(ctx context.Context, entityType models.PropertyEntity) ([]*ent.PropertyType, error)
 	Surveys(ctx context.Context) ([]*ent.Survey, error)
 	LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error)
@@ -4676,18 +4669,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.User(childComplexity, args["authID"].(string)), true
 
-	case "Query.userSearch":
-		if e.complexity.Query.UserSearch == nil {
-			break
-		}
-
-		args, err := ec.field_Query_userSearch_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.UserSearch(childComplexity, args["filters"].([]*models.UserFilterInput), args["limit"].(*int)), true
-
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
 			break
@@ -5704,20 +5685,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserEdge.Node(childComplexity), true
-
-	case "UserSearchResult.count":
-		if e.complexity.UserSearchResult.Count == nil {
-			break
-		}
-
-		return e.complexity.UserSearchResult.Count(childComplexity), true
-
-	case "UserSearchResult.users":
-		if e.complexity.UserSearchResult.Users == nil {
-			break
-		}
-
-		return e.complexity.UserSearchResult.Users(childComplexity), true
 
 	case "Vertex.edges":
 		if e.complexity.Vertex.Edges == nil {
@@ -7635,11 +7602,6 @@ type ServiceSearchResult {
   count: Int!
 }
 
-type UserSearchResult {
-  users: [User]!
-  count: Int!
-}
-
 type WorkOrderSearchResult {
   workOrders: [WorkOrder]!
   count: Int!
@@ -7693,13 +7655,6 @@ enum ServiceFilterType {
   EQUIPMENT_IN_SERVICE
 }
 
-"""
-what filters should we apply on users
-"""
-enum UserFilterType {
-  USER_NAME
-}
-
 input PortFilterInput {
   filterType: PortFilterType!
   operator: FilterOperator!
@@ -7734,16 +7689,6 @@ input LocationFilterInput {
 
 input ServiceFilterInput {
   filterType: ServiceFilterType!
-  operator: FilterOperator!
-  stringValue: String
-  propertyValue: PropertyTypeInput
-  idSet: [ID!]
-  stringSet: [String!]
-  maxDepth: Int = 5
-}
-
-input UserFilterInput {
-  filterType: UserFilterType!
   operator: FilterOperator!
   stringValue: String
   propertyValue: PropertyTypeInput
@@ -8446,7 +8391,6 @@ type Query {
     filters: [ServiceFilterInput!]!
     limit: Int = 500
   ): ServiceSearchResult!
-  userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
@@ -10699,28 +10643,6 @@ func (ec *executionContext) field_Query_service_args(ctx context.Context, rawArg
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_userSearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 []*models.UserFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
-		arg0, err = ec.unmarshalNUserFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInputᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["filters"] = arg0
-	var arg1 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["limit"] = arg1
 	return args, nil
 }
 
@@ -25921,50 +25843,6 @@ func (ec *executionContext) _Query_serviceSearch(ctx context.Context, field grap
 	return ec.marshalNServiceSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceSearchResult(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_userSearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_userSearch_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserSearch(rctx, args["filters"].([]*models.UserFilterInput), args["limit"].(*int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.UserSearchResult)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUserSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserSearchResult(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_possibleProperties(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -31315,80 +31193,6 @@ func (ec *executionContext) _UserEdge_cursor(ctx context.Context, field graphql.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserSearchResult_users(ctx context.Context, field graphql.CollectedField, obj *models.UserSearchResult) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "UserSearchResult",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Users, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*ent.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserSearchResult_count(ctx context.Context, field graphql.CollectedField, obj *models.UserSearchResult) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "UserSearchResult",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Count, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Vertex_id(ctx context.Context, field graphql.CollectedField, obj *ent.Node) (ret graphql.Marshaler) {
@@ -38541,64 +38345,6 @@ func (ec *executionContext) unmarshalInputTechnicianWorkOrderUploadInput(ctx con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUserFilterInput(ctx context.Context, obj interface{}) (models.UserFilterInput, error) {
-	var it models.UserFilterInput
-	var asMap = obj.(map[string]interface{})
-
-	if _, present := asMap["maxDepth"]; !present {
-		asMap["maxDepth"] = 5
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "filterType":
-			var err error
-			it.FilterType, err = ec.unmarshalNUserFilterType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "operator":
-			var err error
-			it.Operator, err = ec.unmarshalNFilterOperator2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterOperator(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "stringValue":
-			var err error
-			it.StringValue, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "propertyValue":
-			var err error
-			it.PropertyValue, err = ec.unmarshalOPropertyTypeInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "idSet":
-			var err error
-			it.IDSet, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "stringSet":
-			var err error
-			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "maxDepth":
-			var err error
-			it.MaxDepth, err = ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputWorkOrderDefinitionInput(ctx context.Context, obj interface{}) (models.WorkOrderDefinitionInput, error) {
 	var it models.WorkOrderDefinitionInput
 	var asMap = obj.(map[string]interface{})
@@ -42944,20 +42690,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "userSearch":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_userSearch(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "possibleProperties":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -44417,38 +44149,6 @@ func (ec *executionContext) _UserEdge(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._UserEdge_node(ctx, field, obj)
 		case "cursor":
 			out.Values[i] = ec._UserEdge_cursor(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var userSearchResultImplementors = []string{"UserSearchResult"}
-
-func (ec *executionContext) _UserSearchResult(ctx context.Context, sel ast.SelectionSet, obj *models.UserSearchResult) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, userSearchResultImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("UserSearchResult")
-		case "users":
-			out.Values[i] = ec._UserSearchResult_users(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "count":
-			out.Values[i] = ec._UserSearchResult_count(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -49376,43 +49076,6 @@ func (ec *executionContext) marshalNUser2githubᚗcomᚋfacebookincubatorᚋsymp
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v []*ent.User) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
@@ -49474,47 +49137,6 @@ func (ec *executionContext) marshalNUserEdge2ᚖgithubᚗcomᚋfacebookincubator
 	return ec._UserEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUserFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInput(ctx context.Context, v interface{}) (models.UserFilterInput, error) {
-	return ec.unmarshalInputUserFilterInput(ctx, v)
-}
-
-func (ec *executionContext) unmarshalNUserFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.UserFilterInput, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*models.UserFilterInput, len(vSlice))
-	for i := range vSlice {
-		res[i], err = ec.unmarshalNUserFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalNUserFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInput(ctx context.Context, v interface{}) (*models.UserFilterInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalNUserFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInput(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) unmarshalNUserFilterType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterType(ctx context.Context, v interface{}) (models.UserFilterType, error) {
-	var res models.UserFilterType
-	return res, res.UnmarshalGQL(v)
-}
-
-func (ec *executionContext) marshalNUserFilterType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterType(ctx context.Context, sel ast.SelectionSet, v models.UserFilterType) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalNUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋuserᚐRole(ctx context.Context, v interface{}) (user.Role, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	return user.Role(tmp), err
@@ -49528,20 +49150,6 @@ func (ec *executionContext) marshalNUserRole2githubᚗcomᚋfacebookincubatorᚋ
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) marshalNUserSearchResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserSearchResult(ctx context.Context, sel ast.SelectionSet, v models.UserSearchResult) graphql.Marshaler {
-	return ec._UserSearchResult(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUserSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserSearchResult(ctx context.Context, sel ast.SelectionSet, v *models.UserSearchResult) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._UserSearchResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋuserᚐStatus(ctx context.Context, v interface{}) (user.Status, error) {

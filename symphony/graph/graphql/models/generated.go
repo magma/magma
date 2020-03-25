@@ -750,21 +750,6 @@ type TopologyLink struct {
 	Target ent.Noder        `json:"target"`
 }
 
-type UserFilterInput struct {
-	FilterType    UserFilterType     `json:"filterType"`
-	Operator      FilterOperator     `json:"operator"`
-	StringValue   *string            `json:"stringValue"`
-	PropertyValue *PropertyTypeInput `json:"propertyValue"`
-	IDSet         []int              `json:"idSet"`
-	StringSet     []string           `json:"stringSet"`
-	MaxDepth      *int               `json:"maxDepth"`
-}
-
-type UserSearchResult struct {
-	Users []*ent.User `json:"users"`
-	Count int         `json:"count"`
-}
-
 type WorkOrderDefinitionInput struct {
 	ID    *int `json:"id"`
 	Index *int `json:"index"`
@@ -1825,46 +1810,6 @@ func (e *TopologyLinkType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e TopologyLinkType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// what filters should we apply on users
-type UserFilterType string
-
-const (
-	UserFilterTypeUserName UserFilterType = "USER_NAME"
-)
-
-var AllUserFilterType = []UserFilterType{
-	UserFilterTypeUserName,
-}
-
-func (e UserFilterType) IsValid() bool {
-	switch e {
-	case UserFilterTypeUserName:
-		return true
-	}
-	return false
-}
-
-func (e UserFilterType) String() string {
-	return string(e)
-}
-
-func (e *UserFilterType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = UserFilterType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid UserFilterType", str)
-	}
-	return nil
-}
-
-func (e UserFilterType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
