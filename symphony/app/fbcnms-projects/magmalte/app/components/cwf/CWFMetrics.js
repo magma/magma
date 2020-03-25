@@ -38,7 +38,7 @@ function GrafanaDashboard() {
   return <Grafana grafanaURL="/grafana" />;
 }
 
-export default function() {
+export default function () {
   const classes = useStyles();
   const {match, relativePath, relativeUrl, location} = useRouter();
 

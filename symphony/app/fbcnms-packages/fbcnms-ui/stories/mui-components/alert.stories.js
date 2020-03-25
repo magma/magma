@@ -31,9 +31,7 @@ const DemoButtonWithAlert = withAlert(({alert, label}) => {
 
 const DemoButtonWithConfirm = withAlert(({confirm, confirmProps}) => {
   const handleClick = () => {
-    confirm(confirmProps)
-      .then(action('confirmed'))
-      .catch(action('cancelled'));
+    confirm(confirmProps).then(action('confirmed')).catch(action('cancelled'));
   };
   return (
     <div>

@@ -179,10 +179,7 @@ describe('commentTime', () => {
     const lastYear = moment(now).subtract({year: 1});
 
     const dateCheck = (month, date) => ({
-      date: lastYear
-        .clone()
-        .set({month, date})
-        .toDate(),
+      date: lastYear.clone().set({month, date}).toDate(),
       verify: `${months[month]} ${date}`,
     });
 
@@ -197,28 +194,17 @@ describe('commentTime', () => {
 
     for (let i = 0; i < months.length; i++) {
       assertDate({
-        date: lastYear
-          .clone()
-          .month(i)
-          .toDate(),
+        date: lastYear.clone().month(i).toDate(),
         verify: months[i],
       });
     }
 
     assertDate({
-      date: lastYear
-        .clone()
-        .hour(13)
-        .minute(48)
-        .toDate(),
+      date: lastYear.clone().hour(13).minute(48).toDate(),
       verify: '1:48 PM',
     });
     assertDate({
-      date: lastYear
-        .clone()
-        .hour(3)
-        .minute(24)
-        .toDate(),
+      date: lastYear.clone().hour(3).minute(24).toDate(),
       verify: '3:24 AM',
     });
     [0, 2, 4, 6, 7, 9, 11].forEach(longMonth => {

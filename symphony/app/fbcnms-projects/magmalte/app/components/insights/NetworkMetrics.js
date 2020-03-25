@@ -35,7 +35,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function(props: {configs: Array<MetricGraphConfig>}) {
+export default function (props: {configs: Array<MetricGraphConfig>}) {
   const classes = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('3_hours');
 

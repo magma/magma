@@ -58,9 +58,9 @@ const CheckListTableFilling = ({items}: Props) => {
   const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
   const classes = useStyles();
 
-  const tableData: Array<TableRowDataType<{|item: CheckListItem|}>> = items.map(
-    item => ({item, key: item.id}),
-  );
+  const tableData: Array<
+    TableRowDataType<{|item: CheckListItem|}>,
+  > = items.map(item => ({item, key: item.id}));
   return (
     <div className={classes.container}>
       <Table

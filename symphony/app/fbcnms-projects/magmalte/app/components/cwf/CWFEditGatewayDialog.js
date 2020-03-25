@@ -42,7 +42,7 @@ type Props = {
   onSave: cwf_gateway => void,
 };
 
-export default function(props: Props) {
+export default function (props: Props) {
   const [tab, setTab] = useState(0);
   const [magmaConfigs, setMagmaConfigs] = useState(props.gateway.magmad);
   const [allowedGREPeers, setAllowedGREPeers] = useState(

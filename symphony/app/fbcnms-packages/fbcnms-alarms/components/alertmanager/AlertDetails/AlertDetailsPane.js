@@ -118,18 +118,9 @@ function getAlertViewer(
 
 function AlertDate({date}: {date: string}) {
   const classes = useStyles();
-  const fromNow = React.useMemo(
-    () =>
-      moment(date)
-        .local()
-        .fromNow(),
-    [date],
-  );
+  const fromNow = React.useMemo(() => moment(date).local().fromNow(), [date]);
   const startDate = React.useMemo(
-    () =>
-      moment(date)
-        .local()
-        .format('MMM Do YYYY, h:mm:ss a'),
+    () => moment(date).local().format('MMM Do YYYY, h:mm:ss a'),
     [date],
   );
   return (

@@ -38,7 +38,7 @@ type Props = {
   onSave: string => void,
 };
 
-export default function(props: Props) {
+export default function (props: Props) {
   const classes = useStyles();
   const {match} = useRouter();
   const [baseName, setBaseName] = useState();

@@ -258,7 +258,7 @@ function Metrics(props: {parentRelativeUrl: string => string}) {
   );
 }
 
-export default function() {
+export default function () {
   const {relativePath, relativeUrl} = useRouter();
   return (
     <Route

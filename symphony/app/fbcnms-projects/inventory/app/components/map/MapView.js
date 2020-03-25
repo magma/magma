@@ -353,7 +353,10 @@ class MapView extends React.Component<Props, State> {
     if (map) {
       const {bbox, center} = feature;
       if (bbox) {
-        map.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]]);
+        map.fitBounds([
+          [bbox[0], bbox[1]],
+          [bbox[2], bbox[3]],
+        ]);
       } else {
         map.flyTo({center, zoom: 19});
       }
@@ -561,14 +564,20 @@ class MapView extends React.Component<Props, State> {
       'circle-radius': {
         /* When zoom is <= 8 radius is 6px
          * When zoom is 18 radius is 12px */
-        stops: [[8, 6], [18, 12]],
+        stops: [
+          [8, 6],
+          [18, 12],
+        ],
       },
       'circle-stroke-width': 1,
     };
     const fadeInZoomLevel = params?.fadeInZoomLevel;
     if (fadeInZoomLevel != null) {
       paint['circle-opacity'] = {
-        stops: [[fadeInZoomLevel - 1, 0], [fadeInZoomLevel, 1]],
+        stops: [
+          [fadeInZoomLevel - 1, 0],
+          [fadeInZoomLevel, 1],
+        ],
       };
       paint['circle-stroke-color'] = {
         stops: [
@@ -594,7 +603,12 @@ class MapView extends React.Component<Props, State> {
          * When zoom is <= 9 radius is 16px
          * When zoom is 10 radius is 30px
          * When zoom is 12 radius is 40px */
-        stops: [[6, 7], [9, 16], [10, 30], [12, 40]],
+        stops: [
+          [6, 7],
+          [9, 16],
+          [10, 30],
+          [12, 40],
+        ],
       },
     };
     if (params.colorStops != null) {
@@ -611,7 +625,10 @@ class MapView extends React.Component<Props, State> {
     }
     if (params.fadeOutZoomLevel != null) {
       paint['heatmap-opacity'] = {
-        stops: [[params.fadeOutZoomLevel - 1, 1], [params.fadeOutZoomLevel, 0]],
+        stops: [
+          [params.fadeOutZoomLevel - 1, 1],
+          [params.fadeOutZoomLevel, 0],
+        ],
       };
     }
     return paint;

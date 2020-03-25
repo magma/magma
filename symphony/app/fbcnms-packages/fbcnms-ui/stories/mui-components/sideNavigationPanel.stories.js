@@ -18,14 +18,17 @@ const TemplatesPanel = () => {
   return (
     <SideNavigationPanel
       title="Templates"
-      items={[{key: '0', label: 'Work Orders'}, {key: '1', label: 'Projects'}]}
+      items={[
+        {key: '0', label: 'Work Orders'},
+        {key: '1', label: 'Projects'},
+      ]}
       selectedItemId={selectedItem}
       onItemClicked={({key}) => setSelectedItem(key)}
     />
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/SideNavigationPanel`, module).add(
-  'default',
-  () => <TemplatesPanel />,
-);
+storiesOf(
+  `${STORY_CATEGORIES.MUI_COMPONENTS}/SideNavigationPanel`,
+  module,
+).add('default', () => <TemplatesPanel />);
