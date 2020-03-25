@@ -65,9 +65,9 @@ function DevicesAgents(props: Props) {
     useCallback(response => {
       if (response != null) {
         setAgents(
-          map(response, (agent, _) =>
-            buildDevicesAgentFromPayload(agent),
-          ).sort((a, b) => a.id.localeCompare(b.id)),
+          map(response, (agent, _) => buildDevicesAgentFromPayload(agent)).sort(
+            (a, b) => a.id.localeCompare(b.id),
+          ),
         );
       }
     }, []),

@@ -107,10 +107,7 @@ it('geojson connections', () => {
   expect(connections).toEqual([
     {
       geometry: {
-        coordinates: [
-          [-70, 83],
-          [-70, 83],
-        ],
+        coordinates: [[-70, 83], [-70, 83]],
         type: 'LineString',
       },
       properties: {
@@ -187,51 +184,28 @@ it('geojson collection', () => {
 });
 
 it('setAdditionalProp test', () => {
-  const value = [
-    ['a', '1'],
-    ['b', '2'],
-  ];
-  const expected = [
-    ['a', '1'],
-    ['b', '2'],
-    ['c', '3'],
-  ];
+  const value = [['a', '1'], ['b', '2']];
+  const expected = [['a', '1'], ['b', '2'], ['c', '3']];
   setAdditionalProp(value, 'c', '3');
   expect(value).toEqual(expected);
 
   setAdditionalProp(value, 'c', null);
-  expect(value).toEqual([
-    ['a', '1'],
-    ['b', '2'],
-  ]);
+  expect(value).toEqual([['a', '1'], ['b', '2']]);
 
   setAdditionalProp(value, 'b', '5');
-  expect(value).toEqual([
-    ['a', '1'],
-    ['b', '5'],
-  ]);
+  expect(value).toEqual([['a', '1'], ['b', '5']]);
 });
 
 it('getAdditionalProp test', () => {
-  expect(
-    getAdditionalProp(
-      [
-        ['a', '1'],
-        ['b', '2'],
-        ['c', '3'],
-      ],
-      'b',
-    ),
-  ).toEqual('2');
+  expect(getAdditionalProp([['a', '1'], ['b', '2'], ['c', '3']], 'b')).toEqual(
+    '2',
+  );
   expect(getAdditionalProp(null, 'b')).toEqual(null);
 });
 
 it('additionalPropsToArray test', () => {
   const initial = {a: '1', b: '2'};
-  const expected = [
-    ['a', '1'],
-    ['b', '2'],
-  ];
+  const expected = [['a', '1'], ['b', '2']];
   const result = additionalPropsToArray(initial);
   expect(result).toEqual(expected);
 

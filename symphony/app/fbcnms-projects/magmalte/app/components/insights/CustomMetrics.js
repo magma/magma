@@ -49,7 +49,7 @@ const useStyles = makeStyles(theme => ({
   removeButton: {float: 'right', padding: '3px'},
 }));
 
-export default function () {
+export default function() {
   const classes = useStyles();
   const {history, match} = useRouter();
   const [selectedMetric, setSelectedMetric] = useState('');

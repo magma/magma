@@ -35,9 +35,7 @@ export default function DevicesMetricsDialog(props: Props) {
   const {deviceID, networkId} = match.params;
   const {isLoading, response} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPrometheusSeries,
-    {
-      networkId,
-    },
+    {networkId},
   );
 
   if (isLoading || !response) {

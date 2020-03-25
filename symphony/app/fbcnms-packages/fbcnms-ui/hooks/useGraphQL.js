@@ -11,7 +11,7 @@
 import {Environment, fetchQuery} from 'relay-runtime';
 import {useEffect, useState} from 'react';
 
-export default function (
+export default function(
   env: Environment,
   query: any,
   variables: {[string]: mixed},

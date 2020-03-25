@@ -48,7 +48,7 @@ type Props = {
   onSave: Organization => void,
 };
 
-export default function (props: Props) {
+export default function(props: Props) {
   const classes = useStyles();
   const {error, isLoading, response} = useAxios({
     method: 'get',

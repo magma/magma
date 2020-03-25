@@ -14,7 +14,7 @@ import Settings from '@fbcnms/magmalte/app/components/Settings';
 
 import {useContext} from 'react';
 
-export default function () {
+export default function() {
   const {user} = useContext(AppContext);
   return <Settings isSuperUser={user?.isSuperUser} />;
 }

@@ -22,7 +22,7 @@ import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useSnackbar} from '@fbcnms/ui/hooks';
 
-export default function (props: {
+export default function(props: {
   configs: MetricGraphConfig[],
   selectorKey: string,
 }) {

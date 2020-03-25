@@ -161,9 +161,7 @@ export default function FEGGatewayDialog(props: Props) {
   const networkID = nullthrows(match.params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdTiers,
-    {
-      networkId: networkID,
-    },
+    {networkId: networkID},
   );
 
   if (isLoading || !tiers) {

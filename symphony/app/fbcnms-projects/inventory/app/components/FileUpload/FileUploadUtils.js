@@ -26,7 +26,7 @@ export async function uploadFile(
     headers: {
       'Content-Type': file.type,
     },
-    onUploadProgress: function (progressEvent) {
+    onUploadProgress: function(progressEvent) {
       const percentCompleted = Math.round(
         (progressEvent.loaded * 100) / progressEvent.total,
       );

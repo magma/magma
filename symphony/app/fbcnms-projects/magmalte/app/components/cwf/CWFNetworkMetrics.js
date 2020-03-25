@@ -97,6 +97,6 @@ const chartConfigs: MetricGraphConfig[] = [
   },
 ];
 
-export default function () {
+export default function() {
   return <NetworkMetrics configs={chartConfigs} />;
 }

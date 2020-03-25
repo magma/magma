@@ -59,9 +59,7 @@ function MultiMetrics(props: {
 
   const {error, isLoading, response: gateways} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdGateways,
-    {
-      networkId: match.params.networkId,
-    },
+    {networkId: match.params.networkId},
   );
 
   useSnackbar('Error fetching devices', {variant: 'error'}, error);
@@ -127,7 +125,7 @@ function MultiMetrics(props: {
   );
 }
 
-export default function (props: {configs: Array<MetricGraphConfig>}) {
+export default function(props: {configs: Array<MetricGraphConfig>}) {
   const {history, relativePath, relativeUrl} = useRouter();
   return (
     <Route

@@ -15,7 +15,7 @@ import bcrypt from 'bcryptjs';
 import {Strategy as LocalStrategy} from 'passport-local';
 import {getUserFromRequest} from '../util';
 
-export default function () {
+export default function() {
   return new LocalStrategy(
     {
       usernameField: 'email',

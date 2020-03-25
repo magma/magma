@@ -74,7 +74,7 @@ const THEME = {
   base0F: '#cc6633',
 };
 
-export default function () {
+export default function() {
   const classes = useStyles();
   const {history, relativeUrl, relativePath} = useRouter();
   const {response, error, isLoading} = useAxios({
