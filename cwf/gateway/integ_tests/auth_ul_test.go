@@ -21,10 +21,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//   respond with a rule install for a pass-all dynamic rule and 250KB of
+//   quota.
+//   Trigger a authentication and assert the CCR-I is received.
+// - Generate traffic to put traffic through the newly installed rule.
 func TestAuthenticateUplinkTraffic(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticateUplinkTraffic...")
-	tr := NewTestRunner()
+	tr := NewTestRunner(t)
 	assert.NoError(t, usePCRFMockDriver())
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, tr.CleanUp())
+	}()
 
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
@@ -46,13 +56,11 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfos(usageMonitorInfo)
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
 
-	tr.AuthenticateAndAssertSuccess(t, imsi)
+	tr.AuthenticateAndAssertSuccess(imsi)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "100K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-
-	time.Sleep(3 * time.Second)
 
 	resultByIndex, errByIndex, err := getAssertExpectationsResult()
 	assert.NoError(t, err)
@@ -65,8 +73,4 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
 	time.Sleep(3 * time.Second)
-
-	// Clear hss, ocs, and pcrf
-	assert.NoError(t, clearPCRFMockDriver())
-	assert.NoError(t, tr.CleanUp())
 }
