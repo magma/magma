@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -15,7 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const ArrowUpIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <path d="M10.59 7.41L6 2.83 1.41 7.41 0 6l6-6 6 6z" fillRule="evenodd" />
+    <path d="M16.59 15.41L12 10.83l-4.59 4.58L6 14l6-6 6 6z" />
   </SvgIcon>
 );
 

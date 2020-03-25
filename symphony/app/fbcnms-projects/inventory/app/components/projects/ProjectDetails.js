@@ -36,7 +36,7 @@ import ProjectWorkOrdersList from './ProjectWorkOrdersList';
 import PropertyValueInput from '../form/PropertyValueInput';
 import React from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import TextField from '@material-ui/core/TextField';
+import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -263,11 +263,10 @@ class ProjectDetails extends React.Component<Props, State> {
                     {project.type && (
                       <Grid item xs={12} sm={6} lg={4} xl={4}>
                         <FormField label="Type">
-                          <TextField
-                            disabled
+                          <TextInput
+                            disabled={true}
                             variant="outlined"
-                            margin="dense"
-                            className={classes.gridInput}
+                            type="string"
                             value={project.type.name}
                           />
                         </FormField>
@@ -348,14 +347,16 @@ class ProjectDetails extends React.Component<Props, State> {
               </Grid>
               <Grid item xs={4} sm={4} lg={4} xl={4}>
                 <ExpandingPanel title="Team">
-                  <UserTypeahead
-                    className={classes.input}
-                    selectedUser={project.creator}
-                    headline="Owner"
-                    onUserSelection={user =>
-                      this._setProjectDetail('creator', user)
-                    }
-                  />
+                  <FormField>
+                    <UserTypeahead
+                      className={classes.input}
+                      selectedUser={project.creator}
+                      headline="Owner"
+                      onUserSelection={user =>
+                        this._setProjectDetail('creator', user)
+                      }
+                    />
+                  </FormField>
                 </ExpandingPanel>
                 <ExpandingPanel
                   title="Comments"

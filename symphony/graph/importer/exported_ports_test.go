@@ -6,6 +6,7 @@ package importer
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -39,27 +40,22 @@ const (
 	locationL    = "locationL"
 	locationM    = "locationM"
 	locationS    = "locationS"
-
-	svcName  = "serviceName"
-	svc2Name = "serviceName2"
-	svc3Name = "serviceName3"
-	svc4Name = "serviceName4"
 )
 
 type portData struct {
-	equipParentID   string
-	equipParent2ID  string
-	equipParent3ID  string
-	equipChildID    string
-	equipChild2ID   string
-	portDef1        string
-	parentPortInst1 string
-	parentPortInst2 string
-	parentPortInst3 string
-	portDef2        string
-	childPortInst1  string
-	childPortInst2  string
-	linkID          string
+	equipParentID   int
+	equipParent2ID  int
+	equipParent3ID  int
+	equipChildID    int
+	equipChild2ID   int
+	portDef1        int
+	parentPortInst1 int
+	parentPortInst2 int
+	parentPortInst3 int
+	portDef2        int
+	childPortInst1  int
+	childPortInst2  int
+	linkID          int
 }
 
 func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolver) portData {
@@ -222,32 +218,8 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 	}
 }
 
-func prepareSvcData(ctx context.Context, t *testing.T, r TestImporterResolver) {
-	mr := r.importer.r.Mutation()
-	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
-	_, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svcName,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svc2Name,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:          svc3Name,
-		ServiceTypeID: serviceType.ID,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
-	})
-	require.NoError(t, err)
-}
-
 func TestPortTitleInputValidation(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 
@@ -259,26 +231,29 @@ func TestPortTitleInputValidation(t *testing.T) {
 		servicesHeader = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
 	)
 	prepareBasicData(ctx, t, *r)
-
-	err = importer.inputValidationsPorts(ctx, NewImportHeader([]string{"aa"}, ImportEntityPort))
+	header, _ := NewImportHeader([]string{"aa"}, ImportEntityPort)
+	err := importer.inputValidationsPorts(ctx, header)
 	require.Error(t, err)
-	err = importer.inputValidationsPorts(ctx, NewImportHeader(portDataHeader[:], ImportEntityPort))
+	header, _ = NewImportHeader(portDataHeader[:], ImportEntityPort)
+	err = importer.inputValidationsPorts(ctx, header)
 	require.Error(t, err)
-	err = importer.inputValidationsPorts(ctx, NewImportHeader(linkDataHeader[:], ImportEntityPort))
+	header, _ = NewImportHeader(linkDataHeader[:], ImportEntityPort)
+	err = importer.inputValidationsPorts(ctx, header)
 	require.Error(t, err)
 
 	locationTypeNotInOrder := append(append(append(append(portDataHeader[:], []string{locTypeNameS, locTypeNameM, locTypeNameL}...), parentsHeader[:]...), linkDataHeader[:]...), servicesHeader[:]...)
-	err = importer.inputValidationsPorts(ctx, NewImportHeader(locationTypeNotInOrder, ImportEntityPort))
+	header, _ = NewImportHeader(locationTypeNotInOrder, ImportEntityPort)
+	err = importer.inputValidationsPorts(ctx, header)
 	require.Error(t, err)
 
 	locationTypeInOrder := append(append(append(append(portDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...), linkDataHeader[:]...), servicesHeader[:]...)
-	err = importer.inputValidationsPorts(ctx, NewImportHeader(locationTypeInOrder, ImportEntityPort))
+	header, _ = NewImportHeader(locationTypeInOrder, ImportEntityPort)
+	err = importer.inputValidationsPorts(ctx, header)
 	require.NoError(t, err)
 }
 
 func TestGeneralPortsImport(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	importer := r.importer
 	defer r.drv.Close()
 
@@ -301,22 +276,21 @@ func TestGeneralPortsImport(t *testing.T) {
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
 		linkDataHeader = [...]string{"Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}
 		servicesHeader = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
-		row1           = []string{ids.parentPortInst1, def1.Name, typ1.Name, equip1.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", "", "", strings.Join([]string{svcName, svc2Name}, ";"), svc3Name, "updateVal", "54"}
-		row2           = []string{ids.parentPortInst2, def1.Name, typ1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", ids.childPortInst1, def2.Name, childEquip.ID, childEquip.Name,
+		row1           = []string{strconv.Itoa(ids.parentPortInst1), def1.Name, typ1.Name, equip1.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", "", "", strings.Join([]string{svcName, svc2Name}, ";"), svc3Name, "updateVal", "54"}
+		row2           = []string{strconv.Itoa(ids.parentPortInst2), def1.Name, typ1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", strconv.Itoa(ids.childPortInst1), def2.Name, strconv.Itoa(childEquip.ID), childEquip.Name,
 			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc3Name, svc4Name}, ";"), "updateVal2", "55", "", ""}
-		row3 = []string{ids.childPortInst1, def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, posName, ids.parentPortInst2, def1.Name, equip2.ID, equip2.Name,
+		row3 = []string{strconv.Itoa(ids.childPortInst1), def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, posName, strconv.Itoa(ids.parentPortInst2), def1.Name, strconv.Itoa(equip2.ID), equip2.Name,
 			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc2Name, svc3Name}, ";"), "", "", "1988-01-01", "true"}
 	)
 
 	locationTypeInOrder := append(append(append(append(portDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...), linkDataHeader[:]...), servicesHeader[:]...)
 	titleWithProperties := append(locationTypeInOrder, propNameStr, propNameInt, propNameDate, propNameBool)
 
-	fl := NewImportHeader(titleWithProperties, ImportEntityPort)
-	err = importer.inputValidationsPorts(ctx, fl)
+	fl, _ := NewImportHeader(titleWithProperties, ImportEntityPort)
+	err := importer.inputValidationsPorts(ctx, fl)
 	require.NoError(t, err)
 
-	r1 := NewImportRecord(row1, fl)
-
+	r1, _ := NewImportRecord(row1, fl)
 	port1, err := importer.validateLineForExistingPort(ctx, ids.parentPortInst1, r1)
 	require.NoError(t, err)
 	ptypes, err := importer.validatePropertiesForPortType(ctx, r1, port1.QueryDefinition().QueryEquipmentPortType().OnlyX(ctx), ImportEntityPort)
@@ -341,7 +315,7 @@ func TestGeneralPortsImport(t *testing.T) {
 	require.Len(t, consumers, 2)
 	require.Len(t, providers, 1)
 
-	r2 := NewImportRecord(row2, fl)
+	r2, _ := NewImportRecord(row2, fl)
 
 	port2, err := importer.validateLineForExistingPort(ctx, ids.parentPortInst2, r2)
 	require.NoError(t, err)
@@ -365,7 +339,7 @@ func TestGeneralPortsImport(t *testing.T) {
 	_, _, err = importer.validateServicesForPortEndpoints(ctx, r2)
 	require.Error(t, err)
 
-	r3 := NewImportRecord(row3, fl)
+	r3, _ := NewImportRecord(row3, fl)
 
 	port3, err := importer.validateLineForExistingPort(ctx, ids.childPortInst1, r3)
 	require.NoError(t, err)

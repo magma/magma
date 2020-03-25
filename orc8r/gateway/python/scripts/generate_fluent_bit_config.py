@@ -47,6 +47,7 @@ def main():
         'throttle_rate': mc.throttle_rate or 1000,
         'throttle_window': mc.throttle_window or 5,
         'throttle_interval': mc.throttle_interval or '1m',
+        'files': mc.files_by_tag.items(),
     }
     generate_template_config(
         'td-agent-bit', 'td-agent-bit', CONFIG_OVERRIDE_DIR, context.copy()

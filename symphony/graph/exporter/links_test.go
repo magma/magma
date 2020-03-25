@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/AlekSi/pointer"
@@ -35,8 +36,8 @@ const (
 	serviceNamesTitle   = "Service Names"
 )
 
-//prepareLinkData: data will be of type:
-//loc(grandParent):
+// prepareLinkData: data will be of type:
+// loc(grandParent):
 //	loc(parent):
 //		parentEquipment(equipemtnType): with portType1 (has 2 string props)
 //			(on parentEquipment -> )childEquipment(equipemtnType2): with port2 and port3
@@ -198,9 +199,8 @@ func prepareLinkData(ctx context.Context, t *testing.T, r TestExporterResolver) 
 }
 
 func TestEmptyLinksDataExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, linksRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -248,16 +248,16 @@ func TestEmptyLinksDataExport(t *testing.T) {
 }
 
 func TestLinksExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, linksRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
+	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
 	ctx := viewertest.NewContext(r.client)
@@ -367,8 +367,7 @@ func TestLinksExport(t *testing.T) {
 }
 
 func TestLinksWithFilters(t *testing.T) {
-	r, err := newExporterTestResolver(t)
-	require.NoError(t, err)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
 	ctx := viewertest.NewContext(r.client)
 	e := &exporter{log, linksRower{log}}
@@ -385,13 +384,13 @@ func TestLinksWithFilters(t *testing.T) {
 		{
 			Name:     "LOCATION_INST",
 			Operator: "IS_ONE_OF",
-			IDSet:    []string{loc.ID},
+			IDSet:    []string{strconv.Itoa(loc.ID)},
 			MaxDepth: &maxDepth,
 		},
 		{
 			Name:     "EQUIPMENT_TYPE",
 			Operator: "IS_ONE_OF",
-			IDSet:    []string{equipType.ID},
+			IDSet:    []string{strconv.Itoa(equipType.ID)},
 			MaxDepth: &maxDepth,
 		},
 	})

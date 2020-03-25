@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type FloorPlanScale struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -40,28 +39,28 @@ type FloorPlanScale struct {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*FloorPlanScale) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullFloat64{},
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullInt64{},   // reference_point1_x
+		&sql.NullInt64{},   // reference_point1_y
+		&sql.NullInt64{},   // reference_point2_x
+		&sql.NullInt64{},   // reference_point2_y
+		&sql.NullFloat64{}, // scale_in_meters
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the FloorPlanScale fields.
 func (fps *FloorPlanScale) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(floorplanscale.Columns); m != n {
+	if m, n := len(values), len(floorplanscale.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	fps.ID = strconv.FormatInt(value.Int64, 10)
+	fps.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -105,7 +104,7 @@ func (fps *FloorPlanScale) assignValues(values ...interface{}) error {
 // Note that, you need to call FloorPlanScale.Unwrap() before calling this method, if this FloorPlanScale
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (fps *FloorPlanScale) Update() *FloorPlanScaleUpdateOne {
-	return (&FloorPlanScaleClient{fps.config}).UpdateOne(fps)
+	return (&FloorPlanScaleClient{config: fps.config}).UpdateOne(fps)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -140,12 +139,6 @@ func (fps *FloorPlanScale) String() string {
 	builder.WriteString(fmt.Sprintf("%v", fps.ScaleInMeters))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (fps *FloorPlanScale) id() int {
-	id, _ := strconv.Atoi(fps.ID)
-	return id
 }
 
 // FloorPlanScales is a parsable slice of FloorPlanScale.

@@ -83,6 +83,7 @@ export type ServiceDetailsPanel_service$data = ServiceDetailsPanel_service;
 export type ServiceDetailsPanel_service$key = {
   +$data?: ServiceDetailsPanel_service$data,
   +$fragmentRefs: ServiceDetailsPanel_service$ref,
+  ...
 };
 */
 

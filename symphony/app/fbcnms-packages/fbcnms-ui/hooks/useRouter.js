@@ -8,11 +8,26 @@
  * @format
  */
 
-import {useContext, useEffect, useState} from 'react';
+import {useCallback, useContext, useEffect, useState} from 'react';
+import {useRouteMatch} from 'react-router';
 
+// eslint-disable-next-line no-warning-comments
+// $FlowFixMe - use react-router hooks
 import {__RouterContext as RouterContext} from 'react-router';
 
+export const useRelativeUrl = () => {
+  const {url} = useRouteMatch();
+  return useCallback((path: string) => `${url}${path}`, [url]);
+};
+
+export const useRelativePath = () => {
+  const match = useRouteMatch();
+  return useCallback((path: string) => `${match.path}${path}`, [match.path]);
+};
+
 const useRouter = () => {
+  const relativeUrl = useRelativeUrl();
+  const relativePath = useRelativePath();
   const [, setUpdateCount] = useState(0);
   const routerContext = useContext(RouterContext);
   if (!routerContext) {
@@ -25,8 +40,8 @@ const useRouter = () => {
   useEffect(() => routerContext.history.listen(forceUpdate), [routerContext]);
   return {
     ...routerContext,
-    relativeUrl: (path: string) => `${routerContext.match.url}${path}`,
-    relativePath: (path: string) => `${routerContext.match.path}${path}`,
+    relativeUrl,
+    relativePath,
   };
 };
 

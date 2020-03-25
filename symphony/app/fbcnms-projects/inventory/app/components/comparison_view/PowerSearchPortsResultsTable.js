@@ -8,8 +8,9 @@
  * @format
  */
 
-import type PowerSearchPortsResultsTable_ports from './__generated__/PowerSearchPortsResultsTable_ports.graphql';
 import type {ContextRouter} from 'react-router-dom';
+import type {PowerSearchPortsResultsTable_ports} from './__generated__/PowerSearchPortsResultsTable_ports.graphql';
+import type {TableIndex, TableSize} from './FilterUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -21,6 +22,7 @@ import classNames from 'classnames';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {AutoSizer, Column, Table} from 'react-virtualized';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getPropertyValue} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
@@ -65,20 +67,21 @@ const styles = () => ({
 type Props = WithAlert &
   WithStyles<typeof styles> &
   ContextRouter & {
+    // $FlowFixMe (T62907961) Relay flow types
     ports: PowerSearchPortsResultsTable_ports,
   };
 
 class PowerSearchPortsResultsTable extends React.Component<Props> {
   _getConnectedPort = (
-    port: PowerSearchPortsResultsTable_ports,
-  ): ?PowerSearchPortsResultsTable_ports => {
+    port: $ElementType<PowerSearchPortsResultsTable_ports, number>,
+  ) => {
     if (!port || !port.link || port.link.ports.length < 2) {
       return null;
     }
-    if (port.link.ports[0].id != port.id) {
+    if (port.link.ports[0] && port.link.ports[0].id != port.id) {
       return port.link.ports[0];
     }
-    if (port.link.ports[1].id != port.id) {
+    if (port.link.ports[1] && port.link.ports[1].id != port.id) {
       return port.link.ports[1];
     }
   };
@@ -107,14 +110,10 @@ class PowerSearchPortsResultsTable extends React.Component<Props> {
           equipment={cellData}
           showSelfEquipment={true}
           onParentLocationClicked={locationId =>
-            history.push(
-              `inventory/` + (locationId ? `?location=${locationId}` : ''),
-            )
+            history.replace(InventoryAPIUrls.location(locationId))
           }
           onEquipmentClicked={equipmentId =>
-            history.push(
-              `inventory/` + (equipmentId ? `?equipment=${equipmentId}` : ''),
-            )
+            history.replace(InventoryAPIUrls.equipment(equipmentId))
           }
           size="small"
         />
@@ -137,8 +136,8 @@ class PowerSearchPortsResultsTable extends React.Component<Props> {
   };
 
   _getRowHeight = rowData => {
-    return rowData.link?.properties.length > 3
-      ? 40 + rowData.link?.properties.length * 10
+    return (rowData.link?.properties.length ?? 0) > 3
+      ? 40 + (rowData.link?.properties.length ?? 0) * 10
       : 50;
   };
 
@@ -149,17 +148,21 @@ class PowerSearchPortsResultsTable extends React.Component<Props> {
     }
     return ports.length > 0 ? (
       <AutoSizer>
-        {({height, width}) => (
+        {({height, width}: TableSize) => (
           <Table
             className={classes.table}
             height={height}
             width={width}
             headerHeight={50}
-            rowHeight={({index}) => this._getRowHeight(ports[index])}
+            rowHeight={({index}: TableIndex) =>
+              this._getRowHeight(ports[index])
+            }
             rowCount={ports.length}
-            rowGetter={({index}) => ports[index]}
+            rowGetter={({index}: TableIndex) => ports[index]}
             gridClassName={classes.table}
-            rowClassName={({index}) => (index === -1 ? classes.header : '')}>
+            rowClassName={({index}: TableIndex) =>
+              index === -1 ? classes.header : ''
+            }>
             <Column
               label="Equipment"
               dataKey="equipment"

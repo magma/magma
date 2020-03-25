@@ -13,16 +13,19 @@ const ModuleName = "lte"
 const (
 	LteNetworkType = "lte"
 
-	CellularNetworkType = "cellular_network"
-	CellularGatewayType = "cellular_gateway"
-	CellularEnodebType  = "cellular_enodeb"
+	CellularNetworkType         = "cellular_network"
+	CellularGatewayType         = "cellular_gateway"
+	CellularEnodebType          = "cellular_enodeb"
+	NetworkSubscriberConfigType = "network_subscriber_config"
 
 	EnodebStateType      = "single_enodeb"
-	SubscriberStateType  = "subscriber"
 	SubscriberEntityType = "subscriber"
+	ICMPStateType        = "icmp_monitoring"
 
 	BaseNameEntityType   = "base_name"
 	PolicyRuleEntityType = "policy"
 
 	RatingGroupEntityType = "rating_group"
+
+	ApnEntityType = "apn"
 )

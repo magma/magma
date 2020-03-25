@@ -6,35 +6,41 @@ package importer
 
 import (
 	"net/http"
-	"net/http/httputil"
 
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	"go.opencensus.io/plugin/ochttp"
-	"go.uber.org/zap"
 )
 
-type importer struct {
-	log log.Logger
-	r   generated.ResolverRoot
-}
+type (
+	// Config configures import handler.
+	Config struct {
+		Logger     log.Logger
+		Emitter    event.Emitter
+		Subscriber event.Subscriber
+	}
 
-// newImporter is a constructor for an importer
-func newImporter(log log.Logger, r generated.ResolverRoot) *importer {
-	return &importer{log, r}
-}
+	importer struct {
+		logger log.Logger
+		r      generated.ResolverRoot
+	}
+)
 
 // NewHandler creates a upload http handler.
-func NewHandler(log log.Logger) (http.Handler, error) {
-	r, err := resolver.New(log, resolver.WithTransaction(false))
-	if err != nil {
-		return nil, errors.WithMessage(err, "creating resolver")
-	}
-	u := newImporter(log, r)
+func NewHandler(cfg Config) (http.Handler, error) {
+	r := resolver.New(
+		resolver.Config{
+			Logger:     cfg.Logger,
+			Emitter:    cfg.Emitter,
+			Subscriber: cfg.Subscriber,
+		},
+		resolver.WithTransaction(false),
+	)
+	u := &importer{cfg.Logger, r}
 
 	router := mux.NewRouter()
 	router.Use(
@@ -54,17 +60,6 @@ func NewHandler(log log.Logger) (http.Handler, error) {
 				next.ServeHTTP(w, r)
 			})
 		},
-		func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if content, err := httputil.DumpRequest(r, false); err == nil {
-					log.For(r.Context()).Debug(
-						"http request dump",
-						zap.ByteString("content", content),
-					)
-				}
-				next.ServeHTTP(w, r)
-			})
-		},
 	)
 
 	routes := []struct {
@@ -76,16 +71,10 @@ func NewHandler(log log.Logger) (http.Handler, error) {
 		{"port_def", u.processPortDefinitionsCSV},
 		{"port_connect", u.processPortConnectionCSV},
 		{"position_def", u.processPositionDefinitionsCSV},
-		{"ftth", u.ProcessFTTHCSV},
-		{"xwfAps", u.ProcessXwfApsCSV},
-		{"xwf1", u.ProcessXwf1CSV},
-		{"rural_ran", u.ProcessRuralRanCSV},
-		{"rural_transport", u.ProcessRuralTransportCSV},
-		{"rural_legacy_locations", u.ProcessRuralLegacyLocationsCSV},
-		{"rural_locations", u.ProcessRuralLocationsCSV},
 		{"export_equipment", u.processExportedEquipment},
 		{"export_ports", u.processExportedPorts},
 		{"export_links", u.processExportedLinks},
+		{"export_locations", u.processExportedLocation},
 		{"export_service", u.processExportedService},
 	}
 	for _, route := range routes {

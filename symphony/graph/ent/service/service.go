@@ -8,26 +8,33 @@ package service
 
 import (
 	"time"
-
-	"github.com/facebookincubator/ent"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the service type in the database.
 	Label = "service"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time"
-	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time"
-	// FieldName holds the string denoting the name vertex property in the database.
-	FieldName = "name"
-	// FieldExternalID holds the string denoting the external_id vertex property in the database.
-	FieldExternalID = "external_id"
-	// FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus = "status"
+	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldUpdateTime = "update_time" // FieldName holds the string denoting the name vertex property in the database.
+	FieldName       = "name"        // FieldExternalID holds the string denoting the external_id vertex property in the database.
+	FieldExternalID = "external_id" // FieldStatus holds the string denoting the status vertex property in the database.
+	FieldStatus     = "status"
+
+	// EdgeType holds the string denoting the type edge name in mutations.
+	EdgeType = "type"
+	// EdgeDownstream holds the string denoting the downstream edge name in mutations.
+	EdgeDownstream = "downstream"
+	// EdgeUpstream holds the string denoting the upstream edge name in mutations.
+	EdgeUpstream = "upstream"
+	// EdgeProperties holds the string denoting the properties edge name in mutations.
+	EdgeProperties = "properties"
+	// EdgeLinks holds the string denoting the links edge name in mutations.
+	EdgeLinks = "links"
+	// EdgeCustomer holds the string denoting the customer edge name in mutations.
+	EdgeCustomer = "customer"
+	// EdgeEndpoints holds the string denoting the endpoints edge name in mutations.
+	EdgeEndpoints = "endpoints"
 
 	// Table holds the table name of the service in the database.
 	Table = "services"
@@ -37,7 +44,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "servicetype" package.
 	TypeInverseTable = "service_types"
 	// TypeColumn is the table column denoting the type relation/edge.
-	TypeColumn = "type_id"
+	TypeColumn = "service_type"
 	// DownstreamTable is the table the holds the downstream relation/edge. The primary key declared below.
 	DownstreamTable = "service_upstream"
 	// UpstreamTable is the table the holds the upstream relation/edge. The primary key declared below.
@@ -48,7 +55,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "property" package.
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
-	PropertiesColumn = "service_id"
+	PropertiesColumn = "service_properties"
 	// LinksTable is the table the holds the links relation/edge. The primary key declared below.
 	LinksTable = "service_links"
 	// LinksInverseTable is the table name for the Link entity.
@@ -65,10 +72,10 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "serviceendpoint" package.
 	EndpointsInverseTable = "service_endpoints"
 	// EndpointsColumn is the table column denoting the endpoints relation/edge.
-	EndpointsColumn = "service_id"
+	EndpointsColumn = "service_endpoints"
 )
 
-// Columns holds all SQL columns are service fields.
+// Columns holds all SQL columns for service fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
@@ -76,6 +83,11 @@ var Columns = []string{
 	FieldName,
 	FieldExternalID,
 	FieldStatus,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Service type.
+var ForeignKeys = []string{
+	"service_type",
 }
 
 var (
@@ -94,31 +106,14 @@ var (
 )
 
 var (
-	mixin       = schema.Service{}.Mixin()
-	mixinFields = [...][]ent.Field{
-		mixin[0].Fields(),
-	}
-	fields = schema.Service{}.Fields()
-
-	// descCreateTime is the schema descriptor for create_time field.
-	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
-
-	// descUpdateTime is the schema descriptor for update_time field.
-	descUpdateTime = mixinFields[0][1].Descriptor()
+	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
+	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
-
-	// descName is the schema descriptor for name field.
-	descName = fields[0].Descriptor()
+	UpdateDefaultUpdateTime func() time.Time
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator = descName.Validators[0].(func(string) error)
-
-	// descExternalID is the schema descriptor for external_id field.
-	descExternalID = fields[1].Descriptor()
+	NameValidator func(string) error
 	// ExternalIDValidator is a validator for the "external_id" field. It is called by the builders before save.
-	ExternalIDValidator = descExternalID.Validators[0].(func(string) error)
+	ExternalIDValidator func(string) error
 )

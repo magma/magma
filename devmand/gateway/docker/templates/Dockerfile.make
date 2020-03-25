@@ -18,5 +18,6 @@ RUN git clone %%URL%% $PKG_REPO_DIR
 WORKDIR $PKG_REPO_DIR
 RUN git checkout %%VERSION%%
 RUN git submodule update --init
-RUN make
+RUN sed -i s/-Werror//g Makefile
+RUN make -j 8
 RUN make install prefix=$PKG_INSTALL_DIR

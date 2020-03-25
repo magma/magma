@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -27,12 +27,12 @@ type Props = {
   initiallySelectedButton?: number,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   text: {
     fontSize: '12px',
     LineHeight: '14px',
   },
-});
+}));
 
 const MapButtonGroup = (props: Props) => {
   const {onIconClicked, buttons} = props;

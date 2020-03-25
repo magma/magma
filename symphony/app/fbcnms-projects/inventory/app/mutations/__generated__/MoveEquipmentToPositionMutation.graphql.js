@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 63070d427c272d29c4962bb62be307f4
+ * @relayHash 77d821ccb140ff3554894ccdb10b435c
  */
 
 /* eslint-disable */
@@ -22,7 +22,7 @@ export type MoveEquipmentToPositionMutationVariables = {|
   equipment_id: string,
 |};
 export type MoveEquipmentToPositionMutationResponse = {|
-  +moveEquipmentToPosition: ?{|
+  +moveEquipmentToPosition: {|
     +$fragmentRefs: EquipmentPropertiesCard_position$ref
   |}
 |};

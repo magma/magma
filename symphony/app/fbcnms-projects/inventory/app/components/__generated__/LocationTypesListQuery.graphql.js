@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 96305da559bdd2dc3d0c55bbc2742c61
+ * @relayHash f3d5f152bf452f084dafaa9f5af433d5
  */
 
 /* eslint-disable */
@@ -35,7 +35,7 @@ export type LocationTypesListQuery = {|
 
 /*
 query LocationTypesListQuery {
-  locationTypes(first: 50) {
+  locationTypes(first: 500) {
     edges {
       node {
         id
@@ -52,12 +52,12 @@ var v0 = [
     "kind": "LinkedField",
     "alias": null,
     "name": "locationTypes",
-    "storageKey": "locationTypes(first:50)",
+    "storageKey": "locationTypes(first:500)",
     "args": [
       {
         "kind": "Literal",
         "name": "first",
-        "value": 50
+        "value": 500
       }
     ],
     "concreteType": "LocationTypeConnection",
@@ -122,11 +122,11 @@ return {
     "operationKind": "query",
     "name": "LocationTypesListQuery",
     "id": null,
-    "text": "query LocationTypesListQuery {\n  locationTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query LocationTypesListQuery {\n  locationTypes(first: 500) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'd307bc59eda8a5354b83816d3d9301f9';
+(node/*: any*/).hash = '2042d6b5d603cd1eb8b3148cd320d629';
 module.exports = node;

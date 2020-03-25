@@ -4,11 +4,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-export type FiringAlarm = {
+export type FiringAlarm = {|
   annotations: Labels,
   endsAt: string,
   fingerprint: string,
@@ -18,7 +18,7 @@ export type FiringAlarm = {
   status: FiringAlarmStatus,
   updatedAt: string,
   generatorURL?: string,
-};
+|};
 
 type GettableReceiver = {
   name: string,
@@ -177,3 +177,27 @@ export type Labels = {
 export type PrometheusLabelset = {
   [string]: string,
 };
+
+export type AlertManagerGlobalConfig = {|
+  resolve_timeout: string,
+  http_config: HTTPConfig,
+  smtp_from: string,
+  smtp_hello: string,
+  smtp_smarthost: string,
+  smtp_auth_username: string,
+  smtp_auth_password: string,
+  smtp_auth_secret: string,
+  smtp_auth_identity: string,
+  smtp_require_tls: boolean,
+  slack_api_url: string,
+  pagerduty_url: string,
+  hipchat_api_url: string,
+  hipchat_auth_token: string,
+  opsgenie_api_url: string,
+  opsgenie_api_key: string,
+  wechat_api_url: string,
+  wechat_api_secret: string,
+  wechat_api_corp_id: string,
+  victorops_api_url: string,
+  victorops_api_key: string,
+|};

@@ -30,7 +30,7 @@ func main() {
 		glog.Fatalf("Error creating HEALTH service: %s", err)
 	}
 
-	cloudReg := registry.NewCloudRegistry()
+	cloudReg := registry.Get()
 	healthCfg := health_manager.GetHealthConfig()
 	healthManager := health_manager.NewHealthManager(cloudReg, healthCfg)
 	// Run Health Collection Loop

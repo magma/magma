@@ -30,6 +30,7 @@ import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
+  // $FlowFixMe (T62907961) Relay flow types
   service: ServiceCard_service,
 } & WithStyles<typeof styles> &
   ContextRouter;

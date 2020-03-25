@@ -40,7 +40,6 @@
 *****************************************************************************/
 #include "log.h"
 #include "mme_app_sgs_fsm.h"
-#include "assertions.h"
 #include "common_defs.h"
 #include "common_types.h"
 #include "mme_app_ue_context.h"
@@ -183,7 +182,14 @@ int sgs_fsm_set_status(mme_ue_s1ap_id_t ue_id, void *ctx, sgs_fsm_state_t state)
   OAILOG_FUNC_IN(LOG_MME_APP);
   sgs_context_t *sgs_ctx = (sgs_context_t *) ctx;
 
-  DevAssert(sgs_ctx);
+  if (sgs_ctx == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid SGS context received for UE Id: " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
   if (state < SGS_STATE_MAX) {
     if (state != sgs_ctx->sgs_state) {
       OAILOG_INFO(
@@ -219,12 +225,16 @@ sgs_fsm_state_t sgs_fsm_get_status(mme_ue_s1ap_id_t ue_id, void *ctx)
   sgs_context_t *sgs_ctx = (sgs_context_t *) ctx;
 
   if (sgs_ctx) {
-    AssertFatal(
-      (sgs_ctx->sgs_state < SGS_STATE_MAX) &&
-        (sgs_ctx->sgs_state > SGS_STATE_MIN),
-      "ue_id " MME_UE_S1AP_ID_FMT " BAD SGS state %d",
-      ue_id,
-      sgs_ctx->sgs_state);
+    if (
+      (sgs_ctx->sgs_state >= SGS_STATE_MAX) ||
+      (sgs_ctx->sgs_state <= SGS_STATE_MIN)) {
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "BAD SGS state (%d) for UE Id: " MME_UE_S1AP_ID_FMT "\n",
+        sgs_ctx->sgs_state,
+        ue_id);
+      return SGS_INVALID;
+    }
     return sgs_ctx->sgs_state;
   }
   return SGS_INVALID;

@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // WorkOrderTypeDelete is the builder for deleting a WorkOrderType entity.
 type WorkOrderTypeDelete struct {
 	config
+	hooks      []Hook
+	mutation   *WorkOrderTypeMutation
 	predicates []predicate.WorkOrderType
 }
 
@@ -30,7 +33,30 @@ func (wotd *WorkOrderTypeDelete) Where(ps ...predicate.WorkOrderType) *WorkOrder
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (wotd *WorkOrderTypeDelete) Exec(ctx context.Context) (int, error) {
-	return wotd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(wotd.hooks) == 0 {
+		affected, err = wotd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*WorkOrderTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			wotd.mutation = mutation
+			affected, err = wotd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(wotd.hooks); i > 0; i-- {
+			mut = wotd.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, wotd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (wotd *WorkOrderTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (wotd *WorkOrderTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: workordertype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workordertype.FieldID,
 			},
 		},
 	}
 	if ps := wotd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, wotd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, wotd.driver, _spec)
 }
 
 // WorkOrderTypeDeleteOne is the builder for deleting a single WorkOrderType entity.
@@ -74,7 +100,7 @@ func (wotdo *WorkOrderTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{workordertype.Label}
+		return &NotFoundError{workordertype.Label}
 	default:
 		return nil
 	}

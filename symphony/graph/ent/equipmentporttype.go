@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,36 +19,79 @@ import (
 type EquipmentPortType struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EquipmentPortTypeQuery when eager-loading is set.
+	Edges EquipmentPortTypeEdges `json:"edges"`
+}
+
+// EquipmentPortTypeEdges holds the relations/edges for other nodes in the graph.
+type EquipmentPortTypeEdges struct {
+	// PropertyTypes holds the value of the property_types edge.
+	PropertyTypes []*PropertyType `gqlgen:"propertyTypes"`
+	// LinkPropertyTypes holds the value of the link_property_types edge.
+	LinkPropertyTypes []*PropertyType `gqlgen:"linkPropertyTypes"`
+	// PortDefinitions holds the value of the port_definitions edge.
+	PortDefinitions []*EquipmentPortDefinition `gqlgen:"numberOfPortDefinitions"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// PropertyTypesOrErr returns the PropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
+	if e.loadedTypes[0] {
+		return e.PropertyTypes, nil
+	}
+	return nil, &NotLoadedError{edge: "property_types"}
+}
+
+// LinkPropertyTypesOrErr returns the LinkPropertyTypes value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortTypeEdges) LinkPropertyTypesOrErr() ([]*PropertyType, error) {
+	if e.loadedTypes[1] {
+		return e.LinkPropertyTypes, nil
+	}
+	return nil, &NotLoadedError{edge: "link_property_types"}
+}
+
+// PortDefinitionsOrErr returns the PortDefinitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentPortTypeEdges) PortDefinitionsOrErr() ([]*EquipmentPortDefinition, error) {
+	if e.loadedTypes[2] {
+		return e.PortDefinitions, nil
+	}
+	return nil, &NotLoadedError{edge: "port_definitions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*EquipmentPortType) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the EquipmentPortType fields.
 func (ept *EquipmentPortType) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(equipmentporttype.Columns); m != n {
+	if m, n := len(values), len(equipmentporttype.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	ept.ID = strconv.FormatInt(value.Int64, 10)
+	ept.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -71,24 +113,24 @@ func (ept *EquipmentPortType) assignValues(values ...interface{}) error {
 
 // QueryPropertyTypes queries the property_types edge of the EquipmentPortType.
 func (ept *EquipmentPortType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&EquipmentPortTypeClient{ept.config}).QueryPropertyTypes(ept)
+	return (&EquipmentPortTypeClient{config: ept.config}).QueryPropertyTypes(ept)
 }
 
 // QueryLinkPropertyTypes queries the link_property_types edge of the EquipmentPortType.
 func (ept *EquipmentPortType) QueryLinkPropertyTypes() *PropertyTypeQuery {
-	return (&EquipmentPortTypeClient{ept.config}).QueryLinkPropertyTypes(ept)
+	return (&EquipmentPortTypeClient{config: ept.config}).QueryLinkPropertyTypes(ept)
 }
 
 // QueryPortDefinitions queries the port_definitions edge of the EquipmentPortType.
 func (ept *EquipmentPortType) QueryPortDefinitions() *EquipmentPortDefinitionQuery {
-	return (&EquipmentPortTypeClient{ept.config}).QueryPortDefinitions(ept)
+	return (&EquipmentPortTypeClient{config: ept.config}).QueryPortDefinitions(ept)
 }
 
 // Update returns a builder for updating this EquipmentPortType.
 // Note that, you need to call EquipmentPortType.Unwrap() before calling this method, if this EquipmentPortType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ept *EquipmentPortType) Update() *EquipmentPortTypeUpdateOne {
-	return (&EquipmentPortTypeClient{ept.config}).UpdateOne(ept)
+	return (&EquipmentPortTypeClient{config: ept.config}).UpdateOne(ept)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -115,12 +157,6 @@ func (ept *EquipmentPortType) String() string {
 	builder.WriteString(ept.Name)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (ept *EquipmentPortType) id() int {
-	id, _ := strconv.Atoi(ept.ID)
-	return id
 }
 
 // EquipmentPortTypes is a parsable slice of EquipmentPortType.

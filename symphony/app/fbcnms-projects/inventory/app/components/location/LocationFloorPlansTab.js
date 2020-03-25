@@ -19,25 +19,24 @@ import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
 import DeleteFloorPlanMutation from '../../mutations/DeleteFloorPlanMutation';
 import FileAttachment from '../FileAttachment';
+import FileUploadButton from '../FileUpload/FileUploadButton';
 import FloorPlanImage from './FloorPlanImage';
 import React, {useState} from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import axios from 'axios';
-
 import nullthrows from '@fbcnms/util/nullthrows';
 import {DocumentAPIUrls} from '../../common/DocumentAPI';
-import {FileUploadButton} from '../FileUpload';
 import {graphql, useFragment} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   table: {
     minWidth: 70,
     marginBottom: '12px',
   },
-});
+}));
 
 type Props = {
   location: LocationFloorPlansTab_location$key,
@@ -105,9 +104,13 @@ export default function LocationFloorPlansTab(props: Props) {
         },
       },
       store => {
+        // $FlowFixMe (T62907961) Relay flow types
         const newNode = store.getRootField('addFloorPlan');
+        // $FlowFixMe (T62907961) Relay flow types
         const entityProxy = store.get(location.id);
+        // $FlowFixMe (T62907961) Relay flow types
         const floorPlans = entityProxy.getLinkedRecords(FLOOR_PLANS_KEY) || [];
+        // $FlowFixMe (T62907961) Relay flow types
         entityProxy.setLinkedRecords([...floorPlans, newNode], FLOOR_PLANS_KEY);
         setFile(null);
       },
@@ -123,9 +126,13 @@ export default function LocationFloorPlansTab(props: Props) {
       <CardHeader
         rightContent={
           <FileUploadButton
-            button={<Button>Upload</Button>}
-            onFileChanged={event => setFile(event.currentTarget.files[0])}
-          />
+            onFileUploaded={file => setFile(file)}
+            uploadUsingSnackbar={false}
+            uploadType="locally">
+            {openFileUploadDialog => (
+              <Button onClick={openFileUploadDialog}>Upload</Button>
+            )}
+          </FileUploadButton>
         }>
         Floor Plans
       </CardHeader>
@@ -146,11 +153,16 @@ export default function LocationFloorPlansTab(props: Props) {
                     },
                   },
                   store => {
+                    // $FlowFixMe (T62907961) Relay flow types
                     const proxy = store.get(location.id);
                     const records = proxy
+                      // $FlowFixMe (T62907961) Relay flow types
                       .getLinkedRecords(FLOOR_PLANS_KEY)
+                      // $FlowFixMe (T62907961) Relay flow types
                       .filter(f => f && f.id !== floorPlan.id);
+                    // $FlowFixMe (T62907961) Relay flow types
                     proxy.setLinkedRecords(records, FLOOR_PLANS_KEY);
+                    // $FlowFixMe (T62907961) Relay flow types
                     store.delete(floorPlan.id);
                     axios.delete(DocumentAPIUrls.delete_url(floorPlan.id));
                   },

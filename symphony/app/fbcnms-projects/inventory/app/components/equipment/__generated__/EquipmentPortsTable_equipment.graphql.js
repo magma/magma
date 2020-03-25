@@ -186,6 +186,12 @@ export type EquipmentPortsTable_equipment = {|
           |},
           +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
         |},
+        +serviceEndpoints: $ReadOnlyArray<{|
+          +role: ServiceEndpointRole,
+          +service: {|
+            +name: string
+          |},
+        |}>,
       |}>,
       +workOrder: ?{|
         +id: string,
@@ -384,6 +390,12 @@ export type EquipmentPortsTable_equipment = {|
               |},
               +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
             |},
+            +serviceEndpoints: $ReadOnlyArray<{|
+              +role: ServiceEndpointRole,
+              +service: {|
+                +name: string
+              |},
+            |}>,
           |}>,
           +workOrder: ?{|
             +id: string,
@@ -590,6 +602,12 @@ export type EquipmentPortsTable_equipment = {|
                   |},
                   +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
                 |},
+                +serviceEndpoints: $ReadOnlyArray<{|
+                  +role: ServiceEndpointRole,
+                  +service: {|
+                    +name: string
+                  |},
+                |}>,
               |}>,
               +workOrder: ?{|
                 +id: string,
@@ -796,6 +814,12 @@ export type EquipmentPortsTable_equipment = {|
                       |},
                       +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
                     |},
+                    +serviceEndpoints: $ReadOnlyArray<{|
+                      +role: ServiceEndpointRole,
+                      +service: {|
+                        +name: string
+                      |},
+                    |}>,
                   |}>,
                   +workOrder: ?{|
                     +id: string,
@@ -1002,6 +1026,12 @@ export type EquipmentPortsTable_equipment = {|
                           |},
                           +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
                         |},
+                        +serviceEndpoints: $ReadOnlyArray<{|
+                          +role: ServiceEndpointRole,
+                          +service: {|
+                            +name: string
+                          |},
+                        |}>,
                       |}>,
                       +workOrder: ?{|
                         +id: string,
@@ -1105,6 +1135,7 @@ export type EquipmentPortsTable_equipment$data = EquipmentPortsTable_equipment;
 export type EquipmentPortsTable_equipment$key = {
   +$data?: EquipmentPortsTable_equipment$data,
   +$fragmentRefs: EquipmentPortsTable_equipment$ref,
+  ...
 };
 */
 
@@ -1310,6 +1341,36 @@ v22 = {
 v23 = {
   "kind": "LinkedField",
   "alias": null,
+  "name": "serviceEndpoints",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "ServiceEndpoint",
+  "plural": true,
+  "selections": [
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "role",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "service",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": [
+        (v1/*: any*/)
+      ]
+    }
+  ]
+},
+v24 = {
+  "kind": "LinkedField",
+  "alias": null,
   "name": "properties",
   "storageKey": null,
   "args": null,
@@ -1375,7 +1436,7 @@ v23 = {
     }
   ]
 },
-v24 = {
+v25 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "ports",
@@ -1531,7 +1592,8 @@ v24 = {
                   "args": null
                 }
               ]
-            }
+            },
+            (v23/*: any*/)
           ]
         },
         {
@@ -1553,7 +1615,7 @@ v24 = {
             }
           ]
         },
-        (v23/*: any*/),
+        (v24/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -1566,40 +1628,11 @@ v24 = {
         }
       ]
     },
-    (v23/*: any*/),
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "serviceEndpoints",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "ServiceEndpoint",
-      "plural": true,
-      "selections": [
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "role",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "LinkedField",
-          "alias": null,
-          "name": "service",
-          "storageKey": null,
-          "args": null,
-          "concreteType": "Service",
-          "plural": false,
-          "selections": [
-            (v1/*: any*/)
-          ]
-        }
-      ]
-    }
+    (v24/*: any*/),
+    (v23/*: any*/)
   ]
 },
-v25 = {
+v26 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "equipmentType",
@@ -1657,7 +1690,7 @@ return {
         }
       ]
     },
-    (v24/*: any*/),
+    (v25/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -1678,8 +1711,8 @@ return {
           "selections": [
             (v0/*: any*/),
             (v1/*: any*/),
-            (v24/*: any*/),
             (v25/*: any*/),
+            (v26/*: any*/),
             {
               "kind": "LinkedField",
               "alias": null,
@@ -1700,8 +1733,8 @@ return {
                   "selections": [
                     (v0/*: any*/),
                     (v1/*: any*/),
-                    (v24/*: any*/),
                     (v25/*: any*/),
+                    (v26/*: any*/),
                     {
                       "kind": "LinkedField",
                       "alias": null,
@@ -1722,8 +1755,8 @@ return {
                           "selections": [
                             (v0/*: any*/),
                             (v1/*: any*/),
-                            (v24/*: any*/),
                             (v25/*: any*/),
+                            (v26/*: any*/),
                             {
                               "kind": "LinkedField",
                               "alias": null,
@@ -1744,8 +1777,8 @@ return {
                                   "selections": [
                                     (v0/*: any*/),
                                     (v1/*: any*/),
-                                    (v24/*: any*/),
-                                    (v25/*: any*/)
+                                    (v25/*: any*/),
+                                    (v26/*: any*/)
                                   ]
                                 }
                               ]

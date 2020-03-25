@@ -19,7 +19,6 @@ from magma.configuration.mconfig_managers import MconfigManagerImpl, \
     get_mconfig_manager
 from magma.magmad.generic_command.command_executor import \
     get_command_executor_impl
-from magma.magmad.logging.systemd_tailer import start_systemd_tailer
 from magma.magmad.upgrade.upgrader import UpgraderFactory, start_upgrade_loop
 from orc8r.protos.mconfig import mconfigs_pb2
 from orc8r.protos.state_pb2_grpc import StateServiceStub
@@ -180,9 +179,6 @@ def main():
     # Start network health metric collection
     if service.config.get('enable_network_monitor', False):
         service.loop.create_task(metrics_collection_loop(service.config))
-
-    if service.config.get('enable_systemd_tailer', False):
-        service.loop.create_task(start_systemd_tailer(service.config))
 
     # Create generic command executor
     command_executor = None

@@ -15,13 +15,16 @@ import (
 	"magma/orc8r/cloud/go/services/accessd"
 	"magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/accessd/servicers"
+	"magma/orc8r/cloud/go/services/accessd/storage"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
 func StartTestService(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, accessd.ServiceName)
+	store := test_utils.NewEntStorage(t, storage.AccessdTableBlobstore)
+	accessdStore := storage.NewAccessdBlobstore(store)
 	protos.RegisterAccessControlManagerServer(
 		srv.GrpcServer,
-		servicers.NewAccessdServer(test_utils.GetMockDatastoreInstance()))
-	go srv.GrpcServer.Serve(lis)
+		servicers.NewAccessdServer(accessdStore))
+	go srv.RunTest(lis)
 }

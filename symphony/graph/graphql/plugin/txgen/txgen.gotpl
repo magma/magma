@@ -1,15 +1,17 @@
 {{ reserveImport "context" }}
-{{ reserveImport "github.com/pkg/errors" }}
+{{ reserveImport "fmt" }}
+
+{{ reserveImport "github.com/facebookincubator/symphony/graph/graphql/generated" }}
 
 // {{$.Type}} wraps a mutation resolver and executes every mutation under a transaction.
 type {{$.Type}} struct {
-	mutationResolver
+	generated.MutationResolver
 }
 
-func (tr {{$.Type}}) WithTransaction(ctx context.Context, f func(context.Context, mutationResolver) error) error {
-	tx, err := tr.ClientFrom(ctx).Tx(ctx)
+func (tr {{$.Type}}) WithTransaction(ctx context.Context, f func(context.Context, generated.MutationResolver) error) error {
+	tx, err := ent.FromContext(ctx).Tx(ctx)
 	if err != nil {
-		return errors.Wrap(err, "creating transaction")
+		return fmt.Errorf("creating transaction: %w", err)
 	}
 	defer func() {
 		if r := recover(); r != nil {
@@ -18,14 +20,14 @@ func (tr {{$.Type}}) WithTransaction(ctx context.Context, f func(context.Context
 		}
 	}()
 	ctx = ent.NewContext(ctx, tx.Client())
-	if err := f(ctx, tr.mutationResolver); err != nil {
+	if err := f(ctx, tr.MutationResolver); err != nil {
 		if r := tx.Rollback(); r != nil {
-			err = errors.WithMessagef(err, "rolling back transaction: %v", r)
+			err = fmt.Errorf("rolling back transaction: %v", r)
 		}
 		return err
 	}
 	if err := tx.Commit(); err != nil {
-		return errors.Wrap(err, "committing transaction")
+		return fmt.Errorf("committing transaction: %w", err)
 	}
 	return nil
 }
@@ -35,7 +37,7 @@ func (tr {{$.Type}}) WithTransaction(ctx context.Context, f func(context.Context
 {{ range $field := $root.Fields -}}
 func (tr {{$root.Type}}) {{$field.GoFieldName}}{{$field.ShortResolverDeclaration}} {
 	var result, zero {{ResultType $field}}
-	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
 		result, err = mr.{{$field.GoFieldName}}(ctx,
 			{{- if not $root.Root }}obj,{{end -}}
 			{{- range $arg := $field.Args}}

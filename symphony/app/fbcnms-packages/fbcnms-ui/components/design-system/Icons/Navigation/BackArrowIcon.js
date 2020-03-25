@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -15,10 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const BackArrowIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <path
-      d="M6.978.5L8.5 2.027 4.549 6H14v2H4.55l3.95 3.973L6.978 13.5 1.203 7.706a1 1 0 010-1.412L6.978.5z"
-      fillRule="evenodd"
-    />
+    <path d="M11.978 5.5L13.5 7.027 9.549 11H19v2H9.55l3.95 3.973-1.522 1.527-5.775-5.794a1 1 0 010-1.412L11.978 5.5z" />
   </SvgIcon>
 );
 

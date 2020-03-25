@@ -5,8 +5,8 @@ All rights reserved.
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 """
-from collections import namedtuple
 import threading
+from typing import List
 
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
@@ -14,6 +14,7 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ether_types, dhcp
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
+from lte.protos.pipelined_pb2 import SetupFlowsResult, UEMacFlowRequest
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.directoryd_client import update_record
@@ -34,14 +35,9 @@ class UEMacAddressController(MagmaController):
 
     APP_NAME = "ue_mac"
     APP_TYPE = ControllerType.SPECIAL
-    UEMacConfig = namedtuple(
-        'UEMacConfig',
-        ['gre_tunnel_port'],
-    )
 
     def __init__(self, *args, **kwargs):
         super(UEMacAddressController, self).__init__(*args, **kwargs)
-        self.config = self._get_config(kwargs['config'])
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
             self._service_manager.get_table_num(INGRESS)
@@ -51,12 +47,6 @@ class UEMacAddressController(MagmaController):
         self._dhcp_learn_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
 
-    def _get_config(self, config_dict):
-        return self.UEMacConfig(
-            # TODO: rename port number to a tunneling protocol agnostic name
-            gre_tunnel_port=config_dict['ovs_gtp_port_number'],
-        )
-
     def initialize_on_connect(self, datapath):
         self.delete_all_flows(datapath)
         self._datapath = datapath
@@ -65,10 +55,29 @@ class UEMacAddressController(MagmaController):
     def cleanup_on_disconnect(self, datapath):
         self.delete_all_flows(datapath)
 
+    def handle_restart(self, ue_requests: List[UEMacFlowRequest]
+                       ) -> SetupFlowsResult:
+        """
+        Setup current check quota flows.
+        """
+        # TODO Potentially we can run a diff logic but I don't think there is
+        # benefit(we don't need stats here)
+        self.delete_all_flows(self._datapath)
+        self._install_default_flows()
+
+        for ue_req in ue_requests:
+            self.add_ue_mac_flow(ue_req.sid.id, ue_req.mac_addr)
+
+        if self.arp_contoller or self.arpd_controller_fut.done():
+            if not self.arp_contoller:
+                self.arp_contoller = self.arpd_controller_fut.result()
+            self.arp_contoller.handle_restart(ue_requests)
+
+        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
+
     def delete_all_flows(self, datapath):
-        flows.delete_all_flows_from_table(datapath,
-                                          self._service_manager.get_table_num(
-                                              self.APP_NAME))
+        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._dhcp_learn_scratch)
 
     def add_ue_mac_flow(self, sid, mac_addr):
         self._add_dhcp_passthrough_flows(sid, mac_addr)
@@ -98,7 +107,8 @@ class UEMacAddressController(MagmaController):
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.add_ue_arp_flows(self._datapath,
                                                 yiaddr, chaddr)
-            self.logger.debug("Learned arp for imsi %s, ip %s", imsi, yiaddr)
+            self.logger.info("Learned imsi %s, ip %s and mac %s",
+                             imsi, yiaddr, chaddr)
 
             # Associate IMSI to IPv4 addr in directory service
             threading.Thread(target=update_record, args=(str(imsi),

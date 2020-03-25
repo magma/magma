@@ -17,7 +17,7 @@ rule_update_inteval_sec: 1
 usage_reporting_threshold: 0.8
 
 # Extra number of bytes an user could use after the quota is exhausted
-extra_quota_margin: 0
+extra_quota_margin: 1024
 
 # Set to true to terminate service when the quota of a session is exhausted.
 # An user can still use up to the extra margin.
@@ -31,3 +31,8 @@ session_force_termination_timeout_ms: 5000
 
 # Set to true to enable sessiond support of carrier wifi
 support_carrier_wifi: false
+
+# CWF only
+# Number of ms before sessiond terminates a session when it is started without
+# quota.
+cwf_quota_exhaustion_termination_on_init_ms: 30000

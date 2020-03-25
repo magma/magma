@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -156,6 +156,24 @@ describe('Binary Operators', () => {
       '1 + 2',
     ],
     [
+      'comparison',
+      new PromQL.BinaryOperation(
+        new PromQL.InstantSelector('metric1'),
+        new PromQL.InstantSelector('metric2'),
+        new PromQL.BinaryComparator('=='),
+      ),
+      'metric1 == metric2',
+    ],
+    [
+      'boolean comparison',
+      new PromQL.BinaryOperation(
+        new PromQL.InstantSelector('metric1'),
+        new PromQL.InstantSelector('metric2'),
+        new PromQL.BinaryComparator('==').makeBoolean(),
+      ),
+      'metric1 == bool metric2',
+    ],
+    [
       'metric and metric',
       new PromQL.BinaryOperation(basicSelector, basicSelector, 'and'),
       'metric and metric',
@@ -194,6 +212,19 @@ describe('Binary Operators', () => {
         ),
       ),
       `metric / on (label1,label2) group_left (label1) metric2`,
+    ],
+    [
+      'binary operation with grouped match clause without labels',
+      new PromQL.BinaryOperation(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.InstantSelector('metric2'),
+        '/',
+        new PromQL.VectorMatchClause(
+          new PromQL.Clause('on', ['label1', 'label2']),
+          new PromQL.Clause('group_left'),
+        ),
+      ),
+      `metric / on (label1,label2) group_left metric2`,
     ],
   ];
 
@@ -237,6 +268,52 @@ describe('Aggregation Operators', () => {
   });
 });
 
+describe('Sub-queries', () => {
+  const testCases = [
+    [
+      'Simple sub-query',
+      new PromQL.SubQuery(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.Range(5, 'm'),
+        new PromQL.Range(1, 'm'),
+      ),
+      'metric[5m:1m]',
+    ],
+    [
+      'Sub-query with no step',
+      new PromQL.SubQuery(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.Range(5, 'm'),
+      ),
+      'metric[5m:]',
+    ],
+    [
+      'Sub-query with offset',
+      new PromQL.SubQuery(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.Range(5, 'm'),
+      ).withOffset(new PromQL.Range(10, 'd')),
+      `metric[5m:] offset 10d`,
+    ],
+    [
+      'Sub-query on aggregation',
+      new PromQL.SubQuery(
+        new PromQL.AggregationOperation('topk', [
+          new PromQL.Scalar(5),
+          basicSelector,
+        ]),
+        new PromQL.Range(1, 'h'),
+        new PromQL.Range(5, 'm'),
+      ),
+      'topk(5,metric)[1h:5m]',
+    ],
+  ];
+
+  test.each(testCases)('%s', (_, subQuery, expectedString) => {
+    expect(subQuery.toPromQL()).toEqual(expectedString);
+  });
+});
+
 describe('realistic examples', () => {
   const testCases = [
     [
@@ -258,7 +335,7 @@ describe('realistic examples', () => {
           new PromQL.Clause('by', ['region']),
         ),
         new PromQL.Scalar(5),
-        '>',
+        new PromQL.BinaryComparator('>'),
       ),
       `avg(rate(http_status{code="500"}[5m])) by (region) > 5`,
     ],

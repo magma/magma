@@ -1,0 +1,26 @@
+[Unit]
+Description=ISC DHCP IPv4 server
+Documentation=man:dhcpd(8)
+Wants=network-online.target
+After=network-online.target
+After=time-sync.target
+ConditionPathExists=/etc/default/isc-dhcp-server
+ConditionPathExists=|/etc/ltsp/dhcpd.conf
+ConditionPathExists=|/etc/dhcp/dhcpd.conf
+
+[Service]
+EnvironmentFile=/etc/default/isc-dhcp-server
+RuntimeDirectory=dhcp-server
+# The leases files need to be root:dhcpd even when dropping privileges
+
+# give OVS time to start devices before running dhcpd after boot
+ExecStartPre=/bin/sleep 30
+ExecStart=/bin/sh -ec '\
+    CONFIG_FILE=/etc/dhcp/dhcpd.conf; \
+    if [ -f /etc/ltsp/dhcpd.conf ]; then CONFIG_FILE=/etc/ltsp/dhcpd.conf; fi; \
+    [ -e /var/lib/dhcp/dhcpd.leases ] || touch /var/lib/dhcp/dhcpd.leases; \
+    chown root:dhcpd /var/lib/dhcp /var/lib/dhcp/dhcpd.leases; \
+    chmod 775 /var/lib/dhcp ; chmod 664 /var/lib/dhcp/dhcpd.leases; \
+    exec dhcpd -user dhcpd -group dhcpd -f -4 -pf /run/dhcp-server/dhcpd.pid -cf $CONFIG_FILE $INTERFACES'
+[Install]
+WantedBy=multi-user.target

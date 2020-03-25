@@ -14,6 +14,7 @@
 #include <devmand/channels/cli/PromptAwareCli.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
 #include <devmand/channels/cli/SshSessionAsync.h>
+#include <devmand/channels/cli/TreeCache.h>
 #include <devmand/channels/cli/engine/Engine.h>
 #include <folly/Executor.h>
 
@@ -36,6 +37,25 @@ static constexpr auto configMaxCommandTimeoutSeconds =
 static constexpr auto reconnectingQuietPeriodConfig = "reconnectingQuietPeriod";
 static constexpr auto sshConnectionTimeoutConfig = "sshConnectionTimeout";
 
+/*
+ * Responsible for creation of cli stack for single ssh connection.
+ * CLIs can be separated to two groups:
+ * - persistent CLIs, which provide high level functions like TCP connection
+ * error detection.
+ *   - KeepaliveCli - sends keepalive commands periodically
+ *   - ReconnectingCli - reestablishes inner layers upon connection error
+ * - inner CLIs. They are destroyed and recreated whenever TCP connection is
+ * reestablished.
+ *   - QueuedCli - orders commands so that only one command can be executed at a
+ * time
+ *   - LoggingCli - logs aggregated view of device and caching layers
+ *   - TimeoutTrackingCli - errors on exceeded timeout
+ *   - TreeCacheCli - maintain high level cache
+ *   - ReadCachingCli - maintains low level cache
+ *   - LoggingCli - logs communication with device
+ *   - PromptAwareCli + SshSessionAsync - lowest level, deals with ssh, prompt
+ * resolution
+ */
 class IoConfigurationBuilder {
  public:
   struct ConnectionParameters {
@@ -53,6 +73,7 @@ class IoConfigurationBuilder {
     shared_ptr<Executor> sshExecutor;
     shared_ptr<Executor> paExecutor;
     shared_ptr<Executor> rcExecutor;
+    shared_ptr<Executor> tcExecutor;
     shared_ptr<Executor> ttExecutor;
     shared_ptr<Executor> lExecutor;
     shared_ptr<Executor> qExecutor;
@@ -62,12 +83,15 @@ class IoConfigurationBuilder {
 
   IoConfigurationBuilder(
       const DeviceConfig& deviceConfig,
-      channels::cli::Engine& engine);
+      channels::cli::Engine& engine,
+      shared_ptr<CliFlavour> cliFlavour);
   IoConfigurationBuilder(shared_ptr<ConnectionParameters> _connectionParams);
 
   ~IoConfigurationBuilder();
 
-  shared_ptr<Cli> createAll(shared_ptr<CliCache> commandCache);
+  shared_ptr<Cli> createAll(
+      shared_ptr<CliCache> commandCache,
+      shared_ptr<TreeCache> treeCache);
 
   static Future<shared_ptr<Cli>> createPromptAwareCli(
       shared_ptr<ConnectionParameters> params);
@@ -77,7 +101,7 @@ class IoConfigurationBuilder {
       string hostname,
       string username,
       string password,
-      string flavour,
+      shared_ptr<CliFlavour> cliFlavour,
       int port,
       chrono::seconds kaTimeout,
       chrono::seconds cmdTimeout,
@@ -85,10 +109,14 @@ class IoConfigurationBuilder {
       long sshConnectionTimeout,
       channels::cli::Engine& engine);
 
+  shared_ptr<ConnectionParameters> getConnectionParameters();
+
  private:
   shared_ptr<ConnectionParameters> connectionParameters;
 
-  shared_ptr<Cli> createAllUsingFactory(shared_ptr<CliCache> commandCache);
+  shared_ptr<Cli> createAllUsingFactory(
+      shared_ptr<CliCache> commandCache,
+      shared_ptr<TreeCache> treeCache);
 
   static chrono::seconds toSeconds(const string& value);
 

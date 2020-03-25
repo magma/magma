@@ -17,7 +17,7 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
-	managed_configs "magma/orc8r/gateway/mconfig"
+	managed_configs "magma/gateway/mconfig"
 )
 
 // OCS Environment Variables
@@ -34,6 +34,7 @@ const (
 	OCSApnOverwriteEnv      = "OCS_APN_OVERWRITE"
 	OCSServiceIdentifierEnv = "OCS_SERVICE_IDENTIFIER_OVERWRITE"
 	DisableDestHostEnv      = "DISABLE_DEST_HOST"
+	OverwriteDestHostEnv    = "GY_OVERWRITE_DEST_HOST"
 	UseGyForAuthOnlyEnv     = "USE_GY_FOR_AUTH_ONLY"
 	GySupportedVendorIDsEnv = "GY_SUPPORTED_VENDOR_IDS"
 	GyServiceContextIdEnv   = "GY_SERVICE_CONTEXT_ID"
@@ -95,9 +96,10 @@ func GetOCSConfiguration() *diameter.DiameterServerConfig {
 			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, "127.0.0.1:3869"),
 			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GyNetworkEnv, "tcp"),
 			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GyLocalAddr, "")},
-			DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, ""),
-			DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, ""),
-			DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
+			DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, ""),
+			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, ""),
+			DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
+			OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, false),
 		}
 	}
 	gyCfg := configsPtr.GetGy().GetServer()
@@ -105,9 +107,10 @@ func GetOCSConfiguration() *diameter.DiameterServerConfig {
 		Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, gyCfg.GetAddress()),
 		Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GyNetworkEnv, gyCfg.GetProtocol()),
 		LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GyLocalAddr, gyCfg.GetLocalAddress())},
-		DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, gyCfg.GetDestHost()),
-		DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, gyCfg.GetDestRealm()),
-		DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, gyCfg.GetDisableDestHost()),
+		DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, gyCfg.GetDestHost()),
+		DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, gyCfg.GetDestRealm()),
+		DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, gyCfg.GetDisableDestHost()),
+		OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gyCfg.GetOverwriteDestHost()),
 	}
 }
 
@@ -144,6 +147,23 @@ func GetGyClientConfiguration() *diameter.DiameterClientConfig {
 		RetryCount:         uint(retries),
 		SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, ""),
 		ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, ""),
+	}
+}
+
+func GetGyGlobalConfig() *GyGlobalConfig {
+	configsPtr := &mconfig.SessionProxyConfig{}
+	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
+	siStr := diameter.GetValueOrEnv(OCSServiceIdentifierFlag, OCSServiceIdentifierEnv, "")
+	if err != nil || !validGyConfig(configsPtr) {
+		log.Printf("%s Managed Gy Server Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
+		return &GyGlobalConfig{
+			OCSOverwriteApn:      diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, ""),
+			OCSServiceIdentifier: siStr,
+		}
+	}
+	return &GyGlobalConfig{
+		OCSOverwriteApn:      diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, configsPtr.GetGy().GetOverwriteApn()),
+		OCSServiceIdentifier: siStr,
 	}
 }
 

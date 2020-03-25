@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // CommentDelete is the builder for deleting a Comment entity.
 type CommentDelete struct {
 	config
+	hooks      []Hook
+	mutation   *CommentMutation
 	predicates []predicate.Comment
 }
 
@@ -30,7 +33,30 @@ func (cd *CommentDelete) Where(ps ...predicate.Comment) *CommentDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (cd *CommentDelete) Exec(ctx context.Context) (int, error) {
-	return cd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(cd.hooks) == 0 {
+		affected, err = cd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*CommentMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			cd.mutation = mutation
+			affected, err = cd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(cd.hooks); i > 0; i-- {
+			mut = cd.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, cd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (cd *CommentDelete) ExecX(ctx context.Context) int {
 }
 
 func (cd *CommentDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: comment.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: comment.FieldID,
 			},
 		},
 	}
 	if ps := cd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, cd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, cd.driver, _spec)
 }
 
 // CommentDeleteOne is the builder for deleting a single Comment entity.
@@ -74,7 +100,7 @@ func (cdo *CommentDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{comment.Label}
+		return &NotFoundError{comment.Label}
 	default:
 		return nil
 	}

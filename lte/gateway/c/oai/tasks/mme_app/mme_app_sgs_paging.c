@@ -32,7 +32,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "assertions.h"
 #include "conversions.h"
 #include "log.h"
 #include "service303.h"
@@ -96,7 +95,10 @@ int sgs_handle_associated_paging_request(const sgs_fsm_t *evt)
   itti_sgsap_paging_request_t *sgsap_paging_req_pP = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(evt);
+  if (evt == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid SGS FSM Event object received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   OAILOG_DEBUG(
     LOG_MME_APP,
@@ -134,9 +136,7 @@ static int _sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t *evt)
   imsi64_t imsi64 = INVALID_IMSI64;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, evt->ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(evt->ue_id);
   if (!ue_context_p) {
     OAILOG_WARNING(
       LOG_MME_APP,
@@ -205,9 +205,7 @@ static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt)
   imsi64_t imsi64 = INVALID_IMSI64;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, evt->ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(evt->ue_id);
   if (!ue_context_p) {
     OAILOG_WARNING(
       LOG_MME_APP,
@@ -363,14 +361,25 @@ static int _sgs_handle_paging_request_for_mt_sms_in_connected(
   int rc = RETURNerror;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p);
-  DevAssert(sgsap_paging_req_pP);
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
 
   OAILOG_INFO(
     LOG_MME_APP,
     "Received SGSAP-Paging Request in UE Connected state for IMSI:" IMSI_64_FMT
     "\n",
     ue_context_p->emm_context._imsi64);
+
+  if (sgsap_paging_req_pP == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid SGSAP Paging Request ITTI message received for MME UE S1AP "
+      "Id: " MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
 
   rc = mme_app_send_sgsap_service_request(
       sgsap_paging_req_pP->service_indicator, ue_context_p);
@@ -405,13 +414,25 @@ static int _sgs_handle_paging_request_for_mt_call_in_idle(
   int rc = RETURNerror;
   uint8_t paging_id = MME_APP_PAGING_ID_IMSI;
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p);
-  DevAssert(sgsap_paging_req_pP);
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
 
   OAILOG_INFO(
     LOG_MME_APP,
     "Received SGSAP-Paging Request in UE Idle state for IMSI:" IMSI_64_FMT "\n",
     ue_context_p->emm_context._imsi64);
+
+  if (sgsap_paging_req_pP == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid SGSAP Paging Request ITTI message received for MME UE S1AP "
+      "Id: " MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
+
   if (ue_context_p->ppf) {
     /* Paging timer shall not be started, if paging procedure initiated for CSFB
      * Reference: spec-24.301 section: 5.6.2.3
@@ -480,13 +501,25 @@ static int _sgs_handle_paging_request_for_mt_sms_in_idle(
   int rc = RETURNerror;
   uint8_t paging_id = MME_APP_PAGING_ID_IMSI;
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p);
-  DevAssert(sgsap_paging_req_pP);
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
 
   OAILOG_INFO(
     LOG_MME_APP,
     "Received SGSAP-Paging Request in UE Idle state for IMSI:" IMSI_64_FMT "\n",
     ue_context_p->emm_context._imsi64);
+
+  if (sgsap_paging_req_pP == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid SGSAP Paging Request ITTI message received for MME UE S1AP "
+      "Id: " MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
+
   if (ue_context_p->ppf) {
     /* Paging timer shall not be started, if paging procedure initiated for CSFB
      * Reference: spec-24.301 section: 5.6.2.3
@@ -557,8 +590,21 @@ int mme_app_send_sgsap_service_request(
   itti_sgsap_service_request_t *sgsap_service_req_pP = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
+
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
+
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_SERVICE_REQUEST);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for SGSAP Service Request for "
+      "IMSI: " IMSI_64_FMT "\n",
+      ue_context_p->emm_context._imsi64);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
   sgsap_service_req_pP = &message_p->ittiMsg.sgsap_service_request;
   memset(
     (void *) sgsap_service_req_pP, 0, sizeof(itti_sgsap_service_request_t));
@@ -618,19 +664,25 @@ int mme_app_send_sgsap_paging_reject(
   itti_sgsap_paging_reject_t *sgsap_paging_reject_pP = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
+  if (!imsi) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid IMSI received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
+
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_PAGING_REJECT);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for SGSAP Paging Reject for "
+      "IMSI: " IMSI_64_FMT "\n",
+      imsi);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
   sgsap_paging_reject_pP = &message_p->ittiMsg.sgsap_paging_reject;
   memset(
     (void *) sgsap_paging_reject_pP, 0, sizeof(itti_sgsap_paging_reject_t));
 
-  //IMSI
-  if (imsi) {
-    IMSI64_TO_STRING(imsi, sgsap_paging_reject_pP->imsi, imsi_len);
-  } else {
-    OAILOG_ERROR(LOG_MME_APP, "Invalid imsi \n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-  }
+  IMSI64_TO_STRING(imsi, sgsap_paging_reject_pP->imsi, imsi_len);
   sgsap_paging_reject_pP->imsi_length = imsi_len;
   sgsap_paging_reject_pP->sgs_cause = sgs_cause;
 
@@ -668,15 +720,16 @@ int sgs_handle_null_paging_request(const sgs_fsm_t *evt)
   imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(evt);
+  if (evt == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid SGS FSM Event object received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
 
   OAILOG_DEBUG(
     LOG_MME_APP,
     "Handle paging request in Null state for ue-id :%u \n",
     evt->ue_id);
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, evt->ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(evt->ue_id);
   if (!ue_context_p) {
     OAILOG_WARNING(
       LOG_MME_APP,
@@ -730,7 +783,14 @@ static int _mme_app_send_sgsap_ue_unreachable(
   }
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_UNREACHABLE);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for SGSAP UE Unreachable for "
+      "IMSI: " IMSI_64_FMT "\n",
+      ue_context_p->emm_context._imsi64);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
   sgsap_ue_unreachable_pP = &message_p->ittiMsg.sgsap_ue_unreachable;
   memset(
     (void*) sgsap_ue_unreachable_pP, 0, sizeof(itti_sgsap_ue_unreachable_t));

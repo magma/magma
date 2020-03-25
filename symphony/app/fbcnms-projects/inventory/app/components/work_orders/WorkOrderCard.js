@@ -66,10 +66,12 @@ const styles = theme => ({
 
 const workOrderQuery = graphql`
   query WorkOrderCardQuery($workOrderId: ID!) {
-    workOrder(id: $workOrderId) {
-      id
-      name
-      ...WorkOrderDetails_workOrder
+    workOrder: node(id: $workOrderId) {
+      ... on WorkOrder {
+        id
+        name
+        ...WorkOrderDetails_workOrder
+      }
     }
   }
 `;

@@ -28,8 +28,6 @@ var networkServiceEnumToPipelineDServiceMap = map[NetworkEPCConfig_NetworkServic
 }
 
 var defaultPipelineServiceEnums = []mconfig.PipelineD_NetworkServices{
-	mconfig.PipelineD_METERING,
-	mconfig.PipelineD_DPI,
 	mconfig.PipelineD_ENFORCEMENT,
 }
 

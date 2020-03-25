@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -36,7 +36,7 @@ import {getProjectTabs} from '@fbcnms/magmalte/app/common/projects';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   card: {
     maxWidth: '400px',
     margin: '10% auto 0',
@@ -50,7 +50,7 @@ const useStyles = makeStyles({
     marginTop: '10px',
     float: 'right',
   },
-});
+}));
 
 const ENTER_KEY = 13;
 function Index() {

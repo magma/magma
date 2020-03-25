@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -16,7 +16,7 @@ import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     width: '100%',
     display: 'flex',
@@ -30,18 +30,21 @@ const useStyles = makeStyles({
     borderRadius: '100%',
     cursor: 'pointer',
   },
-});
+}));
 
 const OPTIONS = [
   {
+    key: 'option_1',
     label: 'Option 1',
     value: '1',
   },
   {
+    key: 'option_2',
     label: 'Option 2',
     value: '2',
   },
   {
+    key: 'option_3',
     label: 'Option 3',
     value: '3',
   },
@@ -58,10 +61,12 @@ const PopoverMenuRoot = () => {
         variant="text"
         options={[
           {
+            key: 'option_1',
             label: 'Option 1',
             value: '1',
           },
           {
+            key: 'option_2',
             label: 'Option 2',
             value: '2',
           },
@@ -73,10 +78,12 @@ const PopoverMenuRoot = () => {
         className={classes.popoverMenu}
         options={[
           {
+            key: 'option_1',
             label: 'Option 1',
             value: '1',
           },
           {
+            key: 'option_2',
             label: 'Option 2',
             value: '2',
           },

@@ -21,10 +21,7 @@ bootstrap_config:
 enable_config_streamer: True
 enable_upgrade_manager: False
 enable_network_monitor: False
-enable_systemd_tailer: False
 enable_sync_rpc: False
-
-systemd_tailer_poll_interval: 30 # seconds
 
 # Modules containing code generated for mconfig protobufs
 mconfig_modules:

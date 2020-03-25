@@ -9,8 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -24,15 +23,9 @@ import (
 // EquipmentPositionUpdate is the builder for updating EquipmentPosition entities.
 type EquipmentPositionUpdate struct {
 	config
-
-	update_time       *time.Time
-	definition        map[string]struct{}
-	parent            map[string]struct{}
-	attachment        map[string]struct{}
-	clearedDefinition bool
-	clearedParent     bool
-	clearedAttachment bool
-	predicates        []predicate.EquipmentPosition
+	hooks      []Hook
+	mutation   *EquipmentPositionMutation
+	predicates []predicate.EquipmentPosition
 }
 
 // Where adds a new predicate for the builder.
@@ -42,11 +35,8 @@ func (epu *EquipmentPositionUpdate) Where(ps ...predicate.EquipmentPosition) *Eq
 }
 
 // SetDefinitionID sets the definition edge to EquipmentPositionDefinition by id.
-func (epu *EquipmentPositionUpdate) SetDefinitionID(id string) *EquipmentPositionUpdate {
-	if epu.definition == nil {
-		epu.definition = make(map[string]struct{})
-	}
-	epu.definition[id] = struct{}{}
+func (epu *EquipmentPositionUpdate) SetDefinitionID(id int) *EquipmentPositionUpdate {
+	epu.mutation.SetDefinitionID(id)
 	return epu
 }
 
@@ -56,16 +46,13 @@ func (epu *EquipmentPositionUpdate) SetDefinition(e *EquipmentPositionDefinition
 }
 
 // SetParentID sets the parent edge to Equipment by id.
-func (epu *EquipmentPositionUpdate) SetParentID(id string) *EquipmentPositionUpdate {
-	if epu.parent == nil {
-		epu.parent = make(map[string]struct{})
-	}
-	epu.parent[id] = struct{}{}
+func (epu *EquipmentPositionUpdate) SetParentID(id int) *EquipmentPositionUpdate {
+	epu.mutation.SetParentID(id)
 	return epu
 }
 
 // SetNillableParentID sets the parent edge to Equipment by id if the given value is not nil.
-func (epu *EquipmentPositionUpdate) SetNillableParentID(id *string) *EquipmentPositionUpdate {
+func (epu *EquipmentPositionUpdate) SetNillableParentID(id *int) *EquipmentPositionUpdate {
 	if id != nil {
 		epu = epu.SetParentID(*id)
 	}
@@ -78,16 +65,13 @@ func (epu *EquipmentPositionUpdate) SetParent(e *Equipment) *EquipmentPositionUp
 }
 
 // SetAttachmentID sets the attachment edge to Equipment by id.
-func (epu *EquipmentPositionUpdate) SetAttachmentID(id string) *EquipmentPositionUpdate {
-	if epu.attachment == nil {
-		epu.attachment = make(map[string]struct{})
-	}
-	epu.attachment[id] = struct{}{}
+func (epu *EquipmentPositionUpdate) SetAttachmentID(id int) *EquipmentPositionUpdate {
+	epu.mutation.SetAttachmentID(id)
 	return epu
 }
 
 // SetNillableAttachmentID sets the attachment edge to Equipment by id if the given value is not nil.
-func (epu *EquipmentPositionUpdate) SetNillableAttachmentID(id *string) *EquipmentPositionUpdate {
+func (epu *EquipmentPositionUpdate) SetNillableAttachmentID(id *int) *EquipmentPositionUpdate {
 	if id != nil {
 		epu = epu.SetAttachmentID(*id)
 	}
@@ -101,41 +85,57 @@ func (epu *EquipmentPositionUpdate) SetAttachment(e *Equipment) *EquipmentPositi
 
 // ClearDefinition clears the definition edge to EquipmentPositionDefinition.
 func (epu *EquipmentPositionUpdate) ClearDefinition() *EquipmentPositionUpdate {
-	epu.clearedDefinition = true
+	epu.mutation.ClearDefinition()
 	return epu
 }
 
 // ClearParent clears the parent edge to Equipment.
 func (epu *EquipmentPositionUpdate) ClearParent() *EquipmentPositionUpdate {
-	epu.clearedParent = true
+	epu.mutation.ClearParent()
 	return epu
 }
 
 // ClearAttachment clears the attachment edge to Equipment.
 func (epu *EquipmentPositionUpdate) ClearAttachment() *EquipmentPositionUpdate {
-	epu.clearedAttachment = true
+	epu.mutation.ClearAttachment()
 	return epu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (epu *EquipmentPositionUpdate) Save(ctx context.Context) (int, error) {
-	if epu.update_time == nil {
+	if _, ok := epu.mutation.UpdateTime(); !ok {
 		v := equipmentposition.UpdateDefaultUpdateTime()
-		epu.update_time = &v
+		epu.mutation.SetUpdateTime(v)
 	}
-	if len(epu.definition) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"definition\"")
-	}
-	if epu.clearedDefinition && epu.definition == nil {
+
+	if _, ok := epu.mutation.DefinitionID(); epu.mutation.DefinitionCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"definition\"")
 	}
-	if len(epu.parent) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"parent\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(epu.hooks) == 0 {
+		affected, err = epu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentPositionMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			epu.mutation = mutation
+			affected, err = epu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(epu.hooks); i > 0; i-- {
+			mut = epu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, epu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	if len(epu.attachment) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"attachment\"")
-	}
-	return epu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -161,31 +161,31 @@ func (epu *EquipmentPositionUpdate) ExecX(ctx context.Context) {
 }
 
 func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentposition.Table,
 			Columns: equipmentposition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentposition.FieldID,
 			},
 		},
 	}
 	if ps := epu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value := epu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := epu.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentposition.FieldUpdateTime,
 		})
 	}
-	if epu.clearedDefinition {
+	if epu.mutation.DefinitionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -194,14 +194,14 @@ func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentpositiondefinition.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epu.definition; len(nodes) > 0 {
+	if nodes := epu.mutation.DefinitionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -210,21 +210,17 @@ func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentpositiondefinition.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epu.clearedParent {
+	if epu.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -233,14 +229,14 @@ func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epu.parent; len(nodes) > 0 {
+	if nodes := epu.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -249,21 +245,17 @@ func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epu.clearedAttachment {
+	if epu.mutation.AttachmentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -272,14 +264,14 @@ func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epu.attachment; len(nodes) > 0 {
+	if nodes := epu.mutation.AttachmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -288,22 +280,20 @@ func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, epu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, epu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{equipmentposition.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -314,23 +304,13 @@ func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err err
 // EquipmentPositionUpdateOne is the builder for updating a single EquipmentPosition entity.
 type EquipmentPositionUpdateOne struct {
 	config
-	id string
-
-	update_time       *time.Time
-	definition        map[string]struct{}
-	parent            map[string]struct{}
-	attachment        map[string]struct{}
-	clearedDefinition bool
-	clearedParent     bool
-	clearedAttachment bool
+	hooks    []Hook
+	mutation *EquipmentPositionMutation
 }
 
 // SetDefinitionID sets the definition edge to EquipmentPositionDefinition by id.
-func (epuo *EquipmentPositionUpdateOne) SetDefinitionID(id string) *EquipmentPositionUpdateOne {
-	if epuo.definition == nil {
-		epuo.definition = make(map[string]struct{})
-	}
-	epuo.definition[id] = struct{}{}
+func (epuo *EquipmentPositionUpdateOne) SetDefinitionID(id int) *EquipmentPositionUpdateOne {
+	epuo.mutation.SetDefinitionID(id)
 	return epuo
 }
 
@@ -340,16 +320,13 @@ func (epuo *EquipmentPositionUpdateOne) SetDefinition(e *EquipmentPositionDefini
 }
 
 // SetParentID sets the parent edge to Equipment by id.
-func (epuo *EquipmentPositionUpdateOne) SetParentID(id string) *EquipmentPositionUpdateOne {
-	if epuo.parent == nil {
-		epuo.parent = make(map[string]struct{})
-	}
-	epuo.parent[id] = struct{}{}
+func (epuo *EquipmentPositionUpdateOne) SetParentID(id int) *EquipmentPositionUpdateOne {
+	epuo.mutation.SetParentID(id)
 	return epuo
 }
 
 // SetNillableParentID sets the parent edge to Equipment by id if the given value is not nil.
-func (epuo *EquipmentPositionUpdateOne) SetNillableParentID(id *string) *EquipmentPositionUpdateOne {
+func (epuo *EquipmentPositionUpdateOne) SetNillableParentID(id *int) *EquipmentPositionUpdateOne {
 	if id != nil {
 		epuo = epuo.SetParentID(*id)
 	}
@@ -362,16 +339,13 @@ func (epuo *EquipmentPositionUpdateOne) SetParent(e *Equipment) *EquipmentPositi
 }
 
 // SetAttachmentID sets the attachment edge to Equipment by id.
-func (epuo *EquipmentPositionUpdateOne) SetAttachmentID(id string) *EquipmentPositionUpdateOne {
-	if epuo.attachment == nil {
-		epuo.attachment = make(map[string]struct{})
-	}
-	epuo.attachment[id] = struct{}{}
+func (epuo *EquipmentPositionUpdateOne) SetAttachmentID(id int) *EquipmentPositionUpdateOne {
+	epuo.mutation.SetAttachmentID(id)
 	return epuo
 }
 
 // SetNillableAttachmentID sets the attachment edge to Equipment by id if the given value is not nil.
-func (epuo *EquipmentPositionUpdateOne) SetNillableAttachmentID(id *string) *EquipmentPositionUpdateOne {
+func (epuo *EquipmentPositionUpdateOne) SetNillableAttachmentID(id *int) *EquipmentPositionUpdateOne {
 	if id != nil {
 		epuo = epuo.SetAttachmentID(*id)
 	}
@@ -385,41 +359,57 @@ func (epuo *EquipmentPositionUpdateOne) SetAttachment(e *Equipment) *EquipmentPo
 
 // ClearDefinition clears the definition edge to EquipmentPositionDefinition.
 func (epuo *EquipmentPositionUpdateOne) ClearDefinition() *EquipmentPositionUpdateOne {
-	epuo.clearedDefinition = true
+	epuo.mutation.ClearDefinition()
 	return epuo
 }
 
 // ClearParent clears the parent edge to Equipment.
 func (epuo *EquipmentPositionUpdateOne) ClearParent() *EquipmentPositionUpdateOne {
-	epuo.clearedParent = true
+	epuo.mutation.ClearParent()
 	return epuo
 }
 
 // ClearAttachment clears the attachment edge to Equipment.
 func (epuo *EquipmentPositionUpdateOne) ClearAttachment() *EquipmentPositionUpdateOne {
-	epuo.clearedAttachment = true
+	epuo.mutation.ClearAttachment()
 	return epuo
 }
 
 // Save executes the query and returns the updated entity.
 func (epuo *EquipmentPositionUpdateOne) Save(ctx context.Context) (*EquipmentPosition, error) {
-	if epuo.update_time == nil {
+	if _, ok := epuo.mutation.UpdateTime(); !ok {
 		v := equipmentposition.UpdateDefaultUpdateTime()
-		epuo.update_time = &v
+		epuo.mutation.SetUpdateTime(v)
 	}
-	if len(epuo.definition) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"definition\"")
-	}
-	if epuo.clearedDefinition && epuo.definition == nil {
+
+	if _, ok := epuo.mutation.DefinitionID(); epuo.mutation.DefinitionCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"definition\"")
 	}
-	if len(epuo.parent) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"parent\"")
+
+	var (
+		err  error
+		node *EquipmentPosition
+	)
+	if len(epuo.hooks) == 0 {
+		node, err = epuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentPositionMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			epuo.mutation = mutation
+			node, err = epuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(epuo.hooks); i > 0; i-- {
+			mut = epuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, epuo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(epuo.attachment) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"attachment\"")
-	}
-	return epuo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -445,25 +435,29 @@ func (epuo *EquipmentPositionUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentPosition, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentposition.Table,
 			Columns: equipmentposition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  epuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentposition.FieldID,
 			},
 		},
 	}
-	if value := epuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	id, ok := epuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing EquipmentPosition.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := epuo.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentposition.FieldUpdateTime,
 		})
 	}
-	if epuo.clearedDefinition {
+	if epuo.mutation.DefinitionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -472,14 +466,14 @@ func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentpositiondefinition.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epuo.definition; len(nodes) > 0 {
+	if nodes := epuo.mutation.DefinitionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -488,21 +482,17 @@ func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentpositiondefinition.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epuo.clearedParent {
+	if epuo.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -511,14 +501,14 @@ func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epuo.parent; len(nodes) > 0 {
+	if nodes := epuo.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -527,21 +517,17 @@ func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epuo.clearedAttachment {
+	if epuo.mutation.AttachmentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -550,14 +536,14 @@ func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epuo.attachment; len(nodes) > 0 {
+	if nodes := epuo.mutation.AttachmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -566,25 +552,23 @@ func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	ep = &EquipmentPosition{config: epuo.config}
-	spec.Assign = ep.assignValues
-	spec.ScanValues = ep.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, epuo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = ep.assignValues
+	_spec.ScanValues = ep.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, epuo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{equipmentposition.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

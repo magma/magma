@@ -11,6 +11,7 @@ package plugin
 import (
 	"fmt"
 	"io/ioutil"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"os"
 	"plugin"
 	"reflect"
@@ -18,12 +19,12 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -68,6 +69,10 @@ type OrchestratorPlugin interface {
 	// These stream providers are the primary mechanism by which gateways
 	// receive data from the orchestrator (e.g. configuration).
 	GetStreamerProviders() []providers.StreamProvider
+
+	// GetStateIndexers returns a list of Indexers to register with the state service.
+	// These indexers are responsible for generating secondary indices mapped to derived state.
+	GetStateIndexers() []indexer.Indexer
 }
 
 // LoadAllPluginsFatalOnError loads and registers all orchestrator plugins
@@ -178,6 +183,9 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.Config
 		return err
 	}
 	configurator.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
+	if err := indexer.RegisterIndexers(orc8rPlugin.GetStateIndexers()...); err != nil {
+		return err
+	}
 
 	return nil
 }

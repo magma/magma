@@ -44,7 +44,7 @@ const useStyles = makeStyles(theme => ({
 
 const locationTypesQuery = graphql`
   query LocationsMapTypesQuery {
-    locationTypes(first: 50) {
+    locationTypes {
       edges {
         node {
           id
@@ -92,6 +92,7 @@ const LocationsMap = (_props: Props) => {
 
   useEffect(() => {
     setIsLoading(true);
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, locationTypesQuery)
       .then(
         data => {

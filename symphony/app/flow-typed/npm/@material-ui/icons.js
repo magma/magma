@@ -1,10 +1,10 @@
-// @flow
+// @flow strict-local
 // Taken from https://github.com/flow-typed/flow-typed/pull/2323
 // (+ fixing SvgIcon). Once it's merged, let's use the official
 
 // The @material-ui/core/SvgItem/SvgItem type is declared to
 // require children, but the implementations of it dont.
-type SvgIconExports = {
+export type SvgIconExports = {
   children?: React$Node,
   classes?: Object,
   className?: string,
@@ -433,6 +433,14 @@ declare module "@material-ui/icons/Book" {
 }
 
 declare module "@material-ui/icons/Bookmark" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
+declare module "@material-ui/icons/Bookmarks" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
+declare module "@material-ui/icons/BookmarksOutlined" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
@@ -3995,6 +4003,8 @@ declare module "@material-ui/icons" {
       BlurOn: $Exports<"@material-ui/icons/BlurOn">,
       Book: $Exports<"@material-ui/icons/Book">,
       Bookmark: $Exports<"@material-ui/icons/Bookmark">,
+      BookmarksOutlined: $Exports<"@material-ui/icons/BookmarksOutlined">,
+      Bookmarks: $Exports<"@material-ui/icons/Bookmarks">,
       BookmarkBorder: $Exports<"@material-ui/icons/BookmarkBorder">,
       BorderAll: $Exports<"@material-ui/icons/BorderAll">,
       BorderBottom: $Exports<"@material-ui/icons/BorderBottom">,

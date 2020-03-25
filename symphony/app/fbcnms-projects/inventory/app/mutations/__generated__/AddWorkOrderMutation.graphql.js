@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash e3360d1fe670c91753bdba3d4e5dd07a
+ * @relayHash 9e904563bba3014645455d046b137b88
  */
 
 /* eslint-disable */
@@ -15,6 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
+export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
 export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
@@ -26,6 +27,8 @@ export type AddWorkOrderInput = {|
   projectId?: ?string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
   checkList?: ?$ReadOnlyArray<CheckListItemInput>,
+  ownerName?: ?string,
+  checkListCategories?: ?$ReadOnlyArray<CheckListCategoryInput>,
   assignee?: ?string,
   index?: ?number,
   status?: ?WorkOrderStatus,
@@ -55,14 +58,22 @@ export type CheckListItemInput = {|
   index?: ?number,
   helpText?: ?string,
   enumValues?: ?string,
+  enumSelectionMode?: ?CheckListItemEnumSelectionMode,
+  selectedEnumValues?: ?string,
   stringValue?: ?string,
   checked?: ?boolean,
+|};
+export type CheckListCategoryInput = {|
+  id?: ?string,
+  title: string,
+  description?: ?string,
+  checkList?: ?$ReadOnlyArray<CheckListItemInput>,
 |};
 export type AddWorkOrderMutationVariables = {|
   input: AddWorkOrderInput
 |};
 export type AddWorkOrderMutationResponse = {|
-  +addWorkOrder: ?{|
+  +addWorkOrder: {|
     +id: string,
     +name: string,
     +description: ?string,
@@ -83,6 +94,7 @@ export type AddWorkOrderMutationResponse = {|
       +id: string,
       +name: string,
     |},
+    +closeDate: ?any,
   |}
 |};
 export type AddWorkOrderMutation = {|
@@ -117,6 +129,7 @@ mutation AddWorkOrderMutation(
       id
       name
     }
+    closeDate
   }
 }
 */
@@ -237,6 +250,13 @@ v4 = [
         "concreteType": "Project",
         "plural": false,
         "selections": (v3/*: any*/)
+      },
+      {
+        "kind": "ScalarField",
+        "alias": null,
+        "name": "closeDate",
+        "args": null,
+        "storageKey": null
       }
     ]
   }
@@ -261,7 +281,7 @@ return {
     "operationKind": "mutation",
     "name": "AddWorkOrderMutation",
     "id": null,
-    "text": "mutation AddWorkOrderMutation(\n  $input: AddWorkOrderInput!\n) {\n  addWorkOrder(input: $input) {\n    id\n    name\n    description\n    ownerName\n    creationDate\n    installDate\n    status\n    assignee\n    location {\n      id\n      name\n    }\n    workOrderType {\n      id\n      name\n    }\n    project {\n      id\n      name\n    }\n  }\n}\n",
+    "text": "mutation AddWorkOrderMutation(\n  $input: AddWorkOrderInput!\n) {\n  addWorkOrder(input: $input) {\n    id\n    name\n    description\n    ownerName\n    creationDate\n    installDate\n    status\n    assignee\n    location {\n      id\n      name\n    }\n    workOrderType {\n      id\n      name\n    }\n    project {\n      id\n      name\n    }\n    closeDate\n  }\n}\n",
     "metadata": {}
   }
 };

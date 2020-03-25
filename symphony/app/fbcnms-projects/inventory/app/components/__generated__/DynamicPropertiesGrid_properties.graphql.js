@@ -30,6 +30,7 @@ export type DynamicPropertiesGrid_properties$data = DynamicPropertiesGrid_proper
 export type DynamicPropertiesGrid_properties$key = $ReadOnlyArray<{
   +$data?: DynamicPropertiesGrid_properties$data,
   +$fragmentRefs: DynamicPropertiesGrid_properties$ref,
+  ...
 }>;
 */
 

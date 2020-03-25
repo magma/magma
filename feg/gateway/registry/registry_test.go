@@ -15,15 +15,17 @@ import (
 	"testing"
 	"time"
 
-	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
-	platform_registry "magma/orc8r/cloud/go/registry"
-	"magma/orc8r/cloud/go/service/config"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+
+	"magma/feg/cloud/go/protos"
+	"magma/gateway/service_registry"
+	platform_registry "magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 )
 
 type helloServer struct{}
@@ -45,7 +47,8 @@ func (srv *helloServer) SayHello(
 
 func TestCloudConnection(t *testing.T) {
 	// Update control_proxy Host to localhost (needed for docker)
-	platform_registry.AddService(platform_registry.ServiceLocation{Name: registry.CONTROL_PROXY, Host: "127.0.0.1", Port: 50053})
+	reg := service_registry.Get()
+	reg.AddService(platform_registry.ServiceLocation{Name: registry.CONTROL_PROXY, Host: "127.0.0.1", Port: 50053})
 
 	lis, err := net.Listen("tcp", ":44444")
 	assert.NoError(t, err)
@@ -65,7 +68,7 @@ func TestCloudConnection(t *testing.T) {
 		"local_port": 44444, "cloud_address": "controller.magma.test",
 		"cloud_port": 443})
 
-	conn, err := registry.NewCloudRegistry().GetCloudConnectionFromServiceConfig(configMap, "hello")
+	conn, err := reg.GetCloudConnectionFromServiceConfig(configMap, "hello")
 	assert.NoError(t, err)
 	client := protos.NewHelloClient(conn)
 

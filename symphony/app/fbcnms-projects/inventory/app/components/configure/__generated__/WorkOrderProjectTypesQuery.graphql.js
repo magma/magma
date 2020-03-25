@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 1da8ff77c474322e21e52ee6913bfb69
+ * @relayHash b7ae9ec92c72150a9f40a44788367587
  */
 
 /* eslint-disable */
@@ -45,7 +45,7 @@ export type WorkOrderProjectTypesQuery = {|
 
 /*
 query WorkOrderProjectTypesQuery {
-  projectTypes(first: 50) {
+  projectTypes(first: 500) {
     edges {
       node {
         id
@@ -168,7 +168,7 @@ v4 = [
   {
     "kind": "Literal",
     "name": "first",
-    "value": 50
+    "value": 500
   }
 ],
 v5 = {
@@ -287,7 +287,7 @@ return {
         "kind": "LinkedField",
         "alias": null,
         "name": "projectTypes",
-        "storageKey": "projectTypes(first:50)",
+        "storageKey": "projectTypes(first:500)",
         "args": (v4/*: any*/),
         "concreteType": "ProjectTypeConnection",
         "plural": false,
@@ -515,7 +515,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrderProjectTypesQuery",
     "id": null,
-    "text": "query WorkOrderProjectTypesQuery {\n  projectTypes(first: 50) {\n    edges {\n      node {\n        id\n        ...ProjectTypeCard_projectType\n        ...AddEditProjectTypeCard_editingProjectType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  workOrderTypes {\n    edges {\n      node {\n        ...ProjectTypeWorkOrderTemplatesPanel_workOrderTypes\n        id\n      }\n    }\n  }\n}\n\nfragment AddEditProjectTypeCard_editingProjectType on ProjectType {\n  id\n  name\n  description\n  workOrders {\n    id\n    type {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n\nfragment ProjectTypeCard_projectType on ProjectType {\n  id\n  name\n  description\n  numberOfProjects\n  workOrders {\n    id\n  }\n}\n\nfragment ProjectTypeWorkOrderTemplatesPanel_workOrderTypes on WorkOrderType {\n  id\n  name\n}\n",
+    "text": "query WorkOrderProjectTypesQuery {\n  projectTypes(first: 500) {\n    edges {\n      node {\n        id\n        ...ProjectTypeCard_projectType\n        ...AddEditProjectTypeCard_editingProjectType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  workOrderTypes {\n    edges {\n      node {\n        ...ProjectTypeWorkOrderTemplatesPanel_workOrderTypes\n        id\n      }\n    }\n  }\n}\n\nfragment AddEditProjectTypeCard_editingProjectType on ProjectType {\n  id\n  name\n  description\n  workOrders {\n    id\n    type {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n\nfragment ProjectTypeCard_projectType on ProjectType {\n  id\n  name\n  description\n  numberOfProjects\n  workOrders {\n    id\n  }\n}\n\nfragment ProjectTypeWorkOrderTemplatesPanel_workOrderTypes on WorkOrderType {\n  id\n  name\n}\n",
     "metadata": {
       "connection": [
         {
@@ -532,5 +532,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'f63d7191aa597b9c552cefd6c882b0b2';
+(node/*: any*/).hash = 'c3f4898b42bea467f6aa4f3af6e0a400';
 module.exports = node;

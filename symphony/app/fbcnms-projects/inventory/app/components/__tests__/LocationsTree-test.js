@@ -101,6 +101,7 @@ describe('<LocationsTree />', () => {
     );
 
     act(() => {
+      // $FlowFixMe (T62907961) Relay flow types
       RelayEnvironment.mock.resolveMostRecentOperation(operation =>
         MockPayloadGenerator.generate(operation, MOCK_RESOLVER),
       );
@@ -122,6 +123,7 @@ describe('<LocationsTree />', () => {
     );
 
     act(() => {
+      // $FlowFixMe (T62907961) Relay flow types
       RelayEnvironment.mock.resolveMostRecentOperation(operation =>
         MockPayloadGenerator.generate(operation, MOCK_RESOLVER),
       );
@@ -144,6 +146,7 @@ describe('<LocationsTree />', () => {
     );
 
     act(() => {
+      // $FlowFixMe (T62907961) Relay flow types
       RelayEnvironment.mock.resolveMostRecentOperation(operation =>
         MockPayloadGenerator.generate(operation, MOCK_RESOLVER),
       );
@@ -168,6 +171,7 @@ describe('<LocationsTree />', () => {
     );
 
     act(() => {
+      // $FlowFixMe (T62907961) Relay flow types
       RelayEnvironment.mock.resolveMostRecentOperation(operation =>
         MockPayloadGenerator.generate(operation, MOCK_RESOLVER),
       );
@@ -180,6 +184,7 @@ describe('<LocationsTree />', () => {
     });
 
     act(() => {
+      // $FlowFixMe (T62907961) Relay flow types
       RelayEnvironment.mock.resolveMostRecentOperation(operation =>
         MockPayloadGenerator.generate(operation, MOCK_RESOLVER),
       );

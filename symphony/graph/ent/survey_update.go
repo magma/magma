@@ -8,8 +8,7 @@ package ent
 
 import (
 	"context"
-	"errors"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -25,21 +24,9 @@ import (
 // SurveyUpdate is the builder for updating Survey entities.
 type SurveyUpdate struct {
 	config
-
-	update_time             *time.Time
-	name                    *string
-	owner_name              *string
-	clearowner_name         bool
-	creation_timestamp      *time.Time
-	clearcreation_timestamp bool
-	completion_timestamp    *time.Time
-	location                map[string]struct{}
-	source_file             map[string]struct{}
-	questions               map[string]struct{}
-	clearedLocation         bool
-	clearedSourceFile       bool
-	removedQuestions        map[string]struct{}
-	predicates              []predicate.Survey
+	hooks      []Hook
+	mutation   *SurveyMutation
+	predicates []predicate.Survey
 }
 
 // Where adds a new predicate for the builder.
@@ -50,13 +37,13 @@ func (su *SurveyUpdate) Where(ps ...predicate.Survey) *SurveyUpdate {
 
 // SetName sets the name field.
 func (su *SurveyUpdate) SetName(s string) *SurveyUpdate {
-	su.name = &s
+	su.mutation.SetName(s)
 	return su
 }
 
 // SetOwnerName sets the owner_name field.
 func (su *SurveyUpdate) SetOwnerName(s string) *SurveyUpdate {
-	su.owner_name = &s
+	su.mutation.SetOwnerName(s)
 	return su
 }
 
@@ -70,14 +57,13 @@ func (su *SurveyUpdate) SetNillableOwnerName(s *string) *SurveyUpdate {
 
 // ClearOwnerName clears the value of owner_name.
 func (su *SurveyUpdate) ClearOwnerName() *SurveyUpdate {
-	su.owner_name = nil
-	su.clearowner_name = true
+	su.mutation.ClearOwnerName()
 	return su
 }
 
 // SetCreationTimestamp sets the creation_timestamp field.
 func (su *SurveyUpdate) SetCreationTimestamp(t time.Time) *SurveyUpdate {
-	su.creation_timestamp = &t
+	su.mutation.SetCreationTimestamp(t)
 	return su
 }
 
@@ -91,28 +77,24 @@ func (su *SurveyUpdate) SetNillableCreationTimestamp(t *time.Time) *SurveyUpdate
 
 // ClearCreationTimestamp clears the value of creation_timestamp.
 func (su *SurveyUpdate) ClearCreationTimestamp() *SurveyUpdate {
-	su.creation_timestamp = nil
-	su.clearcreation_timestamp = true
+	su.mutation.ClearCreationTimestamp()
 	return su
 }
 
 // SetCompletionTimestamp sets the completion_timestamp field.
 func (su *SurveyUpdate) SetCompletionTimestamp(t time.Time) *SurveyUpdate {
-	su.completion_timestamp = &t
+	su.mutation.SetCompletionTimestamp(t)
 	return su
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (su *SurveyUpdate) SetLocationID(id string) *SurveyUpdate {
-	if su.location == nil {
-		su.location = make(map[string]struct{})
-	}
-	su.location[id] = struct{}{}
+func (su *SurveyUpdate) SetLocationID(id int) *SurveyUpdate {
+	su.mutation.SetLocationID(id)
 	return su
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (su *SurveyUpdate) SetNillableLocationID(id *string) *SurveyUpdate {
+func (su *SurveyUpdate) SetNillableLocationID(id *int) *SurveyUpdate {
 	if id != nil {
 		su = su.SetLocationID(*id)
 	}
@@ -125,16 +107,13 @@ func (su *SurveyUpdate) SetLocation(l *Location) *SurveyUpdate {
 }
 
 // SetSourceFileID sets the source_file edge to File by id.
-func (su *SurveyUpdate) SetSourceFileID(id string) *SurveyUpdate {
-	if su.source_file == nil {
-		su.source_file = make(map[string]struct{})
-	}
-	su.source_file[id] = struct{}{}
+func (su *SurveyUpdate) SetSourceFileID(id int) *SurveyUpdate {
+	su.mutation.SetSourceFileID(id)
 	return su
 }
 
 // SetNillableSourceFileID sets the source_file edge to File by id if the given value is not nil.
-func (su *SurveyUpdate) SetNillableSourceFileID(id *string) *SurveyUpdate {
+func (su *SurveyUpdate) SetNillableSourceFileID(id *int) *SurveyUpdate {
 	if id != nil {
 		su = su.SetSourceFileID(*id)
 	}
@@ -147,19 +126,14 @@ func (su *SurveyUpdate) SetSourceFile(f *File) *SurveyUpdate {
 }
 
 // AddQuestionIDs adds the questions edge to SurveyQuestion by ids.
-func (su *SurveyUpdate) AddQuestionIDs(ids ...string) *SurveyUpdate {
-	if su.questions == nil {
-		su.questions = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.questions[ids[i]] = struct{}{}
-	}
+func (su *SurveyUpdate) AddQuestionIDs(ids ...int) *SurveyUpdate {
+	su.mutation.AddQuestionIDs(ids...)
 	return su
 }
 
 // AddQuestions adds the questions edges to SurveyQuestion.
 func (su *SurveyUpdate) AddQuestions(s ...*SurveyQuestion) *SurveyUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -168,30 +142,25 @@ func (su *SurveyUpdate) AddQuestions(s ...*SurveyQuestion) *SurveyUpdate {
 
 // ClearLocation clears the location edge to Location.
 func (su *SurveyUpdate) ClearLocation() *SurveyUpdate {
-	su.clearedLocation = true
+	su.mutation.ClearLocation()
 	return su
 }
 
 // ClearSourceFile clears the source_file edge to File.
 func (su *SurveyUpdate) ClearSourceFile() *SurveyUpdate {
-	su.clearedSourceFile = true
+	su.mutation.ClearSourceFile()
 	return su
 }
 
 // RemoveQuestionIDs removes the questions edge to SurveyQuestion by ids.
-func (su *SurveyUpdate) RemoveQuestionIDs(ids ...string) *SurveyUpdate {
-	if su.removedQuestions == nil {
-		su.removedQuestions = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.removedQuestions[ids[i]] = struct{}{}
-	}
+func (su *SurveyUpdate) RemoveQuestionIDs(ids ...int) *SurveyUpdate {
+	su.mutation.RemoveQuestionIDs(ids...)
 	return su
 }
 
 // RemoveQuestions removes questions edges to SurveyQuestion.
 func (su *SurveyUpdate) RemoveQuestions(s ...*SurveyQuestion) *SurveyUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -200,17 +169,35 @@ func (su *SurveyUpdate) RemoveQuestions(s ...*SurveyQuestion) *SurveyUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (su *SurveyUpdate) Save(ctx context.Context) (int, error) {
-	if su.update_time == nil {
+	if _, ok := su.mutation.UpdateTime(); !ok {
 		v := survey.UpdateDefaultUpdateTime()
-		su.update_time = &v
+		su.mutation.SetUpdateTime(v)
 	}
-	if len(su.location) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"location\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(su.hooks) == 0 {
+		affected, err = su.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			su.mutation = mutation
+			affected, err = su.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(su.hooks); i > 0; i-- {
+			mut = su.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, su.mutation); err != nil {
+			return 0, err
+		}
 	}
-	if len(su.source_file) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"source_file\"")
-	}
-	return su.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -236,71 +223,71 @@ func (su *SurveyUpdate) ExecX(ctx context.Context) {
 }
 
 func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   survey.Table,
 			Columns: survey.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: survey.FieldID,
 			},
 		},
 	}
 	if ps := su.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value := su.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := su.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldUpdateTime,
 		})
 	}
-	if value := su.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := su.mutation.Name(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldName,
 		})
 	}
-	if value := su.owner_name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := su.mutation.OwnerName(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldOwnerName,
 		})
 	}
-	if su.clearowner_name {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if su.mutation.OwnerNameCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: survey.FieldOwnerName,
 		})
 	}
-	if value := su.creation_timestamp; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := su.mutation.CreationTimestamp(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldCreationTimestamp,
 		})
 	}
-	if su.clearcreation_timestamp {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if su.mutation.CreationTimestampCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: survey.FieldCreationTimestamp,
 		})
 	}
-	if value := su.completion_timestamp; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := su.mutation.CompletionTimestamp(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldCompletionTimestamp,
 		})
 	}
-	if su.clearedLocation {
+	if su.mutation.LocationCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -309,14 +296,14 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.location; len(nodes) > 0 {
+	if nodes := su.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -325,21 +312,17 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if su.clearedSourceFile {
+	if su.mutation.SourceFileCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -348,14 +331,14 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.source_file; len(nodes) > 0 {
+	if nodes := su.mutation.SourceFileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -364,21 +347,17 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := su.removedQuestions; len(nodes) > 0 {
+	if nodes := su.mutation.RemovedQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -387,21 +366,17 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.questions; len(nodes) > 0 {
+	if nodes := su.mutation.QuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -410,22 +385,20 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{survey.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -436,32 +409,19 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // SurveyUpdateOne is the builder for updating a single Survey entity.
 type SurveyUpdateOne struct {
 	config
-	id string
-
-	update_time             *time.Time
-	name                    *string
-	owner_name              *string
-	clearowner_name         bool
-	creation_timestamp      *time.Time
-	clearcreation_timestamp bool
-	completion_timestamp    *time.Time
-	location                map[string]struct{}
-	source_file             map[string]struct{}
-	questions               map[string]struct{}
-	clearedLocation         bool
-	clearedSourceFile       bool
-	removedQuestions        map[string]struct{}
+	hooks    []Hook
+	mutation *SurveyMutation
 }
 
 // SetName sets the name field.
 func (suo *SurveyUpdateOne) SetName(s string) *SurveyUpdateOne {
-	suo.name = &s
+	suo.mutation.SetName(s)
 	return suo
 }
 
 // SetOwnerName sets the owner_name field.
 func (suo *SurveyUpdateOne) SetOwnerName(s string) *SurveyUpdateOne {
-	suo.owner_name = &s
+	suo.mutation.SetOwnerName(s)
 	return suo
 }
 
@@ -475,14 +435,13 @@ func (suo *SurveyUpdateOne) SetNillableOwnerName(s *string) *SurveyUpdateOne {
 
 // ClearOwnerName clears the value of owner_name.
 func (suo *SurveyUpdateOne) ClearOwnerName() *SurveyUpdateOne {
-	suo.owner_name = nil
-	suo.clearowner_name = true
+	suo.mutation.ClearOwnerName()
 	return suo
 }
 
 // SetCreationTimestamp sets the creation_timestamp field.
 func (suo *SurveyUpdateOne) SetCreationTimestamp(t time.Time) *SurveyUpdateOne {
-	suo.creation_timestamp = &t
+	suo.mutation.SetCreationTimestamp(t)
 	return suo
 }
 
@@ -496,28 +455,24 @@ func (suo *SurveyUpdateOne) SetNillableCreationTimestamp(t *time.Time) *SurveyUp
 
 // ClearCreationTimestamp clears the value of creation_timestamp.
 func (suo *SurveyUpdateOne) ClearCreationTimestamp() *SurveyUpdateOne {
-	suo.creation_timestamp = nil
-	suo.clearcreation_timestamp = true
+	suo.mutation.ClearCreationTimestamp()
 	return suo
 }
 
 // SetCompletionTimestamp sets the completion_timestamp field.
 func (suo *SurveyUpdateOne) SetCompletionTimestamp(t time.Time) *SurveyUpdateOne {
-	suo.completion_timestamp = &t
+	suo.mutation.SetCompletionTimestamp(t)
 	return suo
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (suo *SurveyUpdateOne) SetLocationID(id string) *SurveyUpdateOne {
-	if suo.location == nil {
-		suo.location = make(map[string]struct{})
-	}
-	suo.location[id] = struct{}{}
+func (suo *SurveyUpdateOne) SetLocationID(id int) *SurveyUpdateOne {
+	suo.mutation.SetLocationID(id)
 	return suo
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (suo *SurveyUpdateOne) SetNillableLocationID(id *string) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetNillableLocationID(id *int) *SurveyUpdateOne {
 	if id != nil {
 		suo = suo.SetLocationID(*id)
 	}
@@ -530,16 +485,13 @@ func (suo *SurveyUpdateOne) SetLocation(l *Location) *SurveyUpdateOne {
 }
 
 // SetSourceFileID sets the source_file edge to File by id.
-func (suo *SurveyUpdateOne) SetSourceFileID(id string) *SurveyUpdateOne {
-	if suo.source_file == nil {
-		suo.source_file = make(map[string]struct{})
-	}
-	suo.source_file[id] = struct{}{}
+func (suo *SurveyUpdateOne) SetSourceFileID(id int) *SurveyUpdateOne {
+	suo.mutation.SetSourceFileID(id)
 	return suo
 }
 
 // SetNillableSourceFileID sets the source_file edge to File by id if the given value is not nil.
-func (suo *SurveyUpdateOne) SetNillableSourceFileID(id *string) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetNillableSourceFileID(id *int) *SurveyUpdateOne {
 	if id != nil {
 		suo = suo.SetSourceFileID(*id)
 	}
@@ -552,19 +504,14 @@ func (suo *SurveyUpdateOne) SetSourceFile(f *File) *SurveyUpdateOne {
 }
 
 // AddQuestionIDs adds the questions edge to SurveyQuestion by ids.
-func (suo *SurveyUpdateOne) AddQuestionIDs(ids ...string) *SurveyUpdateOne {
-	if suo.questions == nil {
-		suo.questions = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.questions[ids[i]] = struct{}{}
-	}
+func (suo *SurveyUpdateOne) AddQuestionIDs(ids ...int) *SurveyUpdateOne {
+	suo.mutation.AddQuestionIDs(ids...)
 	return suo
 }
 
 // AddQuestions adds the questions edges to SurveyQuestion.
 func (suo *SurveyUpdateOne) AddQuestions(s ...*SurveyQuestion) *SurveyUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -573,30 +520,25 @@ func (suo *SurveyUpdateOne) AddQuestions(s ...*SurveyQuestion) *SurveyUpdateOne 
 
 // ClearLocation clears the location edge to Location.
 func (suo *SurveyUpdateOne) ClearLocation() *SurveyUpdateOne {
-	suo.clearedLocation = true
+	suo.mutation.ClearLocation()
 	return suo
 }
 
 // ClearSourceFile clears the source_file edge to File.
 func (suo *SurveyUpdateOne) ClearSourceFile() *SurveyUpdateOne {
-	suo.clearedSourceFile = true
+	suo.mutation.ClearSourceFile()
 	return suo
 }
 
 // RemoveQuestionIDs removes the questions edge to SurveyQuestion by ids.
-func (suo *SurveyUpdateOne) RemoveQuestionIDs(ids ...string) *SurveyUpdateOne {
-	if suo.removedQuestions == nil {
-		suo.removedQuestions = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.removedQuestions[ids[i]] = struct{}{}
-	}
+func (suo *SurveyUpdateOne) RemoveQuestionIDs(ids ...int) *SurveyUpdateOne {
+	suo.mutation.RemoveQuestionIDs(ids...)
 	return suo
 }
 
 // RemoveQuestions removes questions edges to SurveyQuestion.
 func (suo *SurveyUpdateOne) RemoveQuestions(s ...*SurveyQuestion) *SurveyUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -605,17 +547,35 @@ func (suo *SurveyUpdateOne) RemoveQuestions(s ...*SurveyQuestion) *SurveyUpdateO
 
 // Save executes the query and returns the updated entity.
 func (suo *SurveyUpdateOne) Save(ctx context.Context) (*Survey, error) {
-	if suo.update_time == nil {
+	if _, ok := suo.mutation.UpdateTime(); !ok {
 		v := survey.UpdateDefaultUpdateTime()
-		suo.update_time = &v
+		suo.mutation.SetUpdateTime(v)
 	}
-	if len(suo.location) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
+
+	var (
+		err  error
+		node *Survey
+	)
+	if len(suo.hooks) == 0 {
+		node, err = suo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			suo.mutation = mutation
+			node, err = suo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(suo.hooks); i > 0; i-- {
+			mut = suo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, suo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(suo.source_file) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"source_file\"")
-	}
-	return suo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -641,65 +601,69 @@ func (suo *SurveyUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   survey.Table,
 			Columns: survey.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  suo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: survey.FieldID,
 			},
 		},
 	}
-	if value := suo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	id, ok := suo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Survey.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := suo.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldUpdateTime,
 		})
 	}
-	if value := suo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := suo.mutation.Name(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldName,
 		})
 	}
-	if value := suo.owner_name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := suo.mutation.OwnerName(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldOwnerName,
 		})
 	}
-	if suo.clearowner_name {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if suo.mutation.OwnerNameCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: survey.FieldOwnerName,
 		})
 	}
-	if value := suo.creation_timestamp; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := suo.mutation.CreationTimestamp(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldCreationTimestamp,
 		})
 	}
-	if suo.clearcreation_timestamp {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if suo.mutation.CreationTimestampCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: survey.FieldCreationTimestamp,
 		})
 	}
-	if value := suo.completion_timestamp; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := suo.mutation.CompletionTimestamp(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldCompletionTimestamp,
 		})
 	}
-	if suo.clearedLocation {
+	if suo.mutation.LocationCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -708,14 +672,14 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.location; len(nodes) > 0 {
+	if nodes := suo.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -724,21 +688,17 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if suo.clearedSourceFile {
+	if suo.mutation.SourceFileCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -747,14 +707,14 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.source_file; len(nodes) > 0 {
+	if nodes := suo.mutation.SourceFileIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -763,21 +723,17 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := suo.removedQuestions; len(nodes) > 0 {
+	if nodes := suo.mutation.RemovedQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -786,21 +742,17 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.questions; len(nodes) > 0 {
+	if nodes := suo.mutation.QuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -809,25 +761,23 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	s = &Survey{config: suo.config}
-	spec.Assign = s.assignValues
-	spec.ScanValues = s.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, suo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = s.assignValues
+	_spec.ScanValues = s.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, suo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{survey.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

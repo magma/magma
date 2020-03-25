@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash effadb21633039a002b824553a7319df
+ * @relayHash fdc776485407d71b23ef4c0861e1c02c
  */
 
 /* eslint-disable */
@@ -35,8 +35,11 @@ export type WorkOrderDetailsPaneQueryRendererQuery = {|
 query WorkOrderDetailsPaneQueryRendererQuery(
   $workOrderId: ID!
 ) {
-  workOrder(id: $workOrderId) {
-    ...WorkOrderDetailsPane_workOrder
+  workOrder: node(id: $workOrderId) {
+    __typename
+    ... on WorkOrder {
+      ...WorkOrderDetailsPane_workOrder
+    }
     id
   }
 }
@@ -152,6 +155,14 @@ fragment WorkOrderDetailsPaneLinkItem_link on Link {
         }
       }
       ...EquipmentBreadcrumbs_equipment
+    }
+    serviceEndpoints {
+      role
+      service {
+        name
+        id
+      }
+      id
     }
   }
   workOrder {
@@ -425,6 +436,10 @@ v20 = {
   "storageKey": null
 },
 v21 = [
+  (v3/*: any*/),
+  (v2/*: any*/)
+],
+v22 = [
   (v2/*: any*/),
   (v8/*: any*/),
   {
@@ -570,10 +585,7 @@ v21 = [
                 "args": null,
                 "concreteType": "LocationType",
                 "plural": false,
-                "selections": [
-                  (v3/*: any*/),
-                  (v2/*: any*/)
-                ]
+                "selections": (v21/*: any*/)
               }
             ]
           },
@@ -617,6 +629,35 @@ v21 = [
               }
             ]
           }
+        ]
+      },
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "serviceEndpoints",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "ServiceEndpoint",
+        "plural": true,
+        "selections": [
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "role",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "service",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "Service",
+            "plural": false,
+            "selections": (v21/*: any*/)
+          },
+          (v2/*: any*/)
         ]
       }
     ]
@@ -730,17 +771,23 @@ return {
     "selections": [
       {
         "kind": "LinkedField",
-        "alias": null,
-        "name": "workOrder",
+        "alias": "workOrder",
+        "name": "node",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "WorkOrder",
+        "concreteType": null,
         "plural": false,
         "selections": [
           {
-            "kind": "FragmentSpread",
-            "name": "WorkOrderDetailsPane_workOrder",
-            "args": null
+            "kind": "InlineFragment",
+            "type": "WorkOrder",
+            "selections": [
+              {
+                "kind": "FragmentSpread",
+                "name": "WorkOrderDetailsPane_workOrder",
+                "args": null
+              }
+            ]
           }
         ]
       }
@@ -753,54 +800,67 @@ return {
     "selections": [
       {
         "kind": "LinkedField",
-        "alias": null,
-        "name": "workOrder",
+        "alias": "workOrder",
+        "name": "node",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "WorkOrder",
+        "concreteType": null,
         "plural": false,
         "selections": [
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "__typename",
+            "args": null,
+            "storageKey": null
+          },
           (v2/*: any*/),
-          (v3/*: any*/),
           {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "equipmentToAdd",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "Equipment",
-            "plural": true,
-            "selections": (v7/*: any*/)
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "equipmentToRemove",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "Equipment",
-            "plural": true,
-            "selections": (v7/*: any*/)
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "linksToAdd",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "Link",
-            "plural": true,
-            "selections": (v21/*: any*/)
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "linksToRemove",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "Link",
-            "plural": true,
-            "selections": (v21/*: any*/)
+            "kind": "InlineFragment",
+            "type": "WorkOrder",
+            "selections": [
+              (v3/*: any*/),
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "equipmentToAdd",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Equipment",
+                "plural": true,
+                "selections": (v7/*: any*/)
+              },
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "equipmentToRemove",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Equipment",
+                "plural": true,
+                "selections": (v7/*: any*/)
+              },
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "linksToAdd",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Link",
+                "plural": true,
+                "selections": (v22/*: any*/)
+              },
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "linksToRemove",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Link",
+                "plural": true,
+                "selections": (v22/*: any*/)
+              }
+            ]
           }
         ]
       }
@@ -810,11 +870,11 @@ return {
     "operationKind": "query",
     "name": "WorkOrderDetailsPaneQueryRendererQuery",
     "id": null,
-    "text": "query WorkOrderDetailsPaneQueryRendererQuery(\n  $workOrderId: ID!\n) {\n  workOrder(id: $workOrderId) {\n    ...WorkOrderDetailsPane_workOrder\n    id\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment WorkOrderDetailsPaneEquipmentItem_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  parentLocation {\n    id\n    name\n    locationType {\n      id\n      name\n    }\n  }\n  parentPosition {\n    id\n    definition {\n      name\n      visibleLabel\n      id\n    }\n    parentEquipment {\n      id\n      name\n    }\n  }\n}\n\nfragment WorkOrderDetailsPaneLinkItem_link on Link {\n  id\n  futureState\n  ports {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n      portType {\n        linkPropertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n        id\n      }\n    }\n    parentEquipment {\n      id\n      name\n      futureState\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          bandwidth\n          portType {\n            id\n            name\n          }\n        }\n      }\n      ...EquipmentBreadcrumbs_equipment\n    }\n  }\n  workOrder {\n    id\n    status\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n  services {\n    id\n    name\n  }\n}\n\nfragment WorkOrderDetailsPane_workOrder on WorkOrder {\n  id\n  name\n  equipmentToAdd {\n    id\n    ...WorkOrderDetailsPaneEquipmentItem_equipment\n  }\n  equipmentToRemove {\n    id\n    ...WorkOrderDetailsPaneEquipmentItem_equipment\n  }\n  linksToAdd {\n    id\n    ...WorkOrderDetailsPaneLinkItem_link\n  }\n  linksToRemove {\n    id\n    ...WorkOrderDetailsPaneLinkItem_link\n  }\n}\n",
+    "text": "query WorkOrderDetailsPaneQueryRendererQuery(\n  $workOrderId: ID!\n) {\n  workOrder: node(id: $workOrderId) {\n    __typename\n    ... on WorkOrder {\n      ...WorkOrderDetailsPane_workOrder\n    }\n    id\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment WorkOrderDetailsPaneEquipmentItem_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  parentLocation {\n    id\n    name\n    locationType {\n      id\n      name\n    }\n  }\n  parentPosition {\n    id\n    definition {\n      name\n      visibleLabel\n      id\n    }\n    parentEquipment {\n      id\n      name\n    }\n  }\n}\n\nfragment WorkOrderDetailsPaneLinkItem_link on Link {\n  id\n  futureState\n  ports {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n      portType {\n        linkPropertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n        id\n      }\n    }\n    parentEquipment {\n      id\n      name\n      futureState\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          bandwidth\n          portType {\n            id\n            name\n          }\n        }\n      }\n      ...EquipmentBreadcrumbs_equipment\n    }\n    serviceEndpoints {\n      role\n      service {\n        name\n        id\n      }\n      id\n    }\n  }\n  workOrder {\n    id\n    status\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n  services {\n    id\n    name\n  }\n}\n\nfragment WorkOrderDetailsPane_workOrder on WorkOrder {\n  id\n  name\n  equipmentToAdd {\n    id\n    ...WorkOrderDetailsPaneEquipmentItem_equipment\n  }\n  equipmentToRemove {\n    id\n    ...WorkOrderDetailsPaneEquipmentItem_equipment\n  }\n  linksToAdd {\n    id\n    ...WorkOrderDetailsPaneLinkItem_link\n  }\n  linksToRemove {\n    id\n    ...WorkOrderDetailsPaneLinkItem_link\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c60870515377dc5406e452d0951c9230';
+(node/*: any*/).hash = 'cc9a79bc9155445e523632a0125fb0fc';
 module.exports = node;

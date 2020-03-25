@@ -19,9 +19,9 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/gateway/mconfig"
-	"magma/orc8r/gateway/mconfig/test/testcfg"
+	"magma/gateway/mconfig"
+	"magma/gateway/mconfig/test/testcfg"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 // JSON to recreate scenario with "static" mconfig file

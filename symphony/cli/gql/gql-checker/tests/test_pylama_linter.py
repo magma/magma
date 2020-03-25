@@ -1,10 +1,10 @@
+#!/usr/bin/env python3
+
 import ast
 import os
 
 import pytest
-
 from gql_checker import pylama_linter
-
 from tests.utils import extract_expected_errors
 
 
@@ -28,8 +28,7 @@ def load_test_cases():
 
 
 @pytest.mark.parametrize(
-    "filename, expected_codes, expected_messages",
-    load_test_cases()
+    "filename, expected_codes, expected_messages", load_test_cases()
 )
 def test_expected_error(filename, expected_codes, expected_messages):
     checker = pylama_linter.Linter()
@@ -38,13 +37,11 @@ def test_expected_error(filename, expected_codes, expected_messages):
     codes = []
     messages = []
 
-    options = {
-        "gql_introspection_schema": "./tests/introspection_schema.json"
-    }
+    options = {"gql_introspection_schema": "./tests/introspection_schema.json"}
 
     for error in checker.run(filename, **options):
-        codes.append(error['type'])
-        messages.append(error['text'])
+        codes.append(error["type"])
+        messages.append(error["text"])
 
     assert codes == expected_codes
     assert set(messages) >= set(expected_messages)

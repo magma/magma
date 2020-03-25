@@ -110,8 +110,11 @@ const portsConnectDialogQuery = graphql`
             bandwidth
           }
         }
-        ports {
-          ...AvailablePortsTable_ports
+        descendentsIncludingSelf {
+          ports(availableOnly: true) {
+            id
+            ...AvailablePortsTable_ports
+          }
         }
       }
     }
@@ -193,10 +196,14 @@ class PortsConnectDialog extends React.Component<Props, State> {
             }}
             render={props => {
               const {equipment} = props;
+              const availablePorts = equipment.descendentsIncludingSelf
+                .map(a => a.ports)
+                .flat()
+                .filter(p => p.id != this.props.port.id);
               return (
                 <AvailablePortsTable
                   equipment={nullthrows(activeEquipement)}
-                  ports={equipment.ports}
+                  ports={availablePorts}
                   selectedPort={targetPort}
                   onPortSelected={this.handlePortSelected}
                 />

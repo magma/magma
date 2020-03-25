@@ -8,11 +8,12 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 )
 
@@ -20,7 +21,7 @@ import (
 type SurveyWiFiScan struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -47,39 +48,91 @@ type SurveyWiFiScan struct {
 	Latitude float64 `json:"latitude,omitempty"`
 	// Longitude holds the value of the "longitude" field.
 	Longitude float64 `json:"longitude,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyWiFiScanQuery when eager-loading is set.
+	Edges                             SurveyWiFiScanEdges `json:"edges"`
+	survey_wi_fi_scan_survey_question *int
+	survey_wi_fi_scan_location        *int
+}
+
+// SurveyWiFiScanEdges holds the relations/edges for other nodes in the graph.
+type SurveyWiFiScanEdges struct {
+	// SurveyQuestion holds the value of the survey_question edge.
+	SurveyQuestion *SurveyQuestion
+	// Location holds the value of the location edge.
+	Location *Location
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// SurveyQuestionOrErr returns the SurveyQuestion value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyWiFiScanEdges) SurveyQuestionOrErr() (*SurveyQuestion, error) {
+	if e.loadedTypes[0] {
+		if e.SurveyQuestion == nil {
+			// The edge survey_question was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: surveyquestion.Label}
+		}
+		return e.SurveyQuestion, nil
+	}
+	return nil, &NotLoadedError{edge: "survey_question"}
+}
+
+// LocationOrErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyWiFiScanEdges) LocationOrErr() (*Location, error) {
+	if e.loadedTypes[1] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SurveyWiFiScan) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullTime{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullString{},  // ssid
+		&sql.NullString{},  // bssid
+		&sql.NullTime{},    // timestamp
+		&sql.NullInt64{},   // frequency
+		&sql.NullInt64{},   // channel
+		&sql.NullString{},  // band
+		&sql.NullInt64{},   // channel_width
+		&sql.NullString{},  // capabilities
+		&sql.NullInt64{},   // strength
+		&sql.NullFloat64{}, // latitude
+		&sql.NullFloat64{}, // longitude
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyWiFiScan) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // survey_wi_fi_scan_survey_question
+		&sql.NullInt64{}, // survey_wi_fi_scan_location
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the SurveyWiFiScan fields.
 func (swfs *SurveyWiFiScan) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(surveywifiscan.Columns); m != n {
+	if m, n := len(values), len(surveywifiscan.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	swfs.ID = strconv.FormatInt(value.Int64, 10)
+	swfs.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -146,24 +199,39 @@ func (swfs *SurveyWiFiScan) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		swfs.Longitude = value.Float64
 	}
+	values = values[13:]
+	if len(values) == len(surveywifiscan.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_wi_fi_scan_survey_question", value)
+		} else if value.Valid {
+			swfs.survey_wi_fi_scan_survey_question = new(int)
+			*swfs.survey_wi_fi_scan_survey_question = int(value.Int64)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_wi_fi_scan_location", value)
+		} else if value.Valid {
+			swfs.survey_wi_fi_scan_location = new(int)
+			*swfs.survey_wi_fi_scan_location = int(value.Int64)
+		}
+	}
 	return nil
 }
 
 // QuerySurveyQuestion queries the survey_question edge of the SurveyWiFiScan.
 func (swfs *SurveyWiFiScan) QuerySurveyQuestion() *SurveyQuestionQuery {
-	return (&SurveyWiFiScanClient{swfs.config}).QuerySurveyQuestion(swfs)
+	return (&SurveyWiFiScanClient{config: swfs.config}).QuerySurveyQuestion(swfs)
 }
 
 // QueryLocation queries the location edge of the SurveyWiFiScan.
 func (swfs *SurveyWiFiScan) QueryLocation() *LocationQuery {
-	return (&SurveyWiFiScanClient{swfs.config}).QueryLocation(swfs)
+	return (&SurveyWiFiScanClient{config: swfs.config}).QueryLocation(swfs)
 }
 
 // Update returns a builder for updating this SurveyWiFiScan.
 // Note that, you need to call SurveyWiFiScan.Unwrap() before calling this method, if this SurveyWiFiScan
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (swfs *SurveyWiFiScan) Update() *SurveyWiFiScanUpdateOne {
-	return (&SurveyWiFiScanClient{swfs.config}).UpdateOne(swfs)
+	return (&SurveyWiFiScanClient{config: swfs.config}).UpdateOne(swfs)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -210,12 +278,6 @@ func (swfs *SurveyWiFiScan) String() string {
 	builder.WriteString(fmt.Sprintf("%v", swfs.Longitude))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (swfs *SurveyWiFiScan) id() int {
-	id, _ := strconv.Atoi(swfs.ID)
-	return id
 }
 
 // SurveyWiFiScans is a parsable slice of SurveyWiFiScan.

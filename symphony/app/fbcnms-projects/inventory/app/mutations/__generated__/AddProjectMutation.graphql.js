@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a1b8ee4eaec60d2110548b2b5a4c17ab
+ * @relayHash 4a460d55957cd1132935c5b1dffd2abd
  */
 
 /* eslint-disable */
@@ -45,7 +45,7 @@ export type AddProjectMutationVariables = {|
   input: AddProjectInput
 |};
 export type AddProjectMutationResponse = {|
-  +createProject: ?{|
+  +createProject: {|
     +$fragmentRefs: ProjectsTableView_projects$ref
   |}
 |};

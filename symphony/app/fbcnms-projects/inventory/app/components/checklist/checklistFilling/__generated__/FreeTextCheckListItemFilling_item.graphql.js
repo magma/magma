@@ -30,6 +30,7 @@ export type FreeTextCheckListItemFilling_item$data = FreeTextCheckListItemFillin
 export type FreeTextCheckListItemFilling_item$key = {
   +$data?: FreeTextCheckListItemFilling_item$data,
   +$fragmentRefs: FreeTextCheckListItemFilling_item$ref,
+  ...
 };
 */
 

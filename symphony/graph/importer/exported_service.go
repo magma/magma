@@ -7,12 +7,10 @@ package importer
 import (
 	"context"
 	"fmt"
-
-	"github.com/AlekSi/pointer"
-
 	"io"
 	"net/http"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -28,23 +26,46 @@ const minimalLineLength = 6
 // nolint: staticcheck, dupl
 func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	log := m.log.For(ctx)
+	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
+	var (
+		err                    error
+		commitRuns             []bool
+		errs                   Errors
+		modifiedCount, numRows int
+	)
 
+	nextLineToSkipIndex := -1
 	log.Debug("Exported Service - started")
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
 		log.Warn("parsing multipart form", zap.Error(err))
 		http.Error(w, "cannot parse form", http.StatusInternalServerError)
 		return
 	}
-	count, numRows := 0, 0
+
+	skipLines, verifyBeforeCommit, err := m.parseImportArgs(r)
+	if err != nil {
+		errorReturn(w, "can't parse form or arguments", log, err)
+		return
+	}
+
+	if pointer.GetBool(verifyBeforeCommit) {
+		commitRuns = []bool{false, true}
+	} else {
+		commitRuns = []bool{true}
+	}
+	startSaving := false
 
 	for fileName := range r.MultipartForm.File {
-		first, reader, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, ImportEntityService)
+		first, _, err := m.newReader(fileName, r)
 		if err != nil {
 			log.Warn("creating csv reader", zap.Error(err), zap.String("filename", fileName))
 			http.Error(w, fmt.Sprintf("cannot handle file: %q. file name: %q", err, fileName), http.StatusInternalServerError)
+			return
+		}
+		importHeader, err := NewImportHeader(first, ImportEntityService)
+		if err != nil {
+			errorReturn(w, "error on header", log, err)
 			return
 		}
 
@@ -55,118 +76,169 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 			http.Error(w, fmt.Sprintf("first line validation error: %q", err), http.StatusBadRequest)
 			return
 		}
-		if err != nil {
-			log.Warn("data fetching error", zap.Error(err))
-			http.Error(w, fmt.Sprintf("data fetching error: %s", err.Error()), http.StatusInternalServerError)
-			return
-		}
-		for {
-			untrimmedLine, err := reader.Read()
-			if err != nil {
-				if err == io.EOF {
-					break
-				}
-				log.Warn("cannot read row", zap.Error(err))
-				continue
+		for _, commit := range commitRuns {
+			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
+			if commit && pointer.GetBool(verifyBeforeCommit) && len(errs) != 0 {
+				break
+			} else if commit && len(errs) == 0 {
+				startSaving = true
 			}
-			numRows++
-			importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
-			name := importLine.Name()
-			serviceTypName := importLine.TypeName()
-			serviceType, err := client.ServiceType.Query().Where(servicetype.Name(serviceTypName)).Only(ctx)
+			if len(skipLines) > 0 {
+				nextLineToSkipIndex = 0
+			}
+			numRows, modifiedCount = 0, 0
+			_, reader, err := m.newReader(fileName, r)
 			if err != nil {
-				log.Warn("couldn't find service type", zap.Error(err), zap.String("service_type", serviceTypName))
-				http.Error(w, fmt.Sprintf("couldn't find service type %q (row #%d). %q ", serviceTypName, numRows, err), http.StatusBadRequest)
+				errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
 				return
 			}
-
-			var customerID *string = nil
-			customerName := importLine.CustomerName()
-			if customerName != "" {
-				customer, err := m.getOrCreateCustomer(ctx, m.r.Mutation(), customerName, importLine.CustomerExternalID())
+			for {
+				untrimmedLine, err := reader.Read()
 				if err != nil {
-					log.Error("add customer", zap.String("name", importLine.CustomerName()), zap.Error(err))
-					http.Error(w, fmt.Sprintf("add customer with name %q (row #%d). %q", importLine.CustomerName(), numRows, err.Error()), http.StatusBadRequest)
-					return
+					if err == io.EOF {
+						break
+					}
+					log.Warn("cannot read row", zap.Error(err))
+					continue
 				}
-				if customer != nil {
-					customerID = &customer.ID
+				numRows++
+				if shouldSkipLine(skipLines, numRows, nextLineToSkipIndex) {
+					log.Warn("skipping line", zap.Error(err), zap.Int("line_number", numRows))
+					nextLineToSkipIndex++
+					continue
 				}
-			}
-
-			externalID := pointer.ToStringOrNil(importLine.ServiceExternalID())
-
-			status, err := m.getValidatedStatus(importLine)
-			if err != nil {
-				errorReturn(w, fmt.Sprintf("failed parsing status with value %q (row #%d)", importLine.Status(), numRows), log, nil)
-				return
-			}
-
-			id := importLine.ID()
-			var propInputs []*models.PropertyInput
-			if importLine.Len() > importHeader.PropertyStartIdx() {
-				propInputs, err = m.validatePropertiesForServiceType(ctx, importLine, serviceType)
+				importLine, err := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
 				if err != nil {
-					log.Warn("validating property for type", zap.Error(err))
-					http.Error(w, fmt.Sprintf("validating property for type %q (row #%d). %q", serviceType.Name, numRows, err.Error()), http.StatusBadRequest)
-					return
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
 				}
-			}
-			if id == "" {
-				service, created := m.getOrCreateService(ctx, m.r.Mutation(), name, serviceType, propInputs, customerID, externalID, *status)
-				if created {
-					count++
-					log.Warn(fmt.Sprintf("(row #%d) creating service", numRows), zap.String("name", service.Name), zap.String("id", service.ID))
-				} else {
-					errorReturn(w, fmt.Sprintf("(row #%d) Service %v already exists under location/position (id=%v)", numRows, service.Name, service.ID), log, nil)
-					return
-				}
-			} else {
-				// existingService
-				service, err := m.validateLineForExistingService(ctx, id, importLine)
+				name := importLine.Name()
+				serviceTypName := importLine.TypeName()
+				serviceType, err := client.ServiceType.Query().Where(servicetype.Name(serviceTypName)).Only(ctx)
 				if err != nil {
-					log.Warn("validating existing service", zap.Error(err), importLine.ZapField())
-					http.Error(w, fmt.Sprintf("%q: validating existing service: id %q (row #%d)", err, id, numRows), http.StatusBadRequest)
-					return
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("couldn't find service type %v", serviceTypName)})
+					continue
 				}
-				for _, propInput := range propInputs {
-					propID, err := service.QueryProperties().Where(property.HasTypeWith(propertytype.ID(propInput.PropertyTypeID))).OnlyID(ctx)
-					if err != nil {
-						if !ent.IsNotFound(err) {
-							log.Warn("property fetching error", zap.Error(err), importLine.ZapField())
-							http.Error(w, fmt.Sprintf("%q: property fetching error: property type id %q (row #%d)", err, propInput.PropertyTypeID, numRows), http.StatusBadRequest)
-							return
-						}
+
+				var customerID *int
+				customerName := importLine.CustomerName()
+				if customerName != "" {
+					var customer *ent.Customer
+					if commit {
+						customer, err = m.getOrCreateCustomer(ctx, m.r.Mutation(), customerName, importLine.CustomerExternalID())
 					} else {
-						propInput.ID = &propID
+						customer, err = m.getCustomerIfExist(ctx, customerName)
+					}
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("add customer with name %v", importLine.CustomerName())})
+						continue
+					}
+					if customer != nil {
+						customerID = &customer.ID
 					}
 				}
-				_, err = m.r.Mutation().EditService(ctx, models.ServiceEditData{
-					ID:         id,
-					Name:       &name,
-					Properties: propInputs,
-					ExternalID: externalID,
-					CustomerID: customerID,
-					Status:     status,
-				})
+
+				externalID := pointer.ToStringOrNil(importLine.ServiceExternalID())
+
+				status, err := m.getValidatedStatus(importLine)
 				if err != nil {
-					log.Warn("editing service", zap.Error(err), importLine.ZapField())
-					http.Error(w, fmt.Sprintf("editing service: id %q (row #%d). %q: ", id, numRows, err), http.StatusBadRequest)
-					return
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("failed parsing status with value %v", importLine.Status())})
+					continue
+				}
+
+				id := importLine.ID()
+				var propInputs []*models.PropertyInput
+				if importLine.Len() > importHeader.PropertyStartIdx() {
+					propInputs, err = m.validatePropertiesForServiceType(ctx, importLine, serviceType)
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("validating property for type %v", serviceType.Name)})
+						continue
+					}
+				}
+				if id == 0 {
+					var (
+						created bool
+						service *ent.Service
+					)
+
+					if commit {
+						_, created, err = m.getOrCreateService(ctx, m.r.Mutation(), name, serviceType, propInputs, customerID, externalID, *status)
+						if err == nil {
+							if created {
+								modifiedCount++
+								log.Info(fmt.Sprintf("(row #%d) creating service", numRows), zap.String("name", name))
+							} else {
+								errs = append(errs, ErrorLine{Line: numRows, Error: "service exists", Message: fmt.Sprintf("service %v already exists under location/position (id=%v)", service.Name, service.ID)})
+								continue
+							}
+						}
+					} else {
+						service, err = m.getServiceIfExist(ctx, name, serviceType)
+						if service != nil {
+							err = errors.Errorf("service %v already exists", name)
+						}
+					}
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "error while creating/fetching service"})
+						continue
+					}
+				} else {
+					// existingService
+					service, err := m.validateLineForExistingService(ctx, id, importLine)
+					if err != nil {
+						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("validating existing service: id %v", id)})
+						continue
+					}
+
+					propertiesValid := false
+					for i, propInput := range propInputs {
+						propID, err := service.QueryProperties().Where(property.HasTypeWith(propertytype.ID(propInput.PropertyTypeID))).OnlyID(ctx)
+						if err != nil {
+							if !ent.IsNotFound(err) {
+								errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("property fetching error: property type id %v", propInput.PropertyTypeID)})
+								break
+							}
+						} else {
+							propInput.ID = &propID
+						}
+
+						if i == len(propInputs)-1 {
+							propertiesValid = true
+						}
+					}
+					if !propertiesValid {
+						continue
+					}
+					if commit {
+						_, err = m.r.Mutation().EditService(ctx, models.ServiceEditData{
+							ID:         id,
+							Name:       &name,
+							Properties: propInputs,
+							ExternalID: externalID,
+							CustomerID: customerID,
+							Status:     status,
+						})
+						modifiedCount++
+						if err != nil {
+							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("editing service: id %v", id)})
+							continue
+						}
+					}
 				}
 			}
 		}
 	}
 	log.Debug("Exported Service - Done")
 	w.WriteHeader(http.StatusOK)
-	err := writeSuccessMessage(w, count, numRows, nil, true)
+	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0, startSaving)
+
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return
 	}
 }
 
-func (m *importer) validateLineForExistingService(ctx context.Context, serviceID string, importLine ImportRecord) (*ent.Service, error) {
+func (m *importer) validateLineForExistingService(ctx context.Context, serviceID int, importLine ImportRecord) (*ent.Service, error) {
 	service, err := m.r.Query().Service(ctx, serviceID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching service")
@@ -192,6 +264,11 @@ func (m *importer) getValidatedStatus(importLine ImportRecord) (*models.ServiceS
 }
 
 func (m *importer) validatePropertiesForServiceType(ctx context.Context, line ImportRecord, serviceType *ent.ServiceType) ([]*models.PropertyInput, error) {
+	err := line.validatePropertiesMismatch(ctx, []interface{}{serviceType})
+	if err != nil {
+		return nil, err
+	}
+
 	var pInputs []*models.PropertyInput
 	propTypes, err := serviceType.QueryPropertyTypes().All(ctx)
 	if ent.MaskNotFound(err) != nil {
@@ -203,7 +280,9 @@ func (m *importer) validatePropertiesForServiceType(ctx context.Context, line Im
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, pInput)
+		if pInput != nil {
+			pInputs = append(pInputs, pInput)
+		}
 	}
 	return pInputs, nil
 }

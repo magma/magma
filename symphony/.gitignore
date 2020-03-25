@@ -25,7 +25,7 @@
 .hgtags
 cli/dist
 cli/build
-cli/pyinventory.egg-info
+cli/*.egg-info
 
 ### Terraform ###
 # Local .terraform directories

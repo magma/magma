@@ -20,7 +20,7 @@ import (
 
 // processPortDefinitionsCSV imports port types and assign them to equipments (from CSV file to DB)
 func (m *importer) processPortDefinitionsCSV(w http.ResponseWriter, r *http.Request) {
-	log := m.log.For(r.Context())
+	log := m.logger.For(r.Context())
 	log.Debug("PortDefinitions- started")
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
 		log.Warn("parsing multipart form", zap.Error(err))
@@ -101,7 +101,7 @@ func (m *importer) processPortDefinitionsCSV(w http.ResponseWriter, r *http.Requ
 			}
 
 			equipTypeID := equipmentTypeNameToID[equipmentTypeName]
-			if equipTypeID == "" {
+			if equipTypeID == 0 {
 				log.Warn("cannot find equipment of port - creating new",
 					zap.String("name", name),
 					zap.String("equipment", equipmentTypeName),
@@ -132,7 +132,7 @@ func (m *importer) processPortDefinitionsCSV(w http.ResponseWriter, r *http.Requ
 			} else {
 				log.Debug("port definition exists",
 					zap.String("name", name),
-					zap.String("et", equipTypeID),
+					zap.Int("type", equipTypeID),
 				)
 			}
 		}

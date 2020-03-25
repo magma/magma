@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash cfb26a4277f95c9991ed1ce3553425fb
+ * @relayHash 2fa6d21f872c80bb7fea04e24d8ff0a9
  */
 
 /* eslint-disable */
@@ -26,7 +26,7 @@ export type AddServiceEndpointMutationVariables = {|
   input: AddServiceEndpointInput
 |};
 export type AddServiceEndpointMutationResponse = {|
-  +addServiceEndpoint: ?{|
+  +addServiceEndpoint: {|
     +$fragmentRefs: ServiceCard_service$ref
   |}
 |};

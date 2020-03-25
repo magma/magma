@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // WorkOrderDelete is the builder for deleting a WorkOrder entity.
 type WorkOrderDelete struct {
 	config
+	hooks      []Hook
+	mutation   *WorkOrderMutation
 	predicates []predicate.WorkOrder
 }
 
@@ -30,7 +33,30 @@ func (wod *WorkOrderDelete) Where(ps ...predicate.WorkOrder) *WorkOrderDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (wod *WorkOrderDelete) Exec(ctx context.Context) (int, error) {
-	return wod.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(wod.hooks) == 0 {
+		affected, err = wod.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*WorkOrderMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			wod.mutation = mutation
+			affected, err = wod.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(wod.hooks); i > 0; i-- {
+			mut = wod.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, wod.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (wod *WorkOrderDelete) ExecX(ctx context.Context) int {
 }
 
 func (wod *WorkOrderDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: workorder.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workorder.FieldID,
 			},
 		},
 	}
 	if ps := wod.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, wod.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, wod.driver, _spec)
 }
 
 // WorkOrderDeleteOne is the builder for deleting a single WorkOrder entity.
@@ -74,7 +100,7 @@ func (wodo *WorkOrderDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{workorder.Label}
+		return &NotFoundError{workorder.Label}
 	default:
 		return nil
 	}

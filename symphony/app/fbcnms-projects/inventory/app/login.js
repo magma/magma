@@ -10,6 +10,8 @@
 
 import '@fbcnms/babel-register/polyfill';
 
+import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
+
 import LoginForm from '@fbcnms/ui/components/auth/LoginForm.js';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -23,6 +25,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 
 function LoginWrapper() {
   const {history, location} = useRouter();
+  const appData: AppContextAppData = window.CONFIG.appData;
   let error;
   if (location.search.includes('invalid=true')) {
     error = fbt(
@@ -33,10 +36,12 @@ function LoginWrapper() {
   return (
     <LoginForm
       action={history.createHref({pathname: '/user/login'})}
-      ssoAction={history.createHref({pathname: '/user/login/saml'})}
+      ssoAction={history.createHref({
+        pathname: '/user/login/' + appData.ssoSelectedType,
+      })}
       title={fbt('Connectivity Platform', 'Main page title')}
-      isSSO={window.CONFIG.appData.isSSO}
-      csrfToken={window.CONFIG.appData.csrfToken}
+      ssoEnabled={appData.ssoEnabled}
+      csrfToken={appData.csrfToken}
       error={error}
     />
   );

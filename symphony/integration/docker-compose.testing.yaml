@@ -22,6 +22,8 @@ services:
   pytest:
     build:
       context: ${FBCODE_FBC_DIR}/symphony
-      dockerfile: integration/pytests/Dockerfile
+      dockerfile: cli/tests/Dockerfile
+    volumes:
+      - ${FBCODE_FBC_DIR}/symphony:/src/symphony:delegated
     networks:
       - private

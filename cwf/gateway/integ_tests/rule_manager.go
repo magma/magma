@@ -24,11 +24,16 @@ import (
 // redis database by using policyDBWrapper.
 type RuleManager struct {
 	// List of static rules successfully inserted into the policyDB store
-	staticRules []*lteProtos.PolicyRule
+	staticRuleDefs []*lteProtos.PolicyRule
+	// List of basename -> rule names mapping successfully inserted into the
+	// policyDB store
+	baseNameMappings []*lteProtos.ChargingRuleBaseNameRecord
 	// List of dynamic rules successfully installed into PCRF
-	dynamicRules []*fegProtos.AccountRules
+	accountRules []*fegProtos.AccountRules
 	// List of usage monitors successfully installed into PCRF
-	monitors []*fegProtos.UsageMonitorInfo
+	monitors []*fegProtos.UsageMonitorConfiguration
+	// List of network wide static rules successfully inserted into the policyDB store
+	omniPresentRules []*lteProtos.AssignedPolicies
 	// Wrapper around redis operations for policyDB objects
 	policyDBWrapper *policyDBWrapper
 }
@@ -44,51 +49,67 @@ func NewRuleManager() (*RuleManager, error) {
 	}, nil
 }
 
-// AddStaticPassAll adds a static rule that passes all traffic to policyDB
+// AddStaticPassAllToDB adds a static rule that passes all traffic to policyDB
 // storage
-func (manager *RuleManager) AddStaticPassAll(ruleID string, monitoringKey string) error {
+func (manager *RuleManager) AddStaticPassAllToDB(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) error {
 	fmt.Printf("************************* Adding a Pass-All static rule: %s\n", ruleID)
-	staticPassAll := getStaticPassAll(ruleID, monitoringKey)
+	staticPassAll := getStaticPassAll(ruleID, monitoringKey, ratingGroup, trackingType, priority, nil)
 	return manager.insertStaticRuleIntoRedis(staticPassAll)
 }
 
-// AddStaticRule adds the static rule to policyDB storage
-func (manager *RuleManager) AddStaticRule(rule *lteProtos.PolicyRule) error {
+// AddStaticRuleToDB adds the static rule to policyDB storage
+func (manager *RuleManager) AddStaticRuleToDB(rule *lteProtos.PolicyRule) error {
 	fmt.Printf("************************* Adding a static rule: %s\n", rule.Id)
 	return manager.insertStaticRuleIntoRedis(rule)
 }
 
-// AddDynamicPassAll adds a dynamic rule that passes all traffic into PCRF
-func (manager *RuleManager) AddDynamicPassAll(imsi, ruleID, monitoringKey string) error {
+// AddDynamicPassAllToPCRF adds a dynamic rule that passes all traffic into PCRF
+func (manager *RuleManager) AddDynamicPassAllToPCRF(imsi, ruleID, monitoringKey string) error {
 	fmt.Printf("************************* Adding Pass-All Dynamic Rule for UE with IMSI: %s, ruleID: %s\n", imsi, ruleID)
-	dynamicPassAll := getDynamicPassAll(imsi, ruleID, monitoringKey)
-	return manager.addDynamicRules(dynamicPassAll)
+	dynamicPassAll := getAccountRulesWithDynamicPassAll(imsi, ruleID, monitoringKey)
+	return manager.addAccountRules(dynamicPassAll)
 }
 
-// AddDynamicRules adds the dynamic rule into PCRF
-func (manager *RuleManager) AddDynamicRules(imsi string, ruleNames, baseNames []string) error {
+// AddRulesToPCRF adds the dynamic rule into PCRF
+func (manager *RuleManager) AddRulesToPCRF(imsi string, ruleNames, baseNames []string) error {
 	fmt.Printf("************************* Adding PCRF Rule for UE with IMSI: %s"+
 		" with ruleNames=%v, baseNames=%v\n", imsi, ruleNames, baseNames)
-	rules := makeDynamicRules(imsi, ruleNames, baseNames)
-	return manager.addDynamicRules(rules)
+	rules := makeAccountRules(imsi, ruleNames, baseNames)
+	return manager.addAccountRules(rules)
+}
+
+func (manager *RuleManager) AddBaseNameMappingToDB(basename string, ruleNames []string) error {
+	fmt.Printf("************************* Adding a base name mapping of %s -> %v\n", basename, ruleNames)
+	record := &lteProtos.ChargingRuleBaseNameRecord{
+		Name:         basename,
+		RuleNamesSet: &lteProtos.ChargingRuleNameSet{RuleNames: ruleNames},
+	}
+	return manager.insertBaseNameMappingIntoRedis(record)
+}
+
+// AddOmniPresentRulesToDB adds the network wide static rule to policyDB storage
+func (manager *RuleManager) AddOmniPresentRulesToDB(keyId string, ruleNames, baseNames []string) error {
+	fmt.Printf("************************* Adding a network wide rule\n")
+	rule := makeAssignedRules(ruleNames, baseNames)
+	return manager.insertOmniPresentRuleIntoRedis(keyId, rule)
 }
 
 // GetInstalledRulesByIMSI returns all dynamic rule ids and static rules
 // referenced by dynamic rules keyed by the IMSI they are attached to.
 func (manager *RuleManager) GetInstalledRulesByIMSI() map[string][]string {
 	installedRulesByIMSI := map[string][]string{}
-	for _, dynamicRules := range manager.dynamicRules {
-		rules, exists := installedRulesByIMSI[dynamicRules.Imsi]
+	for _, accountRules := range manager.accountRules {
+		rules, exists := installedRulesByIMSI[accountRules.Imsi]
 		if !exists {
 			rules = []string{}
 		}
-		for _, ruleID := range dynamicRules.RuleNames {
+		for _, ruleID := range accountRules.StaticRuleNames {
 			rules = append(rules, ruleID)
 		}
-		for _, dynamicRule := range dynamicRules.RuleDefinitions {
-			rules = append(rules, dynamicRule.ChargineRuleName)
+		for _, dynamicRule := range accountRules.DynamicRuleDefinitions {
+			rules = append(rules, dynamicRule.RuleName)
 		}
-		installedRulesByIMSI[dynamicRules.Imsi] = rules
+		installedRulesByIMSI[accountRules.Imsi] = rules
 	}
 	return installedRulesByIMSI
 }
@@ -101,6 +122,12 @@ func (manager *RuleManager) RemoveInstalledRules() error {
 		if err != nil {
 			return err
 		}
+		for _, ruleID := range ruleIDs {
+			manager.policyDBWrapper.policyMap.Delete(ruleID)
+		}
+	}
+	for _, baseNameRecord := range manager.baseNameMappings {
+		manager.policyDBWrapper.baseNameMap.Delete(baseNameRecord.Name)
 	}
 	return nil
 }
@@ -110,59 +137,87 @@ func (manager *RuleManager) RemoveInstalledRules() error {
 func (manager *RuleManager) AddUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) error {
 	fmt.Printf("************************* Adding PCRF Usage Monitor for UE with IMSI: %s\n", imsi)
 	usageMonitor := makeUsageMonitor(imsi, monitoringKey, volume, bytesPerGrant)
+	err := addPCRFUsageMonitors(usageMonitor)
+	if err != nil {
+		return err
+	}
 	manager.monitors = append(manager.monitors, usageMonitor)
-	return addPCRFUsageMonitors(usageMonitor)
+	return nil
 }
 
 func (manager *RuleManager) insertStaticRuleIntoRedis(rule *lteProtos.PolicyRule) error {
 	err := manager.policyDBWrapper.policyMap.Set(rule.Id, rule)
 	if err != nil {
-		manager.staticRules = append(manager.staticRules, rule)
+		return err
 	}
-	return err
+	manager.staticRuleDefs = append(manager.staticRuleDefs, rule)
+	return nil
 }
 
-func (manager *RuleManager) addDynamicRules(rules *fegProtos.AccountRules) error {
+func (manager *RuleManager) insertBaseNameMappingIntoRedis(record *lteProtos.ChargingRuleBaseNameRecord) error {
+	err := manager.policyDBWrapper.baseNameMap.Set(record.GetName(), record.GetRuleNamesSet())
+	if err != nil {
+		return err
+	}
+	manager.baseNameMappings = append(manager.baseNameMappings, record)
+	return nil
+}
+
+func (manager *RuleManager) insertOmniPresentRuleIntoRedis(keyID string, rule *lteProtos.AssignedPolicies) error {
+	err := manager.policyDBWrapper.omniPresentRules.Set(keyID, rule)
+	if err != nil {
+		return err
+	}
+	manager.omniPresentRules = append(manager.omniPresentRules, rule)
+	return nil
+}
+
+func (manager *RuleManager) addAccountRules(rules *fegProtos.AccountRules) error {
 	err := addPCRFRules(rules)
 	if err != nil {
-		manager.dynamicRules = append(manager.dynamicRules, rules)
+		return err
 	}
-	return err
+	manager.accountRules = append(manager.accountRules, rules)
+	return nil
 }
 
-func getDynamicPassAll(imsi, ruleID, monitoringKey string) *fegProtos.AccountRules {
+func getAccountRulesWithDynamicPassAll(imsi, ruleID, monitoringKey string) *fegProtos.AccountRules {
 	return &fegProtos.AccountRules{
-		Imsi:          imsi,
-		RuleNames:     []string{},
-		RuleBaseNames: []string{},
-		RuleDefinitions: []*fegProtos.RuleDefinition{
-			{
-				ChargineRuleName: ruleID,
-				Precedence:       100,
-				FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
-				MonitoringKey:    monitoringKey,
-			},
+		Imsi:                imsi,
+		StaticRuleNames:     []string{},
+		StaticRuleBaseNames: []string{},
+		DynamicRuleDefinitions: []*fegProtos.RuleDefinition{
+			getPassAllRuleDefinition(ruleID, monitoringKey, 100),
 		},
 	}
 }
 
-func makeDynamicRules(imsi string, ruleNames []string, baseNames []string) *fegProtos.AccountRules {
+func makeAccountRules(imsi string, ruleNames []string, baseNames []string) *fegProtos.AccountRules {
 	return &fegProtos.AccountRules{
-		Imsi:          imsi,
-		RuleNames:     ruleNames,
-		RuleBaseNames: baseNames,
+		Imsi:                imsi,
+		StaticRuleNames:     ruleNames,
+		StaticRuleBaseNames: baseNames,
 	}
 }
 
-func makeUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) *fegProtos.UsageMonitorInfo {
-	return &fegProtos.UsageMonitorInfo{
+func makeAssignedRules(ruleNames []string, baseNames []string) *lteProtos.AssignedPolicies {
+	return &lteProtos.AssignedPolicies{
+		AssignedPolicies:  ruleNames,
+		AssignedBaseNames: baseNames,
+	}
+}
+
+func makeUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) *fegProtos.UsageMonitorConfiguration {
+	return &fegProtos.UsageMonitorConfiguration{
 		Imsi: imsi,
-		UsageMonitorCredits: []*fegProtos.UsageMonitorCredit{
+		UsageMonitorCredits: []*fegProtos.UsageMonitor{
 			{
-				MonitoringKey:   monitoringKey,
-				Volume:          volume,
-				ReturnBytes:     bytesPerGrant,
-				MonitoringLevel: fegProtos.UsageMonitorCredit_RuleLevel,
+				MonitorInfoPerRequest: &fegProtos.UsageMonitoringInformation{
+					MonitoringKey:   []byte(monitoringKey),
+					MonitoringLevel: fegProtos.MonitoringLevel_RuleLevel,
+					Octets:          &fegProtos.Octets{TotalOctets: bytesPerGrant},
+				},
+				TotalQuota: &fegProtos.Octets{TotalOctets: volume},
 			},
 		},
 	}

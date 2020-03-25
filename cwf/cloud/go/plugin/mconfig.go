@@ -16,10 +16,10 @@ import (
 	"magma/cwf/cloud/go/plugin/models"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
-	merrors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/protos"
-	orc8rmconfig "magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	orc8rmconfig "magma/orc8r/lib/go/protos/mconfig"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
@@ -85,6 +85,10 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	if err != nil {
 		return ret, err
 	}
+	ipdrExportDst, err := getPipelineDIpdrExportDst(gwConfig.IPDRExportDst)
+	if err != nil {
+		return ret, err
+	}
 
 	eapAka := nwConfig.EapAka
 	aaa := nwConfig.AaaServer
@@ -106,6 +110,7 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		RelayEnabled:    true,
 		Services:        pipelineDServices,
 		AllowedGrePeers: allowedGrePeers,
+		IpdrExportDst:   ipdrExportDst,
 	}
 	ret["sessiond"] = &ltemconfig.SessionD{
 		LogLevel:     protos.LogLevel_INFO,
@@ -128,6 +133,17 @@ func getPipelineDAllowedGrePeers(allowedGrePeers models.AllowedGrePeers) ([]*lte
 	return ues, nil
 }
 
+func getPipelineDIpdrExportDst(ipdrExportDst *models.IPDRExportDst) (*ltemconfig.PipelineD_IPDRExportDst, error) {
+	if ipdrExportDst == nil {
+		return nil, nil
+	}
+	dst := &ltemconfig.PipelineD_IPDRExportDst{
+		Ip:   ipdrExportDst.IP.String(),
+		Port: ipdrExportDst.Port,
+	}
+	return dst, nil
+}
+
 func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.PipelineD_NetworkServices, error) {
 	apps := make([]ltemconfig.PipelineD_NetworkServices, 0, len(networkServices))
 	for _, service := range networkServices {
@@ -136,11 +152,6 @@ func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.Pipeline
 			log.Printf("CWAG: unknown network service name %s", service)
 		} else {
 			apps = append(apps, mc)
-		}
-	}
-	if len(apps) == 0 {
-		apps = []ltemconfig.PipelineD_NetworkServices{
-			ltemconfig.PipelineD_ENFORCEMENT,
 		}
 	}
 	return apps, nil

@@ -11,9 +11,8 @@ package alert_test
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/metrics"
-	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
@@ -90,27 +89,43 @@ func TestFile_DeleteRule(t *testing.T) {
 
 func TestSecureRule(t *testing.T) {
 	rule := sampleRule
-	err := alert.SecureRule("test", &rule)
+	err := alert.SecureRule(true, "tenantID", "test", &rule)
 	assert.NoError(t, err)
 
-	networkLabels := map[string]string{metrics.NetworkLabelName: "test"}
-	restrictor := security.NewQueryRestrictor(networkLabels)
-	expectedExpr, _ := restrictor.RestrictQuery(sampleRule.Expr)
+	queryRestrictor := restrictor.NewQueryRestrictor(restrictor.DefaultOpts).AddMatcher("tenantID", "test")
+	expectedExpr, _ := queryRestrictor.RestrictQuery(sampleRule.Expr)
 
 	assert.Equal(t, expectedExpr, rule.Expr)
 	assert.Equal(t, 2, len(rule.Labels))
-	assert.Equal(t, "test", rule.Labels[metrics.NetworkLabelName])
+	assert.Equal(t, "test", rule.Labels["tenantID"])
 
 	existingNetworkIDRule := rulefmt.Rule{
 		Alert:  alertName2,
-		Expr:   `up{networkID="test"} == 0`,
-		Labels: map[string]string{"name": "value", "networkID": "test"},
+		Expr:   `up{tenantID="test"} == 0`,
+		Labels: map[string]string{"name": "value", "tenantID": "test"},
 	}
-	restricted, _ := restrictor.RestrictQuery(existingNetworkIDRule.Expr)
-	// assert networkID isn't appended twice
+	restricted, _ := queryRestrictor.RestrictQuery(existingNetworkIDRule.Expr)
+	// assert tenantID isn't appended twice
 	assert.Equal(t, expectedExpr, restricted)
 	assert.Equal(t, 2, len(rule.Labels))
 
+	// assert expression is not restricted when restrictQueries is false
+	rule = sampleRule
+	origRule := sampleRule.Expr
+	err = alert.SecureRule(false, "tenantID", "test", &rule)
+	assert.NoError(t, err)
+	assert.Equal(t, origRule, rule.Expr)
+
+	rule = rulefmt.Rule{
+		Alert: "test",
+		Expr:  "up == 0",
+	}
+	restricted, _ = queryRestrictor.RestrictQuery(rule.Expr)
+	err = alert.SecureRule(true, "tenantID", "test", &rule)
+	assert.NoError(t, err)
+	assert.Equal(t, restricted, rule.Expr)
+	assert.Equal(t, 1, len(rule.Labels))
+	assert.Equal(t, "test", rule.Labels["tenantID"])
 }
 
 func TestRuleJSONWrapper_ToRuleFmt(t *testing.T) {

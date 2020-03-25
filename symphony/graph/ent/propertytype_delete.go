@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // PropertyTypeDelete is the builder for deleting a PropertyType entity.
 type PropertyTypeDelete struct {
 	config
+	hooks      []Hook
+	mutation   *PropertyTypeMutation
 	predicates []predicate.PropertyType
 }
 
@@ -30,7 +33,30 @@ func (ptd *PropertyTypeDelete) Where(ps ...predicate.PropertyType) *PropertyType
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ptd *PropertyTypeDelete) Exec(ctx context.Context) (int, error) {
-	return ptd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(ptd.hooks) == 0 {
+		affected, err = ptd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*PropertyTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ptd.mutation = mutation
+			affected, err = ptd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(ptd.hooks); i > 0; i-- {
+			mut = ptd.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ptd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (ptd *PropertyTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (ptd *PropertyTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: propertytype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: propertytype.FieldID,
 			},
 		},
 	}
 	if ps := ptd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ptd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ptd.driver, _spec)
 }
 
 // PropertyTypeDeleteOne is the builder for deleting a single PropertyType entity.
@@ -74,7 +100,7 @@ func (ptdo *PropertyTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{propertytype.Label}
+		return &NotFoundError{propertytype.Label}
 	default:
 		return nil
 	}

@@ -9,14 +9,15 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/spf13/cobra"
 )
@@ -35,6 +36,7 @@ var networkID string
 var gatewayID string
 
 func main() {
+	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 
 	services = registry.ListAllServices()

@@ -12,7 +12,7 @@ import (
 
 type floorPlanResolver struct{}
 
-func (floorPlanResolver) LocationID(ctx context.Context, obj *ent.FloorPlan) (string, error) {
+func (floorPlanResolver) LocationID(ctx context.Context, obj *ent.FloorPlan) (int, error) {
 	return obj.QueryLocation().FirstID(ctx)
 }
 

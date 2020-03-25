@@ -36,7 +36,7 @@ extern "C" {
 #include "state_converter.h"
 #include "lte/gateway/c/oai/protos/3gpp_types.pb.h"
 #include "lte/gateway/c/oai/protos/spgw_state.pb.h"
-#include "sgw_types.h"
+#include "spgw_types.h"
 #include "pgw_types.h"
 #include "pgw_procedures.h"
 #include "spgw_state.h"
@@ -69,81 +69,17 @@ class SpgwStateConverter : StateConverter {
     const gateway::spgw::SpgwState& proto,
     spgw_state_t* spgw_state);
 
+  static void ue_to_proto(
+    const s_plus_p_gw_eps_bearer_context_information_t* ue_state,
+    gateway::spgw::S11BearerContext* ue_proto);
+
+  static void proto_to_ue(
+    const gateway::spgw::S11BearerContext& spgw_bearer_proto,
+    s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state);
+
  private:
   SpgwStateConverter();
   ~SpgwStateConverter();
-
-  /**
-   * Converts SGW state to proto, memory is owned by the caller
-   * @param sgw_state sgw state struct
-   * @param proto object to write to
-   */
-  static void sgw_state_to_proto(const sgw_state_t* sgw_state,
-                                 gateway::spgw::SgwState* proto);
-
-  /**
-   * Converts SGW proto to stater
-   * @param proto object to read from
-   * @param sgw_state sgw state struct to write to
-   */
-  static void sgw_proto_to_state(
-    const gateway::spgw::SgwState &proto,
-    sgw_state_t *sgw_state);
-
-  /**
-   * Converts PGW state to proto, memory is owned by the caller
-   * @param pgw_state pgw state struct
-   * @param proto object to write to
-   */
-  static void pgw_state_to_proto(const pgw_state_t* pgw_state,
-                                 gateway::spgw::PgwState* proto);
-
-  /**
-   * Converts PGW proto to state
-   * @param proto object to read from
-   * @param pgw_state pgw state struct
-   */
-  static void pgw_proto_to_state(
-    const gateway::spgw::PgwState &proto,
-    pgw_state_t *pgw_state);
-
-  /**
-   * Converts s11teid_mme hashtable object to proto, memory owned by the caller
-   * @param state_map
-   * @param proto_map Map protobuf object to write to
-   */
-  static void s11teid_mme_ht_to_proto(
-      hash_table_ts_t* state_map,
-      google::protobuf::Map<unsigned int, gateway::spgw::MmeSgwTunnel>*
-          proto_map);
-
-  /**
-   * Converts s11bearer_context hashtable object to proto,
-   * memory owned by the caller
-   * @param state_map
-   * @param proto_map Map protobuf object to write to
-   */
-  static void s11bearer_context_ht_to_proto(
-      hash_table_ts_t* state_map,
-      google::protobuf::Map<unsigned int, gateway::spgw::S11BearerContext>*
-          proto_map);
-
-  /**
-   * Converts mme sgw tunnel struct to proto, memory is owned by the caller
-   * @param tunnel
-   * @param proto
-   */
-  static void mme_sgw_tunnel_to_proto(const mme_sgw_tunnel_t* tunnel,
-                                      gateway::spgw::MmeSgwTunnel* proto);
-
-  /**
-   * Converts mme proto to sgw tunnel struct
-   * @param proto
-   * @param tunnel
-   */
-  static void proto_to_mme_sgw_tunnel(
-      const gateway::spgw::MmeSgwTunnel &proto,
-      mme_sgw_tunnel_t *tunnel);
 
   /**
    * Converts spgw bearer context struct to proto, memory is owned by the caller
@@ -151,8 +87,8 @@ class SpgwStateConverter : StateConverter {
    * @param spgw_bearer_proto
    */
   static void spgw_bearer_context_to_proto(
-      const s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state,
-      gateway::spgw::S11BearerContext* spgw_bearer_proto);
+    const s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state,
+    gateway::spgw::S11BearerContext* spgw_bearer_proto);
 
   /**
    * Converts proto to spgw bearer context struct
@@ -160,17 +96,17 @@ class SpgwStateConverter : StateConverter {
    * @param spgw_bearer_state
    */
   static void proto_to_spgw_bearer_context(
-      const gateway::spgw::S11BearerContext &spgw_bearer_proto,
-      s_plus_p_gw_eps_bearer_context_information_t *spgw_bearer_state);
+    const gateway::spgw::S11BearerContext& spgw_bearer_proto,
+    s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state);
 
   /**
    * Converts sgw eps bearer struct to proto, memory is owned by the caller
    * @param eps_bearer
    * @param eps_bearer_proto
    */
-  static void
-  sgw_eps_bearer_to_proto(const sgw_eps_bearer_ctxt_t* eps_bearer,
-                          gateway::spgw::SgwEpsBearerContext* eps_bearer_proto);
+  static void sgw_eps_bearer_to_proto(
+    const sgw_eps_bearer_ctxt_t* eps_bearer,
+    gateway::spgw::SgwEpsBearerContext* eps_bearer_proto);
 
   /**
    * Converts proto to sgw eps bearer struct to proto
@@ -178,17 +114,17 @@ class SpgwStateConverter : StateConverter {
    * @param eps_bearer
    */
   static void proto_to_sgw_eps_bearer(
-      const gateway::spgw::SgwEpsBearerContext &eps_bearer_proto,
-      sgw_eps_bearer_ctxt_t *eps_bearer);
+    const gateway::spgw::SgwEpsBearerContext& eps_bearer_proto,
+    sgw_eps_bearer_ctxt_t* eps_bearer);
 
   /**
    * Converts sgw pdn connection struct to proto, memory is owned by the caller
    * @param state_pdn
    * @param proto_pdn
    */
-  static void
-  sgw_pdn_connection_to_proto(const sgw_pdn_connection_t* state_pdn,
-                              gateway::spgw::SgwPdnConnection* proto_pdn);
+  static void sgw_pdn_connection_to_proto(
+    const sgw_pdn_connection_t* state_pdn,
+    gateway::spgw::SgwPdnConnection* proto_pdn);
 
   /**
    * Converts proto to sgw pdn connection struct
@@ -196,8 +132,8 @@ class SpgwStateConverter : StateConverter {
    * @param state_pdn
    */
   static void proto_to_sgw_pdn_connection(
-      const gateway::spgw::SgwPdnConnection &proto,
-      sgw_pdn_connection_t *state_pdn);
+    const gateway::spgw::SgwPdnConnection& proto,
+    sgw_pdn_connection_t* state_pdn);
 
   /**
    * Converts itti_s11_create_session_request struct to proto, memory is
@@ -206,8 +142,8 @@ class SpgwStateConverter : StateConverter {
    * @param proto
    */
   static void sgw_create_session_message_to_proto(
-      const itti_s11_create_session_request_t* session_request,
-      gateway::spgw::CreateSessionMessage* proto);
+    const itti_s11_create_session_request_t* session_request,
+    gateway::spgw::CreateSessionMessage* proto);
 
   /**
    * Converts proto to itti_s11_create_session_request struct
@@ -215,8 +151,8 @@ class SpgwStateConverter : StateConverter {
    * @param session_request
    */
   static void proto_to_sgw_create_session_message(
-      const gateway::spgw::CreateSessionMessage &proto,
-      itti_s11_create_session_request_t *session_request);
+    const gateway::spgw::CreateSessionMessage& proto,
+    itti_s11_create_session_request_t* session_request);
 
   /**
    * Converts sgw pending procedures entries list to proto, memory is
@@ -225,9 +161,9 @@ class SpgwStateConverter : StateConverter {
    * @param proto
    */
   static void sgw_pending_procedures_to_proto(
-      const sgw_eps_bearer_context_information_t::pending_procedures_s*
+    const sgw_eps_bearer_context_information_t::pending_procedures_s*
       procedures,
-      gateway::spgw::SgwEpsBearerContextInfo* proto);
+    gateway::spgw::SgwEpsBearerContextInfo* proto);
 
   /**
    * Converts proto to sgw pending procedures entries list
@@ -235,8 +171,8 @@ class SpgwStateConverter : StateConverter {
    * @param procedures LIST entries of bearer pending procedures
    */
   static void proto_to_sgw_pending_procedures(
-      const gateway::spgw::SgwEpsBearerContextInfo &proto,
-      sgw_eps_bearer_context_information_t::pending_procedures_s *procedures);
+    const gateway::spgw::SgwEpsBearerContextInfo& proto,
+    sgw_eps_bearer_context_information_t::pending_procedures_s* procedures);
 
   /**
    * Inserts new procedure struct to eps bearer pending procedures list
@@ -244,9 +180,9 @@ class SpgwStateConverter : StateConverter {
    * @param pending_procedures entries list to insert new proc
    */
   static void insert_proc_into_sgw_pending_procedures(
-      const gateway::spgw::PgwCbrProcedure &proto,
-      sgw_eps_bearer_context_information_t::pending_procedures_s
-      *pending_procedures);
+    const gateway::spgw::PgwCbrProcedure& proto,
+    sgw_eps_bearer_context_information_t::pending_procedures_s*
+      pending_procedures);
 
   /**
    * Converts traffic flow template struct to proto, memory is owned by the
@@ -254,9 +190,9 @@ class SpgwStateConverter : StateConverter {
    * @param tft_state
    * @param tft_proto
    */
-  static void
-  traffic_flow_template_to_proto(const traffic_flow_template_t* tft_state,
-                                 gateway::spgw::TrafficFlowTemplate* tft_proto);
+  static void traffic_flow_template_to_proto(
+    const traffic_flow_template_t* tft_state,
+    gateway::spgw::TrafficFlowTemplate* tft_proto);
 
   /**
    * Converts proto to traffic flow template struct
@@ -264,17 +200,17 @@ class SpgwStateConverter : StateConverter {
    * @param tft_state
    */
   static void proto_to_traffic_flow_template(
-      const gateway::spgw::TrafficFlowTemplate &tft_proto,
-      traffic_flow_template_t *tft_state);
+    const gateway::spgw::TrafficFlowTemplate& tft_proto,
+    traffic_flow_template_t* tft_state);
 
   /**
    * Converts eps bearer QOS struct to proto, memory is owned by the caller
    * @param eps_bearer_qos_state
    * @param eps_bearer_qos_proto
    */
-  static void
-  eps_bearer_qos_to_proto(const bearer_qos_t* eps_bearer_qos_state,
-                          gateway::spgw::BearerQos* eps_bearer_qos_proto);
+  static void eps_bearer_qos_to_proto(
+    const bearer_qos_t* eps_bearer_qos_state,
+    gateway::spgw::BearerQos* eps_bearer_qos_proto);
 
   /**
    * Converts proto to eps bearer QOS struct
@@ -282,16 +218,17 @@ class SpgwStateConverter : StateConverter {
    * @param eps_bearer_qos_state
    */
   static void proto_to_eps_bearer_qos(
-      const gateway::spgw::BearerQos &eps_bearer_qos_proto,
-      bearer_qos_t *eps_bearer_qos_state);
+    const gateway::spgw::BearerQos& eps_bearer_qos_proto,
+    bearer_qos_t* eps_bearer_qos_state);
 
   /**
    * Converts gtpv1u_data struct to proto, memory is owned by the caller
    * @param gtp_data
    * @param gtp_proto
    */
-  static void gtpv1u_data_to_proto(const gtpv1u_data_t* gtp_data,
-                                   gateway::spgw::GTPV1uData* gtp_proto);
+  static void gtpv1u_data_to_proto(
+    const gtpv1u_data_t* gtp_data,
+    gateway::spgw::GTPV1uData* gtp_proto);
 
   /**
    * Converts proto to gtpv1u_data struct
@@ -299,16 +236,17 @@ class SpgwStateConverter : StateConverter {
    * @param gtp_data
    */
   static void proto_to_gtpv1u_data(
-      const gateway::spgw::GTPV1uData &gtp_proto,
-      gtpv1u_data_t *gtp_data);
+    const gateway::spgw::GTPV1uData& gtp_proto,
+    gtpv1u_data_t* gtp_data);
 
   /**
    * Converts port range struct to proto, memory is owned by the caller
    * @param port_range
    * @param port_range_proto
    */
-  static void port_range_to_proto(const port_range_t* port_range,
-                                  PortRange* port_range_proto);
+  static void port_range_to_proto(
+    const port_range_t* port_range,
+    PortRange* port_range_proto);
 
   /**
    * Converts proto to port range struct
@@ -316,17 +254,17 @@ class SpgwStateConverter : StateConverter {
    * @param port_range
    */
   static void proto_to_port_range(
-      const PortRange &port_range_proto,
-      port_range_t *port_range);
+    const PortRange& port_range_proto,
+    port_range_t* port_range);
 
   /**
    * Converts packet filter struct to proto, memory is owned by the caller
    * @param packet_filter
    * @param packet_filter_proto
    */
-  static void
-  packet_filter_to_proto(const packet_filter_t* packet_filter,
-                         gateway::spgw::PacketFilter* packet_filter_proto);
+  static void packet_filter_to_proto(
+    const packet_filter_t* packet_filter,
+    gateway::spgw::PacketFilter* packet_filter_proto);
 
   /**
    * Converts proto to packet filter struct
@@ -334,8 +272,8 @@ class SpgwStateConverter : StateConverter {
    * @param packet_filter
    */
   static void proto_to_packet_filter(
-      const gateway::spgw::PacketFilter &packet_filter_proto,
-      packet_filter_t *packet_filter);
+    const gateway::spgw::PacketFilter& packet_filter_proto,
+    packet_filter_t* packet_filter);
 
   /**
    * Converts pcc_rules hashtable to proto
@@ -343,16 +281,17 @@ class SpgwStateConverter : StateConverter {
    * @param proto_map
    */
   static void pcc_rule_ht_to_proto(
-      hash_table_ts_t* state_map,
-      google::protobuf::Map<unsigned int, gateway::spgw::PccRule>* proto_map);
+    hash_table_ts_t* state_map,
+    google::protobuf::Map<unsigned int, gateway::spgw::PccRule>* proto_map);
 
   /**
    * Converts pcc rule object to proto, memory is owned by the caller
    * @param pcc_rule_state
    * @param proto
    */
-  static void pcc_rule_to_proto(const pcc_rule_t* pcc_rule_state,
-                                gateway::spgw::PccRule* proto);
+  static void pcc_rule_to_proto(
+    const pcc_rule_t* pcc_rule_state,
+    gateway::spgw::PccRule* proto);
 
   /**
    * Converts proto to pcc rule object to proto
@@ -360,8 +299,8 @@ class SpgwStateConverter : StateConverter {
    * @param pcc_rule_state
    */
   static void proto_to_pcc_rule(
-    const gateway::spgw::PccRule &proto,
-    pcc_rule_t *pcc_rule_state);
+    const gateway::spgw::PccRule& proto,
+    pcc_rule_t* pcc_rule_state);
 };
 } // namespace lte
 } // namespace magma

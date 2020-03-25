@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type Technician struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -29,30 +28,51 @@ type Technician struct {
 	Name string `json:"name,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the TechnicianQuery when eager-loading is set.
+	Edges TechnicianEdges `json:"edges"`
+}
+
+// TechnicianEdges holds the relations/edges for other nodes in the graph.
+type TechnicianEdges struct {
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrder
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e TechnicianEdges) WorkOrdersOrErr() ([]*WorkOrder, error) {
+	if e.loadedTypes[0] {
+		return e.WorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "work_orders"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Technician) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // email
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Technician fields.
 func (t *Technician) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(technician.Columns); m != n {
+	if m, n := len(values), len(technician.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	t.ID = strconv.FormatInt(value.Int64, 10)
+	t.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -79,14 +99,14 @@ func (t *Technician) assignValues(values ...interface{}) error {
 
 // QueryWorkOrders queries the work_orders edge of the Technician.
 func (t *Technician) QueryWorkOrders() *WorkOrderQuery {
-	return (&TechnicianClient{t.config}).QueryWorkOrders(t)
+	return (&TechnicianClient{config: t.config}).QueryWorkOrders(t)
 }
 
 // Update returns a builder for updating this Technician.
 // Note that, you need to call Technician.Unwrap() before calling this method, if this Technician
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Technician) Update() *TechnicianUpdateOne {
-	return (&TechnicianClient{t.config}).UpdateOne(t)
+	return (&TechnicianClient{config: t.config}).UpdateOne(t)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -115,12 +135,6 @@ func (t *Technician) String() string {
 	builder.WriteString(t.Email)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (t *Technician) id() int {
-	id, _ := strconv.Atoi(t.ID)
-	return id
 }
 
 // Technicians is a parsable slice of Technician.

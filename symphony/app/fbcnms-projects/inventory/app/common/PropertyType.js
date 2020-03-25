@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -16,6 +16,7 @@ export type PropertyType = {|
   type: PropertyKind,
   name: string,
   index: number,
+  category?: ?string,
   // one or more of the following potential value fields will have actual data,
   // depending on the property type selected for this property.
   // e.g. for 'email' the stringValue field will be populated

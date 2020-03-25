@@ -13,16 +13,18 @@ import (
 	"net"
 
 	"magma/cwf/gateway/registry"
-	"magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 )
 
 const (
-	defaultRadiusAddress = "192.168.70.101:1812"
-	defaultRadiusSecret  = "123456"
-	defaultCwagTestBr    = "cwag_test_br0"
-	defaultBrMac         = "76-02-5B-80-EC-44"
+	defaultRadiusAuthAddress = "192.168.70.101:1812"
+	defaultRadiusAcctAddress = "192.168.70.101:1813"
+	defaultRadiusSecret      = "123456"
+	defaultCwagTestBr        = "cwag_test_br0"
+	defaultBrMac             = "76-02-5B-80-EC-44"
 )
 
 var (
@@ -30,21 +32,19 @@ var (
 	defaultOp  = []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11")
 )
 
-func GetUESimConfig() (*UESimConfig, error) {
+func getUESimConfig() (*UESimConfig, error) {
 	uecfg, err := config.GetServiceConfig("", registry.UeSim)
 	if err != nil {
-		glog.Error(err)
-		return &UESimConfig{
-			op:            defaultOp,
-			amf:           defaultAmf,
-			radiusAddress: string(defaultRadiusAddress),
-			radiusSecret:  string(defaultRadiusSecret),
-			brMac:         defaultBrMac,
-		}, nil
+		glog.Error(errors.Wrap(err, "No service config found, using default config"))
+		return getDefaultUESimConfig(), nil
 	}
-	addr, err := uecfg.GetStringParam("radius_address")
+	authAddr, err := uecfg.GetStringParam("radius_auth_address")
 	if err != nil {
-		addr = defaultRadiusAddress
+		authAddr = defaultRadiusAuthAddress
+	}
+	acctAddr, err := uecfg.GetStringParam("radius_acct_address")
+	if err != nil {
+		acctAddr = defaultRadiusAcctAddress
 	}
 	secret, err := uecfg.GetStringParam("radius_secret")
 	if err != nil {
@@ -58,14 +58,26 @@ func GetUESimConfig() (*UESimConfig, error) {
 	amfBytes := getHexParam(uecfg, "amf", defaultAmf)
 	opBytes := getHexParam(uecfg, "op", defaultOp)
 	glog.Infof("UE SIM Config - OP: %x, AMF: %x, RADIUS Endpoint: %s, RADIUS Secret: %s",
-		opBytes, amfBytes, string(addr), string(secret))
+		opBytes, amfBytes, authAddr, secret)
 	return &UESimConfig{
-		op:            opBytes,
-		amf:           amfBytes,
-		radiusAddress: string(addr),
-		radiusSecret:  string(secret),
-		brMac:         brMac,
+		op:                opBytes,
+		amf:               amfBytes,
+		radiusAuthAddress: authAddr,
+		radiusAcctAddress: acctAddr,
+		radiusSecret:      secret,
+		brMac:             brMac,
 	}, nil
+}
+
+func getDefaultUESimConfig() *UESimConfig {
+	return &UESimConfig{
+		op:                defaultOp,
+		amf:               defaultAmf,
+		radiusAuthAddress: defaultRadiusAuthAddress,
+		radiusAcctAddress: defaultRadiusAcctAddress,
+		radiusSecret:      defaultRadiusSecret,
+		brMac:             defaultBrMac,
+	}
 }
 
 // TODO: Store UE MAC and add necessary OVS flows to allow traffic to use

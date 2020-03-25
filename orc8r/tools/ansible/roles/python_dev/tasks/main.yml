@@ -90,4 +90,11 @@
       - protobuf-compiler
       - python-protobuf
       - libsystemd-dev
+  retries: 5
   when: preburn
+
+- name: install the package, force reinstall to the latest version
+  pip:
+    name: setuptools
+    state: forcereinstall
+    executable: pip3

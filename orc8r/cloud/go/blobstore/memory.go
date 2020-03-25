@@ -14,8 +14,8 @@ import (
 	"sort"
 	"sync"
 
-	magmaerrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/storage"
+	magmaerrors "magma/orc8r/lib/go/errors"
 
 	"github.com/thoas/go-funk"
 )
@@ -132,7 +132,7 @@ func (store *memoryBlobStorage) ListKeys(networkID string, typeVal string) ([]st
 	keySet := store.listKeysFromShared(networkID, typeVal)
 	store.shared.RUnlock()
 
-	return store.updateKeysWithLocalChangesUnsafe(networkID, typeVal, keySet)
+	return store.updateKeysWithLocalChangesUnsafe(networkID, typeVal, keySet), nil
 }
 
 func (store *memoryBlobStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) {
@@ -160,7 +160,22 @@ func (store *memoryBlobStorage) GetMany(networkID string, ids []storage.TypeAndK
 	sharedBlobs := store.getManyFromShared(networkID, ids)
 	store.shared.RUnlock()
 
-	return store.updateBlobsWithLocalChangesUnsafe(networkID, ids, sharedBlobs)
+	return store.updateBlobsWithLocalChangesUnsafe(networkID, ids, sharedBlobs), nil
+}
+
+func (store *memoryBlobStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
+	store.RLock()
+	defer store.RUnlock()
+
+	if err := store.validateTx(); err != nil {
+		return nil, err
+	}
+
+	store.shared.RLock()
+	sharedBlobs := store.searchFromShared(filter)
+	store.shared.RUnlock()
+
+	return store.searchForLocalChangesUnsafe(filter, sharedBlobs), nil
 }
 
 func (store *memoryBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) error {
@@ -312,7 +327,7 @@ func (store *memoryBlobStorage) getExistingKeysAllNetworksFromShared(networkID s
 }
 
 // existingKeysSet is also an outputting parameter
-func (store *memoryBlobStorage) updateSearchedKeysWithLocalChanges(networkID string, keySet keySet, existingKeysSet nIDAndTKSet) error {
+func (store *memoryBlobStorage) updateSearchedKeysWithLocalChanges(networkID string, keySet keySet, existingKeysSet nIDAndTKSet) {
 	for tk, change := range store.changes[networkID] {
 		if _, exists := keySet[tk.Key]; exists {
 			id := networkIDAndTK{networkID: networkID, typeAndKey: tk}
@@ -322,11 +337,10 @@ func (store *memoryBlobStorage) updateSearchedKeysWithLocalChanges(networkID str
 			case CreateOrUpdate:
 				existingKeysSet[id] = nil
 			default:
-				return fmt.Errorf("This transaction contains ill-formatted changes.")
+				panic(fmt.Sprintf("unexpected change type %v", change.cType))
 			}
 		}
 	}
-	return nil
 }
 
 func (set *nIDAndTKSet) sortAndRemoveDuplicate() []string {
@@ -346,7 +360,7 @@ func (store *memoryBlobStorage) validateTx() error {
 
 // Traverse through the changes from the transaction and put them into the
 // shared map. Must be called with write lock on both local and shared maps.
-func (store *memoryBlobStorage) applyChangesToShared() error {
+func (store *memoryBlobStorage) applyChangesToShared() {
 	fact := store.shared.table
 	for networkID, perNetworkChangeMap := range store.changes {
 		for id, change := range perNetworkChangeMap {
@@ -357,11 +371,10 @@ func (store *memoryBlobStorage) applyChangesToShared() error {
 				fact.initializeNetworkTable(networkID)
 				fact[networkID][id] = change.blob
 			default:
-				return fmt.Errorf("This transcaction contains ill-formatted changes.")
+				panic(fmt.Sprintf("unexpected change type %v", change.cType))
 			}
 		}
 	}
-	return nil
 }
 
 // Must be called with write lock on change map.
@@ -391,10 +404,10 @@ func (store *memoryBlobStorage) listKeysFromShared(networkID string, typeVal str
 // Given a networkID, a type, and a map of keys found from the shared map, this
 // function looks through the local map of changes and applies them onto the
 // keys. Must be called with lock on local map.
-func (store *memoryBlobStorage) updateKeysWithLocalChangesUnsafe(networkID string, typeToQuery string, keySetFromShared map[string]struct{}) ([]string, error) {
+func (store *memoryBlobStorage) updateKeysWithLocalChangesUnsafe(networkID string, typeToQuery string, keySetFromShared map[string]struct{}) []string {
 	networkMap, ok := store.changes[networkID]
 	if !ok {
-		return fromKeySet(keySetFromShared), nil
+		return fromKeySet(keySetFromShared)
 	}
 
 	for id, change := range networkMap {
@@ -405,11 +418,11 @@ func (store *memoryBlobStorage) updateKeysWithLocalChangesUnsafe(networkID strin
 			case CreateOrUpdate:
 				keySetFromShared[id.Key] = struct{}{}
 			default:
-				return nil, fmt.Errorf("This transcaction contains ill-formatted changes.")
+				panic(fmt.Sprintf("unexpected change type %v", change.cType))
 			}
 		}
 	}
-	return fromKeySet(keySetFromShared), nil
+	return fromKeySet(keySetFromShared)
 }
 
 // Given a networkID and a list of ids this function looks in the shared map
@@ -432,15 +445,36 @@ func (store *memoryBlobStorage) getManyFromShared(networkID string, ids []storag
 	return blobSet
 }
 
+func (store *memoryBlobStorage) searchFromShared(filter SearchFilter) map[string]blobsByID {
+	ret := map[string]blobsByID{}
+	for networkID, masterTable := range store.shared.table {
+		if filter.NetworkID != nil && networkID != *filter.NetworkID {
+			continue
+		}
+		ret[networkID] = searchInNetwork(masterTable, filter)
+	}
+	return ret
+}
+
+func searchInNetwork(networkBlobs blobsByID, filter SearchFilter) blobsByID {
+	ret := blobsByID{}
+	for id, blob := range networkBlobs {
+		if filter.DoesTKMatch(id) {
+			ret[id] = blob
+		}
+	}
+	return ret
+}
+
 // Given a networkID, a list of ids, and a map of id:blob gathered from
 // getManyFromShared, this function looks through items in the local map that
 // match the given ids and applies the changes onto the blobs. This function
 // returns a list of blobs from the modified map.
 // Must be called with read lock on change map.
-func (store *memoryBlobStorage) updateBlobsWithLocalChangesUnsafe(networkID string, idsToQuery []storage.TypeAndKey, blobsByID blobsByID) ([]Blob, error) {
+func (store *memoryBlobStorage) updateBlobsWithLocalChangesUnsafe(networkID string, idsToQuery []storage.TypeAndKey, blobsByID blobsByID) []Blob {
 	networkMap, existsInLocal := store.changes[networkID]
 	if !existsInLocal {
-		return blobsByID.toBlobList(), nil
+		return blobsByID.toBlobList()
 	}
 
 	for _, id := range idsToQuery {
@@ -448,16 +482,43 @@ func (store *memoryBlobStorage) updateBlobsWithLocalChangesUnsafe(networkID stri
 		if !exists {
 			continue
 		}
-		switch {
-		case change.cType == Delete:
-			delete(blobsByID, id)
-		case change.cType == CreateOrUpdate:
-			blobsByID[id] = change.blob
-		default:
-			return nil, fmt.Errorf("This transcaction contains ill-formatted changes.")
+		applyTxChange(id, change, blobsByID)
+	}
+	return blobsByID.toBlobList()
+}
+
+func (store *memoryBlobStorage) searchForLocalChangesUnsafe(filter SearchFilter, blobsByNetwork map[string]blobsByID) map[string][]Blob {
+	// Lazy approach to keep the code simple: always iterate through the whole
+	// table for the local transaction
+	for networkID, txChanges := range store.changes {
+		if filter.NetworkID != nil && networkID != *filter.NetworkID {
+			continue
+		}
+
+		globalTableResults := blobsByNetwork[networkID]
+		for id, change := range txChanges {
+			applyTxChange(id, change, globalTableResults)
 		}
 	}
-	return blobsByID.toBlobList(), nil
+
+	ret := map[string][]Blob{}
+	for nid, blobs := range blobsByNetwork {
+		if !funk.IsEmpty(blobs) {
+			ret[nid] = blobs.toBlobList()
+		}
+	}
+	return ret
+}
+
+func applyTxChange(id storage.TypeAndKey, c change, blobs blobsByID) {
+	switch c.cType {
+	case Delete:
+		delete(blobs, id)
+	case CreateOrUpdate:
+		blobs[id] = c.blob
+	default:
+		panic(fmt.Sprintf("unexpected change type %v", c.cType))
+	}
 }
 
 // Adds a field if it doesn't exist already.

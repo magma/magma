@@ -36,8 +36,6 @@ extern "C" {
 #include "state_manager.h"
 #include "s1ap_state_converter.h"
 
-using magma::lte::gateway::s1ap::S1apState;
-
 namespace {
 constexpr char S1AP_STATE_TABLE[] = "s1ap_state";
 }
@@ -50,7 +48,12 @@ namespace lte {
  * to maintain S1AP task state, allocating and freeing related state structs.
  */
 class S1apStateManager :
-  public StateManager<s1ap_state_t, S1apState, S1apStateConverter> {
+  public StateManager<
+    s1ap_state_t,
+    ue_description_t,
+    magma::lte::gateway::s1ap::S1apState,
+    magma::lte::gateway::s1ap::UeDescription,
+    S1apStateConverter> {
  public:
   /**
    * Returns an instance of S1apStateManager, guaranteed to be thread safe and
@@ -74,6 +77,16 @@ class S1apStateManager :
    */
   void free_state() override;
 
+  /**
+   * Serializes s1ap_imsi_map to proto and saves it into data store
+   */
+  void put_s1ap_imsi_map();
+
+  /**
+   * Returns a pointer to s1ap_imsi_map
+   */
+  s1ap_imsi_map_t* get_s1ap_imsi_map();
+
  private:
   S1apStateManager();
   ~S1apStateManager();
@@ -83,8 +96,12 @@ class S1apStateManager :
    */
   void create_state() override;
 
+  void create_s1ap_imsi_map();
+  void clear_s1ap_imsi_map();
+
   uint32_t max_ues_;
   uint32_t max_enbs_;
+  s1ap_imsi_map_t* s1ap_imsi_map_;
 };
 } // namespace lte
 } // namespace magma

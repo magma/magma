@@ -56,7 +56,10 @@ class EnforcementController(PolicyMixin, MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
+        self._enforcement_stats_scratch = self._service_manager.get_table_num(
+            EnforcementStatsController.APP_NAME)
         self.loop = kwargs['loop']
+        self._relay_enabled = kwargs['mconfig'].relay_enabled
         self._qos_map = QosQueueMap(
             kwargs['config']['nat_iface'],
             kwargs['config']['enodeb_iface'],
@@ -81,19 +84,14 @@ class EnforcementController(PolicyMixin, MagmaController):
         """
         self._datapath = datapath
 
-        # The next table is dependent on whether enforcement_stats claims a
-        # scratch table, which happens during its initialization. Since
-        # initialization order is non-deterministic, redirect manager is
-        # initialized here instead of in __init__.
-        if self._enforcement_stats_scratch is not None:
-            redirect_next_table = self._enforcement_stats_scratch
-        else:
-            redirect_next_table = self.next_main_table
+        if not self._relay_enabled:
+            self._install_default_flows_if_not_installed(datapath, [])
+
         self._redirect_manager = RedirectionManager(
             self._bridge_ip_address,
             self.logger,
             self.tbl_num,
-            redirect_next_table,
+            self._enforcement_stats_scratch,
             self._redirect_scratch,
             self._session_rule_version_mapper)
 
@@ -118,19 +116,6 @@ class EnforcementController(PolicyMixin, MagmaController):
     @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
-
-    @property
-    def _enforcement_stats_scratch(self):
-        """
-        Scratch tables are claimed during initialization of each app. Since
-        the order of initialization is non-deterministic, the scratch table num
-        for enforcement_stats is only available after its initialization.
-        """
-        tables = self._service_manager.get_scratch_table_nums(
-            EnforcementStatsController.APP_NAME)
-        if tables:
-            return tables[0]  # enforcement_stats only uses 1 scratch
-        return None
 
     def _install_default_flows_if_not_installed(self, datapath,
             existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:

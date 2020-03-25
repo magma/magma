@@ -15,13 +15,12 @@ import (
 )
 
 func TestAddDeleteAndSearchCustomers(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	qr, mr := r.Query(), r.Mutation()
 	ctx := viewertest.NewContext(r.client)
 
-	_, err = mr.AddCustomer(ctx, models.AddCustomerInput{Name: "Donald Duck", ExternalID: pointer.ToString("S43493")})
+	_, err := mr.AddCustomer(ctx, models.AddCustomerInput{Name: "Donald Duck", ExternalID: pointer.ToString("S43493")})
 	require.NoError(t, err)
 
 	c, err := mr.AddCustomer(ctx, models.AddCustomerInput{Name: "Dafi Duck"})

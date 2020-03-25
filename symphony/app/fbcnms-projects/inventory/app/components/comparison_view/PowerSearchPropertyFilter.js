@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -54,7 +54,7 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
       name: 'property',
       operator: editedOperator,
       propertyValue: {
-        id: 'tmp@propertyType',
+        id: String(Math.floor(Math.random() * 10 ** 5)),
         name: newValue.propertyType
           ? newValue.propertyType.name
           : newValue.name,
@@ -93,7 +93,7 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
             inputType="Property"
             property={propertyValue}
             onBlur={e => {
-              if (e.relatedTarget.id === POWER_SEARCH_OPERATOR_ID) {
+              if (e.relatedTarget?.id === POWER_SEARCH_OPERATOR_ID) {
                 return;
               }
               onInputBlurred();
@@ -105,7 +105,10 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
               }
             }}
             onChange={newValue => {
-              if (propertyValue.type === 'enum') {
+              if (
+                propertyValue.type === 'enum' ||
+                propertyValue.type === 'bool'
+              ) {
                 onNewInputBlurred(onChange(newValue));
               } else {
                 onChange(newValue);

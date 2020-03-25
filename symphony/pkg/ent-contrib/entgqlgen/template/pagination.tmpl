@@ -1,0 +1,185 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "pagination" }}
+{{ template "header" $ }}
+
+import (
+	"github.com/ugorji/go/codec"
+)
+
+// PageInfo of a connection type.
+type PageInfo struct {
+	HasNextPage     bool    `json:"hasNextPage"`
+	HasPreviousPage bool    `json:"hasPreviousPage"`
+	StartCursor     *Cursor `json:"startCursor"`
+	EndCursor       *Cursor `json:"endCursor"`
+}
+
+// Cursor of an edge type.
+type Cursor struct {
+	ID {{ $.IDType }}
+}
+
+// ErrInvalidPagination error is returned when paginating with invalid parameters.
+var ErrInvalidPagination = errors.New("ent: invalid pagination parameters")
+
+var quote = []byte(`"`)
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (c Cursor) MarshalGQL(w io.Writer) {
+	w.Write(quote)
+	defer w.Write(quote)
+	wc := base64.NewEncoder(base64.StdEncoding, w)
+	defer wc.Close()
+	_ = codec.NewEncoder(wc, &codec.MsgpackHandle{}).Encode(c)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (c *Cursor) UnmarshalGQL(v interface{}) error {
+	s, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("%T is not a string", v)
+	}
+	if err := codec.NewDecoder(
+		base64.NewDecoder(
+			base64.StdEncoding,
+			strings.NewReader(s),
+		),
+		&codec.MsgpackHandle{},
+	).Decode(c); err != nil {
+		return fmt.Errorf("decode cursor: %w", err)
+	}
+	return nil
+}
+
+{{ range $node := $.Nodes -}}
+{{ $edge := print $node.Name "Edge" -}}
+// {{ $edge }} is the edge representation of {{ $node.Name }}.
+type {{ $edge }} struct {
+	Node *{{ $node.Name }} `json:"node"`
+	Cursor Cursor          `json:"cursor"`
+}
+
+{{ $conn := print $node.Name "Connection" -}}
+// {{ $conn }} is the connection containing edges to {{ $node.Name }}.
+type {{ $conn }} struct {
+	Edges []*{{ $edge }} `json:"edges"`
+	PageInfo PageInfo    `json:"pageInfo"`
+}
+
+{{ $query := print $node.QueryName -}}
+{{ $receiver := $node.Receiver -}}
+{{ $pkg := $node.Package -}}
+// Paginate executes the query and returns a relay based cursor connection to {{ $node.Name }}.
+func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*{{ $conn }}, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &{{ $conn }}{
+				Edges: []*{{ $edge }}{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &{{ $conn }}{
+				Edges: []*{{ $edge }}{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		{{ $receiver }} = {{ $receiver }}.Where({{ $pkg }}.IDGT(after.ID))
+	}
+	if before != nil {
+		{{ $receiver }} = {{ $receiver }}.Where({{ $pkg }}.IDLT(before.ID))
+	}
+	if first != nil {
+		{{ $receiver }} = {{ $receiver }}.Order(Asc({{ $pkg }}.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		{{ $receiver }} = {{ $receiver }}.Order(Desc({{ $pkg }}.FieldID)).Limit(*last + 1)
+	}
+
+	{{- if hasTemplate "collection" }}
+		{{ $receiver }} = {{ $receiver }}.collectConnectionFields(ctx)
+	{{- end }}
+
+	nodes, err := {{ $receiver }}.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &{{ $conn }}{
+			Edges: []*{{ $edge }}{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn {{ $conn }}
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*{{ $edge }}, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &{{ $edge }}{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+{{ if hasTemplate "collection" -}}
+func ({{ $receiver }} *{{ $query }}) collectConnectionFields(ctx context.Context) *{{ $query }} {
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		{{ $receiver }} = {{ $receiver }}.collectField(graphql.GetRequestContext(ctx), *field)
+	}
+	return {{ $receiver }}
+}
+{{ end }}
+{{ end }}
+
+{{ if hasTemplate "collection" -}}
+func fieldForPath(ctx context.Context, path ...string) *graphql.CollectedField {
+	resctx := graphql.GetResolverContext(ctx)
+	if resctx == nil {
+		return nil
+	}
+	reqctx := graphql.GetRequestContext(ctx)
+	field := resctx.Field
+
+walk:
+	for _, name := range path {
+		for _, f := range graphql.CollectFields(reqctx, field.Selections, nil) {
+			if f.Name == name {
+				field = f
+				continue walk
+			}
+		}
+		return nil
+	}
+	return &field
+}
+{{ end -}}
+{{ end }}

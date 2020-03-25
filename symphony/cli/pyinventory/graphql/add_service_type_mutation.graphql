@@ -4,18 +4,7 @@ mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {
     name
     hasCustomer
     propertyTypes {
-      id
-      name
-      type
-      index
-      stringValue
-      intValue
-      booleanValue
-      floatValue
-      latitudeValue
-      longitudeValue
-      isEditable
-      isInstanceProperty
+      ...PropertyTypeFragment
     }
   }
 }

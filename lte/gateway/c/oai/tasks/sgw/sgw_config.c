@@ -339,6 +339,7 @@ int sgw_config_parse_file(sgw_config_t *config_pP)
     }
     char *ovs_bridge_name = NULL;
     libconfig_int gtp_port_num = 0;
+    libconfig_int mtr_port_num = 0;
     libconfig_int uplink_port_num = 0;
     char *uplink_mac = NULL;
     if (
@@ -355,9 +356,12 @@ int sgw_config_parse_file(sgw_config_t *config_pP)
       config_setting_lookup_string(
         ovs_settings,
         SGW_CONFIG_STRING_OVS_UPLINK_MAC,
-        (const char **) &uplink_mac)) {
+        (const char**) &uplink_mac) &&
+      config_setting_lookup_int(
+        ovs_settings, SGW_CONFIG_STRING_OVS_MTR_PORT_NUM, &mtr_port_num)) {
       config_pP->ovs_config.bridge_name = bfromcstr(ovs_bridge_name);
       config_pP->ovs_config.gtp_port_num = gtp_port_num;
+      config_pP->ovs_config.mtr_port_num = mtr_port_num;
       config_pP->ovs_config.uplink_port_num = uplink_port_num;
       config_pP->ovs_config.uplink_mac = bfromcstr(uplink_mac);
     } else {

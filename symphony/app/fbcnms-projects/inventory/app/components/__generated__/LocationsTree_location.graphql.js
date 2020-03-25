@@ -24,14 +24,17 @@ export type LocationsTree_location = {
   +locationType: {
     +id: string,
     +name: string,
+    ...
   },
   +numChildren: number,
   +siteSurveyNeeded: boolean,
+  ...
 };
 export type LocationsTree_location$data = LocationsTree_location;
 export type LocationsTree_location$key = {
   +$data?: LocationsTree_location$data,
   +$fragmentRefs: LocationsTree_location$ref,
+  ...
 };
 */
 

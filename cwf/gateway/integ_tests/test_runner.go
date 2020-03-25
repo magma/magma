@@ -11,17 +11,21 @@ package integ_tests
 import (
 	"fmt"
 	"math/rand"
+	"reflect"
 	"strconv"
+	"testing"
 
 	"fbc/lib/go/radius"
+	"fbc/lib/go/radius/rfc2869"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
+	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 )
 
 // todo make Op configurable, or export it in the UESimServer.
@@ -46,6 +50,9 @@ const (
 type TestRunner struct {
 	imsis map[string]bool
 }
+
+// imsi -> ruleID -> record
+type RecordByIMSI map[string]map[string]*lteprotos.RuleRecord
 
 // NewTestRunner initializes a new TestRunner by making a UESim client and
 // and setting the next IMSI.
@@ -137,18 +144,39 @@ func (testRunner *TestRunner) Authenticate(imsi string) (*radius.Packet, error) 
 	return radiusP, nil
 }
 
+func (testRunner *TestRunner) AuthenticateAndAssertSuccess(t *testing.T, imsi string) {
+	radiusP, err := testRunner.Authenticate(imsi)
+	assert.NoError(t, err)
+
+	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
+	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
+	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+}
+
+// Authenticate simulates an authentication between the UE with the specified
+// IMSI and the HSS, and returns the resulting Radius packet.
+func (testRunner *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
+	fmt.Printf("************************* Sending a disconnect request UE with IMSI: %s\n", imsi)
+	res, err := uesim.Disconnect(&cwfprotos.DisconnectRequest{Imsi: imsi})
+	if err != nil {
+		return &radius.Packet{}, err
+	}
+	encoded := res.GetRadiusPacket()
+	radiusP, err := radius.Parse(encoded, []byte(Secret))
+	if err != nil {
+		err = errors.Wrap(err, "Error while parsing encoded Radius packet")
+		fmt.Println(err)
+		return &radius.Packet{}, err
+	}
+	fmt.Printf("Finished Discconnecting UE. Resulting RADIUS Packet: %d\n", radiusP)
+	return radiusP, nil
+}
+
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
 // by running an iperf3 client on the UE simulator and an iperf3 server on the
-// Magma traffic server. volume, if provided, specifies the volume of data
-// generated and it should be in the form of "1024K", "2048M" etc
-func (testRunner *TestRunner) GenULTraffic(imsi string, volume *string) error {
-	fmt.Printf("************************* Generating Traffic for UE with IMSI: %s\n", imsi)
-	req := &cwfprotos.GenTrafficRequest{
-		Imsi: imsi,
-	}
-	if volume != nil {
-		req.Volume = &wrappers.StringValue{Value: *volume}
-	}
+// Magma traffic server.
+func (testRunner *TestRunner) GenULTraffic(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
+	fmt.Printf("************************* Generating Traffic for UE with Req: %v\n", req)
 	return uesim.GenTraffic(req)
 }
 
@@ -175,14 +203,19 @@ func (testRunner *TestRunner) CleanUp() error {
 
 // GetPolicyUsage is a wrapper around pipelined's GetPolicyUsage and returns
 // the policy usage keyed by subscriber ID
-func (tr *TestRunner) GetPolicyUsage() (map[string]*lteprotos.RuleRecord, error) {
-	recordsBySubID := map[string]*lteprotos.RuleRecord{}
+func (tr *TestRunner) GetPolicyUsage() (RecordByIMSI, error) {
+	recordsBySubID := RecordByIMSI{}
 	table, err := getPolicyUsage()
 	if err != nil {
 		return recordsBySubID, err
 	}
 	for _, record := range table.Records {
-		recordsBySubID[record.Sid] = record
+		fmt.Printf("Record %v", record)
+		_, exists := recordsBySubID[record.Sid]
+		if !exists {
+			recordsBySubID[record.Sid] = map[string]*lteprotos.RuleRecord{}
+		}
+		recordsBySubID[record.Sid][record.RuleId] = record
 	}
 	return recordsBySubID, nil
 }
@@ -224,6 +257,10 @@ func makeUE(imsi string, key []byte, opc []byte, seq uint64) *cwfprotos.UEConfig
 	}
 }
 
+func prependIMSIPrefix(imsi string) string {
+	return "IMSI" + imsi
+}
+
 // MakeSubcriber creates a new Subscriber using the given values.
 func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.SubscriberData {
 	return &lteprotos.SubscriberData{
@@ -244,11 +281,7 @@ func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.
 			Msisdn:              defaultMSISDN,
 			Non_3GppIpAccess:    lteprotos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
 			Non_3GppIpAccessApn: lteprotos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
-			ApnConfig:           &lteprotos.APNConfiguration{},
+			ApnConfig:           []*lteprotos.APNConfiguration{&lteprotos.APNConfiguration{}},
 		},
 	}
-}
-
-func makeDynamicRuleIDFromIMSI(imsi string) string {
-	return "dynrule1-" + imsi
 }

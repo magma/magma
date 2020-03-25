@@ -35,6 +35,7 @@ const PowerSearchServiceTypeFilter = (props: FilterProps) => {
   const [tokens, setTokens] = useState([]);
 
   useEffect(() => {
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, servicesQuery).then(data => {
       setServiceTypes(data.serviceTypes.edges.map(edge => edge.node));
     });

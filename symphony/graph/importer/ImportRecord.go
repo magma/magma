@@ -6,6 +6,8 @@ package importer
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 
 	"github.com/facebookincubator/symphony/graph/ent/service"
 
@@ -24,19 +26,23 @@ type ImportRecord struct {
 
 // PortData is the data structure for PortData function
 type PortData struct {
-	ID                string
+	ID                int
 	Name              string
 	TypeName          string
-	EquipmentID       *string
+	EquipmentID       *int
 	EquipmentName     string
 	EquipmentTypeName string
 }
 
-func NewImportRecord(line []string, title ImportHeader) ImportRecord {
+// NewImportRecord returns a new record object (or an error) to represent each row
+func NewImportRecord(line []string, title ImportHeader) (ImportRecord, error) {
+	if isEmptyRow(line) {
+		return ImportRecord{}, errors.New("found an empty row. skipping")
+	}
 	return ImportRecord{
 		line:  line,
 		title: title,
-	}
+	}, nil
 }
 
 func (l ImportRecord) ZapField() zap.Field {
@@ -49,6 +55,82 @@ func (l ImportRecord) Len() int {
 
 func (l ImportRecord) Header() ImportHeader {
 	return l.title
+}
+
+func (l ImportRecord) validatePropertiesMismatch(ctx context.Context, typs []interface{}) error {
+	var (
+		q                  *ent.PropertyTypeQuery
+		typName            string
+		linkTyp1, linkTyp2 *ent.EquipmentPortType
+	)
+	switch l.entity() {
+	case ImportEntityEquipment:
+		typ := typs[0].(*ent.EquipmentType)
+		typName = typ.Name
+		q = typ.QueryPropertyTypes()
+	case ImportEntityPort:
+		typ := typs[0].(*ent.EquipmentPortType)
+		typName = typ.Name
+		q = typ.QueryPropertyTypes()
+	case ImportEntityLink:
+		switch len(typs) {
+		case 1:
+			linkTyp1 = typs[0].(*ent.EquipmentPortType)
+			typName = linkTyp1.Name
+		case 2:
+			linkTyp1 = typs[0].(*ent.EquipmentPortType)
+			linkTyp2 = typs[1].(*ent.EquipmentPortType)
+			typName = fmt.Sprintf("%v or %v", linkTyp1.Name, linkTyp2.Name)
+		default:
+			return errors.New("link must have two ports max")
+		}
+	case ImportEntityService:
+		typ := typs[0].(*ent.ServiceType)
+		typName = typ.Name
+		q = typ.QueryPropertyTypes()
+	default:
+		return fmt.Errorf("entity is not supported %s", l.entity())
+	}
+	header := l.Header()
+	pStart := header.PropertyStartIdx()
+	if pStart == -1 {
+		return errors.New("error getting properties from title")
+	}
+
+	for i, propVal := range l.line[pStart:] {
+		if propVal != "" {
+			pTypeName := header.line[i+pStart]
+			var exists bool
+			var err error
+			switch {
+			case l.entity() == ImportEntityLink:
+				var existA, existB bool
+				if linkTyp1 != nil {
+					existA, err = linkTyp1.QueryLinkPropertyTypes().Where(propertytype.Name(pTypeName)).Exist(ctx)
+					if ent.MaskNotFound(err) != nil {
+						return err
+					}
+				}
+				if linkTyp2 != nil {
+					existB, err = linkTyp2.QueryLinkPropertyTypes().Where(propertytype.Name(pTypeName)).Exist(ctx)
+					if ent.MaskNotFound(err) != nil {
+						return err
+					}
+				}
+				exists = existA || existB
+			default:
+				if q != nil {
+					exists, err = q.Where(propertytype.Name(pTypeName)).Exist(ctx)
+				}
+			}
+
+			if !exists {
+				return fmt.Errorf("property type %v does not exist under type %v", pTypeName, typName)
+			}
+			return err
+		}
+	}
+	return nil
 }
 
 // GetPropertyInput returns a PropertyInput model from a proptypeName
@@ -68,6 +150,9 @@ func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, 
 	case ImportEntityService:
 		typ := typ.(*ent.ServiceType)
 		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
+	case ImportEntityLocation:
+		typ := typ.(*ent.LocationType)
+		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
 	default:
 		return nil, errors.Wrapf(err, "entity is not supported %s", l.entity())
 	}
@@ -80,10 +165,13 @@ func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, 
 		return nil, nil
 	}
 	value := l.line[idx]
-	if pTyp.Type == "service" && value != "" {
-		if value, err = client.Service.Query().Where(service.Name(value)).OnlyID(ctx); err != nil {
-			return nil, errors.Wrapf(err, "service name does not exist %q", l.line[idx])
+
+	if pTyp.Type == models.PropertyKindService.String() && value != "" {
+		id, err := client.Service.Query().Where(service.Name(value)).OnlyID(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "cannot query service by name: %q", l.line[idx])
 		}
+		value = strconv.Itoa(id)
 	}
 	return getPropInput(*pTyp, value)
 }
@@ -92,8 +180,9 @@ func (l ImportRecord) entity() ImportEntity {
 	return l.Header().entity
 }
 
-func (l ImportRecord) ID() string {
-	return l.line[0]
+func (l ImportRecord) ID() int {
+	id, _ := strconv.Atoi(l.line[0])
+	return id
 }
 
 func (l ImportRecord) Name() string {
@@ -114,6 +203,16 @@ func (l ImportRecord) PortEquipmentTypeName() string {
 
 func (l ImportRecord) ExternalID() string {
 	return l.line[l.title.ExternalIDIdx()]
+}
+
+// Latitude returns the valur on LatitudeIdx
+func (l ImportRecord) Latitude() string {
+	return l.line[l.title.LatitudeIdx()]
+}
+
+// Longitude returns the valur on LongitudeIdx
+func (l ImportRecord) Longitude() string {
+	return l.line[l.title.LongitudeIdx()]
 }
 
 func (l ImportRecord) ThirdParent() string {
@@ -176,7 +275,7 @@ func (l ImportRecord) Status() string {
 }
 
 // PortData returns the relevant info for the port from the CSV
-func (l ImportRecord) PortData(side *string) (*PortData, error) {
+func (l ImportRecord) PortData() (*PortData, error) {
 	if l.entity() == ImportEntityPort {
 		return &PortData{
 			ID:                l.ID(),
@@ -197,6 +296,10 @@ func (l ImportRecord) ConsumerPortsServices() string {
 // ProviderPortsServices is the list of services where the port is their provider endpoint
 func (l ImportRecord) ProviderPortsServices() string {
 	return l.line[l.title.ProviderPortsServicesIdx()]
+}
+
+func (l ImportRecord) ServiceNames() string {
+	return l.line[l.title.ServiceNamesIdx()]
 }
 
 func (l ImportRecord) LinkGetTwoPortsSlices() [][]string {

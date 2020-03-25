@@ -33,6 +33,7 @@ func (WorkOrderType) Edges() []ent.Edge {
 		edge.To("property_types", PropertyType.Type),
 		edge.From("definitions", WorkOrderDefinition.Type).
 			Ref("type"),
+		edge.To("check_list_categories", CheckListCategory.Type),
 		edge.To("check_list_definitions", CheckListItemDefinition.Type),
 	}
 }
@@ -52,13 +53,12 @@ func (WorkOrder) Fields() []ent.Field {
 			Default("NONE"),
 		field.Text("description").
 			Optional(),
-		field.String("owner_name"),
 		field.Time("install_date").
 			Optional(),
 		field.Time("creation_date"),
-		field.String("assignee").
-			Optional(),
 		field.Int("index").
+			Optional(),
+		field.Time("close_date").
 			Optional(),
 	}
 }
@@ -78,11 +78,17 @@ func (WorkOrder) Edges() []ent.Edge {
 			Unique(),
 		edge.To("comments", Comment.Type),
 		edge.To("properties", Property.Type),
+		edge.To("check_list_categories", CheckListCategory.Type),
 		edge.To("check_list_items", CheckListItem.Type),
 		edge.To("technician", Technician.Type).
 			Unique(),
 		edge.From("project", Project.Type).
 			Ref("work_orders").
+			Unique(),
+		edge.To("owner", User.Type).
+			Required().
+			Unique(),
+		edge.To("assignee", User.Type).
 			Unique(),
 	}
 }

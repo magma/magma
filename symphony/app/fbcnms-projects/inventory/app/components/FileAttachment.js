@@ -13,6 +13,7 @@ import type {FileAttachment_file} from './__generated__/FileAttachment_file.grap
 import type {WithStyles} from '@material-ui/core';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
+import DateTimeFormat from '../common/DateTimeFormat.js';
 import DocumentMenu from './DocumentMenu';
 import ImageDialog from './ImageDialog';
 import InsertDriveFileIcon from '@material-ui/icons/InsertDriveFile';
@@ -151,7 +152,7 @@ class FileAttachment extends React.Component<Props, State> {
           className={classNames(classes.cell, classes.secondaryCell)}
           component="th"
           scope="row">
-          {file.uploaded && new Date(file.uploaded).toLocaleDateString()}
+          {file.uploaded && DateTimeFormat.dateTime(file.uploaded)}
         </TableCell>
         <TableCell
           padding="none"

@@ -41,6 +41,7 @@ export type ActionsListCard_actionsRule$data = ActionsListCard_actionsRule;
 export type ActionsListCard_actionsRule$key = {
   +$data?: ActionsListCard_actionsRule$data,
   +$fragmentRefs: ActionsListCard_actionsRule$ref,
+  ...
 };
 */
 

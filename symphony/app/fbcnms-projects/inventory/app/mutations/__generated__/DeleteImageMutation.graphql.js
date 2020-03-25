@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 5f3f5882d185e559104b28a856daf83e
+ * @relayHash 8c5595fc1313f865ac54f04e160ddef5
  */
 
 /* eslint-disable */
@@ -17,14 +17,14 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type DocumentTable_files$ref = any;
 type FileAttachment_file$ref = any;
-export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "WORK_ORDER" | "%future added value";
+export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "USER" | "WORK_ORDER" | "%future added value";
 export type DeleteImageMutationVariables = {|
   entityType: ImageEntity,
   entityId: string,
   id: string,
 |};
 export type DeleteImageMutationResponse = {|
-  +deleteImage: ?{|
+  +deleteImage: {|
     +$fragmentRefs: DocumentTable_files$ref & FileAttachment_file$ref
   |}
 |};

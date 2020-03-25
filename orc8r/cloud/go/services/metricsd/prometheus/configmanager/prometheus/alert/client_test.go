@@ -26,17 +26,17 @@ const (
 - name: test
   rules:
   - alert: test_rule_1
-    expr: up == 0{networkID="test"}
+    expr: up == 0{tenantID="test"}
     for: 5s
     labels:
       severity: major
-      networkID: test
+      tenantID: test
   - alert: test_rule_2
-    expr: up == 1{networkID="test"}
+    expr: up == 1{tenantID="test"}
     for: 5s
     labels:
       severity: critical
-      networkID: test
+      tenantID: test
     annotations:
       summary: A test rule`
 
@@ -45,17 +45,17 @@ const (
 - name: other
   rules:
   - alert: other_rule_1
-    expr: up == 0{networkID="other"}
+    expr: up == 0{tenantID="other"}
     for: 5s
     labels:
       severity: major
-      networkID: other
+      tenantID: other
   - alert: test_rule_2
-    expr: up == 1{networkID="other"}
+    expr: up == 1{tenantID="other"}
     for: 5s
     labels:
       severity: critical
-      networkID: other
+      tenantID: other
     annotations:
       summary: A test rule`
 )
@@ -66,7 +66,7 @@ var (
 		Alert:  "test_rule_1",
 		Expr:   "up==0",
 		For:    fiveSeconds,
-		Labels: map[string]string{"severity": "major", "networkID": testNID},
+		Labels: map[string]string{"severity": "major", "tenantID": testNID},
 	}
 	badRule = rulefmt.Rule{
 		Alert: "bad_rule",
@@ -75,7 +75,7 @@ var (
 )
 
 func TestClient_ValidateRule(t *testing.T) {
-	client := newTestClient(true)
+	client := newTestClient("tenantID")
 
 	err := client.ValidateRule(sampleRule)
 	assert.NoError(t, err)
@@ -89,7 +89,7 @@ func TestClient_ValidateRule(t *testing.T) {
 	assert.Error(t, err)
 }
 func TestClient_RuleExists(t *testing.T) {
-	client := newTestClient(true)
+	client := newTestClient("tenantID")
 	assert.True(t, client.RuleExists(testNID, "test_rule_1"))
 	assert.True(t, client.RuleExists(testNID, "test_rule_2"))
 	assert.False(t, client.RuleExists(testNID, "no_rule"))
@@ -102,13 +102,13 @@ func TestClient_RuleExists(t *testing.T) {
 }
 
 func TestClient_WriteRule(t *testing.T) {
-	client := newTestClient(true)
+	client := newTestClient("tenantID")
 	err := client.WriteRule(testNID, sampleRule)
 	assert.NoError(t, err)
 }
 
 func TestClient_UpdateRule(t *testing.T) {
-	client := newTestClient(true)
+	client := newTestClient("tenantID")
 
 	err := client.UpdateRule(testNID, testRule1)
 	assert.NoError(t, err)
@@ -119,7 +119,7 @@ func TestClient_UpdateRule(t *testing.T) {
 }
 
 func TestClient_ReadRules(t *testing.T) {
-	client := newTestClient(true)
+	client := newTestClient("tenantID")
 
 	rules, err := client.ReadRules(testNID, "")
 	assert.NoError(t, err)
@@ -144,7 +144,7 @@ func TestClient_ReadRules(t *testing.T) {
 }
 
 func TestClient_DeleteRule(t *testing.T) {
-	client := newTestClient(true)
+	client := newTestClient("tenantID")
 	err := client.DeleteRule(testNID, "test_rule_1")
 	assert.NoError(t, err)
 
@@ -153,7 +153,7 @@ func TestClient_DeleteRule(t *testing.T) {
 }
 
 func TestClient_BulkUpdateRules(t *testing.T) {
-	client := newTestClient(true)
+	client := newTestClient("tenantID")
 	results, err := client.BulkUpdateRules(testNID, []rulefmt.Rule{sampleRule, testRule1})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(results.Statuses))
@@ -165,7 +165,7 @@ func TestClient_BulkUpdateRules(t *testing.T) {
 	assert.Equal(t, 1, len(results.Errors))
 }
 
-func newTestClient(multitenant bool) alert.PrometheusAlertClient {
+func newTestClient(multitenantLabel string) alert.PrometheusAlertClient {
 	dClient := newHealthyDirClient("test")
 	fileLocks, _ := alert.NewFileLocker(dClient)
 	fsClient := &mocks.FSClient{}
@@ -173,5 +173,9 @@ func newTestClient(multitenant bool) alert.PrometheusAlertClient {
 	fsClient.On("ReadFile", "test_rules/test_rules.yml").Return([]byte(testRuleFile), nil)
 	fsClient.On("ReadFile", "test_rules/other_rules.yml").Return([]byte(otherRuleFile), nil)
 	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	return alert.NewClient(fileLocks, "test_rules", "prometheus-host.com", fsClient, multitenant)
+	tenancy := alert.TenancyConfig{
+		RestrictorLabel: multitenantLabel,
+		RestrictQueries: true,
+	}
+	return alert.NewClient(fileLocks, "test_rules", "prometheus-host.com", fsClient, tenancy)
 }

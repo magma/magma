@@ -26,7 +26,7 @@ type locationSearchDataModels struct {
 }
 
 // nolint: errcheck
-func prepareLocationData(ctx context.Context, r *TestResolver, props []*models.PropertyInput) locationSearchDataModels {
+func prepareLocationData(ctx context.Context, r *TestResolver) locationSearchDataModels {
 	mr := r.Mutation()
 	locType1, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "loc_type1",
@@ -66,17 +66,19 @@ func prepareLocationData(ctx context.Context, r *TestResolver, props []*models.P
 	loc2, _ := mr.AddLocation(ctx, models.AddLocationInput{
 		Name:   "loc_inst2",
 		Type:   locType2.ID,
-		Parent: pointer.ToString(loc1.ID),
+		Parent: pointer.ToInt(loc1.ID),
 	})
 
 	equType, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "eq_type",
 	})
-	mr.AddEquipment(ctx, models.AddEquipmentInput{
+	if _, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:     "eq_inst",
 		Type:     equType.ID,
 		Location: &loc1.ID,
-	})
+	}); err != nil {
+		panic(err)
+	}
 	return locationSearchDataModels{
 		loc1,
 		loc2,
@@ -86,12 +88,11 @@ func prepareLocationData(ctx context.Context, r *TestResolver, props []*models.P
 }
 
 func TestSearchLocationAncestors(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	data := prepareLocationData(ctx, r, nil)
+	data := prepareLocationData(ctx, r)
 	/*
 		helper: data now is of type:
 		 loc1 (loc_type1):
@@ -108,7 +109,7 @@ func TestSearchLocationAncestors(t *testing.T) {
 	f1 := models.LocationFilterInput{
 		FilterType: models.LocationFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc1.ID},
+		IDSet:      []int{data.loc1.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, &limit)
@@ -119,7 +120,7 @@ func TestSearchLocationAncestors(t *testing.T) {
 	f2 := models.LocationFilterInput{
 		FilterType: models.LocationFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc2.ID},
+		IDSet:      []int{data.loc2.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res, err = qr.LocationSearch(ctx, []*models.LocationFilterInput{&f2}, &limit)
@@ -129,12 +130,11 @@ func TestSearchLocationAncestors(t *testing.T) {
 }
 
 func TestSearchLocationByType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	data := prepareLocationData(ctx, r, nil)
+	data := prepareLocationData(ctx, r)
 	/*
 		helper: data now is of type:
 		 loc1 (loc_type1):
@@ -145,7 +145,7 @@ func TestSearchLocationByType(t *testing.T) {
 	f1 := models.LocationFilterInput{
 		FilterType: models.LocationFilterTypeLocationType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.locType2.ID},
+		IDSet:      []int{data.locType2.ID},
 	}
 	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, pointer.ToInt(100))
 	require.NoError(t, err)
@@ -154,12 +154,11 @@ func TestSearchLocationByType(t *testing.T) {
 }
 
 func TestSearchLocationHasEquipment(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	prepareLocationData(ctx, r, nil)
+	prepareLocationData(ctx, r)
 	/*
 		helper: data now is of type:
 		 loc1 (loc_type1):
@@ -189,12 +188,11 @@ func TestSearchLocationHasEquipment(t *testing.T) {
 }
 
 func TestSearchMultipleFilters(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	data := prepareLocationData(ctx, r, nil)
+	data := prepareLocationData(ctx, r)
 	/*
 		helper: data now is of type:
 		 loc1 (loc_type1):
@@ -205,7 +203,7 @@ func TestSearchMultipleFilters(t *testing.T) {
 	f1 := models.LocationFilterInput{
 		FilterType: models.LocationFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc1.ID},
+		IDSet:      []int{data.loc1.ID},
 		MaxDepth:   pointer.ToInt(2),
 	}
 	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, pointer.ToInt(100))
@@ -216,7 +214,7 @@ func TestSearchMultipleFilters(t *testing.T) {
 	f2 := models.LocationFilterInput{
 		FilterType: models.LocationFilterTypeLocationType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.locType2.ID},
+		IDSet:      []int{data.locType2.ID},
 	}
 	res, err = qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1, &f2}, pointer.ToInt(100))
 	require.NoError(t, err)
@@ -225,12 +223,11 @@ func TestSearchMultipleFilters(t *testing.T) {
 }
 
 func TestSearchLocationProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	prepareLocationData(ctx, r, nil)
+	prepareLocationData(ctx, r)
 	/*
 		helper: data now is of type:
 		 loc1 (loc_type1): - properties

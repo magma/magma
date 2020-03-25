@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -12,7 +12,7 @@ import React from 'react';
 import {Link} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   link: {
     color: '#3984ff',
     fontSize: '12px',
@@ -20,7 +20,7 @@ const useStyles = makeStyles({
     fontWeight: 500,
     textDecoration: 'none',
   },
-});
+}));
 
 type Props = {
   field: {

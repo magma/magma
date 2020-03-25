@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // UserDelete is the builder for deleting a User entity.
 type UserDelete struct {
 	config
+	hooks      []Hook
+	mutation   *UserMutation
 	predicates []predicate.User
 }
 
@@ -30,7 +33,30 @@ func (ud *UserDelete) Where(ps ...predicate.User) *UserDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ud *UserDelete) Exec(ctx context.Context) (int, error) {
-	return ud.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(ud.hooks) == 0 {
+		affected, err = ud.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*UserMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ud.mutation = mutation
+			affected, err = ud.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(ud.hooks); i > 0; i-- {
+			mut = ud.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ud.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,7 +69,7 @@ func (ud *UserDelete) ExecX(ctx context.Context) int {
 }
 
 func (ud *UserDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: user.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +79,13 @@ func (ud *UserDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := ud.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ud.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ud.driver, _spec)
 }
 
 // UserDeleteOne is the builder for deleting a single User entity.
@@ -74,7 +100,7 @@ func (udo *UserDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{user.Label}
+		return &NotFoundError{user.Label}
 	default:
 		return nil
 	}

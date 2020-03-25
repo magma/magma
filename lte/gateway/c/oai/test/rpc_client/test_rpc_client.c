@@ -21,7 +21,7 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 
-#include "rpc_client.h"
+#include "MobilityClientAPI.h"
 
 int main(int argc, char **argv)
 {

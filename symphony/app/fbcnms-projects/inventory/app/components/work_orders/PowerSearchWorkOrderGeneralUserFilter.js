@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -38,8 +38,8 @@ const PowerSearchWorkOrderGeneralUserFilter = (props: FilterProps) => {
       name={title ?? ''}
       operator={'is_one_of'}
       editMode={editMode}
-      value={(value.idSet ?? [])
-        .map(id => users.find(users => users.email === id)?.email)
+      value={(value.stringSet ?? [])
+        .map(email => users.find(users => users.email === email)?.email)
         .join(', ')}
       onRemoveFilter={onRemoveFilter}
       input={
@@ -64,7 +64,7 @@ const PowerSearchWorkOrderGeneralUserFilter = (props: FilterProps) => {
               key: value.key,
               name: value.name,
               operator: value.operator,
-              idSet: newEntries.map(entry => entry.id),
+              stringSet: newEntries.map(entry => entry.id),
             });
           }}
         />

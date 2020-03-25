@@ -30,7 +30,8 @@ func (File) Fields() []ent.Field {
 		field.Time("uploaded_at").
 			StructTag(`gqlgen:"uploaded"`).
 			Optional(),
-		field.String("content_type"),
+		field.String("content_type").
+			StructTag(`gqlgen:"mimeType"`),
 		field.String("store_key"),
 		field.String("category").
 			Optional(),

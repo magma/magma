@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -15,12 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const DuplicateIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <g transform="translate(2,2)">
-      <path
-        d="M6 6v12h12V6H6zM5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zm-3 9h2v2H1a1 1 0 01-1-1V1a1 1 0 011-1h13a1 1 0 011 1v3h-2V2H2v11z"
-        fillRule="evenodd"
-      />
-    </g>
+    <path d="M8 8v12h12V8H8zM7 6h14a1 1 0 011 1v14a1 1 0 01-1 1H7a1 1 0 01-1-1V7a1 1 0 011-1zm-3 9h2v2H3a1 1 0 01-1-1V3a1 1 0 011-1h13a1 1 0 011 1v3h-2V4H4v11z" />
   </SvgIcon>
 );
 

@@ -14,9 +14,9 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/protos"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/tools/commands"
+	"magma/orc8r/lib/go/protos"
 )
 
 var (

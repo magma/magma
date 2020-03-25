@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -14,32 +14,30 @@ import type {
 } from '../../mutations/__generated__/MarkSiteSurveyNeededMutation.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithStyles} from '@material-ui/core';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import MarkSiteSurveyNeededMutation from '../../mutations/MarkSiteSurveyNeededMutation';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {withStyles} from '@material-ui/core/styles';
-
-const styles = _theme => ({});
 
 type Props = {
   location: {id: string, siteSurveyNeeded: boolean},
-} & WithAlert &
-  WithStyles<typeof styles>;
+} & WithAlert;
 
 class RequestSiteSurveyLocationButton extends React.Component<Props> {
   render() {
     const {location} = this.props;
 
     return (
-      <Button onClick={this.requestSiteSurvey}>
-        {location.siteSurveyNeeded
-          ? 'Cancel Site Survey'
-          : 'Request Site Survey'}
-      </Button>
+      <FormAction>
+        <Button onClick={this.requestSiteSurvey}>
+          {location.siteSurveyNeeded
+            ? 'Cancel Site Survey'
+            : 'Request Site Survey'}
+        </Button>
+      </FormAction>
     );
   }
 
@@ -66,4 +64,4 @@ class RequestSiteSurveyLocationButton extends React.Component<Props> {
   };
 }
 
-export default withStyles(styles)(withAlert(RequestSiteSurveyLocationButton));
+export default withAlert(RequestSiteSurveyLocationButton);

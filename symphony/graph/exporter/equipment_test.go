@@ -22,10 +22,9 @@ import (
 
 const nameTitle = "Equipment Name"
 
-func TestEmptyDataExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+func TestEmptyWOExport(t *testing.T) {
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, equipmentRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -63,16 +62,16 @@ func TestEmptyDataExport(t *testing.T) {
 }
 
 func TestExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, equipmentRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
+	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
 	ctx := viewertest.NewContext(r.client)
@@ -152,9 +151,8 @@ func TestExport(t *testing.T) {
 }
 
 func TestExportWithFilters(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 	ctx := viewertest.NewContext(r.client)
 	e := &exporter{log, equipmentRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -173,7 +171,7 @@ func TestExportWithFilters(t *testing.T) {
 		{
 			Name:     "LOCATION_INST",
 			Operator: "IS_ONE_OF",
-			IDSet:    []string{loc.ID},
+			IDSet:    []string{strconv.Itoa(loc.ID)},
 		},
 		{
 			Name:        "EQUIP_INST_NAME",

@@ -23,17 +23,36 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_seconday_pdn_conn_ded_bearer_looped(self):
+    def test_secondary_pdn_conn_ded_bearer_looped(self):
         """ Attach a single UE and send standalone PDN Connectivity
         Request + add dedicated bearer to each default bearer
         repeat 3 times """
         num_ues = 1
         loop = 3
+
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             ue_id = req.ue_id
+            # APN of the secondary PDN
+            ims = {
+                "apn_name": "ims",  # APN-name
+                "qci": 5,  # qci
+                "priority": 15,  # priority
+                "pre_cap": 0,  # preemption-capability
+                "pre_vul": 0,  # preemption-vulnerability
+                "mbr_ul": 200000000,  # MBR UL
+                "mbr_dl": 100000000,  # MBR DL
+            }
+
+            # APN list to be configured
+            apn_list = [ims]
+
+            self._s1ap_wrapper.configAPN(
+                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            )
+
             print(
                 "********************* Running End to End attach for UE id ",
                 ue_id,

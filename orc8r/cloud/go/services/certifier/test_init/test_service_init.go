@@ -13,33 +13,34 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
-	certifier_test_utils "magma/orc8r/cloud/go/services/certifier/test_utils"
+	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
+	certifierTestUtils "magma/orc8r/lib/go/security/csr"
 )
 
 func StartTestService(t *testing.T) {
 	caMap := map[protos.CertType]*servicers.CAInfo{}
 
-	bootstrapCert, bootstrapKey, err := certifier_test_utils.CreateSignedCertAndPrivKey(
-		time.Duration(time.Hour * 24 * 10))
+	bootstrapCert, bootstrapKey, err := certifierTestUtils.CreateSignedCertAndPrivKey(time.Hour * 24 * 10)
 	if err != nil {
 		t.Fatalf("Failed to create bootstrap certifier certificate: %s", err)
 	} else {
-		caMap[protos.CertType_DEFAULT] = &servicers.CAInfo{bootstrapCert, bootstrapKey}
+		caMap[protos.CertType_DEFAULT] = &servicers.CAInfo{Cert: bootstrapCert, PrivKey: bootstrapKey}
 	}
 
-	vpnCert, vpnKey, err := certifier_test_utils.CreateSignedCertAndPrivKey(
-		time.Duration(time.Hour * 24 * 10))
+	vpnCert, vpnKey, err := certifierTestUtils.CreateSignedCertAndPrivKey(time.Hour * 24 * 10)
 	if err != nil {
 		t.Fatalf("Failed to create VPN certifier certificate: %s", err)
 	} else {
-		caMap[protos.CertType_VPN] = &servicers.CAInfo{vpnCert, vpnKey}
+		caMap[protos.CertType_VPN] = &servicers.CAInfo{Cert: vpnCert, PrivKey: vpnKey}
 	}
-	certServer, err := servicers.NewCertifierServer(test_utils.GetMockDatastoreInstance(), caMap)
+	store := test_utils.NewEntStorage(t, storage.CertifierTableBlobstore)
+	certStore := storage.NewCertifierBlobstore(store)
+	certServer, err := servicers.NewCertifierServer(certStore, caMap)
 	if err != nil {
 		t.Fatalf("Failed to create certifier server: %s", err)
 	}

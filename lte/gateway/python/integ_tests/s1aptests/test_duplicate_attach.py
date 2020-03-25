@@ -14,7 +14,6 @@ import s1ap_wrapper
 
 
 class TestDuplicateAttach(unittest.TestCase):
-
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
@@ -30,53 +29,69 @@ class TestDuplicateAttach(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         print("************************* Running duplicate attach test")
-        self._s1ap_wrapper._s1_util.attach(req.ue_id,
-                                           s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
-                                           s1ap_types.tfwCmd.UE_AUTH_REQ_IND,
-                                           s1ap_types.ueAttachComplete_t)
+        self._s1ap_wrapper._s1_util.attach(
+            req.ue_id,
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND,
+            s1ap_types.ueAttachComplete_t,
+        )
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
         sqnRecvd = s1ap_types.ueSqnRcvd_t()
         sqnRecvd.pres = False
         auth_res.sqnRcvd = sqnRecvd
 
-        self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_AUTH_RESP,
-                                              auth_res)
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response,
-                        s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+        )
 
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete)
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+        )
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+        )
 
         while True:
             response = self._s1ap_wrapper.s1_util.get_response()
-            if (response.msg_type ==
-                    s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value):
+            if (
+                response.msg_type
+                == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+            ):
                 print("Recvd an Attach accept message ignoring")
                 continue
 
-            self.assertEqual(response.msg_type,
-                             s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            )
             break
 
         print("************************ Running RE-Attach")
         self._s1ap_wrapper._s1_util.attach(
-            req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+            req.ue_id,
+            s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-            s1ap_types.ueAttachAccept_t)
+            s1ap_types.ueAttachAccept_t,
+        )
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
         print("************************* Running UE detach")
         # Now detach the UE
-        self._s1ap_wrapper._s1_util.detach(req.ue_id,
-                                           s1ap_types.ueDetachType_t.
-                                           UE_NORMAL_DETACH.value)
+        self._s1ap_wrapper._s1_util.detach(
+            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value
+        )
 
 
 if __name__ == "__main__":

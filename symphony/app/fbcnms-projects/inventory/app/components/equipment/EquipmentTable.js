@@ -21,9 +21,10 @@ import type {WithStyles} from '@material-ui/core';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import CommonStrings from '../../common/CommonStrings';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
-import IconButton from '@material-ui/core/IconButton';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import React from 'react';
 import RemoveEquipmentMutation from '../../mutations/RemoveEquipmentMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
@@ -32,6 +33,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
@@ -68,12 +70,12 @@ const styles = theme => ({
 
 type Props = WithSnackbarProps &
   WithAlert &
-  WithStyles<typeof styles> & {
+  WithStyles<typeof styles> & {|
     equipment: Array<Equipment>,
     selectedWorkOrderId: ?string,
     onEquipmentSelected: Equipment => void,
     onWorkOrderSelected: (workOrderId: string) => void,
-  };
+  |};
 
 class EquipmentTable extends React.Component<Props> {
   static contextType = AppContext;
@@ -142,13 +144,15 @@ class EquipmentTable extends React.Component<Props> {
                       </Button>
                     </TableCell>
                   )}
-                  <TableCell>
-                    <IconButton
-                      onClick={() => this.onDelete(row)}
-                      color="primary"
-                      className={classes.icon}>
-                      <DeleteIcon />
-                    </IconButton>
+                  <TableCell align="right">
+                    <FormAction>
+                      <Button
+                        variant="text"
+                        skin="primary"
+                        onClick={() => this.onDelete(row)}>
+                        <DeleteIcon />
+                      </Button>
+                    </FormAction>
                   </TableCell>
                 </TableRow>
               );
@@ -159,52 +163,57 @@ class EquipmentTable extends React.Component<Props> {
   }
 
   onDelete(equipment: Equipment) {
-    const deleteMsg = (
-      <span>
-        {`Are you sure you want to delete "${equipment.name}"?`}
-        {equipment.services.length > 0 && (
-          <span>
-            <br />
-            {`"${equipment.name}" is used by some services and deleting it can
-            potentially break them`}
-          </span>
-        )}
-      </span>
-    );
     ServerLogger.info(LogEvents.DELETE_EQUIPMENT_CLICKED);
-    this.props.confirm(deleteMsg).then(confirmed => {
-      if (confirmed) {
-        const variables: RemoveEquipmentMutationVariables = {
-          id: equipment.id,
-          work_order_id: this.props.selectedWorkOrderId,
-        };
+    this.props
+      .confirm({
+        title: <fbt desc="">Delete Equipment?</fbt>,
+        message: (
+          <fbt desc="">
+            By removing{' '}
+            <fbt:param name="equipment name">{equipment.name}</fbt:param> from
+            this location, all information related to this equipment, like links
+            and sub-positions, will be deleted.
+          </fbt>
+        ),
+        checkboxLabel: <fbt desc="">I understand</fbt>,
+        cancelLabel: CommonStrings.common.cancelButton,
+        confirmLabel: CommonStrings.common.deleteButton,
+        skin: 'red',
+      })
+      .then(confirmed => {
+        if (confirmed) {
+          const variables: RemoveEquipmentMutationVariables = {
+            id: equipment.id,
+            work_order_id: this.props.selectedWorkOrderId,
+          };
 
-        const callbacks: MutationCallbacks<RemoveEquipmentMutationResponse> = {
-          onCompleted: (_, errors) => {
-            if (errors && errors[0]) {
-              this.props.enqueueSnackbar(errors[0].message, {
-                children: key => (
-                  <SnackbarItem
-                    id={key}
-                    message={errors[0].message}
-                    variant="error"
-                  />
-                ),
-              });
+          const callbacks: MutationCallbacks<RemoveEquipmentMutationResponse> = {
+            onCompleted: (_, errors) => {
+              if (errors && errors[0]) {
+                this.props.enqueueSnackbar(errors[0].message, {
+                  children: key => (
+                    <SnackbarItem
+                      id={key}
+                      message={errors[0].message}
+                      variant="error"
+                    />
+                  ),
+                });
+              }
+            },
+            onError: (error: any) => {
+              this.props.alert('Error: ' + error.source?.errors[0]?.message);
+            },
+          };
+
+          RemoveEquipmentMutation(variables, callbacks, store => {
+            if (!this.props.selectedWorkOrderId) {
+              // $FlowFixMe (T62907961) Relay flow types
+              store.delete(equipment.id);
             }
-          },
-          onError: (error: any) => {
-            this.props.alert('Error: ' + error.source?.errors[0]?.message);
-          },
-        };
-
-        RemoveEquipmentMutation(variables, callbacks, store => {
-          if (!this.props.selectedWorkOrderId) {
-            store.delete(equipment.id);
-          }
-        });
-      }
-    });
+          });
+        }
+      });
   }
 }
 

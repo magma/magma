@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -29,13 +29,13 @@ import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
     width: '100%',
   },
-});
+}));
 
 type BandwidthMhzType = $PropertyType<enodeb_configuration, 'bandwidth_mhz'>;
 type DeviceClassType = $PropertyType<enodeb_configuration, 'device_class'>;
@@ -56,9 +56,11 @@ export default function AddEditEnodebDialog(props: Props) {
   const networkId = nullthrows(match.params.networkId);
 
   let defaultEnodebId = '0';
-  let cellNumber = '1';
+  let defaultCellNumber = '1';
   if (editingEnodeb) {
-    [defaultEnodebId, cellNumber] = unpackCellId(editingEnodeb.config.cell_id);
+    [defaultEnodebId, defaultCellNumber] = unpackCellId(
+      editingEnodeb.config.cell_id,
+    );
   }
 
   const [deviceClass, setDeviceClass] = useState<DeviceClassType>(
@@ -85,6 +87,7 @@ export default function AddEditEnodebDialog(props: Props) {
     String(editingEnodeb?.config.pci || ''),
   );
   const [enodebId, setEnodebId] = useState<string>(defaultEnodebId);
+  const [cellNumber, setCellNumber] = useState<string>(defaultCellNumber);
   const [name, setName] = useState<string>(editingEnodeb?.name || '');
 
   const cellId = packCellId(enodebId, cellNumber);
@@ -269,10 +272,10 @@ export default function AddEditEnodebDialog(props: Props) {
           error={!isEnodebIdValid || !isCellIdValid}
         />
         <TextField
-          disabled
           label="Cell Number"
           className={classes.input}
           value={cellNumber}
+          onChange={({target}) => setCellNumber(target.value)}
           error={!isCellNumberValid}
         />
         <FormControl className={classes.input}>

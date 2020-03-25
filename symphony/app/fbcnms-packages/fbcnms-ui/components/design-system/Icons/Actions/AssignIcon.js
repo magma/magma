@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -21,9 +21,7 @@ const AddIcon = (props: SvgIconStyleProps) => (
         id="assignIcon"
       />
     </defs>
-    <g>
-      <use xlinkHref="#assignIcon" fillRule="evenodd" />
-    </g>
+    <use xlinkHref="#assignIcon" />
   </SvgIcon>
 );
 

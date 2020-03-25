@@ -7,7 +7,6 @@
 
 syntax = "proto3";
 
-import "lte/protos/subscriberdb.proto";
 import "orc8r/protos/common.proto";
 
 package magma.lte;
@@ -180,9 +179,33 @@ message InstalledPolicies {
 }
 
 // --------------------------------------------------------------------------
+// PolicyAssignment controller definition.
+// --------------------------------------------------------------------------
+message EnableStaticRuleRequest {
+  string imsi = 1;
+  repeated string rule_ids = 2; // Static rule IDs
+  repeated string base_names = 3;
+}
+
+message DisableStaticRuleRequest {
+  string imsi = 1;
+  repeated string rule_ids = 2; // Static rule IDs
+  repeated string base_names = 3;
+}
+
+service PolicyAssignmentController {
+  // Associate the static rule with the IMSI
+  //
+  rpc EnableStaticRules (EnableStaticRuleRequest) returns (magma.orc8r.Void) {}
+
+  // Unassociate the static rule with the IMSI
+  //
+  rpc DisableStaticRules (DisableStaticRuleRequest) returns (magma.orc8r.Void) {}
+}
+
+// --------------------------------------------------------------------------
 // PolicyDB service definition
 // --------------------------------------------------------------------------
-
 service PolicyDB {
 
   // Immediately install the static policy for the IMSI

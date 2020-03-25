@@ -6,7 +6,12 @@ query LocationTypeLocationsQuery($id: ID!) {
           node {
             id
             name
+            latitude
+            longitude
             externalId
+            locationType {
+              name
+            }
           }
         }
       }

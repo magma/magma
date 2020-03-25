@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -14,7 +14,7 @@ import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     backgroundColor: symphony.palette.white,
     borderRadius: '4px',
@@ -59,21 +59,21 @@ const useStyles = makeStyles({
       color: symphony.palette.primary,
     },
   },
-});
+}));
 
 export type ButtonItem = {
   id: string,
   item: React.Node,
 };
 
-type Props = {
+export type ToggleButtonProps = {
   buttons: Array<ButtonItem>,
   onItemClicked: (id: string) => void,
   selectedButtonId?: ?string,
   className?: string,
 };
 
-const ToggleButton = (props: Props) => {
+const ToggleButton = (props: ToggleButtonProps) => {
   const {buttons, selectedButtonId, onItemClicked, className} = props;
   const classes = useStyles();
   return (

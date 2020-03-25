@@ -22,10 +22,10 @@ import (
 	"magma/feg/cloud/go/services/health/test_utils"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
+	orcprotos "magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/stretchr/testify/assert"
 )

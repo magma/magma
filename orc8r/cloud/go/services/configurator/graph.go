@@ -9,8 +9,8 @@
 package configurator
 
 import (
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/pkg/errors"
 )

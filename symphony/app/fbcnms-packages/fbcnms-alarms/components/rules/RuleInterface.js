@@ -4,25 +4,27 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
 import * as React from 'react';
 import type {ApiRequest} from '../AlarmsApi';
-import type {ApiUtil} from '../AlarmsApi';
+import type {FiringAlarm} from '../AlarmAPIType';
+
 export type RuleEditorProps<TRule> = {
-  apiUtil: ApiUtil,
   rule: ?GenericRule<TRule>,
   // invoked when rule is modified locally
   onRuleUpdated: (rule: GenericRule<TRule>) => void,
   onExit: () => void,
   isNew: boolean,
-  // component used to swap rule types, used by AddEditAlert
-  ruleTypeSelector?: ?React.Node,
 };
 
 export type RuleViewerProps<_TRule> = {};
+
+export type AlertViewerProps = {
+  alert: FiringAlarm,
+};
 
 /**
  * Rules should be mapped to the generic rule for rendering in tables and
@@ -51,10 +53,11 @@ export type RuleInterface<TRule> = {|
    */
   RuleEditor: React.ComponentType<RuleEditorProps<TRule>>,
   /**
-   * Component to be rendered inside of the "view rule" modal. Use this to
+   * Component to be rendered inside of the "view alert" modal. Use this to
    * display information specific to the rule type. If this is not provided,
-   * the rule will be rendered as json in a pre tag
+   * the alert will be rendered as json in a pre tag
    */
+  AlertViewer?: React.ComponentType<AlertViewerProps>,
   RuleViewer?: React.ComponentType<RuleViewerProps<TRule>>,
   /**
    * Retrieve all rules for this rule type

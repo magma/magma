@@ -84,7 +84,8 @@ matrix:
       os: linux
       dist: xenial
       env:
-        - MAGMA_ROOT=$TRAVIS_BUILD_DIR PYTHON_BUILD=$TRAVIS_BUILD_DIR/build PIP_CACHE_HOME=$TRAVIS_BUILD_DIR/.pipcache MAGMA_DEV_MODE=1 SKIP_SUDO_TESTS=1
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR PYTHON_BUILD=$TRAVIS_BUILD_DIR/build PIP_CACHE_HOME=$TRAVIS_BUILD_DIR/.pipcache MAGMA_DEV_MODE=1 SKIP_SUDO_TESTS=1 CODEGEN_ROOT=$TRAVIS_BUILD_DIR/.codegen SWAGGER_CODEGEN_JAR=$CODEGEN_ROOT/swagger-codegen-cli.jar
+
 
       before_install:
         - sudo apt-get update -qq
@@ -99,6 +100,10 @@ matrix:
         - sudo mv protoc3/include/google /usr/include/
         - sudo chmod -R a+Xr /usr/include/google
         - sudo rm -rf protoc3.zip protoc3
+
+        # Install swagger-codegen
+        - mkdir $CODEGEN_ROOT
+        - wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
       script:
         - make -C $MAGMA_ROOT/lte/gateway/python test_all
 

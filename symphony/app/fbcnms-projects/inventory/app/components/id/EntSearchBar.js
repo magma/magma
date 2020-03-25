@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -12,7 +12,7 @@ import React, {useState} from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useHistory} from 'react-router';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -37,7 +37,7 @@ const ENTER_KEY_CODE = 13;
 type Props = {};
 
 const EntSearchBar = (_props: Props) => {
-  const {history} = useRouter();
+  const history = useHistory();
   const classes = useStyles();
   const [searchText, setSearchText] = useState('');
 

@@ -16,13 +16,12 @@ import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
-
-import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {Suspense, useEffect, useState} from 'react';
 import {extractEntityIdFromUrl} from '../common/RouterUtils';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
+import {useHistory} from 'react-router';
 
 import 'react-perfect-scrollbar/dist/css/styles.css';
 
@@ -199,7 +198,7 @@ export default function InventoryTreeNode(props: Props) {
     extractEntityIdFromUrl('location', location.search) === element.id;
 
   const classes = useStyles();
-  const {history} = useRouter();
+  const history = useHistory();
 
   const [isExpanded, setIsExpanded] = useState<?boolean>(null);
   const [selected, setSelected] = useState(defaultIsSelected);

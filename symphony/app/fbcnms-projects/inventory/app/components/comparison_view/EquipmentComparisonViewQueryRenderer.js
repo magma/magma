@@ -65,8 +65,9 @@ type Props = {
   limit?: number,
   showExport?: boolean,
   children: (props: {
-    equipment:
+    equipment:  // $FlowFixMe (T62907961) Relay flow types
       | PowerSearchEquipmentResultsTable_equipment
+      // $FlowFixMe (T62907961) Relay flow types
       | PowerSearchLinkFirstEquipmentResultsTable_equipment,
   }) => React.Element<*>,
 };
@@ -155,6 +156,7 @@ const EquipmentComparisonViewQueryRenderer = (props: Props) => {
             stringValue: f.stringValue,
             propertyValue: f.propertyValue,
             idSet: f.idSet,
+            stringSet: f.stringSet,
           })),
         }}
         render={(

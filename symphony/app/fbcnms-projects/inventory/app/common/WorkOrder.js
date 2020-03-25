@@ -4,11 +4,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-import type {CheckListTable_list} from '../components/checklist/__generated__/CheckListTable_list.graphql';
+import type {CheckListCategoryExpandingPanel_list} from '../components/checklist/checkListCategory/__generated__/CheckListCategoryExpandingPanel_list.graphql';
 import type {Equipment, Link} from './Equipment';
 import type {FileAttachmentType} from './FileAttachment.js';
 import type {ImageAttachmentType} from './ImageAttachment.js';
@@ -25,7 +25,6 @@ export type WorkOrderType = {
   description: ?string,
   propertyTypes: Array<PropertyType>,
   numberOfWorkOrders: number,
-  checkListDefinitions: CheckListTable_list,
 };
 
 export type WorkOrder = {
@@ -50,7 +49,7 @@ export type WorkOrder = {
   assignee: ?string,
   properties: Array<Property>,
   projectId: ?string,
-  checkList: ?CheckListTable_list,
+  checkListCategories: ?CheckListCategoryExpandingPanel_list,
 };
 
 export type WorkOrderIdentifier = {
@@ -60,50 +59,62 @@ export type WorkOrderIdentifier = {
 
 export const priorityValues = [
   {
+    key: 'urgent',
     value: 'URGENT',
     label: 'Urgent',
   },
   {
+    key: 'high',
     value: 'HIGH',
     label: 'High',
   },
   {
+    key: 'medium',
     value: 'MEDIUM',
     label: 'Medium',
   },
   {
+    key: 'low',
     value: 'LOW',
     label: 'Low',
   },
   {
+    key: 'none',
     value: 'NONE',
     label: 'None',
   },
 ];
 
+export const doneStatus = {
+  key: 'done',
+  value: 'DONE',
+  label: 'Done',
+};
+
 export const statusValues = [
   {
+    key: 'planned',
     value: 'PLANNED',
     label: 'Planned',
   },
   {
+    key: 'pending',
     value: 'PENDING',
     label: 'Pending',
   },
-  {
-    value: 'DONE',
-    label: 'Done',
-  },
+  doneStatus,
 ];
 
 export type FutureState = 'INSTALL' | 'REMOVE';
 
 export const FutureStateValues = [
   {
+    key: 'install',
     value: 'INSTALL',
     label: 'Install',
   },
   {
+    key: 'remove',
     value: 'REMOVE',
     label: 'Remove',
   },

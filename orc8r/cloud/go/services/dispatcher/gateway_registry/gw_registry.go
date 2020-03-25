@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/directoryd"
+	"magma/orc8r/lib/go/registry"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -78,7 +78,7 @@ func SetPort(port int) error {
 // of the Dispatcher grpc server who has an open bidirectional
 // stream with the gateway with hwId.
 func GetServiceAddressForGateway(hwId string) (string, error) {
-	hostName, err := directoryd.GetHostNameByIMSI(hwId)
+	hostName, err := directoryd.GetHostnameForHWID(hwId)
 	if err != nil {
 		fmt.Printf("err getting hostName in GetServiceAddressForGateway for hwId %v: %v\n", hwId, err)
 		return "", err
@@ -96,7 +96,7 @@ func GetServiceAddressForGateway(hwId string) (string, error) {
 // Returns a connection and a context that should be based on for rpc calls on this connection.
 // The context will put the Gatewayid in its metadata, which will be surfaced as HTTP/2 headers.
 func GetGatewayConnection(service GwServiceType, hwId string) (*grpc.ClientConn, context.Context, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpxMaxTimeoutSec*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
 	addr, err := GetServiceAddressForGateway(hwId)
 	if err != nil {

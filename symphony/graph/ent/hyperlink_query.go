@@ -27,6 +27,7 @@ type HyperlinkQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Hyperlink
+	withFKs    bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -55,14 +56,14 @@ func (hq *HyperlinkQuery) Order(o ...Order) *HyperlinkQuery {
 	return hq
 }
 
-// First returns the first Hyperlink entity in the query. Returns *ErrNotFound when no hyperlink was found.
+// First returns the first Hyperlink entity in the query. Returns *NotFoundError when no hyperlink was found.
 func (hq *HyperlinkQuery) First(ctx context.Context) (*Hyperlink, error) {
 	hs, err := hq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(hs) == 0 {
-		return nil, &ErrNotFound{hyperlink.Label}
+		return nil, &NotFoundError{hyperlink.Label}
 	}
 	return hs[0], nil
 }
@@ -76,21 +77,21 @@ func (hq *HyperlinkQuery) FirstX(ctx context.Context) *Hyperlink {
 	return h
 }
 
-// FirstID returns the first Hyperlink id in the query. Returns *ErrNotFound when no id was found.
-func (hq *HyperlinkQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+// FirstID returns the first Hyperlink id in the query. Returns *NotFoundError when no id was found.
+func (hq *HyperlinkQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = hq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{hyperlink.Label}
+		err = &NotFoundError{hyperlink.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (hq *HyperlinkQuery) FirstXID(ctx context.Context) string {
+func (hq *HyperlinkQuery) FirstXID(ctx context.Context) int {
 	id, err := hq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -108,9 +109,9 @@ func (hq *HyperlinkQuery) Only(ctx context.Context) (*Hyperlink, error) {
 	case 1:
 		return hs[0], nil
 	case 0:
-		return nil, &ErrNotFound{hyperlink.Label}
+		return nil, &NotFoundError{hyperlink.Label}
 	default:
-		return nil, &ErrNotSingular{hyperlink.Label}
+		return nil, &NotSingularError{hyperlink.Label}
 	}
 }
 
@@ -124,8 +125,8 @@ func (hq *HyperlinkQuery) OnlyX(ctx context.Context) *Hyperlink {
 }
 
 // OnlyID returns the only Hyperlink id in the query, returns an error if not exactly one id was returned.
-func (hq *HyperlinkQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (hq *HyperlinkQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = hq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -133,15 +134,15 @@ func (hq *HyperlinkQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{hyperlink.Label}
+		err = &NotFoundError{hyperlink.Label}
 	default:
-		err = &ErrNotSingular{hyperlink.Label}
+		err = &NotSingularError{hyperlink.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (hq *HyperlinkQuery) OnlyXID(ctx context.Context) string {
+func (hq *HyperlinkQuery) OnlyXID(ctx context.Context) int {
 	id, err := hq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -164,8 +165,8 @@ func (hq *HyperlinkQuery) AllX(ctx context.Context) []*Hyperlink {
 }
 
 // IDs executes the query and returns a list of Hyperlink ids.
-func (hq *HyperlinkQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (hq *HyperlinkQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := hq.Select(hyperlink.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -173,7 +174,7 @@ func (hq *HyperlinkQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (hq *HyperlinkQuery) IDsX(ctx context.Context) []string {
+func (hq *HyperlinkQuery) IDsX(ctx context.Context) []int {
 	ids, err := hq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -267,30 +268,41 @@ func (hq *HyperlinkQuery) Select(field string, fields ...string) *HyperlinkSelec
 
 func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
 	var (
-		nodes []*Hyperlink
-		spec  = hq.querySpec()
+		nodes   = []*Hyperlink{}
+		withFKs = hq.withFKs
+		_spec   = hq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, hyperlink.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &Hyperlink{config: hq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, hq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, hq.driver, _spec); err != nil {
 		return nil, err
+	}
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
 	return nodes, nil
 }
 
 func (hq *HyperlinkQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := hq.querySpec()
-	return sqlgraph.CountNodes(ctx, hq.driver, spec)
+	_spec := hq.querySpec()
+	return sqlgraph.CountNodes(ctx, hq.driver, _spec)
 }
 
 func (hq *HyperlinkQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -302,12 +314,12 @@ func (hq *HyperlinkQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (hq *HyperlinkQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   hyperlink.Table,
 			Columns: hyperlink.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: hyperlink.FieldID,
 			},
 		},
@@ -315,26 +327,26 @@ func (hq *HyperlinkQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := hq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := hq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := hq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := hq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (hq *HyperlinkQuery) sqlQuery() *sql.Selector {

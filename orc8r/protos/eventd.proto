@@ -1,0 +1,36 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.orc8r;
+
+option go_package = "magma/orc8r/lib/go/protos";
+
+// --------------------------------------------------------------------------
+// EventService provides an interface for structured event logging.
+// --------------------------------------------------------------------------
+service EventService {
+  // Logs an event to FluentBit.
+  rpc LogEvent (Event) returns (Void) {}
+}
+
+// --------------------------------------------------------------------------
+// An Event encapsulates all information regarding an event and it's metadata.
+// --------------------------------------------------------------------------
+message Event {
+  // A user-specified string to categorize events
+  string stream_name = 1;
+  // Denotes the way an event should be deserialized.
+  // This should correspond to an event type in swagger_eventd.v1.yml
+  string event_type = 2;
+  // A user-specified non-unique identifier for events
+  string tag = 3;
+  // The event log serialized as JSON
+  string value = 4;
+}

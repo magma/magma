@@ -7,28 +7,24 @@
  * @flow
  * @format
  */
+import type {ButtonProps} from '@fbcnms/ui/components/design-system/Button';
 import type {Property} from '../../common/Property';
 import type {PropertyType} from '../../common/PropertyType';
 import type {WithStyles} from '@material-ui/core';
 
-import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import TextField from '@material-ui/core/TextField';
+import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import classNames from 'classnames';
 import update from 'immutability-helper';
 import {isJSON} from '@fbcnms/ui/utils/displayUtils';
 import {withStyles} from '@material-ui/core/styles';
 
-type Props = {
+type Props = {|
   className: string,
-  inputClassName?: ?string,
-  label: ?string,
-  disabled?: boolean,
   property: Property | PropertyType,
   onChange: (Property | PropertyType) => void,
-  margin: 'none' | 'dense' | 'normal',
-  autoFocus?: boolean,
-} & WithStyles<typeof styles>;
+  ...ButtonProps,
+|} & WithStyles<typeof styles>;
 
 const styles = {
   input: {
@@ -46,12 +42,9 @@ class EnumPropertySelectValueInput extends React.Component<Props> {
     const {
       classes,
       onChange,
-      margin,
       property,
       className,
-      inputClassName,
-      autoFocus,
-      disabled = false,
+      ...restButtonProps
     } = this.props;
     const propertyType = !!property.propertyType
       ? property.propertyType
@@ -60,23 +53,23 @@ class EnumPropertySelectValueInput extends React.Component<Props> {
     const options = isJSON(jsonStr) ? JSON.parse(jsonStr) : [];
     const optionsArr = Array.isArray(options) ? options : [];
     return (
-      <TextField
-        select
-        id="property-value"
-        variant="outlined"
-        autoFocus={autoFocus}
-        disabled={disabled}
+      <Select
         className={classNames(classes.input, className)}
-        inputProps={{className: inputClassName}}
-        label={this.props.label}
-        margin={margin}
-        value={property && property.stringValue ? property.stringValue : ''}
-        onChange={event => {
+        options={optionsArr.map(stringVal => ({
+          key: stringVal,
+          value: stringVal,
+          label: stringVal,
+        }))}
+        selectedValue={
+          property && property.stringValue ? property.stringValue : ''
+        }
+        {...restButtonProps}
+        onChange={value => {
           if (property != null) {
             onChange(
               update(property, {
                 stringValue: {
-                  $set: event.target.value,
+                  $set: value,
                 },
               }),
             );
@@ -84,18 +77,13 @@ class EnumPropertySelectValueInput extends React.Component<Props> {
             onChange(
               update(propertyType, {
                 stringValue: {
-                  $set: event.target.value,
+                  $set: value,
                 },
               }),
             );
           }
-        }}>
-        {optionsArr.map(stringVal => (
-          <MenuItem key={stringVal} value={stringVal}>
-            {stringVal}
-          </MenuItem>
-        ))}
-      </TextField>
+        }}
+      />
     );
   }
 }

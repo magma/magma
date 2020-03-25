@@ -13,11 +13,13 @@ import type {HyperlinkTableRow_hyperlink} from './__generated__/HyperlinkTableRo
 import type {WithStyles} from '@material-ui/core';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
+import DateTimeFormat from '../common/DateTimeFormat.js';
 import HyperlinkTableMenu from './HyperlinkTableMenu';
 import InsertLinkIcon from '@material-ui/icons/InsertLink';
 import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
+import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {withStyles} from '@material-ui/core/styles';
@@ -25,12 +27,15 @@ import {withStyles} from '@material-ui/core/styles';
 const styles = () => ({
   cell: {
     height: '48px',
+    ...symphony.typography.caption,
   },
   nameCell: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    ...symphony.typography.caption,
+  },
+  secondaryCell: {
+    color: symphony.palette.D400,
   },
   thumbnail: {
     marginRight: '20px',
@@ -40,9 +45,6 @@ const styles = () => ({
   icon: {
     fontSize: '24px',
     width: '32px',
-  },
-  displayName: {
-    ...symphony.typography.caption,
   },
   moreIcon: {
     fill: symphony.palette.D400,
@@ -71,11 +73,7 @@ class HyperlinkTableRow extends React.Component<Props, State> {
     return (
       <TableRow key={hyperlink.id} hover={false}>
         {categoriesEnabled && (
-          <TableCell
-            padding="none"
-            component="th"
-            scope="row"
-            className={classes.cell}>
+          <TableCell padding="none" component="th" scope="row">
             {hyperlink.category}
           </TableCell>
         )}
@@ -92,14 +90,19 @@ class HyperlinkTableRow extends React.Component<Props, State> {
             <div className={classes.thumbnail}>
               <InsertLinkIcon color="primary" className={classes.icon} />
             </div>
-            <div className={classes.displayName}>
-              {hyperlink.displayName || hyperlink.url}
-            </div>
+            {hyperlink.displayName || hyperlink.url}
           </a>
         </TableCell>
         <TableCell className={classes.cell} />
         <TableCell className={classes.cell} />
-        <TableCell className={classes.cell} />
+        <TableCell
+          padding="none"
+          className={classNames(classes.cell, classes.secondaryCell)}
+          component="th"
+          scope="row">
+          {hyperlink.createTime &&
+            DateTimeFormat.dateTime(hyperlink.createTime)}
+        </TableCell>
         <TableCell
           padding="none"
           className={classes.cell}
@@ -121,6 +124,7 @@ export default withStyles(styles)(
         category
         url
         displayName
+        createTime
       }
     `,
   }),

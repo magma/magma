@@ -18,9 +18,9 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
+	configs "magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/service/config"
-	configs "magma/orc8r/gateway/mconfig"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -154,14 +154,14 @@ func createSubscriber(imsi string, authKey []byte, non3gppEnabled bool) *protos.
 			Msisdn:              msisdn,
 			Non_3GppIpAccess:    protos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
 			Non_3GppIpAccessApn: protos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
-			ApnConfig:           &protos.APNConfiguration{},
+			ApnConfig:           []*protos.APNConfiguration{&protos.APNConfiguration{}},
 		}
 	} else {
 		non3gppProfile = &protos.Non3GPPUserProfile{
 			Msisdn:              msisdn,
 			Non_3GppIpAccess:    protos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_BARRED,
 			Non_3GppIpAccessApn: protos.Non3GPPUserProfile_NON_3GPP_APNS_DISABLE,
-			ApnConfig:           &protos.APNConfiguration{},
+			ApnConfig:           []*protos.APNConfiguration{&protos.APNConfiguration{}},
 		}
 	}
 	return &protos.SubscriberData{

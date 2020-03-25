@@ -15,9 +15,10 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/protos"
 	stateService "magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/lib/go/protos"
 
+	"github.com/thoas/go-funk"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -41,18 +42,27 @@ func (srv *stateServicer) GetStates(context context.Context, req *protos.GetStat
 		return nil, err
 	}
 
-	ids := protos.StateIDsToTKs(req.GetIds())
-
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	states, err := store.GetMany(req.GetNetworkID(), ids)
-	if err != nil {
-		store.Rollback()
-		return nil, err
+
+	if !funk.IsEmpty(req.Ids) {
+		ids := StateIDsToTKs(req.GetIds())
+		states, err := store.GetMany(req.GetNetworkID(), ids)
+		if err != nil {
+			_ = store.Rollback()
+			return nil, status.Errorf(codes.Internal, err.Error())
+		}
+		return &protos.GetStatesResponse{States: BlobsToStates(states)}, store.Commit()
+	} else {
+		searchResults, err := store.Search(blobstore.CreateSearchFilter(&req.NetworkID, req.TypeFilter, req.IdFilter))
+		if err != nil {
+			_ = store.Rollback()
+			return nil, status.Errorf(codes.Internal, err.Error())
+		}
+		return &protos.GetStatesResponse{States: BlobsToStates(searchResults[req.NetworkID])}, store.Commit()
 	}
-	return &protos.GetStatesResponse{States: protos.BlobsToStates(states)}, store.Commit()
 }
 
 // ReportStates saves states into blobstorage
@@ -112,7 +122,7 @@ func (srv *stateServicer) DeleteStates(context context.Context, req *protos.Dele
 		return ret, err
 	}
 	networkID := req.GetNetworkID()
-	ids := protos.StateIDsToTKs(req.GetIds())
+	ids := StateIDsToTKs(req.GetIds())
 
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
@@ -146,7 +156,7 @@ func (srv *stateServicer) SyncStates(
 	}
 	networkID := gw.NetworkId
 
-	tkIds := protos.StateIDAndVersionsToTKs(req.GetStates())
+	tkIds := StateIDAndVersionsToTKs(req.GetStates())
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return response, err
@@ -210,7 +220,7 @@ func addWrapperAndMakeBlobs(states []*protos.State, hwID string, timeMs uint64, 
 			return nil, err
 		}
 		state.Value = wrappedValue
-		blobs = append(blobs, state.ToBlob())
+		blobs = append(blobs, ToBlob(state))
 	}
 	return blobs, nil
 }

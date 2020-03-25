@@ -39,14 +39,14 @@ import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   header: {
     flexGrow: 1,
   },
   actionsColumn: {
     width: '300px',
   },
-});
+}));
 
 function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
   const classes = useStyles();
@@ -215,7 +215,7 @@ const RuleRow = withAlert((props: Props) => {
 
   const {response: rule} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPoliciesRulesByRuleId,
-    {networkId: networkID, ruleId: props.ruleID},
+    {networkId: networkID, ruleId: encodeURIComponent(props.ruleID)},
     undefined,
     lastRefreshTime,
   );
@@ -250,7 +250,7 @@ const RuleRow = withAlert((props: Props) => {
     props.onDelete();
   };
 
-  const editPath = `/edit/${encodeURIComponent(props.ruleID)}/`;
+  const editPath = `/edit/${props.ruleID}/`;
   return (
     <TableRow>
       <TableCell>{props.ruleID}</TableCell>

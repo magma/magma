@@ -8,6 +8,9 @@ package resolver
 import (
 	"testing"
 
+	"github.com/AlekSi/pointer"
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
@@ -16,13 +19,11 @@ import (
 )
 
 func TestAddLink(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
-	mr, qr, pr, lr := r.Mutation(), r.Query(), r.EquipmentPort(), r.Link()
-
+	mr, qr, pr, lr, eqr := r.Mutation(), r.Query(), r.EquipmentPort(), r.Link(), r.Equipment()
 	locationType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "location_type"})
 	location, err := mr.AddLocation(ctx, models.AddLocationInput{
 		Name: "location_name",
@@ -54,6 +55,13 @@ func TestAddLink(t *testing.T) {
 		Location: &location.ID,
 	})
 
+	availablePorts, err := eqr.Ports(ctx, equipmentA, pointer.ToBool(true))
+	require.NoError(t, err)
+	allPorts, err := eqr.Ports(ctx, equipmentA, pointer.ToBool(false))
+	require.NoError(t, err)
+	require.Len(t, availablePorts, 1)
+	require.Len(t, allPorts, 1)
+
 	createdLink, err := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
 			{Equipment: equipmentA.ID, Port: portDef.ID},
@@ -78,16 +86,21 @@ func TestAddLink(t *testing.T) {
 	fetchedPorts, err := lr.Ports(ctx, createdLink)
 	require.NoError(t, err)
 	assert.Len(t, fetchedPorts, 2)
+
+	availablePorts, err = eqr.Ports(ctx, equipmentA, pointer.ToBool(true))
+	require.NoError(t, err)
+	allPorts, err = eqr.Ports(ctx, equipmentA, pointer.ToBool(false))
+	require.NoError(t, err)
+	require.Len(t, availablePorts, 0)
+	require.Len(t, allPorts, 1)
 }
 
 func TestAddLinkWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr, pr, lr := r.Mutation(), r.Query(), r.EquipmentPort(), r.Link()
-
 	locationType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "location_type"})
 	location, err := mr.AddLocation(ctx, models.AddLocationInput{
 		Name: "location_name",
@@ -177,13 +190,11 @@ func TestAddLinkWithProperties(t *testing.T) {
 }
 
 func TestEditLinkWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr, qr, pr, lr := r.Mutation(), r.Query(), r.EquipmentPort(), r.Link()
-
 	locationType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type",
 	})
@@ -290,8 +301,7 @@ func TestEditLinkWithProperties(t *testing.T) {
 }
 
 func TestRemoveLink(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -352,8 +362,7 @@ func TestRemoveLink(t *testing.T) {
 }
 
 func TestAddLinkWithWorkOrder(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -408,8 +417,10 @@ func TestAddLinkWithWorkOrder(t *testing.T) {
 	assert.Equal(t, linkA.ID, createdLink.ID)
 	assert.Equal(t, linkB.ID, createdLink.ID)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	linksToRemove, err := wor.LinksToRemove(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -422,8 +433,7 @@ func TestAddLinkWithWorkOrder(t *testing.T) {
 }
 
 func TestRemoveLinkWithWorkOrder(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
@@ -478,8 +488,10 @@ func TestRemoveLinkWithWorkOrder(t *testing.T) {
 	assert.NotNil(t, linkA)
 	assert.NotNil(t, linkB)
 
-	fetchedWorkOrder, err := qr.WorkOrder(ctx, workOrder.ID)
+	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
+	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
+	require.True(t, ok)
 
 	linksToRemove, err := wor.LinksToRemove(ctx, fetchedWorkOrder)
 	require.NoError(t, err)

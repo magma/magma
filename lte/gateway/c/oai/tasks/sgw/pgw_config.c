@@ -49,7 +49,7 @@
 #include "log.h"
 #include "common_defs.h"
 #include "pgw_pcef_emulation.h"
-#include "rpc_client.h"
+#include "MobilityClientAPI.h"
 #include "pgw_config.h"
 #ifdef LIBCONFIG_LONG
 #define libconfig_int long

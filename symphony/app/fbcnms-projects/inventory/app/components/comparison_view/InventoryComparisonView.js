@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import type {EntityType, FiltersQuery} from './ComparisonViewTypes';
@@ -15,7 +15,10 @@ import InventoryErrorBoundary from '../../common/InventoryErrorBoundary';
 import PowerSearchBarRouter from './PowerSearchBarRouter';
 import PowerSearchFilterSubjectDropDown from '../power_search/PowerSearchFilterSubjectDropDown';
 import React, {useState} from 'react';
+import {EntityTypeMap} from './ComparisonViewTypes';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {useHistory} from 'react-router';
 
 import {makeStyles} from '@material-ui/styles';
 
@@ -55,18 +58,67 @@ const QUERY_LIMIT = 100;
 
 const InventoryComparisonView = () => {
   const classes = useStyles();
-  const [filters, setFilters] = useState(([]: FiltersQuery));
   const [count, setCount] = useState((0: number));
-  const [subject, setSubject] = useState(('equipment': EntityType));
+  const history = useHistory();
 
   const onSubjectChange = subject => {
     ServerLogger.info(LogEvents.COMPARISON_VIEW_SUBJECT_CHANGED, {
       subject: subject,
     });
-    setFilters([]);
-    setSubject(subject);
+    // add subject to url
+    let path = history.location.pathname;
+    if (
+      path.endsWith(InventoryAPIUrls.search) ||
+      path.endsWith(InventoryAPIUrls.search + '/')
+    ) {
+      if (subject) {
+        path = path.replace(/\/$/, '');
+        history.push(path + '/' + subject);
+      }
+    }
+    history.replace({pathname: subject});
   };
 
+  const onFiltersChange = filters => {
+    ServerLogger.info(LogEvents.COMPARISON_VIEW_FILTERS_CHANGED, {
+      filters: filters,
+    });
+    // add filters to URL
+    const filtersStr =
+      filters.length > 0 ? `filters=${JSON.stringify(filters)}` : '';
+    if (getSubject()) {
+      history.replace({
+        search: filtersStr,
+      });
+    }
+  };
+
+  const getFiltersFromURL = (): FiltersQuery => {
+    if (getSubject()) {
+      const urlParams = new URLSearchParams(history.location.search);
+      const filtersStr = urlParams.get('filters') ?? '[]';
+      return JSON.parse(filtersStr);
+    }
+    return [];
+  };
+
+  const getSubjectFromURL = (): EntityType => {
+    const subj = getSubject();
+    if (subj) {
+      return subj;
+    }
+    onSubjectChange('equipment');
+    return 'equipment';
+  };
+
+  const getSubject = (): ?EntityType => {
+    const path = history.location.pathname;
+    const subj = path.split(InventoryAPIUrls.search + '/')[1];
+    return EntityTypeMap[subj] ?? null;
+  };
+
+  const filters = getFiltersFromURL();
+  const subject = getSubjectFromURL();
   return (
     <InventoryErrorBoundary>
       <div className={classes.root}>
@@ -81,7 +133,7 @@ const InventoryComparisonView = () => {
               <PowerSearchBarRouter
                 filters={filters}
                 subject={subject}
-                onFiltersChanged={setFilters}
+                onFiltersChanged={onFiltersChange}
                 footer={
                   count != null
                     ? count > QUERY_LIMIT

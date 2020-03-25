@@ -7,9 +7,9 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from magma.enodebd.logger import EnodebdLogger as logger
 import traceback
 from typing import Any, Dict
+
 from abc import abstractmethod
 from magma.common.service import MagmaService
 from magma.enodebd import metrics
@@ -17,6 +17,7 @@ from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.exceptions import ConfigurationError
+from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import EnodebAcsState
 from magma.enodebd.state_machines.timer import StateMachineTimer
@@ -84,13 +85,13 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
             return models.TransferCompleteResponse()
         try:
             self._read_tr069_msg(message)
-            return self._get_tr069_msg()
+            return self._get_tr069_msg(message)
         except Exception:  # pylint: disable=broad-except
             logger.error('Failed to handle tr069 message')
             logger.error(traceback.format_exc())
             self._dump_debug_info()
             self.transition(self.unexpected_fault_state_name)
-            return self._get_tr069_msg()
+            return self._get_tr069_msg(message)
 
     def transition(self, next_state: str) -> Any:
         logger.debug('State transition to <%s>', next_state)
@@ -148,9 +149,9 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         if next_state is not None:
             self.transition(next_state)
 
-    def _get_tr069_msg(self) -> Any:
+    def _get_tr069_msg(self, message: Any) -> Any:
         """ Get a new message to send, and maybe transition state """
-        msg_and_transition = self.state.get_msg()
+        msg_and_transition = self.state.get_msg(message)
         if msg_and_transition.next_state:
             self.transition(msg_and_transition.next_state)
         msg = msg_and_transition.msg

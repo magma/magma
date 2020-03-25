@@ -8,20 +8,22 @@ package equipmentposition
 
 import (
 	"time"
-
-	"github.com/facebookincubator/ent"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the equipmentposition type in the database.
 	Label = "equipment_position"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time"
-	// FieldUpdateTime holds the string denoting the update_time vertex property in the database.
+	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
+	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
 	FieldUpdateTime = "update_time"
+
+	// EdgeDefinition holds the string denoting the definition edge name in mutations.
+	EdgeDefinition = "definition"
+	// EdgeParent holds the string denoting the parent edge name in mutations.
+	EdgeParent = "parent"
+	// EdgeAttachment holds the string denoting the attachment edge name in mutations.
+	EdgeAttachment = "attachment"
 
 	// Table holds the table name of the equipmentposition in the database.
 	Table = "equipment_positions"
@@ -31,46 +33,41 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "equipmentpositiondefinition" package.
 	DefinitionInverseTable = "equipment_position_definitions"
 	// DefinitionColumn is the table column denoting the definition relation/edge.
-	DefinitionColumn = "definition_id"
+	DefinitionColumn = "equipment_position_definition"
 	// ParentTable is the table the holds the parent relation/edge.
 	ParentTable = "equipment_positions"
 	// ParentInverseTable is the table name for the Equipment entity.
 	// It exists in this package in order to avoid circular dependency with the "equipment" package.
 	ParentInverseTable = "equipment"
 	// ParentColumn is the table column denoting the parent relation/edge.
-	ParentColumn = "parent_id"
+	ParentColumn = "equipment_positions"
 	// AttachmentTable is the table the holds the attachment relation/edge.
 	AttachmentTable = "equipment"
 	// AttachmentInverseTable is the table name for the Equipment entity.
 	// It exists in this package in order to avoid circular dependency with the "equipment" package.
 	AttachmentInverseTable = "equipment"
 	// AttachmentColumn is the table column denoting the attachment relation/edge.
-	AttachmentColumn = "parent_position_id"
+	AttachmentColumn = "equipment_position_attachment"
 )
 
-// Columns holds all SQL columns are equipmentposition fields.
+// Columns holds all SQL columns for equipmentposition fields.
 var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the EquipmentPosition type.
+var ForeignKeys = []string{
+	"equipment_positions",
+	"equipment_position_definition",
+}
+
 var (
-	mixin       = schema.EquipmentPosition{}.Mixin()
-	mixinFields = [...][]ent.Field{
-		mixin[0].Fields(),
-	}
-	fields = schema.EquipmentPosition{}.Fields()
-
-	// descCreateTime is the schema descriptor for create_time field.
-	descCreateTime = mixinFields[0][0].Descriptor()
 	// DefaultCreateTime holds the default value on creation for the create_time field.
-	DefaultCreateTime = descCreateTime.Default.(func() time.Time)
-
-	// descUpdateTime is the schema descriptor for update_time field.
-	descUpdateTime = mixinFields[0][1].Descriptor()
+	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the update_time field.
-	DefaultUpdateTime = descUpdateTime.Default.(func() time.Time)
+	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
+	UpdateDefaultUpdateTime func() time.Time
 )

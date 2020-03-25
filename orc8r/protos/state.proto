@@ -10,7 +10,7 @@ import "orc8r/protos/common.proto";
 import "orc8r/protos/service303.proto";
 
 package magma.orc8r;
-option go_package = "magma/orc8r/cloud/go/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
 message StateID {
     string type = 1;
@@ -20,6 +20,14 @@ message StateID {
 message GetStatesRequest {
     string networkID = 1;
     repeated StateID ids = 2;
+
+    // typeFilter is an OR of all types specified. The service will return all
+    // states matching any of the specified types.
+    repeated string typeFilter = 10;
+
+    // idFilter is an OR of all IDs specified. The service will return all
+    // states matching any of the specified IDs.
+    repeated string idFilter = 11;
 }
 
 message GetStatesResponse {

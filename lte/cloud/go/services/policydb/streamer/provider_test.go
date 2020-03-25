@@ -18,10 +18,10 @@ import (
 	pdbstreamer "magma/lte/cloud/go/services/policydb/streamer"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
-	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/storage"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
@@ -208,6 +208,55 @@ func TestRuleMappingsProvider(t *testing.T) {
 	expected[0].Key, expected[1].Key = "s1", "s2"
 
 	mappingPro := &pdbstreamer.RuleMappingsProvider{DeterministicReturn: true}
+	actual, err := mappingPro.GetUpdates("hw1", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestNetworkWideRulesProvider(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.PolicyRuleEntityType, Key: "r1"},
+			{Type: lte.PolicyRuleEntityType, Key: "r2"},
+			{Type: lte.PolicyRuleEntityType, Key: "r3"},
+
+			{Type: lte.BaseNameEntityType, Key: "b1"},
+			{Type: lte.BaseNameEntityType, Key: "b2"},
+			{Type: lte.BaseNameEntityType, Key: "b3"},
+		},
+	)
+	assert.NoError(t, err)
+	config := &models.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []models.BaseName{"b1", "b2"},
+		NetworkWideRuleNames: []string{"r1", "r2"},
+	}
+	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, config))
+
+	expectedProtos := []*protos.AssignedPolicies{
+		{
+			AssignedBaseNames: []string{"b1", "b2"},
+			AssignedPolicies:  []string{"r1", "r2"},
+		},
+	}
+	expected := funk.Map(
+		expectedProtos,
+		func(ap *protos.AssignedPolicies) *orcprotos.DataUpdate {
+			data, err := proto.Marshal(ap)
+			assert.NoError(t, err)
+			return &orcprotos.DataUpdate{Value: data}
+		},
+	).([]*orcprotos.DataUpdate)
+
+	mappingPro := &pdbstreamer.NetworkWideRulesProvider{}
 	actual, err := mappingPro.GetUpdates("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)

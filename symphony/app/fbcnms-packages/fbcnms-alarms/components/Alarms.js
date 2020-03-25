@@ -8,22 +8,25 @@
  * @format
  */
 
+import AlarmContext from './AlarmContext';
 import AlertRules from './AlertRules';
 import AppBar from '@material-ui/core/AppBar';
-import FiringAlerts from './prometheus/FiringAlerts';
+import FiringAlerts from './alertmanager/FiringAlerts';
 import React from 'react';
-import Receivers from './prometheus/Receivers/Receivers';
-import Routes from './prometheus/Routes';
-import Suppressions from './prometheus/Suppressions';
+import Receivers from './alertmanager/Receivers/Receivers';
+import Routes from './alertmanager/Routes';
+import Suppressions from './alertmanager/Suppressions';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import getPrometheusRuleInterface from './rules/PrometheusEditor/getRuleInterface';
 import {Link, Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {matchPath} from 'react-router';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 import type {ApiUtil} from './AlarmsApi';
-import type {FiringAlarm, Labels} from './AlarmAPIType';
+import type {FiringAlarm} from './AlarmAPIType';
+import type {Labels} from './AlarmAPIType';
 import type {Match} from 'react-router-dom';
 import type {RuleInterfaceMap} from './rules/RuleInterface';
 
@@ -58,12 +61,16 @@ const TABS: TabMap = {
 const DEFAULT_TAB_NAME = 'alerts';
 
 type Props<TRuleUnion> = {
-  apiUtil: ApiUtil,
+  //props specific to this component
   makeTabLink: ({match: Match, keyName: string}) => string,
   disabledTabs?: Array<string>,
-  thresholdEditorEnabled?: boolean,
-  filterLabels?: (labels: Labels, alarm: FiringAlarm) => Labels,
+  // context props
+  apiUtil: ApiUtil,
   ruleMap?: ?RuleInterfaceMap<TRuleUnion>,
+  thresholdEditorEnabled?: boolean,
+  alertManagerGlobalConfigEnabled?: boolean,
+  filterLabels?: (labels: Labels) => Labels,
+  getAlertType?: (alert: FiringAlarm) => string,
 };
 
 export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
@@ -73,7 +80,9 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
     makeTabLink,
     disabledTabs,
     thresholdEditorEnabled,
+    alertManagerGlobalConfigEnabled,
     ruleMap,
+    getAlertType,
   } = props;
   const classes = useStyles();
   const {match, location} = useRouter();
@@ -81,14 +90,22 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
   const currentTabMatch = matchPath(location.pathname, {
     path: `${match.path}/:tabName`,
   });
+  const mergedRuleMap = useMergedRuleMap<TRuleUnion>({ruleMap, apiUtil});
 
   const disabledTabSet = React.useMemo(() => {
     return new Set(disabledTabs ?? []);
   }, [disabledTabs]);
 
-  const alarmProps = {apiUtil};
   return (
-    <>
+    <AlarmContext.Provider
+      value={{
+        apiUtil,
+        thresholdEditorEnabled,
+        alertManagerGlobalConfigEnabled,
+        filterLabels,
+        ruleMap: mergedRuleMap,
+        getAlertType: getAlertType,
+      }}>
       <AppBar className={classes.appBar} color="default">
         <Tabs
           value={currentTabMatch?.params?.tabName || 'alerts'}
@@ -103,7 +120,6 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
                 component={Link}
                 to={makeTabLink({keyName, match})}
                 key={keyName}
-                className={classes.selectedTab}
                 label={TABS[keyName].name}
                 value={keyName}
               />
@@ -111,18 +127,16 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
           })}
         </Tabs>
       </AppBar>
+
       <Switch>
         <Route
           path={`${match.path}/alerts`}
-          render={() => (
-            <FiringAlerts {...alarmProps} filterLabels={filterLabels} />
-          )}
+          render={() => <FiringAlerts filterLabels={filterLabels} />}
         />
         <Route
           path={`${match.path}/alert_rules`}
           render={() => (
             <AlertRules
-              {...alarmProps}
               ruleMap={ruleMap}
               thresholdEditorEnabled={thresholdEditorEnabled}
             />
@@ -130,18 +144,32 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
         />
         <Route
           path={`${match.path}/suppressions`}
-          render={() => <Suppressions {...alarmProps} />}
+          render={() => <Suppressions />}
         />
-        <Route
-          path={`${match.path}/routes`}
-          render={() => <Routes {...alarmProps} />}
-        />
-        <Route
-          path={`${match.path}/receivers`}
-          render={() => <Receivers {...alarmProps} />}
-        />
+        <Route path={`${match.path}/routes`} render={() => <Routes />} />
+        <Route path={`${match.path}/receivers`} render={() => <Receivers />} />
         <Redirect to={`${match.path}/${DEFAULT_TAB_NAME}`} />
       </Switch>
-    </>
+    </AlarmContext.Provider>
   );
+}
+
+// merge custom ruleMap with default prometheus rule map
+function useMergedRuleMap<TRuleUnion>({
+  ruleMap,
+  apiUtil,
+}: {
+  ruleMap: ?RuleInterfaceMap<TRuleUnion>,
+  apiUtil: ApiUtil,
+}): RuleInterfaceMap<TRuleUnion> {
+  const mergedRuleMap = React.useMemo<RuleInterfaceMap<TRuleUnion>>(
+    () =>
+      Object.assign(
+        {},
+        getPrometheusRuleInterface({apiUtil: apiUtil}),
+        ruleMap || {},
+      ),
+    [ruleMap, apiUtil],
+  );
+  return mergedRuleMap;
 }

@@ -13,12 +13,13 @@ import type {FilterConfig} from '../comparison_view/ComparisonViewTypes';
 import AddWorkOrderCard from './AddWorkOrderCard';
 import AddWorkOrderDialog from './AddWorkOrderDialog';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
-import InventoryViewHeader, {DisplayOptions} from '../InventoryViewHeader';
+import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useMemo, useState} from 'react';
 import WorkOrderCard from './WorkOrderCard';
 import WorkOrderComparisonViewQueryRenderer from './WorkOrderComparisonViewQueryRenderer';
-import classNames from 'classnames';
+import fbt from 'fbt';
+import useFilterBookmarks from '../comparison_view/hooks/filterBookmarksHook';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
@@ -27,7 +28,7 @@ import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 import {getInitialFilterValue} from '../comparison_view/FilterUtils';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -43,7 +44,9 @@ const useStyles = makeStyles({
     flexGrow: 1,
     paddingTop: '8px',
   },
-});
+}));
+
+const QUERY_LIMIT = 100;
 
 const WorkOrderComparisonView = () => {
   const [filters, setFilters] = useState([]);
@@ -53,6 +56,7 @@ const WorkOrderComparisonView = () => {
   const [resultsDisplayMode, setResultsDisplayMode] = useState(
     DisplayOptions.table,
   );
+  const [count, setCount] = useState((0: number));
   const {match, history, location} = useRouter();
   const classes = useStyles();
 
@@ -67,6 +71,7 @@ const WorkOrderComparisonView = () => {
   );
 
   const locationTypesFilterConfigs = useLocationTypes();
+  const filterBookmarksFilterConfig = useFilterBookmarks('WORK_ORDER');
 
   const filterConfigs = WorkOrderSearchConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
@@ -113,67 +118,84 @@ const WorkOrderComparisonView = () => {
     );
   }
 
+  const header = {
+    title: 'Work Orders',
+    searchBar: (
+      <div className={classes.powerSearchBarWrapper}>
+        <PowerSearchBar
+          placeholder="Filter work orders"
+          className={classes.powerSearchBar}
+          filterConfigs={filterConfigs}
+          searchConfig={WorkOrderSearchConfig}
+          filterValues={filters}
+          savedSearches={filterBookmarksFilterConfig}
+          getSelectedFilter={(filterConfig: FilterConfig) =>
+            getInitialFilterValue(
+              filterConfig.key,
+              filterConfig.name,
+              filterConfig.defaultOperator,
+              null,
+            )
+          }
+          onFiltersChanged={filters => setFilters(filters)}
+          exportPath={'/work_orders'}
+          entity={'WORK_ORDER'}
+          footer={
+            count !== 0
+              ? count > QUERY_LIMIT
+                ? fbt(
+                    '1 to ' +
+                      fbt.param('size of page', QUERY_LIMIT) +
+                      ' of ' +
+                      fbt.param('total number possible rows', count),
+                    'header to indicate partial results',
+                  )
+                : fbt(
+                    '1 to ' + fbt.param('number of results in page', count),
+                    'header to indicate number of results',
+                  )
+              : null
+          }
+        />
+      </div>
+    ),
+    actionButtons: [
+      {
+        title: 'Add Work Order',
+        action: showDialog,
+      },
+    ],
+  };
+
   return (
     <ErrorBoundary>
-      <div className={classes.root}>
-        <InventoryViewHeader
-          title="Work Orders"
-          onViewToggleClicked={setResultsDisplayMode}
-          searchBar={
-            <div className={classes.powerSearchBarWrapper}>
-              <PowerSearchBar
-                placeholder="Filter work orders"
-                className={classes.powerSearchBar}
-                filterConfigs={filterConfigs}
-                searchConfig={WorkOrderSearchConfig}
-                getSelectedFilter={(filterConfig: FilterConfig) =>
-                  getInitialFilterValue(
-                    filterConfig.key,
-                    filterConfig.name,
-                    filterConfig.defaultOperator,
-                    null,
-                  )
-                }
-                onFiltersChanged={filters => setFilters(filters)}
-              />
-            </div>
+      <InventoryView
+        header={header}
+        onViewToggleClicked={setResultsDisplayMode}>
+        <WorkOrderComparisonViewQueryRenderer
+          limit={50}
+          filters={filters}
+          onWorkOrderSelected={selectedWorkOrderCardId =>
+            navigateToWorkOrder(selectedWorkOrderCardId)
           }
-          actionButtons={[
-            {
-              title: 'Add Work Order',
-              action: showDialog,
-            },
-          ]}
+          workOrderKey={workOrderKey}
+          displayMode={
+            resultsDisplayMode === DisplayOptions.map
+              ? DisplayOptions.map
+              : DisplayOptions.table
+          }
+          onQueryReturn={c => setCount(c)}
         />
-        <div className={classes.searchResults}>
-          <WorkOrderComparisonViewQueryRenderer
-            className={classNames({
-              [classes.comparisionViewTable]:
-                resultsDisplayMode === DisplayOptions.table,
-            })}
-            limit={50}
-            filters={filters}
-            onWorkOrderSelected={selectedWorkOrderCardId =>
-              navigateToWorkOrder(selectedWorkOrderCardId)
-            }
-            workOrderKey={workOrderKey}
-            displayMode={
-              resultsDisplayMode === DisplayOptions.map
-                ? DisplayOptions.map
-                : DisplayOptions.table
-            }
-          />
-        </div>
-      </div>
-      <AddWorkOrderDialog
-        key={`new_work_order_${dialogKey}`}
-        open={dialogOpen}
-        onClose={hideDialog}
-        onWorkOrderTypeSelected={typeId => {
-          navigateToAddWorkOrder(typeId);
-          setDialogOpen(false);
-        }}
-      />
+        <AddWorkOrderDialog
+          key={`new_work_order_${dialogKey}`}
+          open={dialogOpen}
+          onClose={hideDialog}
+          onWorkOrderTypeSelected={typeId => {
+            navigateToAddWorkOrder(typeId);
+            setDialogOpen(false);
+          }}
+        />
+      </InventoryView>
     </ErrorBoundary>
   );
 };

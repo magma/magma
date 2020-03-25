@@ -25,7 +25,7 @@ type Props = {
   comment: TextCommentPost_comment,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   textCommentPost: {
     minHeight: '24px',
     padding: '8px 4px 8px 0px',
@@ -58,7 +58,7 @@ const useStyles = makeStyles({
     paddingTop: '4px',
     color: symphony.palette.D300,
   },
-});
+}));
 
 const TextCommentPost = (props: Props) => {
   const classes = useStyles();

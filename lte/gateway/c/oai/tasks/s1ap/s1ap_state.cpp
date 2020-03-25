@@ -97,6 +97,14 @@ ue_description_t* s1ap_state_get_ue_mmeid(
   return ue;
 }
 
+void put_s1ap_imsi_map() {
+  S1apStateManager::getInstance().put_s1ap_imsi_map();
+}
+
+s1ap_imsi_map_t* get_s1ap_imsi_map() {
+  return S1apStateManager::getInstance().get_s1ap_imsi_map();
+}
+
 bool s1ap_ue_compare_by_mme_ue_id_cb(
   __attribute__((unused)) const hash_key_t keyP,
   void* const elementP,

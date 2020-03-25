@@ -4,10 +4,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
+import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 import express from 'express';
@@ -23,20 +24,26 @@ const router = express.Router();
 
 const handleReact = _tab =>
   async function(req: FBCNMSRequest, res) {
+    const appData: AppContextAppData = {
+      csrfToken: req.csrfToken(),
+      tabs: ['nms'],
+      user: req.user
+        ? {
+            tenant: '',
+            email: req.user.email,
+            isSuperUser: req.user.isSuperUser,
+            isReadOnlyUser: req.user.isReadOnlyUser,
+          }
+        : {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
+      enabledFeatures: await getEnabledFeatures(req, null),
+      ssoEnabled: false,
+      ssoSelectedType: 'none',
+      csvCharset: null,
+    };
     res.render('index', {
       staticDist,
       configJson: JSON.stringify({
-        appData: {
-          csrfToken: req.csrfToken(),
-          tabs: ['nms'],
-          user: req.user
-            ? {
-                email: req.user.email,
-                isSuperUser: req.user.isSuperUser,
-              }
-            : null,
-          enabledFeatures: await getEnabledFeatures(req, null),
-        },
+        appData,
         MAPBOX_ACCESS_TOKEN: req.user && MAPBOX_ACCESS_TOKEN,
       }),
     });

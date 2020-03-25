@@ -13,11 +13,27 @@ query ServiceDetailsQuery($id: ID!) {
         id
         port {
           id
+          properties {
+            ...PropertyFragment
+          }
+          definition {
+            id
+            name
+          }
+          link {
+            id
+            services {
+              id
+            }
+          }
         }
         role
       }
       links {
         id
+        services {
+          id
+        }
       }
     }
   }

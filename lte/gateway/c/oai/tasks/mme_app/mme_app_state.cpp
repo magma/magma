@@ -19,13 +19,10 @@
  *      contact@openairinterface.org
  */
 
-extern "C" {
-
-#include "assertions.h"
-}
-
 #include "mme_app_state.h"
 #include "mme_app_state_manager.h"
+
+using magma::lte::MmeNasStateManager;
 
 /**
  * When the process starts, initialize the in-memory MME+NAS state and, if
@@ -34,21 +31,8 @@ extern "C" {
  */
 int mme_nas_state_init(const mme_config_t* mme_config_p)
 {
-  return magma::lte::MmeNasStateManager::getInstance().initialize_state(
+  return MmeNasStateManager::getInstance().initialize_state(
     mme_config_p);
-}
-
-/**
- * Lock the MME NAS state and return pointer to the in-memory MME/NAS state from
- * state manager before processing any message. This is a thread safe call. If
- * the read_from_db flag is set to true, the state is loaded from data store
- * before returning the pointer. The lock acquired here is released by
- * put_mme_nas_state()
-*/
-mme_app_desc_t* get_locked_mme_nas_state(bool read_from_db)
-{
-  return magma::lte::MmeNasStateManager::getInstance().get_locked_mme_nas_state(
-    read_from_db);
 }
 
 /**
@@ -59,18 +43,16 @@ mme_app_desc_t* get_locked_mme_nas_state(bool read_from_db)
  */
 mme_app_desc_t* get_mme_nas_state(bool read_from_db)
 {
-  return magma::lte::MmeNasStateManager::getInstance().get_mme_nas_state(
-    read_from_db);
+  return MmeNasStateManager::getInstance().get_state(read_from_db);
 }
 
 /**
  * Write the MME/NAS state to data store after processing any message. This is
  * a thread safe call
  */
-void put_mme_nas_state(mme_app_desc_t** task_state_ptr)
+void put_mme_nas_state()
 {
-  magma::lte::MmeNasStateManager::getInstance().write_state_to_db(
-    task_state_ptr);
+  MmeNasStateManager::getInstance().write_state_to_db();
 }
 
 /**
@@ -79,6 +61,30 @@ void put_mme_nas_state(mme_app_desc_t** task_state_ptr)
  */
 void clear_mme_nas_state()
 {
-  magma::lte::MmeNasStateManager::getInstance().free_in_memory_mme_nas_state();
+  MmeNasStateManager::getInstance().free_state();
 }
 
+hash_table_ts_t* get_mme_ue_state()
+{
+  return MmeNasStateManager::getInstance().get_ue_state_ht();
+}
+
+void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64)
+{
+  if (imsi64 != INVALID_IMSI64) {
+    ue_mm_context_t* ue_context = NULL;
+    ue_context =
+      mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
+    if(ue_context) {
+      auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
+      MmeNasStateManager::getInstance().write_ue_state_to_db(
+        ue_context, imsi_str);
+    }
+  }
+}
+
+void delete_mme_ue_state(imsi64_t imsi64)
+{
+  auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
+  MmeNasStateManager::getInstance().clear_ue_state_db(imsi_str);
+}

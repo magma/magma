@@ -29,6 +29,7 @@
     - role: pkgrepo
       vars:
         distribution: "xenial"
+        repo: "dev"
     - role: magma_oai
       vars:
         default_configs: "{{ magma_root }}/lte/gateway/deploy/roles/magma_oai/files"

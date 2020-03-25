@@ -1,0 +1,13 @@
+---
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
+
+# Packer only copies the role directories to it's /tmp directories,
+# so importing from a relative path (../../../release/stretch_snapshot)
+# is non-trivial.
+snap_timestamp: 20190803

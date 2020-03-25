@@ -32,6 +32,7 @@ export type PortDefinitionsAddEditTable_portDefinitions$data = PortDefinitionsAd
 export type PortDefinitionsAddEditTable_portDefinitions$key = $ReadOnlyArray<{
   +$data?: PortDefinitionsAddEditTable_portDefinitions$data,
   +$fragmentRefs: PortDefinitionsAddEditTable_portDefinitions$ref,
+  ...
 }>;
 */
 

@@ -62,7 +62,7 @@ graphql`
 
 const workOrderTypesQuery = graphql`
   query WorkOrderTypesListQuery {
-    workOrderTypes(first: 50)
+    workOrderTypes(first: 500)
       @connection(key: "WorkOrderTypesListQuery_workOrderTypes") {
       edges {
         node {
@@ -82,6 +82,7 @@ class WorkOrderTypesList extends React.Component<Props, State> {
   };
 
   componentDidMount() {
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, workOrderTypesQuery).then(response => {
       this.setState({
         workOrderTypes: response.workOrderTypes.edges.map(x => x.node),

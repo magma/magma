@@ -40,7 +40,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-class MmeNasStateConverter : StateConverter {
+class MmeNasStateConverter : public StateConverter {
  public:
   // Constructor
   MmeNasStateConverter();
@@ -49,14 +49,22 @@ class MmeNasStateConverter : StateConverter {
   ~MmeNasStateConverter();
 
   // Serialize mme_app_desc_t to MmeNasState proto
-  static void mme_nas_state_to_proto(
-    mme_app_desc_t* mme_nas_state_p,
+  static void state_to_proto(
+    const mme_app_desc_t* mme_nas_state_p,
     MmeNasState* state_proto);
 
   // Deserialize mme_app_desc_t from MmeNasState proto
-  static void mme_nas_proto_to_state(
-    MmeNasState* state_proto,
+  static void proto_to_state(
+    const MmeNasState& state_proto,
     mme_app_desc_t* mme_nas_state_p);
+
+  static void ue_to_proto(
+    const ue_mm_context_t* ue_ctxt,
+    UeContext* ue_ctxt_proto);
+
+  static void proto_to_ue(
+    const UeContext& ue_ctxt_proto,
+    ue_mm_context_t* ue_ctxt);
 
  private:
   /***********************************************************
@@ -76,16 +84,6 @@ class MmeNasStateConverter : StateConverter {
   static void proto_to_hashtable_ts(
     const google::protobuf::Map<unsigned long, UeContext>& proto_map,
     hash_table_ts_t* state_htbl);
-
-  static void hashtable_uint64_ts_to_proto(
-    hash_table_uint64_ts_t* htbl,
-    google::protobuf::Map<unsigned long, unsigned long>* proto_map,
-    const std::string& table_name);
-
-  static void proto_to_hashtable_uint64_ts(
-    const google::protobuf::Map<unsigned long, unsigned long>& proto_map,
-    hash_table_uint64_ts_t* state_htbl,
-    const std::string& table_name);
 
   static void guti_table_to_proto(
     const obj_hash_table_uint64_t* guti_htbl,
@@ -163,7 +161,7 @@ class MmeNasStateConverter : StateConverter {
     ue_mm_context_t* state_ue_context);
 
   static void ue_context_to_proto(
-    ue_mm_context_t* ue_ctxt,
+    const ue_mm_context_t* ue_ctxt,
     UeContext* ue_ctxt_proto);
 
   static void proto_to_ue_mm_context(

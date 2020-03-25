@@ -22,8 +22,8 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/swx_proxy"
 	"magma/feg/gateway/services/swx_proxy/servicers"
-	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/tools/commands"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 var (

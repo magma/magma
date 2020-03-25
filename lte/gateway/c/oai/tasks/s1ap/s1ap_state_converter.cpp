@@ -183,5 +183,22 @@ void S1apStateConverter::proto_to_ue(
   ue->s1ap_ue_context_rel_timer.sec = proto.s1ap_ue_context_rel_timer().sec();
 }
 
+void S1apStateConverter::s1ap_imsi_map_to_proto(
+  const s1ap_imsi_map_t* s1ap_imsi_map,
+  gateway::s1ap::S1apImsiMap* s1ap_imsi_proto)
+{
+  hashtable_uint64_ts_to_proto(
+    s1ap_imsi_map->mme_ue_id_imsi_htbl,
+    s1ap_imsi_proto->mutable_mme_ue_id_imsi_map());
+}
+void S1apStateConverter::proto_to_s1ap_imsi_map(
+  const gateway::s1ap::S1apImsiMap& s1ap_imsi_proto,
+  s1ap_imsi_map_t* s1ap_imsi_map)
+{
+  proto_to_hashtable_uint64_ts(
+    s1ap_imsi_proto.mme_ue_id_imsi_map(),
+    s1ap_imsi_map->mme_ue_id_imsi_htbl);
+}
+
 } // namespace lte
 } // namespace magma

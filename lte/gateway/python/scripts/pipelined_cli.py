@@ -10,13 +10,15 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import argparse
-import binascii
 import errno
 from pprint import pprint
 import subprocess
 
-import re
 from magma.common.rpc_utils import grpc_wrapper
+from lte.protos.pipelined_pb2 import (
+    SubscriberQuotaUpdate,
+    UpdateSubscriberQuotaStateRequest,
+)
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.subscriberdb.sid import SIDUtils
@@ -32,29 +34,6 @@ from lte.protos.pipelined_pb2 import (
 )
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
-
-
-# --------------------------
-# Metering App
-# --------------------------
-
-@grpc_wrapper
-def get_subscriber_metering_flows(client, _):
-    flow_table = client.GetSubscriberMeteringFlows(Void())
-    print(flow_table)
-
-
-def create_metering_parser(apps):
-    """
-    Creates the argparse subparser for the metering app
-    """
-    app = apps.add_parser('meter')
-    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
-
-    # Add subcommands
-    subcmd = subparsers.add_parser('dump_flows',
-                                   help='Prints all subscriber metering flows')
-    subcmd.set_defaults(func=get_subscriber_metering_flows)
 
 
 # --------------------------
@@ -172,6 +151,17 @@ def add_ue_mac_flow(client, args):
         print("Error associating MAC to IMSI")
 
 
+@grpc_wrapper
+def delete_ue_mac_flow(client, args):
+    request = UEMacFlowRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        mac_addr=args.mac
+    )
+    res = client.DeleteUEMacFlow(request)
+    if res is None:
+        print("Error associating MAC to IMSI")
+
+
 def create_ue_mac_parser(apps):
     """
     Creates the argparse subparser for the MAC App
@@ -187,6 +177,49 @@ def create_ue_mac_parser(apps):
     subcmd.add_argument('--mac', help='UE MAC address',
                         default='5e:cc:cc:b1:49:ff')
     subcmd.set_defaults(func=add_ue_mac_flow)
+    # Delete subcommands
+    subcmd = subparsers.add_parser('delete_ue_mac_flow',
+                                   help='Delete flow to match UE MAC \
+                                   with a subscriber')
+    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--mac', help='UE MAC address',
+                        default='5e:cc:cc:b1:49:ff')
+    subcmd.set_defaults(func=delete_ue_mac_flow)
+
+
+# -------------
+# Check Quota APP
+# -------------
+
+@grpc_wrapper
+def update_quota(client, args):
+    update = SubscriberQuotaUpdate(
+        sid=SIDUtils.to_pb(args.imsi),
+        mac_addr=args.mac,
+        update_type=args.update_type
+    )
+    request = UpdateSubscriberQuotaStateRequest(updates=[update],)
+    res = client.UpdateSubscriberQuotaState(request)
+    if res is None:
+        print("Error updating check quota flows")
+
+
+def create_check_flows_parser(apps):
+    """
+    Creates the argparse subparser for the MAC App
+    """
+    app = apps.add_parser('check_quota')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    # Add subcommands
+    subcmd = subparsers.add_parser('update_quota',
+                                   help='Add flow to match UE MAC \
+                                   with a subscriber')
+    subcmd.add_argument('imsi', help='Subscriber ID')
+    subcmd.add_argument('mac', help='Subscriber mac')
+    subcmd.add_argument('update_type', type=int,
+                        help='0 - valid quota, 1 -no quota, 2 - terminate')
+    subcmd.set_defaults(func=update_quota)
 
 
 # --------------------------
@@ -298,9 +331,9 @@ def create_parser():
         description='Management CLI for pipelined',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     apps = parser.add_subparsers(title='apps', dest='cmd')
-    create_metering_parser(apps)
     create_enforcement_parser(apps)
     create_ue_mac_parser(apps)
+    create_check_flows_parser(apps)
     create_debug_parser(apps)
     return parser
 

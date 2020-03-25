@@ -28,6 +28,7 @@ export type TextCommentPost_comment$data = TextCommentPost_comment;
 export type TextCommentPost_comment$key = {
   +$data?: TextCommentPost_comment$data,
   +$fragmentRefs: TextCommentPost_comment$ref,
+  ...
 };
 */
 

@@ -28,13 +28,11 @@
 namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
 constexpr int MAX_PREDEFINED_PCC_RULES_HT_SIZE = 32;
-constexpr char SGW_S11_TEID_MME_HT_NAME[] = "sgw_s11_teid2mme_htbl";
 constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
   "s11_bearer_context_information_htbl";
 constexpr char SPGW_STATE_TABLE_NAME[] = "spgw_state";
+constexpr char SPGW_TASK_NAME[] = "SPGW";
 } // namespace
-
-using magma::lte::gateway::spgw::SpgwState;
 
 namespace magma {
 namespace lte {
@@ -45,7 +43,12 @@ namespace lte {
  * freeing state structs, and writing / reading state to db.
  */
 class SpgwStateManager :
-  public StateManager<spgw_state_t, SpgwState, SpgwStateConverter> {
+  public StateManager<
+    spgw_state_t,
+    s_plus_p_gw_eps_bearer_context_information_t,
+    gateway::spgw::SpgwState,
+    gateway::spgw::S11BearerContext,
+    SpgwStateConverter> {
  public:
   /**
    * Returns an instance of SpgwStateManager, guaranteed to be thread safe and
@@ -72,6 +75,8 @@ class SpgwStateManager :
    * Frees all memory allocated on spgw_state_t.
    */
   void free_state() override;
+
+  int read_ue_state_from_db() override;
 
  private:
   SpgwStateManager();

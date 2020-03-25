@@ -4,11 +4,6 @@
   gateway_name: gateway1
   gateway_ip: 192.168.60.142
   gateway_port: 8443
-  codegen_root: /home/{{ ansible_user }}/codegen
-  mvn_version: 3.5.4
-  mvn_sha1: 22cac91b3557586bb1eba326f2f7727543ff15e3
-  mvn_dir: '/var/tmp/apache-maven-{{ mvn_version }}'
-  swagger_codegen_jar: '{{ codegen_root }}/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar'
   swagger_spec: /home/{{ ansible_user }}/magma/orc8r/cloud/deploy/files/static/apidocs/swagger.yml
   swagger_codegen_output: /home/{{ ansible_user }}/api-bindings
   test_scripts: '{{ magma_root }}/lte/gateway/deploy/roles/magma_test/files'

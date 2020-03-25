@@ -55,14 +55,14 @@ func (arq *ActionsRuleQuery) Order(o ...Order) *ActionsRuleQuery {
 	return arq
 }
 
-// First returns the first ActionsRule entity in the query. Returns *ErrNotFound when no actionsrule was found.
+// First returns the first ActionsRule entity in the query. Returns *NotFoundError when no actionsrule was found.
 func (arq *ActionsRuleQuery) First(ctx context.Context) (*ActionsRule, error) {
 	ars, err := arq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ars) == 0 {
-		return nil, &ErrNotFound{actionsrule.Label}
+		return nil, &NotFoundError{actionsrule.Label}
 	}
 	return ars[0], nil
 }
@@ -76,21 +76,21 @@ func (arq *ActionsRuleQuery) FirstX(ctx context.Context) *ActionsRule {
 	return ar
 }
 
-// FirstID returns the first ActionsRule id in the query. Returns *ErrNotFound when no id was found.
-func (arq *ActionsRuleQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+// FirstID returns the first ActionsRule id in the query. Returns *NotFoundError when no id was found.
+func (arq *ActionsRuleQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = arq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{actionsrule.Label}
+		err = &NotFoundError{actionsrule.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (arq *ActionsRuleQuery) FirstXID(ctx context.Context) string {
+func (arq *ActionsRuleQuery) FirstXID(ctx context.Context) int {
 	id, err := arq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -108,9 +108,9 @@ func (arq *ActionsRuleQuery) Only(ctx context.Context) (*ActionsRule, error) {
 	case 1:
 		return ars[0], nil
 	case 0:
-		return nil, &ErrNotFound{actionsrule.Label}
+		return nil, &NotFoundError{actionsrule.Label}
 	default:
-		return nil, &ErrNotSingular{actionsrule.Label}
+		return nil, &NotSingularError{actionsrule.Label}
 	}
 }
 
@@ -124,8 +124,8 @@ func (arq *ActionsRuleQuery) OnlyX(ctx context.Context) *ActionsRule {
 }
 
 // OnlyID returns the only ActionsRule id in the query, returns an error if not exactly one id was returned.
-func (arq *ActionsRuleQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (arq *ActionsRuleQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = arq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -133,15 +133,15 @@ func (arq *ActionsRuleQuery) OnlyID(ctx context.Context) (id string, err error) 
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{actionsrule.Label}
+		err = &NotFoundError{actionsrule.Label}
 	default:
-		err = &ErrNotSingular{actionsrule.Label}
+		err = &NotSingularError{actionsrule.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (arq *ActionsRuleQuery) OnlyXID(ctx context.Context) string {
+func (arq *ActionsRuleQuery) OnlyXID(ctx context.Context) int {
 	id, err := arq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -164,8 +164,8 @@ func (arq *ActionsRuleQuery) AllX(ctx context.Context) []*ActionsRule {
 }
 
 // IDs executes the query and returns a list of ActionsRule ids.
-func (arq *ActionsRuleQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (arq *ActionsRuleQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := arq.Select(actionsrule.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (arq *ActionsRuleQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (arq *ActionsRuleQuery) IDsX(ctx context.Context) []string {
+func (arq *ActionsRuleQuery) IDsX(ctx context.Context) []int {
 	ids, err := arq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -267,30 +267,34 @@ func (arq *ActionsRuleQuery) Select(field string, fields ...string) *ActionsRule
 
 func (arq *ActionsRuleQuery) sqlAll(ctx context.Context) ([]*ActionsRule, error) {
 	var (
-		nodes []*ActionsRule
-		spec  = arq.querySpec()
+		nodes = []*ActionsRule{}
+		_spec = arq.querySpec()
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &ActionsRule{config: arq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, arq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, arq.driver, _spec); err != nil {
 		return nil, err
+	}
+	if len(nodes) == 0 {
+		return nodes, nil
 	}
 	return nodes, nil
 }
 
 func (arq *ActionsRuleQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := arq.querySpec()
-	return sqlgraph.CountNodes(ctx, arq.driver, spec)
+	_spec := arq.querySpec()
+	return sqlgraph.CountNodes(ctx, arq.driver, _spec)
 }
 
 func (arq *ActionsRuleQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -302,12 +306,12 @@ func (arq *ActionsRuleQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (arq *ActionsRuleQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   actionsrule.Table,
 			Columns: actionsrule.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: actionsrule.FieldID,
 			},
 		},
@@ -315,26 +319,26 @@ func (arq *ActionsRuleQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := arq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := arq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := arq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := arq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (arq *ActionsRuleQuery) sqlQuery() *sql.Selector {

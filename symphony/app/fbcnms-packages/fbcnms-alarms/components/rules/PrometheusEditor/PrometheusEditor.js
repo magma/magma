@@ -20,16 +20,15 @@ import ToggleableExpressionEditor, {
   thresholdToPromQL,
 } from './ToggleableExpressionEditor';
 import Tooltip from '@material-ui/core/Tooltip';
-import {BINARY_COMPARATORS} from '../../prometheus/PromQLTypes';
 import {Labels} from '../../prometheus/PromQL';
 import {Parse} from '../../prometheus/PromQLParser';
-import {SEVERITY} from '../../Severity';
+import {SEVERITY} from '../../severity/Severity';
+import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useForm} from '../../hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
-import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 import type {GenericRule, RuleEditorProps} from '../RuleInterface';
 import type {RuleEditorBaseFields} from '../RuleEditorBase';
 import type {ThresholdExpression} from './ToggleableExpressionEditor';
@@ -101,7 +100,7 @@ function TimeEditor(props: {
   timeUnit: string,
 }) {
   return (
-    <Grid container spacing={1} alignItems="flex-end">
+    <Grid container spacing={1} alignItems="flex-end" justify="space-between">
       <Grid item xs={6}>
         <TimeNumberEditor
           onChange={props.onChange}
@@ -115,7 +114,7 @@ function TimeEditor(props: {
           timeUnits={timeUnits}
         />
       </Grid>
-      <Grid item xs={1}>
+      <Grid item>
         <Tooltip
           title={
             'Enter the amount of time the alert expression needs to be ' +
@@ -167,10 +166,10 @@ function TimeUnitEditor(props: {
 
 type PrometheusEditorProps = {
   ...RuleEditorProps<AlertConfig>,
-  thresholdEditorEnabled?: ?boolean,
 };
 export default function PrometheusEditor(props: PrometheusEditorProps) {
-  const {apiUtil, isNew, onRuleUpdated, onExit, rule} = props;
+  const {apiUtil, thresholdEditorEnabled} = useAlarmContext();
+  const {isNew, onRuleUpdated, onExit, rule} = props;
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -200,8 +199,8 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
     thresholdExpression,
     setThresholdExpression,
   } = useThresholdExpressionEditorState({
-    expression: props.rule?.expression,
-    thresholdEditorEnabled: props.thresholdEditorEnabled,
+    expression: rule?.expression,
+    thresholdEditorEnabled,
   });
 
   /**
@@ -243,7 +242,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
       onExit();
     } catch (error) {
       enqueueSnackbar(
-        `Unable to create alert: ${
+        `Unable to create rule: ${
           error.response ? error.response.data.message : error.message
         }.`,
         {
@@ -274,15 +273,13 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
 
   return (
     <RuleEditorBase
-      apiUtil={apiUtil}
       initialState={editorBaseInitialState}
       onChange={handleEditorBaseChange}
       onSave={saveAlert}
       onExit={onExit}
       isNew={isNew}>
-      {props.thresholdEditorEnabled ? (
+      {thresholdEditorEnabled ? (
         <ToggleableExpressionEditor
-          apiUtil={props.apiUtil}
           onChange={handleInputChange}
           onThresholdExpressionChange={updateThresholdExpression}
           expression={thresholdExpression}
@@ -291,7 +288,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
           onToggleChange={val => setAdvancedEditorMode(val)}
         />
       ) : (
-        <Grid item xs={4}>
+        <Grid item>
           <AdvancedExpressionEditor
             expression={formState.expression}
             onChange={handleInputChange}
@@ -322,10 +319,10 @@ function fromAlertConfig(rule: ?AlertConfig): FormState {
     return {
       ruleName: '',
       expression: '',
-      severity: '',
+      severity: SEVERITY.WARNING.name,
       description: '',
       timeNumber: 0,
-      timeUnit: '',
+      timeUnit: 's',
       labels: {},
     };
   }
@@ -420,7 +417,7 @@ function getThresholdExpression(exp: PromQL.Expression): ?ThresholdExpression {
   const threshold = exp.rh.value;
   const filters = exp.lh.labels || new PromQL.Labels();
   filters.removeByName('networkID');
-  const comparator = getBinaryComparator(exp.operator);
+  const comparator = asBinaryComparator(exp.operator);
   if (!comparator) {
     return null;
   }
@@ -432,9 +429,11 @@ function getThresholdExpression(exp: PromQL.Expression): ?ThresholdExpression {
   };
 }
 
-function getBinaryComparator(str: string): ?BinaryComparator {
-  if (BINARY_COMPARATORS.includes(str)) {
-    return BINARY_COMPARATORS[BINARY_COMPARATORS.indexOf(str)];
+function asBinaryComparator(
+  operator: PromQL.BinaryOperator,
+): ?PromQL.BinaryComparator {
+  if (operator instanceof Object) {
+    return operator;
   }
   return null;
 }
@@ -457,7 +456,7 @@ function useThresholdExpressionEditorState({
     setThresholdExpression,
   ] = React.useState<ThresholdExpression>({
     metricName: '',
-    comparator: '==',
+    comparator: new PromQL.BinaryComparator('=='),
     value: 0,
     filters: new Labels(),
   });

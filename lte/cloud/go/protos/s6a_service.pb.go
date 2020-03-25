@@ -120,11 +120,11 @@ var fileDescriptor_f98715f79553a438 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // S6AServiceClient is the client API for S6AService service.
 //
@@ -135,10 +135,10 @@ type S6AServiceClient interface {
 }
 
 type s6AServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewS6AServiceClient(cc *grpc.ClientConn) S6AServiceClient {
+func NewS6AServiceClient(cc grpc.ClientConnInterface) S6AServiceClient {
 	return &s6AServiceClient{cc}
 }
 

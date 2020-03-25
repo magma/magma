@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash cf231258a59f59d07faf0f27f1b25f2f
+ * @relayHash 1d6de5ab9baa3a169a092ec43543c52c
  */
 
 /* eslint-disable */
@@ -21,7 +21,7 @@ export type RemoveEquipmentFromPositionMutationVariables = {|
   work_order_id?: ?string,
 |};
 export type RemoveEquipmentFromPositionMutationResponse = {|
-  +removeEquipmentFromPosition: ?{|
+  +removeEquipmentFromPosition: {|
     +$fragmentRefs: EquipmentPropertiesCard_position$ref
   |}
 |};

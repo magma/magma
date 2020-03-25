@@ -4,13 +4,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
 import type {WifiGateway} from './WifiUtils';
-import type {WithStyles} from '@material-ui/core';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import IconButton from '@material-ui/core/IconButton';
@@ -32,13 +30,16 @@ import WifiMeshDialog from './WifiMeshDialog';
 import WifiMeshRow from './WifiMeshRow';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {Route, withRouter} from 'react-router-dom';
+import {Route} from 'react-router-dom';
 import {buildWifiGatewayFromPayloadV1} from './WifiUtils';
+import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
 import {sortBy} from 'lodash';
-import {withStyles} from '@material-ui/core/styles';
+import {useEffect, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 
-const styles = theme => ({
+const useStyles = makeStyles(theme => ({
   actionsColumn: {
     width: '160px',
   },
@@ -53,108 +54,27 @@ const styles = theme => ({
   paper: {
     margin: theme.spacing(3),
   },
-});
+}));
 
-type Props = ContextRouter & WithStyles<typeof styles> & {};
+export default function WifiMeshesDevicesTable() {
+  const classes = useStyles();
+  const {match, relativePath, relativeUrl, history} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
 
-type State = {
-  isLoading: boolean,
-  meshes: Map<string, WifiGateway[]>,
-  errorMessage: ?string,
-  lastRefreshTime: string,
-};
+  const [isLoading, setIsLoading] = useState(false);
+  const [meshes, setMeshes] = useState<Map<string, WifiGateway[]>>(new Map());
+  const [lastRefreshTime, setLastRefreshTime] = useState(
+    new Date().toLocaleString(),
+  );
 
-class WifiMeshesDevicesTable extends React.Component<Props, State> {
-  state = {
-    isLoading: false,
-    meshes: new Map(),
-    errorMessage: null,
-    lastRefreshTime: new Date().toLocaleString(),
-  };
+  const sortDevices = (d1, d2) =>
+    d1.info.toLowerCase() > d2.info.toLowerCase() ? 1 : -1;
 
-  componentDidMount() {
-    this.fetchMeshes();
-  }
+  const onCancelDialog = () => history.push(relativeUrl(''));
 
-  render() {
-    const meshIDs: Array<string> = sortBy(
-      [...this.state.meshes.keys()], // sortBy can't sort a MapIterator
-      [m => m.toLowerCase()],
-    );
-    const rows = meshIDs.map(meshID => (
-      <WifiMeshRow
-        enableDeviceEditing={true}
-        key={meshID}
-        gateways={this.state.meshes.get(meshID) || []}
-        meshID={meshID}
-        onDeleteMesh={this.onDeleteMesh}
-        onDeleteDevice={this.onDeleteDevice}
-      />
-    ));
-
-    return (
-      <>
-        <div className={this.props.classes.paper}>
-          <div className={this.props.classes.header}>
-            <Text variant="h5">Devices</Text>
-            <div>
-              <Tooltip title={'Last refreshed: ' + this.state.lastRefreshTime}>
-                <span>
-                  <IconButton
-                    color="inherit"
-                    onClick={this.fetchMeshes}
-                    disabled={this.state.isLoading}>
-                    <RefreshIcon />
-                  </IconButton>
-                </span>
-              </Tooltip>
-              <NestedRouteLink to="/add_mesh/">
-                <Button>New Mesh</Button>
-              </NestedRouteLink>
-            </div>
-          </div>
-          <Text color="error">{this.state.errorMessage}</Text>
-          <Paper elevation={2}>
-            {this.state.isLoading ? <LinearProgress /> : null}
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell className={this.props.classes.infoColumn}>
-                    Info
-                  </TableCell>
-                  <TableCell>ID</TableCell>
-                  <TableCell className={this.props.classes.actionsColumn}>
-                    Actions
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>{rows}</TableBody>
-            </Table>
-          </Paper>
-          <Route
-            path={`${this.props.match.path}/add_mesh`}
-            component={this.renderAddMeshDialog}
-          />
-          <Route
-            path={`${this.props.match.path}/edit_mesh/:meshID`}
-            component={this.renderEditMeshDialog}
-          />
-          <Route
-            path={`${this.props.match.path}/add_device/:meshID`}
-            component={this.renderAddDeviceDialog}
-          />
-          <Route
-            path={`${this.props.match.path}/:meshID/edit_device/:deviceID`}
-            component={this.renderEditDeviceDialog}
-          />
-        </div>
-      </>
-    );
-  }
-
-  fetchMeshes = () => {
-    this.setState({isLoading: true});
-    const networkId = nullthrows(this.props.match.params.networkId);
+  useEffect(() => {
+    setIsLoading(true);
+    const networkId = nullthrows(match.params.networkId);
     Promise.all([
       MagmaV1API.getWifiByNetworkIdGateways({networkId}),
       MagmaV1API.getWifiByNetworkIdMeshes({networkId}),
@@ -172,106 +92,106 @@ class WifiMeshesDevicesTable extends React.Component<Props, State> {
             nullthrows(meshes.get(gateway.meshid)).push(gateway);
           });
 
-        meshes.forEach(gateways => gateways.sort(this.sortDevices));
-        this.setState({
-          isLoading: false,
-          meshes: meshes,
-          lastRefreshTime: new Date().toLocaleString(),
-          errorMessage: null,
-        });
+        meshes.forEach(gateways => gateways.sort(sortDevices));
+        setIsLoading(false);
+        setMeshes(meshes);
       })
-      .catch((error, _) =>
-        this.setState({
-          errorMessage: error.toString(),
-          isLoading: false,
-        }),
-      );
+      .catch((error, _) => {
+        setIsLoading(false);
+        enqueueSnackbar(error.toString(), {variant: 'error'});
+      });
+  }, [enqueueSnackbar, match.params.networkId, lastRefreshTime]);
+
+  const onSaveDialog = () => {
+    setLastRefreshTime(new Date().toLocaleString());
+    onCancelDialog();
   };
 
-  renderAddMeshDialog = () => {
-    return (
-      <WifiMeshDialog onSave={this.onAddMesh} onCancel={this.onCancelDialog} />
-    );
-  };
+  const meshIDs: Array<string> = sortBy(
+    [...meshes.keys()], // sortBy can't sort a MapIterator
+    [m => m.toLowerCase()],
+  );
 
-  renderEditMeshDialog = () => {
-    return (
-      <WifiMeshDialog
-        onSave={this.onCancelDialog}
-        onCancel={this.onCancelDialog}
-      />
-    );
-  };
+  const rows = meshIDs.map(meshID => (
+    <WifiMeshRow
+      enableDeviceEditing={true}
+      key={meshID}
+      gateways={meshes.get(meshID) || []}
+      meshID={meshID}
+      onDeleteMesh={() => setLastRefreshTime(new Date().toLocaleString())}
+      onDeleteDevice={() => setLastRefreshTime(new Date().toLocaleString())}
+    />
+  ));
 
-  renderAddDeviceDialog = () => {
-    return (
-      <WifiDeviceDialog
-        title="Add"
-        onSave={this.onAddDevice}
-        onCancel={this.onCancelDialog}
-      />
-    );
-  };
-
-  renderEditDeviceDialog = () => {
-    return (
-      <WifiDeviceDialog
-        title="Edit"
-        onSave={this.onEditDevice}
-        onCancel={this.onCancelDialog}
-      />
-    );
-  };
-
-  onAddMesh = meshID => {
-    if (meshID) {
-      const {meshes} = this.state;
-      meshes.set(meshID, []);
-      this.setState({meshes});
-      this.onCancelDialog();
-    }
-  };
-
-  onDeleteMesh = meshID => {
-    const {meshes} = this.state;
-    meshes.delete(meshID);
-    this.setState({meshes});
-  };
-
-  onAddDevice = device => {
-    const {meshes} = this.state;
-    const devices = nullthrows(meshes.get(device.meshid)).slice();
-    devices.push(device);
-    devices.sort(this.sortDevices);
-    meshes.set(device.meshid, devices);
-    this.setState({meshes});
-    this.onCancelDialog();
-  };
-
-  onEditDevice = newDevice => {
-    const {meshes} = this.state;
-    const devices = nullthrows(meshes.get(newDevice.meshid)).map(oldDevice => {
-      return oldDevice.id === newDevice.id ? newDevice : oldDevice;
-    });
-    devices.sort(this.sortDevices);
-    meshes.set(newDevice.meshid, devices);
-    this.setState({meshes});
-    this.onCancelDialog();
-  };
-
-  onDeleteDevice = oldDevice => {
-    const {meshes} = this.state;
-    const devices = nullthrows(meshes.get(oldDevice.meshid)).filter(
-      device => oldDevice.id !== device.id,
-    );
-    meshes.set(oldDevice.meshid, devices);
-    this.setState({meshes});
-  };
-
-  onCancelDialog = () => this.props.history.push(`${this.props.match.url}/`);
-
-  sortDevices = (d1, d2) =>
-    d1.info.toLowerCase() > d2.info.toLowerCase() ? 1 : -1;
+  return (
+    <>
+      <div className={classes.paper}>
+        <div className={classes.header}>
+          <Text variant="h5">Devices</Text>
+          <div>
+            <Tooltip title={'Last refreshed: ' + lastRefreshTime}>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={() =>
+                    setLastRefreshTime(new Date().toLocaleString())
+                  }
+                  disabled={isLoading}>
+                  <RefreshIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <NestedRouteLink to="/add_mesh/">
+              <Button>New Mesh</Button>
+            </NestedRouteLink>
+          </div>
+        </div>
+        <Paper elevation={2}>
+          {isLoading ? <LinearProgress /> : null}
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell className={classes.infoColumn}>Info</TableCell>
+                <TableCell>ID</TableCell>
+                <TableCell className={classes.actionsColumn}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>{rows}</TableBody>
+          </Table>
+        </Paper>
+        <Route
+          path={relativePath('/add_mesh')}
+          component={() => (
+            <WifiMeshDialog onSave={onSaveDialog} onCancel={onCancelDialog} />
+          )}
+        />
+        <Route
+          path={relativePath('/edit_mesh/:meshID')}
+          component={() => (
+            <WifiMeshDialog onSave={onCancelDialog} onCancel={onCancelDialog} />
+          )}
+        />
+        <Route
+          path={relativePath('/add_device/:meshID')}
+          component={() => (
+            <WifiDeviceDialog
+              title="Add"
+              onSave={onSaveDialog}
+              onCancel={onCancelDialog}
+            />
+          )}
+        />
+        <Route
+          path={relativePath('/:meshID/edit_device/:deviceID')}
+          component={() => (
+            <WifiDeviceDialog
+              title="Edit"
+              onSave={onSaveDialog}
+              onCancel={onCancelDialog}
+            />
+          )}
+        />
+      </div>
+    </>
+  );
 }
-
-export default withStyles(styles)(withRouter(WifiMeshesDevicesTable));

@@ -30,6 +30,7 @@ export type ServiceEquipmentTopology_topology$data = ServiceEquipmentTopology_to
 export type ServiceEquipmentTopology_topology$key = {
   +$data?: ServiceEquipmentTopology_topology$data,
   +$fragmentRefs: ServiceEquipmentTopology_topology$ref,
+  ...
 };
 */
 

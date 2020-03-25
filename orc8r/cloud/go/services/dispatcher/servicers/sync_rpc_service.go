@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/dispatcher/broker"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -34,7 +34,7 @@ type SyncRPCService struct {
 	broker   broker.GatewayRPCBroker
 }
 
-func NewSyncRPCService(hostName string, broker broker.GatewayRPCBroker) (*SyncRPCService, error) {
+func NewSyncRPCService(hostName string, broker broker.GatewayRPCBroker) (protos.SyncRPCServiceServer, error) {
 	return &SyncRPCService{hostName: hostName, broker: broker}, nil
 }
 
@@ -176,7 +176,7 @@ func (srv *SyncRPCService) receiveFromStream(
 // Returning err indicates to end the bidirectional stream.
 func (srv *SyncRPCService) processSyncRPCResp(resp *protos.SyncRPCResponse, hwId string) error {
 	if resp.HeartBeat {
-		err := directoryd.UpdateHostNameByHwId(hwId, srv.hostName)
+		err := directoryd.MapHWIDToHostname(hwId, srv.hostName)
 		if err != nil {
 			// Cannot persist <gwId, hostName> so nobody can send things to this
 			// gateway use the stream, therefore return err to end the stream.

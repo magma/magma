@@ -17,15 +17,16 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/service_health"
 	"magma/feg/gateway/services/gateway_health"
 	"magma/feg/gateway/services/gateway_health/collection"
-	gwmcfg "magma/orc8r/gateway/mconfig"
-
-	"github.com/golang/glog"
+	gwmcfg "magma/gateway/mconfig"
+	"magma/gateway/service_registry"
 )
 
 const (
@@ -38,13 +39,13 @@ const (
 var defaultServices = []string{registry.SWX_PROXY, registry.SESSION_PROXY}
 
 type HealthManager struct {
-	cloudReg                  registry.CloudRegistry
+	cloudReg                  service_registry.GatewayRegistry
 	config                    *mconfig.GatewayHealthConfig
 	consecutiveUpdateFailures uint32
 	prevAction                protos.HealthResponse_RequestedAction
 }
 
-func NewHealthManager(cloudReg registry.CloudRegistry, hcfg *mconfig.GatewayHealthConfig) *HealthManager {
+func NewHealthManager(cloudReg service_registry.GatewayRegistry, hcfg *mconfig.GatewayHealthConfig) *HealthManager {
 	return &HealthManager{
 		config:                    hcfg,
 		cloudReg:                  cloudReg,

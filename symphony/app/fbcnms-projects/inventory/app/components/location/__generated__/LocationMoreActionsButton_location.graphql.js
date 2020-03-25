@@ -43,6 +43,7 @@ export type LocationMoreActionsButton_location$data = LocationMoreActionsButton_
 export type LocationMoreActionsButton_location$key = {
   +$data?: LocationMoreActionsButton_location$data,
   +$fragmentRefs: LocationMoreActionsButton_location$ref,
+  ...
 };
 */
 

@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -71,12 +71,7 @@ const FormFieldsRoot = () => {
         className={classes.field}
         hasError
         errorText="Error Message">
-        <TextInput
-          className={classes.input}
-          type="string"
-          placeholder="Placeholder"
-          value="Bad Value"
-        />
+        <TextInput type="string" placeholder="Placeholder" value="Bad Value" />
       </FormField>
     </div>
   );

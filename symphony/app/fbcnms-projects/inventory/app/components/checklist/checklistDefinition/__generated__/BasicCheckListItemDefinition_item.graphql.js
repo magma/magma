@@ -28,6 +28,7 @@ export type BasicCheckListItemDefinition_item$data = BasicCheckListItemDefinitio
 export type BasicCheckListItemDefinition_item$key = {
   +$data?: BasicCheckListItemDefinition_item$data,
   +$fragmentRefs: BasicCheckListItemDefinition_item$ref,
+  ...
 };
 */
 

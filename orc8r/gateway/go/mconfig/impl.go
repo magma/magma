@@ -20,7 +20,7 @@ import (
 	"time"
 	"unsafe"
 
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 var (
@@ -54,14 +54,24 @@ func init() {
 // other threads/routines
 func RefreshConfigs() (string, error) {
 	// get dynamic config path
-	configPath := configFilePath()
+	configPath := ConfigFilePath()
 	err := RefreshConfigsFrom(configPath)
 	if err != nil {
 		log.Printf("Cannot load configs from %s: %v", configPath, err)
-		configPath = defaultConfigFilePath()
+		configPath = DefaultConfigFilePath()
 		err = RefreshConfigsFrom(configPath)
 	}
 	return configPath, err
+}
+
+// ConfigFilePath returns current GW mconfig file path
+func ConfigFilePath() string {
+	return filepath.Join(configFileDir(), MconfigFileName)
+}
+
+// DefaultConfigFilePath returns default GW mconfig file path
+func DefaultConfigFilePath() string {
+	return filepath.Join(DefaultConfigFileDir, MconfigFileName)
 }
 
 // RefreshConfigsFrom checks if Managed Config File mcpath has changed
@@ -101,14 +111,6 @@ func configFileDir() string {
 		mcdir = DefaultDynamicConfigFileDir
 	}
 	return mcdir
-}
-
-func configFilePath() string {
-	return filepath.Join(configFileDir(), MconfigFileName)
-}
-
-func defaultConfigFilePath() string {
-	return filepath.Join(DefaultConfigFileDir, MconfigFileName)
 }
 
 func loadFromFile(path string) error {

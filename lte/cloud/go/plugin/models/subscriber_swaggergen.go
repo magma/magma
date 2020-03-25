@@ -19,6 +19,9 @@ import (
 // swagger:model subscriber
 type Subscriber struct {
 
+	// active apns
+	ActiveApns ApnList `json:"active_apns,omitempty"`
+
 	// Base names which are active for this subscriber
 	ActiveBaseNames []BaseName `json:"active_base_names,omitempty"`
 
@@ -32,11 +35,18 @@ type Subscriber struct {
 	// lte
 	// Required: true
 	Lte *LteSubscription `json:"lte"`
+
+	// monitoring
+	Monitoring *SubscriberStatus `json:"monitoring,omitempty"`
 }
 
 // Validate validates this subscriber
 func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateActiveApns(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateActiveBaseNames(formats); err != nil {
 		res = append(res, err)
@@ -54,9 +64,29 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateMonitoring(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *Subscriber) validateActiveApns(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ActiveApns) { // not required
+		return nil
+	}
+
+	if err := m.ActiveApns.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("active_apns")
+		}
+		return err
+	}
+
 	return nil
 }
 
@@ -122,6 +152,24 @@ func (m *Subscriber) validateLte(formats strfmt.Registry) error {
 		if err := m.Lte.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("lte")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateMonitoring(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Monitoring) { // not required
+		return nil
+	}
+
+	if m.Monitoring != nil {
+		if err := m.Monitoring.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("monitoring")
 			}
 			return err
 		}

@@ -1,12 +1,11 @@
+#!/usr/bin/env python3
+
 import ast
-import re
 import os
 
 import pycodestyle
 import pytest
-
 from gql_checker.flake8_linter import Linter
-
 from tests.utils import extract_expected_errors
 
 
@@ -32,15 +31,12 @@ def load_test_cases():
 
 
 @pytest.mark.parametrize(
-    "tree, filename, expected_codes, expected_messages",
-    load_test_cases()
+    "tree, filename, expected_codes, expected_messages", load_test_cases()
 )
 def test_expected_error(tree, filename, expected_codes, expected_messages):
-    argv = [
-        "--gql-introspection-schema=./tests/introspection_schema.json"
-    ]
+    argv = ["--gql-introspection-schema=./tests/introspection_schema.json"]
 
-    parser = pycodestyle.get_parser('', '')
+    parser = pycodestyle.get_parser("", "")
     Linter.add_options(parser)
     options, args = parser.parse_args(argv)
     Linter.parse_options(options)
@@ -48,7 +44,7 @@ def test_expected_error(tree, filename, expected_codes, expected_messages):
     checker = Linter(tree, filename)
     codes = []
     messages = []
-    for lineno, col_offset, msg, instance in checker.run():
+    for _lineno, _col_offset, msg, _instance in checker.run():
         code, message = msg.split(" ", 1)
         codes.append(code)
         messages.append(message)

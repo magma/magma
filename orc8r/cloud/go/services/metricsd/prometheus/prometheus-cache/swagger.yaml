@@ -1,0 +1,52 @@
+---
+swagger: '3.0'
+info:
+  title: Prometheus-Cache Paths
+  description: Prometheus-Cache REST APIs
+  version: 0.1.0
+
+paths:
+  /:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+
+  /metrics:
+    post:
+      summary: Submit metrics to the cache
+      requestBody:
+        description: Metrics in prometheus text format
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: OK
+        '406':
+          description: Cache size limit would be exceeded with this request. Metrics are not submitted.
+    get:
+      summary: Scrape metrics from the cache
+      responses:
+        '200':
+          description: Metrics in prometheus text format
+          schema:
+            type: string
+
+  /debug:
+    get:
+      summary: Check status of cache without scraping metrics
+      parameters:
+        - in: query
+          name: verbose
+          description: If provided debug response will also show currently cached metrics in prometheus text exposition format
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Status of prometheus-cache
+          schema:
+            type: string

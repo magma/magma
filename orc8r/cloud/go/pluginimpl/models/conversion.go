@@ -11,11 +11,11 @@ package models
 import (
 	"fmt"
 
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/go-openapi/swag"
 	"github.com/pkg/errors"

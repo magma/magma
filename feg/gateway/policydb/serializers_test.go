@@ -14,7 +14,7 @@ import (
 	"magma/feg/gateway/object_store"
 	"magma/feg/gateway/policydb"
 	lteProtos "magma/lte/cloud/go/protos"
-	orc8rProtos "magma/orc8r/cloud/go/protos"
+	orc8rProtos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"

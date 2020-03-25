@@ -38,6 +38,7 @@ describe('<EquipmentAddEditCard />', () => {
     );
 
     act(() => {
+      // $FlowFixMe (T62907961) Relay flow types
       RelayEnvironment.mock.resolveMostRecentOperation(operation =>
         MockPayloadGenerator.generate(operation, {
           EquipmentType() {
@@ -77,6 +78,7 @@ describe('<EquipmentAddEditCard />', () => {
     );
 
     act(() => {
+      // $FlowFixMe (T62907961) Relay flow types
       RelayEnvironment.mock.resolveMostRecentOperation(operation =>
         MockPayloadGenerator.generate(operation, {
           EquipmentType() {

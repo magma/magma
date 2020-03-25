@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type Comment struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -28,31 +27,41 @@ type Comment struct {
 	// AuthorName holds the value of the "author_name" field.
 	AuthorName string `json:"author_name,omitempty"`
 	// Text holds the value of the "text" field.
-	Text string `json:"text,omitempty"`
+	Text                string `json:"text,omitempty"`
+	project_comments    *int
+	work_order_comments *int
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Comment) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // author_name
+		&sql.NullString{}, // text
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Comment) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // project_comments
+		&sql.NullInt64{}, // work_order_comments
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Comment fields.
 func (c *Comment) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(comment.Columns); m != n {
+	if m, n := len(values), len(comment.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	c.ID = strconv.FormatInt(value.Int64, 10)
+	c.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -74,6 +83,21 @@ func (c *Comment) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		c.Text = value.String
 	}
+	values = values[4:]
+	if len(values) == len(comment.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_comments", value)
+		} else if value.Valid {
+			c.project_comments = new(int)
+			*c.project_comments = int(value.Int64)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_comments", value)
+		} else if value.Valid {
+			c.work_order_comments = new(int)
+			*c.work_order_comments = int(value.Int64)
+		}
+	}
 	return nil
 }
 
@@ -81,7 +105,7 @@ func (c *Comment) assignValues(values ...interface{}) error {
 // Note that, you need to call Comment.Unwrap() before calling this method, if this Comment
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (c *Comment) Update() *CommentUpdateOne {
-	return (&CommentClient{c.config}).UpdateOne(c)
+	return (&CommentClient{config: c.config}).UpdateOne(c)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -110,12 +134,6 @@ func (c *Comment) String() string {
 	builder.WriteString(c.Text)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (c *Comment) id() int {
-	id, _ := strconv.Atoi(c.ID)
-	return id
 }
 
 // Comments is a parsable slice of Comment.

@@ -35,7 +35,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "assertions.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
 #include "mme_config.h"
@@ -73,7 +72,6 @@ static bool _is_mme_app_healthy(void);
 //------------------------------------------------------------------------------
 void *mme_app_thread(void *args)
 {
-  struct ue_mm_context_s *ue_context_p = NULL;
   itti_mark_task_ready(TASK_MME_APP);
   mme_app_desc_t *mme_app_desc_p;
 
@@ -86,9 +84,18 @@ void *mme_app_thread(void *args)
      * message is sent to the task.
      */
     itti_receive_msg(TASK_MME_APP, &received_message_p);
-    DevAssert(received_message_p);
+    if (received_message_p == NULL) {
+      OAILOG_ERROR(
+        LOG_MME_APP, "Received an invalid Message from ITTI message queue\n");
+      continue;
+    }
+
+    imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+    OAILOG_DEBUG(
+      LOG_MME_APP, "Received message with imsi: " IMSI_64_FMT, imsi64);
+
     OAILOG_DEBUG(LOG_MME_APP, "Getting mme_nas_state");
-    mme_app_desc_p = get_locked_mme_nas_state(false);
+    mme_app_desc_p = get_mme_nas_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {
@@ -96,7 +103,7 @@ void *mme_app_thread(void *args)
       } break;
 
       case MME_APP_INITIAL_CONTEXT_SETUP_RSP: {
-        mme_app_handle_initial_context_setup_rsp(mme_app_desc_p,
+        mme_app_handle_initial_context_setup_rsp(
           &MME_APP_INITIAL_CONTEXT_SETUP_RSP(received_message_p));
       } break;
 
@@ -123,7 +130,7 @@ void *mme_app_thread(void *args)
       } break;
 
       case S6A_RESET_REQ: {
-        mme_app_handle_s6a_reset_req(mme_app_desc_p,
+        mme_app_handle_s6a_reset_req(
           &received_message_p->ittiMsg.s6a_reset_req);
       } break;
 
@@ -133,8 +140,9 @@ void *mme_app_thread(void *args)
       } break;
 
       case S11_MODIFY_BEARER_RESPONSE: {
+        ue_mm_context_t* ue_context_p = NULL;
         OAILOG_INFO(
-          TASK_MME_APP, "Received S11 MODIFY BEARER RESPONSE from SPGW\n");
+          LOG_MME_APP, "Received S11 MODIFY BEARER RESPONSE from SPGW\n");
         ue_context_p = mme_ue_context_exists_s11_teid(
           &mme_app_desc_p->mme_ue_contexts,
           received_message_p->ittiMsg.s11_modify_bearer_response.teid);
@@ -146,14 +154,13 @@ void *mme_app_thread(void *args)
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
         } else {
           OAILOG_DEBUG(
-            TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
+            LOG_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
-          if (ue_context_p->path_switch_req != true) {
+          if (!ue_context_p->path_switch_req) {
             /* Updating statistics */
             update_mme_app_stats_s1u_bearer_add();
-          }
-          if (ue_context_p->path_switch_req == true) {
+          } else {
             mme_app_handle_path_switch_req_ack(
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
@@ -178,7 +185,7 @@ void *mme_app_thread(void *args)
       } break;
 
       case S1AP_E_RAB_SETUP_RSP: {
-        mme_app_handle_e_rab_setup_rsp(mme_app_desc_p,
+        mme_app_handle_e_rab_setup_rsp(
           &S1AP_E_RAB_SETUP_RSP(received_message_p));
       } break;
 
@@ -208,18 +215,18 @@ void *mme_app_thread(void *args)
       case S11_PAGING_REQUEST: {
         const char *imsi = received_message_p->ittiMsg.s11_paging_request.imsi;
         OAILOG_DEBUG(
-          TASK_MME_APP, "MME handling paging request for IMSI%s\n", imsi);
+          LOG_MME_APP, "MME handling paging request for IMSI%s\n", imsi);
         if (mme_app_handle_initial_paging_request(mme_app_desc_p, imsi)!=
             RETURNok) {
           OAILOG_ERROR(
-            TASK_MME_APP,
+            LOG_MME_APP,
             "Failed to send paging request to S1AP for IMSI%s\n",
             imsi);
         }
       } break;
 
       case MME_APP_INITIAL_CONTEXT_SETUP_FAILURE: {
-        mme_app_handle_initial_context_setup_failure(mme_app_desc_p,
+        mme_app_handle_initial_context_setup_failure(
           &MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(received_message_p));
       } break;
 
@@ -250,7 +257,7 @@ void *mme_app_thread(void *args)
       } break;
 
       case S1AP_UE_CAPABILITIES_IND: {
-        mme_app_handle_s1ap_ue_capabilities_ind(mme_app_desc_p,
+        mme_app_handle_s1ap_ue_capabilities_ind(
           &received_message_p->ittiMsg.s1ap_ue_cap_ind);
       } break;
 
@@ -261,13 +268,11 @@ void *mme_app_thread(void *args)
 
       case S1AP_UE_CONTEXT_MODIFICATION_RESPONSE: {
         mme_app_handle_s1ap_ue_context_modification_resp(
-          &mme_app_desc_p->mme_ue_contexts,
           &received_message_p->ittiMsg.s1ap_ue_context_mod_response);
       } break;
 
       case S1AP_UE_CONTEXT_MODIFICATION_FAILURE: {
         mme_app_handle_s1ap_ue_context_modification_fail(
-          &mme_app_desc_p->mme_ue_contexts,
           &received_message_p->ittiMsg.s1ap_ue_context_mod_failure);
       } break;
       case S1AP_UE_CONTEXT_RELEASE_COMPLETE: {
@@ -299,7 +304,7 @@ void *mme_app_thread(void *args)
       case SGSAP_LOCATION_UPDATE_ACC: {
         /*Received SGSAP Location Update Accept message from SGS task*/
         OAILOG_INFO(
-          TASK_MME_APP, "Received SGSAP Location Update Accept from SGS\n");
+          LOG_MME_APP, "Received SGSAP Location Update Accept from SGS\n");
         mme_app_handle_sgsap_location_update_acc(mme_app_desc_p,
           &received_message_p->ittiMsg.sgsap_location_update_acc);
       } break;
@@ -318,7 +323,7 @@ void *mme_app_thread(void *args)
 
       case SGSAP_VLR_RESET_INDICATION: {
         /*Received SGSAP Reset Indication from SGS task*/
-        mme_app_handle_sgsap_reset_indication(mme_app_desc_p,
+        mme_app_handle_sgsap_reset_indication(
           &received_message_p->ittiMsg.sgsap_vlr_reset_indication);
       } break;
 
@@ -415,7 +420,7 @@ void *mme_app_thread(void *args)
 
      case TERMINATE_MESSAGE: {
        // Termination message received TODO -> release any data allocated
-        put_mme_nas_state(&mme_app_desc_p);
+        put_mme_nas_state();
         mme_app_exit();
         itti_free_msg_content(received_message_p);
         itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -424,20 +429,17 @@ void *mme_app_thread(void *args)
       } break;
 
       default: {
-        OAILOG_DEBUG(
+        OAILOG_ERROR(
           LOG_MME_APP,
-          "Unkwnon message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p),
-          ITTI_MSG_NAME(received_message_p));
-        AssertFatal(
-          0,
-          "Unkwnon message ID %d:%s\n",
-          ITTI_MSG_ID(received_message_p),
-          ITTI_MSG_NAME(received_message_p));
+          "Unknown message (%s) received with message Id: %d\n",
+          ITTI_MSG_NAME(received_message_p),
+          ITTI_MSG_ID(received_message_p));
       } break;
     }
 
-    put_mme_nas_state(&mme_app_desc_p);
+    put_mme_nas_state();
+    put_mme_ue_state(mme_app_desc_p, imsi64);
+
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;
@@ -456,6 +458,7 @@ int mme_app_init(const mme_config_t *mme_config_p)
   if (mme_app_edns_init(mme_config_p)) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
+
   // Initialise NAS module
   nas_network_initialize(mme_config_p);
   /*

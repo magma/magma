@@ -226,9 +226,7 @@ int emm_proc_identification_complete(
     ue_id);
 
   // Get the UE context
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
     nas_emm_ident_proc_t *ident_proc =
@@ -359,6 +357,7 @@ static void _identification_t3470_handler(void *args)
       /*
       * Abort the identification procedure
       */
+      mme_ue_s1ap_id_t ue_id = ident_proc->ue_id;
       REQUIREMENT_3GPP_24_301(R10_5_4_4_6_b__2);
       emm_sap_t emm_sap = {0};
       emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
@@ -373,7 +372,12 @@ static void _identification_t3470_handler(void *args)
       emm_sap_send(&emm_sap);
       nas_delete_all_emm_procedures(emm_ctx);
       /* clear emm_common_data_ctx */
-      emm_common_cleanup_by_ueid(ident_proc->ue_id);
+      emm_common_cleanup_by_ueid(ue_id);
+      memset((void *) &emm_sap, 0, sizeof(emm_sap));
+      emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
+      emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id = ue_id;
+      emm_sap_send(&emm_sap);
+      increment_counter("ue_attach", 1, 1, "action", "attach_abort");
     }
   } else {
     OAILOG_ERROR(
@@ -406,9 +410,8 @@ static int _identification_request(nas_emm_ident_proc_t *const proc)
   int rc = RETURNok;
   struct emm_context_s *emm_ctx = NULL;
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, proc->ue_id);
+    proc->ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {

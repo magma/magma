@@ -107,6 +107,7 @@ MAGMA_DEPS=(
     "libdouble-conversion-dev" # required for folly
     "libboost-chrono-dev" # required for folly
     "td-agent-bit >= 1.3.2" # fluent-bit
+    "ntpdate" # required for eventd time synchronization
     )
 
 # OAI runtime dependencies
@@ -322,6 +323,7 @@ ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
 ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
+${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \

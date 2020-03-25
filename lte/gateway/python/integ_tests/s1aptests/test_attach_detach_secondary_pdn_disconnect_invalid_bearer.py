@@ -21,13 +21,34 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_seconday_pdn_disconn_invalid_bearer_id(self):
+    def test_secondary_pdn_disconn_invalid_bearer_id(self):
         """ Attach a single UE + send standalone PDN Connectivity
         Request + send PDN disconnect with invalid bearer id """
 
-        self._s1ap_wrapper.configUEDevice(1)
+        num_ue = 1
+
+        self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
+
+        # APN of the secondary PDN
+        ims = {
+            "apn_name": "ims",  # APN-name
+            "qci": 5,  # qci
+            "priority": 15,  # priority
+            "pre_cap": 0,  # preemption-capability
+            "pre_vul": 0,  # preemption-vulnerability
+            "mbr_ul": 200000000,  # MBR UL
+            "mbr_dl": 100000000,  # MBR DL
+        }
+
+        # APN list to be configured
+        apn_list = [ims]
+
+        self._s1ap_wrapper.configAPN(
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+        )
+
         # Declare an array of len 15 as the bearer id ranges from 5-15
         length = 15
         bearer_idx = [0] * length

@@ -10,8 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -28,27 +26,9 @@ import (
 // ServiceUpdate is the builder for updating Service entities.
 type ServiceUpdate struct {
 	config
-
-	update_time       *time.Time
-	name              *string
-	external_id       *string
-	clearexternal_id  bool
-	status            *string
-	_type             map[string]struct{}
-	downstream        map[string]struct{}
-	upstream          map[string]struct{}
-	properties        map[string]struct{}
-	links             map[string]struct{}
-	customer          map[string]struct{}
-	endpoints         map[string]struct{}
-	clearedType       bool
-	removedDownstream map[string]struct{}
-	removedUpstream   map[string]struct{}
-	removedProperties map[string]struct{}
-	removedLinks      map[string]struct{}
-	removedCustomer   map[string]struct{}
-	removedEndpoints  map[string]struct{}
-	predicates        []predicate.Service
+	hooks      []Hook
+	mutation   *ServiceMutation
+	predicates []predicate.Service
 }
 
 // Where adds a new predicate for the builder.
@@ -59,13 +39,13 @@ func (su *ServiceUpdate) Where(ps ...predicate.Service) *ServiceUpdate {
 
 // SetName sets the name field.
 func (su *ServiceUpdate) SetName(s string) *ServiceUpdate {
-	su.name = &s
+	su.mutation.SetName(s)
 	return su
 }
 
 // SetExternalID sets the external_id field.
 func (su *ServiceUpdate) SetExternalID(s string) *ServiceUpdate {
-	su.external_id = &s
+	su.mutation.SetExternalID(s)
 	return su
 }
 
@@ -79,23 +59,19 @@ func (su *ServiceUpdate) SetNillableExternalID(s *string) *ServiceUpdate {
 
 // ClearExternalID clears the value of external_id.
 func (su *ServiceUpdate) ClearExternalID() *ServiceUpdate {
-	su.external_id = nil
-	su.clearexternal_id = true
+	su.mutation.ClearExternalID()
 	return su
 }
 
 // SetStatus sets the status field.
 func (su *ServiceUpdate) SetStatus(s string) *ServiceUpdate {
-	su.status = &s
+	su.mutation.SetStatus(s)
 	return su
 }
 
 // SetTypeID sets the type edge to ServiceType by id.
-func (su *ServiceUpdate) SetTypeID(id string) *ServiceUpdate {
-	if su._type == nil {
-		su._type = make(map[string]struct{})
-	}
-	su._type[id] = struct{}{}
+func (su *ServiceUpdate) SetTypeID(id int) *ServiceUpdate {
+	su.mutation.SetTypeID(id)
 	return su
 }
 
@@ -105,19 +81,14 @@ func (su *ServiceUpdate) SetType(s *ServiceType) *ServiceUpdate {
 }
 
 // AddDownstreamIDs adds the downstream edge to Service by ids.
-func (su *ServiceUpdate) AddDownstreamIDs(ids ...string) *ServiceUpdate {
-	if su.downstream == nil {
-		su.downstream = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.downstream[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) AddDownstreamIDs(ids ...int) *ServiceUpdate {
+	su.mutation.AddDownstreamIDs(ids...)
 	return su
 }
 
 // AddDownstream adds the downstream edges to Service.
 func (su *ServiceUpdate) AddDownstream(s ...*Service) *ServiceUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -125,19 +96,14 @@ func (su *ServiceUpdate) AddDownstream(s ...*Service) *ServiceUpdate {
 }
 
 // AddUpstreamIDs adds the upstream edge to Service by ids.
-func (su *ServiceUpdate) AddUpstreamIDs(ids ...string) *ServiceUpdate {
-	if su.upstream == nil {
-		su.upstream = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.upstream[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) AddUpstreamIDs(ids ...int) *ServiceUpdate {
+	su.mutation.AddUpstreamIDs(ids...)
 	return su
 }
 
 // AddUpstream adds the upstream edges to Service.
 func (su *ServiceUpdate) AddUpstream(s ...*Service) *ServiceUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -145,19 +111,14 @@ func (su *ServiceUpdate) AddUpstream(s ...*Service) *ServiceUpdate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (su *ServiceUpdate) AddPropertyIDs(ids ...string) *ServiceUpdate {
-	if su.properties == nil {
-		su.properties = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.properties[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) AddPropertyIDs(ids ...int) *ServiceUpdate {
+	su.mutation.AddPropertyIDs(ids...)
 	return su
 }
 
 // AddProperties adds the properties edges to Property.
 func (su *ServiceUpdate) AddProperties(p ...*Property) *ServiceUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -165,19 +126,14 @@ func (su *ServiceUpdate) AddProperties(p ...*Property) *ServiceUpdate {
 }
 
 // AddLinkIDs adds the links edge to Link by ids.
-func (su *ServiceUpdate) AddLinkIDs(ids ...string) *ServiceUpdate {
-	if su.links == nil {
-		su.links = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.links[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) AddLinkIDs(ids ...int) *ServiceUpdate {
+	su.mutation.AddLinkIDs(ids...)
 	return su
 }
 
 // AddLinks adds the links edges to Link.
 func (su *ServiceUpdate) AddLinks(l ...*Link) *ServiceUpdate {
-	ids := make([]string, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -185,19 +141,14 @@ func (su *ServiceUpdate) AddLinks(l ...*Link) *ServiceUpdate {
 }
 
 // AddCustomerIDs adds the customer edge to Customer by ids.
-func (su *ServiceUpdate) AddCustomerIDs(ids ...string) *ServiceUpdate {
-	if su.customer == nil {
-		su.customer = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.customer[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) AddCustomerIDs(ids ...int) *ServiceUpdate {
+	su.mutation.AddCustomerIDs(ids...)
 	return su
 }
 
 // AddCustomer adds the customer edges to Customer.
 func (su *ServiceUpdate) AddCustomer(c ...*Customer) *ServiceUpdate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -205,19 +156,14 @@ func (su *ServiceUpdate) AddCustomer(c ...*Customer) *ServiceUpdate {
 }
 
 // AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
-func (su *ServiceUpdate) AddEndpointIDs(ids ...string) *ServiceUpdate {
-	if su.endpoints == nil {
-		su.endpoints = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.endpoints[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) AddEndpointIDs(ids ...int) *ServiceUpdate {
+	su.mutation.AddEndpointIDs(ids...)
 	return su
 }
 
 // AddEndpoints adds the endpoints edges to ServiceEndpoint.
 func (su *ServiceUpdate) AddEndpoints(s ...*ServiceEndpoint) *ServiceUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -226,24 +172,19 @@ func (su *ServiceUpdate) AddEndpoints(s ...*ServiceEndpoint) *ServiceUpdate {
 
 // ClearType clears the type edge to ServiceType.
 func (su *ServiceUpdate) ClearType() *ServiceUpdate {
-	su.clearedType = true
+	su.mutation.ClearType()
 	return su
 }
 
 // RemoveDownstreamIDs removes the downstream edge to Service by ids.
-func (su *ServiceUpdate) RemoveDownstreamIDs(ids ...string) *ServiceUpdate {
-	if su.removedDownstream == nil {
-		su.removedDownstream = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.removedDownstream[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) RemoveDownstreamIDs(ids ...int) *ServiceUpdate {
+	su.mutation.RemoveDownstreamIDs(ids...)
 	return su
 }
 
 // RemoveDownstream removes downstream edges to Service.
 func (su *ServiceUpdate) RemoveDownstream(s ...*Service) *ServiceUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -251,19 +192,14 @@ func (su *ServiceUpdate) RemoveDownstream(s ...*Service) *ServiceUpdate {
 }
 
 // RemoveUpstreamIDs removes the upstream edge to Service by ids.
-func (su *ServiceUpdate) RemoveUpstreamIDs(ids ...string) *ServiceUpdate {
-	if su.removedUpstream == nil {
-		su.removedUpstream = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.removedUpstream[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) RemoveUpstreamIDs(ids ...int) *ServiceUpdate {
+	su.mutation.RemoveUpstreamIDs(ids...)
 	return su
 }
 
 // RemoveUpstream removes upstream edges to Service.
 func (su *ServiceUpdate) RemoveUpstream(s ...*Service) *ServiceUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -271,19 +207,14 @@ func (su *ServiceUpdate) RemoveUpstream(s ...*Service) *ServiceUpdate {
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
-func (su *ServiceUpdate) RemovePropertyIDs(ids ...string) *ServiceUpdate {
-	if su.removedProperties == nil {
-		su.removedProperties = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.removedProperties[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) RemovePropertyIDs(ids ...int) *ServiceUpdate {
+	su.mutation.RemovePropertyIDs(ids...)
 	return su
 }
 
 // RemoveProperties removes properties edges to Property.
 func (su *ServiceUpdate) RemoveProperties(p ...*Property) *ServiceUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -291,19 +222,14 @@ func (su *ServiceUpdate) RemoveProperties(p ...*Property) *ServiceUpdate {
 }
 
 // RemoveLinkIDs removes the links edge to Link by ids.
-func (su *ServiceUpdate) RemoveLinkIDs(ids ...string) *ServiceUpdate {
-	if su.removedLinks == nil {
-		su.removedLinks = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.removedLinks[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) RemoveLinkIDs(ids ...int) *ServiceUpdate {
+	su.mutation.RemoveLinkIDs(ids...)
 	return su
 }
 
 // RemoveLinks removes links edges to Link.
 func (su *ServiceUpdate) RemoveLinks(l ...*Link) *ServiceUpdate {
-	ids := make([]string, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -311,19 +237,14 @@ func (su *ServiceUpdate) RemoveLinks(l ...*Link) *ServiceUpdate {
 }
 
 // RemoveCustomerIDs removes the customer edge to Customer by ids.
-func (su *ServiceUpdate) RemoveCustomerIDs(ids ...string) *ServiceUpdate {
-	if su.removedCustomer == nil {
-		su.removedCustomer = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.removedCustomer[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) RemoveCustomerIDs(ids ...int) *ServiceUpdate {
+	su.mutation.RemoveCustomerIDs(ids...)
 	return su
 }
 
 // RemoveCustomer removes customer edges to Customer.
 func (su *ServiceUpdate) RemoveCustomer(c ...*Customer) *ServiceUpdate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -331,19 +252,14 @@ func (su *ServiceUpdate) RemoveCustomer(c ...*Customer) *ServiceUpdate {
 }
 
 // RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
-func (su *ServiceUpdate) RemoveEndpointIDs(ids ...string) *ServiceUpdate {
-	if su.removedEndpoints == nil {
-		su.removedEndpoints = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.removedEndpoints[ids[i]] = struct{}{}
-	}
+func (su *ServiceUpdate) RemoveEndpointIDs(ids ...int) *ServiceUpdate {
+	su.mutation.RemoveEndpointIDs(ids...)
 	return su
 }
 
 // RemoveEndpoints removes endpoints edges to ServiceEndpoint.
 func (su *ServiceUpdate) RemoveEndpoints(s ...*ServiceEndpoint) *ServiceUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -352,27 +268,49 @@ func (su *ServiceUpdate) RemoveEndpoints(s ...*ServiceEndpoint) *ServiceUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (su *ServiceUpdate) Save(ctx context.Context) (int, error) {
-	if su.update_time == nil {
+	if _, ok := su.mutation.UpdateTime(); !ok {
 		v := service.UpdateDefaultUpdateTime()
-		su.update_time = &v
+		su.mutation.SetUpdateTime(v)
 	}
-	if su.name != nil {
-		if err := service.NameValidator(*su.name); err != nil {
+	if v, ok := su.mutation.Name(); ok {
+		if err := service.NameValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if su.external_id != nil {
-		if err := service.ExternalIDValidator(*su.external_id); err != nil {
+	if v, ok := su.mutation.ExternalID(); ok {
+		if err := service.ExternalIDValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
 		}
 	}
-	if len(su._type) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"type\"")
-	}
-	if su.clearedType && su._type == nil {
+
+	if _, ok := su.mutation.TypeID(); su.mutation.TypeCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"type\"")
 	}
-	return su.sqlSave(ctx)
+
+	var (
+		err      error
+		affected int
+	)
+	if len(su.hooks) == 0 {
+		affected, err = su.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ServiceMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			su.mutation = mutation
+			affected, err = su.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(su.hooks); i > 0; i-- {
+			mut = su.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, su.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -398,58 +336,58 @@ func (su *ServiceUpdate) ExecX(ctx context.Context) {
 }
 
 func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   service.Table,
 			Columns: service.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: service.FieldID,
 			},
 		},
 	}
 	if ps := su.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value := su.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := su.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldUpdateTime,
 		})
 	}
-	if value := su.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := su.mutation.Name(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldName,
 		})
 	}
-	if value := su.external_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := su.mutation.ExternalID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldExternalID,
 		})
 	}
-	if su.clearexternal_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if su.mutation.ExternalIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: service.FieldExternalID,
 		})
 	}
-	if value := su.status; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := su.mutation.Status(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldStatus,
 		})
 	}
-	if su.clearedType {
+	if su.mutation.TypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -458,14 +396,14 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: servicetype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su._type; len(nodes) > 0 {
+	if nodes := su.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -474,21 +412,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: servicetype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := su.removedDownstream; len(nodes) > 0 {
+	if nodes := su.mutation.RemovedDownstreamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -497,21 +431,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.downstream; len(nodes) > 0 {
+	if nodes := su.mutation.DownstreamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -520,21 +450,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := su.removedUpstream; len(nodes) > 0 {
+	if nodes := su.mutation.RemovedUpstreamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -543,21 +469,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.upstream; len(nodes) > 0 {
+	if nodes := su.mutation.UpstreamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -566,21 +488,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := su.removedProperties; len(nodes) > 0 {
+	if nodes := su.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -589,21 +507,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.properties; len(nodes) > 0 {
+	if nodes := su.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -612,21 +526,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := su.removedLinks; len(nodes) > 0 {
+	if nodes := su.mutation.RemovedLinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -635,21 +545,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: link.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.links; len(nodes) > 0 {
+	if nodes := su.mutation.LinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -658,21 +564,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: link.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := su.removedCustomer; len(nodes) > 0 {
+	if nodes := su.mutation.RemovedCustomerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -681,21 +583,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: customer.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.customer; len(nodes) > 0 {
+	if nodes := su.mutation.CustomerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -704,21 +602,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: customer.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := su.removedEndpoints; len(nodes) > 0 {
+	if nodes := su.mutation.RemovedEndpointsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -727,21 +621,17 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: serviceendpoint.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.endpoints; len(nodes) > 0 {
+	if nodes := su.mutation.EndpointsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -750,22 +640,20 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: serviceendpoint.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{service.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -776,38 +664,19 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ServiceUpdateOne is the builder for updating a single Service entity.
 type ServiceUpdateOne struct {
 	config
-	id string
-
-	update_time       *time.Time
-	name              *string
-	external_id       *string
-	clearexternal_id  bool
-	status            *string
-	_type             map[string]struct{}
-	downstream        map[string]struct{}
-	upstream          map[string]struct{}
-	properties        map[string]struct{}
-	links             map[string]struct{}
-	customer          map[string]struct{}
-	endpoints         map[string]struct{}
-	clearedType       bool
-	removedDownstream map[string]struct{}
-	removedUpstream   map[string]struct{}
-	removedProperties map[string]struct{}
-	removedLinks      map[string]struct{}
-	removedCustomer   map[string]struct{}
-	removedEndpoints  map[string]struct{}
+	hooks    []Hook
+	mutation *ServiceMutation
 }
 
 // SetName sets the name field.
 func (suo *ServiceUpdateOne) SetName(s string) *ServiceUpdateOne {
-	suo.name = &s
+	suo.mutation.SetName(s)
 	return suo
 }
 
 // SetExternalID sets the external_id field.
 func (suo *ServiceUpdateOne) SetExternalID(s string) *ServiceUpdateOne {
-	suo.external_id = &s
+	suo.mutation.SetExternalID(s)
 	return suo
 }
 
@@ -821,23 +690,19 @@ func (suo *ServiceUpdateOne) SetNillableExternalID(s *string) *ServiceUpdateOne 
 
 // ClearExternalID clears the value of external_id.
 func (suo *ServiceUpdateOne) ClearExternalID() *ServiceUpdateOne {
-	suo.external_id = nil
-	suo.clearexternal_id = true
+	suo.mutation.ClearExternalID()
 	return suo
 }
 
 // SetStatus sets the status field.
 func (suo *ServiceUpdateOne) SetStatus(s string) *ServiceUpdateOne {
-	suo.status = &s
+	suo.mutation.SetStatus(s)
 	return suo
 }
 
 // SetTypeID sets the type edge to ServiceType by id.
-func (suo *ServiceUpdateOne) SetTypeID(id string) *ServiceUpdateOne {
-	if suo._type == nil {
-		suo._type = make(map[string]struct{})
-	}
-	suo._type[id] = struct{}{}
+func (suo *ServiceUpdateOne) SetTypeID(id int) *ServiceUpdateOne {
+	suo.mutation.SetTypeID(id)
 	return suo
 }
 
@@ -847,19 +712,14 @@ func (suo *ServiceUpdateOne) SetType(s *ServiceType) *ServiceUpdateOne {
 }
 
 // AddDownstreamIDs adds the downstream edge to Service by ids.
-func (suo *ServiceUpdateOne) AddDownstreamIDs(ids ...string) *ServiceUpdateOne {
-	if suo.downstream == nil {
-		suo.downstream = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.downstream[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) AddDownstreamIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.AddDownstreamIDs(ids...)
 	return suo
 }
 
 // AddDownstream adds the downstream edges to Service.
 func (suo *ServiceUpdateOne) AddDownstream(s ...*Service) *ServiceUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -867,19 +727,14 @@ func (suo *ServiceUpdateOne) AddDownstream(s ...*Service) *ServiceUpdateOne {
 }
 
 // AddUpstreamIDs adds the upstream edge to Service by ids.
-func (suo *ServiceUpdateOne) AddUpstreamIDs(ids ...string) *ServiceUpdateOne {
-	if suo.upstream == nil {
-		suo.upstream = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.upstream[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) AddUpstreamIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.AddUpstreamIDs(ids...)
 	return suo
 }
 
 // AddUpstream adds the upstream edges to Service.
 func (suo *ServiceUpdateOne) AddUpstream(s ...*Service) *ServiceUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -887,19 +742,14 @@ func (suo *ServiceUpdateOne) AddUpstream(s ...*Service) *ServiceUpdateOne {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (suo *ServiceUpdateOne) AddPropertyIDs(ids ...string) *ServiceUpdateOne {
-	if suo.properties == nil {
-		suo.properties = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.properties[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) AddPropertyIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.AddPropertyIDs(ids...)
 	return suo
 }
 
 // AddProperties adds the properties edges to Property.
 func (suo *ServiceUpdateOne) AddProperties(p ...*Property) *ServiceUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -907,19 +757,14 @@ func (suo *ServiceUpdateOne) AddProperties(p ...*Property) *ServiceUpdateOne {
 }
 
 // AddLinkIDs adds the links edge to Link by ids.
-func (suo *ServiceUpdateOne) AddLinkIDs(ids ...string) *ServiceUpdateOne {
-	if suo.links == nil {
-		suo.links = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.links[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) AddLinkIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.AddLinkIDs(ids...)
 	return suo
 }
 
 // AddLinks adds the links edges to Link.
 func (suo *ServiceUpdateOne) AddLinks(l ...*Link) *ServiceUpdateOne {
-	ids := make([]string, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -927,19 +772,14 @@ func (suo *ServiceUpdateOne) AddLinks(l ...*Link) *ServiceUpdateOne {
 }
 
 // AddCustomerIDs adds the customer edge to Customer by ids.
-func (suo *ServiceUpdateOne) AddCustomerIDs(ids ...string) *ServiceUpdateOne {
-	if suo.customer == nil {
-		suo.customer = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.customer[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) AddCustomerIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.AddCustomerIDs(ids...)
 	return suo
 }
 
 // AddCustomer adds the customer edges to Customer.
 func (suo *ServiceUpdateOne) AddCustomer(c ...*Customer) *ServiceUpdateOne {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -947,19 +787,14 @@ func (suo *ServiceUpdateOne) AddCustomer(c ...*Customer) *ServiceUpdateOne {
 }
 
 // AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
-func (suo *ServiceUpdateOne) AddEndpointIDs(ids ...string) *ServiceUpdateOne {
-	if suo.endpoints == nil {
-		suo.endpoints = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.endpoints[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) AddEndpointIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.AddEndpointIDs(ids...)
 	return suo
 }
 
 // AddEndpoints adds the endpoints edges to ServiceEndpoint.
 func (suo *ServiceUpdateOne) AddEndpoints(s ...*ServiceEndpoint) *ServiceUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -968,24 +803,19 @@ func (suo *ServiceUpdateOne) AddEndpoints(s ...*ServiceEndpoint) *ServiceUpdateO
 
 // ClearType clears the type edge to ServiceType.
 func (suo *ServiceUpdateOne) ClearType() *ServiceUpdateOne {
-	suo.clearedType = true
+	suo.mutation.ClearType()
 	return suo
 }
 
 // RemoveDownstreamIDs removes the downstream edge to Service by ids.
-func (suo *ServiceUpdateOne) RemoveDownstreamIDs(ids ...string) *ServiceUpdateOne {
-	if suo.removedDownstream == nil {
-		suo.removedDownstream = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.removedDownstream[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) RemoveDownstreamIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.RemoveDownstreamIDs(ids...)
 	return suo
 }
 
 // RemoveDownstream removes downstream edges to Service.
 func (suo *ServiceUpdateOne) RemoveDownstream(s ...*Service) *ServiceUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -993,19 +823,14 @@ func (suo *ServiceUpdateOne) RemoveDownstream(s ...*Service) *ServiceUpdateOne {
 }
 
 // RemoveUpstreamIDs removes the upstream edge to Service by ids.
-func (suo *ServiceUpdateOne) RemoveUpstreamIDs(ids ...string) *ServiceUpdateOne {
-	if suo.removedUpstream == nil {
-		suo.removedUpstream = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.removedUpstream[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) RemoveUpstreamIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.RemoveUpstreamIDs(ids...)
 	return suo
 }
 
 // RemoveUpstream removes upstream edges to Service.
 func (suo *ServiceUpdateOne) RemoveUpstream(s ...*Service) *ServiceUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -1013,19 +838,14 @@ func (suo *ServiceUpdateOne) RemoveUpstream(s ...*Service) *ServiceUpdateOne {
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
-func (suo *ServiceUpdateOne) RemovePropertyIDs(ids ...string) *ServiceUpdateOne {
-	if suo.removedProperties == nil {
-		suo.removedProperties = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.removedProperties[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) RemovePropertyIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.RemovePropertyIDs(ids...)
 	return suo
 }
 
 // RemoveProperties removes properties edges to Property.
 func (suo *ServiceUpdateOne) RemoveProperties(p ...*Property) *ServiceUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -1033,19 +853,14 @@ func (suo *ServiceUpdateOne) RemoveProperties(p ...*Property) *ServiceUpdateOne 
 }
 
 // RemoveLinkIDs removes the links edge to Link by ids.
-func (suo *ServiceUpdateOne) RemoveLinkIDs(ids ...string) *ServiceUpdateOne {
-	if suo.removedLinks == nil {
-		suo.removedLinks = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.removedLinks[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) RemoveLinkIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.RemoveLinkIDs(ids...)
 	return suo
 }
 
 // RemoveLinks removes links edges to Link.
 func (suo *ServiceUpdateOne) RemoveLinks(l ...*Link) *ServiceUpdateOne {
-	ids := make([]string, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -1053,19 +868,14 @@ func (suo *ServiceUpdateOne) RemoveLinks(l ...*Link) *ServiceUpdateOne {
 }
 
 // RemoveCustomerIDs removes the customer edge to Customer by ids.
-func (suo *ServiceUpdateOne) RemoveCustomerIDs(ids ...string) *ServiceUpdateOne {
-	if suo.removedCustomer == nil {
-		suo.removedCustomer = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.removedCustomer[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) RemoveCustomerIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.RemoveCustomerIDs(ids...)
 	return suo
 }
 
 // RemoveCustomer removes customer edges to Customer.
 func (suo *ServiceUpdateOne) RemoveCustomer(c ...*Customer) *ServiceUpdateOne {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -1073,19 +883,14 @@ func (suo *ServiceUpdateOne) RemoveCustomer(c ...*Customer) *ServiceUpdateOne {
 }
 
 // RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
-func (suo *ServiceUpdateOne) RemoveEndpointIDs(ids ...string) *ServiceUpdateOne {
-	if suo.removedEndpoints == nil {
-		suo.removedEndpoints = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.removedEndpoints[ids[i]] = struct{}{}
-	}
+func (suo *ServiceUpdateOne) RemoveEndpointIDs(ids ...int) *ServiceUpdateOne {
+	suo.mutation.RemoveEndpointIDs(ids...)
 	return suo
 }
 
 // RemoveEndpoints removes endpoints edges to ServiceEndpoint.
 func (suo *ServiceUpdateOne) RemoveEndpoints(s ...*ServiceEndpoint) *ServiceUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -1094,27 +899,49 @@ func (suo *ServiceUpdateOne) RemoveEndpoints(s ...*ServiceEndpoint) *ServiceUpda
 
 // Save executes the query and returns the updated entity.
 func (suo *ServiceUpdateOne) Save(ctx context.Context) (*Service, error) {
-	if suo.update_time == nil {
+	if _, ok := suo.mutation.UpdateTime(); !ok {
 		v := service.UpdateDefaultUpdateTime()
-		suo.update_time = &v
+		suo.mutation.SetUpdateTime(v)
 	}
-	if suo.name != nil {
-		if err := service.NameValidator(*suo.name); err != nil {
+	if v, ok := suo.mutation.Name(); ok {
+		if err := service.NameValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if suo.external_id != nil {
-		if err := service.ExternalIDValidator(*suo.external_id); err != nil {
+	if v, ok := suo.mutation.ExternalID(); ok {
+		if err := service.ExternalIDValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
 		}
 	}
-	if len(suo._type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
-	}
-	if suo.clearedType && suo._type == nil {
+
+	if _, ok := suo.mutation.TypeID(); suo.mutation.TypeCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"type\"")
 	}
-	return suo.sqlSave(ctx)
+
+	var (
+		err  error
+		node *Service
+	)
+	if len(suo.hooks) == 0 {
+		node, err = suo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ServiceMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			suo.mutation = mutation
+			node, err = suo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(suo.hooks); i > 0; i-- {
+			mut = suo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, suo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1140,52 +967,56 @@ func (suo *ServiceUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   service.Table,
 			Columns: service.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  suo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: service.FieldID,
 			},
 		},
 	}
-	if value := suo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	id, ok := suo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Service.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := suo.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldUpdateTime,
 		})
 	}
-	if value := suo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := suo.mutation.Name(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldName,
 		})
 	}
-	if value := suo.external_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := suo.mutation.ExternalID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldExternalID,
 		})
 	}
-	if suo.clearexternal_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if suo.mutation.ExternalIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: service.FieldExternalID,
 		})
 	}
-	if value := suo.status; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := suo.mutation.Status(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: service.FieldStatus,
 		})
 	}
-	if suo.clearedType {
+	if suo.mutation.TypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1194,14 +1025,14 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: servicetype.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo._type; len(nodes) > 0 {
+	if nodes := suo.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1210,21 +1041,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: servicetype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := suo.removedDownstream; len(nodes) > 0 {
+	if nodes := suo.mutation.RemovedDownstreamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -1233,21 +1060,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.downstream; len(nodes) > 0 {
+	if nodes := suo.mutation.DownstreamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -1256,21 +1079,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := suo.removedUpstream; len(nodes) > 0 {
+	if nodes := suo.mutation.RemovedUpstreamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -1279,21 +1098,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.upstream; len(nodes) > 0 {
+	if nodes := suo.mutation.UpstreamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -1302,21 +1117,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := suo.removedProperties; len(nodes) > 0 {
+	if nodes := suo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1325,21 +1136,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.properties; len(nodes) > 0 {
+	if nodes := suo.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1348,21 +1155,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := suo.removedLinks; len(nodes) > 0 {
+	if nodes := suo.mutation.RemovedLinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -1371,21 +1174,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: link.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.links; len(nodes) > 0 {
+	if nodes := suo.mutation.LinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -1394,21 +1193,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: link.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := suo.removedCustomer; len(nodes) > 0 {
+	if nodes := suo.mutation.RemovedCustomerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -1417,21 +1212,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: customer.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.customer; len(nodes) > 0 {
+	if nodes := suo.mutation.CustomerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -1440,21 +1231,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: customer.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := suo.removedEndpoints; len(nodes) > 0 {
+	if nodes := suo.mutation.RemovedEndpointsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1463,21 +1250,17 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: serviceendpoint.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.endpoints; len(nodes) > 0 {
+	if nodes := suo.mutation.EndpointsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1486,25 +1269,23 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: serviceendpoint.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	s = &Service{config: suo.config}
-	spec.Assign = s.assignValues
-	spec.ScanValues = s.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, suo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = s.assignValues
+	_spec.ScanValues = s.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, suo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{service.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

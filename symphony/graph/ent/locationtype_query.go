@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -30,6 +31,10 @@ type LocationTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.LocationType
+	// eager-loading edges.
+	withLocations                *LocationQuery
+	withPropertyTypes            *PropertyTypeQuery
+	withSurveyTemplateCategories *SurveyTemplateCategoryQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -94,14 +99,14 @@ func (ltq *LocationTypeQuery) QuerySurveyTemplateCategories() *SurveyTemplateCat
 	return query
 }
 
-// First returns the first LocationType entity in the query. Returns *ErrNotFound when no locationtype was found.
+// First returns the first LocationType entity in the query. Returns *NotFoundError when no locationtype was found.
 func (ltq *LocationTypeQuery) First(ctx context.Context) (*LocationType, error) {
 	lts, err := ltq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(lts) == 0 {
-		return nil, &ErrNotFound{locationtype.Label}
+		return nil, &NotFoundError{locationtype.Label}
 	}
 	return lts[0], nil
 }
@@ -115,21 +120,21 @@ func (ltq *LocationTypeQuery) FirstX(ctx context.Context) *LocationType {
 	return lt
 }
 
-// FirstID returns the first LocationType id in the query. Returns *ErrNotFound when no id was found.
-func (ltq *LocationTypeQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+// FirstID returns the first LocationType id in the query. Returns *NotFoundError when no id was found.
+func (ltq *LocationTypeQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ltq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{locationtype.Label}
+		err = &NotFoundError{locationtype.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (ltq *LocationTypeQuery) FirstXID(ctx context.Context) string {
+func (ltq *LocationTypeQuery) FirstXID(ctx context.Context) int {
 	id, err := ltq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -147,9 +152,9 @@ func (ltq *LocationTypeQuery) Only(ctx context.Context) (*LocationType, error) {
 	case 1:
 		return lts[0], nil
 	case 0:
-		return nil, &ErrNotFound{locationtype.Label}
+		return nil, &NotFoundError{locationtype.Label}
 	default:
-		return nil, &ErrNotSingular{locationtype.Label}
+		return nil, &NotSingularError{locationtype.Label}
 	}
 }
 
@@ -163,8 +168,8 @@ func (ltq *LocationTypeQuery) OnlyX(ctx context.Context) *LocationType {
 }
 
 // OnlyID returns the only LocationType id in the query, returns an error if not exactly one id was returned.
-func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ltq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -172,15 +177,15 @@ func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id string, err error)
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{locationtype.Label}
+		err = &NotFoundError{locationtype.Label}
 	default:
-		err = &ErrNotSingular{locationtype.Label}
+		err = &NotSingularError{locationtype.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (ltq *LocationTypeQuery) OnlyXID(ctx context.Context) string {
+func (ltq *LocationTypeQuery) OnlyXID(ctx context.Context) int {
 	id, err := ltq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -203,8 +208,8 @@ func (ltq *LocationTypeQuery) AllX(ctx context.Context) []*LocationType {
 }
 
 // IDs executes the query and returns a list of LocationType ids.
-func (ltq *LocationTypeQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (ltq *LocationTypeQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := ltq.Select(locationtype.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -212,7 +217,7 @@ func (ltq *LocationTypeQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ltq *LocationTypeQuery) IDsX(ctx context.Context) []string {
+func (ltq *LocationTypeQuery) IDsX(ctx context.Context) []int {
 	ids, err := ltq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -263,6 +268,39 @@ func (ltq *LocationTypeQuery) Clone() *LocationTypeQuery {
 	}
 }
 
+//  WithLocations tells the query-builder to eager-loads the nodes that are connected to
+// the "locations" edge. The optional arguments used to configure the query builder of the edge.
+func (ltq *LocationTypeQuery) WithLocations(opts ...func(*LocationQuery)) *LocationTypeQuery {
+	query := &LocationQuery{config: ltq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ltq.withLocations = query
+	return ltq
+}
+
+//  WithPropertyTypes tells the query-builder to eager-loads the nodes that are connected to
+// the "property_types" edge. The optional arguments used to configure the query builder of the edge.
+func (ltq *LocationTypeQuery) WithPropertyTypes(opts ...func(*PropertyTypeQuery)) *LocationTypeQuery {
+	query := &PropertyTypeQuery{config: ltq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ltq.withPropertyTypes = query
+	return ltq
+}
+
+//  WithSurveyTemplateCategories tells the query-builder to eager-loads the nodes that are connected to
+// the "survey_template_categories" edge. The optional arguments used to configure the query builder of the edge.
+func (ltq *LocationTypeQuery) WithSurveyTemplateCategories(opts ...func(*SurveyTemplateCategoryQuery)) *LocationTypeQuery {
+	query := &SurveyTemplateCategoryQuery{config: ltq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ltq.withSurveyTemplateCategories = query
+	return ltq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -306,30 +344,125 @@ func (ltq *LocationTypeQuery) Select(field string, fields ...string) *LocationTy
 
 func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, error) {
 	var (
-		nodes []*LocationType
-		spec  = ltq.querySpec()
+		nodes       = []*LocationType{}
+		_spec       = ltq.querySpec()
+		loadedTypes = [3]bool{
+			ltq.withLocations != nil,
+			ltq.withPropertyTypes != nil,
+			ltq.withSurveyTemplateCategories != nil,
+		}
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &LocationType{config: ltq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, ltq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, ltq.driver, _spec); err != nil {
 		return nil, err
 	}
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := ltq.withLocations; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*LocationType)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Location(func(s *sql.Selector) {
+			s.Where(sql.InValues(locationtype.LocationsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.location_type
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "location_type" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Locations = append(node.Edges.Locations, n)
+		}
+	}
+
+	if query := ltq.withPropertyTypes; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*LocationType)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.PropertyType(func(s *sql.Selector) {
+			s.Where(sql.InValues(locationtype.PropertyTypesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.location_type_property_types
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "location_type_property_types" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_property_types" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.PropertyTypes = append(node.Edges.PropertyTypes, n)
+		}
+	}
+
+	if query := ltq.withSurveyTemplateCategories; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*LocationType)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.SurveyTemplateCategory(func(s *sql.Selector) {
+			s.Where(sql.InValues(locationtype.SurveyTemplateCategoriesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.location_type_survey_template_categories
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "location_type_survey_template_categories" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "location_type_survey_template_categories" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.SurveyTemplateCategories = append(node.Edges.SurveyTemplateCategories, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (ltq *LocationTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := ltq.querySpec()
-	return sqlgraph.CountNodes(ctx, ltq.driver, spec)
+	_spec := ltq.querySpec()
+	return sqlgraph.CountNodes(ctx, ltq.driver, _spec)
 }
 
 func (ltq *LocationTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -341,12 +474,12 @@ func (ltq *LocationTypeQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (ltq *LocationTypeQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   locationtype.Table,
 			Columns: locationtype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: locationtype.FieldID,
 			},
 		},
@@ -354,26 +487,26 @@ func (ltq *LocationTypeQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := ltq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := ltq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := ltq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := ltq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (ltq *LocationTypeQuery) sqlQuery() *sql.Selector {

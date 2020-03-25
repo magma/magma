@@ -32,7 +32,6 @@
 #include <stdint.h>
 
 #include "dynamic_memory_check.h"
-#include "assertions.h"
 #include "intertask_interface.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_itti_messaging.h"
@@ -613,13 +612,17 @@ int mme_app_handle_sgs_eps_detach_ack(
   struct ue_mm_context_s* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(eps_detach_ack_p);
+  if (eps_detach_ack_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid EPS Detach Acknowledgement ITTI message received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   IMSI_STRING_TO_IMSI64(eps_detach_ack_p->imsi, &imsi64);
   OAILOG_INFO(
     LOG_MME_APP,
-    "%s Received SGS EPS DETACH ACK for imsi " IMSI_64_FMT "\n",
-    __FUNCTION__,
+    "Received SGS EPS DETACH ACK for imsi " IMSI_64_FMT "\n",
     imsi64);
 
   if (
@@ -678,13 +681,17 @@ int mme_app_handle_sgs_imsi_detach_ack(
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(imsi_detach_ack_p);
+  if (imsi_detach_ack_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid IMSI Detach Acknowledgement ITTI message received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   IMSI_STRING_TO_IMSI64(imsi_detach_ack_p->imsi, &imsi64);
   OAILOG_DEBUG(
     LOG_MME_APP,
-    "%s Received SGS IMSI DETACH ACK for imsi " IMSI_64_FMT "\n",
-    __FUNCTION__,
+    "Received SGS IMSI DETACH ACK for imsi " IMSI_64_FMT "\n",
     imsi64);
 
   if (

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 63518766a6cd136ffdbb9f160aa2788e
+ * @relayHash ee35ffc0aad3c9bae1a013112ab7a1d5
  */
 
 /* eslint-disable */
@@ -25,6 +25,7 @@ export type LinkFilterInput = {|
   stringValue?: ?string,
   propertyValue?: ?PropertyTypeInput,
   idSet?: ?$ReadOnlyArray<string>,
+  stringSet?: ?$ReadOnlyArray<string>,
   maxDepth?: ?number,
 |};
 export type PropertyTypeInput = {|

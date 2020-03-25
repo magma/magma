@@ -84,8 +84,8 @@ class AGWHealthSummary:
         return textwrap.dedent("""
         {}
         #eNBs connected:    {} \t (run `enodebd_cli.py get_all_status` for more details)
-        #IPs allocated:     {} \t (run `mobilityd_cli.py list_allocated_ips` for more details)
-        #UEs connected:     {} \t (run `mobilityd_cli.py get_subscriber_table` for more details)
+        #IPs allocated:     {} \t (run `mobility_cli.py list_allocated_ips` for more details)
+        #UEs connected:     {} \t (run `mobility_cli.py get_subscriber_table` for more details)
         #Core dumps:        {} \t (run `ls /tmp/` to see core dumps)
         Earliest core-dump: {}, Latest core-dump: {}
         Registration success rate: {}

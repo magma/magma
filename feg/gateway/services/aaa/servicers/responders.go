@@ -14,7 +14,7 @@ import (
 	"log"
 
 	"magma/feg/gateway/services/aaa/metrics"
-	"magma/orc8r/gateway/directoryd"
+	"magma/gateway/directoryd"
 
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
@@ -25,7 +25,7 @@ import (
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
 	lteprotos "magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (

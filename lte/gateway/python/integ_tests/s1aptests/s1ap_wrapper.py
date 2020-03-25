@@ -182,6 +182,10 @@ class TestWrapper(object):
             self._configuredUes.append(reqs[i])
         self.check_gw_health_after_ue_load()
 
+    def configAPN(self, imsi, apn_list):
+        """ Configure the APN """
+        self._sub_util.config_apn_data(imsi, apn_list)
+
     def configUEDevice_ues_same_imsi(self, num_ues):
         """ Configure the device on the UE side with same IMSI and
         having different ue-id"""

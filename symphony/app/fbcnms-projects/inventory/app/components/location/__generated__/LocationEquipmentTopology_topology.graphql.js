@@ -30,6 +30,7 @@ export type LocationEquipmentTopology_topology$data = LocationEquipmentTopology_
 export type LocationEquipmentTopology_topology$key = {
   +$data?: LocationEquipmentTopology_topology$data,
   +$fragmentRefs: LocationEquipmentTopology_topology$ref,
+  ...
 };
 */
 

@@ -29,7 +29,6 @@
 #include <stdlib.h>
 
 #include "dynamic_memory_check.h"
-#include "assertions.h"
 #include "common_types.h"
 #include "intertask_interface.h"
 #include "mme_app_ue_context.h"
@@ -41,6 +40,7 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "s11_messages_types.h"
+#include "log.h"
 
 static void mme_app_free_s11_procedure_create_bearer(
   mme_app_s11_proc_t **s11_proc);
@@ -132,7 +132,16 @@ void mme_app_s11_procedure_create_bearer_send_response(
 {
   MessageDef *message_p =
     itti_alloc_new_message(TASK_MME_APP, S11_CREATE_BEARER_RESPONSE);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for S11 Create Bearer "
+      "Response for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
   itti_s11_create_bearer_response_t *s11_create_bearer_response =
     &message_p->ittiMsg.s11_create_bearer_response;

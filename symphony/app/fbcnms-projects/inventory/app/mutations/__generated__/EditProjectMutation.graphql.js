@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 1ca4d639d40104b682f2af42c5a8e2f0
+ * @relayHash 229584afa18002ec8b38f71164b34547
  */
 
 /* eslint-disable */
@@ -46,7 +46,7 @@ export type EditProjectMutationVariables = {|
   input: EditProjectInput
 |};
 export type EditProjectMutationResponse = {|
-  +editProject: ?{|
+  +editProject: {|
     +id: string,
     +name: string,
     +description: ?string,

@@ -23,11 +23,13 @@ export type ImageAttachment_img = {
   +id: string,
   +storeKey: ?string,
   +$fragmentRefs: DocumentMenu_document$ref & ImageDialog_img$ref,
+  ...
 };
 export type ImageAttachment_img$data = ImageAttachment_img;
 export type ImageAttachment_img$key = {
   +$data?: ImageAttachment_img$data,
   +$fragmentRefs: ImageAttachment_img$ref,
+  ...
 };
 */
 

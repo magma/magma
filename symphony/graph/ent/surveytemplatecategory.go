@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type SurveyTemplateCategory struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -29,30 +28,59 @@ type SurveyTemplateCategory struct {
 	CategoryTitle string `json:"category_title,omitempty"`
 	// CategoryDescription holds the value of the "category_description" field.
 	CategoryDescription string `json:"category_description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyTemplateCategoryQuery when eager-loading is set.
+	Edges                                    SurveyTemplateCategoryEdges `json:"edges"`
+	location_type_survey_template_categories *int
+}
+
+// SurveyTemplateCategoryEdges holds the relations/edges for other nodes in the graph.
+type SurveyTemplateCategoryEdges struct {
+	// SurveyTemplateQuestions holds the value of the survey_template_questions edge.
+	SurveyTemplateQuestions []*SurveyTemplateQuestion
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// SurveyTemplateQuestionsOrErr returns the SurveyTemplateQuestions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyTemplateCategoryEdges) SurveyTemplateQuestionsOrErr() ([]*SurveyTemplateQuestion, error) {
+	if e.loadedTypes[0] {
+		return e.SurveyTemplateQuestions, nil
+	}
+	return nil, &NotLoadedError{edge: "survey_template_questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SurveyTemplateCategory) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // category_title
+		&sql.NullString{}, // category_description
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyTemplateCategory) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // location_type_survey_template_categories
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the SurveyTemplateCategory fields.
 func (stc *SurveyTemplateCategory) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(surveytemplatecategory.Columns); m != n {
+	if m, n := len(values), len(surveytemplatecategory.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	stc.ID = strconv.FormatInt(value.Int64, 10)
+	stc.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -74,19 +102,28 @@ func (stc *SurveyTemplateCategory) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		stc.CategoryDescription = value.String
 	}
+	values = values[4:]
+	if len(values) == len(surveytemplatecategory.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field location_type_survey_template_categories", value)
+		} else if value.Valid {
+			stc.location_type_survey_template_categories = new(int)
+			*stc.location_type_survey_template_categories = int(value.Int64)
+		}
+	}
 	return nil
 }
 
 // QuerySurveyTemplateQuestions queries the survey_template_questions edge of the SurveyTemplateCategory.
 func (stc *SurveyTemplateCategory) QuerySurveyTemplateQuestions() *SurveyTemplateQuestionQuery {
-	return (&SurveyTemplateCategoryClient{stc.config}).QuerySurveyTemplateQuestions(stc)
+	return (&SurveyTemplateCategoryClient{config: stc.config}).QuerySurveyTemplateQuestions(stc)
 }
 
 // Update returns a builder for updating this SurveyTemplateCategory.
 // Note that, you need to call SurveyTemplateCategory.Unwrap() before calling this method, if this SurveyTemplateCategory
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (stc *SurveyTemplateCategory) Update() *SurveyTemplateCategoryUpdateOne {
-	return (&SurveyTemplateCategoryClient{stc.config}).UpdateOne(stc)
+	return (&SurveyTemplateCategoryClient{config: stc.config}).UpdateOne(stc)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -115,12 +152,6 @@ func (stc *SurveyTemplateCategory) String() string {
 	builder.WriteString(stc.CategoryDescription)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (stc *SurveyTemplateCategory) id() int {
-	id, _ := strconv.Atoi(stc.ID)
-	return id
 }
 
 // SurveyTemplateCategories is a parsable slice of SurveyTemplateCategory.

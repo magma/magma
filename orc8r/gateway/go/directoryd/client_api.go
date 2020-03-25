@@ -14,10 +14,10 @@ import (
 	"fmt"
 	"strings"
 
-	platformregistry "magma/orc8r/cloud/go/registry"
+	platformregistry "magma/orc8r/lib/go/registry"
 
-	"magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"

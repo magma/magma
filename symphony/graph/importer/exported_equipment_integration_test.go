@@ -36,16 +36,14 @@ var locStruct map[string]*ent.Location
 func importEquipmentExportedData(ctx context.Context, t *testing.T, organization string, r *TestImporterResolver) int {
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
-	bw.WriteField("skip_lines", "[5,6]")
+	err := bw.WriteField("skip_lines", "[5,6]")
+	require.NoError(t, err)
 	file, err := os.Open("testdata/exportedEquipmentData.csv")
-	require.Nil(t, err)
-
+	require.NoError(t, err)
 	fileWriter, err := bw.CreateFormFile("file_0", file.Name())
-	require.Nil(t, err)
-
+	require.NoError(t, err)
 	_, err = io.Copy(fileWriter, file)
-	require.Nil(t, err)
-
+	require.NoError(t, err)
 	contentType := bw.FormDataContentType()
 	require.NoError(t, bw.Close())
 
@@ -156,13 +154,10 @@ func verifyLocationsStructure(ctx context.Context, t *testing.T, r TestImporterR
 }
 
 func TestEquipmentImportData(t *testing.T) {
-	r, err := newImporterTestResolver(t)
-	require.NoError(t, err)
+	r := newImporterTestResolver(t)
 	ctx := newImportContext(viewertest.NewContext(r.client))
-	require.NoError(t, err)
 	code := importEquipmentExportedData(ctx, t, tenantHeader, r)
 	require.Equal(t, http.StatusBadRequest, code)
-	require.Nil(t, err)
 	q := r.importer.r.Query()
 
 	createLocationTypes(ctx, t, r)

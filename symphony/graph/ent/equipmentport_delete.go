@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // EquipmentPortDelete is the builder for deleting a EquipmentPort entity.
 type EquipmentPortDelete struct {
 	config
+	hooks      []Hook
+	mutation   *EquipmentPortMutation
 	predicates []predicate.EquipmentPort
 }
 
@@ -30,7 +33,30 @@ func (epd *EquipmentPortDelete) Where(ps ...predicate.EquipmentPort) *EquipmentP
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (epd *EquipmentPortDelete) Exec(ctx context.Context) (int, error) {
-	return epd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(epd.hooks) == 0 {
+		affected, err = epd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentPortMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			epd.mutation = mutation
+			affected, err = epd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(epd.hooks); i > 0; i-- {
+			mut = epd.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, epd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (epd *EquipmentPortDelete) ExecX(ctx context.Context) int {
 }
 
 func (epd *EquipmentPortDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: equipmentport.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentport.FieldID,
 			},
 		},
 	}
 	if ps := epd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, epd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, epd.driver, _spec)
 }
 
 // EquipmentPortDeleteOne is the builder for deleting a single EquipmentPort entity.
@@ -74,7 +100,7 @@ func (epdo *EquipmentPortDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{equipmentport.Label}
+		return &NotFoundError{equipmentport.Label}
 	default:
 		return nil
 	}

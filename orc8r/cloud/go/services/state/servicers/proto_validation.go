@@ -11,23 +11,31 @@ package servicers
 import (
 	"errors"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/serde"
 	stateservice "magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/lib/go/protos"
+
+	"github.com/thoas/go-funk"
 )
 
 // ValidateGetStatesRequest checks that all required fields exist
 func ValidateGetStatesRequest(req *protos.GetStatesRequest) error {
-	if err := checkNonEmptyInput(req.GetNetworkID(), req.GetIds()); err != nil {
+	if err := enforceNetworkID(req.NetworkID); err != nil {
 		return err
+	}
+	if funk.IsEmpty(req.Ids) && funk.IsEmpty(req.TypeFilter) && funk.IsEmpty(req.IdFilter) {
+		return errors.New("at least one filter criteria must be specified in the request")
 	}
 	return nil
 }
 
 // ValidateDeleteStatesRequest checks that all required fields exist
 func ValidateDeleteStatesRequest(req *protos.DeleteStatesRequest) error {
-	if err := checkNonEmptyInput(req.GetNetworkID(), req.GetIds()); err != nil {
+	if err := enforceNetworkID(req.NetworkID); err != nil {
 		return err
+	}
+	if funk.IsEmpty(req.Ids) {
+		return errors.New("States value must be specified and non-empty")
 	}
 	return nil
 }
@@ -76,12 +84,9 @@ func PartitionStatesBySerializability(req *protos.ReportStatesRequest) ([]*proto
 	return validatedStates, invalidStates, nil
 }
 
-func checkNonEmptyInput(networkID string, ids []*protos.StateID) error {
+func enforceNetworkID(networkID string) error {
 	if len(networkID) == 0 {
 		return errors.New("Network ID must be specified")
-	}
-	if ids == nil || len(ids) == 0 {
-		return errors.New("States value must be specified and non-empty")
 	}
 	return nil
 }

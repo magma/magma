@@ -4,9 +4,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
+
+import type {PermissionHandlingProps} from '../Form/FormAction';
 
 import * as React from 'react';
 import SelectMenuItem from './SelectMenuItem';
@@ -17,12 +19,13 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useMenuContext} from './MenuContext';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     backgroundColor: symphony.palette.white,
     boxShadow: symphony.shadows.DP1,
     borderRadius: '4px',
     maxHeight: '322px',
+    overflowY: 'auto',
   },
   fullWidth: {
     width: '100%',
@@ -30,13 +33,16 @@ const useStyles = makeStyles({
   normalWidth: {
     width: '236px',
   },
-});
+}));
 
-export type OptionProps<TValue> = {
+export type OptionProps<TValue> = {|
+  key: string,
   label: React.Node,
   searchTerm?: string,
   value: TValue,
-};
+  className?: ?string,
+  ...PermissionHandlingProps,
+|};
 
 type Props<TValue> = {
   className?: string,
@@ -79,17 +85,33 @@ const SelectMenu = <TValue>({
           onChange={updateSearchTerm}
         />
       )}
-      {options.map(option => (
-        <SelectMenuItem
-          label={option.label}
-          value={option.value}
-          onClick={value => {
-            onChange(value);
-            onClose();
-          }}
-          isSelected={selectedValue === option.value}
-        />
-      ))}
+      {options
+        .map(option => {
+          const {
+            key,
+            label,
+            value,
+            ignorePermissions,
+            hideWhenDisabled,
+            className,
+          } = option;
+          return (
+            <SelectMenuItem
+              key={key}
+              label={label}
+              value={value}
+              className={className}
+              ignorePermissions={ignorePermissions}
+              hideWhenDisabled={hideWhenDisabled}
+              onClick={value => {
+                onChange(value);
+                onClose();
+              }}
+              isSelected={selectedValue === option.value}
+            />
+          );
+        })
+        .filter(Boolean)}
     </div>
   );
 };

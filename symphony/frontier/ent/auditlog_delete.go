@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // AuditLogDelete is the builder for deleting a AuditLog entity.
 type AuditLogDelete struct {
 	config
+	hooks      []Hook
+	mutation   *AuditLogMutation
 	predicates []predicate.AuditLog
 }
 
@@ -30,7 +33,30 @@ func (ald *AuditLogDelete) Where(ps ...predicate.AuditLog) *AuditLogDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ald *AuditLogDelete) Exec(ctx context.Context) (int, error) {
-	return ald.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(ald.hooks) == 0 {
+		affected, err = ald.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*AuditLogMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ald.mutation = mutation
+			affected, err = ald.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(ald.hooks); i > 0; i-- {
+			mut = ald.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ald.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,7 +69,7 @@ func (ald *AuditLogDelete) ExecX(ctx context.Context) int {
 }
 
 func (ald *AuditLogDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: auditlog.Table,
 			ID: &sqlgraph.FieldSpec{
@@ -53,13 +79,13 @@ func (ald *AuditLogDelete) sqlExec(ctx context.Context) (int, error) {
 		},
 	}
 	if ps := ald.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ald.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ald.driver, _spec)
 }
 
 // AuditLogDeleteOne is the builder for deleting a single AuditLog entity.
@@ -74,7 +100,7 @@ func (aldo *AuditLogDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{auditlog.Label}
+		return &NotFoundError{auditlog.Label}
 	default:
 		return nil
 	}

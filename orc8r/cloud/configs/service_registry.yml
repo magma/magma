@@ -72,3 +72,8 @@ services:
     host: "localhost"
     port: 9108
     proxy_type: "clientcert"
+
+  tenants:
+    host: "localhost"
+    port: 9110
+    proxy_type: "clientcert"

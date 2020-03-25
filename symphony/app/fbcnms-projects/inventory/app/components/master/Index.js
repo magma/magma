@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -24,12 +24,13 @@ import PeopleIcon from '@material-ui/icons/People';
 import React, {useContext} from 'react';
 import SecuritySettings from '@fbcnms/magmalte/app/components/SecuritySettings';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
+import Strings from '../../common/CommonStrings';
+import UserManaementView from '../admin/userManagement/UserManaementView';
 import UsersSettings from '@fbcnms/magmalte/app/components/UsersSettings';
-import {Redirect, Route, Switch} from 'react-router-dom';
-
 import nullthrows from '@fbcnms/util/nullthrows';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -42,7 +43,8 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function NavItems() {
-  const {relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
+  const appContext = useContext(AppContext);
   return (
     <>
       <NavListItem
@@ -65,6 +67,13 @@ function NavItems() {
         path={relativeUrl('/users')}
         icon={<PeopleIcon />}
       />
+      {appContext.isFeatureEnabled('user_management') ? (
+        <NavListItem
+          label={Strings.admin.users.viewHeader}
+          path={relativeUrl('/user_management')}
+          icon={<PeopleIcon />}
+        />
+      ) : null}
     </>
   );
 }
@@ -72,7 +81,7 @@ function NavItems() {
 function Master() {
   const classes = useStyles();
   const {user, ssoEnabled} = useContext(AppContext);
-  const {relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
 
   return (
     <div className={classes.root}>
@@ -94,6 +103,10 @@ function Master() {
           <Route path={relativeUrl('/features')} component={Features} />
           <Route path={relativeUrl('/metrics')} component={CloudMetrics} />
           <Route path={relativeUrl('/users')} component={UsersSettings} />
+          <Route
+            path={relativeUrl('/user_management')}
+            component={UserManaementView}
+          />
           <Route
             path={relativeUrl('/settings')}
             render={() => (

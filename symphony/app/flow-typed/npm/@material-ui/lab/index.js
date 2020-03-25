@@ -1,4 +1,4 @@
-// @flow
+// @flow strict-local
 
 type ToggleButton = {
   children?: React$Node,
