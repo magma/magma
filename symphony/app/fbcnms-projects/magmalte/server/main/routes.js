@@ -23,7 +23,7 @@ import {getEnabledFeatures} from '@fbcnms/platform-server/features';
 const router = express.Router();
 
 const handleReact = _tab =>
-  async function (req: FBCNMSRequest, res) {
+  async function(req: FBCNMSRequest, res) {
     const appData: AppContextAppData = {
       csrfToken: req.csrfToken(),
       tabs: ['nms'],

@@ -224,7 +224,7 @@ function GrafanaDashboard() {
   return <Grafana grafanaURL={'/grafana'} />;
 }
 
-export default function () {
+export default function() {
   const lteNetworkMetrics = useContext(AppContext).isFeatureEnabled(
     'lte_network_metrics',
   );

@@ -89,7 +89,7 @@ export async function networksResponseDecorator(
   return JSON.stringify(result);
 }
 
-const containsNetworkID = function (
+const containsNetworkID = function(
   allowedNetworkIDs: string[],
   networkID: string,
 ): boolean {

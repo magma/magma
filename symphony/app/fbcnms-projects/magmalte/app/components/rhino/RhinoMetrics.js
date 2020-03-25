@@ -271,7 +271,7 @@ function RhinoMetrics() {
   return <MultiMetrics configs={CONFIGS} />;
 }
 
-export default function () {
+export default function() {
   const classes = useStyles();
   const {match, relativePath, relativeUrl, location} = useRouter();
 

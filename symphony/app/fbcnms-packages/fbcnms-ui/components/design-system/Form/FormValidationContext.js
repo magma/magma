@@ -65,7 +65,7 @@ type Props = {
 
 type ErrorsMap = imm.Map<string, string>;
 
-const FormValidationMaintainer = function () {
+const FormValidationMaintainer = function() {
   const [errorsMap, setErrorsMap] = useState<ErrorsMap>(
     new imm.Map<string, string>(),
   );
@@ -154,9 +154,7 @@ const FormValidationMaintainer = function () {
     [isEmpty],
   );
 
-  const errorChecks: Array<
-    (v: FormInputValueValidation) => ?string,
-  > = useMemo(
+  const errorChecks: Array<(v: FormInputValueValidation) => ?string> = useMemo(
     () => [
       checkOuterErrorMessage,
       checkRequired,

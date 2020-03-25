@@ -38,9 +38,8 @@ type Props = WithStyles<typeof styles> & {
 };
 
 const getHyperlinkSortingValue = (hyperlink, categoriesEnabled) => {
-  return `${(categoriesEnabled && hyperlink.category) || ''}${
-    hyperlink.displayName || hyperlink.url
-  }`;
+  return `${(categoriesEnabled && hyperlink.category) ||
+    ''}${hyperlink.displayName || hyperlink.url}`;
 };
 const getFileSortingValue = (file, categoriesEnabled) => {
   return `${(categoriesEnabled && file.category) || ''}${file.fileName}`;

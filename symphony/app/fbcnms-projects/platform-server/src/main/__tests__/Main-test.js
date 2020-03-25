@@ -15,7 +15,10 @@ import request from 'supertest';
 import {Organization, User} from '@fbcnms/sequelize-models';
 
 it('Returns a health check', async () => {
-  await request(app).get('/healthz').expect(200).expect('OK');
+  await request(app)
+    .get('/healthz')
+    .expect(200)
+    .expect('OK');
 });
 
 const ORGS = [

@@ -90,6 +90,6 @@ const APN_CONFIGS: Array<MetricGraphConfig> = [
   },
 ];
 
-export default function () {
+export default function() {
   return <SelectorMetrics configs={APN_CONFIGS} selectorKey="apn" />;
 }

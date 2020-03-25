@@ -135,7 +135,7 @@ export default (
       },
     },
   );
-  Organization.associate = function (_models) {
+  Organization.associate = function(_models) {
     // associations can be defined here
   };
   return Organization;

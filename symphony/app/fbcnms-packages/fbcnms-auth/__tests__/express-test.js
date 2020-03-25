@@ -230,7 +230,10 @@ describe('user tests', () => {
           ...validParams,
           email: '',
         };
-        await request(app).post('/user/async/').send(params).expect(400);
+        await request(app)
+          .post('/user/async/')
+          .send(params)
+          .expect(400);
       });
 
       it('must be valid email', async () => {
@@ -238,7 +241,10 @@ describe('user tests', () => {
           ...validParams,
           email: 'abc',
         };
-        await request(app).post('/user/async/').send(params).expect(400);
+        await request(app)
+          .post('/user/async/')
+          .send(params)
+          .expect(400);
       });
     });
   });
@@ -306,10 +312,18 @@ describe('user tests', () => {
   describe('endpoints as normal user', () => {
     const app = getApp('validorg', 'valid@123.com');
     it('redirects restricted urls to login', async () => {
-      await request(app).get('/user/async/').expect(302);
-      await request(app).post('/user/async/').expect(302);
-      await request(app).put('/user/async/1').expect(302);
-      await request(app).delete('/user/async/1/').expect(302);
+      await request(app)
+        .get('/user/async/')
+        .expect(302);
+      await request(app)
+        .post('/user/async/')
+        .expect(302);
+      await request(app)
+        .put('/user/async/1')
+        .expect(302);
+      await request(app)
+        .delete('/user/async/1/')
+        .expect(302);
     });
   });
 });

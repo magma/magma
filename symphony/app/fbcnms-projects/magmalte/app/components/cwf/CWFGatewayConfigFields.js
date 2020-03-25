@@ -45,7 +45,7 @@ type Props = {
   onChange: allowed_gre_peers => void,
 };
 
-export default function (props: Props) {
+export default function(props: Props) {
   const classes = useStyles();
   const {allowedGREPeers} = props;
 

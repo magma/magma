@@ -65,7 +65,11 @@ class MapGeocoder extends React.Component<Props> {
     const query = originalQuery.toLowerCase();
     const matches = [];
     markers.features.forEach(feature => {
-      if (String(feature.properties?.name).toLowerCase().includes(query)) {
+      if (
+        String(feature.properties?.name)
+          .toLowerCase()
+          .includes(query)
+      ) {
         matches.push({feature});
       }
     });

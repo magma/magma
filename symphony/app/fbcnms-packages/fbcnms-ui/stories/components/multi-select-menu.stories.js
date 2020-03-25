@@ -96,7 +96,9 @@ const SelectMenuRoot = () => {
   );
   const filterBySearchTerm = (options, searchTerm) =>
     options.filter(option =>
-      String(option.label).toLowerCase().includes(searchTerm.toLowerCase()),
+      String(option.label)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()),
     );
 
   return (

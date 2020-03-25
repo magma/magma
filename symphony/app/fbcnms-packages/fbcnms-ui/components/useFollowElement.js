@@ -27,9 +27,8 @@ const stickfollowingElement = (
       const followedElementTop = followedElementDimensions.top;
       const followedElementHeight = followedElementDimensions.height;
 
-      followingElement.style.top = `${
-        followedElementTop + followedElementHeight
-      }px`;
+      followingElement.style.top = `${followedElementTop +
+        followedElementHeight}px`;
 
       resolve();
     }),

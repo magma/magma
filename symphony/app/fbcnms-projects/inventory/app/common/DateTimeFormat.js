@@ -12,18 +12,18 @@ import type {MomentInput} from 'moment';
 
 import moment from 'moment';
 
-const YEAR_FORMATTER = function (now) {
+const YEAR_FORMATTER = function(now) {
   return now.year() === this.year() ? 'MMMM D, h:mm A' : 'MMMM D YYYY, h:mm A';
 };
 
 const CALENDAR = {
-  sameDay: function (now) {
+  sameDay: function(now) {
     const diffMins = moment.duration(now.diff(this)).asMinutes();
     return diffMins < 1 ? '[Just now]' : '[Today,] h:mm A';
   },
   nextDay: '[Tomorrow]',
   nextWeek: 'dddd',
-  lastDay: function (now) {
+  lastDay: function(now) {
     const diffMins = moment.duration(now.diff(this)).asMinutes();
     return diffMins < 1 ? '[Just now]' : '[Yesterday,] h:mm A';
   },

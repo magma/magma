@@ -13,7 +13,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
-export default function <TParams: {...}, TResponse>(
+export default function<TParams: {...}, TResponse>(
   func: TParams => Promise<TResponse>,
   params: TParams,
   onResponse?: TResponse => void,

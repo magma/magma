@@ -194,7 +194,9 @@ const TablesRoot = () => {
             <Text variant="subtitle2">Usually be used with 'activeRow'</Text>
           </div>
         </div>
-      ) : undefined,
+      ) : (
+        undefined
+      ),
     }),
     [
       activeRowId,

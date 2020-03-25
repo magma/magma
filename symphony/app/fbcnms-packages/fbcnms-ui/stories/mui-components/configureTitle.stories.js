@@ -13,12 +13,12 @@ import React from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
-storiesOf(
-  `${STORY_CATEGORIES.MUI_COMPONENTS}/ConfigureTitle`,
-  module,
-).add('default', () => (
-  <ConfigureTitle
-    title={'This is a title'}
-    subtitle={'This is a descriptive subtitle'}
-  />
-));
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/ConfigureTitle`, module).add(
+  'default',
+  () => (
+    <ConfigureTitle
+      title={'This is a title'}
+      subtitle={'This is a descriptive subtitle'}
+    />
+  ),
+);

@@ -78,10 +78,9 @@ const getEditingLink = (link: Link): Link => {
   );
   initialLinkProps = [
     ...initialLinkProps,
-    ...getNonInstancePropertyTypes(
-      initialLinkProps,
-      linkPropertyTypes,
-    ).map(propType => getInitialPropertyFromType(propType)),
+    ...getNonInstancePropertyTypes(initialLinkProps, linkPropertyTypes).map(
+      propType => getInitialPropertyFromType(propType),
+    ),
   ].sort(sortPropertiesByIndex);
 
   return {
