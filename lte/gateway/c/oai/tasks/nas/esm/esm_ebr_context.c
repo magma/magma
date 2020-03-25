@@ -197,8 +197,6 @@ ebi_t esm_ebr_context_create(
         memcpy(&bearer_context->s_gw_fteid_s1u, sgw_fteid, sizeof(fteid_t));
       }
 
-      bearer_context->bearer_state |=
-        BEARER_STATE_SGW_CREATED | BEARER_STATE_MME_CREATED;
       if (is_default) {
         /*
          * Set the PDN connection activation indicator

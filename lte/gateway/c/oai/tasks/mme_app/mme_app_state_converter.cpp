@@ -245,7 +245,6 @@ void MmeNasStateConverter::bearer_context_to_proto(
     bearer_context_proto->mutable_p_gw_fteid_s5_s8_up());
   bearer_context_proto->set_qci(state_bearer_context.qci);
   bearer_context_proto->set_pdn_cx_id(state_bearer_context.pdn_cx_id);
-  bearer_context_proto->set_bearer_state(state_bearer_context.bearer_state);
   NasStateConverter::esm_ebr_context_to_proto(
     state_bearer_context.esm_ebr_context,
     bearer_context_proto->mutable_esm_ebr_context());
@@ -286,7 +285,6 @@ void MmeNasStateConverter::proto_to_bearer_context(
     &state_bearer_context->p_gw_fteid_s5_s8_up);
   state_bearer_context->qci = bearer_context_proto.qci();
   state_bearer_context->pdn_cx_id = bearer_context_proto.pdn_cx_id();
-  state_bearer_context->bearer_state = bearer_context_proto.bearer_state();
   NasStateConverter::proto_to_esm_ebr_context(
     bearer_context_proto.esm_ebr_context(),
     &state_bearer_context->esm_ebr_context);

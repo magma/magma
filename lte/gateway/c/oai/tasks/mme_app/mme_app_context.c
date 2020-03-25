@@ -1319,14 +1319,6 @@ void mme_app_dump_bearer_context(
     indent_spaces,
     " ",
     bc->esm_ebr_context.mbr_dl);
-  bstring bstate = bearer_state2string(bc->bearer_state);
-  bformata(
-    bstr_dump,
-    "%*s - State ...........: %s\n",
-    indent_spaces,
-    " ",
-    bdata(bstate));
-  bdestroy_wrapper(&bstate);
   bformata(
     bstr_dump,
     "%*s - " ANSI_COLOR_BOLD_ON "NAS ESM bearer private data .:\n",
