@@ -41,7 +41,7 @@ const grafanaAdminClient = Client(GRAFANA_URL, {
 });
 
 const syncGrafana = () => {
-  return async function(req: FBCNMSRequest, res, next) {
+  return async function (req: FBCNMSRequest, res, next) {
     const tasksCompleted = [];
     // Sync User/Organization
     const userRes = await syncGrafanaUser(grafanaAdminClient, req);
@@ -82,18 +82,15 @@ async function displayErrorMessage(
       grafanaHealth={healthResponse.data}
     />
   );
-  res
-    .status(errorTask.status)
-    .send(ReactDOM.renderToString(message))
-    .end();
+  res.status(errorTask.status).send(ReactDOM.renderToString(message)).end();
 }
 
 const proxyMiddleware = () => {
-  return async function(req: FBCNMSRequest, res, next) {
+  return async function (req: FBCNMSRequest, res, next) {
     const userID = req.user.id;
 
     return proxy(GRAFANA_URL, {
-      proxyReqOptDecorator: function(proxyReqOpts, _srcReq) {
+      proxyReqOptDecorator: function (proxyReqOpts, _srcReq) {
         proxyReqOpts.headers[AUTH_PROXY_HEADER] = makeGrafanaUsername(userID);
         return proxyReqOpts;
       },

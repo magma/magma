@@ -216,9 +216,7 @@ function ThresholdExpressionEditor(props: {
           <></>
         )}
         <MetricFilters
-          metricSeries={
-            props.metricsByName[(props.expression?.metricName)] || []
-          }
+          metricSeries={props.metricsByName[props.expression?.metricName] || []}
           expression={props.expression}
           onChange={props.onChange}
         />

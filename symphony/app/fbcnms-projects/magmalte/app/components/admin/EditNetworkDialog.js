@@ -31,7 +31,9 @@ export default function NetworkDialog(props: Props) {
 
   const {response: networkConfig, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkId,
-    {networkId: editingNetworkID},
+    {
+      networkId: editingNetworkID,
+    },
   );
 
   if (!networkConfig || isLoading) {

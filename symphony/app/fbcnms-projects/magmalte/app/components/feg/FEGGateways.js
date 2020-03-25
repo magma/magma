@@ -196,7 +196,10 @@ function GatewayRow(props: {
   const {match, history, relativeUrl} = useRouter();
   const {isLoading, response} = useMagmaAPI(
     MagmaV1API.getFegByNetworkIdGatewaysByGatewayIdHealthStatus,
-    {networkId: nullthrows(match.params.networkId), gatewayId: gateway.id},
+    {
+      networkId: nullthrows(match.params.networkId),
+      gatewayId: gateway.id,
+    },
   );
 
   return (

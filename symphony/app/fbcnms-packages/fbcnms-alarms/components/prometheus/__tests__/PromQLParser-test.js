@@ -177,7 +177,10 @@ const testCases = [
   [
     'empty label selector',
     '{}',
-    [{value: '{', type: 'lBrace'}, {value: '}', type: 'rBrace'}],
+    [
+      {value: '{', type: 'lBrace'},
+      {value: '}', type: 'rBrace'},
+    ],
     new PromQL.InstantSelector('', new PromQL.Labels()),
   ],
   [
