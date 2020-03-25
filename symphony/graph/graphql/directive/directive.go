@@ -154,7 +154,7 @@ func (d *directive) DeprecatedInput(ctx context.Context, obj interface{}, next g
 	if !ok {
 		return nil, fmt.Errorf("unexpected obj type %T", obj)
 	}
-	if _, ok := m[*newField]; ok {
+	if newValue, ok := m[*newField]; ok && newValue != nil {
 		return nil, gqlerror.Errorf(*reason)
 	}
 	return value, nil
