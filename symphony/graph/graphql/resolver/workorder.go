@@ -17,6 +17,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
@@ -750,4 +751,60 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		logger.Error("cannot delete work order type", zap.Error(err))
 		return id, fmt.Errorf("deleting work order type: %w", err)
 	}
+}
+
+func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, input models.TechnicianWorkOrderUploadInput) (*ent.WorkOrder, error) {
+	client := r.ClientFrom(ctx)
+
+	wo, err := client.WorkOrder.Query().Where(workorder.ID(input.WorkOrderID)).WithAssignee().Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying work order %q: err %w", input.WorkOrderID, err)
+	}
+
+	user := r.Me(ctx).User
+	assignee, err := wo.Edges.AssigneeOrErr()
+	if err != nil || assignee == nil {
+		return nil, fmt.Errorf(
+			"work order %q is not assigned to a technician: err %w",
+			input.WorkOrderID,
+			err,
+		)
+	}
+
+	if assignee.Email != user {
+		return nil, fmt.Errorf(
+			"mismatch between work order %q assginee %q and technician %q: err %w",
+			input.WorkOrderID,
+			wo.Edges.Assignee.Email,
+			user,
+			err,
+		)
+	}
+
+	for _, clInput := range input.Checklist {
+		_, err := client.CheckListItem.
+			UpdateOneID(clInput.ID).
+			SetNillableChecked(clInput.Checked).
+			SetNillableStringVal(clInput.StringValue).
+			SetNillableSelectedEnumValues(clInput.SelectedEnumValues).
+			Save(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("updating checklist item %q: err %w", clInput.ID, err)
+		}
+	}
+
+	if _, err = r.AddComment(ctx, models.CommentInput{
+		EntityType: models.CommentEntityWorkOrder,
+		ID:         input.WorkOrderID,
+		Text:       r.Me(ctx).User + " uploaded data",
+	}); err != nil {
+		return nil, fmt.Errorf("adding technician uploaded data comment: %w", err)
+	}
+
+	return client.WorkOrder.
+		Query().
+		Where(workorder.ID(input.WorkOrderID)).
+		WithComments().
+		WithCheckListCategories().
+		WithCheckListItems().Only(ctx)
 }

@@ -544,6 +544,7 @@ type ComplexityRoot struct {
 		RemoveWorkOrder                          func(childComplexity int, id int) int
 		RemoveWorkOrderType                      func(childComplexity int, id int) int
 		TechnicianWorkOrderCheckIn               func(childComplexity int, workOrderID int) int
+		TechnicianWorkOrderUploadData            func(childComplexity int, input models.TechnicianWorkOrderUploadInput) int
 	}
 
 	NetworkTopology struct {
@@ -1165,6 +1166,7 @@ type MutationResolver interface {
 	EditActionsRule(ctx context.Context, id int, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
 	RemoveActionsRule(ctx context.Context, id int) (bool, error)
 	TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID int) (*ent.WorkOrder, error)
+	TechnicianWorkOrderUploadData(ctx context.Context, input models.TechnicianWorkOrderUploadInput) (*ent.WorkOrder, error)
 	AddReportFilter(ctx context.Context, input models.ReportFilterInput) (*ent.ReportFilter, error)
 	EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error)
 	DeleteReportFilter(ctx context.Context, id int) (bool, error)
@@ -3815,6 +3817,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.TechnicianWorkOrderCheckIn(childComplexity, args["workOrderId"].(int)), true
+
+	case "Mutation.technicianWorkOrderUploadData":
+		if e.complexity.Mutation.TechnicianWorkOrderUploadData == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_technicianWorkOrderUploadData_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TechnicianWorkOrderUploadData(childComplexity, args["input"].(models.TechnicianWorkOrderUploadInput)), true
 
 	case "NetworkTopology.links":
 		if e.complexity.NetworkTopology.Links == nil {
@@ -6569,6 +6583,18 @@ input EditWorkOrderInput {
   locationId: ID
 }
 
+input TechnicianCheckListItemInput {
+  id: ID!
+  selectedEnumValues: String
+  stringValue: String
+  checked: Boolean
+}
+
+input TechnicianWorkOrderUploadInput {
+  workOrderId: ID!
+  checklist: [TechnicianCheckListItemInput!]!
+}
+
 type EquipmentPortType implements Node {
   id: ID!
   name: String!
@@ -8475,6 +8501,7 @@ type Mutation {
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
+  technicianWorkOrderUploadData(input: TechnicianWorkOrderUploadInput!): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!
@@ -9732,6 +9759,20 @@ func (ec *executionContext) field_Mutation_technicianWorkOrderCheckIn_args(ctx c
 		}
 	}
 	args["workOrderId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_technicianWorkOrderUploadData_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.TechnicianWorkOrderUploadInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNTechnicianWorkOrderUploadInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianWorkOrderUploadInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -21956,6 +21997,50 @@ func (ec *executionContext) _Mutation_technicianWorkOrderCheckIn(ctx context.Con
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().TechnicianWorkOrderCheckIn(rctx, args["workOrderId"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.WorkOrder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_technicianWorkOrderUploadData(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_technicianWorkOrderUploadData_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().TechnicianWorkOrderUploadData(rctx, args["input"].(models.TechnicianWorkOrderUploadInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -37785,6 +37870,42 @@ func (ec *executionContext) unmarshalInputSurveyWiFiScanData(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputTechnicianCheckListItemInput(ctx context.Context, obj interface{}) (models.TechnicianCheckListItemInput, error) {
+	var it models.TechnicianCheckListItemInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "selectedEnumValues":
+			var err error
+			it.SelectedEnumValues, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringValue":
+			var err error
+			it.StringValue, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "checked":
+			var err error
+			it.Checked, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputTechnicianInput(ctx context.Context, obj interface{}) (models.TechnicianInput, error) {
 	var it models.TechnicianInput
 	var asMap = obj.(map[string]interface{})
@@ -37800,6 +37921,30 @@ func (ec *executionContext) unmarshalInputTechnicianInput(ctx context.Context, o
 		case "email":
 			var err error
 			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTechnicianWorkOrderUploadInput(ctx context.Context, obj interface{}) (models.TechnicianWorkOrderUploadInput, error) {
+	var it models.TechnicianWorkOrderUploadInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "workOrderId":
+			var err error
+			it.WorkOrderID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "checklist":
+			var err error
+			it.Checklist, err = ec.unmarshalNTechnicianCheckListItemInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41150,6 +41295,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "technicianWorkOrderCheckIn":
 			out.Values[i] = ec._Mutation_technicianWorkOrderCheckIn(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "technicianWorkOrderUploadData":
+			out.Values[i] = ec._Mutation_technicianWorkOrderUploadData(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -48372,8 +48522,44 @@ func (ec *executionContext) marshalNTechnician2ᚖgithubᚗcomᚋfacebookincubat
 	return ec._Technician(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNTechnicianCheckListItemInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInput(ctx context.Context, v interface{}) (models.TechnicianCheckListItemInput, error) {
+	return ec.unmarshalInputTechnicianCheckListItemInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNTechnicianCheckListItemInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInputᚄ(ctx context.Context, v interface{}) ([]*models.TechnicianCheckListItemInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.TechnicianCheckListItemInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNTechnicianCheckListItemInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNTechnicianCheckListItemInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInput(ctx context.Context, v interface{}) (*models.TechnicianCheckListItemInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNTechnicianCheckListItemInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInput(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) unmarshalNTechnicianInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianInput(ctx context.Context, v interface{}) (models.TechnicianInput, error) {
 	return ec.unmarshalInputTechnicianInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNTechnicianWorkOrderUploadInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianWorkOrderUploadInput(ctx context.Context, v interface{}) (models.TechnicianWorkOrderUploadInput, error) {
+	return ec.unmarshalInputTechnicianWorkOrderUploadInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

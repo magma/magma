@@ -721,9 +721,21 @@ type SurveyWiFiScanData struct {
 	Longitude    *float64 `json:"longitude"`
 }
 
+type TechnicianCheckListItemInput struct {
+	ID                 int     `json:"id"`
+	SelectedEnumValues *string `json:"selectedEnumValues"`
+	StringValue        *string `json:"stringValue"`
+	Checked            *bool   `json:"checked"`
+}
+
 type TechnicianInput struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
+}
+
+type TechnicianWorkOrderUploadInput struct {
+	WorkOrderID int                             `json:"workOrderId"`
+	Checklist   []*TechnicianCheckListItemInput `json:"checklist"`
 }
 
 type TopologyLink struct {

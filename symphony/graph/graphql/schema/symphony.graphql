@@ -420,6 +420,18 @@ input EditWorkOrderInput {
   locationId: ID
 }
 
+input TechnicianCheckListItemInput {
+  id: ID!
+  selectedEnumValues: String
+  stringValue: String
+  checked: Boolean
+}
+
+input TechnicianWorkOrderUploadInput {
+  workOrderId: ID!
+  checklist: [TechnicianCheckListItemInput!]!
+}
+
 type EquipmentPortType implements Node {
   id: ID!
   name: String!
@@ -2326,6 +2338,9 @@ type Mutation {
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
+  technicianWorkOrderUploadData(
+    input: TechnicianWorkOrderUploadInput!
+  ): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!
