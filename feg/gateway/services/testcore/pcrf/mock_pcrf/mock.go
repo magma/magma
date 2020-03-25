@@ -62,7 +62,10 @@ func (answer GxAnswer) toAVPs() ([]*diam.AVP, uint32) {
 		ruleInstallAVPs := toRuleInstallAVPs(
 			answer.RuleInstalls.GetRuleNames(),
 			answer.RuleInstalls.GetRuleBaseNames(),
-			answer.RuleInstalls.GetRuleDefinitions())
+			answer.RuleInstalls.GetRuleDefinitions(),
+			answer.RuleInstalls.ActivationTime,
+			answer.RuleInstalls.DeactivationTime,
+		)
 		avps = append(avps, ruleInstallAVPs...)
 	}
 	ruleRemovals := answer.GetRuleRemovals()
