@@ -51,6 +51,8 @@ const Strings = {
       'Text for button that go to previous operation',
     )}`,
     addButton: `${fbt('Add', 'Text for button that adds an item')}`,
+    yesButton: `${fbt('Yes', 'Yes response to a question')}`,
+    noButton: `${fbt('No', 'No response to a question')}`,
     fields: {
       url: {
         label: 'URL',

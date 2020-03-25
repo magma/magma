@@ -11,6 +11,7 @@
 import type {
   CheckListItemEnumSelectionMode,
   CheckListItemType,
+  YesNoResponse,
 } from '../../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
 
 export type CheckListItemBase = $ReadOnly<{|
@@ -48,12 +49,17 @@ export type FilesCheckListItemData = {|
   files?: ?Array<CheckListItemFile>,
 |};
 
+export type YesNoCheckListItemData = {|
+  yesNoResponse?: ?YesNoResponse,
+|};
+
 export type CheckListItem = {|
   ...CheckListItemBase,
   ...BasicCheckListItemData,
   ...EnumCheckListItemData,
   ...FreeTextCheckListItemData,
   ...FilesCheckListItemData,
+  ...YesNoCheckListItemData,
 |};
 
 export type ChecklistItemsDialogStateType = {

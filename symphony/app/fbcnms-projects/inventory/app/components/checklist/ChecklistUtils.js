@@ -23,6 +23,8 @@ export const getValidChecklistItemType = (
       return 'enum';
     case 'files':
       return 'files';
+    case 'yes_no':
+      return 'yes_no';
     default:
       throw new Error(
         `Invariant violation - checklist item type not found: ${type}`,
@@ -40,6 +42,8 @@ export const isChecklistItemDone = (item: CheckListItem): boolean => {
       return item.stringValue != null && item.stringValue.trim() !== '';
     case 'files':
       return item.files != null && item.files.length > 0;
+    case 'yes_no':
+      return item.yesNoResponse != null;
     default:
       throw new Error(
         `Invariant violation - checklist item type not found: ${item.type}`,

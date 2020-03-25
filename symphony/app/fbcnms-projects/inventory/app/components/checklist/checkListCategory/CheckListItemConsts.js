@@ -22,12 +22,15 @@ import FreeTextCheckListItemDefinition from '../checklistDefinition/FreeTextChec
 import FreeTextCheckListItemFilling from '../checklistFilling/FreeTextCheckListItemFilling';
 import MultipleChoiceCheckListItemDefinition from '../checklistDefinition/MultipleChoiceCheckListItemDefinition';
 import MultipleChoiceCheckListItemFilling from '../checklistFilling/MultipleChoiceCheckListItemFilling';
+import YesNoCheckListItemDefinition from '../checklistDefinition/YesNoCheckListItemDefinition';
+import YesNoCheckListItemFilling from '../checklistFilling/YesNoCheckListItemFilling';
 import fbt from 'fbt';
 import {
   AttachmentIcon,
   ChecklistCheckIcon,
   MultipleSelectionIcon,
   TextIcon,
+  YesNoIcon,
 } from '@fbcnms/ui/components/design-system/Icons';
 
 export type CheckListItemConfigsType = {
@@ -68,5 +71,12 @@ export const CheckListItemConfigs: CheckListItemConfigsType = {
     fillingComponent: FilesCheckListItemFilling,
     selectLabel: <fbt desc="">Upload files</fbt>,
     titlePlaceholder: `${fbt('What needs to be uploaded?', '')}`,
+  },
+  yes_no: {
+    icon: YesNoIcon,
+    definitionComponent: YesNoCheckListItemDefinition,
+    fillingComponent: YesNoCheckListItemFilling,
+    selectLabel: <fbt desc="">Yes/No</fbt>,
+    titlePlaceholder: `${fbt('Write your yes/no question', '')}`,
   },
 };
