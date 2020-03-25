@@ -36,7 +36,7 @@ import (
 //   the session will terminate. Assert that policy usage is empty.
 func TestOmnipresentRules(t *testing.T) {
 	fmt.Println("\nRunning TestOmnipresentRules...")
-	tr := NewTestRunner()
+	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
 	assert.NoError(t, usePCRFMockDriver())
@@ -62,8 +62,7 @@ func TestOmnipresentRules(t *testing.T) {
 	// Apply a network wide rule that points to the static rule above
 	err = ruleManager.AddOmniPresentRulesToDB("omni", []string{"omni-pass-all-1"}, []string{""})
 	assert.NoError(t, err)
-	// wait for the rules to be synced into sessiond
-	time.Sleep(1 * time.Second)
+	tr.WaitForPoliciesToSync()
 
 	usageMonitorInfo := []*protos.UsageMonitoringInformation{
 		{
@@ -80,13 +79,12 @@ func TestOmnipresentRules(t *testing.T) {
 	expectations := []*protos.GxCreditControlExpectation{initExpectation}
 	assert.NoError(t, setPCRFExpectations(expectations, nil)) // we don't expect any update requests
 
-	tr.AuthenticateAndAssertSuccess(t, imsi)
+	tr.AuthenticateAndAssertSuccess(imsi)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("200k")}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	// Wait for enforcement stats to sync
-	time.Sleep(3 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
 
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)

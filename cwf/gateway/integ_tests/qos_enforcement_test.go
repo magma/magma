@@ -38,7 +38,6 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 	if err != nil {
 		t.Fatalf("error %v generating traffic", err)
 	}
-
 	// Wait for the traffic to go through
 	time.Sleep(6 * time.Second)
 
@@ -69,8 +68,8 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 // - Generate traffic and verify if the traffic observed bitrate matches the configured
 // bitrate
 func TestUplinkTrafficWithQosEnforcement(t *testing.T) {
-	fmt.Println("Running TestUplinkTrafficWithQosEnforcement")
-	tr := NewTestRunner()
+	fmt.Println("\nRunning TestUplinkTrafficWithQosEnforcement")
+	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
 	assert.NoError(t, usePCRFMockDriver())
@@ -95,6 +94,7 @@ func TestUplinkTrafficWithQosEnforcement(t *testing.T) {
 
 	err = ruleManager.AddStaticRuleToDB(rule)
 	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
 
 	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
@@ -107,10 +107,7 @@ func TestUplinkTrafficWithQosEnforcement(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation},
 		protos.NewGxCCAnswer(diam.Success)))
 
-	// wait for the rules to be synced into sessiond
-	time.Sleep(3 * time.Second)
-
-	tr.AuthenticateAndAssertSuccess(t, imsi)
+	tr.AuthenticateAndAssertSuccess(imsi)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("1M")},
@@ -136,8 +133,8 @@ func TestUplinkTrafficWithQosEnforcement(t *testing.T) {
 // - Generate traffic from server to client and verify if the traffic observed bitrate
 //   matches the configured bitrate
 func TestDownlinkTrafficWithQosEnforcement(t *testing.T) {
-	fmt.Println("Running TestDownlinkTrafficWithQosEnforcement")
-	tr := NewTestRunner()
+	fmt.Println("\nRunning TestDownlinkTrafficWithQosEnforcement")
+	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
 	assert.NoError(t, usePCRFMockDriver())
@@ -162,6 +159,7 @@ func TestDownlinkTrafficWithQosEnforcement(t *testing.T) {
 
 	err = ruleManager.AddStaticRuleToDB(rule)
 	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
 
 	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
@@ -174,10 +172,7 @@ func TestDownlinkTrafficWithQosEnforcement(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation},
 		protos.NewGxCCAnswer(diam.Success)))
 
-	// wait for the rules to be synced into sessiond
-	time.Sleep(3 * time.Second)
-
-	tr.AuthenticateAndAssertSuccess(t, imsi)
+	tr.AuthenticateAndAssertSuccess(imsi)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:        imsi,
 		ReverseMode: true,
@@ -210,8 +205,8 @@ func TestDownlinkTrafficWithQosEnforcement(t *testing.T) {
 // - Send another CCA-update which upgrades the QOS through a dynamic rule and verify
 // that the observed bitrate maches the newly configured bitrate
 func TestQosDowngradeWithCCAUpdate(t *testing.T) {
-	fmt.Println("Running TestQosDowngradeWithCCAUpdate")
-	tr := NewTestRunner()
+	fmt.Println("\nRunning TestQosDowngradeWithCCAUpdate")
+	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
 	assert.NoError(t, usePCRFMockDriver())
@@ -248,6 +243,7 @@ func TestQosDowngradeWithCCAUpdate(t *testing.T) {
 		err = ruleManager.AddStaticRuleToDB(r)
 		assert.NoError(t, err)
 	}
+	tr.WaitForPoliciesToSync()
 
 	// usage monitor for init and upgrade
 	usageMonitorInfo := getUsageInformation(monitorKey, 1*MegaBytes)
@@ -287,9 +283,7 @@ func TestQosDowngradeWithCCAUpdate(t *testing.T) {
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setPCRFExpectations(expectations, protos.NewGxCCAnswer(diam.Success)))
 
-	// wait for the rules to be synced into sessiond
-	time.Sleep(time.Second)
-	tr.AuthenticateAndAssertSuccess(t, imsi)
+	tr.AuthenticateAndAssertSuccess(imsi)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("1M")}}
 	verifyEgressRate(t, tr, req, float64(uplinkBwMid), float64(uplinkBwInitial))
@@ -364,8 +358,8 @@ func TestQosDowngradeWithCCAUpdate(t *testing.T) {
 // - Generate traffic and verify if the traffic observed bitrate matches the newly
 // downgraded bitrate
 func TestQosDowngradeWithPolicyReAuth(t *testing.T) {
-	fmt.Println("Running TestQosDowngradeWithPolicyReAuth")
-	tr := NewTestRunner()
+	fmt.Println("\nRunning TestQosDowngradeWithPolicyReAuth")
+	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
 	defer func() {
@@ -393,15 +387,13 @@ func TestQosDowngradeWithPolicyReAuth(t *testing.T) {
 		err = ruleManager.AddStaticRuleToDB(r)
 		assert.NoError(t, err)
 	}
+	tr.WaitForPoliciesToSync()
 
 	err = ruleManager.AddUsageMonitor(imsi, monitorKey, 2*MegaBytes, 1*MegaBytes)
 	err = ruleManager.AddRulesToPCRF(imsi, []string{rule1Key}, []string{})
 	assert.NoError(t, err)
 
-	// wait for the rules to be synced into sessiond
-	time.Sleep(3 * time.Second)
-
-	tr.AuthenticateAndAssertSuccess(t, imsi)
+	tr.AuthenticateAndAssertSuccess(imsi)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("1M")},
@@ -417,11 +409,8 @@ func TestQosDowngradeWithPolicyReAuth(t *testing.T) {
 			UsageMonitoringInfos: rarUsageMonitor,
 		},
 	)
-
 	assert.NoError(t, err)
-
-	// Wait for RAR to be processed
-	time.Sleep(1 * time.Second)
+	tr.WaitForReAuthToProcess()
 
 	// Check ReAuth success
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
@@ -429,7 +418,8 @@ func TestQosDowngradeWithPolicyReAuth(t *testing.T) {
 
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	time.Sleep(3 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
+
 	verifyEgressRate(t, tr, req, 0.0, float64(uplinkBwFinal))
 
 	// Assert that enforcement_stats rules are properly installed and the right
