@@ -250,8 +250,7 @@ int esm_proc_dedicated_eps_bearer_context_accept(
   esm_cause_t *esm_cause);
 int esm_proc_dedicated_eps_bearer_context_reject(
   emm_context_t *emm_context,
-  ebi_t ebi,
-  esm_cause_t *esm_cause);
+  ebi_t ebi);
 
 /*
  * --------------------------------------------------------------------------
