@@ -139,12 +139,28 @@ func (workOrderResolver) OwnerName(ctx context.Context, obj *ent.WorkOrder) (str
 	return owner.Email, nil
 }
 
+func (workOrderResolver) Owner(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error) {
+	o, err := obj.QueryOwner().Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying owner: %w", err)
+	}
+	return o, nil
+}
+
 func (workOrderResolver) Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error) {
 	assignee, err := obj.QueryAssignee().Only(ctx)
 	if err != nil {
 		return nil, ent.MaskNotFound(err)
 	}
 	return &assignee.Email, nil
+}
+
+func (workOrderResolver) AssignedTo(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error) {
+	a, err := obj.QueryAssignee().Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, fmt.Errorf("querying assignee: %w", err)
+	}
+	return a, nil
 }
 
 func (r mutationResolver) AddWorkOrder(
@@ -164,6 +180,14 @@ func (r mutationResolver) internalAddWorkOrder(
 	if err != nil {
 		return nil, fmt.Errorf("validating property for template : %w", err)
 	}
+	assigneeID := input.AssigneeID
+	if input.Assignee != nil && *input.Assignee != "" {
+		id, err := c.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("fetching assignee user: %w", err)
+		}
+		assigneeID = &id
+	}
 	mutation := r.ClientFrom(ctx).
 		WorkOrder.Create().
 		SetName(input.Name).
@@ -172,7 +196,8 @@ func (r mutationResolver) internalAddWorkOrder(
 		SetNillableLocationID(input.LocationID).
 		SetNillableDescription(input.Description).
 		SetCreationDate(time.Now()).
-		SetNillableIndex(input.Index)
+		SetNillableIndex(input.Index).
+		SetNillableAssigneeID(assigneeID)
 	if input.Status != nil {
 		mutation.SetStatus(input.Status.String())
 		if *input.Status == models.WorkOrderStatusDone {
@@ -182,24 +207,25 @@ func (r mutationResolver) internalAddWorkOrder(
 	if input.Priority != nil {
 		mutation.SetPriority(input.Priority.String())
 	}
-	if input.Assignee != nil && *input.Assignee != "" {
-		assigneeID, err := c.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching assignee user: %w", err)
-		} else {
-			mutation = mutation.SetAssigneeID(assigneeID)
-		}
-	}
-	var owner *ent.User
+
+	ownerID := input.OwnerID
 	if input.OwnerName != nil && *input.OwnerName != "" {
-		owner, err = c.User.Query().Where(user.AuthID(*input.OwnerName)).Only(ctx)
+		id, err := c.User.Query().Where(user.AuthID(*input.OwnerName)).OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("fetching own user: %w", err)
+		}
+		ownerID = &id
+	}
+
+	if ownerID != nil {
+		mutation = mutation.SetOwnerID(*ownerID)
 	} else {
-		owner, err = viewer.UserFromContext(ctx)
+		owner, err := viewer.UserFromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("fetching own user: %w", err)
+		}
+		mutation = mutation.SetOwner(owner)
 	}
-	if err != nil {
-		return nil, fmt.Errorf("fetching own user: %w", err)
-	}
-	mutation = mutation.SetOwner(owner)
 	for _, clInput := range input.CheckListCategories {
 		checkListCategory, err := r.createOrUpdateCheckListCategory(ctx, clInput)
 		if err != nil {
@@ -237,13 +263,19 @@ func (r mutationResolver) internalAddWorkOrder(
 	return wo, nil
 }
 
-func (r mutationResolver) EditWorkOrder(
-	ctx context.Context, input models.EditWorkOrderInput,
-) (*ent.WorkOrder, error) {
+func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWorkOrderInput) (*ent.WorkOrder, error) {
 	client := r.ClientFrom(ctx)
 	wo, err := client.WorkOrder.Get(ctx, input.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "querying work order")
+	}
+	assigneeID := input.AssigneeID
+	if input.Assignee != nil && *input.Assignee != "" {
+		id, err := client.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("fetching assignee user: %w", err)
+		}
+		assigneeID = &id
 	}
 	mutation := client.WorkOrder.
 		UpdateOne(wo).
@@ -251,20 +283,19 @@ func (r mutationResolver) EditWorkOrder(
 		SetNillableDescription(input.Description).
 		SetStatus(input.Status.String()).
 		SetPriority(input.Priority.String()).
-		SetNillableIndex(input.Index)
+		SetNillableIndex(input.Index).
+		SetNillableAssigneeID(assigneeID)
+
+	ownerID := input.OwnerID
 	if input.OwnerName != nil && *input.OwnerName != "" {
-		ownerID, err := client.User.Query().Where(user.AuthID(*input.OwnerName)).OnlyID(ctx)
+		id, err := client.User.Query().Where(user.AuthID(*input.OwnerName)).OnlyID(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("fetching owner user: %w", err)
+			return nil, fmt.Errorf("fetching own user: %w", err)
 		}
-		mutation = mutation.SetOwnerID(ownerID)
+		ownerID = &id
 	}
-	if input.Assignee != nil && *input.Assignee != "" {
-		assigneeID, err := client.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching assignee user: %w", err)
-		}
-		mutation = mutation.SetAssigneeID(assigneeID)
+	if ownerID != nil {
+		mutation.SetOwnerID(*ownerID)
 	}
 	if input.Status == models.WorkOrderStatusDone {
 		mutation.SetCloseDate(time.Now())

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 2b1887689dbb36262f3030c7705202d5
+ * @relayHash c6a41dbc98ab4ebe8bce48e02ff70b08
  */
 
 /* eslint-disable */
@@ -30,8 +30,10 @@ export type AddWorkOrderInput = {|
   properties?: ?$ReadOnlyArray<PropertyInput>,
   checkList?: ?$ReadOnlyArray<CheckListItemInput>,
   ownerName?: ?string,
+  ownerId?: ?string,
   checkListCategories?: ?$ReadOnlyArray<CheckListCategoryInput>,
   assignee?: ?string,
+  assigneeId?: ?string,
   index?: ?number,
   status?: ?WorkOrderStatus,
   priority?: ?WorkOrderPriority,

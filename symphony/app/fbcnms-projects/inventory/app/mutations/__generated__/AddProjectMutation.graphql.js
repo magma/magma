@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4a460d55957cd1132935c5b1dffd2abd
+ * @relayHash ccd4d1725e83faddbfe8638e56feebe8
  */
 
 /* eslint-disable */
@@ -20,6 +20,7 @@ export type AddProjectInput = {|
   name: string,
   description?: ?string,
   creator?: ?string,
+  creatorId?: ?string,
   type: string,
   location?: ?string,
   properties?: ?$ReadOnlyArray<PropertyInput>,

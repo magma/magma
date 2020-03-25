@@ -165,6 +165,7 @@ type AddProjectInput struct {
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
 	Creator     *string          `json:"creator"`
+	CreatorID   *int             `json:"creatorId"`
 	Type        int              `json:"type"`
 	Location    *int             `json:"location"`
 	Properties  []*PropertyInput `json:"properties"`
@@ -192,8 +193,10 @@ type AddWorkOrderInput struct {
 	Properties          []*PropertyInput          `json:"properties"`
 	CheckList           []*CheckListItemInput     `json:"checkList"`
 	OwnerName           *string                   `json:"ownerName"`
+	OwnerID             *int                      `json:"ownerId"`
 	CheckListCategories []*CheckListCategoryInput `json:"checkListCategories"`
 	Assignee            *string                   `json:"assignee"`
+	AssigneeID          *int                      `json:"assigneeId"`
 	Index               *int                      `json:"index"`
 	Status              *WorkOrderStatus          `json:"status"`
 	Priority            *WorkOrderPriority        `json:"priority"`
@@ -308,6 +311,7 @@ type EditProjectInput struct {
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
 	Creator     *string          `json:"creator"`
+	CreatorID   *int             `json:"creatorId"`
 	Type        int              `json:"type"`
 	Location    *int             `json:"location"`
 	Properties  []*PropertyInput `json:"properties"`
@@ -339,8 +343,10 @@ type EditWorkOrderInput struct {
 	Name                string                    `json:"name"`
 	Description         *string                   `json:"description"`
 	OwnerName           *string                   `json:"ownerName"`
+	OwnerID             *int                      `json:"ownerId"`
 	InstallDate         *time.Time                `json:"installDate"`
 	Assignee            *string                   `json:"assignee"`
+	AssigneeID          *int                      `json:"assigneeId"`
 	Index               *int                      `json:"index"`
 	Status              WorkOrderStatus           `json:"status"`
 	Priority            WorkOrderPriority         `json:"priority"`
@@ -1814,10 +1820,12 @@ const (
 	WorkOrderFilterTypeWorkOrderName         WorkOrderFilterType = "WORK_ORDER_NAME"
 	WorkOrderFilterTypeWorkOrderStatus       WorkOrderFilterType = "WORK_ORDER_STATUS"
 	WorkOrderFilterTypeWorkOrderOwner        WorkOrderFilterType = "WORK_ORDER_OWNER"
+	WorkOrderFilterTypeWorkOrderOwnedBy      WorkOrderFilterType = "WORK_ORDER_OWNED_BY"
 	WorkOrderFilterTypeWorkOrderType         WorkOrderFilterType = "WORK_ORDER_TYPE"
 	WorkOrderFilterTypeWorkOrderCreationDate WorkOrderFilterType = "WORK_ORDER_CREATION_DATE"
 	WorkOrderFilterTypeWorkOrderInstallDate  WorkOrderFilterType = "WORK_ORDER_INSTALL_DATE"
 	WorkOrderFilterTypeWorkOrderAssignee     WorkOrderFilterType = "WORK_ORDER_ASSIGNEE"
+	WorkOrderFilterTypeWorkOrderAssignedTo   WorkOrderFilterType = "WORK_ORDER_ASSIGNED_TO"
 	WorkOrderFilterTypeWorkOrderLocationInst WorkOrderFilterType = "WORK_ORDER_LOCATION_INST"
 	WorkOrderFilterTypeWorkOrderPriority     WorkOrderFilterType = "WORK_ORDER_PRIORITY"
 	WorkOrderFilterTypeLocationInst          WorkOrderFilterType = "LOCATION_INST"
@@ -1827,10 +1835,12 @@ var AllWorkOrderFilterType = []WorkOrderFilterType{
 	WorkOrderFilterTypeWorkOrderName,
 	WorkOrderFilterTypeWorkOrderStatus,
 	WorkOrderFilterTypeWorkOrderOwner,
+	WorkOrderFilterTypeWorkOrderOwnedBy,
 	WorkOrderFilterTypeWorkOrderType,
 	WorkOrderFilterTypeWorkOrderCreationDate,
 	WorkOrderFilterTypeWorkOrderInstallDate,
 	WorkOrderFilterTypeWorkOrderAssignee,
+	WorkOrderFilterTypeWorkOrderAssignedTo,
 	WorkOrderFilterTypeWorkOrderLocationInst,
 	WorkOrderFilterTypeWorkOrderPriority,
 	WorkOrderFilterTypeLocationInst,
@@ -1838,7 +1848,7 @@ var AllWorkOrderFilterType = []WorkOrderFilterType{
 
 func (e WorkOrderFilterType) IsValid() bool {
 	switch e {
-	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwner, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderInstallDate, WorkOrderFilterTypeWorkOrderAssignee, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst:
+	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwner, WorkOrderFilterTypeWorkOrderOwnedBy, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderInstallDate, WorkOrderFilterTypeWorkOrderAssignee, WorkOrderFilterTypeWorkOrderAssignedTo, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst:
 		return true
 	}
 	return false

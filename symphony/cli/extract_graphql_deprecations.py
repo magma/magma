@@ -31,6 +31,9 @@ title: Graphql API Breaking Changes
 ## Deprecated Input Fields
 {}
 
+## Deprecated Enums
+{}
+
 """
 
 
@@ -39,21 +42,24 @@ def document_all_deprecated_functions(schema_library: str, doc_filepath: str) ->
     deprecated_mutations = []
     deprecated_inputs = []
     deprecated_fields = []
+    deprecated_enums = []
     schema = compile_schema_library(schema_library)
+
     for query_name, query_field in schema.query_type.fields.items():
         if query_field.is_deprecated:
             deprecated_queries.append(
                 " - ".join([f"`{query_name}`", query_field.deprecation_reason])
             )
     for mutation_name, mutation_field in schema.mutation_type.fields.items():
-        if query_field.is_deprecated:
+        if mutation_field.is_deprecated:
             deprecated_mutations.append(
                 " - ".join([f"`{mutation_name}`", mutation_field.deprecation_reason])
             )
     for type_name, type_object in schema.type_map.items():
-        if isinstance(
-            type_object, (GraphQLScalarType, GraphQLEnumType)
-        ) or type_name in ("Query", "Mutation"):
+        if isinstance(type_object, GraphQLScalarType) or type_name in (
+            "Query",
+            "Mutation",
+        ):
             continue
         if isinstance(type_object, GraphQLInputObjectType):
             for field_name, field_object in type_object.fields.items():
@@ -74,6 +80,16 @@ def document_all_deprecated_functions(schema_library: str, doc_filepath: str) ->
                                     )
                                 )
             continue
+        if isinstance(type_object, GraphQLEnumType):
+            for value_name, value_object in type_object.values.items():
+                if value_object.is_deprecated:
+                    value_long_name = ".".join([type_name, value_name])
+                    deprecated_enums.append(
+                        " - ".join(
+                            [f"`{value_long_name}`", value_object.deprecation_reason]
+                        )
+                    )
+            continue
         for field_name, field_object in type_object.fields.items():
             if field_object.is_deprecated:
                 field_long_name = ".".join([type_name, field_name])
@@ -92,6 +108,7 @@ def document_all_deprecated_functions(schema_library: str, doc_filepath: str) ->
                 "\n".join(map(lambda s: "* " + s, deprecated_mutations)),
                 "\n".join(map(lambda s: "* " + s, deprecated_fields)),
                 "\n".join(map(lambda s: "* " + s, deprecated_inputs)),
+                "\n".join(map(lambda s: "* " + s, deprecated_enums)),
             )
         )
 
