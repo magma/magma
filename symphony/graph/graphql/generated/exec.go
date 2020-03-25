@@ -174,6 +174,7 @@ type ComplexityRoot struct {
 		StringVal          func(childComplexity int) int
 		Title              func(childComplexity int) int
 		Type               func(childComplexity int) int
+		YesNoResponse      func(childComplexity int) int
 	}
 
 	CheckListItemDefinition struct {
@@ -1002,6 +1003,7 @@ type CheckListItemResolver interface {
 	EnumSelectionMode(ctx context.Context, obj *ent.CheckListItem) (*models.CheckListItemEnumSelectionMode, error)
 
 	Files(ctx context.Context, obj *ent.CheckListItem) ([]*ent.File, error)
+	YesNoResponse(ctx context.Context, obj *ent.CheckListItem) (*models.YesNoResponse, error)
 }
 type CheckListItemDefinitionResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error)
@@ -1667,6 +1669,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CheckListItem.Type(childComplexity), true
+
+	case "CheckListItem.yesNoResponse":
+		if e.complexity.CheckListItem.YesNoResponse == nil {
+			break
+		}
+
+		return e.complexity.CheckListItem.YesNoResponse(childComplexity), true
 
 	case "CheckListItemDefinition.enumValues":
 		if e.complexity.CheckListItemDefinition.EnumValues == nil {
@@ -7067,11 +7076,17 @@ input WorkOrderDefinitionInput {
   type: ID!
 }
 
+enum YesNoResponse {
+  YES
+  NO
+}
+
 enum CheckListItemType {
   simple
   string
   enum
   files
+  yes_no
 }
 
 enum CheckListItemEnumSelectionMode {
@@ -7116,6 +7131,7 @@ type CheckListItem implements Node {
   stringValue: String
   checked: Boolean
   files: [File!]!
+  yesNoResponse: YesNoResponse
 }
 
 input CheckListCategoryInput {
@@ -7137,6 +7153,7 @@ input CheckListItemInput {
   stringValue: String
   checked: Boolean
   files: [FileInput!]
+  yesNoResponse: YesNoResponse
 }
 
 enum FilterEntity {
@@ -8224,7 +8241,9 @@ type Query {
     before: Cursor
     last: Int
   ): SearchEntriesConnection!
-    @deprecated(reason: "Use ` + "`" + `searchForNode` + "`" + ` instead. Will be removed on 18/4/2020")
+    @deprecated(
+      reason: "Use ` + "`" + `searchForNode` + "`" + ` instead. Will be removed on 1/5/2020"
+    )
   searchForNode(
     name: String!
     after: Cursor
@@ -12366,6 +12385,40 @@ func (ec *executionContext) _CheckListItem_files(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFileᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListItem_yesNoResponse(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CheckListItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CheckListItem().YesNoResponse(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.YesNoResponse)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListItemDefinition_id(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItemDefinition) (ret graphql.Marshaler) {
@@ -35385,6 +35438,12 @@ func (ec *executionContext) unmarshalInputCheckListItemInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
+		case "yesNoResponse":
+			var err error
+			it.YesNoResponse, err = ec.unmarshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -38554,6 +38613,17 @@ func (ec *executionContext) _CheckListItem(ctx context.Context, sel ast.Selectio
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			})
+		case "yesNoResponse":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CheckListItem_yesNoResponse(ctx, field, obj)
 				return res
 			})
 		default:
@@ -50912,6 +50982,30 @@ func (ec *executionContext) marshalOWorkOrderTypeConnection2ᚖgithubᚗcomᚋfa
 		return graphql.Null
 	}
 	return ec._WorkOrderTypeConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOYesNoResponse2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx context.Context, v interface{}) (models.YesNoResponse, error) {
+	var res models.YesNoResponse
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOYesNoResponse2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx context.Context, sel ast.SelectionSet, v models.YesNoResponse) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx context.Context, v interface{}) (*models.YesNoResponse, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOYesNoResponse2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx context.Context, sel ast.SelectionSet, v *models.YesNoResponse) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

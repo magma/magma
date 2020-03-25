@@ -72,6 +72,7 @@ var (
 		{Name: "enum_values", Type: field.TypeString, Nullable: true},
 		{Name: "enum_selection_mode", Type: field.TypeString, Nullable: true},
 		{Name: "selected_enum_values", Type: field.TypeString, Nullable: true},
+		{Name: "yes_no_val", Type: field.TypeEnum, Nullable: true, Enums: []string{"YES", "NO"}},
 		{Name: "help_text", Type: field.TypeString, Nullable: true},
 		{Name: "check_list_category_check_list_items", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_check_list_items", Type: field.TypeInt, Nullable: true},
@@ -84,14 +85,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "check_list_items_check_list_categories_check_list_items",
-				Columns: []*schema.Column{CheckListItemsColumns[10]},
+				Columns: []*schema.Column{CheckListItemsColumns[11]},
 
 				RefColumns: []*schema.Column{CheckListCategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "check_list_items_work_orders_check_list_items",
-				Columns: []*schema.Column{CheckListItemsColumns[11]},
+				Columns: []*schema.Column{CheckListItemsColumns[12]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -101,7 +102,7 @@ var (
 			{
 				Name:    "checklistitem_title_work_order_check_list_items",
 				Unique:  true,
-				Columns: []*schema.Column{CheckListItemsColumns[1], CheckListItemsColumns[11]},
+				Columns: []*schema.Column{CheckListItemsColumns[1], CheckListItemsColumns[12]},
 			},
 		},
 	}

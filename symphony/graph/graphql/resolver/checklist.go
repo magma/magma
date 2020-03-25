@@ -32,6 +32,14 @@ func (checkListItemResolver) Files(ctx context.Context, item *ent.CheckListItem)
 	return item.QueryFiles().All(ctx)
 }
 
+func (checkListItemResolver) YesNoResponse(ctx context.Context, item *ent.CheckListItem) (*models.YesNoResponse, error) {
+	yesNoResponse := models.YesNoResponse(item.YesNoVal)
+	if yesNoResponse.IsValid() {
+		return &yesNoResponse, nil
+	}
+	return nil, nil
+}
+
 type checkListItemDefinitionResolver struct{}
 
 func (checkListItemDefinitionResolver) Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error) {

@@ -998,6 +998,68 @@ func SelectedEnumValuesContainsFold(v string) predicate.CheckListItem {
 	})
 }
 
+// YesNoValEQ applies the EQ predicate on the "yes_no_val" field.
+func YesNoValEQ(v YesNoVal) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldYesNoVal), v))
+	})
+}
+
+// YesNoValNEQ applies the NEQ predicate on the "yes_no_val" field.
+func YesNoValNEQ(v YesNoVal) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldYesNoVal), v))
+	})
+}
+
+// YesNoValIn applies the In predicate on the "yes_no_val" field.
+func YesNoValIn(vs ...YesNoVal) predicate.CheckListItem {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldYesNoVal), v...))
+	})
+}
+
+// YesNoValNotIn applies the NotIn predicate on the "yes_no_val" field.
+func YesNoValNotIn(vs ...YesNoVal) predicate.CheckListItem {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldYesNoVal), v...))
+	})
+}
+
+// YesNoValIsNil applies the IsNil predicate on the "yes_no_val" field.
+func YesNoValIsNil() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldYesNoVal)))
+	})
+}
+
+// YesNoValNotNil applies the NotNil predicate on the "yes_no_val" field.
+func YesNoValNotNil() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldYesNoVal)))
+	})
+}
+
 // HelpTextEQ applies the EQ predicate on the "help_text" field.
 func HelpTextEQ(v string) predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
