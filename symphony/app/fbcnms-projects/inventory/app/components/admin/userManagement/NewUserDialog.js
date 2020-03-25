@@ -163,7 +163,10 @@ const NewUserDialog = ({onClose}: Props) => {
                   />
                 </DialogContent>
                 <DialogActions>
-                  <Button onClick={onClose} disabled={creatingUser}>
+                  <Button
+                    onClick={onClose}
+                    disabled={creatingUser}
+                    skin="regular">
                     {Strings.common.cancelButton}
                   </Button>
                   <Button
