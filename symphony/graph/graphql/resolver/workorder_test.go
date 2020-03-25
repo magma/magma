@@ -79,25 +79,25 @@ func createWorkOrder(ctx context.Context, t *testing.T, r TestResolver, name str
 }
 
 func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationResolver, workOrder ent.WorkOrder) (*models.WorkOrderExecutionResult, error) {
-	var ownerName *string
+	var ownerID *int
 	owner, _ := workOrder.QueryOwner().Only(ctx)
 	if owner != nil {
-		ownerName = &owner.Email
+		ownerID = &owner.ID
 	}
-	var assigneeName *string
+	var assigneeID *int
 	assignee, _ := workOrder.QueryAssignee().Only(ctx)
 	if assignee != nil {
-		assigneeName = &assignee.Email
+		assigneeID = &assignee.ID
 	}
 	_, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   ownerName,
+		OwnerID:     ownerID,
 		InstallDate: &workOrder.InstallDate,
 		Status:      models.WorkOrderStatusDone,
 		Priority:    models.WorkOrderPriorityNone,
-		Assignee:    assigneeName,
+		AssigneeID:  assigneeID,
 	})
 	require.NoError(t, err)
 	return mr.ExecuteWorkOrder(ctx, workOrder.ID)
@@ -175,8 +175,8 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	name := longWorkOrderName
 	description := longWorkOrderDesc
 	location := createLocation(ctx, t, *r)
-	assignee := longWorkOrderAssignee
-	viewertest.CreateUserEnt(ctx, r.client, assignee)
+	assigneeName := longWorkOrderAssignee
+	assignee := viewertest.CreateUserEnt(ctx, r.client, assigneeName)
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
 	require.NoError(t, err)
 	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -188,20 +188,20 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, workOrder.QueryAssignee().ExistX(ctx))
 
-	var ownerName *string
+	var ownerID *int
 	owner, _ := workOrder.QueryOwner().Only(ctx)
 	if owner != nil {
-		ownerName = &owner.Email
+		ownerID = &owner.ID
 	}
 
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   ownerName,
+		OwnerID:     ownerID,
 		Status:      models.WorkOrderStatusPending,
 		Priority:    models.WorkOrderPriorityNone,
-		Assignee:    &assignee,
+		AssigneeID:  &assignee.ID,
 	})
 	require.NoError(t, err)
 
@@ -209,7 +209,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	require.NoError(t, err)
 	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
 	require.True(t, ok)
-	require.Equal(t, &workOrder.QueryAssignee().OnlyX(ctx).Email, &assignee)
+	require.Equal(t, workOrder.QueryAssignee().OnlyXID(ctx), assignee.ID)
 
 	fetchedWorkOrderType, err := wr.WorkOrderType(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -290,17 +290,17 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 	require.False(t, workOrder.QueryAssignee().ExistX(ctx))
 	require.EqualValues(t, pri, workOrder.Priority)
 
-	var ownerName *string
+	var ownerID *int
 	owner, _ := workOrder.QueryOwner().Only(ctx)
 	if owner != nil {
-		ownerName = &owner.Email
+		ownerID = &owner.ID
 	}
 
 	input := models.EditWorkOrderInput{
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   ownerName,
+		OwnerID:     ownerID,
 		Status:      models.WorkOrderStatusPending,
 		Priority:    models.WorkOrderPriorityHigh,
 		Index:       pointer.ToInt(42),
@@ -358,16 +358,16 @@ func TestAddWorkOrderWithProject(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, woNum)
 
-	var ownerName *string
+	var ownerID *int
 	owner, _ := workOrder.QueryOwner().Only(ctx)
 	if owner != nil {
-		ownerName = &owner.Email
+		ownerID = &owner.ID
 	}
 
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
-		ID:        workOrder.ID,
-		Name:      workOrder.Name,
-		OwnerName: ownerName,
+		ID:      workOrder.ID,
+		Name:    workOrder.Name,
+		OwnerID: ownerID,
 	})
 	require.NoError(t, err)
 	fetchProject, err := workOrder.QueryProject().Only(ctx)
