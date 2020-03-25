@@ -41,7 +41,7 @@ const (
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
 func TestUsageReportEnforcement(t *testing.T) {
 	fmt.Println("\nRunning TestUsageReportEnforcement...")
-	tr := NewTestRunner()
+	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
 	assert.NoError(t, usePCRFMockDriver())
@@ -84,7 +84,7 @@ func TestUsageReportEnforcement(t *testing.T) {
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
 
-	tr.AuthenticateAndAssertSuccess(t, imsi)
+	tr.AuthenticateAndAssertSuccess(imsi)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
 	_, err = tr.GenULTraffic(req)
@@ -145,7 +145,7 @@ func TestUsageReportEnforcement(t *testing.T) {
 func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	fmt.Println("\nRunning TestMidSessionRuleRemovalWithCCA_U...")
 
-	tr := NewTestRunner()
+	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
 	assert.NoError(t, usePCRFMockDriver())
@@ -188,7 +188,7 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	// On unexpected requests, just return some quota
 	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
 
-	tr.AuthenticateAndAssertSuccess(t, imsi)
+	tr.AuthenticateAndAssertSuccess(imsi)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
 	_, err = tr.GenULTraffic(req)
