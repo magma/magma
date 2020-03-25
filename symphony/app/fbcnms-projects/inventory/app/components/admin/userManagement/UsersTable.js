@@ -144,7 +144,6 @@ export default function UsersTable() {
     <div className={classes.root}>
       <Table
         dataRowsSeparator="border"
-        showSelection={true}
         activeRowId={activeUserId}
         onActiveRowIdChanged={setActiveUserId}
         selectedIds={selectedUserIds}
