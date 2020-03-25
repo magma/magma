@@ -130,7 +130,7 @@ pipeline {
           steps {
             script {
               gitlabCommitStatus(name: "Activate-AGW-VM") {
-                myShCmdWithLog('cd lte/gateway && vagrant up magma', 'archives/magma_vagrant_up.log', new_host_flag, new_host_user, new_host)
+                myShCmdWithLog('cd lte/gateway && vagrant destroy --force magma && vagrant up magma', 'archives/magma_vagrant_up.log', new_host_flag, new_host_user, new_host)
                 // Making that magma services are all down. Should be the case after wake-up
                 try {
                   myShCmd('sudo service magma@* status', new_host_flag, new_host_user, new_host)
@@ -215,7 +215,7 @@ pipeline {
           steps {
             script {
               gitlabCommitStatus(name: "Activate-Test-VM") {
-                myShCmdWithLog('cd lte/gateway && vagrant up magma_test', 'archives/magma_vagrant_test_up.log', new_host_flag, new_host_user, new_host)
+                myShCmdWithLog('cd lte/gateway && vagrant destroy --force magma_test && vagrant up magma_test', 'archives/magma_vagrant_test_up.log', new_host_flag, new_host_user, new_host)
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/ && make"', 'archives/magma_vagrant_test_make1.log', new_host_flag, new_host_user, new_host)
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && make"', 'archives/magma_vagrant_test_make2.log', new_host_flag, new_host_user, new_host)
               }
@@ -227,12 +227,13 @@ pipeline {
             script {
               sh "sleep 60"
               gitlabCommitStatus(name: "Activate-Traffic-VM") {
-                myShCmdWithLog('cd lte/gateway && vagrant up magma_trfserver', 'archives/magma_vagrant_trfserver_up.log', new_host_flag, new_host_user, new_host)
+                myShCmdWithLog('cd lte/gateway && vagrant destroy --force magma_trfserver && vagrant up magma_trfserver', 'archives/magma_vagrant_trfserver_up.log', new_host_flag, new_host_user, new_host)
                 try {
-                  myShCmdWithLog('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo apt install --yes psmisc"', 'archives/magma_vagrant_trfserver_killall_install.log', new_host_flag, new_host_user, new_host)
+                  myShCmdWithLog('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo apt update"', 'archives/magma_vagrant_trfserver_apt_get_update.log', new_host_flag, new_host_user, new_host)
                 } catch (Exception e) {
-                  echo "Maybe the apt-get is locked"
+                  echo "Known issue with magma-custom.io public key?"
                 }
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo apt install --yes psmisc"', 'archives/magma_vagrant_trfserver_killall_install.log', new_host_flag, new_host_user, new_host)
               }
             }
           }
