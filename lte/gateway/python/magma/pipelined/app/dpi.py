@@ -26,7 +26,9 @@ from ryu.lib.packet import ether_types
 PARENT_PROTOS = {"facebook": 10, "google_gen": 20, "viber": 30, "imo": 40}
 APP_PROTOS = {"facebook_messenger": 1, "instagram": 2, "youtube": 3,
               "gmail": 4, "google_docs": 5, "netflix": 6,
-              "apple": 7, "microsoft": 8}
+              "apple": 7, "microsoft": 8, 'reddit': 9, 'whatsapp': 101,
+              "google_play": 102, "appstore": 103, "amazon": 104, "wechat": 105,
+              "tiktok": 106, "twitter": 107, "wikipedia": 108, "yahoo": 109}
 SERVICE_IDS = {"other": 0, "chat": 1, "audio": 2, "video": 3}
 
 
