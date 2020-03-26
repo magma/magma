@@ -191,7 +191,7 @@ void SessionCredit::receive_credit(
                << " w/ validity time=" << validity_time;
   if (is_final_grant) {
     MLOG(MDEBUG) << "This credit received is the final grant, with final "
-                 << "action=" << final_action_info_.final_action;
+                 << "action=" << final_action_info.final_action;
   }
 
   buckets_[ALLOWED_TOTAL] += total_volume;
