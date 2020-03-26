@@ -8,6 +8,8 @@
 
 package protos
 
+import "github.com/golang/protobuf/ptypes/timestamp"
+
 func NewGxCreditControlExpectation() *GxCreditControlExpectation {
 	return &GxCreditControlExpectation{}
 }
@@ -36,18 +38,26 @@ func (m *GxCreditControlAnswer) SetUsageMonitorInfos(monitors []*UsageMonitoring
 }
 
 func (m *GxCreditControlAnswer) SetStaticRuleInstalls(ruleIDs, baseNames []string) *GxCreditControlAnswer {
-	if m.RuleInstalls == nil {
-		m.RuleInstalls = &RuleInstalls{}
-	}
+	m.initializeRuleInstallsIfNil()
 	m.RuleInstalls.RuleNames = ruleIDs
 	m.RuleInstalls.RuleBaseNames = baseNames
 	return m
 }
 
+func (m *GxCreditControlAnswer) SetRuleActivationTime(activationTime *timestamp.Timestamp) *GxCreditControlAnswer {
+	m.initializeRuleInstallsIfNil()
+	m.RuleInstalls.ActivationTime = activationTime
+	return m
+}
+
+func (m *GxCreditControlAnswer) SetRuleDeactivationTime(deactivationTime *timestamp.Timestamp) *GxCreditControlAnswer {
+	m.initializeRuleInstallsIfNil()
+	m.RuleInstalls.DeactivationTime = deactivationTime
+	return m
+}
+
 func (m *GxCreditControlAnswer) SetDynamicRuleInstalls(rules []*RuleDefinition) *GxCreditControlAnswer {
-	if m.RuleInstalls == nil {
-		m.RuleInstalls = &RuleInstalls{}
-	}
+	m.initializeRuleInstallsIfNil()
 	m.RuleInstalls.RuleDefinitions = rules
 	return m
 }
@@ -69,4 +79,10 @@ func (m *GxCreditControlRequest) SetUsageMonitorReports(reports []*UsageMonitori
 func (m *GxCreditControlRequest) SetUsageReportDelta(delta uint64) *GxCreditControlRequest {
 	m.UsageReportDelta = delta
 	return m
+}
+
+func (m *GxCreditControlAnswer) initializeRuleInstallsIfNil() {
+	if m.RuleInstalls == nil {
+		m.RuleInstalls = &RuleInstalls{}
+	}
 }
