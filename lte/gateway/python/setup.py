@@ -29,6 +29,7 @@ setup(
         'magma.enodebd.tr069',
         'magma.health',
         'magma.mobilityd',
+        'magma.monitord',
         'magma.pipelined',
         'magma.pipelined.app',
         'magma.pipelined.openflow',
