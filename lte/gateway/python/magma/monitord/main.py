@@ -9,6 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.service import MagmaService
+from magma.configuration import load_service_config
 from magma.monitord.icmp_monitoring import ICMPMonitoring
 from magma.monitord.icmp_state import serialize_subscriber_states
 
@@ -18,8 +19,9 @@ def main():
     service = MagmaService('monitord', mconfigs_pb2.MonitorD())
 
     # Monitoring thread loop
+    mtr_interface = load_service_config("monitord")["mtr_interface"]
     icmp_monitor = ICMPMonitoring(service.mconfig.polling_interval,
-                                  service.loop)
+                                  service.loop, mtr_interface)
     icmp_monitor.start()
 
     # Register a callback function for GetOperationalStates
