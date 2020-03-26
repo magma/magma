@@ -1,0 +1,96 @@
+"""
+Copyright (c) 2016-present, Facebook, Inc.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.
+"""
+from magma.pipelined.openflow import flows
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.openflow.registers import Direction
+
+from ryu.lib.packet import ether_types
+
+
+class LIMirrorController(MagmaController):
+    """
+    LI Mirror controller.
+
+    The LI Mirror controller is responsible for mirroring traffic to the LI
+    agent for LEA processing.
+    """
+
+    APP_NAME = "li_mirror"
+    APP_TYPE = ControllerType.LOGICAL
+
+    def __init__(self, *args, **kwargs):
+        super(LIMirrorController, self).__init__(*args, **kwargs)
+        self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
+        self.next_table = self._service_manager.get_next_table_num(
+            self.APP_NAME)
+        self._mirror_all = kwargs['config'].get('li_mirror_all', False)
+        self._li_local_port = kwargs['config'].get('li_local_iface', None)
+        self._li_local_port_num = BridgeTools.get_ofport(self._li_local_port)
+        self._li_dst_port = kwargs['config'].get('li_dst_iface', None)
+        self._li_dst_port_num = BridgeTools.get_ofport(self._li_dst_port)
+        self._datapath = None
+
+    def initialize_on_connect(self, datapath):
+        """
+        Install the default flows on datapath connect event.
+
+        Args:
+            datapath: ryu datapath struct
+        """
+        self.delete_all_flows(datapath)
+        self._install_default_flows(datapath)
+        self._datapath = datapath
+
+        if self._mirror_all:
+            self.setup_mirror_all_flows(datapath)
+
+    def cleanup_on_disconnect(self, datapath):
+        """
+        Cleanup flows on datapath disconnect event.
+
+        Args:
+            datapath: ryu datapath struct
+        """
+        self.delete_all_flows(datapath)
+
+    def delete_all_flows(self, datapath):
+        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+
+    def _install_default_flows(self, datapath):
+        """
+        For each direction set the default flows to just forward to next table.
+        If mirror flag set, copy all packets to li mirror port.
+
+        Match traffic from local LI port and redirect it to dst li port
+
+        Args:
+            datapath: ryu datapath struct
+        """
+        parser = datapath.ofproto_parser
+        inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                   direction=Direction.IN)
+        outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                    direction=Direction.OUT)
+        actions = []
+        if self._mirror_all:
+            actions = [parser.OFPActionOutput(self._li_dst_port_num)]
+        flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
+                                             inbound_match, actions,
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             resubmit_table=self.next_table)
+        flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
+                                             outbound_match, actions,
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             resubmit_table=self.next_table)
+
+        li_match = MagmaMatch(in_port=self.config._li_local_port_num)
+        flows.add_output_flow(datapath, self.tbl_num, li_match, [],
+                              output_port=self._li_dst_port_num)

@@ -124,6 +124,10 @@ ipfix:
   obs_domain_id: 1
   obs_point_id: 1
 
+# Configuration for LI mirroring
+li_port_name: li_port
+li_mirror_all: false
+
 ###############
 ## IMPORTANT ##
 ###############

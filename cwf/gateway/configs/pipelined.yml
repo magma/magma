@@ -34,6 +34,7 @@ static_services: [
   'tunnel_learn',
   'vlan_learn',
   'ipfix',
+  'li',
   'ryu_rest_service',
   'startup_flows',
 #  'packet_tracer',
@@ -98,6 +99,11 @@ ipfix:
   cache_timeout: 60
   obs_domain_id: 1
   obs_point_id: 1
+
+# Configuration for LI mirroring
+li_local_iface: li_port
+li_mirror_all: true
+li_dst_iface: li_egress
 
 # Interface to NAT traffic to
 nat_iface: eth2

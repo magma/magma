@@ -47,6 +47,7 @@ from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.app.li import LIMirrorController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL, \
     InOutController
@@ -247,6 +248,7 @@ class ServiceManager:
     RYU_REST_APP_NAME = 'ryu_rest_app'
     STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
     CHECK_QUOTA_SERVICE_NAME = 'check_quota'
+    LI_MIRROR_SERVICE_NAME = 'li_mirror'
 
     # Mapping between services defined in mconfig and the names and modules of
     # the corresponding Ryu apps in PipelineD. The module is used for the Ryu
@@ -325,6 +327,12 @@ class ServiceManager:
                 module=IPFIXController.__module__,
                 type=IPFIXController.APP_TYPE,
                 order_priority=800),
+        ],
+        LI_MIRROR_SERVICE_NAME: [
+            App(name=LIMirrorController.APP_NAME,
+                module=LIMirrorController.__module__,
+                type=LIMirrorController.APP_TYPE,
+                order_priority=900),
         ],
     }
 
