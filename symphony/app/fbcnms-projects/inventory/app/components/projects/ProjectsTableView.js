@@ -86,7 +86,7 @@ const ProjectsTableView = (props: Props) => {
         {
           key: 'owner',
           title: 'Owner',
-          render: row => row.creator ?? '',
+          render: row => row?.createdBy?.email ?? '',
         },
       ]}
     />
@@ -98,7 +98,9 @@ export default createFragmentContainer(ProjectsTableView, {
     fragment ProjectsTableView_projects on Project @relay(plural: true) {
       id
       name
-      creator
+      createdBy {
+        email
+      }
       location {
         id
         name

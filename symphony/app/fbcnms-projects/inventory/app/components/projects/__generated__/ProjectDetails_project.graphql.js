@@ -25,7 +25,10 @@ export type ProjectDetails_project = {|
   +id: string,
   +name: string,
   +description: ?string,
-  +creator: ?string,
+  +createdBy: ?{|
+    +id: string,
+    +email: string,
+  |},
   +type: {|
     +name: string,
     +id: string,
@@ -185,11 +188,23 @@ return {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "creator",
+      "name": "createdBy",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": [
+        (v0/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "email",
+          "args": null,
+          "storageKey": null
+        }
+      ]
     },
     {
       "kind": "LinkedField",
@@ -386,5 +401,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '3ca0e55ae3c152fb023a526a70343fd9';
+(node/*: any*/).hash = '2a38176060d3152cfcaaa0fbef645fcc';
 module.exports = node;

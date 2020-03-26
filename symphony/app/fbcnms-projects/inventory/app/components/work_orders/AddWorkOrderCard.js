@@ -183,7 +183,7 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
       location: null,
       properties: initialProps,
       workOrders: [],
-      ownerName: '',
+      owner: {id: '', email: ''},
       creationDate: '',
       installDate: '',
       status: 'PENDING',
@@ -194,7 +194,7 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
       linksToRemove: [],
       files: [],
       images: [],
-      assignee: '',
+      assignedTo: null,
       projectId: null,
       checkListCategories: [],
     };
@@ -206,7 +206,7 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
       description,
       locationId,
       projectId,
-      assignee,
+      assignedTo,
       status,
       priority,
       properties,
@@ -226,7 +226,7 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
         description,
         locationId,
         workOrderTypeId,
-        assignee,
+        assigneeId: assignedTo?.id,
         projectId,
         status,
         priority,
@@ -258,7 +258,7 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
     key:
       | 'name'
       | 'description'
-      | 'assignee'
+      | 'assignedTo'
       | 'projectId'
       | 'locationId'
       | 'priority'
@@ -509,7 +509,7 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
                           className={classes.input}
                           headline="Assignee"
                           onUserSelection={user =>
-                            _setWorkOrderDetail('assignee', user)
+                            _setWorkOrderDetail('assignedTo', user)
                           }
                           margin="dense"
                         />

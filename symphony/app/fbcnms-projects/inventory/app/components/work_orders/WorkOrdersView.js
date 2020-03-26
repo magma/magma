@@ -97,7 +97,7 @@ const WorkOrdersView = (props: Props) => {
         {
           key: 'owner',
           title: 'Owner',
-          render: row => row.ownerName ?? '',
+          render: row => row.owner.email ?? '',
         },
         {
           key: 'status',
@@ -125,7 +125,7 @@ const WorkOrdersView = (props: Props) => {
         {
           key: 'assignee',
           title: 'Assignee',
-          render: row => row.assignee || null,
+          render: row => row.assignedTo?.email || null,
         },
         {
           key: 'closeDate',
@@ -143,11 +143,17 @@ export default createFragmentContainer(WorkOrdersView, {
       id
       name
       description
-      ownerName
+      owner {
+        id
+        email
+      }
       creationDate
       installDate
       status
-      assignee
+      assignedTo {
+        id
+        email
+      }
       location {
         id
         name

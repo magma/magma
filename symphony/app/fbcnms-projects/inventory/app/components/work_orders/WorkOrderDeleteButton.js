@@ -16,7 +16,6 @@ import type {
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
-import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
@@ -39,7 +38,7 @@ const styles = () => ({
 
 type Props = {
   className?: string,
-  workOrder: WorkOrderDetails_workOrder,
+  workOrderId: string,
   onWorkOrderRemoved: () => void,
 } & WithStyles<typeof styles> &
   WithAlert &
@@ -65,8 +64,7 @@ class WorkOrderDeleteButton extends React.Component<Props> {
     ServerLogger.info(LogEvents.DELETE_WORK_ORDER_BUTTON_CLICKED, {
       source: 'work_order_details',
     });
-    const {workOrder} = this.props;
-    const workOrderId = workOrder.id;
+    const {workOrderId} = this.props;
     this.props
       .confirm({
         message: 'Are you sure you want to delete this work order?',

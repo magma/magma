@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a8dbfe3cdc6cb98b66075c37db27811b
+ * @relayHash 0727bdd642e6e5b21fdba49cf5e6fa0c
  */
 
 /* eslint-disable */
@@ -86,10 +86,16 @@ fragment WorkOrdersMap_workOrders on WorkOrder {
   id
   name
   description
-  ownerName
+  owner {
+    id
+    email
+  }
   status
   priority
-  assignee
+  assignedTo {
+    id
+    email
+  }
   installDate
   location {
     id
@@ -103,11 +109,17 @@ fragment WorkOrdersView_workOrder on WorkOrder {
   id
   name
   description
-  ownerName
+  owner {
+    id
+    email
+  }
   creationDate
   installDate
   status
-  assignee
+  assignedTo {
+    id
+    email
+  }
   location {
     id
     name
@@ -173,6 +185,16 @@ v4 = {
   "storageKey": null
 },
 v5 = [
+  (v3/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "email",
+    "args": null,
+    "storageKey": null
+  }
+],
+v6 = [
   (v3/*: any*/),
   (v4/*: any*/)
 ];
@@ -254,11 +276,14 @@ return {
                 "storageKey": null
               },
               {
-                "kind": "ScalarField",
+                "kind": "LinkedField",
                 "alias": null,
-                "name": "ownerName",
+                "name": "owner",
+                "storageKey": null,
                 "args": null,
-                "storageKey": null
+                "concreteType": "User",
+                "plural": false,
+                "selections": (v5/*: any*/)
               },
               {
                 "kind": "ScalarField",
@@ -282,11 +307,14 @@ return {
                 "storageKey": null
               },
               {
-                "kind": "ScalarField",
+                "kind": "LinkedField",
                 "alias": null,
-                "name": "assignee",
+                "name": "assignedTo",
+                "storageKey": null,
                 "args": null,
-                "storageKey": null
+                "concreteType": "User",
+                "plural": false,
+                "selections": (v5/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -323,7 +351,7 @@ return {
                 "args": null,
                 "concreteType": "WorkOrderType",
                 "plural": false,
-                "selections": (v5/*: any*/)
+                "selections": (v6/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -333,7 +361,7 @@ return {
                 "args": null,
                 "concreteType": "Project",
                 "plural": false,
-                "selections": (v5/*: any*/)
+                "selections": (v6/*: any*/)
               },
               {
                 "kind": "ScalarField",
@@ -359,7 +387,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrderComparisonViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query WorkOrderComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [WorkOrderFilterInput!]!\n) {\n  workOrderSearch(limit: $limit, filters: $filters) {\n    count\n    workOrders {\n      ...WorkOrdersView_workOrder\n      ...WorkOrdersMap_workOrders\n      id\n    }\n  }\n}\n\nfragment WorkOrdersMap_workOrders on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  status\n  priority\n  assignee\n  installDate\n  location {\n    id\n    name\n    latitude\n    longitude\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  assignee\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n  closeDate\n}\n",
+    "text": "query WorkOrderComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [WorkOrderFilterInput!]!\n) {\n  workOrderSearch(limit: $limit, filters: $filters) {\n    count\n    workOrders {\n      ...WorkOrdersView_workOrder\n      ...WorkOrdersMap_workOrders\n      id\n    }\n  }\n}\n\nfragment WorkOrdersMap_workOrders on WorkOrder {\n  id\n  name\n  description\n  owner {\n    id\n    email\n  }\n  status\n  priority\n  assignedTo {\n    id\n    email\n  }\n  installDate\n  location {\n    id\n    name\n    latitude\n    longitude\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  owner {\n    id\n    email\n  }\n  creationDate\n  installDate\n  status\n  assignedTo {\n    id\n    email\n  }\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n  closeDate\n}\n",
     "metadata": {}
   }
 };

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash c80146b59a5b1c0736697df5c331021c
+ * @relayHash a13dbacf531c1f1fc0cbde4597ea4182
  */
 
 /* eslint-disable */
@@ -34,10 +34,16 @@ export type ProjectsPopoverQueryResponse = {|
       +id: string,
       +name: string,
       +description: ?string,
-      +ownerName: string,
+      +owner: {|
+        +id: string,
+        +email: string,
+      |},
       +status: WorkOrderStatus,
       +priority: WorkOrderPriority,
-      +assignee: ?string,
+      +assignedTo: ?{|
+        +id: string,
+        +email: string,
+      |},
       +installDate: ?any,
       +location: ?{|
         +id: string,
@@ -74,10 +80,16 @@ query ProjectsPopoverQuery(
         id
         name
         description
-        ownerName
+        owner {
+          id
+          email
+        }
         status
         priority
-        assignee
+        assignedTo {
+          id
+          email
+        }
         installDate
         location {
           id
@@ -149,7 +161,17 @@ v4 = {
     }
   ]
 },
-v5 = {
+v5 = [
+  (v2/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "email",
+    "args": null,
+    "storageKey": null
+  }
+],
+v6 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "workOrders",
@@ -168,11 +190,14 @@ v5 = {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "ownerName",
+      "name": "owner",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": (v5/*: any*/)
     },
     {
       "kind": "ScalarField",
@@ -189,11 +214,14 @@ v5 = {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "assignee",
+      "name": "assignedTo",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": (v5/*: any*/)
     },
     {
       "kind": "ScalarField",
@@ -230,7 +258,7 @@ return {
               (v2/*: any*/),
               (v3/*: any*/),
               (v4/*: any*/),
-              (v5/*: any*/)
+              (v6/*: any*/)
             ]
           }
         ]
@@ -265,7 +293,7 @@ return {
             "selections": [
               (v3/*: any*/),
               (v4/*: any*/),
-              (v5/*: any*/)
+              (v6/*: any*/)
             ]
           }
         ]
@@ -276,11 +304,11 @@ return {
     "operationKind": "query",
     "name": "ProjectsPopoverQuery",
     "id": null,
-    "text": "query ProjectsPopoverQuery(\n  $projectId: ID!\n) {\n  project: node(id: $projectId) {\n    __typename\n    ... on Project {\n      id\n      name\n      location {\n        id\n        name\n        latitude\n        longitude\n      }\n      workOrders {\n        id\n        name\n        description\n        ownerName\n        status\n        priority\n        assignee\n        installDate\n        location {\n          id\n          name\n          latitude\n          longitude\n        }\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query ProjectsPopoverQuery(\n  $projectId: ID!\n) {\n  project: node(id: $projectId) {\n    __typename\n    ... on Project {\n      id\n      name\n      location {\n        id\n        name\n        latitude\n        longitude\n      }\n      workOrders {\n        id\n        name\n        description\n        owner {\n          id\n          email\n        }\n        status\n        priority\n        assignedTo {\n          id\n          email\n        }\n        installDate\n        location {\n          id\n          name\n          latitude\n          longitude\n        }\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '3a9e7da628498062731c59833e90849e';
+(node/*: any*/).hash = '94e8e66d8e2608553c3a5bb7e742468e';
 module.exports = node;

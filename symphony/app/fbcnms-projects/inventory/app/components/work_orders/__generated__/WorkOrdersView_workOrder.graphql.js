@@ -22,11 +22,17 @@ export type WorkOrdersView_workOrder = $ReadOnlyArray<{|
   +id: string,
   +name: string,
   +description: ?string,
-  +ownerName: string,
+  +owner: {|
+    +id: string,
+    +email: string,
+  |},
   +creationDate: any,
   +installDate: ?any,
   +status: WorkOrderStatus,
-  +assignee: ?string,
+  +assignedTo: ?{|
+    +id: string,
+    +email: string,
+  |},
   +location: ?{|
     +id: string,
     +name: string,
@@ -68,6 +74,16 @@ v1 = {
 },
 v2 = [
   (v0/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "email",
+    "args": null,
+    "storageKey": null
+  }
+],
+v3 = [
+  (v0/*: any*/),
   (v1/*: any*/)
 ];
 return {
@@ -89,11 +105,14 @@ return {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "ownerName",
+      "name": "owner",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": (v2/*: any*/)
     },
     {
       "kind": "ScalarField",
@@ -117,11 +136,14 @@ return {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "assignee",
+      "name": "assignedTo",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": (v2/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -131,7 +153,7 @@ return {
       "args": null,
       "concreteType": "Location",
       "plural": false,
-      "selections": (v2/*: any*/)
+      "selections": (v3/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -141,7 +163,7 @@ return {
       "args": null,
       "concreteType": "WorkOrderType",
       "plural": false,
-      "selections": (v2/*: any*/)
+      "selections": (v3/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -151,7 +173,7 @@ return {
       "args": null,
       "concreteType": "Project",
       "plural": false,
-      "selections": (v2/*: any*/)
+      "selections": (v3/*: any*/)
     },
     {
       "kind": "ScalarField",
@@ -164,5 +186,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '42b2b499a9e1e4cf729326accb86a899';
+(node/*: any*/).hash = 'b2ccb9d030961222fe67956ddfdefd2b';
 module.exports = node;
