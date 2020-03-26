@@ -99,7 +99,7 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 		avps := []*diam.AVP{}
 		if credit_control.CreditRequestType(ccr.RequestType) == credit_control.CRTInit {
 			// Install all rules attached to the subscriber for the initial answer
-			ruleInstalls := toRuleInstallAVPs(account.RuleNames, account.RuleBaseNames, account.RuleDefinitions)
+			ruleInstalls := toRuleInstallAVPs(account.RuleNames, account.RuleBaseNames, account.RuleDefinitions, nil, nil)
 			// Install all monitors attached to the subscriber for the initial answer
 			usageMonitors := toUsageMonitorAVPs(account.UsageMonitors)
 			avps = append(ruleInstalls, usageMonitors...)
