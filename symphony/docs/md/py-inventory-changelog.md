@@ -6,18 +6,31 @@ title: Python API Release Notes
 <!--
 ***
 This is template for release notes
-# new version number
-## Features:
-## Changes:
-## Deprecated:
-## Removed:
-## Bug fixes
+#3 new version number
+### Features
+### Changes
+### Deprecated
+### Removed
+### Bug fixes
+***
+-->
+
+<!--
+***
+## new version number
+### Features
+- Equipment functionality:
+    - `get_equipments_by_type`
+### Changes
+### Deprecated
+### Removed
+### Bug fixes
 ***
 -->
 
 ***
 ## 2.5.0 -release date 23.03.2020
-### Features:
+### Features
 
 - User functionality:
     - `add_user`
@@ -42,7 +55,7 @@ This is template for release notes
 - Equipment functionality:
     - `edit equipment`
     - `get_equipment_properties`
-### Changes:
+### Changes
 - use BasicAuth login to graphql server which improves first connection performance
 
 - functions now raise warning if they query against deprecated Graphql Endpoints. If you get such warning you are adviced to upgrade to newer version of API that will call different graphql endpoints instead
@@ -52,13 +65,13 @@ This is template for release notes
 
 ***
 ## 2.4.0 - release date 22.02.2020
-### Features:
+### Features
 - `edit_location function` - edit location properties.
 - `edit_equipment_type` - edit/add port types.
 
-### Changes:
+### Changes
 - `get_locations_by_external_id` raises exception on not found location
-### Deprecated:
+### Deprecated
 - `get_locations_by_external_id` function is deprecated by `get_location_by_external_id` function
 ### Bug fixes
 ***

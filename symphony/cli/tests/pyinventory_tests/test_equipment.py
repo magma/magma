@@ -8,6 +8,7 @@ from pyinventory.api.equipment import (
     add_equipment,
     get_equipment,
     get_equipment_properties,
+    get_equipments_by_type,
     get_or_create_equipment,
 )
 from pyinventory.api.equipment_type import (
@@ -148,3 +149,11 @@ class TestEquipment(BaseTest):
         property_type = port_properties[0].propertyType
         self.assertEqual(property_type.name, "port property")
         self.assertEqual(port_properties[0].stringValue, "test_port_property")
+
+    def test_get_equipments_by_type(self) -> None:
+        equipment_type_id = self.client.equipmentTypes["Tp-Link T1600G"].id
+        equipments = get_equipments_by_type(
+            client=self.client, equipment_type_id=equipment_type_id
+        )
+        self.assertEqual(len(equipments), 1)
+        self.assertEqual(equipments[0].name, "TPLinkRouter")
