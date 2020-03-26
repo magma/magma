@@ -15,7 +15,7 @@ from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, DPI_REG
 from magma.pipelined.policy_converters import FlowMatchError, \
-    flow_match_to_magma_match
+    flow_match_to_magma_match, flip_flow_match
 
 
 from ryu.lib.packet import ether_types
@@ -89,12 +89,6 @@ class DPIController(MagmaController):
         Example we care about google traffic, but don't neccessarily want to
         classify every specific google service.
         """
-        try:
-            match = flow_match_to_magma_match(flow_match)
-        except FlowMatchError as e:
-            self.logger.error(e)
-            return
-
         parser = self._datapath.ofproto_parser
         tokens = app.split('.')
 
@@ -134,20 +128,35 @@ class DPIController(MagmaController):
             self.logger.error("Classified %s-%s as %d", app, service_type,
                               app_id)
 
+        try:
+            ul_match = flow_match_to_magma_match(flow_match)
+            ul_match.direction = None
+            dl_match = flow_match_to_magma_match(flip_flow_match(flow_match))
+            dl_match.direction = None
+        except FlowMatchError as e:
+            self.logger.error(e)
+            return
         actions = [parser.OFPActionOutput(self._mon_port_number),
                    parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
         flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-            match, actions, priority=flows.DEFAULT_PRIORITY,
+            ul_match, actions, priority=flows.DEFAULT_PRIORITY,
+            resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
+        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+            dl_match, actions, priority=flows.DEFAULT_PRIORITY,
             resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
 
-    def remove_classify_flow(self, match):
+    def remove_classify_flow(self, flow_match):
         try:
-            match = flow_match_to_magma_match(match)
+            ul_match = flow_match_to_magma_match(flow_match)
+            ul_match.direction = None
+            dl_match = flow_match_to_magma_match(flip_flow_match(flow_match))
+            dl_match.direction = None
         except FlowMatchError as e:
             self.logger.error(e)
             return False
 
-        flows.delete_flow(self._datapath, self.tbl_num, match)
+        flows.delete_flow(self._datapath, self.tbl_num, ul_match)
+        flows.delete_flow(self._datapath, self.tbl_num, dl_match)
         return True
 
     def _install_default_flows(self, datapath):
