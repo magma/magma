@@ -7,6 +7,7 @@ LICENSE file in the root directory of this source tree.
 """
 import ipaddress
 
+from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction
 
@@ -59,6 +60,31 @@ def flow_match_to_magma_match(match):
         match_kwargs[attrib] = value
     return MagmaMatch(direction=_get_direction_for_match(match),
                       **match_kwargs)
+
+
+def flip_flow_match(match):
+    '''
+    Flips FlowMatch(ip/ports/direction)
+
+    Args:
+        match: FlowMatch
+    '''
+    if getattr(match, 'direction', None) == match.DOWNLINK:
+        direction = match.UPLINK
+    else:
+        direction = match.DOWNLINK
+
+    return FlowMatch(
+        ipv4_src=getattr(match, 'ipv4_dst', None),
+        ipv4_dst=getattr(match, 'ipv4_src', None),
+        tcp_src=getattr(match, 'tcp_dst', None),
+        tcp_dst=getattr(match, 'tcp_src', None),
+        udp_src=getattr(match, 'udp_dst', None),
+        udp_dst=getattr(match, 'udp_src', None),
+        ip_proto=getattr(match, 'ip_proto', None),
+        direction=direction,
+        app_name=getattr(match, 'app_name', None)
+    )
 
 
 def _get_ip_tuple(ip_str):
