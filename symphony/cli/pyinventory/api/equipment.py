@@ -25,6 +25,7 @@ from ..graphql.equipment_search_query import EquipmentSearchQuery
 from ..graphql.equipment_type_and_properties_query import (
     EquipmentTypeAndPropertiesQuery,
 )
+from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
 from ..graphql.property_kind_enum import PropertyKind
 from ..graphql.remove_equipment_mutation import RemoveEquipmentMutation
@@ -119,6 +120,45 @@ def get_equipment_properties(
         client, equipment
     )
     return properties_dict
+
+
+def get_equipments_by_type(
+    client: SymphonyClient, equipment_type_id: str
+) -> List[Equipment]:
+    """Get equipments by ID of specific type.
+
+        Args:
+            equipment_type_id (str): equipment type ID
+
+        Returns:
+            List[ pyinventory.consts.Equipment ]: List of found equipments
+
+        Raises:
+            EntityNotFoundError: equipment type with this ID does not exist
+
+        Example:
+            ```
+            equipments = client.get_equipments_by_type(equipment_type_id="34359738369") 
+            ```
+    """
+    equipment_type_with_equipments = EquipmentTypeEquipmentQuery.execute(
+        client, id=equipment_type_id
+    ).equipmentType
+    if not equipment_type_with_equipments:
+        raise EntityNotFoundError(
+            entity=Entity.EquipmentType, entity_id=equipment_type_id
+        )
+    result = []
+    for equipment in equipment_type_with_equipments.equipments:
+        result.append(
+            Equipment(
+                id=equipment.id,
+                name=equipment.name,
+                equipment_type_name=equipment.equipmentType.name,
+            )
+        )
+
+    return result
 
 
 def _get_equipment_in_position_if_exists(
