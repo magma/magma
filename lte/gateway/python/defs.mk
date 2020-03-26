@@ -16,6 +16,7 @@ TESTS=magma/tests \
       magma/pipelined/openflow/tests \
       magma/pkt_tester/tests \
       magma/redirectd/tests \
-      magma/subscriberdb/tests
+      magma/subscriberdb/tests \
+      magma/monitord/tests
 
 SUDO_TESTS=magma/pipelined/tests
