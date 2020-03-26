@@ -84,4 +84,5 @@ RUN mkdir -p /var/opt/magma/configs
 COPY cwf/gateway/deploy/roles/ovs/files/install_ovs.sh /tmp
 COPY cwf/gateway/deploy/roles/ovs/files/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch /tmp
 COPY cwf/gateway/deploy/roles/ovs/files/0002-ovs-Handle-spaces-in-ovs-arguments.patch /tmp
+COPY cwf/gateway/deploy/roles/ovs/files/0003-Add-pdp_start_epoch-custom-field-to-IPFIX-export.patch /tmp
 RUN bash /tmp/install_ovs.sh
