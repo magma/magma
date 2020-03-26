@@ -8,7 +8,7 @@ import ipaddress
 import logging
 from collections import defaultdict
 from datetime import datetime
-from typing import List, NamedTuple
+from typing import Dict, List
 
 import grpc
 from lte.protos.mobilityd_pb2 import IPAddress
@@ -19,16 +19,13 @@ from magma.common.service_registry import ServiceRegistry
 from magma.configuration.service_configs import load_service_config
 from magma.magmad.check.network_check import ping
 from magma.magmad.check.network_check.ping import PingCommandResult
+from magma.monitord.icmp_state import ICMPMonitoringResponse
 from orc8r.protos.common_pb2 import Void
 
 NUM_PACKETS = 4
 DEFAULT_POLLING_INTERVAL = 60
 TIMEOUT_SECS = 10
 CHECKIN_INTERVAL = 10
-
-ICMPMonitoringResponse = NamedTuple('ICMPMonitoringResponse',
-                                    [('last_reported_time', int),
-                                     ('latency_ms', float)])
 
 
 def _get_addr_from_subscriber(sub) -> str:
@@ -87,7 +84,8 @@ class ICMPMonitoring(Job):
         ping_results = await ping.ping_async(ping_params, self._loop)
         ping_results_list = list(ping_results)
         for sub, result in zip(subscribers, ping_results_list):
-            self._save_ping_response(sub.sid.id, result)
+            sid = "IMSI%s" % sub.sid.id
+            self._save_ping_response(sid, result)
 
     def _save_ping_response(self, sid: str,
                             ping_resp: PingCommandResult) -> None:
@@ -106,6 +104,9 @@ class ICMPMonitoring(Job):
             latency_ms=ping_resp.stats.rtt_avg)
         logging.info(
             '{} => {}ms'.format(sid, self._subscriber_state[sid].latency_ms))
+
+    def get_subscriber_state(self) -> Dict[str, ICMPMonitoringResponse]:
+        return self._subscriber_state
 
     async def _run(self) -> None:
         logging.info("Running on interface %s ..." % self._MTR_PORT)
