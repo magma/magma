@@ -398,3 +398,86 @@ func TestMidSessionRuleRemovalAndInstallWithPolicyReAuth(t *testing.T) {
 	fmt.Println("wait for flows to get deactivated")
 	time.Sleep(3 * time.Second)
 }
+
+// - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
+//   and a rule base "base-raa1"
+// - Generate traffic and assert that there's > 0 data usage for the rule with the
+//   highest priority.
+// - Send a PCRF ReAuth request to refill quoto for a session
+// - Assert that the response is successful
+// - Generate traffic and assert that there's > 0 data usage for the newly installed
+//   rule.
+// - Asserting that quota was updated is still needed.
+func TestMidSessionQuotaRefillPolicyReAuth(t *testing.T) {
+	fmt.Println("\nRunning TestMidSessionQuotaRefillPolicyReAuth...")
+
+	tr, ruleManager, ue := pcrfReAuthTestSetup(t)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+	imsi := ue.GetImsi()
+
+	tr.AuthenticateAndAssertSuccess(imsi)
+
+	// Generate over 80% of the quota to trigger a CCR Update
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:   imsi,
+		Volume: &wrappers.StringValue{Value: *swag.String("500K")},
+	}
+	_, err := tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Check that UE mac flow is installed and traffic is less than the quota
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	record1 := recordsBySubID["IMSI"+imsi]["static-pass-all-raa1"]
+	assert.NotNil(t, record1, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
+	assert.True(t, record1.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record1.RuleId))
+	assert.True(t, record1.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record1))
+
+	// Install a Pass-All Rule with higher priority using PolicyReAuth
+	usageMonitoring := []*fegprotos.UsageMonitoringInformation{
+		{
+			MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
+			MonitoringKey:   []byte("raakey1"),
+			Octets:          &fegprotos.Octets{TotalOctets: 250 * KiloBytes},
+		},
+	}
+	raa, err := sendPolicyReAuthRequest(
+		&fegprotos.PolicyReAuthTarget{
+			Imsi:                 imsi,
+			UsageMonitoringInfos: usageMonitoring,
+		},
+	)
+	assert.NoError(t, err)
+	tr.WaitForReAuthToProcess()
+
+	// Check ReAuth success
+	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
+	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+
+	// Generate more traffic
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Check that UE mac flow is installed and traffic is less than the quota
+	recordsBySubID, err = tr.GetPolicyUsage()
+	assert.NoError(t, err)
+
+	// Usage monitoring does not activate or deactivate services when the quota is up.
+	// thus a method to check the current quota is needed to verify the success of this test.
+	record2 := recordsBySubID["IMSI"+imsi]["static-pass-all-raa1"]
+	assert.NotNil(t, record2, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
+	assert.True(t, record2.BytesTx > uint64(500), fmt.Sprintf("%s did not pass any data", record2.RuleId))
+	assert.True(t, record2.BytesTx <= uint64(1*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record2))
+
+	// trigger disconnection
+	_, err = tr.Disconnect(imsi)
+	assert.NoError(t, err)
+	fmt.Println("wait for flows to get deactivated")
+	time.Sleep(3 * time.Second)
+}
