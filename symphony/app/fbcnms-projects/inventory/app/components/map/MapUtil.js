@@ -16,6 +16,7 @@ import type {
 } from '@mapbox/geojson-types';
 import type {GeoJSONSource} from './MapView';
 import type {Location} from '../../common/Location.js';
+import type {ShortUser} from '../../common/EntUtils';
 import type {WorkOrder} from '../../common/WorkOrder';
 import type {
   WorkOrderPriority,
@@ -75,8 +76,8 @@ export type WorkOrderProperties = {
   description: string,
   status: WorkOrderStatus,
   priority: WorkOrderPriority,
-  ownerName: string,
-  assignee: string,
+  owner: ShortUser,
+  assignee: ?ShortUser,
   installDate: string,
   location: WorkOrderLocation,
   iconStatus: string,
@@ -104,15 +105,16 @@ export const workOrderToGeoFeature = (
       description: workOrder.workOrder.description,
       status: workOrder.workOrder.status,
       priority: workOrder.workOrder.priority,
-      ownerName: workOrder.workOrder.ownerName,
-      assignee: workOrder.workOrder.assignee,
+      owner: workOrder.workOrder.owner,
+      assignee: workOrder.workOrder.assignedTo,
       installDate: workOrder.workOrder.installDate,
       location: workOrder.workOrder.location,
       iconStatus: getWorkOrderStatusIcon(workOrder.workOrder.status),
-      iconTech:
-        workOrder.workOrder.assignee === '' ? 'unassignedActive' : 'icon_pin',
-      text: workOrder.workOrder.assignee
-        ? workOrder.workOrder.assignee.slice(0, 2)
+      iconTech: workOrder.workOrder.assignedTo
+        ? 'icon_pin'
+        : 'unassignedActive',
+      text: workOrder.workOrder.assignedTo
+        ? workOrder.workOrder.assignedTo.email.slice(0, 2)
         : '',
       textColor: getWorkOrderIconTextColor(workOrder.workOrder.status),
       ...properties,

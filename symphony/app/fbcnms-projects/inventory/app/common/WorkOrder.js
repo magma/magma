@@ -15,6 +15,7 @@ import type {ImageAttachmentType} from './ImageAttachment.js';
 import type {Location} from './Location';
 import type {Property} from './Property';
 import type {PropertyType} from './PropertyType';
+import type {ShortUser} from './EntUtils';
 
 export type WorkOrderStatus = 'PENDING' | 'PLANNED' | 'DONE';
 export type WorkOrderPriority = 'URGENT' | 'HIGH' | 'LOW' | 'NONE';
@@ -35,7 +36,7 @@ export type WorkOrder = {
   description: ?string,
   location: ?Location,
   locationId: ?string,
-  ownerName: string,
+  owner: ShortUser,
   creationDate: string,
   installDate: ?string,
   status: WorkOrderStatus,
@@ -46,7 +47,7 @@ export type WorkOrder = {
   linksToRemove: Array<Link>,
   images: Array<ImageAttachmentType>,
   files: Array<FileAttachmentType>,
-  assignee: ?string,
+  assignedTo: ?ShortUser,
   properties: Array<Property>,
   projectId: ?string,
   checkListCategories: ?CheckListCategoryExpandingPanel_list,

@@ -104,7 +104,7 @@ const WorkOrdersMap = (props: Props) => {
   }, [selectedView, workOrdersWithLocations]);
 
   const onWorkOrderChanged = (
-    key: 'assignee' | 'installDate',
+    key: 'assigneeId' | 'installDate',
     value: ?string,
     workOrderId: string,
   ) => {
@@ -120,7 +120,7 @@ const WorkOrdersMap = (props: Props) => {
 
   const updateWorkOrderDetails = (
     workOrder: WorkOrderWithLocation,
-    key: 'assignee' | 'installDate',
+    key: 'assigneeId' | 'installDate',
     value: ?string,
   ): WorkOrderWithLocation => {
     return {
@@ -176,10 +176,16 @@ export default withRouter(
         id
         name
         description
-        ownerName
+        owner {
+          id
+          email
+        }
         status
         priority
-        assignee
+        assignedTo {
+          id
+          email
+        }
         installDate
         location {
           id

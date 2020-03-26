@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 609e30757d8c8af1ac35e435f0f585f0
+ * @relayHash 8da8293520036e5a81f8836563443b26
  */
 
 /* eslint-disable */
@@ -96,12 +96,18 @@ export type EditWorkOrderMutationResponse = {|
     +id: string,
     +name: string,
     +description: ?string,
-    +ownerName: string,
+    +owner: {|
+      +id: string,
+      +email: string,
+    |},
     +creationDate: any,
     +installDate: ?any,
     +status: WorkOrderStatus,
     +priority: WorkOrderPriority,
-    +assignee: ?string,
+    +assignedTo: ?{|
+      +id: string,
+      +email: string,
+    |},
     +$fragmentRefs: WorkOrderDetails_workOrder$ref & WorkOrdersView_workOrder$ref,
   |}
 |};
@@ -120,12 +126,18 @@ mutation EditWorkOrderMutation(
     id
     name
     description
-    ownerName
+    owner {
+      id
+      email
+    }
     creationDate
     installDate
     status
     priority
-    assignee
+    assignedTo {
+      id
+      email
+    }
     ...WorkOrderDetails_workOrder
     ...WorkOrdersView_workOrder
   }
@@ -415,8 +427,14 @@ fragment WorkOrderDetails_workOrder on WorkOrder {
     }
     ...LocationBreadcrumbsTitle_locationDetails
   }
-  ownerName
-  assignee
+  owner {
+    id
+    email
+  }
+  assignedTo {
+    id
+    email
+  }
   creationDate
   installDate
   status
@@ -512,11 +530,17 @@ fragment WorkOrdersView_workOrder on WorkOrder {
   id
   name
   description
-  ownerName
+  owner {
+    id
+    email
+  }
   creationDate
   installDate
   status
-  assignee
+  assignedTo {
+    id
+    email
+  }
   location {
     id
     name
@@ -570,53 +594,69 @@ v4 = {
   "args": null,
   "storageKey": null
 },
-v5 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "ownerName",
-  "args": null,
-  "storageKey": null
-},
+v5 = [
+  (v2/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "email",
+    "args": null,
+    "storageKey": null
+  }
+],
 v6 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "owner",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "User",
+  "plural": false,
+  "selections": (v5/*: any*/)
+},
+v7 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "creationDate",
   "args": null,
   "storageKey": null
 },
-v7 = {
+v8 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "installDate",
   "args": null,
   "storageKey": null
 },
-v8 = {
+v9 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "status",
   "args": null,
   "storageKey": null
 },
-v9 = {
+v10 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "priority",
   "args": null,
   "storageKey": null
 },
-v10 = {
-  "kind": "ScalarField",
+v11 = {
+  "kind": "LinkedField",
   "alias": null,
-  "name": "assignee",
+  "name": "assignedTo",
+  "storageKey": null,
   "args": null,
-  "storageKey": null
+  "concreteType": "User",
+  "plural": false,
+  "selections": (v5/*: any*/)
 },
-v11 = [
+v12 = [
   (v3/*: any*/),
   (v2/*: any*/)
 ],
-v12 = {
+v13 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "locationHierarchy",
@@ -635,15 +675,15 @@ v12 = {
       "args": null,
       "concreteType": "LocationType",
       "plural": false,
-      "selections": (v11/*: any*/)
+      "selections": (v12/*: any*/)
     }
   ]
 },
-v13 = [
+v14 = [
   (v2/*: any*/),
   (v3/*: any*/)
 ],
-v14 = {
+v15 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "equipmentType",
@@ -651,19 +691,19 @@ v14 = {
   "args": null,
   "concreteType": "EquipmentType",
   "plural": false,
-  "selections": (v13/*: any*/)
+  "selections": (v14/*: any*/)
 },
-v15 = {
+v16 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "visibleLabel",
   "args": null,
   "storageKey": null
 },
-v16 = [
+v17 = [
   (v2/*: any*/),
   (v3/*: any*/),
-  (v14/*: any*/),
+  (v15/*: any*/),
   {
     "kind": "LinkedField",
     "alias": null,
@@ -683,7 +723,7 @@ v16 = [
         "args": null,
         "concreteType": "LocationType",
         "plural": false,
-        "selections": (v13/*: any*/)
+        "selections": (v14/*: any*/)
       }
     ]
   },
@@ -707,7 +747,7 @@ v16 = [
         "plural": false,
         "selections": [
           (v3/*: any*/),
-          (v15/*: any*/),
+          (v16/*: any*/),
           (v2/*: any*/)
         ]
       },
@@ -719,110 +759,110 @@ v16 = [
         "args": null,
         "concreteType": "Equipment",
         "plural": false,
-        "selections": (v13/*: any*/)
+        "selections": (v14/*: any*/)
       }
     ]
   }
 ],
-v17 = {
+v18 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "futureState",
   "args": null,
   "storageKey": null
 },
-v18 = {
+v19 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "type",
   "args": null,
   "storageKey": null
 },
-v19 = {
+v20 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "index",
   "args": null,
   "storageKey": null
 },
-v20 = {
+v21 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v21 = {
+v22 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "intValue",
   "args": null,
   "storageKey": null
 },
-v22 = {
+v23 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
-v23 = {
+v24 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "floatValue",
   "args": null,
   "storageKey": null
 },
-v24 = {
+v25 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
-v25 = {
+v26 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
-v26 = {
+v27 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
-v27 = {
+v28 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
-v28 = {
+v29 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "isEditable",
   "args": null,
   "storageKey": null
 },
-v29 = {
+v30 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "isInstanceProperty",
   "args": null,
   "storageKey": null
 },
-v30 = {
+v31 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "isMandatory",
   "args": null,
   "storageKey": null
 },
-v31 = {
+v32 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "properties",
@@ -843,21 +883,21 @@ v31 = {
       "selections": [
         (v2/*: any*/),
         (v3/*: any*/),
-        (v18/*: any*/),
-        (v28/*: any*/),
-        (v30/*: any*/),
+        (v19/*: any*/),
         (v29/*: any*/),
-        (v20/*: any*/)
+        (v31/*: any*/),
+        (v30/*: any*/),
+        (v21/*: any*/)
       ]
     },
-    (v20/*: any*/),
     (v21/*: any*/),
-    (v23/*: any*/),
     (v22/*: any*/),
     (v24/*: any*/),
+    (v23/*: any*/),
     (v25/*: any*/),
     (v26/*: any*/),
     (v27/*: any*/),
+    (v28/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -866,7 +906,7 @@ v31 = {
       "args": null,
       "concreteType": "Equipment",
       "plural": false,
-      "selections": (v13/*: any*/)
+      "selections": (v14/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -876,7 +916,7 @@ v31 = {
       "args": null,
       "concreteType": "Location",
       "plural": false,
-      "selections": (v13/*: any*/)
+      "selections": (v14/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -886,13 +926,13 @@ v31 = {
       "args": null,
       "concreteType": "Service",
       "plural": false,
-      "selections": (v13/*: any*/)
+      "selections": (v14/*: any*/)
     }
   ]
 },
-v32 = [
+v33 = [
   (v2/*: any*/),
-  (v17/*: any*/),
+  (v18/*: any*/),
   {
     "kind": "LinkedField",
     "alias": null,
@@ -914,7 +954,7 @@ v32 = [
         "selections": [
           (v2/*: any*/),
           (v3/*: any*/),
-          (v15/*: any*/),
+          (v16/*: any*/),
           {
             "kind": "LinkedField",
             "alias": null,
@@ -935,7 +975,6 @@ v32 = [
                 "selections": [
                   (v2/*: any*/),
                   (v3/*: any*/),
-                  (v18/*: any*/),
                   (v19/*: any*/),
                   (v20/*: any*/),
                   (v21/*: any*/),
@@ -947,7 +986,8 @@ v32 = [
                   (v27/*: any*/),
                   (v28/*: any*/),
                   (v29/*: any*/),
-                  (v30/*: any*/)
+                  (v30/*: any*/),
+                  (v31/*: any*/)
                 ]
               },
               (v2/*: any*/)
@@ -966,7 +1006,7 @@ v32 = [
         "selections": [
           (v2/*: any*/),
           (v3/*: any*/),
-          (v17/*: any*/),
+          (v18/*: any*/),
           {
             "kind": "LinkedField",
             "alias": null,
@@ -989,7 +1029,7 @@ v32 = [
                 "selections": [
                   (v2/*: any*/),
                   (v3/*: any*/),
-                  (v15/*: any*/),
+                  (v16/*: any*/),
                   {
                     "kind": "ScalarField",
                     "alias": null,
@@ -1005,13 +1045,13 @@ v32 = [
                     "args": null,
                     "concreteType": "EquipmentPortType",
                     "plural": false,
-                    "selections": (v13/*: any*/)
+                    "selections": (v14/*: any*/)
                   }
                 ]
               }
             ]
           },
-          (v12/*: any*/),
+          (v13/*: any*/),
           {
             "kind": "LinkedField",
             "alias": null,
@@ -1033,7 +1073,7 @@ v32 = [
                 "selections": [
                   (v2/*: any*/),
                   (v3/*: any*/),
-                  (v15/*: any*/)
+                  (v16/*: any*/)
                 ]
               },
               {
@@ -1047,7 +1087,7 @@ v32 = [
                 "selections": [
                   (v2/*: any*/),
                   (v3/*: any*/),
-                  (v14/*: any*/)
+                  (v15/*: any*/)
                 ]
               }
             ]
@@ -1078,7 +1118,7 @@ v32 = [
             "args": null,
             "concreteType": "Service",
             "plural": false,
-            "selections": (v11/*: any*/)
+            "selections": (v12/*: any*/)
           },
           (v2/*: any*/)
         ]
@@ -1095,10 +1135,10 @@ v32 = [
     "plural": false,
     "selections": [
       (v2/*: any*/),
-      (v8/*: any*/)
+      (v9/*: any*/)
     ]
   },
-  (v31/*: any*/),
+  (v32/*: any*/),
   {
     "kind": "LinkedField",
     "alias": null,
@@ -1107,68 +1147,68 @@ v32 = [
     "args": null,
     "concreteType": "Service",
     "plural": true,
-    "selections": (v13/*: any*/)
+    "selections": (v14/*: any*/)
   }
 ],
-v33 = {
+v34 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "fileName",
   "args": null,
   "storageKey": null
 },
-v34 = {
+v35 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "category",
   "args": null,
   "storageKey": null
 },
-v35 = {
+v36 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "sizeInBytes",
   "args": null,
   "storageKey": null
 },
-v36 = {
+v37 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "uploaded",
   "args": null,
   "storageKey": null
 },
-v37 = {
+v38 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "fileType",
   "args": null,
   "storageKey": null
 },
-v38 = {
+v39 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "storeKey",
   "args": null,
   "storageKey": null
 },
-v39 = [
+v40 = [
   (v2/*: any*/),
-  (v33/*: any*/),
   (v34/*: any*/),
   (v35/*: any*/),
   (v36/*: any*/),
   (v37/*: any*/),
-  (v38/*: any*/)
+  (v38/*: any*/),
+  (v39/*: any*/)
 ],
-v40 = {
+v41 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "createTime",
   "args": null,
   "storageKey": null
 },
-v41 = {
+v42 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "title",
@@ -1196,12 +1236,12 @@ return {
           (v2/*: any*/),
           (v3/*: any*/),
           (v4/*: any*/),
-          (v5/*: any*/),
           (v6/*: any*/),
           (v7/*: any*/),
           (v8/*: any*/),
           (v9/*: any*/),
           (v10/*: any*/),
+          (v11/*: any*/),
           {
             "kind": "FragmentSpread",
             "name": "WorkOrderDetails_workOrder",
@@ -1233,12 +1273,12 @@ return {
           (v2/*: any*/),
           (v3/*: any*/),
           (v4/*: any*/),
-          (v5/*: any*/),
           (v6/*: any*/),
           (v7/*: any*/),
           (v8/*: any*/),
           (v9/*: any*/),
           (v10/*: any*/),
+          (v11/*: any*/),
           {
             "kind": "LinkedField",
             "alias": null,
@@ -1247,7 +1287,7 @@ return {
             "args": null,
             "concreteType": "WorkOrderType",
             "plural": false,
-            "selections": (v11/*: any*/)
+            "selections": (v12/*: any*/)
           },
           {
             "kind": "LinkedField",
@@ -1301,7 +1341,7 @@ return {
                   (v3/*: any*/)
                 ]
               },
-              (v12/*: any*/)
+              (v13/*: any*/)
             ]
           },
           {
@@ -1312,7 +1352,7 @@ return {
             "args": null,
             "concreteType": "Equipment",
             "plural": true,
-            "selections": (v16/*: any*/)
+            "selections": (v17/*: any*/)
           },
           {
             "kind": "LinkedField",
@@ -1322,7 +1362,7 @@ return {
             "args": null,
             "concreteType": "Equipment",
             "plural": true,
-            "selections": (v16/*: any*/)
+            "selections": (v17/*: any*/)
           },
           {
             "kind": "LinkedField",
@@ -1332,7 +1372,7 @@ return {
             "args": null,
             "concreteType": "Link",
             "plural": true,
-            "selections": (v32/*: any*/)
+            "selections": (v33/*: any*/)
           },
           {
             "kind": "LinkedField",
@@ -1342,9 +1382,9 @@ return {
             "args": null,
             "concreteType": "Link",
             "plural": true,
-            "selections": (v32/*: any*/)
+            "selections": (v33/*: any*/)
           },
-          (v31/*: any*/),
+          (v32/*: any*/),
           {
             "kind": "LinkedField",
             "alias": null,
@@ -1353,7 +1393,7 @@ return {
             "args": null,
             "concreteType": "File",
             "plural": true,
-            "selections": (v39/*: any*/)
+            "selections": (v40/*: any*/)
           },
           {
             "kind": "LinkedField",
@@ -1363,7 +1403,7 @@ return {
             "args": null,
             "concreteType": "File",
             "plural": true,
-            "selections": (v39/*: any*/)
+            "selections": (v40/*: any*/)
           },
           {
             "kind": "LinkedField",
@@ -1375,7 +1415,7 @@ return {
             "plural": true,
             "selections": [
               (v2/*: any*/),
-              (v34/*: any*/),
+              (v35/*: any*/),
               {
                 "kind": "ScalarField",
                 "alias": null,
@@ -1390,7 +1430,7 @@ return {
                 "args": null,
                 "storageKey": null
               },
-              (v40/*: any*/)
+              (v41/*: any*/)
             ]
           },
           {
@@ -1417,7 +1457,7 @@ return {
                 "args": null,
                 "storageKey": null
               },
-              (v40/*: any*/)
+              (v41/*: any*/)
             ]
           },
           {
@@ -1439,7 +1479,7 @@ return {
                 "args": null,
                 "concreteType": "ProjectType",
                 "plural": false,
-                "selections": (v13/*: any*/)
+                "selections": (v14/*: any*/)
               }
             ]
           },
@@ -1453,7 +1493,7 @@ return {
             "plural": true,
             "selections": [
               (v2/*: any*/),
-              (v41/*: any*/),
+              (v42/*: any*/),
               (v4/*: any*/),
               {
                 "kind": "LinkedField",
@@ -1465,9 +1505,9 @@ return {
                 "plural": true,
                 "selections": [
                   (v2/*: any*/),
+                  (v20/*: any*/),
                   (v19/*: any*/),
-                  (v18/*: any*/),
-                  (v41/*: any*/),
+                  (v42/*: any*/),
                   {
                     "kind": "ScalarField",
                     "alias": null,
@@ -1489,7 +1529,7 @@ return {
                     "args": null,
                     "storageKey": null
                   },
-                  (v20/*: any*/),
+                  (v21/*: any*/),
                   {
                     "kind": "ScalarField",
                     "alias": null,
@@ -1521,8 +1561,8 @@ return {
                     "plural": true,
                     "selections": [
                       (v2/*: any*/),
-                      (v33/*: any*/),
-                      (v35/*: any*/),
+                      (v34/*: any*/),
+                      (v36/*: any*/),
                       {
                         "kind": "ScalarField",
                         "alias": null,
@@ -1530,10 +1570,10 @@ return {
                         "args": null,
                         "storageKey": null
                       },
-                      (v36/*: any*/),
                       (v37/*: any*/),
                       (v38/*: any*/),
-                      (v34/*: any*/)
+                      (v39/*: any*/),
+                      (v35/*: any*/)
                     ]
                   }
                 ]
@@ -1555,11 +1595,11 @@ return {
     "operationKind": "mutation",
     "name": "EditWorkOrderMutation",
     "id": null,
-    "text": "mutation EditWorkOrderMutation(\n  $input: EditWorkOrderInput!\n) {\n  editWorkOrder(input: $input) {\n    id\n    name\n    description\n    ownerName\n    creationDate\n    installDate\n    status\n    priority\n    assignee\n    ...WorkOrderDetails_workOrder\n    ...WorkOrdersView_workOrder\n  }\n}\n\nfragment CommentsBox_comments on Comment {\n  ...CommentsLog_comments\n}\n\nfragment CommentsLog_comments on Comment {\n  id\n  ...TextCommentPost_comment\n}\n\nfragment DocumentTable_files on File {\n  id\n  fileName\n  category\n  ...FileAttachment_file\n}\n\nfragment DocumentTable_hyperlinks on Hyperlink {\n  id\n  category\n  url\n  displayName\n  ...HyperlinkTableRow_hyperlink\n}\n\nfragment EntityDocumentsTable_files on File {\n  ...DocumentTable_files\n}\n\nfragment EntityDocumentsTable_hyperlinks on Hyperlink {\n  ...DocumentTable_hyperlinks\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment FileAttachment_file on File {\n  id\n  fileName\n  sizeInBytes\n  uploaded\n  fileType\n  storeKey\n  category\n  ...ImageDialog_img\n}\n\nfragment HyperlinkTableRow_hyperlink on Hyperlink {\n  id\n  category\n  url\n  displayName\n  createTime\n}\n\nfragment ImageDialog_img on File {\n  storeKey\n  fileName\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  authorName\n  text\n  createTime\n}\n\nfragment WorkOrderDetailsPaneEquipmentItem_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  parentLocation {\n    id\n    name\n    locationType {\n      id\n      name\n    }\n  }\n  parentPosition {\n    id\n    definition {\n      name\n      visibleLabel\n      id\n    }\n    parentEquipment {\n      id\n      name\n    }\n  }\n}\n\nfragment WorkOrderDetailsPaneLinkItem_link on Link {\n  id\n  futureState\n  ports {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n      portType {\n        linkPropertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n        id\n      }\n    }\n    parentEquipment {\n      id\n      name\n      futureState\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          bandwidth\n          portType {\n            id\n            name\n          }\n        }\n      }\n      ...EquipmentBreadcrumbs_equipment\n    }\n    serviceEndpoints {\n      role\n      service {\n        name\n        id\n      }\n      id\n    }\n  }\n  workOrder {\n    id\n    status\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n  services {\n    id\n    name\n  }\n}\n\nfragment WorkOrderDetailsPane_workOrder on WorkOrder {\n  id\n  name\n  equipmentToAdd {\n    id\n    ...WorkOrderDetailsPaneEquipmentItem_equipment\n  }\n  equipmentToRemove {\n    id\n    ...WorkOrderDetailsPaneEquipmentItem_equipment\n  }\n  linksToAdd {\n    id\n    ...WorkOrderDetailsPaneLinkItem_link\n  }\n  linksToRemove {\n    id\n    ...WorkOrderDetailsPaneLinkItem_link\n  }\n}\n\nfragment WorkOrderDetails_workOrder on WorkOrder {\n  id\n  name\n  description\n  workOrderType {\n    name\n    id\n  }\n  location {\n    name\n    id\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  ownerName\n  assignee\n  creationDate\n  installDate\n  status\n  priority\n  ...WorkOrderDetailsPane_workOrder\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n  images {\n    ...EntityDocumentsTable_files\n    id\n  }\n  files {\n    ...EntityDocumentsTable_files\n    id\n  }\n  hyperlinks {\n    ...EntityDocumentsTable_hyperlinks\n    id\n  }\n  comments {\n    ...CommentsBox_comments\n    id\n  }\n  project {\n    name\n    id\n    type {\n      id\n      name\n    }\n  }\n  checkListCategories {\n    id\n    title\n    description\n    checkList {\n      id\n      index\n      type\n      title\n      helpText\n      checked\n      enumValues\n      stringValue\n      enumSelectionMode\n      selectedEnumValues\n      yesNoResponse\n      files {\n        id\n        fileName\n        sizeInBytes\n        modified\n        uploaded\n        fileType\n        storeKey\n        category\n      }\n    }\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  assignee\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n  closeDate\n}\n",
+    "text": "mutation EditWorkOrderMutation(\n  $input: EditWorkOrderInput!\n) {\n  editWorkOrder(input: $input) {\n    id\n    name\n    description\n    owner {\n      id\n      email\n    }\n    creationDate\n    installDate\n    status\n    priority\n    assignedTo {\n      id\n      email\n    }\n    ...WorkOrderDetails_workOrder\n    ...WorkOrdersView_workOrder\n  }\n}\n\nfragment CommentsBox_comments on Comment {\n  ...CommentsLog_comments\n}\n\nfragment CommentsLog_comments on Comment {\n  id\n  ...TextCommentPost_comment\n}\n\nfragment DocumentTable_files on File {\n  id\n  fileName\n  category\n  ...FileAttachment_file\n}\n\nfragment DocumentTable_hyperlinks on Hyperlink {\n  id\n  category\n  url\n  displayName\n  ...HyperlinkTableRow_hyperlink\n}\n\nfragment EntityDocumentsTable_files on File {\n  ...DocumentTable_files\n}\n\nfragment EntityDocumentsTable_hyperlinks on Hyperlink {\n  ...DocumentTable_hyperlinks\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment FileAttachment_file on File {\n  id\n  fileName\n  sizeInBytes\n  uploaded\n  fileType\n  storeKey\n  category\n  ...ImageDialog_img\n}\n\nfragment HyperlinkTableRow_hyperlink on Hyperlink {\n  id\n  category\n  url\n  displayName\n  createTime\n}\n\nfragment ImageDialog_img on File {\n  storeKey\n  fileName\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  authorName\n  text\n  createTime\n}\n\nfragment WorkOrderDetailsPaneEquipmentItem_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  parentLocation {\n    id\n    name\n    locationType {\n      id\n      name\n    }\n  }\n  parentPosition {\n    id\n    definition {\n      name\n      visibleLabel\n      id\n    }\n    parentEquipment {\n      id\n      name\n    }\n  }\n}\n\nfragment WorkOrderDetailsPaneLinkItem_link on Link {\n  id\n  futureState\n  ports {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n      portType {\n        linkPropertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n        id\n      }\n    }\n    parentEquipment {\n      id\n      name\n      futureState\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          bandwidth\n          portType {\n            id\n            name\n          }\n        }\n      }\n      ...EquipmentBreadcrumbs_equipment\n    }\n    serviceEndpoints {\n      role\n      service {\n        name\n        id\n      }\n      id\n    }\n  }\n  workOrder {\n    id\n    status\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n  services {\n    id\n    name\n  }\n}\n\nfragment WorkOrderDetailsPane_workOrder on WorkOrder {\n  id\n  name\n  equipmentToAdd {\n    id\n    ...WorkOrderDetailsPaneEquipmentItem_equipment\n  }\n  equipmentToRemove {\n    id\n    ...WorkOrderDetailsPaneEquipmentItem_equipment\n  }\n  linksToAdd {\n    id\n    ...WorkOrderDetailsPaneLinkItem_link\n  }\n  linksToRemove {\n    id\n    ...WorkOrderDetailsPaneLinkItem_link\n  }\n}\n\nfragment WorkOrderDetails_workOrder on WorkOrder {\n  id\n  name\n  description\n  workOrderType {\n    name\n    id\n  }\n  location {\n    name\n    id\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  owner {\n    id\n    email\n  }\n  assignedTo {\n    id\n    email\n  }\n  creationDate\n  installDate\n  status\n  priority\n  ...WorkOrderDetailsPane_workOrder\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n  images {\n    ...EntityDocumentsTable_files\n    id\n  }\n  files {\n    ...EntityDocumentsTable_files\n    id\n  }\n  hyperlinks {\n    ...EntityDocumentsTable_hyperlinks\n    id\n  }\n  comments {\n    ...CommentsBox_comments\n    id\n  }\n  project {\n    name\n    id\n    type {\n      id\n      name\n    }\n  }\n  checkListCategories {\n    id\n    title\n    description\n    checkList {\n      id\n      index\n      type\n      title\n      helpText\n      checked\n      enumValues\n      stringValue\n      enumSelectionMode\n      selectedEnumValues\n      yesNoResponse\n      files {\n        id\n        fileName\n        sizeInBytes\n        modified\n        uploaded\n        fileType\n        storeKey\n        category\n      }\n    }\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  owner {\n    id\n    email\n  }\n  creationDate\n  installDate\n  status\n  assignedTo {\n    id\n    email\n  }\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n  closeDate\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'a5855e10ada965136ff076aec1c7a37e';
+(node/*: any*/).hash = 'eea7f76f96a5b4868e4a125d35e9dd03';
 module.exports = node;

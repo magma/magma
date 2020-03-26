@@ -14,6 +14,11 @@ type EntWithID = $ReadOnly<{
   id?: ?string,
 }>;
 
+export type ShortUser = $ReadOnly<{
+  id: string,
+  email: string,
+}>;
+
 export const ENT_TEMP_ID_PREFIX = '@tmp';
 
 export const generateTempId = () => {
