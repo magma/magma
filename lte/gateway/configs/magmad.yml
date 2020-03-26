@@ -23,6 +23,7 @@ magma_services:
   - dnsd
   - policydb
   - state
+  - monitord
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -43,6 +44,7 @@ linked_services:
     - pipelined
     - mobilityd
     - sessiond
+    - monitord
 
 # list of services that are required to have meta before checking in
 # (meta = data gathered via MagmaService.register_get_status_callback())

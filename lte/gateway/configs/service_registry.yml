@@ -65,3 +65,6 @@ services:
   eventd:
     ip_address: 127.0.0.1
     port: 50075
+  monitord:
+    ip_address: 127.0.0.1
+    port: 50076
