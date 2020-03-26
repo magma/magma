@@ -21,6 +21,7 @@ This is template for release notes
 ### Features
 - Equipment functionality:
     - `get_equipments_by_type`
+    - `get_equipments_by_location`
 ### Changes
 ### Deprecated
 ### Removed

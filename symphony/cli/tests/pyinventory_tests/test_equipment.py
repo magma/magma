@@ -8,6 +8,7 @@ from pyinventory.api.equipment import (
     add_equipment,
     get_equipment,
     get_equipment_properties,
+    get_equipments_by_location,
     get_equipments_by_type,
     get_or_create_equipment,
 )
@@ -154,6 +155,13 @@ class TestEquipment(BaseTest):
         equipment_type_id = self.client.equipmentTypes["Tp-Link T1600G"].id
         equipments = get_equipments_by_type(
             client=self.client, equipment_type_id=equipment_type_id
+        )
+        self.assertEqual(len(equipments), 1)
+        self.assertEqual(equipments[0].name, "TPLinkRouter")
+
+    def test_get_equipments_by_location(self) -> None:
+        equipments = get_equipments_by_location(
+            client=self.client, location_id=self.location.id
         )
         self.assertEqual(len(equipments), 1)
         self.assertEqual(equipments[0].name, "TPLinkRouter")

@@ -161,6 +161,40 @@ def get_equipments_by_type(
     return result
 
 
+def get_equipments_by_location(
+    client: SymphonyClient, location_id: str
+) -> List[Equipment]:
+    """Get equipments by ID of specific location.
+
+        Args:
+            location_id (str): location ID
+
+        Returns:
+            List[ pyinventory.consts.Equipment ]: List of found equipments
+
+        Raises:
+            EntityNotFoundError: location with this ID does not exist
+        
+        Example:
+            ```
+            equipments = client.get_equipments_by_location(location_id="60129542651") 
+            ```
+    """
+    location_details = LocationEquipmentsQuery.execute(client, id=location_id).location
+    if location_details is None:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
+    result = []
+    for equipment in location_details.equipments:
+        result.append(
+            Equipment(
+                id=equipment.id,
+                name=equipment.name,
+                equipment_type_name=equipment.equipmentType.name,
+            )
+        )
+    return result
+
+
 def _get_equipment_in_position_if_exists(
     client: SymphonyClient, parent_equipment: Equipment, position_name: str
 ) -> Optional[Equipment]:
