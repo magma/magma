@@ -15,6 +15,7 @@ from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
 from magma.monitord.icmp_monitoring import ICMPMonitoring
 from magma.subscriberdb.sid import SIDUtils
 
+LOCALHOST = '127.0.0.1'
 
 class ICMPMonitoringTests(unittest.TestCase):
     """
@@ -27,7 +28,7 @@ class ICMPMonitoringTests(unittest.TestCase):
         self.subscribers.entries.add(sid=sid, ip=ip, apn='test_apn')
 
     async def _ping_local(self):
-        return await self._monitor._ping_subscribers(["127.0.0.1"],
+        return await self._monitor._ping_subscribers([LOCALHOST],
                                                      self.subscribers.entries)
 
     def setUp(self):
@@ -38,7 +39,7 @@ class ICMPMonitoringTests(unittest.TestCase):
         self.subscribers = SubscriberIPTable()
         self._monitor = ICMPMonitoring(polling_interval=5,
                                        service_loop=self.loop,
-                                       mtr_interface="test")
+                                       mtr_interface=LOCALHOST)
 
     def test_ping_subscriber_saves_response(self):
         imsi = 'IMSI00000000001'
