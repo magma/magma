@@ -60,7 +60,7 @@ func (h *asrHandler) ServeDIAM(conn diam.Conn, m *diam.Message) {
 
 		res, err := client.AbortSession(context.Background(), &protos.AbortSessionRequest{
 			UserName:  imsi,
-			SessionId: asr.SessionID,
+			SessionId: diameter.DecodeSessionID(asr.SessionID),
 		})
 		if err != nil {
 			glog.Errorf("Error relaying ASR to gateway: %s", err)
