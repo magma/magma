@@ -5,17 +5,17 @@ GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
 
 # FEATURES: What kind of flavours do you want your MME or AGW have in it
-# MME is MME as described in 3GPP specs, it has at least S1AP, S11, S6a 
+# MME is MME as described in 3GPP specs, it has at least S1AP, S11, S6a
 # interfaces.
 # AGW means Acces GateWay, is the result of the aggregation of MME, SGW and PGW.
 # First in FEATURES, select what to you want to build : mme or agw with libgtpnl
 # or agw with OVS (OpenFlow): FEATURE=mme or agw_gtpnl or agw_of
-# Then you can have other features that can be built for mme or agw : 
+# Then you can have other features that can be built for mme or agw :
 # s6a with fd (freeDiameter)
 
 # Default is agw with OpenFlow, gRPC over S6a , (no freeDiameter over s6a).
 FEATURES ?= agw_of
-# EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested 
+# EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.
 EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
 # AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
@@ -45,12 +45,14 @@ ifeq ($(MAIN_FEATURE),mme)
 # Here force S6A to use freeDiameter
 OAI_FLAGS = -DS6A_OVER_GRPC=False
 else ifeq ($(MAIN_FEATURE),agw_gtpnl)
-OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=False
+OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=False -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=False
 else ifeq ($(MAIN_FEATURE),agw_of)
-OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True
+OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
+
 else
 # default
-OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True
+OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
+
 endif
 
 $(info OAI_FLAGS $(OAI_FLAGS))
