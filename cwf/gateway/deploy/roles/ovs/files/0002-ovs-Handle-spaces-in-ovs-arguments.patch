@@ -1,7 +1,7 @@
-From f7f05b820ba258f27e141cbd0d9edd942bd0342f Mon Sep 17 00:00:00 2001
+From d83cb2f056a293fbae2c8f38cecc0e27a9c8dd40 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Fri, 13 Mar 2020 19:18:40 +0000
-Subject: [PATCH 2/2] ovs: Handle spaces in ovs arguments
+Subject: [PATCH 2/3] ovs: Handle spaces in ovs arguments
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
