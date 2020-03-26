@@ -87,6 +87,26 @@ def ping_async(ping_params, loop=None):
     )
 
 
+@asyncio.coroutine
+def ping_interface_async(ping_params, loop=None):
+    """
+    Execute ping commands asynchronously through specified interface.
+
+    Args:
+        ping_params ([PingCommandParams]): params for the pings to execute
+        loop: asyncio event loop (optional)
+
+    Returns:
+        [PingCommandResult]: stats from the executed ping commands
+    """
+    return subprocess_workflow.exec_and_parse_subprocesses_async(
+        ping_params,
+        _get_ping_command_interface_args_list,
+        parse_ping_output,
+        loop,
+    )
+
+
 def _get_ping_command_args_list(ping_param):
     return [
         'ping', ping_param.host_or_ip,

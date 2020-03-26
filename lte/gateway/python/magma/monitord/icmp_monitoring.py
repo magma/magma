@@ -82,7 +82,7 @@ class ICMPMonitoring(Job):
         ping_params = [
             ping.PingInterfaceCommandParams(host, NUM_PACKETS, self._MTR_PORT,
                                             TIMEOUT_SECS) for host in hosts]
-        ping_results = await ping.ping_async(ping_params, self._loop)
+        ping_results = await ping.ping_interface_async(ping_params, self._loop)
         ping_results_list = list(ping_results)
         for sub, result in zip(subscribers, ping_results_list):
             sid = "IMSI%s" % sub.sid.id
