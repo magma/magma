@@ -89,9 +89,15 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _setup_flows(self, request: SetupPolicyRequest,
                      fut: 'Future[List[SetupFlowsResult]]'
                      ) -> SetupFlowsResult:
-        enforcement_res = self._enforcer_app.handle_restart(request.requests)
-        # TODO check enf_stats result
-        self._enforcement_stats.handle_restart(request.requests)
+        gx_reqs = [req for req in request.requests
+                   if req.request_origin == RequestOriginType.GX]
+        gy_reqs = [req for req in request.requests
+                   if req.request_origin == RequestOriginType.GY]
+        enforcement_res = self._enforcer_app.handle_restart(gx_reqs)
+        # TODO check these results and aggregate
+        self._gy_app.handle_restart(gy_reqs)
+        self._enforcer_app.handle_restart(gx_reqs)
+        self._enforcement_stats.handle_restart(gx_reqs)
         fut.set_result(enforcement_res)
 
     def ActivateFlows(self, request, context):

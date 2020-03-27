@@ -91,10 +91,17 @@ magma::SetupPolicyRequest create_setup_policy_req(
   std::vector<magma::ActivateFlowsRequest> activation_reqs;
   for(auto it = infos.begin(); it != infos.end(); it++ )
   {
-    auto activate_req = create_activate_req(it->imsi, it->ip_addr,
+    auto gx_activate_req = create_activate_req(it->imsi, it->ip_addr,
       it->static_rules, it->dynamic_rules,
       magma::RequestOriginType::GX);
-    activation_reqs.push_back(activate_req);
+    activation_reqs.push_back(gx_activate_req);
+    if (!it->gy_dynamic_rules.empty()) {
+      std::vector<std::string> static_rules;
+      auto gy_activate_req = create_activate_req(it->imsi, it->ip_addr,
+        static_rules, it->gy_dynamic_rules,
+        magma::RequestOriginType::GY);
+      activation_reqs.push_back(gy_activate_req);
+    }
   }
   auto mut_requests = req.mutable_requests();
   for (const auto& act_req : activation_reqs) {
