@@ -10,12 +10,13 @@ package integ_tests
 
 import (
 	"fmt"
-	"testing"
-	"time"
-
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
+	fegProtos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
+	"math/rand"
+	"testing"
+	"time"
 
 	"github.com/emakeev/go-diameter/diam"
 	"github.com/go-openapi/swag"
@@ -367,4 +368,60 @@ func TestRuleInstallTime(t *testing.T) {
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
 	time.Sleep(3 * time.Second)
+}
+
+//TestAbortSessionRequest
+// This test verifies the abort session request
+// Here we initially setup a session and install a pass all rule
+// We then invoke abort session request from pcrf and expect the
+// ASR to complete without any error and all the rules associated with
+// that session to be cleaned up
+func TestAbortSessionRequest(t *testing.T) {
+	fmt.Println("Running TestAbortSessionRequest")
+	tr := NewTestRunner(t)
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	ues, err := tr.ConfigUEs(1)
+	assert.NoError(t, err)
+	imsi := ues[0].GetImsi()
+	ki := rand.Intn(1000000)
+	monitorKey := fmt.Sprintf("monitor-ASR-%d", ki)
+	ruleKey := fmt.Sprintf("static-ASR1_CCI-%d", ki)
+	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, nil)
+	err = ruleManager.AddStaticRuleToDB(rule)
+
+	err = ruleManager.AddUsageMonitor(imsi, monitorKey, 2*MegaBytes, 1*MegaBytes)
+	err = ruleManager.AddRulesToPCRF(imsi, []string{ruleKey}, []string{})
+	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
+
+	tr.AuthenticateAndAssertSuccess(imsi)
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)][ruleKey])
+
+	asa, err := sendPolicyAbortSession(
+		&fegProtos.PolicyAbortSessionRequest{
+			Imsi: imsi,
+		},
+	)
+	assert.NoError(t, err)
+
+	// Check for Limited ASR success - There is only limited success here
+	// since radius will not do the teardown, radius specifically (COA_DYNAMIC)
+	// module throws this error here. coa_dynamic module isn't enabled during
+	// authentication and hence it isn't aware of the sessionID used when
+	// processing disconnect
+	assert.Contains(t, asa.SessionId, "IMSI"+imsi)
+	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
+
+	// check if all rules have been cleaned up
+	record := recordsBySubID["IMSI"+imsi][ruleKey]
+	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", imsi))
 }
