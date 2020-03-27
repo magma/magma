@@ -146,7 +146,7 @@ class StateMachineManager:
         if not isinstance(tr069_message, models.Inform):
             return
 
-        """ Mikrotik Intercell does not return serial in ParameterList """
+        # Mikrotik Intercell does not return serial in ParameterList
         if hasattr(tr069_message, 'DeviceId') and \
                 hasattr(tr069_message.DeviceId, 'SerialNumber'):
             return tr069_message.DeviceId.SerialNumber
