@@ -247,7 +247,8 @@ void LocalEnforcer::terminate_service(
   const std::vector<std::string>& rule_ids,
   const std::vector<PolicyRule>& dynamic_rules)
 {
-  pipelined_client_->deactivate_flows_for_rules(imsi, rule_ids, dynamic_rules);
+  pipelined_client_->deactivate_flows_for_rules(imsi, rule_ids, dynamic_rules,
+                                                RequestOriginType::GX);
 
   auto it = session_map_.find(imsi);
   if (it == session_map_.end()) {
@@ -520,7 +521,7 @@ void LocalEnforcer::schedule_static_rule_deactivation(
     evb_->timer().scheduleTimeoutFn(
       std::move([=] {
         pipelined_client_->deactivate_flows_for_rules(
-          imsi, static_rules, dynamic_rules);
+          imsi, static_rules, dynamic_rules, RequestOriginType::GX);
         if (it == session_map_.end()) {
           MLOG(MWARNING) << "Could not find session for IMSI " << imsi
                          << "during removal of static rule "
@@ -554,7 +555,7 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
     evb_->timer().scheduleTimeoutFn(
       std::move([=] {
         pipelined_client_->deactivate_flows_for_rules(
-          imsi, static_rules, dynamic_rules);
+          imsi, static_rules, dynamic_rules, RequestOriginType::GX);
         if (it == session_map_.end()) {
           MLOG(MWARNING) << "Could not find session for IMSI " << imsi
                          << "during removal of dynamic rule "
@@ -695,7 +696,8 @@ bool LocalEnforcer::handle_session_init_rule_updates(
     deactivate_success = pipelined_client_->deactivate_flows_for_rules(
       imsi,
       rules_to_deactivate.static_rules,
-      rules_to_deactivate.dynamic_rules);
+      rules_to_deactivate.dynamic_rules,
+      RequestOriginType::GX);
   }
 
   return activate_success && deactivate_success;
@@ -913,6 +915,27 @@ void LocalEnforcer::update_charging_credits(
     for (const auto &session : it->second) {
       session->get_charging_pool().receive_credit(credit_update_resp);
       session->set_tgpp_context(credit_update_resp.tgpp_ctx());
+
+      SessionState::SessionInfo info;
+      std::vector<PolicyRule> gy_rules_to_deactivate;
+      session->get_session_info(info);
+      for (const auto &rule : info.gy_dynamic_rules) {
+        PolicyRule dy_rule;
+        bool is_dynamic = session->remove_gy_dynamic_rule(
+            rule.id(), &dy_rule);
+        if (is_dynamic) {
+          gy_rules_to_deactivate.push_back(dy_rule);
+        }
+      }
+
+      if (!gy_rules_to_deactivate.empty()) {
+        std::vector<std::string> static_rules;
+        bool deactivate_success = pipelined_client_->deactivate_flows_for_rules(
+          imsi,
+          static_rules,
+          gy_rules_to_deactivate,
+          RequestOriginType::GY);
+      }
     }
   }
 }
@@ -971,7 +994,8 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         deactivate_success = pipelined_client_->deactivate_flows_for_rules(
           imsi,
           rules_to_deactivate.static_rules,
-          rules_to_deactivate.dynamic_rules);
+          rules_to_deactivate.dynamic_rules,
+          RequestOriginType::GX);
       }
 
       if (rules_to_process_is_not_empty(rules_to_activate)) {
@@ -1044,7 +1068,8 @@ void LocalEnforcer::terminate_subscriber(
       deactivate_success = pipelined_client_->deactivate_flows_for_rules(
                             imsi,
                             rules_to_deactivate.static_rules,
-                            rules_to_deactivate.dynamic_rules);
+                            rules_to_deactivate.dynamic_rules,
+                            RequestOriginType::GX);
       if (!deactivate_success) {
         MLOG(MERROR) << "Could not deactivate flows for IMSI " << imsi
                      << " and session " << session->get_session_id()
@@ -1241,7 +1266,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
   if (rules_to_process_is_not_empty(rules_to_deactivate)) {
     deactivate_success = pipelined_client_->deactivate_flows_for_rules(
       request.imsi(), rules_to_deactivate.static_rules,
-      rules_to_deactivate.dynamic_rules);
+      rules_to_deactivate.dynamic_rules, RequestOriginType::GX);
   }
   if (rules_to_process_is_not_empty(rules_to_activate)) {
     activate_success = pipelined_client_->activate_flows_for_rules(

@@ -443,7 +443,8 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure)
   // expect all rules attached to this session should be removed
   EXPECT_CALL(
     *pipelined_client,
-    deactivate_flows_for_rules("IMSI1", std::vector<std::string>{"rule1"}, CheckCount(0)))
+    deactivate_flows_for_rules("IMSI1", std::vector<std::string>{"rule1"},
+                               CheckCount(0), testing::_))
     .Times(1)
     .WillOnce(testing::Return(true));
   local_enforcer->update_session_credits_and_rules(update_response);
@@ -548,7 +549,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling)
 
   EXPECT_CALL(
     *pipelined_client,
-    deactivate_flows_for_rules(testing::_, testing::_, testing::_))
+    deactivate_flows_for_rules(testing::_, testing::_, testing::_, testing::_))
     .Times(1)
     .WillOnce(testing::Return(true));
   // call collect_updates to trigger actions
@@ -591,7 +592,7 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling)
 
   EXPECT_CALL(
     *pipelined_client,
-    deactivate_flows_for_rules(testing::_, testing::_, testing::_))
+    deactivate_flows_for_rules(testing::_, testing::_, testing::_, testing::_))
     .Times(1)
     .WillOnce(testing::Return(true));
 
@@ -773,7 +774,8 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions)
 
   EXPECT_CALL(
     *pipelined_client,
-    deactivate_flows_for_rules(testing::_, CheckCount(2), CheckCount(1)))
+    deactivate_flows_for_rules(testing::_, CheckCount(2), CheckCount(1),
+                               testing::_))
     .Times(1)
     .WillOnce(testing::Return(true));
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -972,7 +974,8 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
   EXPECT_CALL(
     *pipelined_client,
     deactivate_flows_for_rules("IMSI1",
-      std::vector<std::string>{"pcrf_only"}, CheckCount(0)))
+      std::vector<std::string>{"pcrf_only"}, CheckCount(0),
+      RequestOriginType::GX))
     .Times(1)
     .WillOnce(testing::Return(true));
   local_enforcer->update_session_credits_and_rules(update_response);

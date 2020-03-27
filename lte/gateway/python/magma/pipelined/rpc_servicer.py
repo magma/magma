@@ -90,9 +90,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                      fut: 'Future[List[SetupFlowsResult]]'
                      ) -> SetupFlowsResult:
         gx_reqs = [req for req in request.requests
-                   if req.request_origin == RequestOriginType.GX]
+                   if req.request_origin.type == RequestOriginType.GX]
         gy_reqs = [req for req in request.requests
-                   if req.request_origin == RequestOriginType.GY]
+                   if req.request_origin.type == RequestOriginType.GY]
         enforcement_res = self._enforcer_app.handle_restart(gx_reqs)
         # TODO check these results and aggregate
         self._gy_app.handle_restart(gy_reqs)
@@ -111,7 +111,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
 
         fut = Future()  # type: Future[ActivateFlowsResult]
-        if request.origin == RequestOriginType.GX:
+        if request.request_origin.type == RequestOriginType.GX:
             self._loop.call_soon_threadsafe(self._activate_flows_gx,
                                             request, fut)
         else:
@@ -222,7 +222,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        if request.origin == RequestOriginType.GX:
+        if request.request_origin.type == RequestOriginType.GX:
             self._loop.call_soon_threadsafe(self._deactivate_flows_gx,
                                             request)
         else:

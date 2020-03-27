@@ -214,10 +214,11 @@ bool AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi)
 bool AsyncPipelinedClient::deactivate_flows_for_rules(
   const std::string& imsi,
   const std::vector<std::string>& rule_ids,
-  const std::vector<PolicyRule>& dynamic_rules)
+  const std::vector<PolicyRule>& dynamic_rules,
+  const RequestOriginType_OriginType origin_type)
 {
   auto req = create_deactivate_req(imsi, rule_ids, dynamic_rules,
-                                   RequestOriginType::GX);
+                                   origin_type);
   MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
                << dynamic_rules.size() << " dynamic rules for subscriber "
                << imsi;
