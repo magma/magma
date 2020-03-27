@@ -36,7 +36,6 @@ class TestMultiEnbMultiUEAttachDetach(unittest.TestCase):
              in enb_list
            b. For single eNB test case, configure plmn and tac in nbAppCfg.txt
         """
-        num_of_enbs = 5
         # column is a enb parameter,  row is a number of enbs
         """            Cell Id,   Tac, EnbType, PLMN Id, PLMN length """
         enb_list = [[1,       1,     1,    "00101", 5],
@@ -45,10 +44,7 @@ class TestMultiEnbMultiUEAttachDetach(unittest.TestCase):
                     [4,       1,     1,    "00101", 5],
                     [5,       1,     1,    "00101", 5]]
 
-        assert (num_of_enbs == len(enb_list)), "Number of enbs configured"
-        "not equal to enbs in the list!!!"
-
-        self._s1ap_wrapper.multiEnbConfig(num_of_enbs, enb_list)
+        self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
         time.sleep(2)
 

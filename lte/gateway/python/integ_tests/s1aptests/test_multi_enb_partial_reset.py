@@ -23,23 +23,32 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_multiple_enb_partial_reset(self):
-        """ attach 32 UEs """
-        num_of_enbs = 5
+        """ Multi eNB + attach 1 UE + s1ap partial reset + detach """
+        """ Note: Before execution of this test case,
+        make sure that following steps are correct
+        1. Configure same plmn and tac in both MME and s1ap tester
+        2. How to configure plmn and tac in MME:
+           a. Set mcc and mnc in gateway.mconfig for mme service
+           b. Set tac in gateway.mconfig for mme service
+           c. Restart MME service
+        3. How to configure plmn and tac in s1ap tester,
+           a. For multi-eNB test case, configure plmn and tac from test case.
+             In each multi-eNB test case, set plmn, plmn kength and tac
+             in enb_list
+           b. For single eNB test case, configure plmn and tac in nbAppCfg.txt
+        """
+
         # column is a enb parameter,  row is a number of enbs
         """            Cell Id,   Tac, EnbType, PLMN Id, PLMN length """
-        enb_list = list([[1,       1,     1,    "001010", 6],
-                         [2,       1,     1,    "001010", 6],
-                         [3,       1,     1,    "001010", 6],
-                         [4,       1,     1,    "001010", 6],
-                         [5,       1,     1,    "001010", 6]])
+        enb_list = [[1,       1,     1,    "00101", 5],
+                    [2,       1,     1,    "00101", 5],
+                    [3,       1,     1,    "00101", 5],
+                    [4,       1,     1,    "00101", 5],
+                    [5,       1,     1,    "00101", 5]]
 
-        assert (num_of_enbs == len(enb_list)), "Number of enbs configured"
-        "not equal to enbs in the list!!!"
-
-        self._s1ap_wrapper.multiEnbConfig(num_of_enbs, enb_list)
+        self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
         time.sleep(2)
-
         ue_ids = []
         num_ues = 1
 
