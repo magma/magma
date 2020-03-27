@@ -308,11 +308,11 @@ func TestRuleInstallTime(t *testing.T) {
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	now := time.Now().Round(1 * time.Second)
-	timeUntilActivation := 6 * time.Second
+	timeUntilActivation := 10 * time.Second
 	activation := now.Add(timeUntilActivation)
 	pActivation, err := ptypes.TimestampProto(activation)
 	assert.NoError(t, err)
-	timeUntilDeactivation := 5 * time.Second
+	timeUntilDeactivation := 6 * time.Second
 	deactivation := activation.Add(timeUntilDeactivation)
 	pDeactivation, err := ptypes.TimestampProto(deactivation)
 	assert.NoError(t, err)
