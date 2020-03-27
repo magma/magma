@@ -40,8 +40,8 @@ const (
 // - Generate traffic to put traffic through the newly installed rule.
 //   Assert that there's > 0 data usage in the rule.
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
-func TestUsageReportEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestUsageReportEnforcement...")
+func TestGxUsageReportEnforcement(t *testing.T) {
+	fmt.Println("\nRunning TestGxUsageReportEnforcement...")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -143,8 +143,8 @@ func TestUsageReportEnforcement(t *testing.T) {
 //   Generate traffic and assert the CCR-U is received.
 // - Generate traffic to put traffic through the newly installed rule.
 //   Assert that there's > 0 data usage in the rule.
-func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
-	fmt.Println("\nRunning TestMidSessionRuleRemovalWithCCA_U...")
+func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
+	fmt.Println("\nRunning TestGxMidSessionRuleRemovalWithCCA_U...")
 
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
@@ -270,8 +270,8 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 // - Sleep for Y seconds and check policy usage again. Assert that
 //   static-pass-all-2 is uninstalled.
 // Note: things might get weird if there are clock skews
-func TestRuleInstallTime(t *testing.T) {
-	fmt.Println("\nRunning TestRuleInstallTime...")
+func TestGxRuleInstallTime(t *testing.T) {
+	fmt.Println("\nRunning TestGxRuleInstallTime...")
 
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()

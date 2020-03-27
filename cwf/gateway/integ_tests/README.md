@@ -51,9 +51,13 @@ This fabfile will
 * Run the integration test on `cwag-test`
 * Clean up (Kill the UE sim on `cwag-test` and stop the iperf3 server on `magma-trfserver`)
 
-The fabfile by default stops, rebuilds, and starts all containers. If you 
+#### Fab script parameters
+* `no_build`: The fabfile by default stops, rebuilds, and starts all containers. If you 
 only want to restart the containers, and not rebuild everything, run 
 `fab integ_test:no_build=True`. 
+* `tests_to_run`: By default, the fab script will run all existing tests. You can 
+specify a subset of them with this flag. For example, run `fab integ_test:tests_to_run=gx`, 
+to only run Gx tests. See the fabfile for more options.
 
 ## Debugging on `cwag-dev` VM
 * To see the list of running services, run `docker ps` in the `cwag-dev` VM.

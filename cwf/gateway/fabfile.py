@@ -9,6 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import sys
 from distutils.util import strtobool
+from enum import Enum
 
 from fabric.api import cd, env, execute, lcd, local, put, run, settings, sudo
 
@@ -26,8 +27,19 @@ CWAG_BR_NAME = "cwag_br0"
 CWAG_TEST_BR_NAME = "cwag_test_br0"
 
 
+class SubTests(Enum):
+    ALL = "integ_test"
+    AUTH = "authenticate"
+    GX = "gx"
+    GY = "gy"
+
+    @staticmethod
+    def list():
+        return list(map(lambda t: t.value, SubTests))
+
+
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
-               destroy_vm="False", no_build="False"):
+               destroy_vm="False", no_build="False", tests_to_run="integ_test"):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -47,7 +59,12 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     no_build: When set to true, this script will NOT rebuild all docker images.
     """
-
+    try:
+        tests_to_run = SubTests(tests_to_run)
+    except ValueError:
+        print("{} is not a valid value. We support {}".format(
+            tests_to_run, SubTests.list()))
+        return
     destroy_vm = bool(strtobool(destroy_vm))
     no_build = bool(strtobool(no_build))
 
@@ -109,7 +126,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
-    execute(_run_integ_tests, test_host, trf_host)
+    execute(_run_integ_tests, test_host, trf_host, tests_to_run)
 
 
 def _transfer_docker_images():
@@ -210,11 +227,11 @@ def _run_unit_tests():
         run('make test')
 
 
-def _run_integ_tests(test_host, trf_host):
+def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests):
     """ Run the integration tests """
     with cd(CWAG_INTEG_ROOT):
-        result = run('make integ_test', warn_only=True)
-
+        command = "make " + str(tests_to_run.value)
+        result = run(command, warn_only=True)
     if not test_host and not trf_host:
         # Clean up only for now when running locally
         execute(_clean_up)
