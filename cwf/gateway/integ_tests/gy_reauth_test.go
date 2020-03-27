@@ -28,8 +28,8 @@ const (
 	ReAuthValidityTime    = 60   // in second
 )
 
-func TestAuthenticateUplinkWithOCSChargingReAuth(t *testing.T) {
-	fmt.Println("\nRunning TestAuthenticateUplinkWithOcsChargingReAuth...")
+func TestGyReAuth(t *testing.T) {
+	fmt.Println("\nRunning TestGyReAuth...")
 
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()

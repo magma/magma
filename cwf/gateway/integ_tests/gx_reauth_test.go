@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func pcrfReAuthTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig) {
+func gxReAuthTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig) {
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -59,10 +59,10 @@ func pcrfReAuthTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UE
 // - Send a PCRF ReAuth request to delete "static-pass-all-raa2" and "base-raa1"
 //   and assert that the response is successful
 // - Assert that the requested rules were removed
-func TestMidSessionRuleRemovalWithPolocyReAuth(t *testing.T) {
-	fmt.Println("\nRunning TestMidSessionRuleRemovalWithPolicyReAuth...")
+func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
+	fmt.Println("\nRunning TestGxReAuthWithMidSessionPolicyRemoval...")
 
-	tr, ruleManager, ue := pcrfReAuthTestSetup(t)
+	tr, ruleManager, ue := gxReAuthTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
@@ -132,10 +132,10 @@ func TestMidSessionRuleRemovalWithPolocyReAuth(t *testing.T) {
 //   that the response is successful
 // - Assert that the requested rules were removed
 // - Assert that session was deleted
-func TestMidSessionAllRulesRemovalWithPolicyReAuth(t *testing.T) {
-	fmt.Println("\nRunning TestMidSessionAllRulesRemovalWithPolicyReAuth...")
+func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
+	fmt.Println("\nRunning TestGxReAuthWithMidSessionPoliciesRemoval...")
 
-	tr, ruleManager, ue := pcrfReAuthTestSetup(t)
+	tr, ruleManager, ue := gxReAuthTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
@@ -205,10 +205,10 @@ func TestMidSessionAllRulesRemovalWithPolicyReAuth(t *testing.T) {
 //   and assert that the response is successful
 // - Generate traffic and assert that there's > 0 data usage for the newly installed
 //   rule.
-func TestMidSessionRuleInstallWithPolicyReAuth(t *testing.T) {
-	fmt.Println("\nRunning TestMidSessionRuleInstallWithPolicyReAuth...")
+func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
+	fmt.Println("\nRunning TestGxReAuthWithMidSessionPolicyInstall...")
 
-	tr, ruleManager, ue := pcrfReAuthTestSetup(t)
+	tr, ruleManager, ue := gxReAuthTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
@@ -304,10 +304,10 @@ func TestMidSessionRuleInstallWithPolicyReAuth(t *testing.T) {
 // - Assert that the response is successful
 // - Generate traffic and assert that there's > 0 data usage for the newly installed
 //   rule.
-func TestMidSessionRuleRemovalAndInstallWithPolicyReAuth(t *testing.T) {
-	fmt.Println("\nRunning TestMidSessionRuleRemovalAndInstallWithPolicyReAuth...")
+func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
+	fmt.Println("\nRunning TestGxReAuthWithMidSessionPolicyInstallAndRemoval...")
 
-	tr, ruleManager, ue := pcrfReAuthTestSetup(t)
+	tr, ruleManager, ue := gxReAuthTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
@@ -408,10 +408,10 @@ func TestMidSessionRuleRemovalAndInstallWithPolicyReAuth(t *testing.T) {
 // - Generate traffic and assert that there's > 0 data usage for the newly installed
 //   rule.
 // - Asserting that quota was updated is still needed.
-func TestMidSessionQuotaRefillPolicyReAuth(t *testing.T) {
-	fmt.Println("\nRunning TestMidSessionQuotaRefillPolicyReAuth...")
+func TestGxReAuthQuotaRefill(t *testing.T) {
+	fmt.Println("\nRunning TestGxReAuthQuotaRefill...")
 
-	tr, ruleManager, ue := pcrfReAuthTestSetup(t)
+	tr, ruleManager, ue := gxReAuthTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
