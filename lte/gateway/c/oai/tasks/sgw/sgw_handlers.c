@@ -2147,9 +2147,9 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
             // Adding UE to the rule is safe
             dlflow.dst_ip.s_addr = ue.s_addr;
 
-            // At least we can match on IP proto and UE IPv4 addr;
+            // At least we can match UE IPv4 addr;
             // when IPv6 is supported, we need to revisit this.
-            dlflow.set_params = IP_PROTO | DST_IPV4;
+            dlflow.set_params = DST_IPV4;
 
             // Process remote address if present
             if (
@@ -2165,8 +2165,17 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
               dlflow.set_params |= SRC_IPV4;
             }
 
-            // Specify next header
+            // Specify the next header
             dlflow.ip_proto = packet_filter.protocolidentifier_nextheader;
+            // Match on proto if it is explicity specified to be
+            // other than the dummy IP. When PCRF RAR message does not
+            // define the protocol type, this field defaults to 0.
+            // OVS would still apply exact match on 0  if parameter is set,
+            // although incoming packets will have a proper protocol number 
+            // in its header leading to no match.
+            if (dlflow.ip_proto != IPPROTO_IP) {
+              dlflow.set_params |= IP_PROTO;
+            }
 
             // Process remote port if present
             if (
