@@ -9,9 +9,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import os
 
-from fabric.api import cd, local, run, hide, settings
+from fabric.api import cd, hide, local, run, settings
 from fabric.operations import get
-
 
 # Local changes are only allowed in files specified in the EXCLUDE_FILE_LIST
 EXCLUDE_FILE_LIST = [os.path.realpath(x) for x in [
@@ -116,7 +115,25 @@ def upload_pkgs_to_aws():
                         ' | xargs -I "%" dpkg -I ~/magma-packages/%'
                         ' | grep "Version"'
                         ' | awk \'{print $2}\'')
+    copy_packages()
 
+    # Upload to AWS
+    s3_path = 's3://magma-images/gateway/' + magma_version
+    local('aws s3 cp /tmp/packages.txt ' + s3_path + '.deplist')
+    local('aws s3 cp release/magma.lockfile ' + s3_path + '.lockfile')
+    local('aws s3 cp /tmp/packages.tar.gz ' + s3_path + '.deps.tar.gz')
+
+    # Clean up
+    run('rm -r /tmp/packages')
+    run('rm /tmp/packages.tar.gz')
+    local('rm /tmp/packages.tar.gz')
+    local('rm /tmp/packages.txt')
+
+
+def copy_packages():
+    """
+    Copy the dependencies in the apt cache to /tmp on the local machine.
+    """
     # Build a list of package metadata were each row looks like:
     #
     #   pkg_name version deb_name
@@ -144,15 +161,3 @@ def upload_pkgs_to_aws():
     # Pull the artifacts onto the local machine
     get('/tmp/packages.tar.gz', '/tmp/packages.tar.gz')
     get('/tmp/packages.txt', '/tmp/packages.txt')
-
-    # Upload to AWS
-    s3_path = 's3://magma-images/gateway/' + magma_version
-    local('aws s3 cp /tmp/packages.txt ' + s3_path + '.deplist')
-    local('aws s3 cp release/magma.lockfile ' + s3_path + '.lockfile')
-    local('aws s3 cp /tmp/packages.tar.gz ' + s3_path + '.deps.tar.gz')
-
-    # Clean up
-    run('rm -r /tmp/packages')
-    run('rm /tmp/packages.tar.gz')
-    local('rm /tmp/packages.tar.gz')
-    local('rm /tmp/packages.txt')
