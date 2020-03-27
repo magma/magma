@@ -370,14 +370,14 @@ func TestGxRuleInstallTime(t *testing.T) {
 	time.Sleep(3 * time.Second)
 }
 
-//TestAbortSessionRequest
+//TestGxAbortSessionRequest
 // This test verifies the abort session request
 // Here we initially setup a session and install a pass all rule
 // We then invoke abort session request from pcrf and expect the
 // ASR to complete without any error and all the rules associated with
 // that session to be cleaned up
-func TestAbortSessionRequest(t *testing.T) {
-	fmt.Println("Running TestAbortSessionRequest")
+func TestGxAbortSessionRequest(t *testing.T) {
+	fmt.Println("\nRunning TestGxAbortSessionRequest")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
