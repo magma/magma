@@ -316,6 +316,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
   #if EMBEDDED_SGW
   char *sgw_ip_address_for_s11 = NULL;
   #endif
+  char *sgw_ip_address_for_s11 = NULL;
   bool swap = false;
   bstring address = NULL;
   bstring cidr = NULL;
@@ -1189,7 +1190,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
         }
         config_pP->e_dns_emulation.sgw_id[i] = bfromcstr(id);
 
-#if EMBEDDED_SGW
+//#if EMBEDDED_SGW
         if ((config_setting_lookup_string(
               sub2setting,
               SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,
@@ -1212,7 +1213,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
             "Parsing configuration file found S-GW S11: %s\n",
             inet_ntoa(config_pP->e_dns_emulation.sgw_ip_addr[i]));
         }
-#endif
+//#endif
       }
       config_pP->e_dns_emulation.nb_sgw_entries++;
     }

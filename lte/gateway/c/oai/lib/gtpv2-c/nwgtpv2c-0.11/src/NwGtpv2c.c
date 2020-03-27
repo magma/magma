@@ -640,6 +640,12 @@ static nw_rc_t nwGtpv2cCreateLocalTunnel (
       if (pUlpReq->apiType & NW_GTPV2C_ULP_API_FLAG_IS_COMMAND_MESSAGE) {
         pTrxn->seqNum |= 0x00800000UL;
       }
+
+
+      char peer_ip[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, (void *)&pTrxn->peer_ip.addrv4.sin_addr, peer_ip, INET_ADDRSTRLEN);
+      OAILOG_DEBUG (LOG_GTPV2C, "peer IP information %s\n", peer_ip);
+
       rc = nwGtpv2cCreateAndSendMsg (thiz, pTrxn->seqNum, 0, (struct sockaddr *)&pTrxn->peer_ip, pTrxn->peerPort, pTrxn->pMsg); /**< Send it from the socket with the high port. */
       if (NW_OK == rc) {
         /*
