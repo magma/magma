@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 
@@ -15,6 +16,21 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func websocket(client *client.Client, query string) *client.Subscription {
+	sub := client.Websocket(query)
+	next := sub.Next
+	sub.Next = func(rsp interface{}) error {
+		for {
+			if err := next(rsp); err == nil ||
+				!strings.HasPrefix(err.Error(), "expected data message, got") ||
+				!strings.Contains(err.Error(), "ka") {
+				return err
+			}
+		}
+	}
+	return sub
+}
 
 func TestSubscriptionWorkOrder(t *testing.T) {
 	resolver := newTestResolver(t)
@@ -33,7 +49,7 @@ func TestSubscriptionWorkOrder(t *testing.T) {
 	}
 
 	var (
-		sub = c.Websocket(`subscription { workOrderAdded { id name workOrderType { name } } }`)
+		sub = websocket(c, `subscription { workOrderAdded { id name workOrderType { name } } }`)
 		wg  sync.WaitGroup
 		sid string
 	)
@@ -74,7 +90,7 @@ func TestSubscriptionWorkOrder(t *testing.T) {
 	wg.Wait()
 	assert.Equal(t, id, sid)
 
-	sub = c.Websocket(`subscription { workOrderDone { id } }`)
+	sub = websocket(c, `subscription { workOrderDone { id } }`)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

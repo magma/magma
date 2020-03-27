@@ -14,6 +14,11 @@
 #    %> sudo python3 setup_pyinventory.py develop
 #    %> ./compile_graphql.sh
 
+directive @deprecatedInput(
+  newField: String
+  reason: String = "Deprecated field is no longer supported"
+) on INPUT_FIELD_DEFINITION
+
 enum UserStatus
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/ent/user.Status"
@@ -43,7 +48,11 @@ type User implements Node {
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
-  email: String! @goField(name: "user")
+  email: String!
+    @goField(name: "user")
+    @deprecated(
+      reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
+    )
   user: User!
 }
 
@@ -396,8 +405,18 @@ input AddWorkOrderInput {
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      reason: "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together"
+    )
+  ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      reason: "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus
   priority: WorkOrderPriority
@@ -408,8 +427,18 @@ input EditWorkOrderInput {
   name: String!
   description: String
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      reason: "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together"
+    )
+  ownerId: ID
   installDate: Time
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      reason: "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -418,6 +447,18 @@ input EditWorkOrderInput {
   checkList: [CheckListItemInput!]
   checkListCategories: [CheckListCategoryInput!]
   locationId: ID
+}
+
+input TechnicianCheckListItemInput {
+  id: ID!
+  selectedEnumValues: String
+  stringValue: String
+  checked: Boolean
+}
+
+input TechnicianWorkOrderUploadInput {
+  workOrderId: ID!
+  checklist: [TechnicianCheckListItemInput!]!
 }
 
 type EquipmentPortType implements Node {
@@ -869,6 +910,7 @@ enum ImageEntity {
   SITE_SURVEY
   EQUIPMENT
   USER
+  CHECKLIST_ITEM
 }
 
 enum PropertyEntity {
@@ -926,10 +968,17 @@ input WorkOrderDefinitionInput {
   type: ID!
 }
 
+enum YesNoResponse {
+  YES
+  NO
+}
+
 enum CheckListItemType {
   simple
   string
   enum
+  files
+  yes_no
 }
 
 enum CheckListItemEnumSelectionMode {
@@ -973,6 +1022,8 @@ type CheckListItem implements Node {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  files: [File!]!
+  yesNoResponse: YesNoResponse
 }
 
 input CheckListCategoryInput {
@@ -993,6 +1044,8 @@ input CheckListItemInput {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  files: [FileInput!]
+  yesNoResponse: YesNoResponse
 }
 
 enum FilterEntity {
@@ -1066,9 +1119,17 @@ type WorkOrder implements Node {
   name: String!
   description: String
   ownerName: String!
+    @deprecated(
+      reason: "Use `WorkOrder.owner.email` instead. Will be removed on 2020-05-01"
+    )
+  owner: User!
   creationDate: Time!
   installDate: Time
   assignee: String
+    @deprecated(
+      reason: "Use `WorkOrder.assignedTo.email` instead. Will be removed on 2020-05-01"
+    )
+  assignedTo: User
   index: Int!
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -1256,6 +1317,10 @@ type Project implements Node {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecated(
+      reason: "Use `Project.createdBy.email` instead. Will be removed on 2020-05-01"
+    )
+  createdBy: User
   type: ProjectType!
   location: Location
   workOrders: [WorkOrder!]!
@@ -1268,6 +1333,11 @@ input AddProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      reason: "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -1278,6 +1348,11 @@ input EditProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      reason: "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -1335,6 +1410,11 @@ type ServiceSearchResult {
   count: Int!
 }
 
+type UserSearchResult {
+  users: [User]!
+  count: Int!
+}
+
 type WorkOrderSearchResult {
   workOrders: [WorkOrder]!
   count: Int!
@@ -1388,6 +1468,13 @@ enum ServiceFilterType {
   EQUIPMENT_IN_SERVICE
 }
 
+"""
+what filters should we apply on users
+"""
+enum UserFilterType {
+  USER_NAME
+}
+
 input PortFilterInput {
   filterType: PortFilterType!
   operator: FilterOperator!
@@ -1430,6 +1517,16 @@ input ServiceFilterInput {
   maxDepth: Int = 5
 }
 
+input UserFilterInput {
+  filterType: UserFilterType!
+  operator: FilterOperator!
+  stringValue: String
+  propertyValue: PropertyTypeInput
+  idSet: [ID!]
+  stringSet: [String!]
+  maxDepth: Int = 5
+}
+
 """
 what type of work order we filter about
 """
@@ -1437,10 +1534,18 @@ enum WorkOrderFilterType {
   WORK_ORDER_NAME
   WORK_ORDER_STATUS
   WORK_ORDER_OWNER
+    @deprecated(
+      reason: "Use `WorkOrderFilterType.WORK_ORDER_OWNED_BY` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_OWNED_BY
   WORK_ORDER_TYPE
   WORK_ORDER_CREATION_DATE
   WORK_ORDER_INSTALL_DATE
   WORK_ORDER_ASSIGNEE
+    @deprecated(
+      reason: "Use `WorkOrderFilterType.WORK_ORDER_ASSIGNED_TO` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_ASSIGNED_TO
   WORK_ORDER_LOCATION_INST
   WORK_ORDER_PRIORITY
   LOCATION_INST
@@ -1660,7 +1765,7 @@ type FloorPlanReferencePoint {
 }
 
 input FileInput {
-  id: ID!
+  id: ID
   fileName: String!
   sizeInBytes: Int
   modificationTime: Int
@@ -2006,9 +2111,9 @@ type Query {
   ): Node
   user(authID: String!): User
   location(id: ID!): Location
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   locationType(id: ID!): LocationType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   locationTypes(
     after: Cursor
     first: Int
@@ -2026,9 +2131,9 @@ type Query {
     last: Int
   ): LocationConnection
   equipment(id: ID!): Equipment
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -2048,9 +2153,9 @@ type Query {
     last: Int
   ): EquipmentTypeConnection!
   service(id: ID!): Service
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   serviceType(id: ID!): ServiceType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   serviceTypes(
     after: Cursor
     first: Int
@@ -2058,7 +2163,7 @@ type Query {
     last: Int
   ): ServiceTypeConnection
   workOrder(id: ID!): WorkOrder
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   workOrders(
     after: Cursor
     first: Int
@@ -2081,7 +2186,7 @@ type Query {
     last: Int
   ): SearchEntriesConnection!
     @deprecated(
-      reason: "Use `searchForNode` instead. Will be removed on 1/5/2020"
+      reason: "Use `searchForNode` instead. Will be removed on 2020-05-01"
     )
   searchForNode(
     name: String!
@@ -2116,6 +2221,7 @@ type Query {
     filters: [ServiceFilterInput!]!
     limit: Int = 500
   ): ServiceSearchResult!
+  userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
@@ -2126,7 +2232,7 @@ type Query {
   ): [Location!]!
   vertex(id: ID!): Vertex
   projectType(id: ID!): ProjectType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   projectTypes(
     after: Cursor
     first: Int
@@ -2314,6 +2420,9 @@ type Mutation {
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
+  technicianWorkOrderUploadData(
+    input: TechnicianWorkOrderUploadInput!
+  ): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!

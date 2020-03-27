@@ -118,7 +118,10 @@ func main() {
 			gx.GetGxReAuthHandler(cloudReg, policyDBClient), cloudReg, gxGlobalConfig)
 	}
 	// Add servicers to the service
-	sessionManager := servicers.NewCentralSessionController(gyClnt, gxClnt, policyDBClient, controllerCfg)
+
+	sessionManager := servicers.NewCentralSessionControllers_SingleServer(gyClnt,
+		gxClnt, policyDBClient, controllerCfg)
+	//sessionManager := servicers.NewCentralSessionController(gyClnt, gxClnt, policyDBClient, controllerCfg)
 	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessionManager)
 	protos.RegisterServiceHealthServer(srv.GrpcServer, sessionManager)
 

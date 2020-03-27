@@ -13,6 +13,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"magma/orc8r/cloud/go/services/eventd/obsidian/models"
+
 	"github.com/labstack/echo"
 	"github.com/olivere/elastic/v7"
 	"github.com/stretchr/testify/assert"
@@ -33,11 +35,11 @@ type queryParamTestCase struct {
 	expectedParams eventQueryParams
 }
 
-type eventMapTestCase struct {
-	name         string
-	jsonSource   string
-	expectedMaps []map[string]interface{}
-	expectsError bool
+type eventResultTestCase struct {
+	name            string
+	jsonSource      string
+	expectedResults []models.Event
+	expectsError    bool
 }
 
 var (
@@ -122,7 +124,7 @@ var (
 		},
 	}
 
-	eventMapTestCases = []eventMapTestCase{
+	eventResultTestCases = []eventResultTestCase{
 		{
 			name: "all fields",
 			jsonSource: `{
@@ -132,14 +134,13 @@ var (
 				"event_tag": "d",
 				"value":"{ \"some_property\": true }"
 			}`,
-			expectedMaps: []map[string]interface{}{
+			expectedResults: []models.Event{
 				{
-					"stream_name":   "a",
-					"event_type":    "b",
-					"hardware_id":   "c",
-					"tag":           "d",
-					"some_property": true,
-					"timestamp":     "",
+					StreamName: "a",
+					EventType:  "b",
+					HardwareID: "c",
+					Tag:        "d",
+					Value:      map[string]interface{}{"some_property": true},
 				},
 			},
 		},
@@ -150,13 +151,11 @@ var (
 				"event_type": "b",
 				"value":"{}"
 			}`,
-			expectedMaps: []map[string]interface{}{
+			expectedResults: []models.Event{
 				{
-					"stream_name": "a",
-					"event_type":  "b",
-					"hardware_id": "",
-					"tag":         "",
-					"timestamp":   "",
+					StreamName: "a",
+					EventType:  "b",
+					Value:      map[string]interface{}{},
 				},
 			},
 		},
@@ -166,7 +165,6 @@ var (
 				"stream_name": "a",
 				"event_type": "b"
 			}`,
-			expectedMaps: []map[string]interface{}{},
 			expectsError: true,
 		},
 	}
@@ -215,23 +213,23 @@ func runQueryParamTestCase(t *testing.T, tc queryParamTestCase) {
 	}
 }
 
-func TestGetEventMap(t *testing.T) {
-	for _, test := range eventMapTestCases {
+func TestGetEventResults(t *testing.T) {
+	for _, test := range eventResultTestCases {
 		t.Run(test.name, func(t *testing.T) {
-			runEventMapTestCase(t, test)
+			runEventResultTestCase(t, test)
 		})
 	}
 }
 
-func runEventMapTestCase(t *testing.T, tc eventMapTestCase) {
+func runEventResultTestCase(t *testing.T, tc eventResultTestCase) {
 	hit := elastic.SearchHit{
 		Source: []byte(tc.jsonSource),
 	}
-	maps, err := getEventMaps([]*elastic.SearchHit{&hit})
+	results, err := getEventResults([]*elastic.SearchHit{&hit})
 	if tc.expectsError {
 		assert.Error(t, err)
 	} else {
 		assert.NoError(t, err)
-		assert.Equal(t, tc.expectedMaps, maps)
+		assert.Equal(t, tc.expectedResults, results)
 	}
 }

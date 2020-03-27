@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Mapping, Optional, Tuple
 
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
@@ -25,6 +25,7 @@ from ..graphql.equipment_search_query import EquipmentSearchQuery
 from ..graphql.equipment_type_and_properties_query import (
     EquipmentTypeAndPropertiesQuery,
 )
+from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
 from ..graphql.property_kind_enum import PropertyKind
 from ..graphql.remove_equipment_mutation import RemoveEquipmentMutation
@@ -121,6 +122,79 @@ def get_equipment_properties(
     return properties_dict
 
 
+def get_equipments_by_type(
+    client: SymphonyClient, equipment_type_id: str
+) -> List[Equipment]:
+    """Get equipments by ID of specific type.
+
+        Args:
+            equipment_type_id (str): equipment type ID
+
+        Returns:
+            List[ pyinventory.consts.Equipment ]: List of found equipments
+
+        Raises:
+            EntityNotFoundError: equipment type with this ID does not exist
+
+        Example:
+            ```
+            equipments = client.get_equipments_by_type(equipment_type_id="34359738369") 
+            ```
+    """
+    equipment_type_with_equipments = EquipmentTypeEquipmentQuery.execute(
+        client, id=equipment_type_id
+    ).equipmentType
+    if not equipment_type_with_equipments:
+        raise EntityNotFoundError(
+            entity=Entity.EquipmentType, entity_id=equipment_type_id
+        )
+    result = []
+    for equipment in equipment_type_with_equipments.equipments:
+        result.append(
+            Equipment(
+                id=equipment.id,
+                name=equipment.name,
+                equipment_type_name=equipment.equipmentType.name,
+            )
+        )
+
+    return result
+
+
+def get_equipments_by_location(
+    client: SymphonyClient, location_id: str
+) -> List[Equipment]:
+    """Get equipments by ID of specific location.
+
+        Args:
+            location_id (str): location ID
+
+        Returns:
+            List[ pyinventory.consts.Equipment ]: List of found equipments
+
+        Raises:
+            EntityNotFoundError: location with this ID does not exist
+        
+        Example:
+            ```
+            equipments = client.get_equipments_by_location(location_id="60129542651") 
+            ```
+    """
+    location_details = LocationEquipmentsQuery.execute(client, id=location_id).location
+    if location_details is None:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
+    result = []
+    for equipment in location_details.equipments:
+        result.append(
+            Equipment(
+                id=equipment.id,
+                name=equipment.name,
+                equipment_type_name=equipment.equipmentType.name,
+            )
+        )
+    return result
+
+
 def _get_equipment_in_position_if_exists(
     client: SymphonyClient, parent_equipment: Equipment, position_name: str
 ) -> Optional[Equipment]:
@@ -178,7 +252,7 @@ def add_equipment(
     name: str,
     equipment_type: str,
     location: Location,
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Mapping[str, PropertyValue],
 ) -> Equipment:
     """Create a new equipment in a given location. 
         The equipment will be of the given equipment type, 
@@ -193,7 +267,7 @@ def add_equipment(
             - `pyinventory.api.location.get_location`
             - `pyinventory.api.location.add_location`
             
-            properties_dict (Dict[str, PropertyValue]): dict of property name to property value
+            properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
 
@@ -365,7 +439,7 @@ def add_equipment_to_position(
     equipment_type: str,
     existing_equipment: Equipment,
     position_name: str,
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Mapping[str, PropertyValue],
 ) -> Equipment:
     """Create a new equipment inside a given positionName of the given existingEquipment.
         The equipment will be of the given equipment type, with the given name and with the given properties.
@@ -381,7 +455,7 @@ def add_equipment_to_position(
             - `pyinventory.api.equipment.add_equipment_to_position`
             
             position_name (str): position name in the equipment type.            
-            properties_dict (Dict[str, PropertyValue]): dict of property name to property value
+            properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
 
@@ -647,7 +721,7 @@ def get_or_create_equipment(
     name: str,
     equipment_type: str,
     location: Location,
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Mapping[str, PropertyValue],
 ) -> Equipment:
     """This function checks if equipment existence in specific location by name, 
         in case it is not found by name, creates one.
@@ -658,7 +732,7 @@ def get_or_create_equipment(
             location (pyinventory.consts.Location object): location object could be retrieved from 
             - `pyinventory.api.location.get_location`
             - `pyinventory.api.location.add_location`            
-            properties_dict (Dict[str, PropertyValue]): dict of property name to property value
+            properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
 
@@ -699,7 +773,7 @@ def get_or_create_equipment_in_position(
     equipment_type: str,
     existing_equipment: Equipment,
     position_name: str,
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Mapping[str, PropertyValue],
 ) -> Equipment:
     """This function checks equipment existence in specific location by name, 
         in case it is not found by name, creates one.
@@ -709,7 +783,7 @@ def get_or_create_equipment_in_position(
             equipment_type (str): equipment type name
             existing_equipment (pyinventory.consts.Equipment object): existing equipment
             position_name (str): position name
-            properties_dict (Dict[str, PropertyValue]): dict of property name to property value
+            properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
 

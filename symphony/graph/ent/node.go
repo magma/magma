@@ -205,8 +205,8 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     cli.ID,
 		Type:   "CheckListItem",
-		Fields: make([]*Field, 9),
-		Edges:  make([]*Edge, 1),
+		Fields: make([]*Field, 10),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(cli.Title); err != nil {
@@ -273,22 +273,41 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "SelectedEnumValues",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(cli.HelpText); err != nil {
+	if buf, err = json.Marshal(cli.YesNoVal); err != nil {
 		return nil, err
 	}
 	node.Fields[8] = &Field{
+		Type:  "checklistitem.YesNoVal",
+		Name:  "YesNoVal",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cli.HelpText); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
 		Type:  "string",
 		Name:  "HelpText",
 		Value: string(buf),
 	}
 	var ids []int
+	ids, err = cli.QueryFiles().
+		Select(file.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "File",
+		Name: "Files",
+	}
 	ids, err = cli.QueryWorkOrder().
 		Select(workorder.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[0] = &Edge{
+	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
 		Name: "WorkOrder",

@@ -329,7 +329,8 @@ func sendRAR(state *SubscriberSessionState, target *protos.PolicyReAuthTarget, c
 				ruleInstalls.GetRuleNames(),
 				ruleInstalls.GetRuleBaseNames(),
 				ruleInstalls.GetRuleDefinitions(),
-			)...,
+				nil,
+				nil)...,
 		)
 	}
 	// Construct AVPs for Rules to Remove

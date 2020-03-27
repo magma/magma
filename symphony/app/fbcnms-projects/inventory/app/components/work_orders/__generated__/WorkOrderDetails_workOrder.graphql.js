@@ -20,10 +20,12 @@ type EntityDocumentsTable_hyperlinks$ref = any;
 type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type WorkOrderDetailsPane_workOrder$ref = any;
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
-export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
+export type CheckListItemType = "enum" | "files" | "simple" | "string" | "yes_no" | "%future added value";
+export type FileType = "FILE" | "IMAGE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
+export type YesNoResponse = "NO" | "YES" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type WorkOrderDetails_workOrder$ref: FragmentReference;
 declare export opaque type WorkOrderDetails_workOrder$fragmentType: WorkOrderDetails_workOrder$ref;
@@ -46,8 +48,14 @@ export type WorkOrderDetails_workOrder = {|
     |},
     +$fragmentRefs: LocationBreadcrumbsTitle_locationDetails$ref,
   |},
-  +ownerName: string,
-  +assignee: ?string,
+  +owner: {|
+    +id: string,
+    +email: string,
+  |},
+  +assignedTo: ?{|
+    +id: string,
+    +email: string,
+  |},
   +creationDate: any,
   +installDate: ?any,
   +status: WorkOrderStatus,
@@ -119,6 +127,17 @@ export type WorkOrderDetails_workOrder = {|
       +stringValue: ?string,
       +enumSelectionMode: ?CheckListItemEnumSelectionMode,
       +selectedEnumValues: ?string,
+      +yesNoResponse: ?YesNoResponse,
+      +files: $ReadOnlyArray<{|
+        +id: string,
+        +fileName: string,
+        +sizeInBytes: ?number,
+        +modified: ?any,
+        +uploaded: ?any,
+        +fileType: ?FileType,
+        +storeKey: ?string,
+        +category: ?string,
+      |}>,
     |}>,
   |}>,
   +$fragmentRefs: WorkOrderDetailsPane_workOrder$ref,
@@ -155,32 +174,42 @@ v2 = {
   "args": null,
   "storageKey": null
 },
-v3 = {
+v3 = [
+  (v0/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "email",
+    "args": null,
+    "storageKey": null
+  }
+],
+v4 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "type",
   "args": null,
   "storageKey": null
 },
-v4 = {
+v5 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v5 = [
+v6 = [
   (v0/*: any*/),
   (v1/*: any*/)
 ],
-v6 = [
+v7 = [
   {
     "kind": "FragmentSpread",
     "name": "EntityDocumentsTable_files",
     "args": null
   }
 ],
-v7 = {
+v8 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "title",
@@ -268,18 +297,24 @@ return {
       ]
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "ownerName",
+      "name": "owner",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": (v3/*: any*/)
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "assignee",
+      "name": "assignedTo",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": (v3/*: any*/)
     },
     {
       "kind": "ScalarField",
@@ -330,7 +365,7 @@ return {
           "selections": [
             (v0/*: any*/),
             (v1/*: any*/),
-            (v3/*: any*/),
+            (v4/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -352,10 +387,10 @@ return {
               "args": null,
               "storageKey": null
             },
-            (v4/*: any*/)
+            (v5/*: any*/)
           ]
         },
-        (v4/*: any*/),
+        (v5/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -413,7 +448,7 @@ return {
           "args": null,
           "concreteType": "Equipment",
           "plural": false,
-          "selections": (v5/*: any*/)
+          "selections": (v6/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -423,7 +458,7 @@ return {
           "args": null,
           "concreteType": "Location",
           "plural": false,
-          "selections": (v5/*: any*/)
+          "selections": (v6/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -433,7 +468,7 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": false,
-          "selections": (v5/*: any*/)
+          "selections": (v6/*: any*/)
         }
       ]
     },
@@ -445,7 +480,7 @@ return {
       "args": null,
       "concreteType": "File",
       "plural": true,
-      "selections": (v6/*: any*/)
+      "selections": (v7/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -455,7 +490,7 @@ return {
       "args": null,
       "concreteType": "File",
       "plural": true,
-      "selections": (v6/*: any*/)
+      "selections": (v7/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -508,7 +543,7 @@ return {
           "args": null,
           "concreteType": "ProjectType",
           "plural": false,
-          "selections": (v5/*: any*/)
+          "selections": (v6/*: any*/)
         }
       ]
     },
@@ -522,7 +557,7 @@ return {
       "plural": true,
       "selections": [
         (v0/*: any*/),
-        (v7/*: any*/),
+        (v8/*: any*/),
         (v2/*: any*/),
         {
           "kind": "LinkedField",
@@ -541,8 +576,8 @@ return {
               "args": null,
               "storageKey": null
             },
-            (v3/*: any*/),
-            (v7/*: any*/),
+            (v4/*: any*/),
+            (v8/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -564,7 +599,7 @@ return {
               "args": null,
               "storageKey": null
             },
-            (v4/*: any*/),
+            (v5/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -578,6 +613,74 @@ return {
               "name": "selectedEnumValues",
               "args": null,
               "storageKey": null
+            },
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "yesNoResponse",
+              "args": null,
+              "storageKey": null
+            },
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "files",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "File",
+              "plural": true,
+              "selections": [
+                (v0/*: any*/),
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "fileName",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "sizeInBytes",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "modified",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "uploaded",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "fileType",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "storeKey",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "category",
+                  "args": null,
+                  "storageKey": null
+                }
+              ]
             }
           ]
         }
@@ -592,5 +695,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b476de193c2de4c79deae64766aefd39';
+(node/*: any*/).hash = 'ed2bcf62c8cbbe6ea36c28f2f71d1b29';
 module.exports = node;

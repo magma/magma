@@ -939,7 +939,6 @@ esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_reject(
   const activate_dedicated_eps_bearer_context_reject_msg *msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   mme_ue_s1ap_id_t ue_id =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
       ->mme_ue_s1ap_id;
@@ -987,16 +986,13 @@ esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_reject(
    * * * *  accepted by the UE
    */
   int rc =
-    esm_proc_dedicated_eps_bearer_context_reject(emm_context, ebi, &esm_cause);
+    esm_proc_dedicated_eps_bearer_context_reject(emm_context, ebi);
 
-  if (rc != RETURNerror) {
-    esm_cause = ESM_CAUSE_SUCCESS;
+  if (rc != RETURNok) {
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
   }
 
-  /*
-   * Return the ESM cause value
-   */
-  OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+  OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_SUCCESS);
 }
 
 /****************************************************************************

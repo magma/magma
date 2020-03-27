@@ -112,7 +112,7 @@ type Props = {
   containerClassName?: string,
   selectedView?: string,
   onWorkOrderChanged?: (
-    key: 'assignee' | 'installDate',
+    key: 'assigneeId' | 'installDate',
     value: ?string,
     workOrderId: string,
   ) => void,
@@ -130,22 +130,22 @@ const WorkOrderPopover = (props: Props) => {
   const viewMode = selectedView === 'status' || workOrder.status === 'DONE';
 
   const setWorkOrderDetails = (
-    key: 'assignee' | 'installDate',
+    key: 'assigneeId' | 'installDate',
     value: ?string,
   ) => {
     const variables: EditWorkOrderMutationVariables = {
       input: {
         id: workOrder.id,
         name: workOrder.name,
-        ownerName: workOrder.ownerName,
+        ownerId: workOrder.owner.id,
         status: workOrder.status,
         priority: workOrder.priority,
-        assignee: workOrder.assignee,
+        assigneeId: workOrder.assignee?.id,
       },
     };
     switch (key) {
-      case 'assignee':
-        variables.input.assignee = value;
+      case 'assigneeId':
+        variables.input.assigneeId = value;
         break;
       case 'installDate':
         variables.input.installDate = value;
@@ -158,7 +158,7 @@ const WorkOrderPopover = (props: Props) => {
     EditWorkOrderMutation(variables, callbacks);
   };
 
-  const showAssignee = (assignee: string) => {
+  const showAssignee = (assignee: ?string) => {
     return assignee || Strings.common.unassignedItem;
   };
 
@@ -191,13 +191,13 @@ const WorkOrderPopover = (props: Props) => {
                 {fbt('Assignee:', 'Work Order card "Assignee" field title')}
               </strong>
               {!!viewMode ? (
-                <span>{showAssignee(workOrder.assignee)}</span>
+                <span>{showAssignee(workOrder.assignee?.id)}</span>
               ) : (
                 <UserTypeahead
                   margin="dense"
                   selectedUser={workOrder.assignee}
                   onUserSelection={user =>
-                    setWorkOrderDetails('assignee', user)
+                    setWorkOrderDetails('assigneeId', user?.id)
                   }
                 />
               )}
@@ -252,7 +252,7 @@ const WorkOrderPopover = (props: Props) => {
       ) : (
         <div className={classes.quickPeek}>
           {woHeader}
-          <div>{showAssignee(workOrder.assignee)}</div>
+          <div>{showAssignee(workOrder.assignee?.email)}</div>
         </div>
       )}
     </div>

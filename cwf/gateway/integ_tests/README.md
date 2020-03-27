@@ -23,33 +23,63 @@ This VM runs an iperf3 server.
 
 ## Current Tests
 
-- Authentication
-- Session Creation
-- Basic Policy enforcement
+* UE Authentication
+* Basic Traffic test with pass all policies
+* Gx Credit Control Request/Answer flow for Init/Update/Terminate
+* Gx ReAuth Request/Answer flow
+* Gx rule enforcement
+  * Static and dynamic rules
+  * Rule base mappings
+  * Omnipresent (Network wide rules)
+* Gx usage monitor installation/enforcement
+* QoS downgrade and negotiation
+* Gy ReAuth Request/Answer flow
+* Gy Final-Unit-Action-Terminate enforcement
 
 ## Running the test 
 #### Requirements
-
-- fabric3 
-- see https://facebookincubator.github.io/magma/docs/basics/prerequisites for 
-our prerequisites on running our VMs. (Ignore docker part)
+* fabric3 
+* see https://facebookincubator.github.io/magma/docs/basics/prerequisites for 
+our prerequisites on running our VMs.
 
 To the run the test, run `fab integ_test` from `magma/cwf/gateway`.
 This fabfile will
-- Provision the 3 VMs
-- Build and start docker containers on `cwag-dev`
-- Start the UE simulator service on `cwag-test`
-- Start the iperf3 server on `magma-trf`
-- Run the integration test on `cwag-test`
-- Clean up
+* Provision the 3 VMs
+* Build and start docker containers on `cwag-dev`
+* Start the UE simulator service on `cwag-test`
+* Start the iperf3 server on `magma-trfserver`
+* Run the integration test on `cwag-test`
+* Clean up (Kill the UE sim on `cwag-test` and stop the iperf3 server on `magma-trfserver`)
 
-## Development 
+The fabfile by default stops, rebuilds, and starts all containers. If you 
+only want to restart the containers, and not rebuild everything, run 
+`fab integ_test:no_build=True`. 
 
-- To see the list of running services, run `docker ps` in the `cwag-dev` VM.
-- To see per-service logs, run `docker-compose logs <container_name>`
-- To go into a running container, run `docker-compose exec <container_name> bash`
-- `/usr/local/bin/pipelined_cli.py` in pipelined service maybe useful for 
+## Debugging on `cwag-dev` VM
+* To see the list of running services, run `docker ps` in the `cwag-dev` VM.
+* To see per-service logs, run `docker-compose logs <container_name>`
+* To go into a running container, run `docker-compose exec <container_name> bash`
+* `/usr/local/bin/pipelined_cli.py` in pipelined service maybe useful for 
 viewing installed flows for debugging.
+
+## Before you commit any code...
+Before committing, please make sure you run the commands below to test and format.
+  * If you touch anything in `magma/cwf/gateway`, run `make precommit` on the 
+  `cwag-dev` VM, under `magma/cwf/gateway`.
+  * If you touch anything in `magma/feg/gateway`, run `make precommit` inside 
+  the FeG test container.
+    * `cd magma/feg/gateway/docker`
+    * `docker-compose up -d test`
+    * `docker-compose exec test /bin/bash`
+    * `make precommit`
+  * If you touch anything in `magma/.../cloud/go`, please run the 
+  orc8r precommit.
+    * `cd magma/orc8r/cloud/go/docker`
+    * `./build.py -m`
+    * `make precommit`
+
+Additionally, if you write any new tests, please summarize what the test does 
+in a comment above the test. See existing tests for example.  
 
 ## FAQ
 
@@ -63,4 +93,10 @@ to see specific errors.
 
 &rightarrow; Since docker does not garbage collect previously built images, we 
 will have to manually prune them. Run `docker system df` to see memory usage 
-and what can be deleted. To remove these images, run `docker system prune to docker image prune --filter until=24h`.
+and what can be deleted. To remove these images, run 
+`docker system prune to docker image prune -*filter until=24h`.
+
+#### All traffic hang and then fail
+&rightarrow; This is an issue we've observed occasionally. We have not found 
+the root cause yet. Assuming the issue is not with the CWAG services, one 
+remedy you can try is to destroy all VMs and start them again. 

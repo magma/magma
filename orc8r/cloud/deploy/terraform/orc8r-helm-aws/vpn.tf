@@ -13,6 +13,9 @@ resource "helm_release" "ovpn" {
     OVPN_K8S_POD_SUBNET: null
     OVPN_PROTO: tcp
     redirectGateway: false
+    serverConf: |-
+      client-to-client
+      duplicate-cn
   service:
     annotations:
       external-dns.alpha.kubernetes.io/hostname: vpn.${var.orc8r_domain_name}

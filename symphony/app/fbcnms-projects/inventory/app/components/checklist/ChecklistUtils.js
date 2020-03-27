@@ -9,6 +9,28 @@
  */
 
 import type {CheckListItem} from './checkListCategory/ChecklistItemsDialogMutateState';
+import type {CheckListItemType} from '../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
+
+export const getValidChecklistItemType = (
+  type: CheckListItemType,
+): CheckListItemType => {
+  switch (type) {
+    case 'simple':
+      return 'simple';
+    case 'string':
+      return 'string';
+    case 'enum':
+      return 'enum';
+    case 'files':
+      return 'files';
+    case 'yes_no':
+      return 'yes_no';
+    default:
+      throw new Error(
+        `Invariant violation - checklist item type not found: ${type}`,
+      );
+  }
+};
 
 export const isChecklistItemDone = (item: CheckListItem): boolean => {
   switch (item.type) {
@@ -18,6 +40,10 @@ export const isChecklistItemDone = (item: CheckListItem): boolean => {
       return item.checked === true;
     case 'string':
       return item.stringValue != null && item.stringValue.trim() !== '';
+    case 'files':
+      return item.files != null && item.files.length > 0;
+    case 'yes_no':
+      return item.yesNoResponse != null;
     default:
       throw new Error(
         `Invariant violation - checklist item type not found: ${item.type}`,

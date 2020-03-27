@@ -16,38 +16,33 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormFieldTextInput from './FormFieldTextInput';
 import FormValidationContext, {
   FormValidationContextProvider,
 } from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Grid from '@material-ui/core/Grid';
 import Strings from '../../../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import UserAccountDetailsPane, {
+  ACCOUNT_DISPLAY_VARIANTS,
+} from './UserAccountDetailsPane';
 import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {USER_ROLES, USER_STATUSES} from './TempTypes';
+import {generateTempId} from '../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useState} from 'react';
-
-export const USER_ROLES = {
-  User: 'User',
-  Admin: 'Admin',
-  Owner: 'Owner',
-};
-
-export const USER_STATUSES = {
-  Active: 'Active',
-  Deactivated: 'Deactivated',
-  Deleted: 'Deleted',
-};
+import {useUserManagement} from './UserManagementContext';
 
 const initialUserData: User = {
-  authId: '',
+  id: generateTempId(),
+  authID: '',
   firstName: '',
   lastName: '',
-  role: USER_ROLES.User,
-  status: USER_STATUSES.Active,
+  role: USER_ROLES.USER.key,
+  status: USER_STATUSES.ACTIVE.key,
 };
 
 const useStyles = makeStyles(() => ({
@@ -71,29 +66,45 @@ type Props = {
   onClose: (?User) => void,
 };
 
-const NewUserDialog = (props: Props) => {
+const NewUserDialog = ({onClose}: Props) => {
   const classes = useStyles();
-  const [user, setUser] = useState<User>(initialUserData);
+  const userManagegemtContext = useUserManagement();
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [user, setUser] = useState<User>({...initialUserData});
   const [password, setPassword] = useState('');
-  const [passwordVerfication, setPasswordVerification] = useState('');
+
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const handleError = error => {
+    setCreatingUser(false);
+    enqueueSnackbar(error.response?.data?.error || error, {variant: 'error'});
+  };
+
+  const addUser = () => {
+    setCreatingUser(true);
+    userManagegemtContext
+      .addUser(user, password)
+      .finally(() => setCreatingUser(false))
+      .then(newUser => {
+        onClose(newUser);
+      })
+      .catch(handleError);
+  };
 
   return (
     <Dialog fullWidth={true} maxWidth="md" open={true}>
       <FormValidationContextProvider>
         <FormValidationContext.Consumer>
-          {validationContext => {
-            const passwordMismatch = validationContext.error.check({
-              fieldId: 'password match',
-              fieldDisplayName: 'password match',
-              value: !!passwordVerfication && passwordVerfication !== password,
-              checkCallback: mismatch =>
-                mismatch ? `${fbt("Passwords doesn't match", '')}` : '',
+          {formValidationContext => {
+            formValidationContext.editLock.check({
+              fieldId: 'async_save',
+              fieldDisplayName: 'Lock while saving',
+              value: creatingUser,
+              checkCallback: isOnSavingProcess =>
+                isOnSavingProcess == true ? 'Saving new user' : '',
             });
             return (
               <>
-                <DialogTitle
-                  disableTypography={true}
-                  className={'classes.dialogTitle'}>
+                <DialogTitle disableTypography={true}>
                   <Text variant="h6">
                     <fbt desc="">New User Account</fbt>
                   </Text>
@@ -102,146 +113,68 @@ const NewUserDialog = (props: Props) => {
                   <div className={classes.section}>
                     <div className={classes.sectionHeader}>
                       <Text variant="subtitle1">
-                        <fbt desc="">Profile</fbt>
+                        <fbt desc="">Personal Details</fbt>
                       </Text>
                     </div>
                     <Grid container spacing={2}>
-                      <Grid key="first name" item xs={12} sm={6} lg={4} xl={4}>
-                        <FormField
-                          className={classes.field}
+                      <Grid key="first_name" item xs={12} sm={6} lg={4} xl={4}>
+                        <FormFieldTextInput
+                          validationId="first_name"
                           label={`${fbt('First Name', '')}`}
-                          required={true}
-                          validation={{
-                            id: 'first name',
-                            value: user.firstName,
-                          }}>
-                          <TextInput
-                            value={user.firstName}
-                            autoFocus={true}
-                            onChange={e => {
-                              const newValue = e.target.value;
-                              setUser(currentUser => {
-                                currentUser.firstName = newValue;
-                                return currentUser;
-                              });
-                            }}
-                          />
-                        </FormField>
+                          value={user.firstName || ''}
+                          onValueChanged={newValue =>
+                            setUser(currentUser => {
+                              currentUser.firstName = newValue;
+                              return currentUser;
+                            })
+                          }
+                        />
                       </Grid>
-                      <Grid key="last name" item xs={12} sm={6} lg={4} xl={4}>
-                        <FormField
-                          className={classes.field}
+                      <Grid key="last_name" item xs={12} sm={6} lg={4} xl={4}>
+                        <FormFieldTextInput
+                          validationId="last_name"
                           label={`${fbt('Last Name', '')}`}
-                          required={true}
-                          validation={{id: 'last name', value: user.lastName}}>
-                          <TextInput
-                            value={user.lastName}
-                            onChange={e => {
-                              const newValue = e.target.value;
-                              setUser(currentUser => {
-                                currentUser.lastName = newValue;
-                                return currentUser;
-                              });
-                            }}
-                          />
-                        </FormField>
+                          value={user.lastName || ''}
+                          onValueChanged={newValue =>
+                            setUser(currentUser => {
+                              currentUser.lastName = newValue;
+                              return currentUser;
+                            })
+                          }
+                        />
                       </Grid>
                     </Grid>
                   </div>
-
                   <div className={classes.section}>
                     <UserRoleAndStatusPane
-                      value={user.role}
-                      onChange={newValue => {
-                        if (USER_ROLES[newValue] == null) {
-                          return;
-                        }
-                        setUser(currentUser => {
-                          currentUser.role = USER_ROLES[newValue];
-                          return currentUser;
-                        });
-                      }}
+                      user={user}
+                      onChange={setUser}
+                      canSetDeactivated={false}
                     />
                   </div>
-                  <div className={classes.section}>
-                    <div className={classes.sectionHeader}>
-                      <Text variant="subtitle1">
-                        <fbt desc="">Account</fbt>
-                      </Text>
-                    </div>
-                    <Grid container spacing={2}>
-                      <Grid key="Email" item xs={12} sm={12} lg={4} xl={4}>
-                        <FormField
-                          className={classes.field}
-                          label={`${fbt('Email', '')}`}
-                          required={true}
-                          validation={{id: 'email', value: user.authId}}>
-                          <TextInput
-                            value={user.authId}
-                            onChange={e => {
-                              const newValue = e.target.value;
-                              setUser(currentUser => {
-                                currentUser.authId = newValue;
-                                return currentUser;
-                              });
-                            }}
-                          />
-                        </FormField>
-                      </Grid>
-                      <Grid key="Password" item xs={12} sm={12} lg={4} xl={4}>
-                        <FormField
-                          className={classes.field}
-                          label={`${fbt('Password', '')}`}
-                          required={true}
-                          validation={{id: 'password', value: password}}>
-                          <TextInput
-                            type="password"
-                            value={password}
-                            onChange={e => {
-                              const newValue = e.target.value;
-                              setPassword(newValue);
-                            }}
-                          />
-                        </FormField>
-                      </Grid>
-                      <Grid
-                        key="PasswordVerification"
-                        item
-                        xs={12}
-                        sm={12}
-                        lg={4}
-                        xl={4}>
-                        <FormField
-                          className={classes.field}
-                          label={`${fbt('Re-type Password', '')}`}
-                          required={true}
-                          validation={{
-                            id: 'password verification',
-                            value: passwordVerfication,
-                          }}
-                          hasError={!!passwordMismatch}
-                          errorText={passwordMismatch}>
-                          <TextInput
-                            type="password"
-                            value={passwordVerfication}
-                            onChange={e => {
-                              const newValue = e.target.value;
-                              setPasswordVerification(newValue);
-                            }}
-                          />
-                        </FormField>
-                      </Grid>
-                    </Grid>
-                  </div>
+                  <UserAccountDetailsPane
+                    variant={ACCOUNT_DISPLAY_VARIANTS.newUserDialog}
+                    className={classes.section}
+                    user={user}
+                    onChange={(updatedUser, updatedPassword) => {
+                      setUser(updatedUser);
+                      setPassword(updatedPassword);
+                    }}
+                  />
                 </DialogContent>
                 <DialogActions>
-                  <Button onClick={() => props.onClose(null)}>
+                  <Button
+                    onClick={onClose}
+                    disabled={creatingUser}
+                    skin="regular">
                     {Strings.common.cancelButton}
                   </Button>
                   <Button
-                    onClick={() => props.onClose(user)}
-                    title={validationContext.error.message}
-                    disabled={validationContext.error.detected}>
+                    onClick={addUser}
+                    title={formValidationContext.error.message}
+                    disabled={
+                      formValidationContext.error.detected || creatingUser
+                    }>
                     {Strings.common.saveButton}
                   </Button>
                 </DialogActions>

@@ -259,7 +259,7 @@ class AddProjectCard extends React.Component<Props, State> {
                       className={classes.input}
                       headline="Owner"
                       onUserSelection={user =>
-                        this._setProjectDetail('creator', user)
+                        this._setProjectDetail('creatorId', user?.id)
                       }
                       margin="dense"
                     />
@@ -296,7 +296,7 @@ class AddProjectCard extends React.Component<Props, State> {
       type: projectType,
       name: projectType.name,
       description: projectType.description,
-      creator: '',
+      creatorId: null,
       location: null,
       properties: initialProps,
       workOrders: [],
@@ -305,14 +305,14 @@ class AddProjectCard extends React.Component<Props, State> {
   }
 
   _saveProject = () => {
-    const {name, description, creator, properties, type} = nullthrows(
+    const {name, description, creatorId, properties, type} = nullthrows(
       this.state.project,
     );
     const variables: AddProjectMutationVariables = {
       input: {
         name,
         description,
-        creator,
+        creatorId: creatorId,
         type: type?.id ?? '',
         properties: toPropertyInput(properties),
         location: this.state.locationId,
@@ -345,7 +345,7 @@ class AddProjectCard extends React.Component<Props, State> {
     });
   };
 
-  _setProjectDetail = (key: 'name' | 'description' | 'creator', value) => {
+  _setProjectDetail = (key: 'name' | 'description' | 'creatorId', value) => {
     this.setState(prevState => {
       return {
         // $FlowFixMe Set state for each field

@@ -51,10 +51,11 @@
 </dl>
 <p>Example:</p>
 <pre><code>from pyinventory.consts import PropertyDefinition
+from pyinventory.graphql.property_kind_enum import PropertyKind
 port_type1 = client.add_equipment_port_type(
     &quot;port type 1&quot;,
-    [PropertyDefinition(&quot;port property&quot;, &quot;string&quot;, None, True)],
-    [PropertyDefinition(&quot;link port property&quot;, &quot;string&quot;, None, True)],
+    [PropertyDefinition(&quot;port property&quot;, PropertyKind.string, None, True)],
+    [PropertyDefinition(&quot;link port property&quot;, PropertyKind.string, None, True)],
 )
 </code></pre></section>
 </dd>

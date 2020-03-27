@@ -13,7 +13,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
@@ -201,6 +200,14 @@ func (projectResolver) Creator(ctx context.Context, obj *ent.Project) (*string, 
 	return &assignee.Email, nil
 }
 
+func (projectResolver) CreatedBy(ctx context.Context, obj *ent.Project) (*ent.User, error) {
+	c, err := obj.QueryCreator().Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, fmt.Errorf("querying creator: %w", err)
+	}
+	return c, nil
+}
+
 func (projectResolver) Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error) {
 	typ, err := obj.QueryType().Only(ctx)
 	if err != nil {
@@ -255,21 +262,19 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 	if err != nil {
 		return nil, fmt.Errorf("fetching template: %w", err)
 	}
+	creatorID, err := resolverutil.GetUserID(ctx, input.CreatorID, input.Creator)
+	if err != nil {
+		return nil, err
+	}
 	query := client.
 		Project.Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetTypeID(input.Type).
 		SetNillableLocationID(input.Location).
-		AddProperties(properties...)
+		AddProperties(properties...).
+		SetNillableCreatorID(creatorID)
 
-	if input.Creator != nil && *input.Creator != "" {
-		creatorID, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching creator user: %w", err)
-		}
-		query = query.SetCreatorID(creatorID)
-	}
 	proj, err := query.Save(ctx)
 
 	if err != nil {
@@ -324,12 +329,13 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		UpdateOne(proj).
 		SetName(input.Name).
 		SetNillableDescription(input.Description)
-	if input.Creator != nil && *input.Creator != "" {
-		creatorID, err := client.User.Query().Where(user.AuthID(*input.Creator)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching creator user: %w", err)
-		}
-		mutation.SetCreatorID(creatorID)
+
+	creatorID, err := resolverutil.GetUserID(ctx, input.CreatorID, input.Creator)
+	if err != nil {
+		return nil, err
+	}
+	if creatorID != nil {
+		mutation.SetCreatorID(*creatorID)
 	} else {
 		mutation.ClearCreator()
 	}

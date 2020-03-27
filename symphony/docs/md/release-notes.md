@@ -15,6 +15,21 @@ The team is currently working on:
 
 
 ### Release Notes
+* 3/22/2020
+    * Inventory
+        * **Saved Searches**: Filters can now be saved and named for future use (reports, services, work orders)
+        * **Search w/ Breadcrumbs**: Display location/equipment breadcrumbs in Inventory main search results
+    * Work Orders
+        * **Adding "Close Time"**: Work Orders table now showing a column with the time the WorkOrder status was set to "DONE"
+    * Infra
+        * **Privacy support**: Add support for allow/deny logic around mutations
+        * **Schema for users**: Manage details on users in the DB and connect them to work orders\projects
+    * APIs
+        * **Pyinventory**: add get_equipment_properties
+        * **More Tests**: Improved Pyinventory test coverage
+        * **User Managment**: Added GraphQL API for creating\editing users
+       
+       
 * 3/8/2020
     * Bug fixes
         * **Validations on graphql**: several data validation were happening on the UI and not checked when calling directly the GraphQL API. Moved those validations to the GraphQL endpoint.

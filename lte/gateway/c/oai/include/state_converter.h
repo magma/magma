@@ -44,6 +44,7 @@ extern "C" {
 namespace magma {
 namespace lte {
 
+#define ASCII_ZERO 0x30
 #define PLMN_BYTES 6
 #define BSTRING_TO_STRING(bstr, str_ptr)                                       \
   do {                                                                         \

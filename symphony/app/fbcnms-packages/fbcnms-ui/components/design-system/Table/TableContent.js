@@ -33,7 +33,14 @@ const useStyles = makeStyles(() => ({
     },
     '&$hoverHighlighting:hover': {
       cursor: 'pointer',
-      backgroundColor: symphony.palette.D10,
+      '&$border': {
+        backgroundColor: symphony.palette.D10,
+      },
+      '&$bands': {
+        '& #column0 $textualCell': {
+          color: symphony.palette.primary,
+        },
+      },
       '& $checkBox': {
         opacity: 1,
       },
@@ -41,7 +48,9 @@ const useStyles = makeStyles(() => ({
   },
   activeRow: {
     borderLeft: `2px solid ${symphony.palette.primary}`,
-    backgroundColor: symphony.palette.D10,
+    '&:not($bands)': {
+      backgroundColor: symphony.palette.D10,
+    },
   },
   bands: {},
   border: {},
@@ -51,9 +60,15 @@ const useStyles = makeStyles(() => ({
     width: '28px',
     paddingLeft: '12px',
   },
+  textualCell: {},
 }));
 
-export type RowsSeparationTypes = 'bands' | 'border' | 'none';
+export const ROW_SEPARATOR_TYPES = {
+  bands: 'bands',
+  border: 'border',
+  none: 'none',
+};
+export type RowsSeparationTypes = $Keys<typeof ROW_SEPARATOR_TYPES>;
 
 type Props<T> = {
   data: Array<TableRowDataType<T>>,
@@ -70,12 +85,12 @@ const TableContent = <T>(props: Props<T>) => {
     columns,
     dataRowClassName,
     cellClassName,
-    rowsSeparator = 'bands',
+    rowsSeparator = ROW_SEPARATOR_TYPES.bands,
     fwdRef,
   } = props;
   const classes = useStyles();
   const commonClasses = useTableCommonStyles();
-  const {showSelection} = useTable();
+  const {showSelection, clickableRows} = useTable();
   const {activeId, setActiveId} = useSelection();
 
   return (
@@ -97,7 +112,7 @@ const TableContent = <T>(props: Props<T>) => {
               dataRowClassName,
               classes[rowsSeparator],
               {
-                [classes.hoverHighlighting]: showSelection,
+                [classes.hoverHighlighting]: clickableRows,
                 [classes.activeRow]: rowId === activeId,
               },
             )}>
@@ -111,16 +126,15 @@ const TableContent = <T>(props: Props<T>) => {
               return (
                 <td
                   key={`col_${colIndex}_${d.key ?? rowIndex}`}
+                  id={`column${colIndex}`}
                   className={classNames(
                     commonClasses.cell,
                     col.className,
                     cellClassName,
                   )}>
-                  {typeof renderedCol === 'string' ? (
-                    <Text variant="body2">{renderedCol}</Text>
-                  ) : (
-                    renderedCol
-                  )}
+                  <Text className={classes.textualCell} variant="body2">
+                    {renderedCol}
+                  </Text>
                 </td>
               );
             })}

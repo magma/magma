@@ -8,10 +8,10 @@
  * @format
  */
 import LinkEditDialog from './LinkEditDialog';
+import OptionsPopoverButton from '../OptionsPopoverButton';
 import PortEditDialog from './PortEditDialog';
 import PortsConnectedStateDialog from './PortsConnectedStateDialog';
 import React, {useState} from 'react';
-import TableRowOptionsButton from '../TableRowOptionsButton';
 import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
@@ -87,7 +87,7 @@ const EquipmentPortsTableMenu = (props: Props) => {
 
   return (
     <>
-      <TableRowOptionsButton options={menuOptions} />
+      <OptionsPopoverButton options={menuOptions} />
 
       {selectedPort ? (
         <PortsConnectedStateDialog

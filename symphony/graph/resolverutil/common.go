@@ -6,6 +6,9 @@ package resolverutil
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/facebookincubator/symphony/graph/ent/user"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -90,4 +93,16 @@ func GetDatePropertyPred(p models.PropertyTypeInput, operator models.FilterOpera
 		return property.StringValLT(*p.StringValue), propertytype.StringValLT(*p.StringValue), nil
 	}
 	return property.StringValGT(*p.StringValue), propertytype.StringValGT(*p.StringValue), nil
+}
+
+func GetUserID(ctx context.Context, userID *int, userName *string) (*int, error) {
+	if userName != nil && *userName != "" {
+		c := ent.FromContext(ctx)
+		id, err := c.User.Query().Where(user.AuthID(*userName)).OnlyID(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("fetching assignee user: %w", err)
+		}
+		return &id, nil
+	}
+	return userID, nil
 }

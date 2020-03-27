@@ -9,14 +9,18 @@
  */
 
 import type {RadioOption} from '@fbcnms/ui/components/design-system/RadioGroup/RadioGroup';
-import type {UserRole} from './TempTypes';
+import type {User} from './TempTypes';
 
 import * as React from 'react';
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import RadioGroup from '@fbcnms/ui/components/design-system/RadioGroup/RadioGroup';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
 import fbt from 'fbt';
-import {USER_ROLES} from './TempTypes';
+import symphony from '@fbcnms/ui/theme/symphony';
+import {USER_ROLES, USER_STATUSES} from './TempTypes';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback, useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   sectionHeader: {
@@ -25,21 +29,31 @@ const useStyles = makeStyles(() => ({
       display: 'block',
     },
   },
+  deactivateOptionSelected: {
+    color: symphony.palette.R600,
+    '& svg': {
+      color: symphony.palette.R600,
+    },
+  },
 }));
 
-type Props = {
-  value?: ?UserRole,
-  onChange: UserRole => void,
-};
+type Props = $ReadOnly<{
+  user: User,
+  onChange: User => void,
+  canSetDeactivated?: ?boolean,
+  className?: ?string,
+  disabled?: ?boolean,
+}>;
 
 const ROLES_OPTIONS: Array<RadioOption> = [
   {
-    value: USER_ROLES.User,
-    label: fbt('User', ''),
+    value: USER_ROLES.USER.key,
+    label: USER_ROLES.USER.value,
     details: fbt('Can log in to Symphony desktop and mobile apps', ''),
   },
   {
-    value: USER_ROLES.Admin,
+    value: USER_ROLES.ADMIN.key,
+    label: USER_ROLES.ADMIN.value,
     label: fbt('Admin', ''),
     details: fbt(
       'Can log in to desktop and mobile apps, update settings and manage users and permissions',
@@ -47,7 +61,8 @@ const ROLES_OPTIONS: Array<RadioOption> = [
     ),
   },
   {
-    value: USER_ROLES.Owner,
+    value: USER_ROLES.OWNER.key,
+    label: USER_ROLES.OWNER.value,
     label: fbt('Owner', ''),
     details: fbt(
       'Full access over everything, including inventory and workforce data',
@@ -55,36 +70,98 @@ const ROLES_OPTIONS: Array<RadioOption> = [
     ),
   },
 ];
+const STATUS_OPT: RadioOption = {
+  value: USER_STATUSES.DEACTIVATED.key,
+  label: fbt('Deactivate', ''),
+  details: fbt(
+    'Temporarely remove all access and permissions for this user',
+    '',
+  ),
+};
 
 const UserRoleAndStatusPane = (props: Props) => {
-  const onChange = props.onChange;
-  const value = props.value || USER_ROLES.User;
+  const {
+    user,
+    className,
+    onChange,
+    canSetDeactivated = true,
+    disabled = false,
+  } = props;
+  const userIsDeactivated = user.status === USER_STATUSES.DEACTIVATED.key;
   const classes = useStyles();
+  const selectedOptionClass = classNames({
+    [classes.deactivateOptionSelected]: userIsDeactivated,
+  });
+  const options = useMemo(() => {
+    if (!canSetDeactivated) {
+      return ROLES_OPTIONS;
+    }
+    const {label, ...partialDeactivateOption} = STATUS_OPT;
+    const deactivateOption = {
+      ...partialDeactivateOption,
+      label: <div className={selectedOptionClass}>{label}</div>,
+    };
+    return [...ROLES_OPTIONS, deactivateOption];
+  }, [canSetDeactivated, selectedOptionClass]);
+
+  const onRoleChanged = useCallback(
+    newValue => {
+      const newUser = {...user};
+      if (canSetDeactivated) {
+        if (newValue === USER_STATUSES.DEACTIVATED.key) {
+          newUser.status = USER_STATUSES.DEACTIVATED.key;
+          onChange(newUser);
+          return;
+        }
+        if (userIsDeactivated) {
+          newUser.status = USER_STATUSES.ACTIVE.key;
+        }
+      }
+      switch (newValue) {
+        case USER_ROLES.USER.key:
+          newUser.role = USER_ROLES.USER.key;
+          break;
+        case USER_ROLES.ADMIN.key:
+          newUser.role = USER_ROLES.ADMIN.key;
+          break;
+        case USER_ROLES.OWNER.key:
+          newUser.role = USER_ROLES.OWNER.key;
+          break;
+        default:
+          return;
+      }
+      onChange(newUser);
+    },
+    [canSetDeactivated, onChange, user, userIsDeactivated],
+  );
+
+  const value = userIsDeactivated
+    ? USER_STATUSES.DEACTIVATED.key
+    : user.role ?? USER_ROLES.USER.key;
 
   return (
-    <>
+    <div className={className}>
       <div className={classes.sectionHeader}>
         <Text variant="subtitle1">
-          <fbt desc="">User Role and Status</fbt>
+          <fbt desc="">Role</fbt>
         </Text>
         <Text variant="subtitle2" color="gray">
           <fbt desc="">
-            Description of what roles are. To view the this user's permissions,
-            go to Permissions.
+            Roles determine access to key parts of Symphony like Settings and
+            User Management. You can view and change what data this user can
+            access in Permissions.
           </fbt>
         </Text>
       </div>
-      <RadioGroup
-        options={ROLES_OPTIONS}
-        value={value}
-        onChange={newValue => {
-          if (USER_ROLES[newValue] == null) {
-            return;
-          }
-          onChange(USER_ROLES[newValue]);
-        }}
-      />
-    </>
+      <FormField disabled={!!disabled}>
+        <RadioGroup
+          options={options}
+          selectedOptionClassName={selectedOptionClass}
+          value={value}
+          onChange={onRoleChanged}
+        />
+      </FormField>
+    </div>
   );
 };
 

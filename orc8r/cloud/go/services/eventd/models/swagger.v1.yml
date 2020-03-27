@@ -49,6 +49,45 @@ paths:
           schema:
             type: array
             items:
-              type: string
+              - $ref: '#/definitions/event'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+definitions:
+  event:
+    type: object
+    required:
+      - stream_name
+      - event_type
+      - hardware_id
+      - tag
+      - timestamp
+      - value
+    properties:
+      stream_name:
+        example: fake_stream
+        minLength: 1
+        type: string
+        x-nullable: false
+      event_type:
+        example: fake_event
+        minLength: 1
+        type: string
+        x-nullable: false
+      hardware_id:
+        minLength: 1
+        type: string
+        x-nullable: false
+      tag:
+        minLength: 1
+        type: string
+        x-nullable: false
+      timestamp:
+        example: 2020-03-11T00:36:59.650093129+00:00
+        description: The timestamp in ISO 8601 format
+        minLength: 1
+        type: string
+        x-nullable: false
+      value:
+        type: object
+        x-nullable: false

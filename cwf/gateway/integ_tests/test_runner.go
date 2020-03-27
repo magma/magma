@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+	"time"
 
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2869"
@@ -48,6 +49,7 @@ const (
 )
 
 type TestRunner struct {
+	t     *testing.T
 	imsis map[string]bool
 }
 
@@ -56,9 +58,9 @@ type RecordByIMSI map[string]map[string]*lteprotos.RuleRecord
 
 // NewTestRunner initializes a new TestRunner by making a UESim client and
 // and setting the next IMSI.
-func NewTestRunner() *TestRunner {
+func NewTestRunner(t *testing.T) *TestRunner {
 	fmt.Println("************************* TestRunner setup")
-	testRunner := &TestRunner{}
+	testRunner := &TestRunner{t: t}
 
 	testRunner.imsis = make(map[string]bool)
 	fmt.Printf("Adding Mock HSS service at %s:%d\n", CwagIP, HSSPort)
@@ -77,14 +79,14 @@ func NewTestRunner() *TestRunner {
 
 // ConfigUEs creates and adds the specified number of UEs and Subscribers
 // to the UE Simulator and the HSS.
-func (testRunner *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
+func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
 	fmt.Printf("************************* Configuring %d UE(s)\n", numUEs)
 	ues := make([]*cwfprotos.UEConfig, 0)
 	for i := 0; i < numUEs; i++ {
 		imsi := ""
 		for {
 			imsi = getRandomIMSI()
-			_, present := testRunner.imsis[imsi]
+			_, present := tr.imsis[imsi]
 			if !present {
 				break
 			}
@@ -118,7 +120,7 @@ func (testRunner *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, erro
 		ues = append(ues, ue)
 		fmt.Printf("Added UE to Simulator, HSS, PCRF, and OCS:\n"+
 			"\tIMSI: %s\tKey: %x\tOpc: %x\tSeq: %d\n", imsi, key, opc, seq)
-		testRunner.imsis[imsi] = true
+		tr.imsis[imsi] = true
 	}
 	fmt.Println("Successfully configured UE(s)")
 	return ues, nil
@@ -126,7 +128,7 @@ func (testRunner *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, erro
 
 // Authenticate simulates an authentication between the UE with the specified
 // IMSI and the HSS, and returns the resulting Radius packet.
-func (testRunner *TestRunner) Authenticate(imsi string) (*radius.Packet, error) {
+func (tr *TestRunner) Authenticate(imsi string) (*radius.Packet, error) {
 	fmt.Printf("************************* Authenticating UE with IMSI: %s\n", imsi)
 	res, err := uesim.Authenticate(&cwfprotos.AuthenticateRequest{Imsi: imsi})
 	if err != nil {
@@ -140,22 +142,31 @@ func (testRunner *TestRunner) Authenticate(imsi string) (*radius.Packet, error) 
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	fmt.Printf("Finished Authenticating UE. Resulting RADIUS Packet: %d\n", radiusP)
+	tr.t.Logf("Finished Authenticating UE. Resulting RADIUS Packet: %d\n", radiusP)
 	return radiusP, nil
 }
 
-func (testRunner *TestRunner) AuthenticateAndAssertSuccess(t *testing.T, imsi string) {
-	radiusP, err := testRunner.Authenticate(imsi)
-	assert.NoError(t, err)
+func (tr *TestRunner) AuthenticateAndAssertSuccess(imsi string) {
+	radiusP, err := tr.Authenticate(imsi)
+	assert.NoError(tr.t, err)
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
+	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+}
+
+func (tr *TestRunner) AuthenticateAndAssertFail(imsi string) {
+	radiusP, err := tr.Authenticate(imsi)
+	assert.NoError(tr.t, err)
+
+	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
+	assert.NotNil(tr.t, eapMessage)
+	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.FailureCode))
 }
 
 // Authenticate simulates an authentication between the UE with the specified
 // IMSI and the HSS, and returns the resulting Radius packet.
-func (testRunner *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
+func (tr *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
 	fmt.Printf("************************* Sending a disconnect request UE with IMSI: %s\n", imsi)
 	res, err := uesim.Disconnect(&cwfprotos.DisconnectRequest{Imsi: imsi})
 	if err != nil {
@@ -168,22 +179,22 @@ func (testRunner *TestRunner) Disconnect(imsi string) (*radius.Packet, error) {
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	fmt.Printf("Finished Discconnecting UE. Resulting RADIUS Packet: %d\n", radiusP)
+	tr.t.Logf("Finished Discconnecting UE. Resulting RADIUS Packet: %d\n", radiusP)
 	return radiusP, nil
 }
 
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
 // by running an iperf3 client on the UE simulator and an iperf3 server on the
 // Magma traffic server.
-func (testRunner *TestRunner) GenULTraffic(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
+func (tr *TestRunner) GenULTraffic(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
 	fmt.Printf("************************* Generating Traffic for UE with Req: %v\n", req)
 	return uesim.GenTraffic(req)
 }
 
 // Remove subscribers, rules, flows, and monitors to clean up the state for
 // consecutive test runs
-func (testRunner *TestRunner) CleanUp() error {
-	for imsi, _ := range testRunner.imsis {
+func (tr *TestRunner) CleanUp() error {
+	for imsi, _ := range tr.imsis {
 		err := deleteSubscribersFromHSS(imsi)
 		if err != nil {
 			return err
@@ -210,7 +221,7 @@ func (tr *TestRunner) GetPolicyUsage() (RecordByIMSI, error) {
 		return recordsBySubID, err
 	}
 	for _, record := range table.Records {
-		fmt.Printf("Record %v", record)
+		fmt.Printf("Record %v\n", record)
 		_, exists := recordsBySubID[record.Sid]
 		if !exists {
 			recordsBySubID[record.Sid] = map[string]*lteprotos.RuleRecord{}
@@ -218,6 +229,23 @@ func (tr *TestRunner) GetPolicyUsage() (RecordByIMSI, error) {
 		recordsBySubID[record.Sid][record.RuleId] = record
 	}
 	return recordsBySubID, nil
+}
+
+func (tr *TestRunner) WaitForEnforcementStatsToSync() {
+	// TODO load this value from pipelined.yml
+	enforcementPollPeriod := 1 * time.Second
+	time.Sleep(3 * enforcementPollPeriod)
+}
+
+func (tr *TestRunner) WaitForPoliciesToSync() {
+	// TODO load this value from sessiond.yml (rule_update_interval_sec)
+	ruleUpdatePeriod := 1 * time.Second
+	time.Sleep(2 * ruleUpdatePeriod)
+}
+
+func (tr *TestRunner) WaitForReAuthToProcess() {
+	// Todo figure out the best way to figure out when RAR is processed
+	time.Sleep(3 * time.Second)
 }
 
 // getRandomIMSI makes a random 15-digit IMSI that is not added to the UESim or HSS.

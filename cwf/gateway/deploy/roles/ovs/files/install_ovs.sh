@@ -15,6 +15,7 @@ cd ovs/ || exit
 git checkout v2.12.0
 git apply /tmp/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch
 git apply /tmp/0002-ovs-Handle-spaces-in-ovs-arguments.patch
+git apply /tmp/0003-Add-pdp_start_epoch-custom-field-to-IPFIX-export.patch
 ./boot.sh
 ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc --with-linux=/lib/modules/"$(uname -r)"/build
 make

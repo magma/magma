@@ -24,7 +24,10 @@ const mutation = graphql`
       id
       name
       description
-      creator
+      createdBy {
+        id
+        email
+      }
       properties {
         stringValue
         intValue

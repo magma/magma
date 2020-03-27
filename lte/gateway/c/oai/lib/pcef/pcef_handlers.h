@@ -61,8 +61,8 @@ struct pcef_create_session_data {
  */
 void pcef_create_session(
   spgw_state_t* state,
-  char* imsi,
-  char* ip,
+  const char* imsi,
+  const char* ip,
   const struct pcef_create_session_data* session_data,
   itti_sgi_create_end_point_response_t sgi_response,
   s5_create_session_request_t bearer_request,
@@ -74,6 +74,11 @@ void pcef_create_session(
  * This may turn asynchronous in the future if it's too long
  */
 bool pcef_end_session(char *imsi, char *apn);
+
+void get_session_req_data(
+  spgw_state_t* spgw_state,
+  const itti_s11_create_session_request_t* saved_req,
+  struct pcef_create_session_data* data);
 
 #ifdef __cplusplus
 }

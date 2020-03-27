@@ -25,6 +25,7 @@ class LocationDocumentsQuery(DataClassJsonMixin):
                 category: Optional[str] = None
 
             files: List[File]
+            images: List[File]
 
         location: Optional[Node] = None
 
@@ -35,6 +36,11 @@ class LocationDocumentsQuery(DataClassJsonMixin):
   location: node(id: $id) {
     ... on Location {
       files {
+        id
+        fileName
+        category
+      }
+      images {
         id
         fileName
         category

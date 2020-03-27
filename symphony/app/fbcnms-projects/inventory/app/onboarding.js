@@ -124,6 +124,7 @@ function Index() {
           onChange={event => setEmail(event.target.value)}
         />
         <TextField
+          autoComplete="off"
           value={password}
           label="Password"
           type="password"
@@ -131,6 +132,7 @@ function Index() {
           onChange={event => setPassword(event.target.value)}
         />
         <TextField
+          autoComplete="off"
           value={confirmPassword}
           label="Confirm Password"
           type="password"

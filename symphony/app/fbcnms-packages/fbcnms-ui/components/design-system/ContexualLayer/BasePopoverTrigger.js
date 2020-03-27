@@ -26,23 +26,37 @@ type Props = {
   ) => React.Node,
   popover: React.Node,
   position?: ContextualLayerPosition,
+  onVisibilityChange?: (isVisible: boolean) => void,
 };
 
-const BasePopoverTrigger = ({children, popover, position = 'below'}: Props) => {
+const BasePopoverTrigger = ({
+  children,
+  popover,
+  position = 'below',
+  onVisibilityChange,
+}: Props) => {
   const [isVisible, setIsVisible] = useState(false);
   const contextRef = useRef<?HTMLElement>(null);
 
+  const setVisibility = useCallback(
+    (nextIsVisible: boolean) => {
+      setIsVisible(nextIsVisible);
+      onVisibilityChange && onVisibilityChange(nextIsVisible);
+    },
+    [onVisibilityChange],
+  );
+
   const onHide = useCallback(() => {
-    setIsVisible(false);
-  }, []);
+    setVisibility(false);
+  }, [setVisibility]);
 
   const onShow = useCallback(() => {
     if (isVisible) {
       return;
     }
 
-    setIsVisible(true);
-  }, [isVisible]);
+    setVisibility(true);
+  }, [isVisible, setVisibility]);
 
   const refCallback = useCallback((element: ?HTMLElement) => {
     contextRef.current = element;

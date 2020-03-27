@@ -144,7 +144,7 @@ class ProjectDetails extends React.Component<Props, State> {
     );
   }
 
-  _setProjectDetail = (key: 'name' | 'description' | 'creator', value) => {
+  _setProjectDetail = (key: 'name' | 'description' | 'createdBy', value) => {
     this.setState(prevState => {
       return {
         // $FlowFixMe Set state for each field
@@ -165,13 +165,13 @@ class ProjectDetails extends React.Component<Props, State> {
     this.setState({locationId});
 
   saveProject = () => {
-    const {id, name, description, creator, type} = this.state.editedProject;
+    const {id, name, description, createdBy, type} = this.state.editedProject;
     const variables: EditProjectMutationVariables = {
       input: {
         id,
         name,
         description,
-        creator,
+        creatorId: createdBy?.id,
         type: type.id,
         properties: toPropertyInput(this.state.properties),
         location: this.state.locationId,
@@ -350,10 +350,10 @@ class ProjectDetails extends React.Component<Props, State> {
                   <FormField>
                     <UserTypeahead
                       className={classes.input}
-                      selectedUser={project.creator}
+                      selectedUser={project.createdBy}
                       headline="Owner"
                       onUserSelection={user =>
-                        this._setProjectDetail('creator', user)
+                        this._setProjectDetail('createdBy', user)
                       }
                     />
                   </FormField>
@@ -407,7 +407,10 @@ export default withRouter(
               id
               name
               description
-              creator
+              createdBy {
+                id
+                email
+              }
               type {
                 name
                 id

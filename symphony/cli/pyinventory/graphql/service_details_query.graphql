@@ -22,6 +22,9 @@ query ServiceDetailsQuery($id: ID!) {
           }
           link {
             id
+            properties {
+              ...PropertyFragment
+            }
             services {
               id
             }
@@ -31,6 +34,9 @@ query ServiceDetailsQuery($id: ID!) {
       }
       links {
         id
+        properties {
+          ...PropertyFragment
+        }
         services {
           id
         }

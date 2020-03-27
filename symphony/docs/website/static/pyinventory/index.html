@@ -105,6 +105,26 @@ discards reports</dd>
 </ul>
 <h3>Methods</h3>
 <dl>
+<dt id="pyinventory.InventoryClient.activate_user"><code class="name flex">
+<span>def <span class="ident">activate_user</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, user: <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User">User</a>) -> NoneType</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Activate the user which would allow the user to login again to symphony</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>user</code></strong></dt>
+<dd>user to activate</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>user = client.get_user(&quot;user@test.com&quot;)
+client.activate_user(user)
+</code></pre></section>
+</dd>
 <dt id="pyinventory.InventoryClient.add_customer"><code class="name flex">
 <span>def <span class="ident">add_customer</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, external_id: Union[str, NoneType]) -> <a title="pyinventory.consts.Customer" href="consts.html#pyinventory.consts.Customer">Customer</a></span>
 </code></dt>
@@ -212,10 +232,11 @@ equipment = client.addEquipment(
 </dl>
 <p>Example:</p>
 <pre><code>from pyinventory.consts import PropertyDefinition
+from pyinventory.graphql.property_kind_enum import PropertyKind
 port_type1 = client.add_equipment_port_type(
     &quot;port type 1&quot;,
-    [PropertyDefinition(&quot;port property&quot;, &quot;string&quot;, None, True)],
-    [PropertyDefinition(&quot;link port property&quot;, &quot;string&quot;, None, True)],
+    [PropertyDefinition(&quot;port property&quot;, PropertyKind.string, None, True)],
+    [PropertyDefinition(&quot;link port property&quot;, PropertyKind.string, None, True)],
 )
 </code></pre></section>
 </dd>
@@ -587,6 +608,38 @@ client.add_location_image(
 )
 </code></pre></section>
 </dd>
+<dt id="pyinventory.InventoryClient.add_user"><code class="name flex">
+<span>def <span class="ident">add_user</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, email: str, password: str) -> <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User">User</a></span>
+</code></dt>
+<dd>
+<section class="desc"><p>Adds new user to inventory with its email and password</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>email</code></strong></dt>
+<dd>the email address of the user</dd>
+<dt><strong><code>password</code></strong></dt>
+<dd>password the user would connect with</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>EntityNotFoundError</code></strong></dt>
+<dd>the user was not created properly</dd>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+<dt><strong><code>AssertionError</code></strong></dt>
+<dd>The user was not created for some known reason</dd>
+<dt><strong><code>HTTPError</code></strong></dt>
+<dd>Error with connection</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>user = client.add_user(&quot;user@test.com&quot;, &quot;P0ssW!rd0f43&quot;)
+</code></pre></section>
+</dd>
 <dt id="pyinventory.InventoryClient.apply_location_template_to_location"><code class="name flex">
 <span>def <span class="ident">apply_location_template_to_location</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, template_location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>) -> NoneType</span>
 </code></dt>
@@ -695,10 +748,24 @@ copied_equipment = client.copy_equipment_in_position(equipment=equipment, dest_p
 <dd>retrieved from getLocation or addLocation api.</dd>
 <dt><strong><code>Raises</code></strong> :&ensp;<code>FailedOperationException</code> <code>for</code> <code>internal</code> <code>inventory</code> <code>error</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>dict</code> of <code>source</code> <code>equipment</code> (<code>client.Equipment</code>) <code>to</code> <code>new</code> <code>equipment</code> (<code>client.Equipment</code>)</dt>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>dict</code> of <code>source</code> <code>equipment</code> (<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a>) <code>to</code> <code>new</code> <code>equipment</code> (<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a>)</dt>
 <dd>The dict includes the equipment given as parameter and also all the equipments
 attached to it</dd>
 </dl></section>
+</dd>
+<dt id="pyinventory.InventoryClient.deactivate_user"><code class="name flex">
+<span>def <span class="ident">deactivate_user</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, user: <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User">User</a>) -> NoneType</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Deactivate the user which would prevent the user from login in to symphony
+Users in symphony are never deleted. Only de-activated.</p>
+<p>Args:
+user: user to deactivate</p>
+<p>Raises:
+FailedOperationException: internal inventory error</p>
+<p>Example:
+<code>user = client.get_user("user@test.com")
+client.deactivate_user(user)</code></p></section>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_all_equipments"><code class="name flex">
 <span>def <span class="ident">delete_all_equipments</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> NoneType</span>
@@ -833,6 +900,8 @@ It can get only the requested equipment port type ID</p>
 <section class="desc"><p>Edit existing equipment.</p>
 <h2 id="args">Args</h2>
 <dl>
+<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
+<dd>equipment object</dd>
 <dt><strong><code>new_name</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
 <dd>equipment new name</dd>
 <dt><strong><code>new_properties</code></strong> :&ensp;<code>Optional</code>[<code>Dict</code>[<code>str</code>, <code>pyinventory.consts.PropertyValue</code>]]</dt>
@@ -1024,7 +1093,53 @@ PropertyValue - new value of the same type for this property</dd>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location([(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
 equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
-edited_port = client.edit_port(equipment, &quot;Z AIO - Port 1&quot;, {&quot;Port Property 2&quot;: &quot;test_it&quot;})  
+edited_port = client.edit_port_properties(equipment, &quot;Z AIO - Port 1&quot;, {&quot;Port Property 2&quot;: &quot;test_it&quot;})  
+</code></pre></section>
+</dd>
+<dt id="pyinventory.InventoryClient.edit_user"><code class="name flex">
+<span>def <span class="ident">edit_user</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, user: <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User">User</a>, new_password: Union[str, NoneType] = None, new_role: Union[<a title="pyinventory.graphql.user_role_enum.UserRole" href="graphql/user_role_enum.html#pyinventory.graphql.user_role_enum.UserRole">UserRole</a>, NoneType] = None) -> NoneType</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Edit user password and role</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>user</code></strong></dt>
+<dd>user to edit</dd>
+<dt><strong><code>new_password</code></strong></dt>
+<dd>new password the user would connect with</dd>
+<dt><strong><code>new_role</code></strong></dt>
+<dd>new role of the user</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+<dt><strong><code>AssertionError</code></strong></dt>
+<dd>The user was not edited for some known reason</dd>
+<dt><strong><code>HTTPError</code></strong></dt>
+<dd>Error with connection</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>user = client.add_user("user@test.com", "P0ssW!rd0f43")
+client.edit_user(user, "New_Password4Ever", UserRole.ADMIN)
+```</p></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_active_users"><code class="name flex">
+<span>def <span class="ident">get_active_users</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User">User</a>]</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get the list of the active users in the system</p>
+<h2 id="returns">Returns</h2>
+<p>list of <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> objects</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>users = client.get_active_users()
+for user in users:
+    print(user.email)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_all_customers"><code class="name flex">
@@ -1126,6 +1241,10 @@ equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
 <li><a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
 <li><a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
 </ul>
+<dl>
+<dt><strong><code>position_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>position name</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code>:</dt>
@@ -1167,6 +1286,26 @@ It can get only the requested equipment port type ID</p>
 <pre><code>port_type = client.get_equipment_port_type(self.port_type1.id)
 </code></pre></section>
 </dd>
+<dt id="pyinventory.InventoryClient.get_equipment_properties"><code class="name flex">
+<span>def <span class="ident">get_equipment_properties</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>) -> Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get specific equipment properties.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
+<dd>equipment object</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dict[str, PropertyValue]: dict of property name to property value
+- str - property name
+- PropertyValue - new value of the same type for this property</p>
+<h2 id="example">Example</h2>
+<pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
+equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location) 
+properties = client.get_equipment_properties(equipment=equipment)
+</code></pre></section>
+</dd>
 <dt id="pyinventory.InventoryClient.get_equipment_type_of_equipment"><code class="name flex">
 <span>def <span class="ident">get_equipment_type_of_equipment</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>) -> <a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
@@ -1175,7 +1314,7 @@ It can get only the requested equipment port type ID</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>equipment object to be copied</dd>
+<dd>equipment object</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1352,6 +1491,20 @@ children_locations = client.get_location_children(parent_location.id)
 <pre><code># this call will fail if there is Bletchley Park in two cities
 location = client.get_location([('Site', 'Bletchley Park')])
 location = client.get_location_documents(location=location)
+</code></pre></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_locations"><code class="name flex">
+<span>def <span class="ident">get_locations</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>]</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function returns all existing locations</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List</code>[ <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ]</dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>all_locations = client.get_locations()
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_locations_by_external_id"><code class="name flex">
@@ -1591,6 +1744,50 @@ port = client.get_port(equipment, &quot;Z AIO - Port 1&quot;)
 <dd>&nbsp;</dd>
 </dl></section>
 </dd>
+<dt id="pyinventory.InventoryClient.get_user"><code class="name flex">
+<span>def <span class="ident">get_user</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, email: str) -> <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User">User</a></span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> object by its email</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>email</code></strong></dt>
+<dd>the email address the user registered with</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>EntityNotFoundError</code></strong></dt>
+<dd>the user was not found</dd>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>user = client.get_user(&quot;user@test.com&quot;)
+</code></pre></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_users"><code class="name flex">
+<span>def <span class="ident">get_users</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User">User</a>]</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get the list of users in the system (both active and deactivate)</p>
+<h2 id="returns">Returns</h2>
+<p>list of <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> objects</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>users = client.get_users()
+for user in users:
+    print(user.email)
+</code></pre></section>
+</dd>
 <dt id="pyinventory.InventoryClient.move_location"><code class="name flex">
 <span>def <span class="ident">move_location</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str, new_parent_id: Union[str, NoneType]) -> <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
@@ -1715,6 +1912,7 @@ Example of the format:</p>
 <li>
 <h4><code><a title="pyinventory.InventoryClient" href="#pyinventory.InventoryClient">InventoryClient</a></code></h4>
 <ul class="">
+<li><code><a title="pyinventory.InventoryClient.activate_user" href="#pyinventory.InventoryClient.activate_user">activate_user</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_customer" href="#pyinventory.InventoryClient.add_customer">add_customer</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_equipment" href="#pyinventory.InventoryClient.add_equipment">add_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_equipment_port_type" href="#pyinventory.InventoryClient.add_equipment_port_type">add_equipment_port_type</a></code></li>
@@ -1730,12 +1928,14 @@ Example of the format:</p>
 <li><code><a title="pyinventory.InventoryClient.add_service_endpoint" href="#pyinventory.InventoryClient.add_service_endpoint">add_service_endpoint</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_service_type" href="#pyinventory.InventoryClient.add_service_type">add_service_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_site_survey_image" href="#pyinventory.InventoryClient.add_site_survey_image">add_site_survey_image</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_user" href="#pyinventory.InventoryClient.add_user">add_user</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.apply_location_template_to_location" href="#pyinventory.InventoryClient.apply_location_template_to_location">apply_location_template_to_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.build_site_survey_from_survey_response" href="#pyinventory.InventoryClient.build_site_survey_from_survey_response">build_site_survey_from_survey_response</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.copy_equipment" href="#pyinventory.InventoryClient.copy_equipment">copy_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.copy_equipment_in_position" href="#pyinventory.InventoryClient.copy_equipment_in_position">copy_equipment_in_position</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.copy_equipment_type" href="#pyinventory.InventoryClient.copy_equipment_type">copy_equipment_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.copy_equipment_with_all_attachments" href="#pyinventory.InventoryClient.copy_equipment_with_all_attachments">copy_equipment_with_all_attachments</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.deactivate_user" href="#pyinventory.InventoryClient.deactivate_user">deactivate_user</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_all_equipments" href="#pyinventory.InventoryClient.delete_all_equipments">delete_all_equipments</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_customer" href="#pyinventory.InventoryClient.delete_customer">delete_customer</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_document" href="#pyinventory.InventoryClient.delete_document">delete_document</a></code></li>
@@ -1754,17 +1954,21 @@ Example of the format:</p>
 <li><code><a title="pyinventory.InventoryClient.edit_link_properties" href="#pyinventory.InventoryClient.edit_link_properties">edit_link_properties</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_location" href="#pyinventory.InventoryClient.edit_location">edit_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_port_properties" href="#pyinventory.InventoryClient.edit_port_properties">edit_port_properties</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.edit_user" href="#pyinventory.InventoryClient.edit_user">edit_user</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_active_users" href="#pyinventory.InventoryClient.get_active_users">get_active_users</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_all_customers" href="#pyinventory.InventoryClient.get_all_customers">get_all_customers</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_all_links_and_port_names_of_equipment" href="#pyinventory.InventoryClient.get_all_links_and_port_names_of_equipment">get_all_links_and_port_names_of_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_equipment" href="#pyinventory.InventoryClient.get_equipment">get_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_equipment_in_position" href="#pyinventory.InventoryClient.get_equipment_in_position">get_equipment_in_position</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_equipment_port_type" href="#pyinventory.InventoryClient.get_equipment_port_type">get_equipment_port_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_equipment_properties" href="#pyinventory.InventoryClient.get_equipment_properties">get_equipment_properties</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_equipment_type_of_equipment" href="#pyinventory.InventoryClient.get_equipment_type_of_equipment">get_equipment_type_of_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_link_in_port_of_equipment" href="#pyinventory.InventoryClient.get_link_in_port_of_equipment">get_link_in_port_of_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location" href="#pyinventory.InventoryClient.get_location">get_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location_by_external_id" href="#pyinventory.InventoryClient.get_location_by_external_id">get_location_by_external_id</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location_children" href="#pyinventory.InventoryClient.get_location_children">get_location_children</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location_documents" href="#pyinventory.InventoryClient.get_location_documents">get_location_documents</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_locations" href="#pyinventory.InventoryClient.get_locations">get_locations</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_locations_by_external_id" href="#pyinventory.InventoryClient.get_locations_by_external_id">get_locations_by_external_id</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_or_create_equipment" href="#pyinventory.InventoryClient.get_or_create_equipment">get_or_create_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_or_create_equipment_in_position" href="#pyinventory.InventoryClient.get_or_create_equipment_in_position">get_or_create_equipment_in_position</a></code></li>
@@ -1772,6 +1976,8 @@ Example of the format:</p>
 <li><code><a title="pyinventory.InventoryClient.get_port" href="#pyinventory.InventoryClient.get_port">get_port</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_service" href="#pyinventory.InventoryClient.get_service">get_service</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_site_surveys" href="#pyinventory.InventoryClient.get_site_surveys">get_site_surveys</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_user" href="#pyinventory.InventoryClient.get_user">get_user</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_users" href="#pyinventory.InventoryClient.get_users">get_users</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.move_location" href="#pyinventory.InventoryClient.move_location">move_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.search_for_equipments" href="#pyinventory.InventoryClient.search_for_equipments">search_for_equipments</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.upload_site_survey" href="#pyinventory.InventoryClient.upload_site_survey">upload_site_survey</a></code></li>

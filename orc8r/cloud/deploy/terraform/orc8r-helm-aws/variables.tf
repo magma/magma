@@ -17,6 +17,11 @@ variable "state_backend" {
   default     = "local"
 }
 
+variable "state_config" {
+  description = "Optional config for state backend. The object type will depend on your backend."
+  default     = null
+}
+
 data "aws_availability_zones" "available" {}
 
 ##############################################################################

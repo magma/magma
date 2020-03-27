@@ -35,6 +35,7 @@ class LocationDepsQuery(DataClassJsonMixin):
                 id: str
 
             files: List[File]
+            images: List[File]
             children: List[Location]
             surveys: List[Survey]
             equipments: List[Equipment]
@@ -48,6 +49,9 @@ class LocationDepsQuery(DataClassJsonMixin):
   location: node(id: $id) {
     ... on Location {
       files {
+        id
+      }
+      images {
         id
       }
       children {

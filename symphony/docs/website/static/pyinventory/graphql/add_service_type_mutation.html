@@ -38,25 +38,31 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.add_service_type_mutation.AddServiceTypeMutation.AddServiceTypeMutationData" href="#pyinventory.graphql.add_service_type_mutation.AddServiceTypeMutation.AddServiceTypeMutationData">AddServiceTypeMutation.AddServiceTypeMutationData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>AddServiceTypeMutation(data: pyinventory.graphql.add_service_type_mutation.AddServiceTypeMutation.AddServiceTypeMutationData, <strong>QUERY</strong>: str = '\n
-mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {\n
-addServiceType(data: $data) {\n
-id\n
-name\n
-hasCustomer\n
-propertyTypes {\n
+<section class="desc"><p>AddServiceTypeMutation(data: pyinventory.graphql.add_service_type_mutation.AddServiceTypeMutation.AddServiceTypeMutationData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
 id\n
 name\n
 type\n
 index\n
+category\n
 stringValue\n
 intValue\n
 booleanValue\n
 floatValue\n
 latitudeValue\n
 longitudeValue\n
+rangeFromValue\n
+rangeToValue\n
 isEditable\n
 isInstanceProperty\n
+isMandatory\n
+isDeleted\n}\n\n\n
+mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {\n
+addServiceType(data: $data) {\n
+id\n
+name\n
+hasCustomer\n
+propertyTypes {\n
+&hellip;PropertyTypeFragment\n
 }\n
 }\n}\n\n
 ')</p></section>

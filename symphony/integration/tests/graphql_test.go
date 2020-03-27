@@ -355,10 +355,15 @@ func (c *client) addWorkOrderType(name string, properties ...*models.PropertyTyp
 	return &m.Response, nil
 }
 
+type User struct {
+	ID    graphql.ID
+	Email graphql.String
+}
+
 type addWorkOrderResponse struct {
 	ID    graphql.ID
 	Name  graphql.String
-	Owner graphql.String `graphql:"ownerName"`
+	Owner User
 }
 
 func (c *client) addWorkOrder(name string, typ graphql.ID) (*addWorkOrderResponse, error) {
@@ -383,14 +388,14 @@ func (c *client) executeWorkOrder(workOrder *addWorkOrderResponse) error {
 			ID graphql.ID
 		} `graphql:"editWorkOrder(input: $input)"`
 	}
-	owner := string(workOrder.Owner)
+	ownerID := IDToInt(workOrder.Owner.ID)
 	vars := map[string]interface{}{
 		"input": models.EditWorkOrderInput{
-			ID:        IDToInt(workOrder.ID),
-			Name:      string(workOrder.Name),
-			OwnerName: &owner,
-			Status:    models.WorkOrderStatusDone,
-			Priority:  models.WorkOrderPriorityNone,
+			ID:       IDToInt(workOrder.ID),
+			Name:     string(workOrder.Name),
+			OwnerID:  &ownerID,
+			Status:   models.WorkOrderStatusDone,
+			Priority: models.WorkOrderPriorityNone,
 		},
 	}
 	if err := c.client.Mutate(context.Background(), &em, vars); err != nil {
@@ -485,7 +490,7 @@ func TestExecuteWorkOrder(t *testing.T) {
 	name := "work_order_" + uuid.New().String()
 	workorder, err := c.addWorkOrder(name, typ.ID)
 	require.NoError(t, err)
-	assert.EqualValues(t, testUser, workorder.Owner)
+	assert.EqualValues(t, testUser, workorder.Owner.Email)
 
 	et, err := c.addEquipmentType("router_type_" + uuid.New().String())
 	require.NoError(t, err)

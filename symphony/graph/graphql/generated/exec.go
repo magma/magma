@@ -89,6 +89,8 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	DeprecatedInput func(ctx context.Context, obj interface{}, next graphql.Resolver, newField *string, reason *string) (res interface{}, err error)
+
 	Length func(ctx context.Context, obj interface{}, next graphql.Resolver, min int, max *int) (res interface{}, err error)
 
 	Range func(ctx context.Context, obj interface{}, next graphql.Resolver, min *float64, max *float64) (res interface{}, err error)
@@ -166,6 +168,7 @@ type ComplexityRoot struct {
 		Checked            func(childComplexity int) int
 		EnumSelectionMode  func(childComplexity int) int
 		EnumValues         func(childComplexity int) int
+		Files              func(childComplexity int) int
 		HelpText           func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Index              func(childComplexity int) int
@@ -173,6 +176,7 @@ type ComplexityRoot struct {
 		StringVal          func(childComplexity int) int
 		Title              func(childComplexity int) int
 		Type               func(childComplexity int) int
+		YesNoResponse      func(childComplexity int) int
 	}
 
 	CheckListItemDefinition struct {
@@ -542,6 +546,7 @@ type ComplexityRoot struct {
 		RemoveWorkOrder                          func(childComplexity int, id int) int
 		RemoveWorkOrderType                      func(childComplexity int, id int) int
 		TechnicianWorkOrderCheckIn               func(childComplexity int, workOrderID int) int
+		TechnicianWorkOrderUploadData            func(childComplexity int, input models.TechnicianWorkOrderUploadInput) int
 	}
 
 	NetworkTopology struct {
@@ -563,6 +568,7 @@ type ComplexityRoot struct {
 
 	Project struct {
 		Comments           func(childComplexity int) int
+		CreatedBy          func(childComplexity int) int
 		Creator            func(childComplexity int) int
 		Description        func(childComplexity int) int
 		ID                 func(childComplexity int) int
@@ -672,6 +678,7 @@ type ComplexityRoot struct {
 		ServiceTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Surveys                  func(childComplexity int) int
 		User                     func(childComplexity int, authID string) int
+		UserSearch               func(childComplexity int, filters []*models.UserFilterInput, limit *int) int
 		Users                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Vertex                   func(childComplexity int, id int) int
 		WorkOrder                func(childComplexity int, id int) int
@@ -887,6 +894,11 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	UserSearchResult struct {
+		Count func(childComplexity int) int
+		Users func(childComplexity int) int
+	}
+
 	Vertex struct {
 		Edges  func(childComplexity int) int
 		Fields func(childComplexity int) int
@@ -900,6 +912,7 @@ type ComplexityRoot struct {
 	}
 
 	WorkOrder struct {
+		AssignedTo          func(childComplexity int) int
 		Assignee            func(childComplexity int) int
 		CheckList           func(childComplexity int) int
 		CheckListCategories func(childComplexity int) int
@@ -919,6 +932,7 @@ type ComplexityRoot struct {
 		LinksToRemove       func(childComplexity int) int
 		Location            func(childComplexity int) int
 		Name                func(childComplexity int) int
+		Owner               func(childComplexity int) int
 		OwnerName           func(childComplexity int) int
 		Priority            func(childComplexity int) int
 		Project             func(childComplexity int) int
@@ -999,6 +1013,9 @@ type CheckListItemResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItem) (models.CheckListItemType, error)
 
 	EnumSelectionMode(ctx context.Context, obj *ent.CheckListItem) (*models.CheckListItemEnumSelectionMode, error)
+
+	Files(ctx context.Context, obj *ent.CheckListItem) ([]*ent.File, error)
+	YesNoResponse(ctx context.Context, obj *ent.CheckListItem) (*models.YesNoResponse, error)
 }
 type CheckListItemDefinitionResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error)
@@ -1160,12 +1177,14 @@ type MutationResolver interface {
 	EditActionsRule(ctx context.Context, id int, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
 	RemoveActionsRule(ctx context.Context, id int) (bool, error)
 	TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID int) (*ent.WorkOrder, error)
+	TechnicianWorkOrderUploadData(ctx context.Context, input models.TechnicianWorkOrderUploadInput) (*ent.WorkOrder, error)
 	AddReportFilter(ctx context.Context, input models.ReportFilterInput) (*ent.ReportFilter, error)
 	EditReportFilter(ctx context.Context, input models.EditReportFilterInput) (*ent.ReportFilter, error)
 	DeleteReportFilter(ctx context.Context, id int) (bool, error)
 }
 type ProjectResolver interface {
 	Creator(ctx context.Context, obj *ent.Project) (*string, error)
+	CreatedBy(ctx context.Context, obj *ent.Project) (*ent.User, error)
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
 	Location(ctx context.Context, obj *ent.Project) (*ent.Location, error)
 	WorkOrders(ctx context.Context, obj *ent.Project) ([]*ent.WorkOrder, error)
@@ -1219,6 +1238,7 @@ type QueryResolver interface {
 	ProjectSearch(ctx context.Context, filters []*models.ProjectFilterInput, limit *int) ([]*ent.Project, error)
 	CustomerSearch(ctx context.Context, limit *int) ([]*ent.Customer, error)
 	ServiceSearch(ctx context.Context, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error)
+	UserSearch(ctx context.Context, filters []*models.UserFilterInput, limit *int) (*models.UserSearchResult, error)
 	PossibleProperties(ctx context.Context, entityType models.PropertyEntity) ([]*ent.PropertyType, error)
 	Surveys(ctx context.Context) ([]*ent.Survey, error)
 	LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error)
@@ -1299,8 +1319,10 @@ type WorkOrderResolver interface {
 	WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error)
 
 	OwnerName(ctx context.Context, obj *ent.WorkOrder) (string, error)
+	Owner(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error)
 
 	Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error)
+	AssignedTo(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error)
 
 	Status(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderStatus, error)
 	Priority(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderPriority, error)
@@ -1609,6 +1631,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CheckListItem.EnumValues(childComplexity), true
 
+	case "CheckListItem.files":
+		if e.complexity.CheckListItem.Files == nil {
+			break
+		}
+
+		return e.complexity.CheckListItem.Files(childComplexity), true
+
 	case "CheckListItem.helpText":
 		if e.complexity.CheckListItem.HelpText == nil {
 			break
@@ -1657,6 +1686,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CheckListItem.Type(childComplexity), true
+
+	case "CheckListItem.yesNoResponse":
+		if e.complexity.CheckListItem.YesNoResponse == nil {
+			break
+		}
+
+		return e.complexity.CheckListItem.YesNoResponse(childComplexity), true
 
 	case "CheckListItemDefinition.enumValues":
 		if e.complexity.CheckListItemDefinition.EnumValues == nil {
@@ -3797,6 +3833,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.TechnicianWorkOrderCheckIn(childComplexity, args["workOrderId"].(int)), true
 
+	case "Mutation.technicianWorkOrderUploadData":
+		if e.complexity.Mutation.TechnicianWorkOrderUploadData == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_technicianWorkOrderUploadData_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TechnicianWorkOrderUploadData(childComplexity, args["input"].(models.TechnicianWorkOrderUploadInput)), true
+
 	case "NetworkTopology.links":
 		if e.complexity.NetworkTopology.Links == nil {
 			break
@@ -3859,6 +3907,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.Comments(childComplexity), true
+
+	case "Project.createdBy":
+		if e.complexity.Project.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.Project.CreatedBy(childComplexity), true
 
 	case "Project.creator":
 		if e.complexity.Project.Creator == nil {
@@ -4620,6 +4675,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.User(childComplexity, args["authID"].(string)), true
+
+	case "Query.userSearch":
+		if e.complexity.Query.UserSearch == nil {
+			break
+		}
+
+		args, err := ec.field_Query_userSearch_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UserSearch(childComplexity, args["filters"].([]*models.UserFilterInput), args["limit"].(*int)), true
 
 	case "Query.users":
 		if e.complexity.Query.Users == nil {
@@ -5638,6 +5705,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserEdge.Node(childComplexity), true
 
+	case "UserSearchResult.count":
+		if e.complexity.UserSearchResult.Count == nil {
+			break
+		}
+
+		return e.complexity.UserSearchResult.Count(childComplexity), true
+
+	case "UserSearchResult.users":
+		if e.complexity.UserSearchResult.Users == nil {
+			break
+		}
+
+		return e.complexity.UserSearchResult.Users(childComplexity), true
+
 	case "Vertex.edges":
 		if e.complexity.Vertex.Edges == nil {
 			break
@@ -5679,6 +5760,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Viewer.User(childComplexity), true
+
+	case "WorkOrder.assignedTo":
+		if e.complexity.WorkOrder.AssignedTo == nil {
+			break
+		}
+
+		return e.complexity.WorkOrder.AssignedTo(childComplexity), true
 
 	case "WorkOrder.assignee":
 		if e.complexity.WorkOrder.Assignee == nil {
@@ -5812,6 +5900,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.WorkOrder.Name(childComplexity), true
+
+	case "WorkOrder.owner":
+		if e.complexity.WorkOrder.Owner == nil {
+			break
+		}
+
+		return e.complexity.WorkOrder.Owner(childComplexity), true
 
 	case "WorkOrder.ownerName":
 		if e.complexity.WorkOrder.OwnerName == nil {
@@ -6144,6 +6239,11 @@ var parsedSchema = gqlparser.MustLoadSchema(
 #    %> sudo python3 setup_pyinventory.py develop
 #    %> ./compile_graphql.sh
 
+directive @deprecatedInput(
+  newField: String
+  reason: String = "Deprecated field is no longer supported"
+) on INPUT_FIELD_DEFINITION
+
 enum UserStatus
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/ent/user.Status"
@@ -6173,7 +6273,11 @@ type User implements Node {
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
-  email: String! @goField(name: "user")
+  email: String!
+    @goField(name: "user")
+    @deprecated(
+      reason: "Use ` + "`" + `Viewer.user.email` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
   user: User!
 }
 
@@ -6526,8 +6630,18 @@ input AddWorkOrderInput {
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      reason: "Use ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` together"
+    )
+  ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      reason: "Use ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.assignee` + "`" + ` and ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus
   priority: WorkOrderPriority
@@ -6538,8 +6652,18 @@ input EditWorkOrderInput {
   name: String!
   description: String
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      reason: "Use ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` together"
+    )
+  ownerId: ID
   installDate: Time
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      reason: "Use ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.assignee` + "`" + ` and ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -6548,6 +6672,18 @@ input EditWorkOrderInput {
   checkList: [CheckListItemInput!]
   checkListCategories: [CheckListCategoryInput!]
   locationId: ID
+}
+
+input TechnicianCheckListItemInput {
+  id: ID!
+  selectedEnumValues: String
+  stringValue: String
+  checked: Boolean
+}
+
+input TechnicianWorkOrderUploadInput {
+  workOrderId: ID!
+  checklist: [TechnicianCheckListItemInput!]!
 }
 
 type EquipmentPortType implements Node {
@@ -6999,6 +7135,7 @@ enum ImageEntity {
   SITE_SURVEY
   EQUIPMENT
   USER
+  CHECKLIST_ITEM
 }
 
 enum PropertyEntity {
@@ -7056,17 +7193,23 @@ input WorkOrderDefinitionInput {
   type: ID!
 }
 
+enum YesNoResponse {
+  YES
+  NO
+}
+
 enum CheckListItemType {
   simple
   string
   enum
+  files
+  yes_no
 }
 
 enum CheckListItemEnumSelectionMode {
   single
   multiple
 }
-
 
 type CheckListItemDefinition {
   id: ID!
@@ -7104,6 +7247,8 @@ type CheckListItem implements Node {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  files: [File!]!
+  yesNoResponse: YesNoResponse
 }
 
 input CheckListCategoryInput {
@@ -7124,6 +7269,8 @@ input CheckListItemInput {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  files: [FileInput!]
+  yesNoResponse: YesNoResponse
 }
 
 enum FilterEntity {
@@ -7197,9 +7344,17 @@ type WorkOrder implements Node {
   name: String!
   description: String
   ownerName: String!
+    @deprecated(
+      reason: "Use ` + "`" + `WorkOrder.owner.email` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  owner: User!
   creationDate: Time!
   installDate: Time
   assignee: String
+    @deprecated(
+      reason: "Use ` + "`" + `WorkOrder.assignedTo.email` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  assignedTo: User
   index: Int!
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -7387,6 +7542,10 @@ type Project implements Node {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecated(
+      reason: "Use ` + "`" + `Project.createdBy.email` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  createdBy: User
   type: ProjectType!
   location: Location
   workOrders: [WorkOrder!]!
@@ -7399,6 +7558,11 @@ input AddProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      reason: "Use ` + "`" + `AddProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddProjectInput.creator` + "`" + ` and ` + "`" + `AddProjectInput.creatorId` + "`" + ` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -7409,6 +7573,11 @@ input EditProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      reason: "Use ` + "`" + `EditProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditProjectInput.creator` + "`" + ` and ` + "`" + `EditProjectInput.creatorId` + "`" + ` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -7466,6 +7635,11 @@ type ServiceSearchResult {
   count: Int!
 }
 
+type UserSearchResult {
+  users: [User]!
+  count: Int!
+}
+
 type WorkOrderSearchResult {
   workOrders: [WorkOrder]!
   count: Int!
@@ -7519,6 +7693,13 @@ enum ServiceFilterType {
   EQUIPMENT_IN_SERVICE
 }
 
+"""
+what filters should we apply on users
+"""
+enum UserFilterType {
+  USER_NAME
+}
+
 input PortFilterInput {
   filterType: PortFilterType!
   operator: FilterOperator!
@@ -7561,6 +7742,16 @@ input ServiceFilterInput {
   maxDepth: Int = 5
 }
 
+input UserFilterInput {
+  filterType: UserFilterType!
+  operator: FilterOperator!
+  stringValue: String
+  propertyValue: PropertyTypeInput
+  idSet: [ID!]
+  stringSet: [String!]
+  maxDepth: Int = 5
+}
+
 """
 what type of work order we filter about
 """
@@ -7568,10 +7759,18 @@ enum WorkOrderFilterType {
   WORK_ORDER_NAME
   WORK_ORDER_STATUS
   WORK_ORDER_OWNER
+    @deprecated(
+      reason: "Use ` + "`" + `WorkOrderFilterType.WORK_ORDER_OWNED_BY` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_OWNED_BY
   WORK_ORDER_TYPE
   WORK_ORDER_CREATION_DATE
   WORK_ORDER_INSTALL_DATE
   WORK_ORDER_ASSIGNEE
+    @deprecated(
+      reason: "Use ` + "`" + `WorkOrderFilterType.WORK_ORDER_ASSIGNED_TO` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_ASSIGNED_TO
   WORK_ORDER_LOCATION_INST
   WORK_ORDER_PRIORITY
   LOCATION_INST
@@ -7791,7 +7990,7 @@ type FloorPlanReferencePoint {
 }
 
 input FileInput {
-  id: ID!
+  id: ID
   fileName: String!
   sizeInBytes: Int
   modificationTime: Int
@@ -8137,9 +8336,9 @@ type Query {
   ): Node
   user(authID: String!): User
   location(id: ID!): Location
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   locationType(id: ID!): LocationType
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   locationTypes(
     after: Cursor
     first: Int
@@ -8157,9 +8356,9 @@ type Query {
     last: Int
   ): LocationConnection
   equipment(id: ID!): Equipment
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -8179,9 +8378,9 @@ type Query {
     last: Int
   ): EquipmentTypeConnection!
   service(id: ID!): Service
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   serviceType(id: ID!): ServiceType
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   serviceTypes(
     after: Cursor
     first: Int
@@ -8189,7 +8388,7 @@ type Query {
     last: Int
   ): ServiceTypeConnection
   workOrder(id: ID!): WorkOrder
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   workOrders(
     after: Cursor
     first: Int
@@ -8211,7 +8410,9 @@ type Query {
     before: Cursor
     last: Int
   ): SearchEntriesConnection!
-    @deprecated(reason: "Use ` + "`" + `searchForNode` + "`" + ` instead. Will be removed on 18/4/2020")
+    @deprecated(
+      reason: "Use ` + "`" + `searchForNode` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
   searchForNode(
     name: String!
     after: Cursor
@@ -8245,6 +8446,7 @@ type Query {
     filters: [ServiceFilterInput!]!
     limit: Int = 500
   ): ServiceSearchResult!
+  userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
@@ -8255,7 +8457,7 @@ type Query {
   ): [Location!]!
   vertex(id: ID!): Vertex
   projectType(id: ID!): ProjectType
-    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead. Will be removed on 2020-04-01")
   projectTypes(
     after: Cursor
     first: Int
@@ -8443,6 +8645,9 @@ type Mutation {
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
+  technicianWorkOrderUploadData(
+    input: TechnicianWorkOrderUploadInput!
+  ): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!
@@ -8458,6 +8663,28 @@ type Subscription {
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_deprecatedInput_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["newField"]; ok {
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["newField"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["reason"]; ok {
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["reason"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) dir_length_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -9703,6 +9930,20 @@ func (ec *executionContext) field_Mutation_technicianWorkOrderCheckIn_args(ctx c
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_technicianWorkOrderUploadData_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.TechnicianWorkOrderUploadInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNTechnicianWorkOrderUploadInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianWorkOrderUploadInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -10458,6 +10699,28 @@ func (ec *executionContext) field_Query_service_args(ctx context.Context, rawArg
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_userSearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*models.UserFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg0, err = ec.unmarshalNUserFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg1
 	return args, nil
 }
 
@@ -12316,6 +12579,77 @@ func (ec *executionContext) _CheckListItem_checked(ctx context.Context, field gr
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListItem_files(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CheckListItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CheckListItem().Files(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.File)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFileᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListItem_yesNoResponse(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CheckListItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CheckListItem().YesNoResponse(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.YesNoResponse)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListItemDefinition_id(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItemDefinition) (ret graphql.Marshaler) {
@@ -21870,6 +22204,50 @@ func (ec *executionContext) _Mutation_technicianWorkOrderCheckIn(ctx context.Con
 	return ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_technicianWorkOrderUploadData(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_technicianWorkOrderUploadData_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().TechnicianWorkOrderUploadData(rctx, args["input"].(models.TechnicianWorkOrderUploadInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.WorkOrder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_addReportFilter(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -22456,6 +22834,40 @@ func (ec *executionContext) _Project_creator(ctx context.Context, field graphql.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_createdBy(ctx context.Context, field graphql.CollectedField, obj *ent.Project) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Project",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Project().CreatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Project_type(ctx context.Context, field graphql.CollectedField, obj *ent.Project) (ret graphql.Marshaler) {
@@ -25507,6 +25919,50 @@ func (ec *executionContext) _Query_serviceSearch(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNServiceSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceSearchResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_userSearch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_userSearch_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UserSearch(rctx, args["filters"].([]*models.UserFilterInput), args["limit"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.UserSearchResult)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUserSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserSearchResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_possibleProperties(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -30861,6 +31317,80 @@ func (ec *executionContext) _UserEdge_cursor(ctx context.Context, field graphql.
 	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserSearchResult_users(ctx context.Context, field graphql.CollectedField, obj *models.UserSearchResult) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserSearchResult",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Users, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserSearchResult_count(ctx context.Context, field graphql.CollectedField, obj *models.UserSearchResult) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UserSearchResult",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Vertex_id(ctx context.Context, field graphql.CollectedField, obj *ent.Node) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -31302,6 +31832,43 @@ func (ec *executionContext) _WorkOrder_ownerName(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _WorkOrder_owner(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkOrder().Owner(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _WorkOrder_creationDate(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -31405,6 +31972,40 @@ func (ec *executionContext) _WorkOrder_assignee(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrder_assignedTo(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkOrder().AssignedTo(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrder_index(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
@@ -34867,7 +35468,36 @@ func (ec *executionContext) unmarshalInputAddProjectInput(ctx context.Context, o
 			}
 		case "creator":
 			var err error
-			it.Creator, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.Creator = data
+			} else if tmp == nil {
+				it.Creator = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "creatorId":
+			var err error
+			it.CreatorID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35051,7 +35681,36 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			}
 		case "ownerName":
 			var err error
-			it.OwnerName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.OwnerName = data
+			} else if tmp == nil {
+				it.OwnerName = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "ownerId":
+			var err error
+			it.OwnerID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35063,7 +35722,36 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			}
 		case "assignee":
 			var err error
-			it.Assignee, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.Assignee = data
+			} else if tmp == nil {
+				it.Assignee = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "assigneeId":
+			var err error
+			it.AssigneeID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35326,6 +36014,18 @@ func (ec *executionContext) unmarshalInputCheckListItemInput(ctx context.Context
 		case "checked":
 			var err error
 			it.Checked, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "files":
+			var err error
+			it.Files, err = ec.unmarshalOFileInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "yesNoResponse":
+			var err error
+			it.YesNoResponse, err = ec.unmarshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35776,7 +36476,36 @@ func (ec *executionContext) unmarshalInputEditProjectInput(ctx context.Context, 
 			}
 		case "creator":
 			var err error
-			it.Creator, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.Creator = data
+			} else if tmp == nil {
+				it.Creator = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "creatorId":
+			var err error
+			it.CreatorID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35978,7 +36707,36 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			}
 		case "ownerName":
 			var err error
-			it.OwnerName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.OwnerName = data
+			} else if tmp == nil {
+				it.OwnerName = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "ownerId":
+			var err error
+			it.OwnerID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35990,7 +36748,36 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			}
 		case "assignee":
 			var err error
-			it.Assignee, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
+			directive1 := func(ctx context.Context) (interface{}, error) {
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
+				if err != nil {
+					return nil, err
+				}
+				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together")
+				if err != nil {
+					return nil, err
+				}
+				if ec.directives.DeprecatedInput == nil {
+					return nil, errors.New("directive deprecatedInput is not implemented")
+				}
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, err
+			}
+			if data, ok := tmp.(*string); ok {
+				it.Assignee = data
+			} else if tmp == nil {
+				it.Assignee = nil
+			} else {
+				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
+			}
+		case "assigneeId":
+			var err error
+			it.AssigneeID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -36292,7 +37079,7 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37670,6 +38457,42 @@ func (ec *executionContext) unmarshalInputSurveyWiFiScanData(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputTechnicianCheckListItemInput(ctx context.Context, obj interface{}) (models.TechnicianCheckListItemInput, error) {
+	var it models.TechnicianCheckListItemInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "selectedEnumValues":
+			var err error
+			it.SelectedEnumValues, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringValue":
+			var err error
+			it.StringValue, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "checked":
+			var err error
+			it.Checked, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputTechnicianInput(ctx context.Context, obj interface{}) (models.TechnicianInput, error) {
 	var it models.TechnicianInput
 	var asMap = obj.(map[string]interface{})
@@ -37685,6 +38508,88 @@ func (ec *executionContext) unmarshalInputTechnicianInput(ctx context.Context, o
 		case "email":
 			var err error
 			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTechnicianWorkOrderUploadInput(ctx context.Context, obj interface{}) (models.TechnicianWorkOrderUploadInput, error) {
+	var it models.TechnicianWorkOrderUploadInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "workOrderId":
+			var err error
+			it.WorkOrderID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "checklist":
+			var err error
+			it.Checklist, err = ec.unmarshalNTechnicianCheckListItemInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUserFilterInput(ctx context.Context, obj interface{}) (models.UserFilterInput, error) {
+	var it models.UserFilterInput
+	var asMap = obj.(map[string]interface{})
+
+	if _, present := asMap["maxDepth"]; !present {
+		asMap["maxDepth"] = 5
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "filterType":
+			var err error
+			it.FilterType, err = ec.unmarshalNUserFilterType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "operator":
+			var err error
+			it.Operator, err = ec.unmarshalNFilterOperator2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterOperator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringValue":
+			var err error
+			it.StringValue, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "propertyValue":
+			var err error
+			it.PropertyValue, err = ec.unmarshalOPropertyTypeInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "idSet":
+			var err error
+			it.IDSet, err = ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "stringSet":
+			var err error
+			it.StringSet, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "maxDepth":
+			var err error
+			it.MaxDepth, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38486,6 +39391,31 @@ func (ec *executionContext) _CheckListItem(ctx context.Context, sel ast.Selectio
 			out.Values[i] = ec._CheckListItem_stringValue(ctx, field, obj)
 		case "checked":
 			out.Values[i] = ec._CheckListItem_checked(ctx, field, obj)
+		case "files":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CheckListItem_files(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "yesNoResponse":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CheckListItem_yesNoResponse(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -41013,6 +41943,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "technicianWorkOrderUploadData":
+			out.Values[i] = ec._Mutation_technicianWorkOrderUploadData(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addReportFilter":
 			out.Values[i] = ec._Mutation_addReportFilter(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -41171,6 +42106,17 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Project_creator(ctx, field, obj)
+				return res
+			})
+		case "createdBy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Project_createdBy(ctx, field, obj)
 				return res
 			})
 		case "type":
@@ -41993,6 +42939,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_serviceSearch(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "userSearch":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_userSearch(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -43471,6 +44431,38 @@ func (ec *executionContext) _UserEdge(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var userSearchResultImplementors = []string{"UserSearchResult"}
+
+func (ec *executionContext) _UserSearchResult(ctx context.Context, sel ast.SelectionSet, obj *models.UserSearchResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, userSearchResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserSearchResult")
+		case "users":
+			out.Values[i] = ec._UserSearchResult_users(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+			out.Values[i] = ec._UserSearchResult_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var vertexImplementors = []string{"Vertex"}
 
 func (ec *executionContext) _Vertex(ctx context.Context, sel ast.SelectionSet, obj *ent.Node) graphql.Marshaler {
@@ -43610,6 +44602,20 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 				}
 				return res
 			})
+		case "owner":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_owner(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "creationDate":
 			out.Values[i] = ec._WorkOrder_creationDate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -43626,6 +44632,17 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 					}
 				}()
 				res = ec._WorkOrder_assignee(ctx, field, obj)
+				return res
+			})
+		case "assignedTo":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_assignedTo(ctx, field, obj)
 				return res
 			})
 		case "index":
@@ -46112,6 +47129,43 @@ func (ec *executionContext) marshalNFile2ᚕᚖgithubᚗcomᚋfacebookincubator�
 	return ret
 }
 
+func (ec *executionContext) marshalNFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFileᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.File) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx context.Context, sel ast.SelectionSet, v *ent.File) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
@@ -46120,6 +47174,18 @@ func (ec *executionContext) marshalNFile2ᚖgithubᚗcomᚋfacebookincubatorᚋs
 		return graphql.Null
 	}
 	return ec._File(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNFileInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInput(ctx context.Context, v interface{}) (models.FileInput, error) {
+	return ec.unmarshalInputFileInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNFileInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInput(ctx context.Context, v interface{}) (*models.FileInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNFileInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInput(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalNFilterEntity2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFilterEntity(ctx context.Context, v interface{}) (models.FilterEntity, error) {
@@ -48183,8 +49249,44 @@ func (ec *executionContext) marshalNTechnician2ᚖgithubᚗcomᚋfacebookincubat
 	return ec._Technician(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNTechnicianCheckListItemInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInput(ctx context.Context, v interface{}) (models.TechnicianCheckListItemInput, error) {
+	return ec.unmarshalInputTechnicianCheckListItemInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNTechnicianCheckListItemInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInputᚄ(ctx context.Context, v interface{}) ([]*models.TechnicianCheckListItemInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.TechnicianCheckListItemInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNTechnicianCheckListItemInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNTechnicianCheckListItemInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInput(ctx context.Context, v interface{}) (*models.TechnicianCheckListItemInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNTechnicianCheckListItemInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianCheckListItemInput(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) unmarshalNTechnicianInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianInput(ctx context.Context, v interface{}) (models.TechnicianInput, error) {
 	return ec.unmarshalInputTechnicianInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNTechnicianWorkOrderUploadInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTechnicianWorkOrderUploadInput(ctx context.Context, v interface{}) (models.TechnicianWorkOrderUploadInput, error) {
+	return ec.unmarshalInputTechnicianWorkOrderUploadInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
@@ -48274,6 +49376,43 @@ func (ec *executionContext) marshalNUser2githubᚗcomᚋfacebookincubatorᚋsymp
 	return ec._User(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v []*ent.User) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
@@ -48335,6 +49474,47 @@ func (ec *executionContext) marshalNUserEdge2ᚖgithubᚗcomᚋfacebookincubator
 	return ec._UserEdge(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNUserFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInput(ctx context.Context, v interface{}) (models.UserFilterInput, error) {
+	return ec.unmarshalInputUserFilterInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNUserFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.UserFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.UserFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNUserFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNUserFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInput(ctx context.Context, v interface{}) (*models.UserFilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNUserFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInput(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalNUserFilterType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterType(ctx context.Context, v interface{}) (models.UserFilterType, error) {
+	var res models.UserFilterType
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNUserFilterType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterType(ctx context.Context, sel ast.SelectionSet, v models.UserFilterType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋuserᚐRole(ctx context.Context, v interface{}) (user.Role, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	return user.Role(tmp), err
@@ -48348,6 +49528,20 @@ func (ec *executionContext) marshalNUserRole2githubᚗcomᚋfacebookincubatorᚋ
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNUserSearchResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserSearchResult(ctx context.Context, sel ast.SelectionSet, v models.UserSearchResult) graphql.Marshaler {
+	return ec._UserSearchResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserSearchResult(ctx context.Context, sel ast.SelectionSet, v *models.UserSearchResult) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UserSearchResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋuserᚐStatus(ctx context.Context, v interface{}) (user.Status, error) {
@@ -49407,6 +50601,26 @@ func (ec *executionContext) marshalOFile2ᚖgithubᚗcomᚋfacebookincubatorᚋs
 
 func (ec *executionContext) unmarshalOFileInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInput(ctx context.Context, v interface{}) (models.FileInput, error) {
 	return ec.unmarshalInputFileInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOFileInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInputᚄ(ctx context.Context, v interface{}) ([]*models.FileInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.FileInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNFileInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOFileInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInput(ctx context.Context, v interface{}) (*models.FileInput, error) {
@@ -50773,6 +51987,30 @@ func (ec *executionContext) marshalOWorkOrderTypeConnection2ᚖgithubᚗcomᚋfa
 		return graphql.Null
 	}
 	return ec._WorkOrderTypeConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOYesNoResponse2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx context.Context, v interface{}) (models.YesNoResponse, error) {
+	var res models.YesNoResponse
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOYesNoResponse2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx context.Context, sel ast.SelectionSet, v models.YesNoResponse) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx context.Context, v interface{}) (*models.YesNoResponse, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOYesNoResponse2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx context.Context, sel ast.SelectionSet, v *models.YesNoResponse) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

@@ -84,6 +84,7 @@ export default function SecuritySettings() {
       <FormGroup row className={classes.formGroup}>
         <TextField
           required
+          autoComplete="off"
           label="New Password"
           type="password"
           value={newPassword}
@@ -94,6 +95,7 @@ export default function SecuritySettings() {
       <FormGroup row className={classes.formGroup}>
         <TextField
           required
+          autoComplete="off"
           label="Confirm Password"
           type="password"
           value={confirmPassword}

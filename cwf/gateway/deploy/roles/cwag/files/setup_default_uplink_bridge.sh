@@ -17,4 +17,10 @@ sudo ovs-vsctl --may-exist add-port cwag_br0 cwag_patch
 sudo ovs-vsctl set interface uplink_patch type=patch options:peer=cwag_patch
 sudo ovs-vsctl set interface cwag_patch type=patch options:peer=uplink_patch
 
-sudo ovs-vsctl --may-exist add-bond uplink_br0 uplink_bond eth2 eth3
+# Some setups might not have 2 nics. In that case just use eth2
+if [ ! -d "/sys/class/net/eth3" ]
+then
+  sudo ovs-vsctl --may-exist add-port uplink_br0 eth2
+else
+  sudo ovs-vsctl --may-exist add-bond uplink_br0 uplink_bond eth2 eth3
+fi

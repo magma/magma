@@ -16,61 +16,97 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
 )
 
-func toStaticRuleNameAVP(ruleName string, action uint32) *diam.AVP {
-	return diam.NewAVP(action, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+func toStaticRuleNameRemovalAVP(ruleName string) *diam.AVP {
+	return diam.NewAVP(avp.ChargingRuleRemove, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.ChargingRuleName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ruleName)),
 		},
 	})
 }
 
-func toStaticBaseNameAVP(ruleName string, action uint32) *diam.AVP {
-	return diam.NewAVP(action, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+func toStaticBaseNameRemovalAVP(baseName string) *diam.AVP {
+	return diam.NewAVP(avp.ChargingRuleRemove, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
-			diam.NewAVP(avp.ChargingRuleBaseName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ruleName)),
+			diam.NewAVP(avp.ChargingRuleBaseName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(baseName)),
 		},
 	})
 }
 
-func toDynamicRuleInstallAVP(rule *protos.RuleDefinition) *diam.AVP {
-	installAVPs := []*diam.AVP{
+func toStaticRuleNameInstallAVP(ruleName string, activationTime, deactivationTime *timestamp.Timestamp) *diam.AVP {
+	ruleInstallAVPs := []*diam.AVP{
+		diam.NewAVP(avp.ChargingRuleName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ruleName)),
+	}
+	return diam.NewAVP(avp.ChargingRuleInstall, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+		AVP: appendRuleInstallTimestamps(ruleInstallAVPs, activationTime, deactivationTime),
+	})
+}
+
+func toStaticBaseNameInstallAVP(baseName string, activationTime, deactivationTime *timestamp.Timestamp) *diam.AVP {
+	ruleInstallAVPs := []*diam.AVP{
+		diam.NewAVP(avp.ChargingRuleBaseName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(baseName)),
+	}
+	return diam.NewAVP(avp.ChargingRuleInstall, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+		AVP: appendRuleInstallTimestamps(ruleInstallAVPs, activationTime, deactivationTime),
+	})
+}
+
+func appendRuleInstallTimestamps(ruleInstallAVPs []*diam.AVP, activationTime, deactivationTime *timestamp.Timestamp) []*diam.AVP {
+	if aTime, err := ptypes.Timestamp(activationTime); activationTime != nil && err == nil {
+		ruleInstallAVPs = append(ruleInstallAVPs,
+			diam.NewAVP(avp.RuleActivationTime, avp.Mbit, diameter.Vendor3GPP, datatype.Time(aTime)),
+		)
+	}
+	if dTime, err := ptypes.Timestamp(deactivationTime); deactivationTime != nil && err == nil {
+		ruleInstallAVPs = append(ruleInstallAVPs,
+			diam.NewAVP(avp.RuleDeactivationTime, avp.Mbit, diameter.Vendor3GPP, datatype.Time(dTime)),
+		)
+	}
+	return ruleInstallAVPs
+}
+
+func toDynamicRuleInstallAVP(rule *protos.RuleDefinition, activationTime *timestamp.Timestamp, deactivationTime *timestamp.Timestamp) *diam.AVP {
+	ruleDefinitionAVPs := []*diam.AVP{
 		diam.NewAVP(avp.ChargingRuleName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(rule.RuleName)),
 		diam.NewAVP(avp.Precedence, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(rule.Precedence)),
 	}
 	if rule.RatingGroup != 0 {
-		installAVPs = append(installAVPs, diam.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(rule.RatingGroup)))
+		ruleDefinitionAVPs = append(ruleDefinitionAVPs, diam.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(rule.RatingGroup)))
 	}
 	if rule.MonitoringKey != "" {
-		installAVPs = append(
-			installAVPs,
+		ruleDefinitionAVPs = append(
+			ruleDefinitionAVPs,
 			diam.NewAVP(avp.MonitoringKey, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(rule.MonitoringKey)),
 		)
 	}
 	if rule.QosInformation != nil && (rule.QosInformation.MaxReqBwUl != 0 || rule.QosInformation.MaxReqBwDl != 0) {
-		installAVPs = append(installAVPs, toQosAVP(rule.QosInformation))
+		ruleDefinitionAVPs = append(ruleDefinitionAVPs, toQosAVP(rule.QosInformation))
 	}
 	for _, flowDescription := range rule.FlowDescriptions {
-		installAVPs = append(
-			installAVPs,
+		ruleDefinitionAVPs = append(
+			ruleDefinitionAVPs,
 			diam.NewAVP(avp.FlowDescription, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.IPFilterRule(flowDescription)),
 		)
 	}
 	if rule.RedirectInformation != nil {
-		installAVPs = append(
-			installAVPs,
+		ruleDefinitionAVPs = append(
+			ruleDefinitionAVPs,
 			diam.NewAVP(avp.RedirectInformation, avp.Mbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 				AVP: toRedirectionAVP(rule.RedirectInformation),
 			}),
 		)
 	}
+
+	ruleInstallAVPs := []*diam.AVP{
+		diam.NewAVP(avp.ChargingRuleDefinition, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+			AVP: ruleDefinitionAVPs,
+		}),
+	}
 	return diam.NewAVP(avp.ChargingRuleInstall, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
-		AVP: []*diam.AVP{
-			diam.NewAVP(avp.ChargingRuleDefinition, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
-				AVP: installAVPs,
-			}),
-		},
+		AVP: appendRuleInstallTimestamps(ruleInstallAVPs, activationTime, deactivationTime),
 	})
 }
 
@@ -115,22 +151,18 @@ func toUsageMonitoringInfoAVP(monitoringKey string, quotaGrant *protos.Octets, l
 	})
 }
 
-func toRuleInstallAVPs(
-	ruleNames []string,
-	ruleBaseNames []string,
-	ruleDefs []*protos.RuleDefinition,
-) []*diam.AVP {
+func toRuleInstallAVPs(ruleNames, ruleBaseNames []string, ruleDefs []*protos.RuleDefinition, activationTime, deactivationTime *timestamp.Timestamp) []*diam.AVP {
 	avps := make([]*diam.AVP, 0, len(ruleNames)+len(ruleBaseNames)+len(ruleDefs))
 	for _, ruleName := range ruleNames {
-		avps = append(avps, toStaticRuleNameAVP(ruleName, avp.ChargingRuleInstall))
+		avps = append(avps, toStaticRuleNameInstallAVP(ruleName, activationTime, deactivationTime))
 	}
 
 	for _, baseName := range ruleBaseNames {
-		avps = append(avps, toStaticBaseNameAVP(baseName, avp.ChargingRuleInstall))
+		avps = append(avps, toStaticBaseNameInstallAVP(baseName, activationTime, deactivationTime))
 	}
 
 	for _, rule := range ruleDefs {
-		avps = append(avps, toDynamicRuleInstallAVP(rule))
+		avps = append(avps, toDynamicRuleInstallAVP(rule, activationTime, deactivationTime))
 	}
 	return avps
 }
@@ -147,11 +179,11 @@ func toUsageMonitorAVPs(monitors map[string]*protos.UsageMonitor) []*diam.AVP {
 func toRuleRemovalAVPs(ruleNames, ruleBaseNames []string) []*diam.AVP {
 	avps := make([]*diam.AVP, 0, len(ruleNames)+len(ruleBaseNames))
 	for _, ruleName := range ruleNames {
-		avps = append(avps, toStaticRuleNameAVP(ruleName, avp.ChargingRuleRemove))
+		avps = append(avps, toStaticRuleNameRemovalAVP(ruleName))
 	}
 
 	for _, baseName := range ruleBaseNames {
-		avps = append(avps, toStaticBaseNameAVP(baseName, avp.ChargingRuleRemove))
+		avps = append(avps, toStaticBaseNameRemovalAVP(baseName))
 	}
 	return avps
 }

@@ -10,16 +10,17 @@ package integ_tests
 
 import (
 	"fmt"
-	cwfprotos "magma/cwf/cloud/go/protos"
-	"magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
 	"testing"
 	"time"
 
+	cwfprotos "magma/cwf/cloud/go/protos"
+	"magma/feg/cloud/go/protos"
+	"magma/lte/cloud/go/plugin/models"
+
 	"github.com/emakeev/go-diameter/diam"
 	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,19 +30,36 @@ const (
 	Buffer    = 50 * KiloBytes
 )
 
-func TestBasicUplinkTrafficWithEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestBasicUplinkTrafficWithEnforcement...")
-	tr := NewTestRunner()
+// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//   respond with a rule install (usage-enforcement-static-pass-all), 250KB of
+//   quota.
+//   Generate traffic and assert the CCR-I is received.
+// - Set an expectation for a CCR-U with >80% of data usage to be sent up to
+// 	 PCRF, to which it will response with more quota.
+//   Generate traffic and assert the CCR-U is received.
+// - Generate traffic to put traffic through the newly installed rule.
+//   Assert that there's > 0 data usage in the rule.
+// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+func TestUsageReportEnforcement(t *testing.T) {
+	fmt.Println("\nRunning TestUsageReportEnforcement...")
+	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
 	assert.NoError(t, usePCRFMockDriver())
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
 
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
 	imsi := ues[0].GetImsi()
 
-	err = ruleManager.AddStaticPassAllToDB("ul-enforcement-static-pass-all", "mkey1", 0, models.PolicyRuleTrackingTypeONLYPCRF, 3)
+	err = ruleManager.AddStaticPassAllToDB("usage-enforcement-static-pass-all", "mkey1", 0, models.PolicyRuleTrackingTypeONLYPCRF, 3)
 	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
 
 	usageMonitorInfo := []*protos.UsageMonitoringInformation{
 		{
@@ -53,7 +71,7 @@ func TestBasicUplinkTrafficWithEnforcement(t *testing.T) {
 
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
-		SetStaticRuleInstalls([]string{"ul-enforcement-static-pass-all"}, []string{}).
+		SetStaticRuleInstalls([]string{"usage-enforcement-static-pass-all"}, []string{}).
 		SetUsageMonitorInfos(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
@@ -67,23 +85,18 @@ func TestBasicUplinkTrafficWithEnforcement(t *testing.T) {
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
 
-	// wait for the rules to be synced into sessiond
-	time.Sleep(1 * time.Second)
-
-	tr.AuthenticateAndAssertSuccess(t, imsi)
+	tr.AuthenticateAndAssertSuccess(imsi)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-
-	// Wait for the traffic to go through
-	time.Sleep(6 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]["ul-enforcement-static-pass-all"]
+	record := recordsBySubID["IMSI"+imsi]["usage-enforcement-static-pass-all"]
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 	if record != nil {
 		// We should not be seeing > 1024k data here
@@ -110,7 +123,7 @@ func TestBasicUplinkTrafficWithEnforcement(t *testing.T) {
 
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
-	time.Sleep(3 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we saw a Terminate request
 	resultByIndex, errByIndex, err = getAssertExpectationsResult()
@@ -120,11 +133,6 @@ func TestBasicUplinkTrafficWithEnforcement(t *testing.T) {
 		{ExpectationIndex: 0, ExpectationMet: true},
 	}
 	assert.ElementsMatch(t, expectedResult, resultByIndex)
-
-	// Clear hss, ocs, and pcrf
-	assert.NoError(t, clearPCRFMockDriver())
-	assert.NoError(t, ruleManager.RemoveInstalledRules())
-	assert.NoError(t, tr.CleanUp())
 }
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
@@ -138,10 +146,16 @@ func TestBasicUplinkTrafficWithEnforcement(t *testing.T) {
 func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	fmt.Println("\nRunning TestMidSessionRuleRemovalWithCCA_U...")
 
-	tr := NewTestRunner()
+	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
 	assert.NoError(t, usePCRFMockDriver())
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
 
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
@@ -154,6 +168,7 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	err = ruleManager.AddStaticPassAllToDB("static-pass-all-3", "mkey2", 0, models.PolicyRuleTrackingTypeONLYPCRF, 200)
 	assert.NoError(t, err)
 	err = ruleManager.AddBaseNameMappingToDB("base-1", []string{"static-pass-all-3"})
+	tr.WaitForPoliciesToSync()
 
 	usageMonitorInfo := []*protos.UsageMonitoringInformation{
 		{
@@ -174,10 +189,7 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	// On unexpected requests, just return some quota
 	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
 
-	// wait for the rules to be synced into sessiond
-	time.Sleep(1 * time.Second)
-
-	tr.AuthenticateAndAssertSuccess(t, imsi)
+	tr.AuthenticateAndAssertSuccess(imsi)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
 	_, err = tr.GenULTraffic(req)
@@ -185,8 +197,7 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 
 	// At this point both static-pass-all-1 & static-pass-all-3 are installed.
 	// Since static-pass-all-1 has higher precedence, it will get hit.
-	// Wait for some traffic to go through
-	time.Sleep(1 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through
@@ -222,13 +233,12 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	// Generate traffic to trigger the CCR-U so that the rule removal/install happens
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	time.Sleep(3 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
 
 	fmt.Println("Generating traffic again to put data through static-pass-all-2")
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	// Wait for some traffic to go through
-	time.Sleep(1 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we sent back a CCA-Update with RuleRemovals
 	resultByIndex, errByIndex, err = getAssertExpectationsResult()
@@ -241,19 +251,118 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 
 	recordsBySubID, err = tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	record2 := recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"]
-	assert.NotNil(t, record1, fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-2", imsi))
-	if record2 != nil {
-		// This rule should have passed some traffic
-		assert.True(t, record2.BytesTx > 0, fmt.Sprintf("%s did not pass any data", record2.RuleId))
-	}
+	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"], fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-2", imsi))
 
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
 	time.Sleep(3 * time.Second)
+}
 
-	// Clear hss, ocs, and pcrf
-	assert.NoError(t, clearPCRFMockDriver())
-	assert.NoError(t, ruleManager.RemoveInstalledRules())
-	assert.NoError(t, tr.CleanUp())
+// - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
+//   respond with a rule install (static-pass-all-1).
+// - Set an expectation for a CCR-U to be sent up to PCRF, to which it will
+//   respond with a rule install (static-pass-all-2), with activation (now + X sec)
+//   and deactivation time (activation + Y sec) specified.
+// - Generate traffic to trigger a CCR-U. Check policy usage and assert
+//   static-pass-all-2 is not installed.
+// - Sleep for X seconds and check policy usage again. Assert that
+//   static-pass-all-2 is installed.
+// - Sleep for Y seconds and check policy usage again. Assert that
+//   static-pass-all-2 is uninstalled.
+// Note: things might get weird if there are clock skews
+func TestRuleInstallTime(t *testing.T) {
+	fmt.Println("\nRunning TestRuleInstallTime...")
+
+	tr := NewTestRunner(t)
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+	assert.NoError(t, usePCRFMockDriver())
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	ues, err := tr.ConfigUEs(1)
+	assert.NoError(t, err)
+	imsi := ues[0].GetImsi()
+
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-1", "mkey1", 0, models.PolicyRuleTrackingTypeONLYPCRF, 200)
+	assert.NoError(t, err)
+	err = ruleManager.AddStaticPassAllToDB("static-pass-all-2", "mkey1", 0, models.PolicyRuleTrackingTypeONLYPCRF, 100)
+	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
+
+	usageMonitorInfo := []*protos.UsageMonitoringInformation{
+		{
+			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
+			MonitoringKey:   []byte("mkey1"),
+			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
+		},
+	}
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initAnswer := protos.NewGxCCAnswer(diam.Success).
+		SetStaticRuleInstalls([]string{"static-pass-all-1"}, nil).
+		SetUsageMonitorInfos(usageMonitorInfo)
+	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+
+	now := time.Now().Round(1 * time.Second)
+	timeUntilActivation := 6 * time.Second
+	activation := now.Add(timeUntilActivation)
+	pActivation, err := ptypes.TimestampProto(activation)
+	assert.NoError(t, err)
+	timeUntilDeactivation := 5 * time.Second
+	deactivation := activation.Add(timeUntilDeactivation)
+	pDeactivation, err := ptypes.TimestampProto(deactivation)
+	assert.NoError(t, err)
+
+	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2)
+	updateAnswer := protos.NewGxCCAnswer(diam.Success).
+		SetUsageMonitorInfos(usageMonitorInfo).
+		SetStaticRuleInstalls([]string{"static-pass-all-2"}, nil).
+		SetRuleActivationTime(pActivation).
+		SetRuleDeactivationTime(pDeactivation)
+	updateExpectation := protos.NewGxCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
+	defaultUpdateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo)
+	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation}
+	// On unexpected requests, just return some quota
+	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
+
+	tr.AuthenticateAndAssertSuccess(imsi)
+
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	recordsBySubID, err := tr.GetPolicyUsage()
+	// only static-pass-all-1 should be installed
+	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"])
+	assert.Nil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"])
+	// wait for rule activation
+	time.Sleep(timeUntilActivation)
+	recordsBySubID, err = tr.GetPolicyUsage()
+	// both rules should exist
+	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"])
+	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"])
+	// wait for rule deactivation
+	time.Sleep(timeUntilDeactivation)
+	recordsBySubID, err = tr.GetPolicyUsage()
+	// static-pass-all-2 should be gone
+	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"])
+	assert.Nil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"])
+
+	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	assert.NoError(t, err)
+	assert.Empty(t, errByIndex)
+	expectedResult := []*protos.ExpectationResult{
+		{ExpectationIndex: 0, ExpectationMet: true},
+		{ExpectationIndex: 1, ExpectationMet: true},
+	}
+	assert.ElementsMatch(t, expectedResult, resultByIndex)
+
+	_, err = tr.Disconnect(imsi)
+	assert.NoError(t, err)
+	time.Sleep(3 * time.Second)
 }

@@ -27,7 +27,10 @@ export type ProjectWorkOrdersList_workOrders = $ReadOnlyArray<{|
   |},
   +name: string,
   +description: ?string,
-  +ownerName: string,
+  +owner: {|
+    +id: string,
+    +email: string,
+  |},
   +creationDate: any,
   +installDate: ?any,
   +status: WorkOrderStatus,
@@ -90,11 +93,23 @@ return {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "ownerName",
+      "name": "owner",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": [
+        (v0/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "email",
+          "args": null,
+          "storageKey": null
+        }
+      ]
     },
     {
       "kind": "ScalarField",
@@ -128,5 +143,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b4bc6743797a4049c715993f77380b2a';
+(node/*: any*/).hash = '50a592240f38b75d0859f49f5a89fa3e';
 module.exports = node;

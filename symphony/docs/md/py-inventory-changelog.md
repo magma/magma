@@ -3,46 +3,76 @@ id: py-inventory-release-notes
 title: Python API Release Notes
 ---
 
-<!---
+<!--
 ***
 This is template for release notes
-# new version number
-## Features:
-## Changes:
-## Deprecated:
-## Removed:
-## Bug fixes
+#3 new version number
+### Features
+### Changes
+### Deprecated
+### Removed
+### Bug fixes
 ***
---->
+-->
 
-<!---
+<!--
 ***
-# new version number
-## Features:
-- `add_equipment_port_type` - create new equipment port type.
-- `get_equipment_port_type` - get existing equipment port type.
-- `edit_equipment_port_type` - edit existing equipment port type.
-- `delete_equipment_port_type` - delete existing equipment port.
-- Added support for user operations - `add_user`, `get_user`, `deactivate_user`, `activate_user`, `get_users`, `get_active_users`
-## Changes:
-- functions now raise warning if they query against deprecated Graphql Endpoints. If you get such warning you are adviced to upgrade to newer version of API that will call different graphql endpoints instead
+## new version number
+### Features
+- Equipment functionality:
+    - `get_equipments_by_type`
+    - `get_equipments_by_location`
+### Changes
+### Deprecated
+### Removed
+### Bug fixes
+***
+-->
+
+***
+## 2.5.0 -release date 23.03.2020
+### Features
+
+- User functionality:
+    - `add_user`
+    - `get_user`
+    - `edit_user`
+    - `deactivate_user`
+    - `activate_user`
+    - `get_users`
+    - `get_active_users`
+
+- Port type functionality:
+    - `add_equipment_port_type`
+    - `get_equipment_port_type`
+    - `edit_equipment_port_type`
+    - `delete_equipment_port_type`
+
+- Port functionality:
+    - `get_port`
+    - `edit_port_properties`
+    - `edit_link_properties`
+
+- Equipment functionality:
+    - `edit equipment`
+    - `get_equipment_properties`
+### Changes
 - use BasicAuth login to graphql server which improves first connection performance
-## Deprecated:
-## Deprecated:
-## Bug fixes
+
+- functions now raise warning if they query against deprecated Graphql Endpoints. If you get such warning you are adviced to upgrade to newer version of API that will call different graphql endpoints instead
+### Bug fixes
 ***
----> 
 
 
 ***
-# 2.4.0
-## Features:
+## 2.4.0 - release date 22.02.2020
+### Features
 - `edit_location function` - edit location properties.
 - `edit_equipment_type` - edit/add port types.
 
-## Changes:
+### Changes
 - `get_locations_by_external_id` raises exception on not found location
-## Deprecated:
+### Deprecated
 - `get_locations_by_external_id` function is deprecated by `get_location_by_external_id` function
-## Bug fixes
+### Bug fixes
 ***

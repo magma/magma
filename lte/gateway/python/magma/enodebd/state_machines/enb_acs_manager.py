@@ -145,6 +145,12 @@ class StateMachineManager:
         """ Return the eNodeB serial ID if it's found in the message """
         if not isinstance(tr069_message, models.Inform):
             return
+
+        """ Mikrotik Intercell does not return serial in ParameterList """
+        if hasattr(tr069_message, 'DeviceId') and \
+                hasattr(tr069_message.DeviceId, 'SerialNumber'):
+            return tr069_message.DeviceId.SerialNumber
+
         if not hasattr(tr069_message, 'ParameterList') or \
                 not hasattr(tr069_message.ParameterList, 'ParameterValueStruct'):
             return None
