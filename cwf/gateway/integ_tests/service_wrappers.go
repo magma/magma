@@ -131,6 +131,15 @@ func sendPolicyReAuthRequest(target *fegprotos.PolicyReAuthTarget) (*fegprotos.P
 	return raa, err
 }
 
+func sendPolicyAbortSession(target *fegprotos.PolicyAbortSessionRequest) (*fegprotos.PolicyAbortSessionResponse, error) {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return nil, err
+	}
+	raa, err := cli.AbortSession(context.Background(), target)
+	return raa, err
+}
+
 // addSubscriber tries to add this subscriber to the PCRF server.
 // Input: The subscriber data which will be added.
 func addSubscriberToPCRF(sub *lteprotos.SubscriberID) error {
