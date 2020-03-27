@@ -31,6 +31,7 @@ debug the S1 interface between the enodeB and the AGW (filter for SCTP).
 *Magma officially supports auto-configuration of the following devices:*
 * Baicells Nova-243 Outdoor FDD/TDD eNodeB
   - Firmware Version: BaiBS_RTS_3.1.6
+  - Firmware Version: BaiBS_RTSH_2.6.0.1
 * Baicells mBS1100 LTE-TDD Base Station
   - Firmware Version: BaiStation_V100R001C00B110SPC003
 * Baicells Neutrino-244 ID FDD/TDD enodeB
