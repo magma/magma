@@ -35,8 +35,10 @@ def load_schema(uri):
 
 def compile_schema_library(schema_library: str):
     full_schema = ""
+    # use the following line to use .graphqls files as well
+    # os.path.join(schema_library, "**/*.graphql*"), recursive=True
     schema_filepaths = glob.glob(
-        os.path.join(schema_library, "**/*.graphql*"), recursive=True
+        os.path.join(schema_library, "**/*.graphql"), recursive=True
     )
     for schema_filepath in schema_filepaths:
         with open(schema_filepath) as schema_file:
