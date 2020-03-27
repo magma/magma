@@ -18,7 +18,7 @@ func NewDefaultNetworkCarrierWifiConfigs() *NetworkCarrierWifiConfigs {
 				SessionMs:              43200000,
 			},
 		},
-		NetworkServices: []string{"policy_enforcement"},
+		NetworkServices: []string{"dpi", "policy_enforcement"},
 	}
 }
 

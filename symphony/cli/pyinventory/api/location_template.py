@@ -52,7 +52,7 @@ def copy_equipment_with_all_attachments(
 
         Raises: FailedOperationException for internal inventory error
 
-        Returns: dict of source equipment (client.Equipment) to new equipment (client.Equipment)
+        Returns: dict of source equipment (pyinventory.consts.Equipment) to new equipment (pyinventory.consts.Equipment)
                 The dict includes the equipment given as parameter and also all the equipments
                 attached to it
     """

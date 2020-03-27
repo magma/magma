@@ -102,7 +102,7 @@ const WorkOrderHeader = (props: Props) => {
       <div className={classes.actionButtons}>
         <WorkOrderDeleteButton
           className={classes.deleteButton}
-          workOrder={workOrder}
+          workOrderId={workOrder.id}
           onWorkOrderRemoved={onWorkOrderRemoved}
         />
         <Button

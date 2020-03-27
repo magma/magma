@@ -136,6 +136,7 @@ func (srv *CentralSessionController) CreateSession(
 		DynamicRules:  dynamicRuleInstalls,
 		UsageMonitors: usageMonitors,
 		TgppCtx:       &protos.TgppContext{GxDestHost: gxOriginHost, GyDestHost: gyOriginHost},
+		SessionId:     request.SessionId,
 	}, nil
 }
 
@@ -167,6 +168,7 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 		DynamicRules:  dynamicRuleInstalls,
 		UsageMonitors: getUsageMonitorsFromCCA_I(imsi, gyOriginHost, gyCCAInit.SessionID, gxCCAInit),
 		TgppCtx:       &protos.TgppContext{GxDestHost: gxOriginHost, GyDestHost: gyCCAInit.OriginHost},
+		SessionId:     pReq.SessionId,
 	}, nil
 }
 

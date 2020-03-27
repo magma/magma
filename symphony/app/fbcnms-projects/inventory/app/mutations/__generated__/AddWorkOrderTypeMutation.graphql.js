@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash f919045224c3347fefc2d23c949b8b08
+ * @relayHash 6c2e046219f0c6b81a6e8128ff52e0a4
  */
 
 /* eslint-disable */
@@ -16,8 +16,11 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type AddEditWorkOrderTypeCard_editingWorkOrderType$ref = any;
-export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
+export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
+export type CheckListItemType = "enum" | "files" | "simple" | "string" | "yes_no" | "%future added value";
+export type FileType = "FILE" | "IMAGE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type YesNoResponse = "NO" | "YES" | "%future added value";
 export type AddWorkOrderTypeInput = {|
   name: string,
   description?: ?string,
@@ -65,8 +68,22 @@ export type CheckListItemInput = {|
   index?: ?number,
   helpText?: ?string,
   enumValues?: ?string,
+  enumSelectionMode?: ?CheckListItemEnumSelectionMode,
+  selectedEnumValues?: ?string,
   stringValue?: ?string,
   checked?: ?boolean,
+  files?: ?$ReadOnlyArray<FileInput>,
+  yesNoResponse?: ?YesNoResponse,
+|};
+export type FileInput = {|
+  id?: ?string,
+  fileName: string,
+  sizeInBytes?: ?number,
+  modificationTime?: ?number,
+  uploadTime?: ?number,
+  fileType?: ?FileType,
+  mimeType?: ?string,
+  storeKey: string,
 |};
 export type AddWorkOrderTypeMutationVariables = {|
   input: AddWorkOrderTypeInput

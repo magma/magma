@@ -8,6 +8,19 @@
  * @format
  */
 
+import type {
+  CheckListCategoryInput,
+  CheckListItemInput,
+} from '../../mutations/__generated__/EditWorkOrderMutation.graphql';
+import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
+import type {
+  EditWorkOrderMutationResponse,
+  EditWorkOrderMutationVariables,
+} from '../../mutations/__generated__/EditWorkOrderMutation.graphql';
+import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {Property} from '../../common/Property';
+import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
+
 import Button from '@fbcnms/ui/components/design-system/Button';
 import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
 import FormAction from '../../../../../fbcnms-packages/fbcnms-ui/components/design-system/Form/FormAction';
@@ -16,25 +29,14 @@ import React, {useCallback, useContext} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {removeTempIDs} from '../../common/EntUtils';
+import {isTempId} from '../../common/EntUtils';
 import {toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import type {
-  // $FlowFixMe (T62907961) Relay flow types
-  CheckListCategoryTable_list,
-  WorkOrderDetails_workOrder,
-} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
-import type {
-  EditWorkOrderMutationResponse,
-  EditWorkOrderMutationVariables,
-} from '../../mutations/__generated__/EditWorkOrderMutation.graphql';
-import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
-import type {Property} from '../../common/Property';
 
 type Props = {
   workOrder: WorkOrderDetails_workOrder,
   properties: Array<Property>,
-  checkListCategories: CheckListCategoryTable_list,
+  checkListCategories: ChecklistCategoriesStateType,
   locationId: ?string,
 };
 
@@ -59,43 +61,63 @@ const WorkOrderSaveButton = (props: Props) => {
       id,
       name,
       description,
-      ownerName,
+      owner,
       installDate,
       status,
       priority,
-      assignee,
+      assignedTo,
       project,
     } = workOrder;
-    const variables: EditWorkOrderMutationVariables = {
-      input: {
-        id,
-        name,
-        description,
-        ownerName,
-        installDate: installDate ? installDate.toString() : null,
-        status,
-        priority,
-        assignee,
-        projectId: project?.id,
-        properties: toPropertyInput(properties),
-        locationId,
-        checkListCategories: removeTempIDs(checkListCategories).map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          checkList: removeTempIDs(item.checkList ?? []).map(item => {
+    const checkListCategoriesInput: Array<CheckListCategoryInput> = checkListCategories.map(
+      category => {
+        const checkList: Array<CheckListItemInput> = category.checkList.map(
+          item => {
             return {
-              id: item.id,
+              id: isTempId(item.id) ? undefined : item.id,
               title: item.title,
               type: item.type,
               index: item.index,
               helpText: item.helpText,
               enumValues: item.enumValues,
+              selectedEnumValues: item.selectedEnumValues,
+              enumSelectionMode: item.enumSelectionMode,
               stringValue: item.stringValue,
               checked: item.checked,
+              yesNoResponse: item.yesNoResponse,
+              files: item.files?.map(file => ({
+                id: file.id,
+                storeKey: file.storeKey,
+                fileName: file.fileName,
+                sizeInBytes: file.sizeInBytes,
+                modificationTime: file.modificationTime,
+                uploadTime: file.uploadTime,
+                fileType: 'FILE',
+              })),
             };
-          }),
-        })),
+          },
+        );
+        return {
+          id: isTempId(category.id) ? undefined : category.id,
+          title: category.title,
+          description: category.description,
+          checkList,
+        };
+      },
+    );
+    const variables: EditWorkOrderMutationVariables = {
+      input: {
+        id,
+        name,
+        description,
+        ownerId: owner.id,
+        installDate: installDate ? installDate.toString() : null,
+        status,
+        priority,
+        assigneeId: assignedTo?.id,
+        projectId: project?.id,
+        properties: toPropertyInput(properties),
+        locationId,
+        checkListCategories: checkListCategoriesInput,
       },
     };
     const callbacks: MutationCallbacks<EditWorkOrderMutationResponse> = {
@@ -117,9 +139,9 @@ const WorkOrderSaveButton = (props: Props) => {
     EditWorkOrderMutation(variables, callbacks);
   }, [
     workOrder,
+    checkListCategories,
     properties,
     locationId,
-    checkListCategories,
     enqueueError,
     history,
     match.url,

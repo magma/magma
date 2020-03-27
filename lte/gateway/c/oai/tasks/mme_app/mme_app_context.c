@@ -338,6 +338,7 @@ void mme_app_state_free_ue_context(void **ue_context_node)
   emm_context_t* emm_ctx = &ue_context_p->emm_context;
   free_emm_ctx_memory(emm_ctx, ue_context_p->mme_ue_s1ap_id);
   mme_app_ue_context_free_content(ue_context_p);
+  free_wrapper((void**)&ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -1318,14 +1319,6 @@ void mme_app_dump_bearer_context(
     indent_spaces,
     " ",
     bc->esm_ebr_context.mbr_dl);
-  bstring bstate = bearer_state2string(bc->bearer_state);
-  bformata(
-    bstr_dump,
-    "%*s - State ...........: %s\n",
-    indent_spaces,
-    " ",
-    bdata(bstate));
-  bdestroy_wrapper(&bstate);
   bformata(
     bstr_dump,
     "%*s - " ANSI_COLOR_BOLD_ON "NAS ESM bearer private data .:\n",

@@ -14,29 +14,7 @@ query ServiceDetailsQuery($id: ID!) {
         port {
           id
           properties {
-            id
-            propertyType {
-              id
-              name
-              type
-              index
-              stringValue
-              intValue
-              booleanValue
-              floatValue
-              latitudeValue
-              longitudeValue
-              isEditable
-              isInstanceProperty
-            }
-            stringValue
-            intValue
-            floatValue
-            booleanValue
-            latitudeValue
-            longitudeValue
-            rangeFromValue
-            rangeToValue
+            ...PropertyFragment
           }
           definition {
             id
@@ -44,6 +22,9 @@ query ServiceDetailsQuery($id: ID!) {
           }
           link {
             id
+            properties {
+              ...PropertyFragment
+            }
             services {
               id
             }
@@ -53,6 +34,9 @@ query ServiceDetailsQuery($id: ID!) {
       }
       links {
         id
+        properties {
+          ...PropertyFragment
+        }
         services {
           id
         }

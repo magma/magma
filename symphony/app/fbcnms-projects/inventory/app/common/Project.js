@@ -25,7 +25,7 @@ export type Project = {
   name: string,
   description: ?string,
   location: ?Location,
-  creator: ?string,
+  creatorId: ?string,
   properties: Array<Property>,
   workOrders: Array<WorkOrder>,
   numberOfWorkOrders: number,

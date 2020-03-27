@@ -20,7 +20,9 @@ declare export opaque type ProjectsTableView_projects$fragmentType: ProjectsTabl
 export type ProjectsTableView_projects = $ReadOnlyArray<{|
   +id: string,
   +name: string,
-  +creator: ?string,
+  +createdBy: ?{|
+    +email: string
+  |},
   +location: ?{|
     +id: string,
     +name: string,
@@ -71,11 +73,22 @@ return {
     (v0/*: any*/),
     (v1/*: any*/),
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "creator",
+      "name": "createdBy",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": [
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "email",
+          "args": null,
+          "storageKey": null
+        }
+      ]
     },
     {
       "kind": "LinkedField",
@@ -101,5 +114,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '72d6cdacde0a7fc22ea43011e3618888';
+(node/*: any*/).hash = 'fd90de9f841444fa7177ad7e440fad84';
 module.exports = node;

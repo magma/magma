@@ -38,7 +38,36 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData">AddServiceLinkMutation.AddServiceLinkMutationData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>AddServiceLinkMutation(data: pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData, <strong>QUERY</strong>: str = '\n
+<section class="desc"><p>AddServiceLinkMutation(data: pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
+id\n
+name\n
+type\n
+index\n
+category\n
+stringValue\n
+intValue\n
+booleanValue\n
+floatValue\n
+latitudeValue\n
+longitudeValue\n
+rangeFromValue\n
+rangeToValue\n
+isEditable\n
+isInstanceProperty\n
+isMandatory\n
+isDeleted\n}\n\n\nfragment PropertyFragment on Property {\n
+id\n
+propertyType {\n
+&hellip;PropertyTypeFragment\n
+}\n
+stringValue\n
+intValue\n
+floatValue\n
+booleanValue\n
+latitudeValue\n
+longitudeValue\n
+rangeFromValue\n
+rangeToValue\n}\n\n\n
 mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {\n
 addServiceLink(id: $id, linkId: $linkId) {\n
 id\n
@@ -54,29 +83,7 @@ id\n
 port {\n
 id\n
 properties {\n
-id\n
-propertyType {\n
-id\n
-name\n
-type\n
-index\n
-stringValue\n
-intValue\n
-booleanValue\n
-floatValue\n
-latitudeValue\n
-longitudeValue\n
-isEditable\n
-isInstanceProperty\n
-}\n
-stringValue\n
-intValue\n
-floatValue\n
-booleanValue\n
-latitudeValue\n
-longitudeValue\n
-rangeFromValue\n
-rangeToValue\n
+&hellip;PropertyFragment\n
 }\n
 definition {\n
 id\n
@@ -88,6 +95,9 @@ name\n
 }\n
 link {\n
 id\n
+properties {\n
+&hellip;PropertyFragment\n
+}\n
 services {\n
 id\n
 }\n
@@ -97,6 +107,9 @@ role\n
 }\n
 links {\n
 id\n
+properties {\n
+&hellip;PropertyFragment\n
+}\n
 services {\n
 id\n
 }\n

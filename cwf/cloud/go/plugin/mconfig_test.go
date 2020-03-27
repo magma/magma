@@ -86,6 +86,7 @@ func TestBuilder_Build(t *testing.T) {
 			DefaultRuleId: "",
 			RelayEnabled:  true,
 			Services: []ltemconfig.PipelineD_NetworkServices{
+				ltemconfig.PipelineD_DPI,
 				ltemconfig.PipelineD_ENFORCEMENT,
 			},
 			AllowedGrePeers: []*ltemconfig.PipelineD_AllowedGrePeer{
@@ -128,7 +129,7 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,
 	},
-	NetworkServices: []string{"policy_enforcement"},
+	NetworkServices: []string{"dpi", "policy_enforcement"},
 	DefaultRuleID:   swag.String(""),
 }
 

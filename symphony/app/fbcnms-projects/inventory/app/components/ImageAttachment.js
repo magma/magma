@@ -81,8 +81,8 @@ class ImageAttachment extends React.Component<Props, State> {
         />
         <div className={classes.menu}>
           <DocumentMenu
-            document={this.props.img}
-            onDocumentDeleted={this.props.onImageDeleted}
+            document={{...this.props.img}}
+            onDocumentDeleted={() => this.props.onImageDeleted(this.props.img)}
             onDialogOpen={this.onDialogOpen}
           />
           <ImageDialog
@@ -101,8 +101,12 @@ export default withStyles(styles)(
     img: graphql`
       fragment ImageAttachment_img on File @relay(mask: false) {
         id
+        fileName
+        sizeInBytes
+        uploaded
+        fileType
         storeKey
-        ...DocumentMenu_document
+        category
         ...ImageDialog_img
       }
     `,

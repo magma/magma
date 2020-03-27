@@ -72,6 +72,7 @@ class DPITest(unittest.TestCase):
                     'enabled': False,
                     'mon_port': 'mon1',
                     'mon_port_number': 32769,
+                    'idle_timeout': 42,
                 },
             },
             mconfig=None,

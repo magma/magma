@@ -10,40 +10,21 @@
 
 import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
 
-import BasicCheckListItemFilling from './BasicCheckListItemFilling';
-import FreeTextCheckListItemFilling from './FreeTextCheckListItemFilling';
 import React from 'react';
+import {CheckListItemConfigs} from '../checkListCategory/CheckListItemConsts';
+import {getValidChecklistItemType} from '../ChecklistUtils';
 
-export const CHECKLIST_ITEM_FILLING_TYPES = {
-  simple: {
-    component: BasicCheckListItemFilling,
-  },
-  string: {
-    component: FreeTextCheckListItemFilling,
-  },
-};
-
-export const GetValidChecklistItemType = (
-  type: string,
-): 'simple' | 'string' | null => {
-  if (type === 'simple' || type === 'string') {
-    return type;
-  }
-
-  return null;
-};
-
-type Props = {
+export type CheckListItemFillingProps = {
   item: CheckListItem,
   onChange?: (updatedChecklistItemFilling: CheckListItem) => void,
 };
 
-const CheckListItemFilling = (props: Props) => {
+const CheckListItemFilling = (props: CheckListItemFillingProps) => {
   const {item} = props;
 
-  const itemTypeKey = item && GetValidChecklistItemType(item.type);
-  const itemType = itemTypeKey && CHECKLIST_ITEM_FILLING_TYPES[itemTypeKey];
-  const CheckListItemFillingComponent = itemType && itemType.component;
+  const itemTypeKey = item && getValidChecklistItemType(item.type);
+  const itemType = itemTypeKey && CheckListItemConfigs[itemTypeKey];
+  const CheckListItemFillingComponent = itemType && itemType.fillingComponent;
   if (!CheckListItemFillingComponent) {
     return null;
   }

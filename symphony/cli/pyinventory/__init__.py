@@ -80,6 +80,9 @@ class InventoryClient(SymphonyClient):
         get_or_create_equipment,
         get_or_create_equipment_in_position,
         edit_equipment,
+        get_equipment_properties,
+        get_equipments_by_type,
+        get_equipments_by_location,
     )
     from .api.link import (
         add_link,
@@ -114,6 +117,7 @@ class InventoryClient(SymphonyClient):
     from .api.user import (
         add_user,
         get_user,
+        edit_user,
         deactivate_user,
         activate_user,
         get_users,

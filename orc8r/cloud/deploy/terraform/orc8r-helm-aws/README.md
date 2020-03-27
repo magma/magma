@@ -51,7 +51,10 @@ supporting components into an EKS cluster.
 | region | AWS region to deploy Orchestrator components into. The chosen region must provide EKS. | `string` | n/a | yes |
 | secretsmanager\_orc8r\_name | Name of the AWS secretsmanager secret where Orchestrator deployment secrets will be stored. | `string` | n/a | yes |
 | seed\_certs\_dir | Directory on LOCAL disk where orc8r certificates are stored to seed Secretsmanager values. Home directory and env vars will be expanded. | `string` | n/a | yes |
+| state\_backend | State backend for terraform (e.g. s3, local) | `string` | `"local"` | no |
+| state\_config | Optional config for state backend. The object type will depend on your backend. | `any` | n/a | yes |
 
 ## Outputs
 
 No output.
+

@@ -940,20 +940,25 @@ func (m *CheckListCategoryMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type CheckListItemMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	title             *string
-	_type             *string
-	index             *int
-	addindex          *int
-	checked           *bool
-	string_val        *string
-	enum_values       *string
-	help_text         *string
-	clearedFields     map[string]bool
-	work_order        *int
-	clearedwork_order bool
+	op                   Op
+	typ                  string
+	id                   *int
+	title                *string
+	_type                *string
+	index                *int
+	addindex             *int
+	checked              *bool
+	string_val           *string
+	enum_values          *string
+	enum_selection_mode  *string
+	selected_enum_values *string
+	yes_no_val           *checklistitem.YesNoVal
+	help_text            *string
+	clearedFields        map[string]bool
+	files                map[int]struct{}
+	removedfiles         map[int]struct{}
+	work_order           *int
+	clearedwork_order    bool
 }
 
 var _ ent.Mutation = (*CheckListItemMutation)(nil)
@@ -1179,6 +1184,99 @@ func (m *CheckListItemMutation) ResetEnumValues() {
 	delete(m.clearedFields, checklistitem.FieldEnumValues)
 }
 
+// SetEnumSelectionMode sets the enum_selection_mode field.
+func (m *CheckListItemMutation) SetEnumSelectionMode(s string) {
+	m.enum_selection_mode = &s
+}
+
+// EnumSelectionMode returns the enum_selection_mode value in the mutation.
+func (m *CheckListItemMutation) EnumSelectionMode() (r string, exists bool) {
+	v := m.enum_selection_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearEnumSelectionMode clears the value of enum_selection_mode.
+func (m *CheckListItemMutation) ClearEnumSelectionMode() {
+	m.enum_selection_mode = nil
+	m.clearedFields[checklistitem.FieldEnumSelectionMode] = true
+}
+
+// EnumSelectionModeCleared returns if the field enum_selection_mode was cleared in this mutation.
+func (m *CheckListItemMutation) EnumSelectionModeCleared() bool {
+	return m.clearedFields[checklistitem.FieldEnumSelectionMode]
+}
+
+// ResetEnumSelectionMode reset all changes of the enum_selection_mode field.
+func (m *CheckListItemMutation) ResetEnumSelectionMode() {
+	m.enum_selection_mode = nil
+	delete(m.clearedFields, checklistitem.FieldEnumSelectionMode)
+}
+
+// SetSelectedEnumValues sets the selected_enum_values field.
+func (m *CheckListItemMutation) SetSelectedEnumValues(s string) {
+	m.selected_enum_values = &s
+}
+
+// SelectedEnumValues returns the selected_enum_values value in the mutation.
+func (m *CheckListItemMutation) SelectedEnumValues() (r string, exists bool) {
+	v := m.selected_enum_values
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSelectedEnumValues clears the value of selected_enum_values.
+func (m *CheckListItemMutation) ClearSelectedEnumValues() {
+	m.selected_enum_values = nil
+	m.clearedFields[checklistitem.FieldSelectedEnumValues] = true
+}
+
+// SelectedEnumValuesCleared returns if the field selected_enum_values was cleared in this mutation.
+func (m *CheckListItemMutation) SelectedEnumValuesCleared() bool {
+	return m.clearedFields[checklistitem.FieldSelectedEnumValues]
+}
+
+// ResetSelectedEnumValues reset all changes of the selected_enum_values field.
+func (m *CheckListItemMutation) ResetSelectedEnumValues() {
+	m.selected_enum_values = nil
+	delete(m.clearedFields, checklistitem.FieldSelectedEnumValues)
+}
+
+// SetYesNoVal sets the yes_no_val field.
+func (m *CheckListItemMutation) SetYesNoVal(cnv checklistitem.YesNoVal) {
+	m.yes_no_val = &cnv
+}
+
+// YesNoVal returns the yes_no_val value in the mutation.
+func (m *CheckListItemMutation) YesNoVal() (r checklistitem.YesNoVal, exists bool) {
+	v := m.yes_no_val
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearYesNoVal clears the value of yes_no_val.
+func (m *CheckListItemMutation) ClearYesNoVal() {
+	m.yes_no_val = nil
+	m.clearedFields[checklistitem.FieldYesNoVal] = true
+}
+
+// YesNoValCleared returns if the field yes_no_val was cleared in this mutation.
+func (m *CheckListItemMutation) YesNoValCleared() bool {
+	return m.clearedFields[checklistitem.FieldYesNoVal]
+}
+
+// ResetYesNoVal reset all changes of the yes_no_val field.
+func (m *CheckListItemMutation) ResetYesNoVal() {
+	m.yes_no_val = nil
+	delete(m.clearedFields, checklistitem.FieldYesNoVal)
+}
+
 // SetHelpText sets the help_text field.
 func (m *CheckListItemMutation) SetHelpText(s string) {
 	m.help_text = &s
@@ -1208,6 +1306,48 @@ func (m *CheckListItemMutation) HelpTextCleared() bool {
 func (m *CheckListItemMutation) ResetHelpText() {
 	m.help_text = nil
 	delete(m.clearedFields, checklistitem.FieldHelpText)
+}
+
+// AddFileIDs adds the files edge to File by ids.
+func (m *CheckListItemMutation) AddFileIDs(ids ...int) {
+	if m.files == nil {
+		m.files = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.files[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveFileIDs removes the files edge to File by ids.
+func (m *CheckListItemMutation) RemoveFileIDs(ids ...int) {
+	if m.removedfiles == nil {
+		m.removedfiles = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedfiles[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFiles returns the removed ids of files.
+func (m *CheckListItemMutation) RemovedFilesIDs() (ids []int) {
+	for id := range m.removedfiles {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FilesIDs returns the files ids in the mutation.
+func (m *CheckListItemMutation) FilesIDs() (ids []int) {
+	for id := range m.files {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFiles reset all changes of the files edge.
+func (m *CheckListItemMutation) ResetFiles() {
+	m.files = nil
+	m.removedfiles = nil
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
@@ -1263,7 +1403,7 @@ func (m *CheckListItemMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *CheckListItemMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 10)
 	if m.title != nil {
 		fields = append(fields, checklistitem.FieldTitle)
 	}
@@ -1281,6 +1421,15 @@ func (m *CheckListItemMutation) Fields() []string {
 	}
 	if m.enum_values != nil {
 		fields = append(fields, checklistitem.FieldEnumValues)
+	}
+	if m.enum_selection_mode != nil {
+		fields = append(fields, checklistitem.FieldEnumSelectionMode)
+	}
+	if m.selected_enum_values != nil {
+		fields = append(fields, checklistitem.FieldSelectedEnumValues)
+	}
+	if m.yes_no_val != nil {
+		fields = append(fields, checklistitem.FieldYesNoVal)
 	}
 	if m.help_text != nil {
 		fields = append(fields, checklistitem.FieldHelpText)
@@ -1305,6 +1454,12 @@ func (m *CheckListItemMutation) Field(name string) (ent.Value, bool) {
 		return m.StringVal()
 	case checklistitem.FieldEnumValues:
 		return m.EnumValues()
+	case checklistitem.FieldEnumSelectionMode:
+		return m.EnumSelectionMode()
+	case checklistitem.FieldSelectedEnumValues:
+		return m.SelectedEnumValues()
+	case checklistitem.FieldYesNoVal:
+		return m.YesNoVal()
 	case checklistitem.FieldHelpText:
 		return m.HelpText()
 	}
@@ -1357,6 +1512,27 @@ func (m *CheckListItemMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnumValues(v)
+		return nil
+	case checklistitem.FieldEnumSelectionMode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnumSelectionMode(v)
+		return nil
+	case checklistitem.FieldSelectedEnumValues:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSelectedEnumValues(v)
+		return nil
+	case checklistitem.FieldYesNoVal:
+		v, ok := value.(checklistitem.YesNoVal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetYesNoVal(v)
 		return nil
 	case checklistitem.FieldHelpText:
 		v, ok := value.(string)
@@ -1422,6 +1598,15 @@ func (m *CheckListItemMutation) ClearedFields() []string {
 	if m.clearedFields[checklistitem.FieldEnumValues] {
 		fields = append(fields, checklistitem.FieldEnumValues)
 	}
+	if m.clearedFields[checklistitem.FieldEnumSelectionMode] {
+		fields = append(fields, checklistitem.FieldEnumSelectionMode)
+	}
+	if m.clearedFields[checklistitem.FieldSelectedEnumValues] {
+		fields = append(fields, checklistitem.FieldSelectedEnumValues)
+	}
+	if m.clearedFields[checklistitem.FieldYesNoVal] {
+		fields = append(fields, checklistitem.FieldYesNoVal)
+	}
 	if m.clearedFields[checklistitem.FieldHelpText] {
 		fields = append(fields, checklistitem.FieldHelpText)
 	}
@@ -1449,6 +1634,15 @@ func (m *CheckListItemMutation) ClearField(name string) error {
 		return nil
 	case checklistitem.FieldEnumValues:
 		m.ClearEnumValues()
+		return nil
+	case checklistitem.FieldEnumSelectionMode:
+		m.ClearEnumSelectionMode()
+		return nil
+	case checklistitem.FieldSelectedEnumValues:
+		m.ClearSelectedEnumValues()
+		return nil
+	case checklistitem.FieldYesNoVal:
+		m.ClearYesNoVal()
 		return nil
 	case checklistitem.FieldHelpText:
 		m.ClearHelpText()
@@ -1480,6 +1674,15 @@ func (m *CheckListItemMutation) ResetField(name string) error {
 	case checklistitem.FieldEnumValues:
 		m.ResetEnumValues()
 		return nil
+	case checklistitem.FieldEnumSelectionMode:
+		m.ResetEnumSelectionMode()
+		return nil
+	case checklistitem.FieldSelectedEnumValues:
+		m.ResetSelectedEnumValues()
+		return nil
+	case checklistitem.FieldYesNoVal:
+		m.ResetYesNoVal()
+		return nil
 	case checklistitem.FieldHelpText:
 		m.ResetHelpText()
 		return nil
@@ -1490,7 +1693,10 @@ func (m *CheckListItemMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *CheckListItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.files != nil {
+		edges = append(edges, checklistitem.EdgeFiles)
+	}
 	if m.work_order != nil {
 		edges = append(edges, checklistitem.EdgeWorkOrder)
 	}
@@ -1501,6 +1707,12 @@ func (m *CheckListItemMutation) AddedEdges() []string {
 // the given edge name.
 func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case checklistitem.EdgeFiles:
+		ids := make([]ent.Value, 0, len(m.files))
+		for id := range m.files {
+			ids = append(ids, id)
+		}
+		return ids
 	case checklistitem.EdgeWorkOrder:
 		if id := m.work_order; id != nil {
 			return []ent.Value{*id}
@@ -1512,7 +1724,10 @@ func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *CheckListItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedfiles != nil {
+		edges = append(edges, checklistitem.EdgeFiles)
+	}
 	return edges
 }
 
@@ -1520,6 +1735,12 @@ func (m *CheckListItemMutation) RemovedEdges() []string {
 // the given edge name.
 func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case checklistitem.EdgeFiles:
+		ids := make([]ent.Value, 0, len(m.removedfiles))
+		for id := range m.removedfiles {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1527,7 +1748,7 @@ func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *CheckListItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedwork_order {
 		edges = append(edges, checklistitem.EdgeWorkOrder)
 	}
@@ -1560,6 +1781,9 @@ func (m *CheckListItemMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *CheckListItemMutation) ResetEdge(name string) error {
 	switch name {
+	case checklistitem.EdgeFiles:
+		m.ResetFiles()
+		return nil
 	case checklistitem.EdgeWorkOrder:
 		m.ResetWorkOrder()
 		return nil

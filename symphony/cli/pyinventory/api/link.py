@@ -65,6 +65,7 @@ def get_all_links_and_port_names_of_equipment(
         if port_link is not None:
             link = Link(
                 id=port_link.id,
+                properties=port_link.properties,
                 service_ids=[s.id for s in port_link.services if port_link.services]
                 if port_link.services is not None
                 else [],
@@ -152,7 +153,11 @@ def add_link(
             add_link_input.__dict__,
         )
 
-    return Link(id=link.id, service_ids=[s.id for s in link.services])
+    return Link(
+        id=link.id,
+        properties=link.properties,
+        service_ids=[s.id for s in link.services],
+    )
 
 
 def get_link_in_port_of_equipment(
@@ -189,5 +194,7 @@ def get_link_in_port_of_equipment(
     port = get_port(client, equipment, port_name)
     link = port.link
     if link is not None:
-        return Link(id=link.id, service_ids=link.service_ids)
+        return Link(
+            id=link.id, properties=link.properties, service_ids=link.service_ids
+        )
     raise LinkNotFoundException(equipment.name, port_name)

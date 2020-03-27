@@ -71,6 +71,18 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			return
 		}
 
+		// save connection for RaRs
+		account, found := srv.subscribers[imsi]
+		if !found {
+			glog.Errorf("IMSI %v not found in subscribers", imsi)
+			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
+			return
+		}
+		account.CurrentState = &SubscriberSessionState{
+			Connection: c,
+			SessionID:  string(ccr.SessionID),
+		}
+
 		if srv.serviceConfig.UseMockDriver {
 			srv.mockDriverLock.Lock()
 			iAnswer := srv.mockDriver.GetAnswerFromExpectations(ccr)
@@ -84,17 +96,10 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 			return
 		}
 
-		account, found := srv.subscribers[imsi]
-		if !found {
-			glog.Errorf("IMSI %v not found in subscribers", imsi)
-			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
-			return
-		}
-
 		avps := []*diam.AVP{}
 		if credit_control.CreditRequestType(ccr.RequestType) == credit_control.CRTInit {
 			// Install all rules attached to the subscriber for the initial answer
-			ruleInstalls := toRuleInstallAVPs(account.RuleNames, account.RuleBaseNames, account.RuleDefinitions)
+			ruleInstalls := toRuleInstallAVPs(account.RuleNames, account.RuleBaseNames, account.RuleDefinitions, nil, nil)
 			// Install all monitors attached to the subscriber for the initial answer
 			usageMonitors := toUsageMonitorAVPs(account.UsageMonitors)
 			avps = append(ruleInstalls, usageMonitors...)

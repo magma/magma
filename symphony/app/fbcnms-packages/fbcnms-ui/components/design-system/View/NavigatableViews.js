@@ -13,8 +13,15 @@ import type {ViewContainerProps} from '@fbcnms/ui/components/design-system/View/
 import * as React from 'react';
 import SideMenu from '@fbcnms/ui/components/design-system/Menu/SideMenu';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
+import {
+  Redirect,
+  Route,
+  Switch,
+  useHistory,
+  useLocation,
+} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -26,36 +33,155 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export const NAVIGATION_TYPES = {
+export const NAVIGATION_VARIANTS = {
   side: 'side',
 };
 
-export type NavigatableView = {
-  navigation: MenuItem,
-} & ViewContainerProps;
+export type NavigatableView_MenuItemOnly = {|
+  menuItem: MenuItem,
+|};
+export type NavigatableView_MenuItemWithRelatedComponent = {|
+  menuItem: MenuItem,
+  component: ViewContainerProps,
+|};
+export type NavigatableView_MenuItemRoutingToGivenComponent = {|
+  menuItem: MenuItem,
+  component: ViewContainerProps,
+  routingPath: string,
+|};
+export type NavigatableView_MenuItemRouting = {|
+  menuItem: MenuItem,
+  routingPath: string,
+|};
+export type NavigatableView_PossibleRoutingToGivenComponent = {|
+  component: ViewContainerProps,
+  routingPath: string,
+|};
+export type NavigatableView =
+  | NavigatableView_MenuItemOnly
+  | NavigatableView_MenuItemWithRelatedComponent
+  | NavigatableView_MenuItemRoutingToGivenComponent
+  | NavigatableView_MenuItemRouting
+  | NavigatableView_PossibleRoutingToGivenComponent;
 
 type Props = {
-  navigation?: $Keys<typeof NAVIGATION_TYPES>,
+  variant?: $Keys<typeof NAVIGATION_VARIANTS>,
   header?: ?React.Node,
   views: Array<NavigatableView>,
+  routingBasePath?: string,
 };
 
 export default function NavigatableViews(props: Props) {
-  const {header, navigation = NAVIGATION_TYPES.side, views} = props;
+  const {
+    header,
+    variant = NAVIGATION_VARIANTS.side,
+    views,
+    routingBasePath,
+  } = props;
   const classes = useStyles();
-  const [activeView, setActiveView] = useState(0);
+  const history = useHistory();
+  const location = useLocation();
+  const [activeViewIndex, setActiveView] = useState(0);
 
+  const onNavigation = useCallback(
+    navigatedViewIndex => {
+      if (routingBasePath == null) {
+        setActiveView(navigatedViewIndex);
+        return;
+      }
+      const navigatedView = views[navigatedViewIndex];
+      if (navigatedView.routingPath == null) {
+        return;
+      }
+      history.push(`${routingBasePath}/${navigatedView.routingPath}`);
+    },
+    [history, routingBasePath, views],
+  );
+
+  useEffect(() => {
+    if (routingBasePath == null) {
+      return;
+    }
+    const activePath = location.pathname.substring(routingBasePath.length + 1);
+    const relatedActiveViewIndex = views.findIndex(
+      view => view.routingPath != null && view.routingPath === activePath,
+    );
+    if (
+      relatedActiveViewIndex !== -1 &&
+      relatedActiveViewIndex !== activeViewIndex
+    ) {
+      setActiveView(relatedActiveViewIndex);
+    }
+  }, [views, activeViewIndex, routingBasePath, location.pathname]);
+
+  const menuItems = useMemo(() => {
+    const arr: Array<MenuItem> = [];
+    views.forEach(view => {
+      if (view.menuItem == null) {
+        return;
+      }
+      arr.push(view.menuItem);
+      // Why with 'forEach' and not filter&map - good question!
+      // Flow doesn't allow this :
+      //  views
+      //    .filter(view => view.menuItem != null)
+      //    .map(view => view.menuItem);
+    });
+    return arr;
+  }, [views]);
+  const routableViews = useMemo(() => {
+    const arr: Array<{path: string, component: ViewContainerProps}> = [];
+    views.forEach(view => {
+      if (view.routingPath == null || view.component == null) {
+        return;
+      }
+      arr.push({path: view.routingPath, component: view.component});
+    });
+    return arr;
+  }, [views]);
+
+  if (views.length === 0) {
+    return null;
+  }
+
+  const activeView = views[activeViewIndex];
   return (
     <div className={classes.root}>
-      {navigation === NAVIGATION_TYPES.side && (
+      {menuItems.length > 0 && variant === NAVIGATION_VARIANTS.side && (
         <SideMenu
           header={header}
-          items={views.map(view => view.navigation)}
-          activeItemIndex={activeView}
-          onActiveItemChanged={(_item, index) => setActiveView(index)}
+          items={menuItems}
+          activeItemIndex={activeViewIndex}
+          onActiveItemChanged={(_item, index) => onNavigation(index)}
         />
       )}
-      <ViewContainer {...views[activeView]} />
+      {activeView.component != null &&
+      (routingBasePath == null || activeView.routingPath == null) ? (
+        <ViewContainer {...activeView.component} />
+      ) : null}
+      {routingBasePath != null && routableViews.length > 0 ? (
+        <Switch>
+          {routableViews.map(routableView =>
+            routableView.component.header != null ? (
+              <Route
+                key={routableView.path}
+                path={`${routingBasePath}/${routableView.path}`}
+                render={() => <ViewContainer {...routableView.component} />}
+              />
+            ) : (
+              <Route
+                key={routableView.path}
+                path={`${routingBasePath}/${routableView.path}`}
+                children={routableView.component.children}
+              />
+            ),
+          )}
+          <Redirect
+            from={`${routingBasePath}/`}
+            to={`${routingBasePath}/${routableViews[0].path}`}
+          />
+        </Switch>
+      ) : null}
     </div>
   );
 }

@@ -21,6 +21,7 @@ import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
 import SecuritySettings from '@fbcnms/magmalte/app/components/SecuritySettings';
 import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
+import UserManaementView from './userManagement/UserManaementView';
 import UsersSettings from './userManagement/UsersSettings';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
@@ -38,14 +39,23 @@ function NavItems() {
   const relativeUrl = useRelativeUrl();
   const {isFeatureEnabled} = useContext(AppContext);
   const auditLogEnabled = isFeatureEnabled('audit_log_view');
+  const userManagementEnabled = isFeatureEnabled('user_management');
 
   return (
     <>
-      <NavListItem
-        label="Users"
-        path={relativeUrl('/users')}
-        icon={<PeopleIcon />}
-      />
+      {userManagementEnabled ? (
+        <NavListItem
+          label="User Management"
+          path={relativeUrl('/user_management')}
+          icon={<PeopleIcon />}
+        />
+      ) : (
+        <NavListItem
+          label="Users"
+          path={relativeUrl('/users')}
+          icon={<PeopleIcon />}
+        />
+      )}
       {auditLogEnabled && (
         <NavListItem
           label="Audit Log"
@@ -65,9 +75,18 @@ function NavItems() {
 function NavRoutes() {
   const classes = useStyles();
   const relativeUrl = useRelativeUrl();
+  const appContext = useContext(AppContext);
+  const userManagementEnabled = appContext.isFeatureEnabled('user_management');
   return (
     <Switch>
-      <Route path={relativeUrl('/users')} component={UsersSettings} />
+      {userManagementEnabled ? (
+        <Route
+          path={relativeUrl('/user_management')}
+          component={UserManaementView}
+        />
+      ) : (
+        <Route path={relativeUrl('/users')} component={UsersSettings} />
+      )}
       <Route path={relativeUrl('/audit_log')} component={AuditLog} />
       <Route path={relativeUrl('/networks')} component={Networks} />
       <Route
@@ -78,7 +97,9 @@ function NavRoutes() {
           </Paper>
         )}
       />
-      <Redirect to={relativeUrl('/users')} />
+      <Redirect
+        to={relativeUrl(userManagementEnabled ? '/user_management' : '/users')}
+      />
     </Switch>
   );
 }

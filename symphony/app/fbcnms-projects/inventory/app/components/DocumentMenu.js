@@ -8,19 +8,20 @@
  * @format
  */
 
-import type {DocumentMenu_document} from './__generated__/DocumentMenu_document.graphql';
+import type {FileAttachmentType} from '../common/FileAttachment';
 
+import OptionsPopoverButton from './OptionsPopoverButton';
 import React from 'react';
-import TableRowOptionsButton from './TableRowOptionsButton';
 import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {DocumentAPIUrls} from '../common/DocumentAPI';
-import {createFragmentContainer, graphql} from 'react-relay';
 
 type Props = {
-  document: DocumentMenu_document,
-  onDocumentDeleted: (document: DocumentMenu_document) => void,
+  document: FileAttachmentType,
+  onDocumentDeleted: (document: FileAttachmentType) => void,
   onDialogOpen: () => void,
+  popoverMenuClassName?: ?string,
+  onVisibilityChange?: (isVisible: boolean) => void,
 };
 
 class DocumentMenu extends React.Component<Props> {
@@ -43,7 +44,7 @@ class DocumentMenu extends React.Component<Props> {
   };
 
   render() {
-    const {document} = this.props;
+    const {document, popoverMenuClassName, onVisibilityChange} = this.props;
     const storeKey = nullthrows(document.storeKey);
     const menuOptions = [
       {
@@ -72,7 +73,11 @@ class DocumentMenu extends React.Component<Props> {
     ];
     return (
       <>
-        <TableRowOptionsButton options={menuOptions} />
+        <OptionsPopoverButton
+          options={menuOptions}
+          popoverMenuClassName={popoverMenuClassName}
+          onVisibilityChange={onVisibilityChange}
+        />
         <a
           href={DocumentAPIUrls.download_url(storeKey, document.fileName)}
           ref={this.downloadFileRef}
@@ -84,13 +89,4 @@ class DocumentMenu extends React.Component<Props> {
   }
 }
 
-export default createFragmentContainer(DocumentMenu, {
-  document: graphql`
-    fragment DocumentMenu_document on File {
-      id
-      fileName
-      storeKey
-      fileType
-    }
-  `,
-});
+export default DocumentMenu;

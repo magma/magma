@@ -8,32 +8,26 @@
  * @format
  */
 
-import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+import type {CheckListItemFillingProps} from './CheckListItemFilling';
 
+import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
-import React, {useContext} from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
-
-type Props = {
-  item: CheckListItem,
-  onChange?: (updatedChecklistItem: CheckListItem) => void,
-};
+import {useContext} from 'react';
 
 const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
     flexDirection: 'row',
   },
-  expandindPart: {
-    flexGrow: 1,
-    flexBasis: 0,
-  },
 }));
 
-const BasicCheckListItemFilling = ({item, onChange}: Props) => {
+const BasicCheckListItemFilling = ({
+  item,
+  onChange,
+}: CheckListItemFillingProps): React.Node => {
   const classes = useStyles();
 
   const _updateOnChange = () => {
@@ -51,9 +45,6 @@ const BasicCheckListItemFilling = ({item, onChange}: Props) => {
 
   return (
     <div className={classes.container}>
-      <Text className={classes.expandindPart} variant="body2" weight="regular">
-        {item.title}
-      </Text>
       {!validationContext.editLock.detected && (
         <Button onClick={_updateOnChange} variant="text">
           {item.checked

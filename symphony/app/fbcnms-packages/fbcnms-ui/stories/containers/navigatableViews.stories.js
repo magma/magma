@@ -36,74 +36,82 @@ const ViewHeaderRoot = () => {
 
   const views = [
     {
-      navigation: {
+      menuItem: {
         label: 'Home',
         tooltip: 'Go to home page',
       },
-      header: {
-        title: 'Home',
-        subtitle:
-          'The Company is a secret group of multinational corporate alliances known only by those who work for them or oppose them. Its influence and power over individuals stretches to the White House, controlling every decision the country makes.',
-        actionButtons: [
-          {
-            title: 'Open Door',
-            action: () =>
-              console.log(
-                'If this is home, we probably need to be able to open the door...',
-              ),
-          },
-        ],
+      component: {
+        header: {
+          title: 'Home',
+          subtitle:
+            'The Company is a secret group of multinational corporate alliances known only by those who work for them or oppose them. Its influence and power over individuals stretches to the White House, controlling every decision the country makes.',
+          actionButtons: [
+            {
+              title: 'Open Door',
+              action: () =>
+                console.log(
+                  'If this is home, we probably need to be able to open the door...',
+                ),
+            },
+          ],
+        },
+        children: <div className={classes.childView} />,
       },
-      children: <div className={classes.childView} />,
     },
     {
-      navigation: {
+      menuItem: {
         label: 'Products',
         tooltip: 'See what we offer',
       },
-      header: {
-        title: 'Products',
-        subtitle: 'Ever heard of Sona..?',
-        actionButtons: [
-          {
-            title: 'Purchase',
-            action: () => console.log('I want to buy things!!'),
-          },
-        ],
+      component: {
+        header: {
+          title: 'Products',
+          subtitle: 'Ever heard of Sona..?',
+          actionButtons: [
+            {
+              title: 'Purchase',
+              action: () => console.log('I want to buy things!!'),
+            },
+          ],
+        },
+        children: <div className={classes.childView} />,
       },
-      children: <div className={classes.childView} />,
     },
     {
-      navigation: {
+      menuItem: {
         label: 'Downloads',
         tooltip: 'Drivers, Guids and stuff',
       },
-      header: {
-        title: 'Downloads',
-        actionButtons: [
-          {
-            title: 'Go Torrent!',
-            action: () => console.log('sh...'),
-          },
-        ],
+      component: {
+        header: {
+          title: 'Downloads',
+          actionButtons: [
+            {
+              title: 'Go Torrent!',
+              action: () => console.log('sh...'),
+            },
+          ],
+        },
+        children: <div className={classes.childView} />,
       },
-      children: <div className={classes.childView} />,
     },
     {
-      navigation: {
+      menuItem: {
         label: 'About',
         tooltip: 'Who are we',
       },
-      header: {
-        title: 'About',
-        actionButtons: [
-          {
-            title: 'Contact',
-            action: () => console.log('Send some mail..'),
-          },
-        ],
+      component: {
+        header: {
+          title: 'About',
+          actionButtons: [
+            {
+              title: 'Contact',
+              action: () => console.log('Send some mail..'),
+            },
+          ],
+        },
+        children: <div className={classes.childView} />,
       },
-      children: <div className={classes.childView} />,
     },
   ];
 

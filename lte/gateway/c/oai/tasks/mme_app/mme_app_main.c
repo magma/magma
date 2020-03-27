@@ -194,7 +194,7 @@ void *mme_app_thread(void *args)
       } break;
 
       case S1AP_INITIAL_UE_MESSAGE: {
-        mme_app_handle_initial_ue_message(mme_app_desc_p,
+        imsi64 = mme_app_handle_initial_ue_message(mme_app_desc_p,
           &S1AP_INITIAL_UE_MESSAGE(received_message_p));
       } break;
 

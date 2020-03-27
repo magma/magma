@@ -28,6 +28,9 @@
 #define PGW
 #define PGW_CONFIG_C
 
+#include "pgw_config.h"
+
+#include "MobilityClientAPI.h"
 #include <errno.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -49,8 +52,7 @@
 #include "log.h"
 #include "common_defs.h"
 #include "pgw_pcef_emulation.h"
-#include "RpcClient.h"
-#include "pgw_config.h"
+
 #ifdef LIBCONFIG_LONG
 #define libconfig_int long
 #else

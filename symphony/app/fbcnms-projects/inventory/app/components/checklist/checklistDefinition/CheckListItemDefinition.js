@@ -10,63 +10,33 @@
 
 import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
 
-import BasicCheckListItemDefinition from './BasicCheckListItemDefinition';
-import FreeTextCheckListItemDefinition from './FreeTextCheckListItemDefinition';
+import CheckListItemCollapsedDefinition from './CheckListItemCollapsedDefinition';
 import React from 'react';
-import fbt from 'fbt';
+import {CheckListItemConfigs} from '../checkListCategory/CheckListItemConsts';
+import {getValidChecklistItemType} from '../ChecklistUtils';
 
-export const CHECKLIST_ITEM_DEFINITION_TYPES = {
-  simple: {
-    description: fbt(
-      'Check when complete',
-      'Description of a simple checklist item (`mark when done` like)',
-    ),
-    component: BasicCheckListItemDefinition,
-  },
-  string: {
-    description: fbt(
-      'Free text',
-      'Description of a free text checklist item (e.g. `enter details here`)',
-    ),
-    component: FreeTextCheckListItemDefinition,
-  },
-};
-
-export const GetValidChecklistItemType = (
-  type: string,
-): 'simple' | 'string' | null => {
-  if (type === 'simple' || type === 'string') {
-    return type;
-  }
-
-  return null;
-};
-
-type Props = {
+export type CheckListItemDefinitionProps = {
   item: CheckListItem,
+  editedDefinitionId: ?string,
   onChange?: (updatedChecklistItemDefinition: CheckListItem) => void,
 };
 
-const CheckListItemDefinition = (props: Props) => {
-  const {item} = props;
+const CheckListItemDefinition = (props: CheckListItemDefinitionProps) => {
+  const {item, editedDefinitionId} = props;
 
-  const itemTypeKey = item && GetValidChecklistItemType(item.type);
-  const itemType = itemTypeKey && CHECKLIST_ITEM_DEFINITION_TYPES[itemTypeKey];
-  const CheckListItemDefinitionComponent = itemType && itemType.component;
+  const itemTypeKey = item && getValidChecklistItemType(item.type);
+  const itemType = itemTypeKey && CheckListItemConfigs[itemTypeKey];
+  const CheckListItemDefinitionComponent =
+    itemType && itemType.definitionComponent;
   if (!CheckListItemDefinitionComponent) {
     return null;
   }
 
-  const checkListItemDefinitionComponentProps = {
-    ...props,
-    checkListItem: props.item,
-  };
+  if (item.id !== editedDefinitionId) {
+    return <CheckListItemCollapsedDefinition item={item} />;
+  }
 
-  return (
-    <CheckListItemDefinitionComponent
-      {...checkListItemDefinitionComponentProps}
-    />
-  );
+  return <CheckListItemDefinitionComponent {...props} />;
 };
 
 export default CheckListItemDefinition;

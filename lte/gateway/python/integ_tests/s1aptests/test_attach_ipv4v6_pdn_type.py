@@ -8,10 +8,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 
-import unittest
-
 import s1ap_types
 import s1ap_wrapper
+import unittest
 
 
 class TestAttachIpv4v6PdnType(unittest.TestCase):
@@ -24,10 +23,22 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
     def test_attach_ipv4v6_pdn_type(self):
         """ Test Attach for the UEs that are dual IP stack IPv4v6
             capable """
+        # Set PDN TYPE to IPv4V6 i.e. 3. IPV4 is equal to 1
+        # IPV4orIPv6 is equal to 3 in value
+        resp_ipv4oripv6 = self._create_attach_ipv4v6_pdn_type_req(pdn_type_value=3)
+        self.assertEqual(
+            resp_ipv4oripv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
+        # IPv4andIPv6 is equal to 2
+        resp_ipv4andipv6 = self._create_attach_ipv4v6_pdn_type_req(pdn_type_value=2)
+        self.assertEqual(
+            resp_ipv4andipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
+
+    def _create_attach_ipv4v6_pdn_type_req(self, pdn_type_value):
         # Ground work.
         self._s1ap_wrapper.configUEDevice(1)
-        req = self._s1ap_wrapper.ue_req
-
+        ue_req = self._s1ap_wrapper.ue_req
         # Trigger Attach Request with PDN_Type = IPv4v6
         attach_req = s1ap_types.ueAttachRequest_t()
         sec_ctxt = s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT
@@ -37,15 +48,15 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         pdn_type.pres = True
         # Set PDN TYPE to IPv4V6 i.e. 3. IPV4 is equal to 1
         # IPV6 is equal to 2 in value
-        pdn_type.pdn_type = 3
-        attach_req.ue_Id = req.ue_id
+        pdn_type.pdn_type = pdn_type_value
+        attach_req.ue_Id = ue_req.ue_id
         attach_req.mIdType = id_type
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt
         attach_req.pdnType_pr = pdn_type
 
-        print("********Triggering Attach Request with PND Type IPv4v6 test")
-
+        print("********Triggering Attach Request with PDN Type IPv4v6 test, "
+              "pdn_type_value", pdn_type_value)
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
         )
@@ -56,7 +67,7 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
 
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
-        auth_res.ue_Id = req.ue_id
+        auth_res.ue_Id = ue_req.ue_id
         sqnRecvd = s1ap_types.ueSqnRcvd_t()
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
@@ -70,7 +81,7 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
-        sec_mode_complete.ue_Id = req.ue_id
+        sec_mode_complete.ue_Id = ue_req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
         )
@@ -85,28 +96,26 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
 
         # Trigger Attach Complete
         attach_complete = s1ap_types.ueAttachComplete_t()
-        attach_complete.ue_Id = req.ue_id
+        attach_complete.ue_Id = ue_req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete
         )
+
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
-
         print("************************* Running UE detach")
         # Now detach the UE
         detach_req = s1ap_types.uedetachReq_t()
-        detach_req.ue_Id = req.ue_id
+        detach_req.ue_Id = ue_req.ue_id
         detach_req.ueDetType = (
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
         )
+
         # Wait for UE context release command
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
-        )
+        return self._s1ap_wrapper.s1_util.get_response()
 
 
 if __name__ == "__main__":

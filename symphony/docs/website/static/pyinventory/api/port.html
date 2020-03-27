@@ -93,7 +93,7 @@ PropertyValue - new value of the same type for this property</dd>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location([(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
 equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
-edited_port = client.edit_port(equipment, &quot;Z AIO - Port 1&quot;, {&quot;Port Property 2&quot;: &quot;test_it&quot;})  
+edited_port = client.edit_port_properties(equipment, &quot;Z AIO - Port 1&quot;, {&quot;Port Property 2&quot;: &quot;test_it&quot;})  
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.port.get_port"><code class="name flex">

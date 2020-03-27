@@ -4,6 +4,9 @@ query LocationDepsQuery($id: ID!) {
       files {
         id
       }
+      images {
+        id
+      }
       children {
         id
       }

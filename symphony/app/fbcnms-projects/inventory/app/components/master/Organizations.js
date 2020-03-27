@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {OrganizationRawType} from '@fbcnms/sequelize-models/models/organization';
+import type {OrganizationPlainAttributes} from '@fbcnms/sequelize-models/models/organization';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -36,7 +36,7 @@ import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRelativePath, useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
-export type Organization = OrganizationRawType & {id: number};
+export type Organization = OrganizationPlainAttributes;
 
 const useStyles = makeStyles(_ => ({
   header: {

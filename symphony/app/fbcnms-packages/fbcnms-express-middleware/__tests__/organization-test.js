@@ -15,7 +15,7 @@ import {getOrganization} from '@fbcnms/express-middleware/organizationMiddleware
 
 const ORGS = [
   {
-    id: '1',
+    id: 1,
     name: 'custom_domain_org',
     customDomains: ['subdomain.localtest.me'],
     networkIDs: [],
@@ -25,7 +25,7 @@ const ORGS = [
     ssoIssuer: '',
   },
   {
-    id: '2',
+    id: 2,
     name: 'subdomain',
     customDomains: [],
     networkIDs: [],

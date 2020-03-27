@@ -40,7 +40,7 @@
 #include "spgw_config.h"
 #include "pgw_pco.h"
 #include "dynamic_memory_check.h"
-#include "pgw_ue_ip_address_alloc.h"
+#include "MobilityClientAPI.h"
 #include "pgw_handlers.h"
 #include "sgw_handlers.h"
 #include "pcef_handlers.h"
@@ -60,16 +60,10 @@
 #include "sgw_context_manager.h"
 #include "sgw_ie_defs.h"
 #include "pgw_procedures.h"
+#include "spgw_types.h"
 
 extern spgw_config_t spgw_config;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
-
-static void _get_session_req_data(
-  spgw_state_t* spgw_state,
-  const itti_s11_create_session_request_t* saved_req,
-  struct pcef_create_session_data* data);
-
-static char _convert_digit_to_char(char digit);
 
 static int _spgw_build_and_send_s11_create_bearer_request(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p,
@@ -94,6 +88,14 @@ static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(
   ebi_t* ebi_to_be_deactivated,
   bool delete_default_bearer,
   teid_t mme_teid_S11);
+
+static void _spgw_handle_s5_response_with_error(
+  spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+  teid_t context_teid,
+  ebi_t eps_bearer_id,
+  itti_sgi_create_end_point_response_t* sgi_create_endpoint_resp,
+  s5_create_session_response_t* s5_response);
 
 //--------------------------------------------------------------------------------
 
@@ -124,7 +126,13 @@ void handle_s5_create_session_request(
       "teid" TEID_FMT "\n",
       context_teid);
     sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
-    goto err;
+    _spgw_handle_s5_response_with_error(
+      spgw_state,
+      new_bearer_ctxt_info_p,
+      context_teid,
+      eps_bearer_id,
+      &sgi_create_endpoint_resp,
+      &s5_response);
   }
 
   // PCO processing
@@ -142,7 +150,13 @@ void handle_s5_create_session_request(
       "context_id: " TEID_FMT "\n",
       context_teid);
     sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
-    goto err;
+    _spgw_handle_s5_response_with_error(
+      spgw_state,
+      new_bearer_ctxt_info_p,
+      context_teid,
+      eps_bearer_id,
+      &sgi_create_endpoint_resp,
+      &s5_response);
   }
   copy_protocol_configuration_options(&sgi_create_endpoint_resp.pco, &pco_resp);
   clear_protocol_configuration_options(&pco_resp);
@@ -184,56 +198,39 @@ void handle_s5_create_session_request(
       // and using them here in conditional logic. We will also want to
       // implement different logic between the PDN types.
       if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
-        if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
-          increment_counter(
-            "ue_pdn_connection", 1, 2, "pdn_type", "ipv4", "result", "success");
-          sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
-          OAILOG_DEBUG(
-            LOG_PGW_APP,
-            "Allocated IPv4 address for imsi <%s>, apn <%s>\n",
-            imsi,
-            apn);
-          sgi_create_endpoint_resp.status = SGI_STATUS_OK;
-        } else {
-          increment_counter(
-            "ue_pdn_connection", 1, 2, "pdn_type", "ipv4", "result", "failure");
-          OAILOG_ERROR(
-            LOG_PGW_APP,
-            "Failed to allocate IPv4 PAA for PDN type IPv4 for "
-            "imsi <%s> and apn <%s>\n",
-            imsi,
-            apn);
-          sgi_create_endpoint_resp.status =
-            SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
-        }
+        pgw_handle_allocate_ipv4_address(
+          imsi,
+          apn,
+          &inaddr,
+          sgi_create_endpoint_resp,
+          "ipv4",
+          context_teid,
+          eps_bearer_id,
+          spgw_state,
+          new_bearer_ctxt_info_p,
+          s5_response);
       }
       break;
 
     case IPv6:
       increment_counter(
-        "ue_pdn_connection", 1, 2, "pdn_type", "ipv4v6", "result", "failure");
+        "ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result", "failure");
       OAILOG_ERROR(LOG_PGW_APP, "IPV6 PDN type NOT Supported\n");
       sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED;
-
       break;
 
     case IPv4_AND_v6:
-      if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
-        increment_counter(
-          "ue_pdn_connection", 1, 2, "pdn_type", "ipv4v6", "result", "success");
-        sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
-        OAILOG_DEBUG(LOG_PGW_APP, "Allocated IPv4 address\n");
-        sgi_create_endpoint_resp.status = SGI_STATUS_OK;
-        sgi_create_endpoint_resp.paa.pdn_type = IPv4;
-      } else {
-        increment_counter(
-          "ue_pdn_connection", 1, 2, "pdn_type", "ipv4v6", "result", "failure");
-        OAILOG_ERROR(
-          LOG_PGW_APP,
-          "Failed to allocate IPv4 PAA for PDN type IPv4_AND_v6\n");
-        sgi_create_endpoint_resp.status =
-          SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
-      }
+      pgw_handle_allocate_ipv4_address(
+        imsi,
+        apn,
+        &inaddr,
+        sgi_create_endpoint_resp,
+        "ipv4v6",
+        context_teid,
+        eps_bearer_id,
+        spgw_state,
+        new_bearer_ctxt_info_p,
+        s5_response);
       break;
 
     default:
@@ -241,214 +238,30 @@ void handle_s5_create_session_request(
         0, "BAD paa.pdn_type %d", sgi_create_endpoint_resp.paa.pdn_type);
       break;
   }
-  if (sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
-    // create session in PCEF and return
-    s5_create_session_request_t session_req = {0};
-    session_req.context_teid = context_teid;
-    session_req.eps_bearer_id = eps_bearer_id;
-    char ip_str[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &(inaddr.s_addr), ip_str, INET_ADDRSTRLEN);
-    struct pcef_create_session_data session_data;
-    _get_session_req_data(
-      spgw_state,
-      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
-      &session_data);
-    pcef_create_session(
-      spgw_state, imsi, ip_str, &session_data, sgi_create_endpoint_resp, session_req, new_bearer_ctxt_info_p);
-    OAILOG_FUNC_OUT(LOG_PGW_APP);
-  }
-err:
-  s5_response.context_teid = context_teid;
-  s5_response.eps_bearer_id = eps_bearer_id;
-  s5_response.sgi_create_endpoint_resp = sgi_create_endpoint_resp;
-  s5_response.failure_cause = S5_OK;
+}
+
+void _spgw_handle_s5_response_with_error(
+  spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+  teid_t context_teid,
+  ebi_t eps_bearer_id,
+  itti_sgi_create_end_point_response_t* sgi_create_endpoint_resp,
+  s5_create_session_response_t* s5_response)
+{
+  s5_response->context_teid = context_teid;
+  s5_response->eps_bearer_id = eps_bearer_id;
+  s5_response->sgi_create_endpoint_resp = (*sgi_create_endpoint_resp);
+  s5_response->failure_cause = S5_OK;
 
   OAILOG_DEBUG(
     LOG_PGW_APP,
     "Sending S5 Create Session Response to SGW: with context teid, " TEID_FMT
     "EPS Bearer Id = %u\n",
-    s5_response.context_teid,
-    s5_response.eps_bearer_id);
+    s5_response->context_teid,
+    s5_response->eps_bearer_id);
   handle_s5_create_session_response(
-    spgw_state, new_bearer_ctxt_info_p, s5_response);
+    spgw_state, new_bearer_ctxt_info_p, (*s5_response));
   OAILOG_FUNC_OUT(LOG_PGW_APP);
-}
-
-static int get_imeisv_from_session_req(
-  const itti_s11_create_session_request_t *saved_req,
-  char *imeisv)
-{
-  if (saved_req->mei.present & MEI_IMEISV) {
-    // IMEISV as defined in 3GPP TS 23.003 MEI_IMEISV
-    imeisv[0] = saved_req->mei.choice.imeisv.u.num.tac8;
-    imeisv[1] = saved_req->mei.choice.imeisv.u.num.tac7;
-    imeisv[2] = saved_req->mei.choice.imeisv.u.num.tac6;
-    imeisv[3] = saved_req->mei.choice.imeisv.u.num.tac5;
-    imeisv[4] = saved_req->mei.choice.imeisv.u.num.tac4;
-    imeisv[5] = saved_req->mei.choice.imeisv.u.num.tac3;
-    imeisv[6] = saved_req->mei.choice.imeisv.u.num.tac2;
-    imeisv[7] = saved_req->mei.choice.imeisv.u.num.tac1;
-    imeisv[8] = saved_req->mei.choice.imeisv.u.num.snr6;
-    imeisv[9] = saved_req->mei.choice.imeisv.u.num.snr5;
-    imeisv[10] = saved_req->mei.choice.imeisv.u.num.snr4;
-    imeisv[11] = saved_req->mei.choice.imeisv.u.num.snr3;
-    imeisv[12] = saved_req->mei.choice.imeisv.u.num.snr2;
-    imeisv[13] = saved_req->mei.choice.imeisv.u.num.snr1;
-    imeisv[14] = saved_req->mei.choice.imeisv.u.num.svn2;
-    imeisv[15] = saved_req->mei.choice.imeisv.u.num.svn1;
-    imeisv[IMEISV_DIGITS_MAX] = '\0';
-
-    return 1;
-  }
-  return 0;
-}
-
-/*
- * Converts ascii values in [0,9] to [48,57]=['0','9']
- * else if they are in [48,57] keep them the same
- * else log an error and return '0'=48 value
- */
-static char _convert_digit_to_char(char digit)
-{
-  if ((digit >= 0) && (digit <= 9)) {
-    return (digit + '0');
-  } else if ((digit >= '0') && (digit <= '9')){
-    return digit;
-  } else {
-    OAILOG_ERROR(
-      LOG_PGW_APP,
-      "The input value for digit is not in a valid range: "
-      "Session request would likely be rejected on Gx or Gy interface\n");
-    return '0';
-  }
-}
-
-static void get_plmn_from_session_req(
-  const itti_s11_create_session_request_t* saved_req,
-  struct pcef_create_session_data* data)
-{
-  data->mcc_mnc[0] = _convert_digit_to_char(saved_req->serving_network.mcc[0]);
-  data->mcc_mnc[1] = _convert_digit_to_char(saved_req->serving_network.mcc[1]);
-  data->mcc_mnc[2] = _convert_digit_to_char(saved_req->serving_network.mcc[2]);
-  data->mcc_mnc[3] = _convert_digit_to_char(saved_req->serving_network.mnc[0]);
-  data->mcc_mnc[4] = _convert_digit_to_char(saved_req->serving_network.mnc[1]);
-  data->mcc_mnc_len = 5;
-  if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
-    data->mcc_mnc[5] =
-      _convert_digit_to_char(saved_req->serving_network.mnc[2]);
-    data->mcc_mnc[6] = '\0';
-    data->mcc_mnc_len += 1;
-  } else {
-    data->mcc_mnc[5] = '\0';
-  }
-}
-
-static void get_imsi_plmn_from_session_req(
-  const itti_s11_create_session_request_t* saved_req,
-  struct pcef_create_session_data* data)
-{
-  data->imsi_mcc_mnc[0] = _convert_digit_to_char(saved_req->imsi.digit[0]);
-  data->imsi_mcc_mnc[1] = _convert_digit_to_char(saved_req->imsi.digit[1]);
-  data->imsi_mcc_mnc[2] = _convert_digit_to_char(saved_req->imsi.digit[2]);
-  data->imsi_mcc_mnc[3] = _convert_digit_to_char(saved_req->imsi.digit[3]);
-  data->imsi_mcc_mnc[4] = _convert_digit_to_char(saved_req->imsi.digit[4]);
-  data->imsi_mcc_mnc_len = 5;
-  // Check if 2 or 3 digit by verifying mnc[2] has a valid value
-  if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
-    data->imsi_mcc_mnc[5] = _convert_digit_to_char(saved_req->imsi.digit[5]);
-    data->imsi_mcc_mnc[6] = '\0';
-    data->imsi_mcc_mnc_len += 1;
-  } else {
-    data->imsi_mcc_mnc[5] = '\0';
-  }
-}
-
-static int get_uli_from_session_req(
-  const itti_s11_create_session_request_t *saved_req,
-  char *uli)
-{
-  if (!saved_req->uli.present) {
-    return 0;
-  }
-
-  uli[0] = 130; // TAI and ECGI - defined in 29.061
-
-  // TAI as defined in 29.274 8.21.4
-  uli[1] = ((saved_req->uli.s.tai.mcc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mcc[0] & 0xf));
-  uli[2] = ((saved_req->uli.s.tai.mnc[2] & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mcc[2] & 0xf));
-  uli[3] = ((saved_req->uli.s.tai.mnc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mnc[0] & 0xf));
-  uli[4] = (saved_req->uli.s.tai.tac >> 8) & 0xff;
-  uli[5] = saved_req->uli.s.tai.tac & 0xff;
-
-  // ECGI as defined in 29.274 8.21.5
-  uli[6] = ((saved_req->uli.s.ecgi.mcc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.ecgi.mcc[0] & 0xf));
-  uli[7] = ((saved_req->uli.s.ecgi.mnc[2] & 0xf) << 4) |
-           ((saved_req->uli.s.ecgi.mcc[2] & 0xf));
-  uli[8] = ((saved_req->uli.s.ecgi.mnc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.ecgi.mnc[0] & 0xf));
-  uli[9] = (saved_req->uli.s.ecgi.eci >> 24) & 0xf;
-  uli[10] = (saved_req->uli.s.ecgi.eci >> 16) & 0xff;
-  uli[11] = (saved_req->uli.s.ecgi.eci >> 8) & 0xff;
-  uli[12] = saved_req->uli.s.ecgi.eci & 0xff;
-  uli[13] = '\0';
-  return 1;
-}
-
-static int get_msisdn_from_session_req(
-  const itti_s11_create_session_request_t *saved_req,
-  char *msisdn)
-{
-  int len = saved_req->msisdn.length;
-  int i, j;
-
-  for (i = 0; i < len; ++i) {
-    j = i << 1;
-    msisdn[j] = (saved_req->msisdn.digit[i] & 0xf) + '0';
-    msisdn[j + 1] = ((saved_req->msisdn.digit[i] >> 4) & 0xf) + '0';
-  }
-  if ((saved_req->msisdn.digit[len - 1] & 0xf0) == 0xf0) {
-    len = (len << 1) - 1;
-  } else {
-    len = len << 1;
-  }
-  return len;
-}
-
-static void _get_session_req_data(
-  spgw_state_t* spgw_state,
-  const itti_s11_create_session_request_t* saved_req,
-  struct pcef_create_session_data* data)
-{
-  const bearer_qos_t *qos;
-
-  data->msisdn_len = get_msisdn_from_session_req(saved_req, data->msisdn);
-
-  data->imeisv_exists = get_imeisv_from_session_req(saved_req, data->imeisv);
-  data->uli_exists = get_uli_from_session_req(saved_req, data->uli);
-  get_plmn_from_session_req(saved_req, data);
-  get_imsi_plmn_from_session_req(saved_req, data);
-
-  memcpy(data->apn, saved_req->apn, APN_MAX_LENGTH + 1);
-
-  inet_ntop(
-    AF_INET,
-    &spgw_state->sgw_ip_address_S1u_S12_S4_up,
-    data->sgw_ip,
-    INET_ADDRSTRLEN);
-
-  // QoS Info
-  data->ambr_dl = saved_req->ambr.br_dl;
-  data->ambr_ul = saved_req->ambr.br_ul;
-  qos = &saved_req->bearer_contexts_to_be_created.bearer_contexts[0]
-           .bearer_level_qos;
-  data->pl = qos->pl;
-  data->pci = qos->pci;
-  data->pvi = qos->pvi;
-  data->qci = qos->qci;
 }
 
 /*

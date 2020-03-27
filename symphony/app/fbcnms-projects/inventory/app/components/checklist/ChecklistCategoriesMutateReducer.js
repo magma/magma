@@ -33,7 +33,17 @@ export function getInitialState(
       helpText: item.helpText,
       checked: item.checked,
       enumValues: item.enumValues,
+      enumSelectionMode: !!item.enumSelectionMode
+        ? item.enumSelectionMode
+        : 'single',
+      selectedEnumValues: item.selectedEnumValues,
       stringValue: item.stringValue,
+      yesNoResponse: item.yesNoResponse,
+      files: item.files.map(file => ({
+        id: file.id,
+        storeKey: file.storeKey ?? '',
+        fileName: file.fileName,
+      })),
     })),
   }));
 }

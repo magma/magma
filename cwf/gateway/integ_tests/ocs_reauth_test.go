@@ -10,14 +10,11 @@ package integ_tests
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
-	"fbc/lib/go/radius/rfc2869"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/plugin/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
@@ -32,11 +29,16 @@ const (
 )
 
 func TestAuthenticateUplinkWithOCSChargingReAuth(t *testing.T) {
-	fmt.Printf("Running TestAuthenticateUplinkWithOcsChargingReAuth...\n")
+	fmt.Println("\nRunning TestAuthenticateUplinkWithOcsChargingReAuth...")
 
-	tr := NewTestRunner()
+	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
 
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
@@ -69,20 +71,13 @@ func TestAuthenticateUplinkWithOCSChargingReAuth(t *testing.T) {
 	ratingGroup := uint32(1)
 	err = ruleManager.AddStaticPassAllToDB("static-pass-all-ocs2", "", ratingGroup, models.PolicyRuleConfigTrackingTypeONLYOCS, 10)
 	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
 
 	// Apply a dynamic rule that points to the static rules above
 	err = ruleManager.AddRulesToPCRF(imsi, []string{"static-pass-all-ocs1", "static-pass-all-ocs2"}, nil)
 	assert.NoError(t, err)
 
-	// Wait for rules propagation
-	time.Sleep(2 * time.Second)
-	radiusP, err := tr.Authenticate(imsi)
-	assert.NoError(t, err)
-
-	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage)
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
-	time.Sleep(2 * time.Second)
+	tr.AuthenticateAndAssertSuccess(imsi)
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
@@ -90,9 +85,7 @@ func TestAuthenticateUplinkWithOCSChargingReAuth(t *testing.T) {
 		Volume: &wrappers.StringValue{Value: "4.5M"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-
-	// Wait for traffic to go through
-	time.Sleep(3 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
 
 	// Check that UE mac flow is installed and traffic is less than the quota
 	recordsBySubID, err := tr.GetPolicyUsage()
@@ -115,9 +108,7 @@ func TestAuthenticateUplinkWithOCSChargingReAuth(t *testing.T) {
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(imsi, ratingGroup)
-
-	// Wait for RAR to be processed
-	time.Sleep(2 * time.Second)
+	tr.WaitForReAuthToProcess()
 
 	// Check ReAuth success
 	assert.NoError(t, err)
@@ -128,9 +119,7 @@ func TestAuthenticateUplinkWithOCSChargingReAuth(t *testing.T) {
 	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "5M"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-
-	// Wait for traffic to go through
-	time.Sleep(10 * time.Second)
+	tr.WaitForEnforcementStatsToSync()
 
 	// Check that initial quota was exceeded
 	recordsBySubID, err = tr.GetPolicyUsage()
@@ -143,11 +132,6 @@ func TestAuthenticateUplinkWithOCSChargingReAuth(t *testing.T) {
 	// trigger disconnection
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
-	time.Sleep(3 * time.Second)
-
-	// Clear hss, ocs, and pcrf
-	assert.NoError(t, ruleManager.RemoveInstalledRules())
-	assert.NoError(t, tr.CleanUp())
 	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(10 * time.Second)
+	time.Sleep(3 * time.Second)
 }

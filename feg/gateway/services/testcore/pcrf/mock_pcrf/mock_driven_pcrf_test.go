@@ -12,6 +12,7 @@ import (
 	"context"
 	"log"
 	"testing"
+	"time"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
@@ -24,6 +25,7 @@ import (
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -61,9 +63,17 @@ func TestPCRFExpectations(t *testing.T) {
 			},
 		},
 	}
+	activationTime := time.Now().Round(1 * time.Second)
+	pActivationTime, err := ptypes.TimestampProto(activationTime)
+	assert.NoError(t, err)
+	deactivationTime := time.Now().Round(1 * time.Second).Add(5 * time.Second)
+	pDeactivationTime, err := ptypes.TimestampProto(deactivationTime)
+	assert.NoError(t, err)
 	expectedInitAns := fegprotos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"rule1", "rule2"}, []string{"base1", "base2"}).
 		SetDynamicRuleInstalls(dynamicRulesToInstall).
+		SetRuleActivationTime(pActivationTime).
+		SetRuleDeactivationTime(pDeactivationTime).
 		SetUsageMonitorInfos(usageMonitoringQuotaGrant)
 	expectedInit := fegprotos.NewGxCreditControlExpectation().Expect(expectedInitReq).Return(expectedInitAns)
 
@@ -88,6 +98,8 @@ func TestPCRFExpectations(t *testing.T) {
 		[]*fegprotos.GxCreditControlExpectation{expectedInit, expectedUpdate, expectationNotMet},
 		fegprotos.UnexpectedRequestBehavior_CONTINUE_WITH_DEFAULT_ANSWER,
 		defaultCCA)
+	pcrf.CreateAccount(context.Background(), &lteprotos.SubscriberID{Id: test.IMSI1, Type: lteprotos.SubscriberID_IMSI})
+	pcrf.CreateAccount(context.Background(), &lteprotos.SubscriberID{Id: test.IMSI2, Type: lteprotos.SubscriberID_IMSI})
 	gxClient := gx.NewGxClient(clientConfig, &serverConfig, getMockReAuthHandler(), nil, nil)
 	// send init
 	ccrInit := &gx.CreditControlRequest{
@@ -211,6 +223,7 @@ func assertCCAIsEqualToExpectedAnswer(t *testing.T, actual *gx.CreditControlAnsw
 	assert.ElementsMatch(t, expectation.GetRuleInstalls().GetRuleNames(), ruleNames)
 	assert.ElementsMatch(t, expectation.GetRuleInstalls().GetRuleBaseNames(), ruleBaseNames)
 	assert.ElementsMatch(t, expectation.GetRuleInstalls().GetRuleDefinitions(), ruleDefinitions)
+	assertRuleInstallTimeStampsMatch(t, expectation.GetRuleInstalls(), actual.RuleInstallAVP)
 	usageMonitors := getUsageMonitorsFromCCA(actual)
 	assert.ElementsMatch(t, expectation.GetUsageMonitoringInfos(), usageMonitors)
 }
@@ -225,6 +238,20 @@ func getRuleInstallsFromCCA(cca *gx.CreditControlAnswer) ([]string, []string, []
 		ruleDefinitions = append(ruleDefinitions, toProtosRuleDefinitions(installRule.RuleDefinitions)...)
 	}
 	return ruleNames, ruleBaseNames, ruleDefinitions
+}
+
+func assertRuleInstallTimeStampsMatch(t *testing.T, expected *fegprotos.RuleInstalls, actual []*gx.RuleInstallAVP) {
+	expectedActivationTime, _ := ptypes.Timestamp(expected.GetActivationTime())
+	expectedDeactivationTime, _ := ptypes.Timestamp(expected.GetDeactivationTime())
+
+	for _, ruleInstall := range actual {
+		if expected.GetActivationTime() != nil {
+			assert.True(t, expectedActivationTime.Equal(*ruleInstall.RuleActivationTime))
+		}
+		if expected.GetDeactivationTime() != nil {
+			assert.True(t, expectedDeactivationTime.Equal(*ruleInstall.RuleDeactivationTime))
+		}
+	}
 }
 
 func toProtosRuleDefinitions(gxRuleDfs []*gx.RuleDefinition) []*fegprotos.RuleDefinition {
@@ -272,9 +299,9 @@ func getClientConfig() *diameter.DiameterClientConfig {
 	}
 }
 
-func getMockReAuthHandler() gx.ReAuthHandler {
-	return func(request *gx.ReAuthRequest) *gx.ReAuthAnswer {
-		return &gx.ReAuthAnswer{
+func getMockReAuthHandler() gx.PolicyReAuthHandler {
+	return func(request *gx.PolicyReAuthRequest) *gx.PolicyReAuthAnswer {
+		return &gx.PolicyReAuthAnswer{
 			SessionID:  request.SessionID,
 			ResultCode: diam.Success,
 		}

@@ -96,7 +96,7 @@ class FileAttachment extends React.Component<Props, State> {
     }
   };
 
-  handleDelete = async () => {
+  handleDelete = () => {
     this.props.onDocumentDeleted(this.props.file);
   };
 
@@ -189,7 +189,6 @@ export default withStyles(styles)(
         fileType
         storeKey
         category
-        ...DocumentMenu_document
         ...ImageDialog_img
       }
     `,

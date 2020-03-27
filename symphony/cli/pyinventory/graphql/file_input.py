@@ -15,9 +15,9 @@ from .file_type_enum import FileType
 
 @dataclass
 class FileInput(DataClassJsonMixin):
-    id: str
     fileName: str
     storeKey: str
+    id: Optional[str] = None
     sizeInBytes: Optional[int] = None
     modificationTime: Optional[int] = None
     uploadTime: Optional[int] = None

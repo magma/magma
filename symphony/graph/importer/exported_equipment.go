@@ -67,7 +67,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		}
 		importHeader, err := NewImportHeader(first, ImportEntityEquipment)
 		if err != nil {
-			errorReturn(w, fmt.Sprintf("error on header"), log, err)
+			errorReturn(w, "error on header", log, err)
 			return
 		}
 		//

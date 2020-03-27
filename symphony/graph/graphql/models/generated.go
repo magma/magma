@@ -165,6 +165,7 @@ type AddProjectInput struct {
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
 	Creator     *string          `json:"creator"`
+	CreatorID   *int             `json:"creatorId"`
 	Type        int              `json:"type"`
 	Location    *int             `json:"location"`
 	Properties  []*PropertyInput `json:"properties"`
@@ -192,8 +193,10 @@ type AddWorkOrderInput struct {
 	Properties          []*PropertyInput          `json:"properties"`
 	CheckList           []*CheckListItemInput     `json:"checkList"`
 	OwnerName           *string                   `json:"ownerName"`
+	OwnerID             *int                      `json:"ownerId"`
 	CheckListCategories []*CheckListCategoryInput `json:"checkListCategories"`
 	Assignee            *string                   `json:"assignee"`
+	AssigneeID          *int                      `json:"assigneeId"`
 	Index               *int                      `json:"index"`
 	Status              *WorkOrderStatus          `json:"status"`
 	Priority            *WorkOrderPriority        `json:"priority"`
@@ -224,14 +227,18 @@ type CheckListDefinitionInput struct {
 }
 
 type CheckListItemInput struct {
-	ID          *int              `json:"id"`
-	Title       string            `json:"title"`
-	Type        CheckListItemType `json:"type"`
-	Index       *int              `json:"index"`
-	HelpText    *string           `json:"helpText"`
-	EnumValues  *string           `json:"enumValues"`
-	StringValue *string           `json:"stringValue"`
-	Checked     *bool             `json:"checked"`
+	ID                 *int                            `json:"id"`
+	Title              string                          `json:"title"`
+	Type               CheckListItemType               `json:"type"`
+	Index              *int                            `json:"index"`
+	HelpText           *string                         `json:"helpText"`
+	EnumValues         *string                         `json:"enumValues"`
+	EnumSelectionMode  *CheckListItemEnumSelectionMode `json:"enumSelectionMode"`
+	SelectedEnumValues *string                         `json:"selectedEnumValues"`
+	StringValue        *string                         `json:"stringValue"`
+	Checked            *bool                           `json:"checked"`
+	Files              []*FileInput                    `json:"files"`
+	YesNoResponse      *YesNoResponse                  `json:"yesNoResponse"`
 }
 
 type CommentInput struct {
@@ -304,6 +311,7 @@ type EditProjectInput struct {
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
 	Creator     *string          `json:"creator"`
+	CreatorID   *int             `json:"creatorId"`
 	Type        int              `json:"type"`
 	Location    *int             `json:"location"`
 	Properties  []*PropertyInput `json:"properties"`
@@ -335,8 +343,10 @@ type EditWorkOrderInput struct {
 	Name                string                    `json:"name"`
 	Description         *string                   `json:"description"`
 	OwnerName           *string                   `json:"ownerName"`
+	OwnerID             *int                      `json:"ownerId"`
 	InstallDate         *time.Time                `json:"installDate"`
 	Assignee            *string                   `json:"assignee"`
+	AssigneeID          *int                      `json:"assigneeId"`
 	Index               *int                      `json:"index"`
 	Status              WorkOrderStatus           `json:"status"`
 	Priority            WorkOrderPriority         `json:"priority"`
@@ -388,7 +398,7 @@ type EquipmentSearchResult struct {
 }
 
 type FileInput struct {
-	ID               int       `json:"id"`
+	ID               *int      `json:"id"`
 	FileName         string    `json:"fileName"`
 	SizeInBytes      *int      `json:"sizeInBytes"`
 	ModificationTime *int      `json:"modificationTime"`
@@ -568,6 +578,22 @@ type SearchEntryEdge struct {
 	Cursor ent.Cursor `json:"cursor"`
 }
 
+// A search entry edge in a connection.
+type SearchNodeEdge struct {
+	// The search entry at the end of the edge.
+	Node ent.Noder `json:"node"`
+	// A cursor for use in pagination.
+	Cursor ent.Cursor `json:"cursor"`
+}
+
+// A connection to a list of search entries.
+type SearchNodesConnection struct {
+	// A list of search entry edges.
+	Edges []*SearchNodeEdge `json:"edges"`
+	// Information to aid in pagination.
+	PageInfo *ent.PageInfo `json:"pageInfo"`
+}
+
 type ServiceCreateData struct {
 	Name               string           `json:"name"`
 	ExternalID         *string          `json:"externalId"`
@@ -701,15 +727,42 @@ type SurveyWiFiScanData struct {
 	Longitude    *float64 `json:"longitude"`
 }
 
+type TechnicianCheckListItemInput struct {
+	ID                 int     `json:"id"`
+	SelectedEnumValues *string `json:"selectedEnumValues"`
+	StringValue        *string `json:"stringValue"`
+	Checked            *bool   `json:"checked"`
+}
+
 type TechnicianInput struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
+}
+
+type TechnicianWorkOrderUploadInput struct {
+	WorkOrderID int                             `json:"workOrderId"`
+	Checklist   []*TechnicianCheckListItemInput `json:"checklist"`
 }
 
 type TopologyLink struct {
 	Type   TopologyLinkType `json:"type"`
 	Source ent.Noder        `json:"source"`
 	Target ent.Noder        `json:"target"`
+}
+
+type UserFilterInput struct {
+	FilterType    UserFilterType     `json:"filterType"`
+	Operator      FilterOperator     `json:"operator"`
+	StringValue   *string            `json:"stringValue"`
+	PropertyValue *PropertyTypeInput `json:"propertyValue"`
+	IDSet         []int              `json:"idSet"`
+	StringSet     []string           `json:"stringSet"`
+	MaxDepth      *int               `json:"maxDepth"`
+}
+
+type UserSearchResult struct {
+	Users []*ent.User `json:"users"`
+	Count int         `json:"count"`
 }
 
 type WorkOrderDefinitionInput struct {
@@ -787,23 +840,68 @@ func (e CellularNetworkType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type CheckListItemEnumSelectionMode string
+
+const (
+	CheckListItemEnumSelectionModeSingle   CheckListItemEnumSelectionMode = "single"
+	CheckListItemEnumSelectionModeMultiple CheckListItemEnumSelectionMode = "multiple"
+)
+
+var AllCheckListItemEnumSelectionMode = []CheckListItemEnumSelectionMode{
+	CheckListItemEnumSelectionModeSingle,
+	CheckListItemEnumSelectionModeMultiple,
+}
+
+func (e CheckListItemEnumSelectionMode) IsValid() bool {
+	switch e {
+	case CheckListItemEnumSelectionModeSingle, CheckListItemEnumSelectionModeMultiple:
+		return true
+	}
+	return false
+}
+
+func (e CheckListItemEnumSelectionMode) String() string {
+	return string(e)
+}
+
+func (e *CheckListItemEnumSelectionMode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CheckListItemEnumSelectionMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CheckListItemEnumSelectionMode", str)
+	}
+	return nil
+}
+
+func (e CheckListItemEnumSelectionMode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type CheckListItemType string
 
 const (
 	CheckListItemTypeSimple CheckListItemType = "simple"
 	CheckListItemTypeString CheckListItemType = "string"
 	CheckListItemTypeEnum   CheckListItemType = "enum"
+	CheckListItemTypeFiles  CheckListItemType = "files"
+	CheckListItemTypeYesNo  CheckListItemType = "yes_no"
 )
 
 var AllCheckListItemType = []CheckListItemType{
 	CheckListItemTypeSimple,
 	CheckListItemTypeString,
 	CheckListItemTypeEnum,
+	CheckListItemTypeFiles,
+	CheckListItemTypeYesNo,
 }
 
 func (e CheckListItemType) IsValid() bool {
 	switch e {
-	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum:
+	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum, CheckListItemTypeFiles, CheckListItemTypeYesNo:
 		return true
 	}
 	return false
@@ -1102,11 +1200,12 @@ func (e FutureState) MarshalGQL(w io.Writer) {
 type ImageEntity string
 
 const (
-	ImageEntityLocation   ImageEntity = "LOCATION"
-	ImageEntityWorkOrder  ImageEntity = "WORK_ORDER"
-	ImageEntitySiteSurvey ImageEntity = "SITE_SURVEY"
-	ImageEntityEquipment  ImageEntity = "EQUIPMENT"
-	ImageEntityUser       ImageEntity = "USER"
+	ImageEntityLocation      ImageEntity = "LOCATION"
+	ImageEntityWorkOrder     ImageEntity = "WORK_ORDER"
+	ImageEntitySiteSurvey    ImageEntity = "SITE_SURVEY"
+	ImageEntityEquipment     ImageEntity = "EQUIPMENT"
+	ImageEntityUser          ImageEntity = "USER"
+	ImageEntityChecklistItem ImageEntity = "CHECKLIST_ITEM"
 )
 
 var AllImageEntity = []ImageEntity{
@@ -1115,11 +1214,12 @@ var AllImageEntity = []ImageEntity{
 	ImageEntitySiteSurvey,
 	ImageEntityEquipment,
 	ImageEntityUser,
+	ImageEntityChecklistItem,
 }
 
 func (e ImageEntity) IsValid() bool {
 	switch e {
-	case ImageEntityLocation, ImageEntityWorkOrder, ImageEntitySiteSurvey, ImageEntityEquipment, ImageEntityUser:
+	case ImageEntityLocation, ImageEntityWorkOrder, ImageEntitySiteSurvey, ImageEntityEquipment, ImageEntityUser, ImageEntityChecklistItem:
 		return true
 	}
 	return false
@@ -1728,6 +1828,46 @@ func (e TopologyLinkType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+// what filters should we apply on users
+type UserFilterType string
+
+const (
+	UserFilterTypeUserName UserFilterType = "USER_NAME"
+)
+
+var AllUserFilterType = []UserFilterType{
+	UserFilterTypeUserName,
+}
+
+func (e UserFilterType) IsValid() bool {
+	switch e {
+	case UserFilterTypeUserName:
+		return true
+	}
+	return false
+}
+
+func (e UserFilterType) String() string {
+	return string(e)
+}
+
+func (e *UserFilterType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UserFilterType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid UserFilterType", str)
+	}
+	return nil
+}
+
+func (e UserFilterType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 // what type of work order we filter about
 type WorkOrderFilterType string
 
@@ -1735,10 +1875,12 @@ const (
 	WorkOrderFilterTypeWorkOrderName         WorkOrderFilterType = "WORK_ORDER_NAME"
 	WorkOrderFilterTypeWorkOrderStatus       WorkOrderFilterType = "WORK_ORDER_STATUS"
 	WorkOrderFilterTypeWorkOrderOwner        WorkOrderFilterType = "WORK_ORDER_OWNER"
+	WorkOrderFilterTypeWorkOrderOwnedBy      WorkOrderFilterType = "WORK_ORDER_OWNED_BY"
 	WorkOrderFilterTypeWorkOrderType         WorkOrderFilterType = "WORK_ORDER_TYPE"
 	WorkOrderFilterTypeWorkOrderCreationDate WorkOrderFilterType = "WORK_ORDER_CREATION_DATE"
 	WorkOrderFilterTypeWorkOrderInstallDate  WorkOrderFilterType = "WORK_ORDER_INSTALL_DATE"
 	WorkOrderFilterTypeWorkOrderAssignee     WorkOrderFilterType = "WORK_ORDER_ASSIGNEE"
+	WorkOrderFilterTypeWorkOrderAssignedTo   WorkOrderFilterType = "WORK_ORDER_ASSIGNED_TO"
 	WorkOrderFilterTypeWorkOrderLocationInst WorkOrderFilterType = "WORK_ORDER_LOCATION_INST"
 	WorkOrderFilterTypeWorkOrderPriority     WorkOrderFilterType = "WORK_ORDER_PRIORITY"
 	WorkOrderFilterTypeLocationInst          WorkOrderFilterType = "LOCATION_INST"
@@ -1748,10 +1890,12 @@ var AllWorkOrderFilterType = []WorkOrderFilterType{
 	WorkOrderFilterTypeWorkOrderName,
 	WorkOrderFilterTypeWorkOrderStatus,
 	WorkOrderFilterTypeWorkOrderOwner,
+	WorkOrderFilterTypeWorkOrderOwnedBy,
 	WorkOrderFilterTypeWorkOrderType,
 	WorkOrderFilterTypeWorkOrderCreationDate,
 	WorkOrderFilterTypeWorkOrderInstallDate,
 	WorkOrderFilterTypeWorkOrderAssignee,
+	WorkOrderFilterTypeWorkOrderAssignedTo,
 	WorkOrderFilterTypeWorkOrderLocationInst,
 	WorkOrderFilterTypeWorkOrderPriority,
 	WorkOrderFilterTypeLocationInst,
@@ -1759,7 +1903,7 @@ var AllWorkOrderFilterType = []WorkOrderFilterType{
 
 func (e WorkOrderFilterType) IsValid() bool {
 	switch e {
-	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwner, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderInstallDate, WorkOrderFilterTypeWorkOrderAssignee, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst:
+	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwner, WorkOrderFilterTypeWorkOrderOwnedBy, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderInstallDate, WorkOrderFilterTypeWorkOrderAssignee, WorkOrderFilterTypeWorkOrderAssignedTo, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst:
 		return true
 	}
 	return false
@@ -1875,5 +2019,46 @@ func (e *WorkOrderStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e WorkOrderStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type YesNoResponse string
+
+const (
+	YesNoResponseYes YesNoResponse = "YES"
+	YesNoResponseNo  YesNoResponse = "NO"
+)
+
+var AllYesNoResponse = []YesNoResponse{
+	YesNoResponseYes,
+	YesNoResponseNo,
+}
+
+func (e YesNoResponse) IsValid() bool {
+	switch e {
+	case YesNoResponseYes, YesNoResponseNo:
+		return true
+	}
+	return false
+}
+
+func (e YesNoResponse) String() string {
+	return string(e)
+}
+
+func (e *YesNoResponse) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = YesNoResponse(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid YesNoResponse", str)
+	}
+	return nil
+}
+
+func (e YesNoResponse) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

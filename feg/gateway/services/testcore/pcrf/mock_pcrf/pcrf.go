@@ -18,13 +18,16 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/testcore/mock_driver"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
+	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
 )
 
@@ -34,13 +37,25 @@ type PCRFConfig struct {
 	ServerConfig *diameter.DiameterServerConfig
 }
 
+// This is a temporary struct to handle unsupported AVP Charging-Rule-Report in go-diameter
+type ReAuthAnswer struct {
+	SessionID  string `avp:"Session-Id"`
+	ResultCode uint32 `avp:"Result-Code"`
+}
+
 type creditByMkey map[string]*protos.UsageMonitor
+
+type SubscriberSessionState struct {
+	SessionID  string
+	Connection diam.Conn
+}
 
 type subscriberAccount struct {
 	RuleNames       []string
 	RuleBaseNames   []string
 	RuleDefinitions []*protos.RuleDefinition
 	UsageMonitors   creditByMkey
+	CurrentState    *SubscriberSessionState
 }
 
 // PCRFDiamServer wraps an PCRF storing subscribers and their rules
@@ -49,6 +64,7 @@ type PCRFDiamServer struct {
 	pcrfConfig          *PCRFConfig
 	serviceConfig       *protos.PCRFConfigs
 	subscribers         map[string]*subscriberAccount // map of imsi to to rules
+	mux                 *sm.StateMachine
 	LastMessageReceived *ccrMessage
 	mockDriverLock      sync.Mutex
 	mockDriver          *mock_driver.MockDriver
@@ -92,7 +108,7 @@ func (srv *PCRFDiamServer) ConfigServer(
 // Start begins the server and blocks, listening to the network
 // Output: error if the server could not be started
 func (srv *PCRFDiamServer) Start(lis net.Listener) error {
-	mux := sm.New(&sm.Settings{
+	srv.mux = sm.New(&sm.Settings{
 		OriginHost:       datatype.DiameterIdentity(srv.diameterSettings.Host),
 		OriginRealm:      datatype.DiameterIdentity(srv.diameterSettings.Realm),
 		VendorID:         datatype.Unsigned32(diameter.Vendor3GPP),
@@ -100,15 +116,15 @@ func (srv *PCRFDiamServer) Start(lis net.Listener) error {
 		OriginStateID:    datatype.Unsigned32(time.Now().Unix()),
 		FirmwareRevision: 1,
 	})
-	mux.HandleIdx(
+	srv.mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.GX_CHARGING_CONTROL_APP_ID, Code: diam.CreditControl, Request: true},
 		getCCRHandler(srv))
-	go logErrors(mux.ErrorReports())
+	go logErrors(srv.mux.ErrorReports())
 	serverConfig := srv.pcrfConfig.ServerConfig
 	server := &diam.Server{
 		Network: serverConfig.Protocol,
 		Addr:    serverConfig.Addr,
-		Handler: mux,
+		Handler: srv.mux,
 		Dict:    nil,
 	}
 	return server.Serve(lis)
@@ -254,4 +270,95 @@ func (srv *PCRFDiamServer) AssertExpectations(ctx context.Context, void *orcprot
 
 	results, errs := srv.mockDriver.AggregateResults()
 	return &protos.GxCreditControlResult{Results: results, Errors: errs}, nil
+}
+
+// ReAuth call for a subscriber
+// Initiate a RAR requenst and handle a response
+func (srv *PCRFDiamServer) ReAuth(
+	ctx context.Context,
+	target *protos.PolicyReAuthTarget,
+) (*protos.PolicyReAuthAnswer, error) {
+	account, ok := srv.subscribers[target.Imsi]
+	if !ok {
+		return nil, fmt.Errorf("Could not find imsi %s", target.Imsi)
+	}
+	if account.CurrentState == nil {
+		return nil, fmt.Errorf("Credit client State unknown for imsi %s", target.Imsi)
+	}
+
+	var raaHandler diam.HandlerFunc
+	done := make(chan *gx.PolicyReAuthAnswer)
+	raaHandler = func(conn diam.Conn, msg *diam.Message) {
+		// TODO Remove ReAuthAnswer and use PolicyReAuthAnswer once go-diameter supports Charging-Rule-Report
+		var raa ReAuthAnswer
+		if err := msg.Unmarshal(&raa); err != nil {
+			glog.Errorf("Received unparseable RAA over Gx,  %s\n%s", err, msg)
+			return
+		}
+		glog.V(2).Infof("Received RAA \n%s", msg)
+		done <- &gx.PolicyReAuthAnswer{SessionID: raa.SessionID, ResultCode: raa.ResultCode}
+	}
+	srv.mux.Handle(diam.RAA, raaHandler)
+	sendRAR(account.CurrentState, target, srv.mux.Settings())
+	select {
+	case raa := <-done:
+		return &protos.PolicyReAuthAnswer{SessionId: diameter.DecodeSessionID(raa.SessionID), ResultCode: raa.ResultCode}, nil
+	case <-time.After(10 * time.Second):
+		return nil, fmt.Errorf("No RAA received")
+	}
+}
+
+func sendRAR(state *SubscriberSessionState, target *protos.PolicyReAuthTarget, cfg *sm.Settings) error {
+	meta, ok := smpeer.FromContext(state.Connection.Context())
+	if !ok {
+		return fmt.Errorf("peer metadata unavailable")
+	}
+	m := diameter.NewProxiableRequest(diam.ReAuth, diam.GX_CHARGING_CONTROL_APP_ID, nil)
+	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(state.SessionID))
+	m.NewAVP(avp.OriginHost, avp.Mbit, 0, cfg.OriginHost)
+	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, cfg.OriginRealm)
+	m.NewAVP(avp.DestinationRealm, avp.Mbit, 0, meta.OriginRealm)
+	m.NewAVP(avp.DestinationHost, avp.Mbit, 0, meta.OriginHost)
+
+	additionalAVPs := []*diam.AVP{}
+	// Construct AVPs for Rules to Install
+	ruleInstalls := target.GetRulesToInstall()
+	if ruleInstalls != nil {
+		additionalAVPs = append(additionalAVPs,
+			toRuleInstallAVPs(
+				ruleInstalls.GetRuleNames(),
+				ruleInstalls.GetRuleBaseNames(),
+				ruleInstalls.GetRuleDefinitions(),
+				nil,
+				nil)...,
+		)
+	}
+	// Construct AVPs for Rules to Remove
+	ruleRemovals := target.GetRulesToRemove()
+	if ruleRemovals != nil {
+		additionalAVPs = append(additionalAVPs,
+			toRuleRemovalAVPs(
+				ruleRemovals.GetRuleNames(),
+				ruleRemovals.GetRuleBaseNames(),
+			)...,
+		)
+	}
+	// Construct AVPs for UsageMonitoring
+	monitorInstalls := target.GetUsageMonitoringInfos()
+	if monitorInstalls != nil {
+		for _, monitor := range monitorInstalls {
+			octets := monitor.GetOctets()
+			if octets == nil {
+				glog.Errorf("Monitor Octets is nil, skipping.")
+				continue
+			}
+			additionalAVPs = append(additionalAVPs, toUsageMonitoringInfoAVP(string(monitor.MonitoringKey), octets, monitor.MonitoringLevel))
+		}
+	}
+	for _, avp := range additionalAVPs {
+		m.InsertAVP(avp)
+	}
+	glog.V(2).Infof("Sending RAR to %s\n%s", state.Connection.RemoteAddr(), m)
+	_, err := m.WriteTo(state.Connection)
+	return err
 }

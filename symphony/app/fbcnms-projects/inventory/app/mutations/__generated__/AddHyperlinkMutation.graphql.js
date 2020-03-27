@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 191b82ba9d62f38c9170f86968158f97
+ * @relayHash ef5cdad8cf78d342f46b53e8486f9cb9
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "USER" | "WORK_ORDER" | "%future added value";
+export type ImageEntity = "CHECKLIST_ITEM" | "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "USER" | "WORK_ORDER" | "%future added value";
 export type AddHyperlinkInput = {|
   entityType: ImageEntity,
   entityId: string,

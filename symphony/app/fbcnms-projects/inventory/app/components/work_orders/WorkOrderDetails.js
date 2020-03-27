@@ -148,7 +148,9 @@ const WorkOrderDetails = ({
   confirm,
 }: Props) => {
   const classes = useStyles();
-  const [workOrder, setWorkOrder] = useState(propsWorkOrder);
+  const [workOrder, setWorkOrder] = useState<WorkOrderDetails_workOrder>(
+    propsWorkOrder,
+  );
   const [properties, setProperties] = useState(
     // eslint-disable-next-line flowtype/no-weak-types
     ([...propsWorkOrder.properties]: any).sort(sortPropertiesByIndex),
@@ -247,9 +249,9 @@ const WorkOrderDetails = ({
     key:
       | 'name'
       | 'description'
-      | 'ownerName'
+      | 'owner'
       | 'installDate'
-      | 'assignee'
+      | 'assignedTo'
       | 'priority'
       | 'project',
     value,
@@ -276,7 +278,7 @@ const WorkOrderDetails = ({
             const noOwnerError = validationContext.error.check({
               fieldId: 'Owner',
               fieldDisplayName: 'Owner',
-              value: workOrder.ownerName,
+              value: workOrder.owner,
               required: true,
             });
             validationContext.editLock.check({
@@ -294,8 +296,8 @@ const WorkOrderDetails = ({
               value: {user, workOrder: propsWorkOrder},
               checkCallback: checkData =>
                 checkData?.user.isSuperUser ||
-                checkData?.user.email === checkData?.workOrder.ownerName ||
-                checkData?.user.email === checkData?.workOrder.assignee
+                checkData?.user.email === checkData?.workOrder.owner.email ||
+                checkData?.user.email === checkData?.workOrder.assignedTo?.email
                   ? ''
                   : 'User is not allowed to edit this work order',
             });
@@ -304,8 +306,8 @@ const WorkOrderDetails = ({
               fieldDisplayName: 'Non Owner assignee rule',
               value: {user, workOrder: propsWorkOrder},
               checkCallback: checkData =>
-                checkData?.user.email !== checkData?.workOrder.ownerName &&
-                checkData?.user.email === checkData?.workOrder.assignee
+                checkData?.user.email !== checkData?.workOrder.owner.email &&
+                checkData?.user.email === checkData?.workOrder.assignedTo?.email
                   ? 'Assignee is not allowed to change owner'
                   : '',
               notAggregated: true,
@@ -545,18 +547,18 @@ const WorkOrderDetails = ({
                         errorText={noOwnerError}
                         disabled={!!nonOwnerAssignee}>
                         <UserTypeahead
-                          selectedUser={workOrder.ownerName}
+                          selectedUser={workOrder.owner}
                           onUserSelection={user =>
-                            _setWorkOrderDetail('ownerName', user)
+                            _setWorkOrderDetail('owner', user)
                           }
                           margin="dense"
                         />
                       </FormField>
                       <FormField label="Assignee" className={classes.input}>
                         <UserTypeahead
-                          selectedUser={workOrder.assignee}
+                          selectedUser={workOrder.assignedTo}
                           onUserSelection={user =>
-                            _setWorkOrderDetail('assignee', user)
+                            _setWorkOrderDetail('assignedTo', user)
                           }
                           margin="dense"
                         />
@@ -608,8 +610,14 @@ export default withRouter(
             }
             ...LocationBreadcrumbsTitle_locationDetails
           }
-          ownerName
-          assignee
+          owner {
+            id
+            email
+          }
+          assignedTo {
+            id
+            email
+          }
           creationDate
           installDate
           status
@@ -651,6 +659,19 @@ export default withRouter(
               checked
               enumValues
               stringValue
+              enumSelectionMode
+              selectedEnumValues
+              yesNoResponse
+              files {
+                id
+                fileName
+                sizeInBytes
+                modified
+                uploaded
+                fileType
+                storeKey
+                category
+              }
             }
           }
         }

@@ -8,9 +8,11 @@
  * @format
  */
 
+import type {LocationTypeahead_LocationsQuery} from './__generated__/LocationTypeahead_LocationsQuery.graphql';
 import type {Suggestion} from '@fbcnms/ui/components/Typeahead';
 
 import * as React from 'react';
+import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import RelayEnvironment from '../../common/RelayEnvironment.js';
 import Typeahead from '@fbcnms/ui/components/Typeahead';
 import {debounce} from 'lodash';
@@ -18,13 +20,25 @@ import {fetchQuery, graphql} from 'relay-runtime';
 
 const inventoryEntitiesTypeaheadQuery = graphql`
   query LocationTypeahead_LocationsQuery($name: String!) {
-    searchForEntity(name: $name, first: 10) {
+    searchForNode(name: $name, first: 10) {
       edges {
         node {
-          entityId
-          entityType
-          name
-          type
+          __typename
+          ... on Location {
+            id
+            externalId
+            name
+            locationType {
+              name
+            }
+            locationHierarchy {
+              id
+              name
+              locationType {
+                name
+              }
+            }
+          }
         }
       }
     }
@@ -65,16 +79,44 @@ class LocationTypeahead extends React.Component<Props, State> {
   );
 
   fetchNewLocationSuggestions(searchTerm: string) {
-    fetchQuery(RelayEnvironment, inventoryEntitiesTypeaheadQuery, {
-      name: searchTerm,
-    }).then(response => {
-      if (!response || !response.searchForEntity) {
+    fetchQuery<LocationTypeahead_LocationsQuery>(
+      RelayEnvironment,
+      inventoryEntitiesTypeaheadQuery,
+      {
+        name: searchTerm,
+      },
+    ).then(response => {
+      if (!response || !response.searchForNode) {
         return;
       }
       this.setState({
-        locationSuggestions: response.searchForEntity.edges
-          .map(edge => edge.node)
-          .filter(response => response.entityType === 'location'),
+        locationSuggestions:
+          response.searchForNode?.edges
+            ?.filter(Boolean)
+            .map(edge => edge.node)
+            .filter(Boolean)
+            .map(node => {
+              if (node.__typename !== 'Location') {
+                return null;
+              }
+              return {
+                entityId: node.id,
+                entityType: 'location',
+                name: node.name,
+                type: node.locationType.name,
+                render: () => {
+                  const breadcrumbs = [...node.locationHierarchy, node].map(
+                    l => ({
+                      id: l.id,
+                      name: l.name,
+                      subtext: l.locationType.name,
+                    }),
+                  );
+                  return <Breadcrumbs breadcrumbs={breadcrumbs} size="small" />;
+                },
+              };
+            })
+            .filter(Boolean) ?? ([]: Array<Suggestion>),
       });
     });
   }

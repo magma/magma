@@ -10,6 +10,7 @@
 
 import type {RowsSeparationTypes} from './TableContent';
 import type {SelectionType} from '../Checkbox/Checkbox';
+import type {TableContextValue} from './TableContext';
 
 import * as React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
@@ -27,6 +28,7 @@ const borderRadius = '4px';
 const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
+    maxHeight: '100%',
   },
   standalone: {
     borderRadius: borderRadius,
@@ -75,6 +77,7 @@ const useStyles = makeStyles(() => ({
     backgroundColor: SymphonyTheme.palette.white,
     borderLeft: '1px solid',
     borderColor: SymphonyTheme.palette.separatorLight,
+    flexBasis: '10px',
     flexGrow: 1,
     borderTopRightRadius: borderRadius,
     borderBottomRightRadius: borderRadius,
@@ -105,6 +108,12 @@ export type SelectionCallbackType = (
 ) => void;
 export type ActiveCallbackType = (activeId: NullableTableRowId) => void;
 
+export const TABLE_VARIANT_TYPES = {
+  standalone: 'standalone',
+  embedded: 'embedded',
+};
+export type TableVariantTypes = $Keys<typeof TABLE_VARIANT_TYPES>;
+
 /*
   detailsCard:
     When passed, will be shown on as part of the table content.
@@ -116,7 +125,7 @@ type Props<T> = {
   columns: Array<TableColumnType<T>>,
   showSelection?: boolean,
   className?: string,
-  variant?: 'standalone' | 'embedded',
+  variant?: TableVariantTypes,
   dataRowsSeparator?: RowsSeparationTypes,
   dataRowClassName?: string,
   selectedIds?: Array<TableRowId>,
@@ -130,7 +139,7 @@ type Props<T> = {
 const Table = <T>(props: Props<T>) => {
   const {
     className,
-    variant = 'standalone',
+    variant = TABLE_VARIANT_TYPES.standalone,
     data,
     showSelection,
     activeRowId,
@@ -188,9 +197,17 @@ const Table = <T>(props: Props<T>) => {
   );
 
   const allIds = useMemo(() => data.map((d, i) => d.key ?? i), [data]);
+  const contextValue: TableContextValue = useMemo(
+    () => ({
+      showSelection: showSelection ?? false,
+      clickableRows: !!onActiveRowIdChanged,
+    }),
+    [onActiveRowIdChanged, showSelection],
+  );
+
   return (
-    <TableContext.Provider value={{showSelection: showSelection ?? false}}>
-      {showSelection ? (
+    <TableContext.Provider value={contextValue}>
+      {contextValue.showSelection || contextValue.clickableRows ? (
         <TableSelectionContextProvider
           allIds={allIds}
           activeId={activeRowId}

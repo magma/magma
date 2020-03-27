@@ -137,6 +137,20 @@ func EnumValues(v string) predicate.CheckListItem {
 	})
 }
 
+// EnumSelectionMode applies equality check predicate on the "enum_selection_mode" field. It's identical to EnumSelectionModeEQ.
+func EnumSelectionMode(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// SelectedEnumValues applies equality check predicate on the "selected_enum_values" field. It's identical to SelectedEnumValuesEQ.
+func SelectedEnumValues(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
 // HelpText applies equality check predicate on the "help_text" field. It's identical to HelpTextEQ.
 func HelpText(v string) predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
@@ -734,6 +748,318 @@ func EnumValuesContainsFold(v string) predicate.CheckListItem {
 	})
 }
 
+// EnumSelectionModeEQ applies the EQ predicate on the "enum_selection_mode" field.
+func EnumSelectionModeEQ(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// EnumSelectionModeNEQ applies the NEQ predicate on the "enum_selection_mode" field.
+func EnumSelectionModeNEQ(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// EnumSelectionModeIn applies the In predicate on the "enum_selection_mode" field.
+func EnumSelectionModeIn(vs ...string) predicate.CheckListItem {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldEnumSelectionMode), v...))
+	})
+}
+
+// EnumSelectionModeNotIn applies the NotIn predicate on the "enum_selection_mode" field.
+func EnumSelectionModeNotIn(vs ...string) predicate.CheckListItem {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldEnumSelectionMode), v...))
+	})
+}
+
+// EnumSelectionModeGT applies the GT predicate on the "enum_selection_mode" field.
+func EnumSelectionModeGT(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// EnumSelectionModeGTE applies the GTE predicate on the "enum_selection_mode" field.
+func EnumSelectionModeGTE(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// EnumSelectionModeLT applies the LT predicate on the "enum_selection_mode" field.
+func EnumSelectionModeLT(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// EnumSelectionModeLTE applies the LTE predicate on the "enum_selection_mode" field.
+func EnumSelectionModeLTE(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// EnumSelectionModeContains applies the Contains predicate on the "enum_selection_mode" field.
+func EnumSelectionModeContains(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// EnumSelectionModeHasPrefix applies the HasPrefix predicate on the "enum_selection_mode" field.
+func EnumSelectionModeHasPrefix(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// EnumSelectionModeHasSuffix applies the HasSuffix predicate on the "enum_selection_mode" field.
+func EnumSelectionModeHasSuffix(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// EnumSelectionModeIsNil applies the IsNil predicate on the "enum_selection_mode" field.
+func EnumSelectionModeIsNil() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldEnumSelectionMode)))
+	})
+}
+
+// EnumSelectionModeNotNil applies the NotNil predicate on the "enum_selection_mode" field.
+func EnumSelectionModeNotNil() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldEnumSelectionMode)))
+	})
+}
+
+// EnumSelectionModeEqualFold applies the EqualFold predicate on the "enum_selection_mode" field.
+func EnumSelectionModeEqualFold(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// EnumSelectionModeContainsFold applies the ContainsFold predicate on the "enum_selection_mode" field.
+func EnumSelectionModeContainsFold(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldEnumSelectionMode), v))
+	})
+}
+
+// SelectedEnumValuesEQ applies the EQ predicate on the "selected_enum_values" field.
+func SelectedEnumValuesEQ(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// SelectedEnumValuesNEQ applies the NEQ predicate on the "selected_enum_values" field.
+func SelectedEnumValuesNEQ(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// SelectedEnumValuesIn applies the In predicate on the "selected_enum_values" field.
+func SelectedEnumValuesIn(vs ...string) predicate.CheckListItem {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldSelectedEnumValues), v...))
+	})
+}
+
+// SelectedEnumValuesNotIn applies the NotIn predicate on the "selected_enum_values" field.
+func SelectedEnumValuesNotIn(vs ...string) predicate.CheckListItem {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldSelectedEnumValues), v...))
+	})
+}
+
+// SelectedEnumValuesGT applies the GT predicate on the "selected_enum_values" field.
+func SelectedEnumValuesGT(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// SelectedEnumValuesGTE applies the GTE predicate on the "selected_enum_values" field.
+func SelectedEnumValuesGTE(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// SelectedEnumValuesLT applies the LT predicate on the "selected_enum_values" field.
+func SelectedEnumValuesLT(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// SelectedEnumValuesLTE applies the LTE predicate on the "selected_enum_values" field.
+func SelectedEnumValuesLTE(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// SelectedEnumValuesContains applies the Contains predicate on the "selected_enum_values" field.
+func SelectedEnumValuesContains(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// SelectedEnumValuesHasPrefix applies the HasPrefix predicate on the "selected_enum_values" field.
+func SelectedEnumValuesHasPrefix(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// SelectedEnumValuesHasSuffix applies the HasSuffix predicate on the "selected_enum_values" field.
+func SelectedEnumValuesHasSuffix(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// SelectedEnumValuesIsNil applies the IsNil predicate on the "selected_enum_values" field.
+func SelectedEnumValuesIsNil() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldSelectedEnumValues)))
+	})
+}
+
+// SelectedEnumValuesNotNil applies the NotNil predicate on the "selected_enum_values" field.
+func SelectedEnumValuesNotNil() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldSelectedEnumValues)))
+	})
+}
+
+// SelectedEnumValuesEqualFold applies the EqualFold predicate on the "selected_enum_values" field.
+func SelectedEnumValuesEqualFold(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// SelectedEnumValuesContainsFold applies the ContainsFold predicate on the "selected_enum_values" field.
+func SelectedEnumValuesContainsFold(v string) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldSelectedEnumValues), v))
+	})
+}
+
+// YesNoValEQ applies the EQ predicate on the "yes_no_val" field.
+func YesNoValEQ(v YesNoVal) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldYesNoVal), v))
+	})
+}
+
+// YesNoValNEQ applies the NEQ predicate on the "yes_no_val" field.
+func YesNoValNEQ(v YesNoVal) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldYesNoVal), v))
+	})
+}
+
+// YesNoValIn applies the In predicate on the "yes_no_val" field.
+func YesNoValIn(vs ...YesNoVal) predicate.CheckListItem {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldYesNoVal), v...))
+	})
+}
+
+// YesNoValNotIn applies the NotIn predicate on the "yes_no_val" field.
+func YesNoValNotIn(vs ...YesNoVal) predicate.CheckListItem {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldYesNoVal), v...))
+	})
+}
+
+// YesNoValIsNil applies the IsNil predicate on the "yes_no_val" field.
+func YesNoValIsNil() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldYesNoVal)))
+	})
+}
+
+// YesNoValNotNil applies the NotNil predicate on the "yes_no_val" field.
+func YesNoValNotNil() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldYesNoVal)))
+	})
+}
+
 // HelpTextEQ applies the EQ predicate on the "help_text" field.
 func HelpTextEQ(v string) predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
@@ -856,6 +1182,34 @@ func HelpTextEqualFold(v string) predicate.CheckListItem {
 func HelpTextContainsFold(v string) predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldHelpText), v))
+	})
+}
+
+// HasFiles applies the HasEdge predicate on the "files" edge.
+func HasFiles() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FilesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FilesTable, FilesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFilesWith applies the HasEdge predicate on the "files" edge with a given conditions (other predicates).
+func HasFilesWith(preds ...predicate.File) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FilesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FilesTable, FilesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

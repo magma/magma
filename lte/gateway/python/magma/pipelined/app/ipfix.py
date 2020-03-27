@@ -6,6 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import time
 import shlex
 import subprocess
 from typing import NamedTuple, Dict
@@ -36,7 +37,7 @@ class IPFIXController(MagmaController):
         [('enabled', bool), ('collector_ip', str), ('collector_port', int),
          ('probability', int), ('collector_set_id', int),
          ('obs_domain_id', int), ('obs_point_id', int), ('cache_timeout', int),
-         ('gtp_port', int)],
+         ('sampling_port', int)],
     )
 
     def __init__(self, *args, **kwargs):
@@ -54,23 +55,32 @@ class IPFIXController(MagmaController):
         if 'ipfix' not in config_dict or not config_dict['ipfix']['enabled']:
             return self.IPFIXConfig(enabled=False, probability=0,
                 collector_ip='', collector_port=0, collector_set_id=0,
-                obs_domain_id=0, obs_point_id=0, cache_timeout=0, gtp_port=0)
+                obs_domain_id=0, obs_point_id=0, cache_timeout=0,
+                sampling_port=0)
+        collector_ip = mconfig.ipdr_export_dst.ip
+        collector_port = mconfig.ipdr_export_dst.port
         if not mconfig.ipdr_export_dst.ip:
-            self.logger.error("IPDR enabled byt ipdr dst ip not provided")
-            return self.IPFIXConfig(enabled=False, probability=0,
-                collector_ip='', collector_port=0, collector_set_id=0,
-                obs_domain_id=0, obs_point_id=0, cache_timeout=0, gtp_port=0)
+            if 'collector_ip' in config_dict['ipfix']:
+                self.logger.error("Missing IPDR dest IP, using val from .yml")
+                collector_ip = config_dict['ipfix']['collector_ip']
+                collector_port = config_dict['ipfix']['collector_port']
+            else:
+                self.logger.error("Missing mconfig IPDR dest IP")
+                return self.IPFIXConfig(enabled=False, probability=0,
+                    collector_ip='', collector_port=0, collector_set_id=0,
+                    obs_domain_id=0, obs_point_id=0, cache_timeout=0,
+                    sampling_port=0)
 
         return self.IPFIXConfig(
             enabled=config_dict['ipfix']['enabled'],
-            collector_ip=mconfig.ipdr_export_dst.ip,
-            collector_port=mconfig.ipdr_export_dst.port,
+            collector_ip=collector_ip,
+            collector_port=collector_port,
             probability=config_dict['ipfix']['probability'],
             collector_set_id=config_dict['ipfix']['collector_set_id'],
             obs_domain_id=config_dict['ipfix']['obs_domain_id'],
             obs_point_id=config_dict['ipfix']['obs_point_id'],
             cache_timeout=config_dict['ipfix']['cache_timeout'],
-            gtp_port=config_dict['ovs_gtp_port_number']
+            sampling_port=config_dict['ovs_gtp_port_number']
         )
 
     def initialize_on_connect(self, datapath: Datapath):
@@ -156,18 +166,19 @@ class IPFIXController(MagmaController):
             apn_name (string): AP name
         """
         imsi_hex = hex(encode_imsi(imsi))
-        apn_name = apn_name.replace(' ', '_')
+        pdp_start_epoch = int(time.time())
         action_str = (
             'ovs-ofctl add-flow {} "table={},priority={},metadata={},'
             'actions=sample(probability={},collector_set_id={},'
             'obs_domain_id={},obs_point_id={},apn_mac_addr={},msisdn={},'
-            'apn_name={}),resubmit(,{})"'
+            'apn_name=\\\"{}\\\",pdp_start_epoch={},sampling_port={}),'
+            'resubmit(,{})"'
         ).format(
             self._bridge_name, self.tbl_num, flows.UE_FLOW_PRIORITY, imsi_hex,
             self.ipfix_config.probability, self.ipfix_config.collector_set_id,
             self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id,
-            apn_mac_addr.replace("-", ":"), msisdn, apn_name,
-            self.next_main_table
+            apn_mac_addr.replace("-", ":"), msisdn, apn_name, pdp_start_epoch,
+            self.ipfix_config.sampling_port, self.next_main_table
         )
         try:
             subprocess.Popen(action_str, shell=True).wait()

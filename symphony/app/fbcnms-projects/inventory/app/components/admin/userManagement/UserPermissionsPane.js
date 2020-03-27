@@ -32,7 +32,7 @@ export default function UserPermissionsPane(props: Props) {
 
   return (
     <div className={classes.root}>
-      <Text>{`Permission Details for ${user.authId}`}</Text>
+      <Text>{`Permission Details for ${user.authID}`}</Text>
     </div>
   );
 }

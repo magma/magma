@@ -13,29 +13,7 @@ mutation AddServiceMutation($data: ServiceCreateData!) {
       port {
         id
         properties {
-          id
-          propertyType {
-            id
-            name
-            type
-            index
-            stringValue
-            intValue
-            booleanValue
-            floatValue
-            latitudeValue
-            longitudeValue
-            isEditable
-            isInstanceProperty
-          }
-          stringValue
-          intValue
-          floatValue
-          booleanValue
-          latitudeValue
-          longitudeValue
-          rangeFromValue
-          rangeToValue
+          ...PropertyFragment
         }
         definition {
           id
@@ -47,6 +25,9 @@ mutation AddServiceMutation($data: ServiceCreateData!) {
         }
         link {
           id
+          properties {
+            ...PropertyFragment
+          }
           services {
             id
           }
@@ -56,6 +37,9 @@ mutation AddServiceMutation($data: ServiceCreateData!) {
     }
     links {
       id
+      properties {
+        ...PropertyFragment
+      }
       services {
         id
       }

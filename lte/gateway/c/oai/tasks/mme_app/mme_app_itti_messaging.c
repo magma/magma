@@ -261,8 +261,6 @@ int mme_app_send_s11_create_session_req(
   bearer_context_t* bc = mme_app_get_bearer_context(
     ue_mm_context, ue_mm_context->pdn_contexts[pdn_cid]->default_ebi);
 
-  bc->bearer_state |= BEARER_STATE_MME_CREATED;
-
   // Zero because default bearer (see 29.274)
   session_request_p->bearer_contexts_to_be_created.bearer_contexts[0]
     .bearer_level_qos.gbr.br_ul = bc->esm_ebr_context.gbr_ul;

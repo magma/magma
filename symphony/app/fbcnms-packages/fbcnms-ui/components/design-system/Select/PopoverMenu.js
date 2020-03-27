@@ -29,7 +29,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props<TValue> = {
+export type PopoverMenuProps<TValue> = {
   className?: string,
   menuClassName?: string,
   menuDockRight?: boolean,
@@ -40,6 +40,7 @@ type Props<TValue> = {
   rightIcon?: React$ComponentType<SvgIconExports>,
   searchable?: boolean,
   onOptionsFetchRequested?: (searchTerm: string) => void,
+  onVisibilityChange?: (isVisible: boolean) => void,
   ...ButtonProps,
 };
 
@@ -54,11 +55,13 @@ const PopoverMenu = <TValue>({
   variant,
   skin,
   disabled,
+  onVisibilityChange,
   ...selectMenuProps
-}: Props<TValue>) => {
+}: PopoverMenuProps<TValue>) => {
   const classes = useStyles();
   return (
     <BasePopoverTrigger
+      onVisibilityChange={onVisibilityChange}
       popover={
         <SelectMenu
           {...selectMenuProps}

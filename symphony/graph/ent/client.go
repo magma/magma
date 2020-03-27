@@ -604,6 +604,20 @@ func (c *CheckListItemClient) GetX(ctx context.Context, id int) *CheckListItem {
 	return cli
 }
 
+// QueryFiles queries the files edge of a CheckListItem.
+func (c *CheckListItemClient) QueryFiles(cli *CheckListItem) *FileQuery {
+	query := &FileQuery{config: c.config}
+	id := cli.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, checklistitem.FilesTable, checklistitem.FilesColumn),
+	)
+	query.sql = sqlgraph.Neighbors(cli.driver.Dialect(), step)
+
+	return query
+}
+
 // QueryWorkOrder queries the work_order edge of a CheckListItem.
 func (c *CheckListItemClient) QueryWorkOrder(cli *CheckListItem) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
