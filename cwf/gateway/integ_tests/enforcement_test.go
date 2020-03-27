@@ -308,11 +308,11 @@ func TestRuleInstallTime(t *testing.T) {
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	now := time.Now().Round(1 * time.Second)
-	timeUntilActivation := 6 * time.Second
+	timeUntilActivation := 8 * time.Second
 	activation := now.Add(timeUntilActivation)
 	pActivation, err := ptypes.TimestampProto(activation)
 	assert.NoError(t, err)
-	timeUntilDeactivation := 5 * time.Second
+	timeUntilDeactivation := 8 * time.Second
 	deactivation := activation.Add(timeUntilDeactivation)
 	pDeactivation, err := ptypes.TimestampProto(deactivation)
 	assert.NoError(t, err)
@@ -331,22 +331,24 @@ func TestRuleInstallTime(t *testing.T) {
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
+	// Generate over the given quota
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "300K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
-
 	recordsBySubID, err := tr.GetPolicyUsage()
 	// only static-pass-all-1 should be installed
 	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"])
 	assert.Nil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"])
-	// wait for rule activation
+
+	fmt.Printf("Waiting %v for rule activation\n", timeUntilActivation)
 	time.Sleep(timeUntilActivation)
 	recordsBySubID, err = tr.GetPolicyUsage()
 	// both rules should exist
 	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"])
 	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"])
-	// wait for rule deactivation
+
+	fmt.Printf("Waiting %v for rule deactivation\n", timeUntilDeactivation)
 	time.Sleep(timeUntilDeactivation)
 	recordsBySubID, err = tr.GetPolicyUsage()
 	// static-pass-all-2 should be gone
