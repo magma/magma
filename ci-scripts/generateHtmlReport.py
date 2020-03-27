@@ -44,7 +44,9 @@ class HtmlReport():
 		self.file = open(cwd + '/test_results_magma_converged_mme.html', 'w')
 		self.generateHeader()
 
-		#self.analyze_sca_log()
+		self.coding_formatting_log()
+
+		self.analyze_sca_log()
 
 		self.buildSummaryHeader()
 		self.vmWakeUpRow()
@@ -148,6 +150,191 @@ class HtmlReport():
 		self.file.write('  <div class="well well-lg">End of Build Report -- Copyright <span class="glyphicon glyphicon-copyright-mark"></span> 2020 <a href="http://www.openairinterface.org/">OpenAirInterface</a>. All Rights Reserved.</div>\n')
 		self.file.write('</div></body>\n')
 		self.file.write('</html>\n')
+
+	def coding_formatting_log(self):
+		cwd = os.getcwd()
+		self.file.write('  <h2>OAI Coding / Formatting Guidelines Check</h2>\n')
+		if os.path.isfile(cwd + '/oai_rules_result.txt'):
+			cmd = 'grep NB_FILES_FAILING_CHECK ' + cwd + '/oai_rules_result.txt | sed -e "s#NB_FILES_FAILING_CHECK=##"'
+			nb_fail = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+			cmd = 'grep NB_FILES_CHECKED ' + cwd + '/oai_rules_result.txt | sed -e "s#NB_FILES_CHECKED=##"'
+			nb_total = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+			if int(nb_fail.strip()) == 0:
+				self.file.write('  <div class="alert alert-success">\n')
+				if self.git_merge_request:
+					self.file.write('    <strong>All modified files in Merge-Request follow OAI rules. <span class="glyphicon glyphicon-ok-circle"></span> -> (' + nb_total.strip() + ' were checked)</strong>\n')
+				else:
+					self.file.write('    <strong>All files in repository follow OAI rules. <span class="glyphicon glyphicon-ok-circle"></span> -> (' + nb_total.strip() + ' were checked)</strong>\n')
+				self.file.write('  </div>\n')
+			else:
+				self.file.write('  <div class="alert alert-warning">\n')
+				if self.git_merge_request:
+					self.file.write('    <strong>' + nb_fail.strip() + ' modified files in Merge-Request DO NOT follow OAI rules. <span class="glyphicon glyphicon-warning-sign"></span> -> (' + nb_total.strip() + ' were checked)</strong>\n')
+				else:
+					self.file.write('    <strong>' + nb_fail.strip() + ' files in repository DO NOT follow OAI rules. <span class="glyphicon glyphicon-warning-sign"></span> -> (' + nb_total.strip() + ' were checked)</strong>\n')
+				self.file.write('  </div>\n')
+
+				if os.path.isfile(cwd + '/oai_rules_result_list.txt'):
+					self.file.write('  <button data-toggle="collapse" data-target="#oai-formatting-details">More details on formatting check</button>\n')
+					self.file.write('  <div id="oai-formatting-details" class="collapse">\n')
+					self.file.write('  <p>Please apply the following command to this(ese) file(s): </p>\n')
+					self.file.write('  <p style="margin-left: 30px"><strong><code>clang-format -i filename(s)</code></strong></p>\n')
+					self.file.write('  <table class="table-bordered" width = "60%" align = "center" border = 1>\n')
+					self.file.write('    <tr><th bgcolor = "lightcyan" >Filename</th></tr>\n')
+					with open(cwd + '/oai_rules_result_list.txt', 'r') as filelist:
+						for line in filelist:
+							self.file.write('    <tr><td>' + line.strip() + '</td></tr>\n')
+						filelist.close()
+					self.file.write('  </table>\n')
+					self.file.write('  </div>\n')
+		else:
+			self.file.write('  <div class="alert alert-danger">\n')
+			self.file.write('	  <strong>Was NOT performed (with CLANG-FORMAT tool). <span class="glyphicon glyphicon-ban-circle"></span></strong>\n')
+			self.file.write('  </div>\n')
+
+		self.file.write('  <br>\n')
+
+	def analyze_sca_log(self):
+		cwd = os.getcwd()
+		if os.path.isfile(cwd + '/archives/cppcheck_build.log'):
+			self.file.write('  <h2>Static Code Analysis</h2>\n')
+		if os.path.isfile(cwd + '/archives/cppcheck.xml'):
+			nb_errors = 0
+			nb_warnings = 0
+			nb_uninitvar = 0
+			nb_uninitStructMember = 0
+			nb_memleak = 0
+			nb_doubleFree = 0
+			nb_resourceLeak = 0
+			nb_nullPointer = 0
+			nb_arrayIndexOutOfBounds = 0
+			nb_bufferAccessOutOfBounds = 0
+			nb_unknownEvaluationOrder = 0
+			with open(cwd + '/archives/cppcheck.xml', 'r') as xmlfile:
+				for line in xmlfile:
+					result = re.search('severity="warning"', line)
+					if result is not None:
+						nb_warnings += 1
+					result = re.search('severity="error"', line)
+					if result is not None:
+						nb_errors += 1
+						result = re.search('uninitvar', line)
+						if result is not None:
+							nb_uninitvar += 1
+						result = re.search('uninitStructMember', line)
+						if result is not None:
+							nb_uninitStructMember += 1
+						result = re.search('memleak', line)
+						if result is not None:
+							nb_memleak += 1
+						result = re.search('doubleFree', line)
+						if result is not None:
+							nb_doubleFree += 1
+						result = re.search('resourceLeak', line)
+						if result is not None:
+							nb_resourceLeak += 1
+						result = re.search('nullPointer', line)
+						if result is not None:
+							nb_nullPointer += 1
+						result = re.search('arrayIndexOutOfBounds', line)
+						if result is not None:
+							nb_arrayIndexOutOfBounds += 1
+						result = re.search('bufferAccessOutOfBounds', line)
+						if result is not None:
+							nb_bufferAccessOutOfBounds += 1
+						result = re.search('unknownEvaluationOrder', line)
+						if result is not None:
+							nb_unknownEvaluationOrder += 1
+				xmlfile.close()
+			if (nb_errors == 0) and (nb_warnings == 0):
+				self.file.write('   <div class="alert alert-success">\n')
+				self.file.write('	  <strong>CPPCHECK found NO error and NO warning <span class="glyphicon glyphicon-ok-circle"></span></strong>\n')
+				self.file.write('   </div>\n')
+			elif (nb_errors == 0):
+				self.file.write('   <div class="alert alert-warning">\n')
+				self.file.write('	  <strong>CPPCHECK found NO error and ' + str(nb_warnings) + ' warnings <span class="glyphicon glyphicon-warning-sign"></span></strong>\n')
+				self.file.write('   </div>\n')
+			else:
+				self.file.write('   <div class="alert alert-danger">\n')
+				self.file.write('	  <strong>CPPCHECK found ' +  str(nb_errors) + ' errors and ' + str(nb_warnings) + ' warnings <span class="glyphicon glyphicon-ban-circle"></span></strong>\n')
+				self.file.write('   </div>\n')
+			if (nb_errors > 0) or (nb_warnings > 0):
+				self.file.write('   <button data-toggle="collapse" data-target="#oai-cppcheck-details">More details on CPPCHECK results</button>\n')
+				self.file.write('   <div id="oai-cppcheck-details" class="collapse">\n')
+				self.file.write('   <br>\n')
+				self.file.write('   <table class="table-bordered" width = "80%" align = "center" border = "1">\n')
+				self.file.write('	  <tr bgcolor = "#33CCFF" >\n')
+				self.file.write('		<th>Error / Warning Type</th>\n')
+				self.file.write('		<th>Nb Errors</th>\n')
+				self.file.write('		<th>Nb Warnings</th>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr>\n')
+				self.file.write('		<td>Uninitialized variable</td>\n')
+				self.file.write('		<td>' + str(nb_uninitvar) + '</td>\n')
+				self.file.write('		<td>N/A</td>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr>\n')
+				self.file.write('		<td>Uninitialized struct member</td>\n')
+				self.file.write('		<td>' + str(nb_uninitStructMember) + '</td>\n')
+				self.file.write('		<td>N/A</td>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr>\n')
+				self.file.write('		<td>Memory leak</td>\n')
+				self.file.write('		<td>' + str(nb_memleak) + '</td>\n')
+				self.file.write('		<td>N/A</td>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr>\n')
+				self.file.write('		<td>Memory is freed twice</td>\n')
+				self.file.write('		<td>' + str(nb_doubleFree) + '</td>\n')
+				self.file.write('		<td>N/A</td>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr>\n')
+				self.file.write('		<td>Resource leak</td>\n')
+				self.file.write('		<td>' + str(nb_resourceLeak) + '</td>\n')
+				self.file.write('		<td>N/A</td>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr>\n')
+				self.file.write('		<td>Possible null pointer dereference</td>\n')
+				self.file.write('		<td>' + str(nb_nullPointer) + '</td>\n')
+				self.file.write('		<td>N/A</td>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr>\n')
+				self.file.write('		<td>Array access  out of bounds</td>\n')
+				self.file.write('		<td>' + str(nb_arrayIndexOutOfBounds) + '</td>\n')
+				self.file.write('		<td>N/A</td>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr>\n')
+				self.file.write('		<td>Buffer is accessed out of bounds</td>\n')
+				self.file.write('		<td>' + str(nb_bufferAccessOutOfBounds) + '</td>\n')
+				self.file.write('		<td>N/A</td>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr>\n')
+				self.file.write('		<td>Expression depends on order of evaluation of side effects</td>\n')
+				self.file.write('		<td>' + str(nb_unknownEvaluationOrder) + '</td>\n')
+				self.file.write('		<td>N/A</td>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr>\n')
+				self.file.write('		<td>Others</td>\n')
+				nb_others = nb_uninitvar + nb_uninitStructMember + nb_memleak + nb_doubleFree + nb_resourceLeak + nb_nullPointer + nb_arrayIndexOutOfBounds + nb_arrayIndexOutOfBounds + nb_bufferAccessOutOfBounds + nb_unknownEvaluationOrder
+				nb_others = nb_errors - nb_others
+				self.file.write('		<td>' + str(nb_others) + '</td>\n')
+				self.file.write('		<td>' + str(nb_warnings) + '</td>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('	  <tr bgcolor = "#33CCFF" >\n')
+				self.file.write('		<th>Total</th>\n')
+				self.file.write('		<th>' + str(nb_errors) + '</th>\n')
+				self.file.write('		<th>' + str(nb_warnings) + '</th>\n')
+				self.file.write('	  </tr>\n')
+				self.file.write('   </table>\n')
+				self.file.write('   <br>\n')
+				self.file.write('   <p>Full details in artifact (cppcheck.xml) </p>\n')
+				self.file.write('   <p style="margin-left: 30px">Graphical Interface tool : <strong><code>cppcheck-gui -l cppcheck.xml</code></strong></p>\n')
+				self.file.write('   <br>\n')
+				self.file.write('   </div>\n')
+		else:
+			self.file.write('  <div class="alert alert-danger">\n')
+			self.file.write('	  <strong>Was NOT performed (with CPPCHECK tool). <span class="glyphicon glyphicon-ban-circle"></span></strong>\n')
+			self.file.write('  </div>\n')
 
 	def buildSummaryHeader(self):
 		self.file.write('  <h2>Build Summary</h2>\n')
