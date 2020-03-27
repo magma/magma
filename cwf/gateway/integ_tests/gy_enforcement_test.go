@@ -71,8 +71,8 @@ func ocsCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwf
 	return tr, ruleManager, ues[0]
 }
 
-func TestAuthenticateOcsCreditExhaustedWithCRRU(t *testing.T) {
-	fmt.Println("\nRunning TestAuthenticateOcsCreditExhaustedWithCRRU...")
+func TestGyCreditExhaustionWithCRRU(t *testing.T) {
+	fmt.Println("\nRunning TestGyCreditExhaustionWithCRRU...")
 
 	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
 	defer func() {
@@ -116,8 +116,8 @@ func TestAuthenticateOcsCreditExhaustedWithCRRU(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestAuthenticateOcsCreditExhaustedWithoutCRRU(t *testing.T) {
-	fmt.Println("\nRunning TestAuthenticateOcsCreditExhaustedWithoutCCRU...")
+func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
+	fmt.Println("\nRunning TestGyCreditExhaustionWithoutCRRU...")
 
 	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
 	defer func() {
