@@ -14,7 +14,7 @@ import (
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim/servicers"
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
 )

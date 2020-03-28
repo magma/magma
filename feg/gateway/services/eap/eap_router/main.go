@@ -17,7 +17,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap/client"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 )
 
 type eapRouter struct {

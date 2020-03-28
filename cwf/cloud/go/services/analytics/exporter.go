@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 
-	"magma/orc8r/cloud/go/metrics"
+	"magma/orc8r/lib/go/metrics"
 )
 
 type HttpClient interface {

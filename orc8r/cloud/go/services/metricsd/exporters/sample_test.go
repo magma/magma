@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/orc8r/cloud/go/metrics"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
+	"magma/orc8r/lib/go/metrics"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"

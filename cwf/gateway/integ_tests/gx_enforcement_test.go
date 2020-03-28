@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emakeev/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
