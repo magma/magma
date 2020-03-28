@@ -9,12 +9,12 @@ LICENSE file in the root directory of this source tree.
 package client
 
 import (
+	"github.com/golang/glog"
+	"golang.org/x/net/context"
+
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
 )
 
 func getClient(service string) (protos.Service303Client, error) {

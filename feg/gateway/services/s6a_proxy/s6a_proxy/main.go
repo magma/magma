@@ -18,7 +18,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 )
 
 func init() {

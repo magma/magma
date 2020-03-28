@@ -13,11 +13,11 @@ import (
 	"math"
 	"testing"
 
-	"magma/orc8r/cloud/go/metrics"
-
 	"github.com/prometheus/client_golang/prometheus"
 	prometheus_proto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
+
+	"magma/orc8r/lib/go/metrics"
 )
 
 func GetMetricValue(families []*prometheus_proto.MetricFamily, familyName string) (*prometheus_proto.Metric, error) {

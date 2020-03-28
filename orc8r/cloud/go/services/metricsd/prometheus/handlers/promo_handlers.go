@@ -16,13 +16,13 @@ import (
 	"strings"
 	"time"
 
-	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 	"magma/orc8r/cloud/go/services/tenants"
 	tenantH "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
+	"magma/orc8r/lib/go/metrics"
 
 	"github.com/labstack/echo"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"

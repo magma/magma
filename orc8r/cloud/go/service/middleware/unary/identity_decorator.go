@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/lib/go/metrics"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/prometheus/client_golang/prometheus"

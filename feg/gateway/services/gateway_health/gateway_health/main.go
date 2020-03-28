@@ -14,7 +14,7 @@ import (
 
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/gateway_health/health_manager"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
 )
