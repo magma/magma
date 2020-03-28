@@ -27,8 +27,8 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/servicers"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/service"
-	"magma/orc8r/cloud/go/util"
+	"magma/orc8r/lib/go/service"
+	"magma/orc8r/lib/go/util"
 
 	"github.com/golang/glog"
 )

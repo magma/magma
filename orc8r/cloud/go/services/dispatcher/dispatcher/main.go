@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/services/dispatcher/httpserver"
 	"magma/orc8r/cloud/go/services/dispatcher/servicers"
 	"magma/orc8r/lib/go/protos"
+	platform_service "magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
@@ -30,7 +31,7 @@ const HttpServerPort = 9080
 
 func main() {
 	// Set MaxConnectionAge to infinity so Sync RPC stream doesn't restart
-	var keepaliveParams = service.GetDefaultKeepaliveParameters()
+	var keepaliveParams = platform_service.GetDefaultKeepaliveParameters()
 	keepaliveParams.MaxConnectionAge = 0
 	keepaliveParams.MaxConnectionAgeGrace = 0
 

@@ -16,6 +16,8 @@ replace (
 	fbc/lib/go/oc => ../../feg/radius/lib/go/oc
 	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
 
+	github.com/fiorix/go-diameter/v4 => github.com/emakeev/go-diameter/v4 v4.0.6
+
 	magma/cwf/cloud/go => ../../cwf/cloud/go
 	magma/feg/cloud/go => ../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../feg/cloud/go/protos
@@ -30,8 +32,6 @@ replace (
 require (
 	fbc/cwf/radius v0.0.0
 	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
-	github.com/emakeev/go-diameter v3.0.2+incompatible
-	github.com/fiorix/go-diameter v3.0.2+incompatible // indirect
 	github.com/fiorix/go-diameter/v4 v4.0.1-0.20200120193412-55a1c21738f9
 	github.com/go-openapi/swag v0.18.0
 	github.com/go-redis/redis v6.15.5+incompatible
@@ -49,7 +49,6 @@ require (
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000
-	magma/gateway v0.0.0
 	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0

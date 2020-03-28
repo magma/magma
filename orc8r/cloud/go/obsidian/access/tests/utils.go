@@ -24,9 +24,9 @@ import (
 	accessd_test_service "magma/orc8r/cloud/go/services/accessd/test_init"
 	"magma/orc8r/cloud/go/services/certifier"
 	certifier_test_service "magma/orc8r/cloud/go/services/certifier/test_init"
-	"magma/orc8r/cloud/go/util"
 	security_cert "magma/orc8r/lib/go/security/cert"
 	certifier_test_utils "magma/orc8r/lib/go/security/csr"
+	"magma/orc8r/lib/go/util"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"

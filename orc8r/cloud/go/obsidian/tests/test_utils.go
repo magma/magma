@@ -17,7 +17,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/access"
 	access_tests "magma/orc8r/cloud/go/obsidian/access/tests"
 	"magma/orc8r/cloud/go/obsidian/server"
-	"magma/orc8r/cloud/go/util"
+	"magma/orc8r/lib/go/util"
 )
 
 const TEST_ADMIN_OPERATOR_ID = "Obsidian_Unit_Test_Admin_Operator"

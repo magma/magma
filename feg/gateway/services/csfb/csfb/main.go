@@ -19,7 +19,7 @@ import (
 	"magma/feg/gateway/services/csfb/servicers"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/decode/message"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
 )

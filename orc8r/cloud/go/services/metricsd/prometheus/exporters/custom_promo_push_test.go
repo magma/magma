@@ -13,9 +13,9 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
+	"magma/orc8r/lib/go/metrics"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"

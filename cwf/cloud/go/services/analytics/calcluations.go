@@ -10,7 +10,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 
-	"magma/orc8r/cloud/go/metrics"
+	"magma/orc8r/lib/go/metrics"
 )
 
 const (

@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package metrics
 
 import (
-	"magma/orc8r/cloud/go/metrics"
+	"magma/orc8r/lib/go/metrics"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
