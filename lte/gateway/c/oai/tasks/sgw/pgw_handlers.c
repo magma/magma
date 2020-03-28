@@ -64,12 +64,13 @@
 extern spgw_config_t spgw_config;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
 static void _get_session_req_data(
   spgw_state_t* spgw_state,
   const itti_s11_create_session_request_t* saved_req,
   struct pcef_create_session_data* data);
-
 static char _convert_digit_to_char(char digit);
+#endif
 
 static int _spgw_build_and_send_s11_create_bearer_request(
   s_plus_p_gw_eps_bearer_context_information_t* spgw_ctxt_p,
@@ -242,6 +243,7 @@ void handle_s5_create_session_request(
       break;
   }
   if (sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
     // create session in PCEF and return
     s5_create_session_request_t session_req = {0};
     session_req.context_teid = context_teid;
@@ -256,6 +258,12 @@ void handle_s5_create_session_request(
     pcef_create_session(
       spgw_state, imsi, ip_str, &session_data, sgi_create_endpoint_resp, session_req, new_bearer_ctxt_info_p);
     OAILOG_FUNC_OUT(LOG_PGW_APP);
+#else
+    sgw_handle_sgi_endpoint_created(
+      spgw_state,
+      &sgi_create_endpoint_resp,
+      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64);
+#endif
   }
 err:
   s5_response.context_teid = context_teid;
@@ -274,6 +282,7 @@ err:
   OAILOG_FUNC_OUT(LOG_PGW_APP);
 }
 
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
 static int get_imeisv_from_session_req(
   const itti_s11_create_session_request_t *saved_req,
   char *imeisv)
@@ -450,6 +459,7 @@ static void _get_session_req_data(
   data->pvi = qos->pvi;
   data->qci = qos->qci;
 }
+#endif
 
 /*
  * Handle NW initiated Dedicated Bearer Activation from SPGW service
