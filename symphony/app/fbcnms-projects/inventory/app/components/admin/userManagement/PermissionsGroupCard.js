@@ -19,9 +19,9 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
-import {TEMP_GROUPS} from './TempTypes';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {useUserManagement} from './UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   detailsPane: {
@@ -40,9 +40,10 @@ type Props = {
 export default function PermissionsGroupCard({redirectToGroupsView}: Props) {
   const classes = useStyles();
   const {match} = useRouter();
+  const {groups} = useUserManagement();
 
   const groupId = match.params.id;
-  const group = TEMP_GROUPS.find(group => group.id === groupId);
+  const group = groups.find(group => group.id === groupId);
   if (group == null) {
     if (redirectToGroupsView != null) {
       redirectToGroupsView();
