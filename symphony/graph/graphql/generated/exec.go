@@ -159,6 +159,10 @@ type ComplexityRoot struct {
 		Results func(childComplexity int) int
 	}
 
+	AdministrativePolicy struct {
+		CanRead func(childComplexity int) int
+	}
+
 	CheckListCategory struct {
 		CheckList   func(childComplexity int) int
 		Description func(childComplexity int) int
@@ -565,6 +569,11 @@ type ComplexityRoot struct {
 		StartCursor     func(childComplexity int) int
 	}
 
+	PermissionSettings struct {
+		AdminPolicy func(childComplexity int) int
+		CanWrite    func(childComplexity int) int
+	}
+
 	PortSearchResult struct {
 		Count func(childComplexity int) int
 		Ports func(childComplexity int) int
@@ -931,8 +940,9 @@ type ComplexityRoot struct {
 	}
 
 	Viewer struct {
-		Tenant func(childComplexity int) int
-		User   func(childComplexity int) int
+		Permissions func(childComplexity int) int
+		Tenant      func(childComplexity int) int
+		User        func(childComplexity int) int
 	}
 
 	WorkOrder struct {
@@ -1345,6 +1355,7 @@ type UsersGroupResolver interface {
 }
 type ViewerResolver interface {
 	User(ctx context.Context, obj *viewer.Viewer) (*ent.User, error)
+	Permissions(ctx context.Context, obj *viewer.Viewer) (*models.PermissionSettings, error)
 }
 type WorkOrderResolver interface {
 	WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error)
@@ -1612,6 +1623,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ActionsTriggersSearchResult.Results(childComplexity), true
+
+	case "AdministrativePolicy.canRead":
+		if e.complexity.AdministrativePolicy.CanRead == nil {
+			break
+		}
+
+		return e.complexity.AdministrativePolicy.CanRead(childComplexity), true
 
 	case "CheckListCategory.checkList":
 		if e.complexity.CheckListCategory.CheckList == nil {
@@ -3942,6 +3960,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
 
+	case "PermissionSettings.adminPolicy":
+		if e.complexity.PermissionSettings.AdminPolicy == nil {
+			break
+		}
+
+		return e.complexity.PermissionSettings.AdminPolicy(childComplexity), true
+
+	case "PermissionSettings.canWrite":
+		if e.complexity.PermissionSettings.CanWrite == nil {
+			break
+		}
+
+		return e.complexity.PermissionSettings.CanWrite(childComplexity), true
+
 	case "PortSearchResult.count":
 		if e.complexity.PortSearchResult.Count == nil {
 			break
@@ -5884,6 +5916,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Vertex.Type(childComplexity), true
 
+	case "Viewer.permissions":
+		if e.complexity.Viewer.Permissions == nil {
+			break
+		}
+
+		return e.complexity.Viewer.Permissions(childComplexity), true
+
 	case "Viewer.tenant":
 		if e.complexity.Viewer.Tenant == nil {
 			break
@@ -6424,6 +6463,15 @@ type UsersGroup implements Node {
   members: [User!]!
 }
 
+type AdministrativePolicy {
+  canRead: Boolean!
+}
+
+type PermissionSettings {
+  canWrite: Boolean!
+  adminPolicy: AdministrativePolicy!
+}
+
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
@@ -6433,6 +6481,7 @@ type Viewer
       reason: "Use ` + "`" + `Viewer.user.email` + "`" + ` instead. Will be removed on 2020-05-01"
     )
   user: User!
+  permissions: PermissionSettings!
 }
 
 """
@@ -12354,6 +12403,43 @@ func (ec *executionContext) _ActionsTriggersSearchResult_count(ctx context.Conte
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AdministrativePolicy_canRead(ctx context.Context, field graphql.CollectedField, obj *models.AdministrativePolicy) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "AdministrativePolicy",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CanRead, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListCategory_id(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListCategory) (ret graphql.Marshaler) {
@@ -22953,6 +23039,80 @@ func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graph
 	return ec.marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PermissionSettings_canWrite(ctx context.Context, field graphql.CollectedField, obj *models.PermissionSettings) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PermissionSettings",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CanWrite, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PermissionSettings_adminPolicy(ctx context.Context, field graphql.CollectedField, obj *models.PermissionSettings) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PermissionSettings",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AdminPolicy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.AdministrativePolicy)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNAdministrativePolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAdministrativePolicy(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PortSearchResult_ports(ctx context.Context, field graphql.CollectedField, obj *models.PortSearchResult) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -32412,6 +32572,43 @@ func (ec *executionContext) _Viewer_user(ctx context.Context, field graphql.Coll
 	return ec.marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Viewer_permissions(ctx context.Context, field graphql.CollectedField, obj *viewer.Viewer) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Viewer",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Viewer().Permissions(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.PermissionSettings)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNPermissionSettings2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionSettings(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _WorkOrder_id(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -40118,6 +40315,33 @@ func (ec *executionContext) _ActionsTriggersSearchResult(ctx context.Context, se
 	return out
 }
 
+var administrativePolicyImplementors = []string{"AdministrativePolicy"}
+
+func (ec *executionContext) _AdministrativePolicy(ctx context.Context, sel ast.SelectionSet, obj *models.AdministrativePolicy) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, administrativePolicyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AdministrativePolicy")
+		case "canRead":
+			out.Values[i] = ec._AdministrativePolicy_canRead(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var checkListCategoryImplementors = []string{"CheckListCategory", "Node"}
 
 func (ec *executionContext) _CheckListCategory(ctx context.Context, sel ast.SelectionSet, obj *ent.CheckListCategory) graphql.Marshaler {
@@ -42885,6 +43109,38 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var permissionSettingsImplementors = []string{"PermissionSettings"}
+
+func (ec *executionContext) _PermissionSettings(ctx context.Context, sel ast.SelectionSet, obj *models.PermissionSettings) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, permissionSettingsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PermissionSettings")
+		case "canWrite":
+			out.Values[i] = ec._PermissionSettings_canWrite(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "adminPolicy":
+			out.Values[i] = ec._PermissionSettings_adminPolicy(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var portSearchResultImplementors = []string{"PortSearchResult"}
 
 func (ec *executionContext) _PortSearchResult(ctx context.Context, sel ast.SelectionSet, obj *models.PortSearchResult) graphql.Marshaler {
@@ -45522,6 +45778,20 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 				}
 				return res
 			})
+		case "permissions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Viewer_permissions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46880,6 +47150,20 @@ func (ec *executionContext) unmarshalNAddWorkOrderInput2githubᚗcomᚋfacebooki
 
 func (ec *executionContext) unmarshalNAddWorkOrderTypeInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddWorkOrderTypeInput(ctx context.Context, v interface{}) (models.AddWorkOrderTypeInput, error) {
 	return ec.unmarshalInputAddWorkOrderTypeInput(ctx, v)
+}
+
+func (ec *executionContext) marshalNAdministrativePolicy2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAdministrativePolicy(ctx context.Context, sel ast.SelectionSet, v models.AdministrativePolicy) graphql.Marshaler {
+	return ec._AdministrativePolicy(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAdministrativePolicy2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAdministrativePolicy(ctx context.Context, sel ast.SelectionSet, v *models.AdministrativePolicy) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._AdministrativePolicy(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -48984,6 +49268,20 @@ func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋfacebookincubator
 		return graphql.Null
 	}
 	return ec._PageInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPermissionSettings2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionSettings(ctx context.Context, sel ast.SelectionSet, v models.PermissionSettings) graphql.Marshaler {
+	return ec._PermissionSettings(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPermissionSettings2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionSettings(ctx context.Context, sel ast.SelectionSet, v *models.PermissionSettings) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PermissionSettings(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNPortFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPortFilterInput(ctx context.Context, v interface{}) (models.PortFilterInput, error) {
