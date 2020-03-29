@@ -19,8 +19,8 @@ import PermissionsGroupsView, {
 } from './PermissionsGroupsView';
 import Strings from '../../../common/CommonStrings';
 import UsersView from './UsersView';
-import emptyFunction from '@fbcnms/util/emptyFunction';
 import fbt from 'fbt';
+import {NEW_GROUP_DIALOG_PARAM} from './TempTypes';
 import {UserManagementContextProvider} from './UserManagementContext';
 import {useCallback, useMemo, useState} from 'react';
 import {useHistory, withRouter} from 'react-router-dom';
@@ -79,7 +79,9 @@ const UserManaementView = ({match}: Props) => {
             actionButtons: [
               {
                 title: fbt('Create Group', ''),
-                action: emptyFunction,
+                action: () => {
+                  history.push(`group/${NEW_GROUP_DIALOG_PARAM}`);
+                },
               },
             ],
           },
@@ -98,7 +100,7 @@ const UserManaementView = ({match}: Props) => {
         },
       },
     ],
-    [gotoGroupsPage],
+    [gotoGroupsPage, history],
   );
 
   return (

@@ -21,6 +21,7 @@ import Strings from '../../../common/CommonStrings';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {GROUP_STATUSES, NEW_GROUP_DIALOG_PARAM} from './TempTypes';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
@@ -42,23 +43,37 @@ type Props = {
   onClose: () => void,
 };
 
+const initialNewGroup: UserPermissionsGroup = {
+  id: '',
+  name: '',
+  description: '',
+  status: GROUP_STATUSES.ACTIVE.key,
+  members: [],
+};
+
 export default function PermissionsGroupCard({
   redirectToGroupsView,
   onClose,
 }: Props) {
   const classes = useStyles();
   const {match} = useRouter();
-  const {groups, editGroup} = useUserManagement();
-  const [group, setGroup] = useState<?UserPermissionsGroup>(null);
-
+  const {groups, editGroup, addGroup} = useUserManagement();
   const groupId = match.params.id;
+  const isOnNewGroup = groupId === NEW_GROUP_DIALOG_PARAM;
+  const [group, setGroup] = useState<?UserPermissionsGroup>(
+    isOnNewGroup ? {...initialNewGroup} : null,
+  );
+
   useEffect(() => {
+    if (isOnNewGroup) {
+      return;
+    }
     const requestedGroup = groups.find(group => group.id === groupId);
     if (requestedGroup == null) {
       redirectToGroupsView();
     }
     setGroup(requestedGroup);
-  }, [groupId, groups, redirectToGroupsView]);
+  }, [groupId, groups, isOnNewGroup, redirectToGroupsView]);
 
   const header = useMemo(() => {
     const breadcrumbs = [
@@ -69,7 +84,7 @@ export default function PermissionsGroupCard({
       },
       {
         id: 'groupName',
-        name: group?.name || '',
+        name: isOnNewGroup ? `${fbt('New Group', '')}` : group?.name || '',
       },
     ];
     const actions = [
@@ -84,7 +99,8 @@ export default function PermissionsGroupCard({
           if (group == null) {
             return;
           }
-          editGroup(group).then(onClose);
+          const saveAction = isOnNewGroup ? addGroup : editGroup;
+          saveAction(group).then(onClose);
         },
       },
     ];
@@ -93,7 +109,7 @@ export default function PermissionsGroupCard({
       subtitle: fbt('Manage group details, members and policies', ''),
       actionButtons: actions,
     };
-  }, [editGroup, group, onClose, redirectToGroupsView]);
+  }, [addGroup, editGroup, group, isOnNewGroup, onClose, redirectToGroupsView]);
 
   if (group == null) {
     return null;

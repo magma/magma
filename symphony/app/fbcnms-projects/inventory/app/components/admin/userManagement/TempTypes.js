@@ -74,6 +74,8 @@ export type User = {|
   phoneNumber?: string,
 |};
 
+export const NEW_GROUP_DIALOG_PARAM = 'new';
+
 export const GROUP_STATUSES: KeyValueEnum<UsersGroupStatus> = {
   ACTIVE: {
     key: 'ACTIVE',
