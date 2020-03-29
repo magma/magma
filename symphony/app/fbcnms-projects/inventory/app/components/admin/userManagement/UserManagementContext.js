@@ -11,6 +11,7 @@
 
 // flowlint untyped-import:off
 
+import type {AddUsersGroupMutationResponse} from '../../../mutations/__generated__/AddUsersGroupMutation.graphql';
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
 import type {EditUsersGroupMutationResponse} from '../../../mutations/__generated__/EditUsersGroupMutation.graphql';
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
@@ -23,6 +24,7 @@ import type {
 import type {UserManagementContext_UserQuery} from './__generated__/UserManagementContext_UserQuery.graphql';
 
 import * as React from 'react';
+import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
 import EditUserMutation from '../../../mutations/EditUserMutation';
 import EditUsersGroupMutation from '../../../mutations/EditUsersGroupMutation';
 import LoadingIndicator from '../../../common/LoadingIndicator';
@@ -43,6 +45,7 @@ export type UserManagementContextValue = {
   addUser: (user: User, password: string) => Promise<User>,
   editUser: (newUserValue: User, updater?: StoreUpdater) => Promise<User>,
   changeUserPassword: (user: User, password: string) => Promise<User>,
+  addGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
   editGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
 };
 
@@ -195,12 +198,63 @@ const editGroup = (newGroupValue: UserPermissionsGroup) => {
   });
 };
 
+const addGroup = (newGroupValue: UserPermissionsGroup) => {
+  return new Promise<UserPermissionsGroup>((resolve, reject) => {
+    const callbacks: MutationCallbacks<AddUsersGroupMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(errors[0].message);
+        }
+        resolve(groupResponse2Group(response.addUsersGroup));
+      },
+      onError: e => {
+        reject(e.message);
+      },
+    };
+
+    const addNewGroupToStore = store => {
+      const rootQuery = store.getRoot();
+      // eslint-disable-next-line no-warning-comments
+      // $FlowFixMe (T62907961) Relay flow types
+      const newNode = store.getRootField('addUsersGroup');
+      if (newNode == null) {
+        return;
+      }
+      const groups = ConnectionHandler.getConnection(
+        rootQuery,
+        'UserManagementContext_usersGroups',
+      );
+      if (groups == null) {
+        return;
+      }
+      const edge = ConnectionHandler.createEdge(
+        store,
+        groups,
+        newNode,
+        'UsersGroupEdge',
+      );
+      ConnectionHandler.insertEdgeAfter(groups, edge);
+    };
+    AddUsersGroupMutation(
+      {
+        input: {
+          name: newGroupValue.name,
+          description: newGroupValue.description,
+        },
+      },
+      callbacks,
+      addNewGroupToStore,
+    );
+  });
+};
+
 const UserManagementContext = React.createContext<UserManagementContextValue>({
   groups: [],
   users: [],
   addUser,
   editUser,
   changeUserPassword,
+  addGroup,
   editGroup,
 });
 
@@ -319,6 +373,7 @@ function ProviderWrap(props: Props) {
     addUser,
     editUser,
     changeUserPassword,
+    addGroup,
     editGroup,
   });
 
