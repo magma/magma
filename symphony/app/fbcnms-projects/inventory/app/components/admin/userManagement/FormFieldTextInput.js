@@ -8,11 +8,10 @@
  * @format
  */
 
-import {useEffect, useState} from 'react';
-
 import * as React from 'react';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import {useEffect, useState} from 'react';
 
 type FormFieldTextInputProps = {
   validationId?: string,
@@ -27,9 +26,39 @@ type FormFieldTextInputProps = {
   immediateUpdate?: boolean,
 };
 
+/*
+  This hooks helps calling update callback prop.
+  It is needed in case we want to call the update callback
+  only AFTER context values were recalculated.
+  Without it, the callback is called BEFORE the context
+  value changes takes effect.
+  - SetTimeout is needed for ensuring the used callback is
+    surly the one passed AFTER the context values calculations.
+  - Using state hook for engaging rendring cycle when triggerred
+    (without it, will be using the previous version of given callback).
+  - Using effect hook for completing rendering cycle before using callback. 
+*/
+const useSideEffectCallback = callback => {
+  const [shouldTriggerRunCallback, setShouldTriggerRunCallback] = useState(
+    false,
+  );
+  useEffect(() => {
+    if (!shouldTriggerRunCallback) {
+      return;
+    }
+    setShouldTriggerRunCallback(false);
+    if (callback == null) {
+      return;
+    }
+    callback();
+  }, [callback, shouldTriggerRunCallback]);
+
+  return () => setTimeout(() => setShouldTriggerRunCallback(true));
+};
+
 const FormFieldTextInput = (props: FormFieldTextInputProps) => {
   const {
-    value,
+    value: propValue,
     onValueChanged,
     validationId,
     label,
@@ -41,18 +70,25 @@ const FormFieldTextInput = (props: FormFieldTextInputProps) => {
     immediateUpdate = false,
   } = props;
   const [fieldValue, setFieldValue] = useState<string>('');
-  useEffect(() => setFieldValue(value), [value]);
-  const isRequired = validationId != null;
+  useEffect(() => setFieldValue(propValue), [propValue]);
 
-  const updateOnValueChange = newValue => {
-    if (onValueChanged == null) {
+  const callOnValueChanged = useSideEffectCallback(
+    onValueChanged ? () => onValueChanged(fieldValue) : null,
+  );
+  const updateOnValueChange = updatedValue => {
+    const isOnGoingChange = updatedValue != null;
+    const currentValue = isOnGoingChange ? updatedValue : fieldValue;
+    const trimmedValue = (currentValue && currentValue.trim()) || '';
+    if (!isOnGoingChange && trimmedValue != currentValue) {
+      setFieldValue(trimmedValue);
+    }
+    if (trimmedValue == propValue) {
       return;
     }
-    const value = newValue ?? fieldValue;
-    const trimmedValue = value.trim();
-    onValueChanged(trimmedValue);
+    callOnValueChanged();
   };
 
+  const isRequired = validationId != null;
   return (
     <FormField
       className={className || undefined}

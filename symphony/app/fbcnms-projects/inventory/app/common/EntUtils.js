@@ -40,3 +40,18 @@ export const removeTempID = (ent: EntWithID) => {
 export const removeTempIDs = (ents: Iterable<EntWithID>) => {
   return Array.prototype.map.call(ents, removeTempID);
 };
+
+export function haveDifferentValues<T_ENT>(entA: T_ENT, entB: T_ENT): boolean {
+  if (
+    entA == null ||
+    entB == null ||
+    typeof entA != 'object' ||
+    typeof entB != 'object'
+  ) {
+    return entA != entB;
+  }
+  const propsToCompare = Object.keys(entA).filter(prop =>
+    entA.hasOwnProperty(prop),
+  );
+  return !!propsToCompare.find(prop => entA[prop] != entB[prop]);
+}
