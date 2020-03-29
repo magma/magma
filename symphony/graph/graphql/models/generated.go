@@ -728,10 +728,11 @@ type SurveyWiFiScanData struct {
 }
 
 type TechnicianCheckListItemInput struct {
-	ID                 int     `json:"id"`
-	SelectedEnumValues *string `json:"selectedEnumValues"`
-	StringValue        *string `json:"stringValue"`
-	Checked            *bool   `json:"checked"`
+	ID                 int            `json:"id"`
+	SelectedEnumValues *string        `json:"selectedEnumValues"`
+	StringValue        *string        `json:"stringValue"`
+	Checked            *bool          `json:"checked"`
+	YesNoResponse      *YesNoResponse `json:"yesNoResponse"`
 }
 
 type TechnicianInput struct {

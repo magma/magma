@@ -6679,6 +6679,7 @@ input TechnicianCheckListItemInput {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  yesNoResponse: YesNoResponse
 }
 
 input TechnicianWorkOrderUploadInput {
@@ -38484,6 +38485,12 @@ func (ec *executionContext) unmarshalInputTechnicianCheckListItemInput(ctx conte
 		case "checked":
 			var err error
 			it.Checked, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "yesNoResponse":
+			var err error
+			it.YesNoResponse, err = ec.unmarshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx, v)
 			if err != nil {
 				return it, err
 			}

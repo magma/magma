@@ -1619,7 +1619,14 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 		EnumSelectionMode:  &selectionMode,
 		SelectedEnumValues: &selectedValues,
 	}
-	clInputs = []*models.CheckListItemInput{&barCL, &multiCL}
+	yesNoResponse := models.YesNoResponse("YES")
+	yesNoCL := models.CheckListItemInput{
+		Title:         "Yes/No",
+		Type:          "yes_no",
+		Index:         pointer.ToInt(3),
+		YesNoResponse: &yesNoResponse,
+	}
+	clInputs = []*models.CheckListItemInput{&barCL, &multiCL, &yesNoCL}
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:        workOrder.ID,
 		Name:      longWorkOrderName,
@@ -1627,7 +1634,7 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 	})
 	require.NoError(t, err)
 	cls := workOrder.QueryCheckListItems().AllX(ctx)
-	require.Len(t, cls, 2)
+	require.Len(t, cls, 3)
 
 	fooCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
 	require.Equal(t, "Bar", fooCLFetched.Title, "verifying check list name")
@@ -1638,9 +1645,12 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 	require.Equal(t, enumValues, multiCLFetched.EnumValues)
 	require.Equal(t, selectedValues, multiCLFetched.SelectedEnumValues)
 
+	yesNoCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("yes_no")).OnlyX(ctx)
+	require.Equal(t, "YES", yesNoCLFetched.YesNoVal.String())
+
 	cl, err := wr.CheckList(ctx, workOrder)
 	require.NoError(t, err)
-	require.Len(t, cl, 2)
+	require.Len(t, cl, 3)
 }
 
 func TestEditCheckListItemFiles(t *testing.T) {
