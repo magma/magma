@@ -12,16 +12,22 @@ import type {EmploymentType, User} from './TempTypes';
 import type {OptionProps} from '@fbcnms/ui/components/design-system/Select/SelectMenu';
 
 import * as React from 'react';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import FileUploadArea from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
+import FileUploadButton from '../../FileUpload/FileUploadButton';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormFieldTextInput from './FormFieldTextInput';
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Grid from '@material-ui/core/Grid';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {DocumentAPIUrls} from '../../../common/DocumentAPI';
+import {SQUARE_DIMENSION_PX} from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -49,10 +55,42 @@ const useStyles = makeStyles(() => ({
     marginBottom: '16px',
   },
   photoContainer: {
+    flexBasis: SQUARE_DIMENSION_PX,
+    flexGrow: 0,
+    flexShrink: 0,
+    overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
     marginRight: '24px',
     height: '138px',
+  },
+  photoWrapper: {
+    maxHeight: '100%',
+    position: 'relative',
+  },
+  photoArea: {
+    display: 'flex',
+    flexDirection: 'column',
+    '&:hover $photoRemoveButton': {
+      display: 'unset',
+    },
+  },
+  photo: {
+    flexBasis: SQUARE_DIMENSION_PX,
+    flexGrow: 1,
+    overflow: 'hidden',
+    width: '100%',
+    objectFit: 'cover',
+    objectPosition: '50% 50%',
+    borderRadius: '4px',
+  },
+  photoRemoveButton: {
+    display: 'none',
+    position: 'absolute',
+    bottom: '8px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    opacity: '0.9',
   },
   fieldsContainer: {
     display: 'flex',
@@ -60,21 +98,9 @@ const useStyles = makeStyles(() => ({
   },
   field: {
     marginRight: '8px',
+    maxHeight: '58px',
     flexShrink: '1',
     flexBasis: '240px',
-  },
-  photoUploadContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '112px',
-    width: '112px',
-    backgroundColor: symphony.palette.D10,
-    border: `1px dashed ${symphony.palette.D100}`,
-    '&:hover': {
-      borderColor: symphony.palette.D900,
-      cursor: 'pointer',
-    },
   },
 }));
 
@@ -97,8 +123,27 @@ type Props = {
 };
 
 export default function UserProfilePane(props: Props) {
-  const {user, onChange} = props;
+  const {user: propUser, onChange} = props;
   const classes = useStyles();
+  const [user, setUser] = useState<?User>(null);
+  useEffect(() => setUser(propUser), [propUser]);
+
+  const formValidationContext = useContext(FormValidationContext);
+  const callOnChange = (newUser: User) => {
+    setUser(newUser);
+    if (formValidationContext.error.detected) {
+      return;
+    }
+    onChange(newUser);
+  };
+
+  /* temp */
+  const [profilePhoto, setProfilePhoto] = useState<?{storeKey: string}>(null);
+  useEffect(() => setProfilePhoto(null), [user]);
+
+  if (user == null) {
+    return null;
+  }
 
   return (
     <div className={classes.root}>
@@ -116,45 +161,90 @@ export default function UserProfilePane(props: Props) {
         </div>
         <div className={classes.personalDetails}>
           <div className={classes.photoContainer}>
-            <FormField label={`${fbt('Photo', '')}`}>
-              <FileUploadArea onFileChanged={files => alert(files[0].name)} />
+            <FormField
+              label={`${fbt('Photo', '')}`}
+              className={classes.photoWrapper}>
+              <FileUploadButton
+                useUploadSnackbar={false}
+                multiple={false}
+                onFileUploaded={
+                  (_file, storeKey) => setProfilePhoto({storeKey})
+                  /*
+                  onChange({
+                    ...user,
+                    profilePhoto: {
+                      id: '',
+                      storeKey,
+                      fileName: file.name,
+                    },
+                  })
+                  */
+                }>
+                {openFileUploadDialog =>
+                  profilePhoto?.storeKey != null ? (
+                    <div className={classes.photoArea}>
+                      <img
+                        src={DocumentAPIUrls.get_url(profilePhoto.storeKey)}
+                        className={classes.photo}
+                      />
+                      <Button
+                        className={classes.photoRemoveButton}
+                        skin="regular"
+                        onClick={() => setProfilePhoto(null)}>
+                        <fbt desc="">Remove</fbt>
+                      </Button>
+                    </div>
+                  ) : (
+                    <FileUploadArea onClick={openFileUploadDialog} />
+                  )
+                }
+              </FileUploadButton>
             </FormField>
           </div>
           <div className={classes.fieldsContainer}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} lg={6} xl={6}>
                 <FormFieldTextInput
+                  key={`${user.id}_first_name`}
                   className={classes.field}
                   label={`${fbt('First Name', '')}`}
                   validationId="first name"
                   value={user.firstName}
-                  onValueChanged={newName => {
-                    user.firstName = newName;
-                    onChange(user);
-                  }}
+                  onValueChanged={firstName =>
+                    callOnChange({
+                      ...user,
+                      firstName,
+                    })
+                  }
                 />
               </Grid>
               <Grid item xs={12} sm={6} lg={6} xl={6}>
                 <FormFieldTextInput
+                  key={`${user.id}_last_name`}
                   className={classes.field}
                   label={`${fbt('Last Name', '')}`}
                   validationId="last name"
                   value={user.lastName}
-                  onValueChanged={newName => {
-                    user.lastName = newName;
-                    onChange(user);
-                  }}
+                  onValueChanged={lastName =>
+                    callOnChange({
+                      ...user,
+                      lastName,
+                    })
+                  }
                 />
               </Grid>
               <Grid item xs={12} sm={6} lg={6} xl={6}>
                 <FormFieldTextInput
+                  key={`${user.id}_phone`}
                   className={classes.field}
                   label={`${fbt('Phone Number', '')}`}
                   value={user.phoneNumber || ''}
-                  onValueChanged={newPhoneNumber => {
-                    user.phoneNumber = newPhoneNumber;
-                    onChange(user);
-                  }}
+                  onValueChanged={phoneNumber =>
+                    callOnChange({
+                      ...user,
+                      phoneNumber,
+                    })
+                  }
                 />
               </Grid>
             </Grid>
@@ -164,7 +254,7 @@ export default function UserProfilePane(props: Props) {
       <UserRoleAndStatusPane
         className={classes.section}
         user={user}
-        onChange={onChange}
+        onChange={callOnChange}
       />
       <div className={classes.section}>
         <div className={classes.sectionHeader}>
@@ -182,24 +272,30 @@ export default function UserProfilePane(props: Props) {
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} lg={4} xl={4}>
               <FormFieldTextInput
+                key={`${user.id}_job`}
                 className={classes.field}
                 label={`${fbt('Job Title', '')}`}
                 value={user.jobTitle || ''}
-                onValueChanged={newValue => {
-                  user.jobTitle = newValue;
-                  onChange(user);
-                }}
+                onValueChanged={jobTitle =>
+                  callOnChange({
+                    ...user,
+                    jobTitle,
+                  })
+                }
               />
             </Grid>
             <Grid item xs={12} sm={6} lg={4} xl={4}>
               <FormFieldTextInput
+                key={`${user.id}_employee_id`}
                 className={classes.field}
                 label={`${fbt('Employee ID', '')}`}
                 value={user.employeeID || ''}
-                onValueChanged={newValue => {
-                  user.employeeID = newValue;
-                  onChange(user);
-                }}
+                onValueChanged={employeeID =>
+                  callOnChange({
+                    ...user,
+                    employeeID,
+                  })
+                }
               />
             </Grid>
             <Grid item xs={12} sm={6} lg={4} xl={4}>
@@ -209,10 +305,12 @@ export default function UserProfilePane(props: Props) {
                 <Select
                   options={EMPLOYMENT_TYPE_OPTIONS}
                   selectedValue={user.employmentType}
-                  onChange={newValue => {
-                    user.employmentType = newValue;
-                    onChange(user);
-                  }}
+                  onChange={employmentType =>
+                    callOnChange({
+                      ...user,
+                      employmentType,
+                    })
+                  }
                 />
               </FormField>
             </Grid>

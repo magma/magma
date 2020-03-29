@@ -22,7 +22,7 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/gateway/service_registry"
-	"magma/orc8r/cloud/go/util"
+	"magma/orc8r/lib/go/util"
 )
 
 const (

@@ -9,7 +9,7 @@ package metrics
 
 import (
 	"magma/feg/cloud/go/protos"
-	"magma/orc8r/cloud/go/metrics"
+	"magma/orc8r/lib/go/metrics"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"

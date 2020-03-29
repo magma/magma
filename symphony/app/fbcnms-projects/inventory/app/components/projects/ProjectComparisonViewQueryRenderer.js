@@ -24,7 +24,7 @@ import type {FilterValue} from '../comparison_view/ComparisonViewTypes';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    display: 'flex',
+    flexGrow: 1,
   },
   noResultsRoot: {
     display: 'flex',

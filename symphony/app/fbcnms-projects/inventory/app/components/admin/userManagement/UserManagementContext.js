@@ -4,34 +4,49 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
+ *
  * @flow strict-local
  * @format
  */
 
+// flowlint untyped-import:off
+
+import type {AddUsersGroupMutationResponse} from '../../../mutations/__generated__/AddUsersGroupMutation.graphql';
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
+import type {EditUsersGroupMutationResponse} from '../../../mutations/__generated__/EditUsersGroupMutation.graphql';
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
 import type {StoreUpdater} from '../../../common/RelayEnvironment';
-import type {User} from './TempTypes';
+import type {User, UserPermissionsGroup} from './TempTypes';
+import type {
+  UserManagementContextQuery,
+  UserRole,
+} from './__generated__/UserManagementContextQuery.graphql';
 import type {UserManagementContext_UserQuery} from './__generated__/UserManagementContext_UserQuery.graphql';
-import type {UserManagementContext_UsersQueryResponse} from './__generated__/UserManagementContext_UsersQuery.graphql';
-import type {UserRole} from './__generated__/UserManagementContext_UsersQuery.graphql';
 
 import * as React from 'react';
+import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
 import EditUserMutation from '../../../mutations/EditUserMutation';
-import InventoryQueryRenderer from '../../InventoryQueryRenderer';
+import EditUsersGroupMutation from '../../../mutations/EditUsersGroupMutation';
+import LoadingIndicator from '../../../common/LoadingIndicator';
 import RelayEnvironment from '../../../common/RelayEnvironment';
 import axios from 'axios';
 import nullthrows from 'nullthrows';
 import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
 import {LogEvents, ServerLogger} from '../../../common/LoggingUtils';
+import {RelayEnvironmentProvider} from 'react-relay/hooks';
+import {Suspense} from 'react';
 import {USER_ROLES} from './TempTypes';
 import {useContext} from 'react';
+import {useLazyLoadQuery} from 'react-relay/hooks';
 
 export type UserManagementContextValue = {
+  groups: Array<UserPermissionsGroup>,
   users: Array<User>,
   addUser: (user: User, password: string) => Promise<User>,
   editUser: (newUserValue: User, updater?: StoreUpdater) => Promise<User>,
   changeUserPassword: (user: User, password: string) => Promise<User>,
+  addGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
+  editGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
 };
 
 const userQuery = graphql`
@@ -117,20 +132,13 @@ const changeUserPassword = (user: User, password: string) => {
 };
 
 const editUser = (newUserValue: User, updater?: StoreUpdater) => {
-  const graphCall = new Promise<User>((resolve, reject) => {
+  return new Promise<User>((resolve, reject) => {
     const callbacks: MutationCallbacks<EditUserMutationResponse> = {
       onCompleted: (response, errors) => {
         if (errors && errors[0]) {
           reject(errors[0].message);
         }
-        resolve({
-          id: response.editUser.id,
-          authID: response.editUser.authID,
-          firstName: response.editUser.firstName,
-          lastName: response.editUser.lastName,
-          role: response.editUser.role,
-          status: response.editUser.status,
-        });
+        resolve(userResponse2User(response.editUser));
         // TEMP: Need to update Node with the new role.
         // (Once Node is changed to take the role from graph,
         //  we can remove this)
@@ -161,14 +169,93 @@ const editUser = (newUserValue: User, updater?: StoreUpdater) => {
       updater,
     );
   });
-
-  return graphCall.then();
 };
+
+const editGroup = (newGroupValue: UserPermissionsGroup) => {
+  return new Promise<UserPermissionsGroup>((resolve, reject) => {
+    const callbacks: MutationCallbacks<EditUsersGroupMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(errors[0].message);
+        }
+        resolve(groupResponse2Group(response.editUsersGroup));
+      },
+      onError: e => {
+        reject(e.message);
+      },
+    };
+    EditUsersGroupMutation(
+      {
+        input: {
+          id: newGroupValue.id,
+          name: newGroupValue.name,
+          description: newGroupValue.description,
+          status: newGroupValue.status,
+        },
+      },
+      callbacks,
+    );
+  });
+};
+
+const addGroup = (newGroupValue: UserPermissionsGroup) => {
+  return new Promise<UserPermissionsGroup>((resolve, reject) => {
+    const callbacks: MutationCallbacks<AddUsersGroupMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(errors[0].message);
+        }
+        resolve(groupResponse2Group(response.addUsersGroup));
+      },
+      onError: e => {
+        reject(e.message);
+      },
+    };
+
+    const addNewGroupToStore = store => {
+      const rootQuery = store.getRoot();
+      // eslint-disable-next-line no-warning-comments
+      // $FlowFixMe (T62907961) Relay flow types
+      const newNode = store.getRootField('addUsersGroup');
+      if (newNode == null) {
+        return;
+      }
+      const groups = ConnectionHandler.getConnection(
+        rootQuery,
+        'UserManagementContext_usersGroups',
+      );
+      if (groups == null) {
+        return;
+      }
+      const edge = ConnectionHandler.createEdge(
+        store,
+        groups,
+        newNode,
+        'UsersGroupEdge',
+      );
+      ConnectionHandler.insertEdgeAfter(groups, edge);
+    };
+    AddUsersGroupMutation(
+      {
+        input: {
+          name: newGroupValue.name,
+          description: newGroupValue.description,
+        },
+      },
+      callbacks,
+      addNewGroupToStore,
+    );
+  });
+};
+
 const UserManagementContext = React.createContext<UserManagementContextValue>({
+  groups: [],
   users: [],
   addUser,
   editUser,
   changeUserPassword,
+  addGroup,
+  editGroup,
 });
 
 export function useUserManagement() {
@@ -180,7 +267,7 @@ type Props = {
 };
 
 const usersQuery = graphql`
-  query UserManagementContext_UsersQuery {
+  query UserManagementContextQuery {
     users(first: 500) @connection(key: "UserManagementContext_users") {
       edges {
         node {
@@ -191,6 +278,10 @@ const usersQuery = graphql`
           email
           status
           role
+          groups {
+            id
+            name
+          }
           profilePhoto {
             id
             fileName
@@ -199,46 +290,113 @@ const usersQuery = graphql`
         }
       }
     }
+    usersGroups(first: 500)
+      @connection(key: "UserManagementContext_usersGroups") {
+      edges {
+        node {
+          id
+          name
+          description
+          status
+          members {
+            id
+            authID
+          }
+        }
+      }
+    }
   }
 `;
 
-export function UserManagementContextProvider(props: Props) {
-  const providerValue = users => ({
+const userResponse2User = userResponse => ({
+  id: userResponse.id,
+  authID: userResponse.authID,
+  firstName: userResponse.firstName,
+  lastName: userResponse.lastName,
+  role: userResponse.role,
+  status: userResponse.status,
+});
+
+const usersResponse2Users = usersResponse => {
+  const users: Array<User> = [];
+  const usersEdges = usersResponse?.edges;
+  if (usersEdges == null) {
+    return [];
+  }
+  // using 'for' and not simple 'map' beacuse of flow.
+  for (let i = 0; i < usersEdges.length; i++) {
+    const userNode = usersEdges[i].node;
+    if (userNode == null) {
+      continue;
+    }
+    users.push({
+      id: userNode.id,
+      authID: userNode.authID,
+      firstName: userNode.firstName,
+      lastName: userNode.lastName,
+      role: userNode.role,
+      status: userNode.status,
+    });
+  }
+  return users;
+};
+
+const groupResponse2Group = groupResponse => ({
+  id: groupResponse.id,
+  name: groupResponse.name,
+  description: groupResponse.description || '',
+  status: groupResponse.status,
+  members: groupResponse.members,
+});
+
+const groupsResponse2Groups = groupsResponse => {
+  const groups: Array<UserPermissionsGroup> = [];
+  const groupsEdges = groupsResponse?.edges;
+  if (groupsEdges == null) {
+    return [];
+  }
+  // using 'for' and not simple 'map' beacuse of flow.
+  for (let i = 0; i < groupsEdges.length; i++) {
+    const groupNode = groupsEdges[i].node;
+    if (groupNode == null) {
+      continue;
+    }
+    groups.push(groupResponse2Group(groupNode));
+  }
+  return groups;
+};
+
+function ProviderWrap(props: Props) {
+  const providerValue = (users, groups) => ({
+    groups,
     users,
     addUser,
     editUser,
     changeUserPassword,
+    addGroup,
+    editGroup,
   });
+
+  const data = useLazyLoadQuery<UserManagementContextQuery>(usersQuery);
+
   return (
-    <InventoryQueryRenderer
-      query={usersQuery}
-      variables={{}}
-      render={(response: UserManagementContext_UsersQueryResponse) => {
-        const users: Array<User> = [];
-        if (response.users != null) {
-          // using 'for' and not simple 'map' beacuse of flow.
-          for (let i = 0; i < response.users.edges.length; i++) {
-            const userNode = response.users.edges[i].node;
-            if (userNode == null) {
-              continue;
-            }
-            users.push({
-              id: userNode.id,
-              authID: userNode.authID,
-              firstName: userNode.firstName,
-              lastName: userNode.lastName,
-              role: userNode.role,
-              status: userNode.status,
-            });
-          }
-        }
-        return (
-          <UserManagementContext.Provider value={providerValue(users)}>
-            {props.children}
-          </UserManagementContext.Provider>
-        );
-      }}
-    />
+    <UserManagementContext.Provider
+      value={providerValue(
+        usersResponse2Users(data.users),
+        groupsResponse2Groups(data.usersGroups),
+      )}>
+      {props.children}
+    </UserManagementContext.Provider>
+  );
+}
+
+export function UserManagementContextProvider(props: Props) {
+  return (
+    <RelayEnvironmentProvider environment={RelayEnvironment}>
+      <Suspense fallback={<LoadingIndicator />}>
+        <ProviderWrap {...props} />
+      </Suspense>
+    </RelayEnvironmentProvider>
   );
 }
 

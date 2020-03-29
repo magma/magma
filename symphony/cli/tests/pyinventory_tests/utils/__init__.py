@@ -39,7 +39,7 @@ def wait_for_platform() -> None:
 
 def init_client(email: str, password: str) -> InventoryClient:
     if TEST_MODE == TestMode.LOCAL:
-        return InventoryClient(email, password, is_local_host=True)
+        return InventoryClient(email, password, tenant=TENANT, is_local_host=True)
     elif TEST_MODE == TestMode.REMOTE:
         return InventoryClient(email, password, tenant=f"{TENANT}.staging")
     else:

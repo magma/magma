@@ -21,8 +21,10 @@ import UserDetailsCard from './UserDetailsCard';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {USER_ROLES, USER_STATUSES} from './TempTypes';
+import {haveDifferentValues} from '../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useUserManagement} from './UserManagementContext';
 
 const useStyles = makeStyles(() => ({
@@ -113,6 +115,7 @@ export default function UsersTable() {
         title: <fbt desc="Status column header in users table">Status</fbt>,
         render: userRow => (
           <Text
+            useEllipsis={true}
             color={
               userRow.status === USER_STATUSES.DEACTIVATED.key
                 ? 'error'
@@ -124,6 +127,14 @@ export default function UsersTable() {
       },
     ];
   }, [classes.nameColumn, classes.field, activeUserId]);
+
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const handleError = useCallback(
+    error => {
+      enqueueSnackbar(error.response?.data?.error || error, {variant: 'error'});
+    },
+    [enqueueSnackbar],
+  );
 
   const userDetailsCard = useMemo(() => {
     if (!activeUserId) {
@@ -138,11 +149,13 @@ export default function UsersTable() {
       <UserDetailsCard
         user={users[userIndex]}
         onChange={user => {
-          editUser(user);
+          if (haveDifferentValues(users[userIndex], user)) {
+            editUser(user).catch(handleError);
+          }
         }}
       />
     );
-  }, [activeUserId, editUser, users]);
+  }, [activeUserId, editUser, handleError, users]);
   return (
     <div className={classes.root}>
       <Table

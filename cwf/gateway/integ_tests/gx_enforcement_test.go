@@ -10,14 +10,15 @@ package integ_tests
 
 import (
 	"fmt"
+	cwfprotos "magma/cwf/cloud/go/protos"
+	"magma/feg/cloud/go/protos"
+	fegProtos "magma/feg/cloud/go/protos"
+	"magma/lte/cloud/go/plugin/models"
+	"math/rand"
 	"testing"
 	"time"
 
-	cwfprotos "magma/cwf/cloud/go/protos"
-	"magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
-
-	"github.com/emakeev/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -40,8 +41,8 @@ const (
 // - Generate traffic to put traffic through the newly installed rule.
 //   Assert that there's > 0 data usage in the rule.
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
-func TestUsageReportEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestUsageReportEnforcement...")
+func TestGxUsageReportEnforcement(t *testing.T) {
+	fmt.Println("\nRunning TestGxUsageReportEnforcement...")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -143,8 +144,8 @@ func TestUsageReportEnforcement(t *testing.T) {
 //   Generate traffic and assert the CCR-U is received.
 // - Generate traffic to put traffic through the newly installed rule.
 //   Assert that there's > 0 data usage in the rule.
-func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
-	fmt.Println("\nRunning TestMidSessionRuleRemovalWithCCA_U...")
+func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
+	fmt.Println("\nRunning TestGxMidSessionRuleRemovalWithCCA_U...")
 
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
@@ -270,8 +271,8 @@ func TestMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 // - Sleep for Y seconds and check policy usage again. Assert that
 //   static-pass-all-2 is uninstalled.
 // Note: things might get weird if there are clock skews
-func TestRuleInstallTime(t *testing.T) {
-	fmt.Println("\nRunning TestRuleInstallTime...")
+func TestGxRuleInstallTime(t *testing.T) {
+	fmt.Println("\nRunning TestGxRuleInstallTime...")
 
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
@@ -308,11 +309,11 @@ func TestRuleInstallTime(t *testing.T) {
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	now := time.Now().Round(1 * time.Second)
-	timeUntilActivation := 6 * time.Second
+	timeUntilActivation := 8 * time.Second
 	activation := now.Add(timeUntilActivation)
 	pActivation, err := ptypes.TimestampProto(activation)
 	assert.NoError(t, err)
-	timeUntilDeactivation := 5 * time.Second
+	timeUntilDeactivation := 8 * time.Second
 	deactivation := activation.Add(timeUntilDeactivation)
 	pDeactivation, err := ptypes.TimestampProto(deactivation)
 	assert.NoError(t, err)
@@ -331,22 +332,24 @@ func TestRuleInstallTime(t *testing.T) {
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
+	// Generate over the given quota
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "300K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
-
 	recordsBySubID, err := tr.GetPolicyUsage()
 	// only static-pass-all-1 should be installed
 	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"])
 	assert.Nil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"])
-	// wait for rule activation
+
+	fmt.Printf("Waiting %v for rule activation\n", timeUntilActivation)
 	time.Sleep(timeUntilActivation)
 	recordsBySubID, err = tr.GetPolicyUsage()
 	// both rules should exist
 	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"])
 	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"])
-	// wait for rule deactivation
+
+	fmt.Printf("Waiting %v for rule deactivation\n", timeUntilDeactivation)
 	time.Sleep(timeUntilDeactivation)
 	recordsBySubID, err = tr.GetPolicyUsage()
 	// static-pass-all-2 should be gone
@@ -365,4 +368,60 @@ func TestRuleInstallTime(t *testing.T) {
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
 	time.Sleep(3 * time.Second)
+}
+
+//TestGxAbortSessionRequest
+// This test verifies the abort session request
+// Here we initially setup a session and install a pass all rule
+// We then invoke abort session request from pcrf and expect the
+// ASR to complete without any error and all the rules associated with
+// that session to be cleaned up
+func TestGxAbortSessionRequest(t *testing.T) {
+	fmt.Println("\nRunning TestGxAbortSessionRequest")
+	tr := NewTestRunner(t)
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	ues, err := tr.ConfigUEs(1)
+	assert.NoError(t, err)
+	imsi := ues[0].GetImsi()
+	ki := rand.Intn(1000000)
+	monitorKey := fmt.Sprintf("monitor-ASR-%d", ki)
+	ruleKey := fmt.Sprintf("static-ASR1_CCI-%d", ki)
+	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, nil)
+	err = ruleManager.AddStaticRuleToDB(rule)
+
+	err = ruleManager.AddUsageMonitor(imsi, monitorKey, 2*MegaBytes, 1*MegaBytes)
+	err = ruleManager.AddRulesToPCRF(imsi, []string{ruleKey}, []string{})
+	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
+
+	tr.AuthenticateAndAssertSuccess(imsi)
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)][ruleKey])
+
+	asa, err := sendPolicyAbortSession(
+		&fegProtos.PolicyAbortSessionRequest{
+			Imsi: imsi,
+		},
+	)
+	assert.NoError(t, err)
+
+	// Check for Limited ASR success - There is only limited success here
+	// since radius will not do the teardown, radius specifically (COA_DYNAMIC)
+	// module throws this error here. coa_dynamic module isn't enabled during
+	// authentication and hence it isn't aware of the sessionID used when
+	// processing disconnect
+	assert.Contains(t, asa.SessionId, "IMSI"+imsi)
+	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
+
+	// check if all rules have been cleaned up
+	record := recordsBySubID["IMSI"+imsi][ruleKey]
+	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", imsi))
 }

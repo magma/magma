@@ -13,7 +13,7 @@ import (
 
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/radiusd/collection"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
 )

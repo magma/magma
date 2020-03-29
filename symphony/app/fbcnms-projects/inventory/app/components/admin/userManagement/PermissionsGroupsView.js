@@ -14,10 +14,11 @@ import type {UserPermissionsGroup} from './TempTypes';
 import * as React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
-import {GROUP_STATUSES, TEMP_GROUPS} from './TempTypes';
+import {GROUP_STATUSES} from './TempTypes';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
+import {useUserManagement} from './UserManagementContext';
 
 export const PERMISSION_GROUPS_VIEW_NAME = fbt(
   'Groups',
@@ -49,8 +50,9 @@ const group2GroupTableRow: (
 export default function PermissionsGroupsView() {
   const classes = useStyles();
   const {history} = useRouter();
+  const {groups} = useUserManagement();
   const [groupsTable, _setGroupsTable] = useState<GroupTableData>(
-    TEMP_GROUPS.map(group2GroupTableRow),
+    groups.map(group2GroupTableRow),
   );
 
   const columns = [
@@ -90,7 +92,7 @@ export default function PermissionsGroupsView() {
       title: (
         <fbt desc="Status column header in permission groups table">Status</fbt>
       ),
-      render: groupRow => GROUP_STATUSES[groupRow.status],
+      render: groupRow => GROUP_STATUSES[groupRow.status].value,
       titleClassName: classes.narrowColumn,
       className: classes.narrowColumn,
     },

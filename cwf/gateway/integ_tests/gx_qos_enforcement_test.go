@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emakeev/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
@@ -60,15 +60,15 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 	}
 }
 
-//TestUplinkTrafficWithQosEnforcement
+//TestGxUplinkTrafficQosEnforcement
 // This test verifies the QOS configuration(uplink) present in the rules
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-ULQos) with QOS config setting with
 //   maximum uplink bitrate.
 // - Generate traffic and verify if the traffic observed bitrate matches the configured
 // bitrate
-func TestUplinkTrafficWithQosEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestUplinkTrafficWithQosEnforcement")
+func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
+	fmt.Println("\nRunning TestGxUplinkTrafficQosEnforcement")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -125,15 +125,15 @@ func TestUplinkTrafficWithQosEnforcement(t *testing.T) {
 	time.Sleep(3 * time.Second)
 }
 
-//TestUplinkTrafficWithQosEnforcement
+//TestGxDownlinkTrafficQosEnforcement
 // This test verifies the QOS configuration(downlink) present in the rules
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-DLQos) with QOS config setting with
 //   maximum downlink bitrate.
 // - Generate traffic from server to client and verify if the traffic observed bitrate
 //   matches the configured bitrate
-func TestDownlinkTrafficWithQosEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestDownlinkTrafficWithQosEnforcement")
+func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
+	fmt.Println("\nRunning TestGxDownlinkTrafficQosEnforcement")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -191,7 +191,7 @@ func TestDownlinkTrafficWithQosEnforcement(t *testing.T) {
 	time.Sleep(3 * time.Second)
 }
 
-//TestQosDowngradeWithCCAUpdate
+//TestGxQosDowngradeWithCCAUpdate
 // This test verifies QOS downgrade which can be caused due to CCA-update
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-qos-CCAI) with QOS config setting with
@@ -204,8 +204,8 @@ func TestDownlinkTrafficWithQosEnforcement(t *testing.T) {
 // downgraded bitrate
 // - Send another CCA-update which upgrades the QOS through a dynamic rule and verify
 // that the observed bitrate maches the newly configured bitrate
-func TestQosDowngradeWithCCAUpdate(t *testing.T) {
-	fmt.Println("\nRunning TestQosDowngradeWithCCAUpdate")
+func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
+	fmt.Println("\nRunning TestGxQosDowngradeWithCCAUpdate")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -346,7 +346,7 @@ func TestQosDowngradeWithCCAUpdate(t *testing.T) {
 	assert.ElementsMatch(t, expectedResult, resultByIndex)
 }
 
-//TestQosDowngradeWithPolicyReAuth
+//TestGxQosDowngradeWithReAuth
 // This test verifies QOS downgrade which can be caused due to ReAuth Request
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
 //   respond with a rule install (static-qos-CCAI) with QOS config setting with
@@ -357,8 +357,8 @@ func TestQosDowngradeWithCCAUpdate(t *testing.T) {
 // rule install static-qos-CCAU which will downgrade the QOS setting for the uplink
 // - Generate traffic and verify if the traffic observed bitrate matches the newly
 // downgraded bitrate
-func TestQosDowngradeWithPolicyReAuth(t *testing.T) {
-	fmt.Println("\nRunning TestQosDowngradeWithPolicyReAuth")
+func TestGxQosDowngradeWithReAuth(t *testing.T) {
+	fmt.Println("\nRunning TestGxQosDowngradeWithReAuth")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)

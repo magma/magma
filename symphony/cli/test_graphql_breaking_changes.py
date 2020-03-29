@@ -17,6 +17,14 @@ from .utils import extract_zip
 ERR_MSG_FORMAT = "Diff breaks schema of version {} with changes: {}"
 
 
+def get_minimal_supported_version(schema_versions_library):
+    minimal_version_filepath = os.path.join(
+        schema_versions_library, "minimal_supported_version"
+    )
+    with open(minimal_version_filepath) as minimal_version_file:
+        return minimal_version_file.read().strip()
+
+
 class PyinventoryGraphqlBreakingChangesTest(testutil.BaseFacebookTestCase):
     @mock.patch("os.path.exists", return_value=True)
     @mock.patch("subprocess.Popen")
@@ -27,19 +35,15 @@ class PyinventoryGraphqlBreakingChangesTest(testutil.BaseFacebookTestCase):
         schema_library = pkg_resources.resource_filename(__name__, "schema")
 
         zip_filepath = os.path.join(schema_versions_library, "old_schemas.zip")
-        minimal_version_filepath = os.path.join(
-            schema_versions_library, "minimal_supported_version"
-        )
         schema = compile_schema_library(schema_library)
         schemas = extract_zip(zip_filepath)
-        with open(minimal_version_filepath) as minimal_version_file:
-            minimal_version = minimal_version_file.read().strip()
-            for ver, schema_str in schemas.items():
-                if LooseVersion(ver) < LooseVersion(minimal_version):
-                    continue
-                schema_str = schema_str.decode("utf-8")
-                old_schema = build_ast_schema(parse(schema_str))
-                breaking_changes = find_breaking_changes(old_schema, schema)
-                assert len(breaking_changes) == 0, ERR_MSG_FORMAT.format(
-                    ver, breaking_changes
-                )
+        minimal_version = get_minimal_supported_version(schema_versions_library)
+        for ver, schema_str in schemas.items():
+            if LooseVersion(ver) < LooseVersion(minimal_version):
+                continue
+            schema_str = schema_str.decode("utf-8")
+            old_schema = build_ast_schema(parse(schema_str))
+            breaking_changes = find_breaking_changes(old_schema, schema)
+            assert len(breaking_changes) == 0, ERR_MSG_FORMAT.format(
+                ver, breaking_changes
+            )

@@ -13,11 +13,11 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/services/analytics"
-	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
+	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"

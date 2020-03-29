@@ -58,6 +58,34 @@ func (tr txResolver) EditUser(ctx context.Context, input models.EditUserInput) (
 	return result, nil
 }
 
+func (tr txResolver) AddUsersGroup(ctx context.Context, input models.AddUsersGroupInput) (*ent.UsersGroup, error) {
+	var result, zero *ent.UsersGroup
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.AddUsersGroup(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) EditUsersGroup(ctx context.Context, input models.EditUsersGroupInput) (*ent.UsersGroup, error) {
+	var result, zero *ent.UsersGroup
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.EditUsersGroup(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
 func (tr txResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error) {
 	var result, zero int
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {

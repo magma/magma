@@ -11,7 +11,8 @@
 import type {
   UserRole,
   UserStatus,
-} from './__generated__/UserManagementContext_UsersQuery.graphql';
+  UsersGroupStatus,
+} from './__generated__/UserManagementContextQuery.graphql';
 
 import fbt from 'fbt';
 
@@ -73,52 +74,27 @@ export type User = {|
   phoneNumber?: string,
 |};
 
-const generateString = length =>
-  Math.random()
-    .toString(36)
-    .replace(/[^a-z]+/g, '')
-    .substr(0, length || 5);
-const randomNaturalNumber = (from: number, to: number) => {
-  from = from ?? 1;
-  to = to > from ? to : from + 1;
-  const range = to - from;
-  return Math.round(Math.random() * range) + from;
-};
-const itemFromArray = arr => arr[randomNaturalNumber(0, arr.length - 1)];
+export const NEW_GROUP_DIALOG_PARAM = 'new';
 
-export const GROUP_STATUSES = {
-  Active: 'Active',
-  Inactive: 'Inactive',
+export const GROUP_STATUSES: KeyValueEnum<UsersGroupStatus> = {
+  ACTIVE: {
+    key: 'ACTIVE',
+    value: `${fbt('Active', '')}`,
+  },
+  DEACTIVATED: {
+    key: 'DEACTIVATED',
+    value: `${fbt('Deactivated', '')}`,
+  },
 };
 
-export type GroupStatus = $Keys<typeof GROUP_STATUSES>;
-
+export type UserPermissionsGroupMember = {|
+  +id: string,
+  +authID: string,
+|};
 export type UserPermissionsGroup = {|
   id: string,
   name: string,
   description: string,
-  status: GroupStatus,
-  members: Array<string>,
+  status: UsersGroupStatus,
+  members: $ReadOnlyArray<UserPermissionsGroupMember>,
 |};
-
-const generateGroupStatus = () => itemFromArray(Object.keys(GROUP_STATUSES));
-
-export const TEMP_GROUPS: Array<UserPermissionsGroup> = [...new Array(5)].map(
-  _ => ({
-    id: `${generateString(10)}`,
-    name: `${generateString(1).toUpperCase()}${generateString(
-      randomNaturalNumber(4, 8),
-    )} ${generateString(1).toUpperCase()}${generateString(
-      randomNaturalNumber(4, 10),
-    )}`,
-    description: `${generateString(1).toUpperCase()}${generateString(
-      randomNaturalNumber(4, 8),
-    )} ${[...new Array(randomNaturalNumber(1, 7))]
-      .map(_ => generateString(randomNaturalNumber(4, 10)))
-      .join(' ')}`,
-    // eslint-disable-next-line no-warning-comments
-    // $FlowFixMe: it is temporary
-    status: generateGroupStatus(),
-    members: [],
-  }),
-);
