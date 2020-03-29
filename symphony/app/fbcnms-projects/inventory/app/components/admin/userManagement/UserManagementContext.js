@@ -12,6 +12,7 @@
 // flowlint untyped-import:off
 
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
+import type {EditUsersGroupMutationResponse} from '../../../mutations/__generated__/EditUsersGroupMutation.graphql';
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
 import type {StoreUpdater} from '../../../common/RelayEnvironment';
 import type {User, UserPermissionsGroup} from './TempTypes';
@@ -23,6 +24,7 @@ import type {UserManagementContext_UserQuery} from './__generated__/UserManageme
 
 import * as React from 'react';
 import EditUserMutation from '../../../mutations/EditUserMutation';
+import EditUsersGroupMutation from '../../../mutations/EditUsersGroupMutation';
 import LoadingIndicator from '../../../common/LoadingIndicator';
 import RelayEnvironment from '../../../common/RelayEnvironment';
 import axios from 'axios';
@@ -41,6 +43,7 @@ export type UserManagementContextValue = {
   addUser: (user: User, password: string) => Promise<User>,
   editUser: (newUserValue: User, updater?: StoreUpdater) => Promise<User>,
   changeUserPassword: (user: User, password: string) => Promise<User>,
+  editGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
 };
 
 const userQuery = graphql`
@@ -126,20 +129,13 @@ const changeUserPassword = (user: User, password: string) => {
 };
 
 const editUser = (newUserValue: User, updater?: StoreUpdater) => {
-  const graphCall = new Promise<User>((resolve, reject) => {
+  return new Promise<User>((resolve, reject) => {
     const callbacks: MutationCallbacks<EditUserMutationResponse> = {
       onCompleted: (response, errors) => {
         if (errors && errors[0]) {
           reject(errors[0].message);
         }
-        resolve({
-          id: response.editUser.id,
-          authID: response.editUser.authID,
-          firstName: response.editUser.firstName,
-          lastName: response.editUser.lastName,
-          role: response.editUser.role,
-          status: response.editUser.status,
-        });
+        resolve(userResponse2User(response.editUser));
         // TEMP: Need to update Node with the new role.
         // (Once Node is changed to take the role from graph,
         //  we can remove this)
@@ -170,15 +166,42 @@ const editUser = (newUserValue: User, updater?: StoreUpdater) => {
       updater,
     );
   });
-
-  return graphCall.then();
 };
+
+const editGroup = (newGroupValue: UserPermissionsGroup) => {
+  return new Promise<UserPermissionsGroup>((resolve, reject) => {
+    const callbacks: MutationCallbacks<EditUsersGroupMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(errors[0].message);
+        }
+        resolve(groupResponse2Group(response.editUsersGroup));
+      },
+      onError: e => {
+        reject(e.message);
+      },
+    };
+    EditUsersGroupMutation(
+      {
+        input: {
+          id: newGroupValue.id,
+          name: newGroupValue.name,
+          description: newGroupValue.description,
+          status: newGroupValue.status,
+        },
+      },
+      callbacks,
+    );
+  });
+};
+
 const UserManagementContext = React.createContext<UserManagementContextValue>({
   groups: [],
   users: [],
   addUser,
   editUser,
   changeUserPassword,
+  editGroup,
 });
 
 export function useUserManagement() {
@@ -231,6 +254,15 @@ const usersQuery = graphql`
   }
 `;
 
+const userResponse2User = userResponse => ({
+  id: userResponse.id,
+  authID: userResponse.authID,
+  firstName: userResponse.firstName,
+  lastName: userResponse.lastName,
+  role: userResponse.role,
+  status: userResponse.status,
+});
+
 const usersResponse2Users = usersResponse => {
   const users: Array<User> = [];
   const usersEdges = usersResponse?.edges;
@@ -255,6 +287,14 @@ const usersResponse2Users = usersResponse => {
   return users;
 };
 
+const groupResponse2Group = groupResponse => ({
+  id: groupResponse.id,
+  name: groupResponse.name,
+  description: groupResponse.description || '',
+  status: groupResponse.status,
+  members: groupResponse.members,
+});
+
 const groupsResponse2Groups = groupsResponse => {
   const groups: Array<UserPermissionsGroup> = [];
   const groupsEdges = groupsResponse?.edges;
@@ -267,14 +307,7 @@ const groupsResponse2Groups = groupsResponse => {
     if (groupNode == null) {
       continue;
     }
-
-    groups.push({
-      id: groupNode.id,
-      name: groupNode.name,
-      description: groupNode.description || '',
-      status: groupNode.status,
-      members: groupNode.members,
-    });
+    groups.push(groupResponse2Group(groupNode));
   }
   return groups;
 };
@@ -286,6 +319,7 @@ function ProviderWrap(props: Props) {
     addUser,
     editUser,
     changeUserPassword,
+    editGroup,
   });
 
   const data = useLazyLoadQuery<UserManagementContextQuery>(usersQuery);
