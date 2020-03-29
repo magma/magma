@@ -115,6 +115,7 @@ export default function UsersTable() {
         title: <fbt desc="Status column header in users table">Status</fbt>,
         render: userRow => (
           <Text
+            useEllipsis={true}
             color={
               userRow.status === USER_STATUSES.DEACTIVATED.key
                 ? 'error'
