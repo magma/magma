@@ -10,42 +10,28 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 )
 
-// User defines the user schema.
-type User struct {
+// UsersGroup defines the users group schema.
+type UsersGroup struct {
 	schema
 }
 
-// Fields returns user fields.
-func (User) Fields() []ent.Field {
+// Fields returns UsersGroup fields.
+func (UsersGroup) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("auth_id").
+		field.String("name").
 			NotEmpty().
-			Immutable().
 			Unique(),
-		field.String("first_name").
-			NotEmpty().
-			Optional(),
-		field.String("last_name").
-			NotEmpty().
-			Optional(),
-		field.String("email").
-			NotEmpty().
+		field.String("description").
 			Optional(),
 		field.Enum("status").
 			Values("ACTIVE", "DEACTIVATED").
 			Default("ACTIVE"),
-		field.Enum("role").
-			Values("USER", "ADMIN", "OWNER").
-			Default("USER"),
 	}
 }
 
 // Edges returns user edges.
-func (User) Edges() []ent.Edge {
+func (UsersGroup) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("profile_photo", File.Type).
-			Unique(),
-		edge.From("groups", UsersGroup.Type).
-			Ref("members"),
+		edge.To("members", User.Type),
 	}
 }

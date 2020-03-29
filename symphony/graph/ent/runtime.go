@@ -84,6 +84,8 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent/user"
 
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
+
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
@@ -808,6 +810,26 @@ func init() {
 	userDescEmail := userFields[3].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
+	usersgroupMixin := schema.UsersGroup{}.Mixin()
+	usersgroupMixinFields := [...][]ent.Field{
+		usersgroupMixin[0].Fields(),
+	}
+	usersgroupFields := schema.UsersGroup{}.Fields()
+	_ = usersgroupFields
+	// usersgroupDescCreateTime is the schema descriptor for create_time field.
+	usersgroupDescCreateTime := usersgroupMixinFields[0][0].Descriptor()
+	// usersgroup.DefaultCreateTime holds the default value on creation for the create_time field.
+	usersgroup.DefaultCreateTime = usersgroupDescCreateTime.Default.(func() time.Time)
+	// usersgroupDescUpdateTime is the schema descriptor for update_time field.
+	usersgroupDescUpdateTime := usersgroupMixinFields[0][1].Descriptor()
+	// usersgroup.DefaultUpdateTime holds the default value on creation for the update_time field.
+	usersgroup.DefaultUpdateTime = usersgroupDescUpdateTime.Default.(func() time.Time)
+	// usersgroup.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	usersgroup.UpdateDefaultUpdateTime = usersgroupDescUpdateTime.UpdateDefault.(func() time.Time)
+	// usersgroupDescName is the schema descriptor for name field.
+	usersgroupDescName := usersgroupFields[0].Descriptor()
+	// usersgroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	usersgroup.NameValidator = usersgroupDescName.Validators[0].(func(string) error)
 	workorderMixin := schema.WorkOrder{}.Mixin()
 	workorderMixinFields := [...][]ent.Field{
 		workorderMixin[0].Fields(),

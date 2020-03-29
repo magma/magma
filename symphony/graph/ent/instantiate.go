@@ -235,6 +235,12 @@ func (c *UserClient) Instantiate(u *User) *User {
 }
 
 // Instantiate entity configuration.
+func (c *UsersGroupClient) Instantiate(ug *UsersGroup) *UsersGroup {
+	ug.config = c.config
+	return ug
+}
+
+// Instantiate entity configuration.
 func (c *WorkOrderClient) Instantiate(wo *WorkOrder) *WorkOrder {
 	wo.config = c.config
 	return wo

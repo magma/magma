@@ -685,6 +685,18 @@ func (u *UserQuery) collectField(reqctx *graphql.RequestContext, field graphql.C
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ug *UsersGroupQuery) CollectFields(ctx context.Context, satisfies ...string) *UsersGroupQuery {
+	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
+		ug = ug.collectField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)
+	}
+	return ug
+}
+
+func (ug *UsersGroupQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *UsersGroupQuery {
+	return ug
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (wo *WorkOrderQuery) CollectFields(ctx context.Context, satisfies ...string) *WorkOrderQuery {
 	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
 		wo = wo.collectField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)

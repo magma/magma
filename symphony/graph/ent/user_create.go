@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -146,6 +147,21 @@ func (uc *UserCreate) SetNillableProfilePhotoID(id *int) *UserCreate {
 // SetProfilePhoto sets the profile_photo edge to File.
 func (uc *UserCreate) SetProfilePhoto(f *File) *UserCreate {
 	return uc.SetProfilePhotoID(f.ID)
+}
+
+// AddGroupIDs adds the groups edge to UsersGroup by ids.
+func (uc *UserCreate) AddGroupIDs(ids ...int) *UserCreate {
+	uc.mutation.AddGroupIDs(ids...)
+	return uc
+}
+
+// AddGroups adds the groups edges to UsersGroup.
+func (uc *UserCreate) AddGroups(u ...*UsersGroup) *UserCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddGroupIDs(ids...)
 }
 
 // Save creates the User in the database.
@@ -320,6 +336,25 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.GroupsTable,
+			Columns: user.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: usersgroup.FieldID,
 				},
 			},
 		}

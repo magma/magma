@@ -51,6 +51,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -141,6 +142,8 @@ type Client struct {
 	Technician *TechnicianClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UsersGroup is the client for interacting with the UsersGroup builders.
+	UsersGroup *UsersGroupClient
 	// WorkOrder is the client for interacting with the WorkOrder builders.
 	WorkOrder *WorkOrderClient
 	// WorkOrderDefinition is the client for interacting with the WorkOrderDefinition builders.
@@ -201,6 +204,7 @@ func (c *Client) init() {
 	c.SurveyWiFiScan = NewSurveyWiFiScanClient(c.config)
 	c.Technician = NewTechnicianClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UsersGroup = NewUsersGroupClient(c.config)
 	c.WorkOrder = NewWorkOrderClient(c.config)
 	c.WorkOrderDefinition = NewWorkOrderDefinitionClient(c.config)
 	c.WorkOrderType = NewWorkOrderTypeClient(c.config)
@@ -272,6 +276,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
 		Technician:                  NewTechnicianClient(cfg),
 		User:                        NewUserClient(cfg),
+		UsersGroup:                  NewUsersGroupClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
 		WorkOrderType:               NewWorkOrderTypeClient(cfg),
@@ -341,6 +346,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.SurveyWiFiScan.Use(hooks...)
 	c.Technician.Use(hooks...)
 	c.User.Use(hooks...)
+	c.UsersGroup.Use(hooks...)
 	c.WorkOrder.Use(hooks...)
 	c.WorkOrderDefinition.Use(hooks...)
 	c.WorkOrderType.Use(hooks...)
@@ -5077,9 +5083,120 @@ func (c *UserClient) QueryProfilePhoto(u *User) *FileQuery {
 	return query
 }
 
+// QueryGroups queries the groups edge of a User.
+func (c *UserClient) QueryGroups(u *User) *UsersGroupQuery {
+	query := &UsersGroupQuery{config: c.config}
+	id := u.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(user.Table, user.FieldID, id),
+		sqlgraph.To(usersgroup.Table, usersgroup.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, user.GroupsTable, user.GroupsPrimaryKey...),
+	)
+	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
+
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
+}
+
+// UsersGroupClient is a client for the UsersGroup schema.
+type UsersGroupClient struct {
+	config
+}
+
+// NewUsersGroupClient returns a client for the UsersGroup from the given config.
+func NewUsersGroupClient(c config) *UsersGroupClient {
+	return &UsersGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usersgroup.Hooks(f(g(h())))`.
+func (c *UsersGroupClient) Use(hooks ...Hook) {
+	c.hooks.UsersGroup = append(c.hooks.UsersGroup, hooks...)
+}
+
+// Create returns a create builder for UsersGroup.
+func (c *UsersGroupClient) Create() *UsersGroupCreate {
+	mutation := newUsersGroupMutation(c.config, OpCreate)
+	return &UsersGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for UsersGroup.
+func (c *UsersGroupClient) Update() *UsersGroupUpdate {
+	mutation := newUsersGroupMutation(c.config, OpUpdate)
+	return &UsersGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UsersGroupClient) UpdateOne(ug *UsersGroup) *UsersGroupUpdateOne {
+	return c.UpdateOneID(ug.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UsersGroupClient) UpdateOneID(id int) *UsersGroupUpdateOne {
+	mutation := newUsersGroupMutation(c.config, OpUpdateOne)
+	mutation.id = &id
+	return &UsersGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UsersGroup.
+func (c *UsersGroupClient) Delete() *UsersGroupDelete {
+	mutation := newUsersGroupMutation(c.config, OpDelete)
+	return &UsersGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *UsersGroupClient) DeleteOne(ug *UsersGroup) *UsersGroupDeleteOne {
+	return c.DeleteOneID(ug.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *UsersGroupClient) DeleteOneID(id int) *UsersGroupDeleteOne {
+	builder := c.Delete().Where(usersgroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UsersGroupDeleteOne{builder}
+}
+
+// Create returns a query builder for UsersGroup.
+func (c *UsersGroupClient) Query() *UsersGroupQuery {
+	return &UsersGroupQuery{config: c.config}
+}
+
+// Get returns a UsersGroup entity by its id.
+func (c *UsersGroupClient) Get(ctx context.Context, id int) (*UsersGroup, error) {
+	return c.Query().Where(usersgroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UsersGroupClient) GetX(ctx context.Context, id int) *UsersGroup {
+	ug, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return ug
+}
+
+// QueryMembers queries the members edge of a UsersGroup.
+func (c *UsersGroupClient) QueryMembers(ug *UsersGroup) *UserQuery {
+	query := &UserQuery{config: c.config}
+	id := ug.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(usersgroup.Table, usersgroup.FieldID, id),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, usersgroup.MembersTable, usersgroup.MembersPrimaryKey...),
+	)
+	query.sql = sqlgraph.Neighbors(ug.driver.Dialect(), step)
+
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UsersGroupClient) Hooks() []Hook {
+	return c.hooks.UsersGroup
 }
 
 // WorkOrderClient is a client for the WorkOrder schema.

@@ -1341,6 +1341,22 @@ var (
 			},
 		},
 	}
+	// UsersGroupsColumns holds the columns for the "users_groups" table.
+	UsersGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DEACTIVATED"}, Default: "ACTIVE"},
+	}
+	// UsersGroupsTable holds the schema information for the "users_groups" table.
+	UsersGroupsTable = &schema.Table{
+		Name:        "users_groups",
+		Columns:     UsersGroupsColumns,
+		PrimaryKey:  []*schema.Column{UsersGroupsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// WorkOrdersColumns holds the columns for the "work_orders" table.
 	WorkOrdersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1538,6 +1554,33 @@ var (
 			},
 		},
 	}
+	// UsersGroupMembersColumns holds the columns for the "users_group_members" table.
+	UsersGroupMembersColumns = []*schema.Column{
+		{Name: "users_group_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// UsersGroupMembersTable holds the schema information for the "users_group_members" table.
+	UsersGroupMembersTable = &schema.Table{
+		Name:       "users_group_members",
+		Columns:    UsersGroupMembersColumns,
+		PrimaryKey: []*schema.Column{UsersGroupMembersColumns[0], UsersGroupMembersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "users_group_members_users_group_id",
+				Columns: []*schema.Column{UsersGroupMembersColumns[0]},
+
+				RefColumns: []*schema.Column{UsersGroupsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:  "users_group_members_user_id",
+				Columns: []*schema.Column{UsersGroupMembersColumns[1]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ActionsRulesTable,
@@ -1578,12 +1621,14 @@ var (
 		SurveyWiFiScansTable,
 		TechniciansTable,
 		UsersTable,
+		UsersGroupsTable,
 		WorkOrdersTable,
 		WorkOrderDefinitionsTable,
 		WorkOrderTypesTable,
 		ServiceUpstreamTable,
 		ServiceLinksTable,
 		ServiceCustomerTable,
+		UsersGroupMembersTable,
 	}
 )
 
@@ -1671,4 +1716,6 @@ func init() {
 	ServiceLinksTable.ForeignKeys[1].RefTable = LinksTable
 	ServiceCustomerTable.ForeignKeys[0].RefTable = ServicesTable
 	ServiceCustomerTable.ForeignKeys[1].RefTable = CustomersTable
+	UsersGroupMembersTable.ForeignKeys[0].RefTable = UsersGroupsTable
+	UsersGroupMembersTable.ForeignKeys[1].RefTable = UsersTable
 }

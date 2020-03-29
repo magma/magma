@@ -1058,6 +1058,30 @@ func (f UserWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error 
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.UserMutation", m)
 }
 
+// The UsersGroupReadRuleFunc type is an adapter to allow the use of ordinary
+// functions as a read rule.
+type UsersGroupReadRuleFunc func(context.Context, *ent.UsersGroup) error
+
+// EvalRead calls f(ctx, v).
+func (f UsersGroupReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
+	if v, ok := v.(*ent.UsersGroup); ok {
+		return f(ctx, v)
+	}
+	return Denyf("ent/privacy: unexpected value type %T, expect *ent.UsersGroup", v)
+}
+
+// The UsersGroupWriteRuleFunc type is an adapter to allow the use of ordinary
+// functions as a write rule.
+type UsersGroupWriteRuleFunc func(context.Context, *ent.UsersGroupMutation) error
+
+// EvalWrite calls f(ctx, m).
+func (f UsersGroupWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.UsersGroupMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.UsersGroupMutation", m)
+}
+
 // The WorkOrderReadRuleFunc type is an adapter to allow the use of ordinary
 // functions as a read rule.
 type WorkOrderReadRuleFunc func(context.Context, *ent.WorkOrder) error

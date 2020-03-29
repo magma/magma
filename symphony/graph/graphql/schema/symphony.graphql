@@ -43,6 +43,23 @@ type User implements Node {
   status: UserStatus!
   role: UserRole!
   profilePhoto: File
+  groups: [UsersGroup]!
+}
+
+enum UsersGroupStatus
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/usersgroup.Status"
+  ) {
+  ACTIVE
+  DEACTIVATED
+}
+
+type UsersGroup implements Node {
+  id: ID!
+  name: String!
+  description: String
+  status: UsersGroupStatus!
+  members: [User!]!
 }
 
 type Viewer
@@ -132,6 +149,18 @@ input EditUserInput {
   lastName: String
   status: UserStatus
   role: UserRole
+}
+
+input AddUsersGroupInput {
+  name: String!
+  description: String
+}
+
+input EditUsersGroupInput {
+  id: ID!
+  name: String
+  description: String
+  status: UsersGroupStatus
 }
 
 input AddLocationInput {
@@ -1165,6 +1194,20 @@ type UserConnection {
 }
 
 """
+A connection to a list of users groups.
+"""
+type UsersGroupConnection {
+  """
+  A list of users group type edges.
+  """
+  edges: [UsersGroupEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
 A work order type edge in a connection.
 """
 type UserEdge {
@@ -1172,6 +1215,20 @@ type UserEdge {
   The user type at the end of the edge.
   """
   node: User
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A work order type edge in a connection.
+"""
+type UsersGroupEdge {
+  """
+  The user type at the end of the edge.
+  """
+  node: UsersGroup
   """
   A cursor for use in pagination.
   """
@@ -2179,6 +2236,12 @@ type Query {
     last: Int
   ): WorkOrderTypeConnection
   users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
+  usersGroups(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): UsersGroupConnection
   searchForEntity(
     name: String!
     after: Cursor
@@ -2253,6 +2316,8 @@ type Query {
 
 type Mutation {
   editUser(input: EditUserInput!): User!
+  addUsersGroup(input: AddUsersGroupInput!): UsersGroup!
+  editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
   createSurvey(data: SurveyCreateData!): ID!
   addLocation(input: AddLocationInput!): Location!
   editLocation(input: EditLocationInput!): Location!

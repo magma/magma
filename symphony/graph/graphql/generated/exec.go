@@ -21,6 +21,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
@@ -82,6 +83,7 @@ type ResolverRoot interface {
 	SurveyTemplateQuestion() SurveyTemplateQuestionResolver
 	SurveyWiFiScan() SurveyWiFiScanResolver
 	User() UserResolver
+	UsersGroup() UsersGroupResolver
 	Viewer() ViewerResolver
 	WorkOrder() WorkOrderResolver
 	WorkOrderDefinition() WorkOrderDefinitionResolver
@@ -494,6 +496,7 @@ type ComplexityRoot struct {
 		AddServiceLink                           func(childComplexity int, id int, linkID int) int
 		AddServiceType                           func(childComplexity int, data models.ServiceTypeCreateData) int
 		AddTechnician                            func(childComplexity int, input models.TechnicianInput) int
+		AddUsersGroup                            func(childComplexity int, input models.AddUsersGroupInput) int
 		AddWiFiScans                             func(childComplexity int, data []*models.SurveyWiFiScanData, locationID int) int
 		AddWorkOrder                             func(childComplexity int, input models.AddWorkOrderInput) int
 		AddWorkOrderType                         func(childComplexity int, input models.AddWorkOrderTypeInput) int
@@ -522,6 +525,7 @@ type ComplexityRoot struct {
 		EditService                              func(childComplexity int, data models.ServiceEditData) int
 		EditServiceType                          func(childComplexity int, data models.ServiceTypeEditData) int
 		EditUser                                 func(childComplexity int, input models.EditUserInput) int
+		EditUsersGroup                           func(childComplexity int, input models.EditUsersGroupInput) int
 		EditWorkOrder                            func(childComplexity int, input models.EditWorkOrderInput) int
 		EditWorkOrderType                        func(childComplexity int, input models.EditWorkOrderTypeInput) int
 		ExecuteWorkOrder                         func(childComplexity int, id int) int
@@ -680,6 +684,7 @@ type ComplexityRoot struct {
 		User                     func(childComplexity int, authID string) int
 		UserSearch               func(childComplexity int, filters []*models.UserFilterInput, limit *int) int
 		Users                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		UsersGroups              func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Vertex                   func(childComplexity int, id int) int
 		WorkOrder                func(childComplexity int, id int) int
 		WorkOrderSearch          func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
@@ -877,6 +882,7 @@ type ComplexityRoot struct {
 		AuthID       func(childComplexity int) int
 		Email        func(childComplexity int) int
 		FirstName    func(childComplexity int) int
+		Groups       func(childComplexity int) int
 		ID           func(childComplexity int) int
 		LastName     func(childComplexity int) int
 		ProfilePhoto func(childComplexity int) int
@@ -897,6 +903,24 @@ type ComplexityRoot struct {
 	UserSearchResult struct {
 		Count func(childComplexity int) int
 		Users func(childComplexity int) int
+	}
+
+	UsersGroup struct {
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Members     func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Status      func(childComplexity int) int
+	}
+
+	UsersGroupConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	UsersGroupEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 
 	Vertex struct {
@@ -1110,6 +1134,8 @@ type LocationTypeResolver interface {
 }
 type MutationResolver interface {
 	EditUser(ctx context.Context, input models.EditUserInput) (*ent.User, error)
+	AddUsersGroup(ctx context.Context, input models.AddUsersGroupInput) (*ent.UsersGroup, error)
+	EditUsersGroup(ctx context.Context, input models.EditUsersGroupInput) (*ent.UsersGroup, error)
 	CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error)
 	AddLocation(ctx context.Context, input models.AddLocationInput) (*ent.Location, error)
 	EditLocation(ctx context.Context, input models.EditLocationInput) (*ent.Location, error)
@@ -1228,6 +1254,7 @@ type QueryResolver interface {
 	WorkOrders(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) (*ent.WorkOrderConnection, error)
 	WorkOrderTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.WorkOrderTypeConnection, error)
 	Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UserConnection, error)
+	UsersGroups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UsersGroupConnection, error)
 	SearchForEntity(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchEntriesConnection, error)
 	SearchForNode(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchNodesConnection, error)
 	EquipmentSearch(ctx context.Context, filters []*models.EquipmentFilterInput, limit *int) (*models.EquipmentSearchResult, error)
@@ -1311,6 +1338,10 @@ type SurveyWiFiScanResolver interface {
 }
 type UserResolver interface {
 	ProfilePhoto(ctx context.Context, obj *ent.User) (*ent.File, error)
+	Groups(ctx context.Context, obj *ent.User) ([]*ent.UsersGroup, error)
+}
+type UsersGroupResolver interface {
+	Members(ctx context.Context, obj *ent.UsersGroup) ([]*ent.User, error)
 }
 type ViewerResolver interface {
 	User(ctx context.Context, obj *viewer.Viewer) (*ent.User, error)
@@ -3209,6 +3240,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddTechnician(childComplexity, args["input"].(models.TechnicianInput)), true
 
+	case "Mutation.addUsersGroup":
+		if e.complexity.Mutation.AddUsersGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addUsersGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddUsersGroup(childComplexity, args["input"].(models.AddUsersGroupInput)), true
+
 	case "Mutation.addWiFiScans":
 		if e.complexity.Mutation.AddWiFiScans == nil {
 			break
@@ -3544,6 +3587,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditUser(childComplexity, args["input"].(models.EditUserInput)), true
+
+	case "Mutation.editUsersGroup":
+		if e.complexity.Mutation.EditUsersGroup == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editUsersGroup_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditUsersGroup(childComplexity, args["input"].(models.EditUsersGroupInput)), true
 
 	case "Mutation.editWorkOrder":
 		if e.complexity.Mutation.EditWorkOrder == nil {
@@ -4700,6 +4755,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Users(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
+	case "Query.usersGroups":
+		if e.complexity.Query.UsersGroups == nil {
+			break
+		}
+
+		args, err := ec.field_Query_usersGroups_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UsersGroups(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+
 	case "Query.vertex":
 		if e.complexity.Query.Vertex == nil {
 			break
@@ -5642,6 +5709,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.FirstName(childComplexity), true
 
+	case "User.groups":
+		if e.complexity.User.Groups == nil {
+			break
+		}
+
+		return e.complexity.User.Groups(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -5718,6 +5792,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserSearchResult.Users(childComplexity), true
+
+	case "UsersGroup.description":
+		if e.complexity.UsersGroup.Description == nil {
+			break
+		}
+
+		return e.complexity.UsersGroup.Description(childComplexity), true
+
+	case "UsersGroup.id":
+		if e.complexity.UsersGroup.ID == nil {
+			break
+		}
+
+		return e.complexity.UsersGroup.ID(childComplexity), true
+
+	case "UsersGroup.members":
+		if e.complexity.UsersGroup.Members == nil {
+			break
+		}
+
+		return e.complexity.UsersGroup.Members(childComplexity), true
+
+	case "UsersGroup.name":
+		if e.complexity.UsersGroup.Name == nil {
+			break
+		}
+
+		return e.complexity.UsersGroup.Name(childComplexity), true
+
+	case "UsersGroup.status":
+		if e.complexity.UsersGroup.Status == nil {
+			break
+		}
+
+		return e.complexity.UsersGroup.Status(childComplexity), true
+
+	case "UsersGroupConnection.edges":
+		if e.complexity.UsersGroupConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.UsersGroupConnection.Edges(childComplexity), true
+
+	case "UsersGroupConnection.pageInfo":
+		if e.complexity.UsersGroupConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.UsersGroupConnection.PageInfo(childComplexity), true
+
+	case "UsersGroupEdge.cursor":
+		if e.complexity.UsersGroupEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.UsersGroupEdge.Cursor(childComplexity), true
+
+	case "UsersGroupEdge.node":
+		if e.complexity.UsersGroupEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.UsersGroupEdge.Node(childComplexity), true
 
 	case "Vertex.edges":
 		if e.complexity.Vertex.Edges == nil {
@@ -6268,6 +6405,23 @@ type User implements Node {
   status: UserStatus!
   role: UserRole!
   profilePhoto: File
+  groups: [UsersGroup]!
+}
+
+enum UsersGroupStatus
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/usersgroup.Status"
+  ) {
+  ACTIVE
+  DEACTIVATED
+}
+
+type UsersGroup implements Node {
+  id: ID!
+  name: String!
+  description: String
+  status: UsersGroupStatus!
+  members: [User!]!
 }
 
 type Viewer
@@ -6357,6 +6511,18 @@ input EditUserInput {
   lastName: String
   status: UserStatus
   role: UserRole
+}
+
+input AddUsersGroupInput {
+  name: String!
+  description: String
+}
+
+input EditUsersGroupInput {
+  id: ID!
+  name: String
+  description: String
+  status: UsersGroupStatus
 }
 
 input AddLocationInput {
@@ -7390,6 +7556,20 @@ type UserConnection {
 }
 
 """
+A connection to a list of users groups.
+"""
+type UsersGroupConnection {
+  """
+  A list of users group type edges.
+  """
+  edges: [UsersGroupEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
 A work order type edge in a connection.
 """
 type UserEdge {
@@ -7397,6 +7577,20 @@ type UserEdge {
   The user type at the end of the edge.
   """
   node: User
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A work order type edge in a connection.
+"""
+type UsersGroupEdge {
+  """
+  The user type at the end of the edge.
+  """
+  node: UsersGroup
   """
   A cursor for use in pagination.
   """
@@ -8404,6 +8598,12 @@ type Query {
     last: Int
   ): WorkOrderTypeConnection
   users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
+  usersGroups(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): UsersGroupConnection
   searchForEntity(
     name: String!
     after: Cursor
@@ -8478,6 +8678,8 @@ type Query {
 
 type Mutation {
   editUser(input: EditUserInput!): User!
+  addUsersGroup(input: AddUsersGroupInput!): UsersGroup!
+  editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
   createSurvey(data: SurveyCreateData!): ID!
   addLocation(input: AddLocationInput!): Location!
   editLocation(input: EditLocationInput!): Location!
@@ -9099,6 +9301,20 @@ func (ec *executionContext) field_Mutation_addTechnician_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addUsersGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.AddUsersGroupInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNAddUsersGroupInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddUsersGroupInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addWiFiScans_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9523,6 +9739,20 @@ func (ec *executionContext) field_Mutation_editUser_args(ctx context.Context, ra
 	var arg0 models.EditUserInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNEditUserInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditUserInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_editUsersGroup_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.EditUsersGroupInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNEditUsersGroupInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditUsersGroupInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -10736,6 +10966,44 @@ func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["authID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_usersGroups_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.Cursor
+	if tmp, ok := rawArgs["after"]; ok {
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *ent.Cursor
+	if tmp, ok := rawArgs["before"]; ok {
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
 	return args, nil
 }
 
@@ -19269,6 +19537,94 @@ func (ec *executionContext) _Mutation_editUser(ctx context.Context, field graphq
 	return ec.marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addUsersGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addUsersGroup_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddUsersGroup(rctx, args["input"].(models.AddUsersGroupInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.UsersGroup)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUsersGroup2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_editUsersGroup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_editUsersGroup_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditUsersGroup(rctx, args["input"].(models.EditUsersGroupInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.UsersGroup)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUsersGroup2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -25482,6 +25838,47 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	return ec.marshalOUserConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUserConnection(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_usersGroups(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_usersGroups_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UsersGroups(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.UsersGroupConnection)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUsersGroupConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupConnection(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_searchForEntity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -31173,6 +31570,43 @@ func (ec *executionContext) _User_profilePhoto(ctx context.Context, field graphq
 	return ec.marshalOFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _User_groups(ctx context.Context, field graphql.CollectedField, obj *ent.User) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Groups(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.UsersGroup)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUsersGroup2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.UserConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -31390,6 +31824,333 @@ func (ec *executionContext) _UserSearchResult_count(ctx context.Context, field g
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroup_id(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroup) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UsersGroup",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroup_name(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroup) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UsersGroup",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroup_description(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroup) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UsersGroup",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroup_status(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroup) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UsersGroup",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(usersgroup.Status)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋusersgroupᚐStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroup_members(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroup) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UsersGroup",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UsersGroup().Members(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroupConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroupConnection) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UsersGroupConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.UsersGroupEdge)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUsersGroupEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroupConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroupConnection) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UsersGroupConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroupEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroupEdge) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UsersGroupEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.UsersGroup)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUsersGroup2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroupEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroupEdge) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "UsersGroupEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Vertex_id(ctx context.Context, field graphql.CollectedField, obj *ent.Node) (ret graphql.Marshaler) {
@@ -35632,6 +36393,30 @@ func (ec *executionContext) unmarshalInputAddServiceEndpointInput(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAddUsersGroupInput(ctx context.Context, obj interface{}) (models.AddUsersGroupInput, error) {
+	var it models.AddUsersGroupInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context, obj interface{}) (models.AddWorkOrderInput, error) {
 	var it models.AddWorkOrderInput
 	var asMap = obj.(map[string]interface{})
@@ -36673,6 +37458,42 @@ func (ec *executionContext) unmarshalInputEditUserInput(ctx context.Context, obj
 		case "role":
 			var err error
 			it.Role, err = ec.unmarshalOUserRole2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋuserᚐRole(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputEditUsersGroupInput(ctx context.Context, obj interface{}) (models.EditUsersGroupInput, error) {
+	var it models.EditUsersGroupInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+			it.Status, err = ec.unmarshalOUsersGroupStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋusersgroupᚐStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38707,6 +39528,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._User(ctx, sel, obj)
+	case *ent.UsersGroup:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._UsersGroup(ctx, sel, obj)
 	case *ent.Location:
 		if obj == nil {
 			return graphql.Null
@@ -41627,6 +42453,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "addUsersGroup":
+			out.Values[i] = ec._Mutation_addUsersGroup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "editUsersGroup":
+			out.Values[i] = ec._Mutation_editUsersGroup(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createSurvey":
 			out.Values[i] = ec._Mutation_createSurvey(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -42809,6 +43645,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_users(ctx, field)
+				return res
+			})
+		case "usersGroups":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_usersGroups(ctx, field)
 				return res
 			})
 		case "searchForEntity":
@@ -44366,6 +45213,20 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				res = ec._User_profilePhoto(ctx, field, obj)
 				return res
 			})
+		case "groups":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_groups(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -44456,6 +45317,120 @@ func (ec *executionContext) _UserSearchResult(ctx context.Context, sel ast.Selec
 			}
 		case "count":
 			out.Values[i] = ec._UserSearchResult_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var usersGroupImplementors = []string{"UsersGroup", "Node"}
+
+func (ec *executionContext) _UsersGroup(ctx context.Context, sel ast.SelectionSet, obj *ent.UsersGroup) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, usersGroupImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UsersGroup")
+		case "id":
+			out.Values[i] = ec._UsersGroup_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._UsersGroup_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+			out.Values[i] = ec._UsersGroup_description(ctx, field, obj)
+		case "status":
+			out.Values[i] = ec._UsersGroup_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "members":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UsersGroup_members(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var usersGroupConnectionImplementors = []string{"UsersGroupConnection"}
+
+func (ec *executionContext) _UsersGroupConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.UsersGroupConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, usersGroupConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UsersGroupConnection")
+		case "edges":
+			out.Values[i] = ec._UsersGroupConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._UsersGroupConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var usersGroupEdgeImplementors = []string{"UsersGroupEdge"}
+
+func (ec *executionContext) _UsersGroupEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.UsersGroupEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, usersGroupEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UsersGroupEdge")
+		case "node":
+			out.Values[i] = ec._UsersGroupEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._UsersGroupEdge_cursor(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -45895,6 +46870,10 @@ func (ec *executionContext) unmarshalNAddServiceEndpointInput2githubᚗcomᚋfac
 	return ec.unmarshalInputAddServiceEndpointInput(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNAddUsersGroupInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddUsersGroupInput(ctx context.Context, v interface{}) (models.AddUsersGroupInput, error) {
+	return ec.unmarshalInputAddUsersGroupInput(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNAddWorkOrderInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddWorkOrderInput(ctx context.Context, v interface{}) (models.AddWorkOrderInput, error) {
 	return ec.unmarshalInputAddWorkOrderInput(ctx, v)
 }
@@ -46403,6 +47382,10 @@ func (ec *executionContext) unmarshalNEditReportFilterInput2githubᚗcomᚋfaceb
 
 func (ec *executionContext) unmarshalNEditUserInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditUserInput(ctx context.Context, v interface{}) (models.EditUserInput, error) {
 	return ec.unmarshalInputEditUserInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNEditUsersGroupInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditUsersGroupInput(ctx context.Context, v interface{}) (models.EditUsersGroupInput, error) {
+	return ec.unmarshalInputEditUsersGroupInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNEditWorkOrderInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEditWorkOrderInput(ctx context.Context, v interface{}) (models.EditWorkOrderInput, error) {
@@ -49420,6 +50403,43 @@ func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋfacebookincubator�
 	return ret
 }
 
+func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.User) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx context.Context, sel ast.SelectionSet, v *ent.User) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
@@ -49557,6 +50577,123 @@ func (ec *executionContext) unmarshalNUserStatus2githubᚗcomᚋfacebookincubato
 }
 
 func (ec *executionContext) marshalNUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋuserᚐStatus(ctx context.Context, sel ast.SelectionSet, v user.Status) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNUsersGroup2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx context.Context, sel ast.SelectionSet, v ent.UsersGroup) graphql.Marshaler {
+	return ec._UsersGroup(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUsersGroup2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx context.Context, sel ast.SelectionSet, v []*ent.UsersGroup) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUsersGroup2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNUsersGroup2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx context.Context, sel ast.SelectionSet, v *ent.UsersGroup) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UsersGroup(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUsersGroupEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupEdge(ctx context.Context, sel ast.SelectionSet, v ent.UsersGroupEdge) graphql.Marshaler {
+	return ec._UsersGroupEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUsersGroupEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.UsersGroupEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUsersGroupEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNUsersGroupEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupEdge(ctx context.Context, sel ast.SelectionSet, v *ent.UsersGroupEdge) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UsersGroupEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋusersgroupᚐStatus(ctx context.Context, v interface{}) (usersgroup.Status, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return usersgroup.Status(tmp), err
+}
+
+func (ec *executionContext) marshalNUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋusersgroupᚐStatus(ctx context.Context, sel ast.SelectionSet, v usersgroup.Status) graphql.Marshaler {
 	res := graphql.MarshalString(string(v))
 	if res == graphql.Null {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
@@ -51860,6 +52997,52 @@ func (ec *executionContext) marshalOUserStatus2ᚖgithubᚗcomᚋfacebookincubat
 		return graphql.Null
 	}
 	return ec.marshalOUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋuserᚐStatus(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOUsersGroup2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx context.Context, sel ast.SelectionSet, v ent.UsersGroup) graphql.Marshaler {
+	return ec._UsersGroup(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOUsersGroup2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroup(ctx context.Context, sel ast.SelectionSet, v *ent.UsersGroup) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UsersGroup(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUsersGroupConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupConnection(ctx context.Context, sel ast.SelectionSet, v ent.UsersGroupConnection) graphql.Marshaler {
+	return ec._UsersGroupConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOUsersGroupConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUsersGroupConnection(ctx context.Context, sel ast.SelectionSet, v *ent.UsersGroupConnection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UsersGroupConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋusersgroupᚐStatus(ctx context.Context, v interface{}) (usersgroup.Status, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return usersgroup.Status(tmp), err
+}
+
+func (ec *executionContext) marshalOUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋusersgroupᚐStatus(ctx context.Context, sel ast.SelectionSet, v usersgroup.Status) graphql.Marshaler {
+	return graphql.MarshalString(string(v))
+}
+
+func (ec *executionContext) unmarshalOUsersGroupStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋusersgroupᚐStatus(ctx context.Context, v interface{}) (*usersgroup.Status, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋusersgroupᚐStatus(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOUsersGroupStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋusersgroupᚐStatus(ctx context.Context, sel ast.SelectionSet, v *usersgroup.Status) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋusersgroupᚐStatus(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalOVertex2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNode(ctx context.Context, sel ast.SelectionSet, v ent.Node) graphql.Marshaler {
