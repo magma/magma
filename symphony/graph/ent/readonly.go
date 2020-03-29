@@ -59,6 +59,7 @@ func (c *Client) ReadOnly() *Client {
 		SurveyWiFiScan:              NewSurveyWiFiScanClient(cfg),
 		Technician:                  NewTechnicianClient(cfg),
 		User:                        NewUserClient(cfg),
+		UsersGroup:                  NewUsersGroupClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
 		WorkOrderType:               NewWorkOrderTypeClient(cfg),

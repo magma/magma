@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 42910816d0da8c1562eead93259451e3
+ * @relayHash 7f78e4bf97f5c385153babc300a1ea25
  */
 
 /* eslint-disable */
@@ -29,6 +29,10 @@ export type UserManagementContext_UsersQueryResponse = {|
         +email: string,
         +status: UserStatus,
         +role: UserRole,
+        +groups: $ReadOnlyArray<?{|
+          +id: string,
+          +name: string,
+        |}>,
         +profilePhoto: ?{|
           +id: string,
           +fileName: string,
@@ -57,6 +61,10 @@ query UserManagementContext_UsersQuery {
         email
         status
         role
+        groups {
+          id
+          name
+        }
         profilePhoto {
           id
           fileName
@@ -143,6 +151,25 @@ v1 = [
             "name": "role",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "groups",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "UsersGroup",
+            "plural": true,
+            "selections": [
+              (v0/*: any*/),
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "name",
+                "args": null,
+                "storageKey": null
+              }
+            ]
           },
           {
             "kind": "LinkedField",
@@ -272,7 +299,7 @@ return {
     "operationKind": "query",
     "name": "UserManagementContext_UsersQuery",
     "id": null,
-    "text": "query UserManagementContext_UsersQuery {\n  users(first: 500) {\n    edges {\n      node {\n        id\n        authID\n        firstName\n        lastName\n        email\n        status\n        role\n        profilePhoto {\n          id\n          fileName\n          storeKey\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
+    "text": "query UserManagementContext_UsersQuery {\n  users(first: 500) {\n    edges {\n      node {\n        id\n        authID\n        firstName\n        lastName\n        email\n        status\n        role\n        groups {\n          id\n          name\n        }\n        profilePhoto {\n          id\n          fileName\n          storeKey\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
     "metadata": {
       "connection": [
         {
@@ -289,5 +316,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b956eaf7b877e3771ad02617129c1154';
+(node/*: any*/).hash = '52ded548b68c86b759b118e17871ca66';
 module.exports = node;

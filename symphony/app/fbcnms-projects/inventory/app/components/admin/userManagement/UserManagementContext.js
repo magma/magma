@@ -191,6 +191,10 @@ const usersQuery = graphql`
           email
           status
           role
+          groups {
+            id
+            name
+          }
           profilePhoto {
             id
             fileName

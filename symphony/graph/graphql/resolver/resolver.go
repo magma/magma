@@ -102,6 +102,10 @@ func (resolver) User() generated.UserResolver {
 	return userResolver{}
 }
 
+func (resolver) UsersGroup() generated.UsersGroupResolver {
+	return usersGroupResolver{}
+}
+
 func (resolver) Link() generated.LinkResolver {
 	return linkResolver{}
 }

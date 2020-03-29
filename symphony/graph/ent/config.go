@@ -66,6 +66,7 @@ type hooks struct {
 	SurveyWiFiScan              []ent.Hook
 	Technician                  []ent.Hook
 	User                        []ent.Hook
+	UsersGroup                  []ent.Hook
 	WorkOrder                   []ent.Hook
 	WorkOrderDefinition         []ent.Hook
 	WorkOrderType               []ent.Hook

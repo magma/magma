@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
@@ -184,6 +185,11 @@ type AddServiceEndpointInput struct {
 	Role   ServiceEndpointRole `json:"role"`
 }
 
+type AddUsersGroupInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
+}
+
 type AddWorkOrderInput struct {
 	Name                string                    `json:"name"`
 	Description         *string                   `json:"description"`
@@ -336,6 +342,13 @@ type EditUserInput struct {
 	LastName  *string      `json:"lastName"`
 	Status    *user.Status `json:"status"`
 	Role      *user.Role   `json:"role"`
+}
+
+type EditUsersGroupInput struct {
+	ID          int                `json:"id"`
+	Name        *string            `json:"name"`
+	Description *string            `json:"description"`
+	Status      *usersgroup.Status `json:"status"`
 }
 
 type EditWorkOrderInput struct {

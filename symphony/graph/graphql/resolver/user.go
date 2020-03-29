@@ -33,6 +33,10 @@ func (r queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int,
 		Paginate(ctx, after, first, before, last)
 }
 
+func (userResolver) Groups(ctx context.Context, obj *ent.User) ([]*ent.UsersGroup, error) {
+	return obj.QueryGroups().All(ctx)
+}
+
 func (r mutationResolver) EditUser(ctx context.Context, input models.EditUserInput) (*ent.User, error) {
 	client := r.ClientFrom(ctx)
 

@@ -27,6 +27,8 @@ const (
 
 	// EdgeProfilePhoto holds the string denoting the profile_photo edge name in mutations.
 	EdgeProfilePhoto = "profile_photo"
+	// EdgeGroups holds the string denoting the groups edge name in mutations.
+	EdgeGroups = "groups"
 
 	// Table holds the table name of the user in the database.
 	Table = "users"
@@ -37,6 +39,11 @@ const (
 	ProfilePhotoInverseTable = "files"
 	// ProfilePhotoColumn is the table column denoting the profile_photo relation/edge.
 	ProfilePhotoColumn = "user_profile_photo"
+	// GroupsTable is the table the holds the groups relation/edge. The primary key declared below.
+	GroupsTable = "users_group_members"
+	// GroupsInverseTable is the table name for the UsersGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "usersgroup" package.
+	GroupsInverseTable = "users_groups"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -56,6 +63,12 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"user_profile_photo",
 }
+
+var (
+	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
+	// primary key for the groups relation (M2M).
+	GroupsPrimaryKey = []string{"users_group_id", "user_id"}
+)
 
 var (
 	// DefaultCreateTime holds the default value on creation for the create_time field.

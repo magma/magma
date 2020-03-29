@@ -53,6 +53,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -3689,7 +3690,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 8),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.CreateTime); err != nil {
@@ -3767,6 +3768,80 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "File",
 		Name: "ProfilePhoto",
+	}
+	ids, err = u.QueryGroups().
+		Select(usersgroup.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "UsersGroup",
+		Name: "Groups",
+	}
+	return node, nil
+}
+
+func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ug.ID,
+		Type:   "UsersGroup",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ug.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ug.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ug.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "Name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ug.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "Description",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ug.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "usersgroup.Status",
+		Name:  "Status",
+		Value: string(buf),
+	}
+	var ids []int
+	ids, err = ug.QueryMembers().
+		Select(user.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "User",
+		Name: "Members",
 	}
 	return node, nil
 }
@@ -4533,6 +4608,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.User.Query().
 			Where(user.ID(id)).
 			CollectFields(ctx, "User").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case usersgroup.Table:
+		n, err := c.UsersGroup.Query().
+			Where(usersgroup.ID(id)).
+			CollectFields(ctx, "UsersGroup").
 			Only(ctx)
 		if err != nil {
 			return nil, err

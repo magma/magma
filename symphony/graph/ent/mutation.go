@@ -48,6 +48,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -103,6 +104,7 @@ const (
 	TypeSurveyWiFiScan              = "SurveyWiFiScan"
 	TypeTechnician                  = "Technician"
 	TypeUser                        = "User"
+	TypeUsersGroup                  = "UsersGroup"
 	TypeWorkOrder                   = "WorkOrder"
 	TypeWorkOrderDefinition         = "WorkOrderDefinition"
 	TypeWorkOrderType               = "WorkOrderType"
@@ -26387,6 +26389,8 @@ type UserMutation struct {
 	clearedFields        map[string]bool
 	profile_photo        *int
 	clearedprofile_photo bool
+	groups               map[int]struct{}
+	removedgroups        map[int]struct{}
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -26656,6 +26660,48 @@ func (m *UserMutation) ResetProfilePhoto() {
 	m.clearedprofile_photo = false
 }
 
+// AddGroupIDs adds the groups edge to UsersGroup by ids.
+func (m *UserMutation) AddGroupIDs(ids ...int) {
+	if m.groups == nil {
+		m.groups = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.groups[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveGroupIDs removes the groups edge to UsersGroup by ids.
+func (m *UserMutation) RemoveGroupIDs(ids ...int) {
+	if m.removedgroups == nil {
+		m.removedgroups = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedgroups[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGroups returns the removed ids of groups.
+func (m *UserMutation) RemovedGroupsIDs() (ids []int) {
+	for id := range m.removedgroups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GroupsIDs returns the groups ids in the mutation.
+func (m *UserMutation) GroupsIDs() (ids []int) {
+	for id := range m.groups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGroups reset all changes of the groups edge.
+func (m *UserMutation) ResetGroups() {
+	m.groups = nil
+	m.removedgroups = nil
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
@@ -26885,9 +26931,12 @@ func (m *UserMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.profile_photo != nil {
 		edges = append(edges, user.EdgeProfilePhoto)
+	}
+	if m.groups != nil {
+		edges = append(edges, user.EdgeGroups)
 	}
 	return edges
 }
@@ -26900,6 +26949,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.profile_photo; id != nil {
 			return []ent.Value{*id}
 		}
+	case user.EdgeGroups:
+		ids := make([]ent.Value, 0, len(m.groups))
+		for id := range m.groups {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -26907,7 +26962,10 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedgroups != nil {
+		edges = append(edges, user.EdgeGroups)
+	}
 	return edges
 }
 
@@ -26915,6 +26973,12 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given edge name.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case user.EdgeGroups:
+		ids := make([]ent.Value, 0, len(m.removedgroups))
+		for id := range m.removedgroups {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -26922,7 +26986,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedprofile_photo {
 		edges = append(edges, user.EdgeProfilePhoto)
 	}
@@ -26958,8 +27022,469 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeProfilePhoto:
 		m.ResetProfilePhoto()
 		return nil
+	case user.EdgeGroups:
+		m.ResetGroups()
+		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// UsersGroupMutation represents an operation that mutate the UsersGroups
+// nodes in the graph.
+type UsersGroupMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	create_time    *time.Time
+	update_time    *time.Time
+	name           *string
+	description    *string
+	status         *usersgroup.Status
+	clearedFields  map[string]bool
+	members        map[int]struct{}
+	removedmembers map[int]struct{}
+}
+
+var _ ent.Mutation = (*UsersGroupMutation)(nil)
+
+// newUsersGroupMutation creates new mutation for $n.Name.
+func newUsersGroupMutation(c config, op Op) *UsersGroupMutation {
+	return &UsersGroupMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUsersGroup,
+		clearedFields: make(map[string]bool),
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UsersGroupMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UsersGroupMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the id value in the mutation. Note that, the id
+// is available only if it was provided to the builder.
+func (m *UsersGroupMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreateTime sets the create_time field.
+func (m *UsersGroupMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the create_time value in the mutation.
+func (m *UsersGroupMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCreateTime reset all changes of the create_time field.
+func (m *UsersGroupMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the update_time field.
+func (m *UsersGroupMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the update_time value in the mutation.
+func (m *UsersGroupMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUpdateTime reset all changes of the update_time field.
+func (m *UsersGroupMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetName sets the name field.
+func (m *UsersGroupMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the name value in the mutation.
+func (m *UsersGroupMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetName reset all changes of the name field.
+func (m *UsersGroupMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the description field.
+func (m *UsersGroupMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the description value in the mutation.
+func (m *UsersGroupMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDescription clears the value of description.
+func (m *UsersGroupMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[usersgroup.FieldDescription] = true
+}
+
+// DescriptionCleared returns if the field description was cleared in this mutation.
+func (m *UsersGroupMutation) DescriptionCleared() bool {
+	return m.clearedFields[usersgroup.FieldDescription]
+}
+
+// ResetDescription reset all changes of the description field.
+func (m *UsersGroupMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, usersgroup.FieldDescription)
+}
+
+// SetStatus sets the status field.
+func (m *UsersGroupMutation) SetStatus(u usersgroup.Status) {
+	m.status = &u
+}
+
+// Status returns the status value in the mutation.
+func (m *UsersGroupMutation) Status() (r usersgroup.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatus reset all changes of the status field.
+func (m *UsersGroupMutation) ResetStatus() {
+	m.status = nil
+}
+
+// AddMemberIDs adds the members edge to User by ids.
+func (m *UsersGroupMutation) AddMemberIDs(ids ...int) {
+	if m.members == nil {
+		m.members = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.members[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveMemberIDs removes the members edge to User by ids.
+func (m *UsersGroupMutation) RemoveMemberIDs(ids ...int) {
+	if m.removedmembers == nil {
+		m.removedmembers = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedmembers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedMembers returns the removed ids of members.
+func (m *UsersGroupMutation) RemovedMembersIDs() (ids []int) {
+	for id := range m.removedmembers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// MembersIDs returns the members ids in the mutation.
+func (m *UsersGroupMutation) MembersIDs() (ids []int) {
+	for id := range m.members {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetMembers reset all changes of the members edge.
+func (m *UsersGroupMutation) ResetMembers() {
+	m.members = nil
+	m.removedmembers = nil
+}
+
+// Op returns the operation name.
+func (m *UsersGroupMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (UsersGroup).
+func (m *UsersGroupMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during
+// this mutation. Note that, in order to get all numeric
+// fields that were in/decremented, call AddedFields().
+func (m *UsersGroupMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.create_time != nil {
+		fields = append(fields, usersgroup.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, usersgroup.FieldUpdateTime)
+	}
+	if m.name != nil {
+		fields = append(fields, usersgroup.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, usersgroup.FieldDescription)
+	}
+	if m.status != nil {
+		fields = append(fields, usersgroup.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name.
+// The second boolean value indicates that this field was
+// not set, or was not define in the schema.
+func (m *UsersGroupMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case usersgroup.FieldCreateTime:
+		return m.CreateTime()
+	case usersgroup.FieldUpdateTime:
+		return m.UpdateTime()
+	case usersgroup.FieldName:
+		return m.Name()
+	case usersgroup.FieldDescription:
+		return m.Description()
+	case usersgroup.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// SetField sets the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *UsersGroupMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case usersgroup.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case usersgroup.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case usersgroup.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case usersgroup.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case usersgroup.FieldStatus:
+		v, ok := value.(usersgroup.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UsersGroup field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented
+// or decremented during this mutation.
+func (m *UsersGroupMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was in/decremented
+// from a field with the given name. The second value indicates
+// that this field was not set, or was not define in the schema.
+func (m *UsersGroupMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *UsersGroupMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown UsersGroup numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared
+// during this mutation.
+func (m *UsersGroupMutation) ClearedFields() []string {
+	var fields []string
+	if m.clearedFields[usersgroup.FieldDescription] {
+		fields = append(fields, usersgroup.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicates if this field was
+// cleared in this mutation.
+func (m *UsersGroupMutation) FieldCleared(name string) bool {
+	return m.clearedFields[name]
+}
+
+// ClearField clears the value for the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UsersGroupMutation) ClearField(name string) error {
+	switch name {
+	case usersgroup.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown UsersGroup nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation regarding the
+// given field name. It returns an error if the field is not
+// defined in the schema.
+func (m *UsersGroupMutation) ResetField(name string) error {
+	switch name {
+	case usersgroup.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case usersgroup.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case usersgroup.FieldName:
+		m.ResetName()
+		return nil
+	case usersgroup.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case usersgroup.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown UsersGroup field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this
+// mutation.
+func (m *UsersGroupMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.members != nil {
+		edges = append(edges, usersgroup.EdgeMembers)
+	}
+	return edges
+}
+
+// AddedIDs returns all ids (to other nodes) that were added for
+// the given edge name.
+func (m *UsersGroupMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case usersgroup.EdgeMembers:
+		ids := make([]ent.Value, 0, len(m.members))
+		for id := range m.members {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this
+// mutation.
+func (m *UsersGroupMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedmembers != nil {
+		edges = append(edges, usersgroup.EdgeMembers)
+	}
+	return edges
+}
+
+// RemovedIDs returns all ids (to other nodes) that were removed for
+// the given edge name.
+func (m *UsersGroupMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case usersgroup.EdgeMembers:
+		ids := make([]ent.Value, 0, len(m.removedmembers))
+		for id := range m.removedmembers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this
+// mutation.
+func (m *UsersGroupMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// EdgeCleared returns a boolean indicates if this edge was
+// cleared in this mutation.
+func (m *UsersGroupMutation) EdgeCleared(name string) bool {
+	switch name {
+	}
+	return false
+}
+
+// ClearEdge clears the value for the given name. It returns an
+// error if the edge name is not defined in the schema.
+func (m *UsersGroupMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown UsersGroup unique edge %s", name)
+}
+
+// ResetEdge resets all changes in the mutation regarding the
+// given edge name. It returns an error if the edge is not
+// defined in the schema.
+func (m *UsersGroupMutation) ResetEdge(name string) error {
+	switch name {
+	case usersgroup.EdgeMembers:
+		m.ResetMembers()
+		return nil
+	}
+	return fmt.Errorf("unknown UsersGroup edge %s", name)
 }
 
 // WorkOrderMutation represents an operation that mutate the WorkOrders
