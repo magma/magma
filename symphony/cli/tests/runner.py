@@ -34,9 +34,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "-l",
         "--local",
-        help="Wether to run tests locally against local fb-test env",
-        default=False,
-        action="store_true",
+        help="Run against which tenant in local environment. Default: fb-test",
+        type=str,
+        const="fb-test",
+        default=None,
+        nargs="?",
     )
     parser.add_argument(
         "-r",
@@ -48,8 +50,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.local:
+    if args.local is not None:
         pyinventory_tests.utils.TEST_MODE = TestMode.LOCAL
+        pyinventory_tests.utils.TENANT = args.local
     elif args.remote is not None:
         pyinventory_tests.utils.TEST_MODE = TestMode.REMOTE
         pyinventory_tests.utils.TENANT = args.remote
