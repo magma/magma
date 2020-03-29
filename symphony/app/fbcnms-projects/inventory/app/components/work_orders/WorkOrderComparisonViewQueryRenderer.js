@@ -22,7 +22,7 @@ import type {DisplayOptionTypes} from '../InventoryViewContainer';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    display: 'flex',
+    flexGrow: 1,
   },
   noResultsRoot: {
     display: 'flex',

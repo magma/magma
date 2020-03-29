@@ -14,7 +14,15 @@ import * as React from 'react';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapIcon from '@material-ui/icons/Map';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
+import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
+
+const useStyles = makeStyles(() => ({
+  root: {
+    display: 'flex',
+    height: '100%',
+  },
+}));
 
 export const DisplayOptions = {
   table: 'table',
@@ -33,6 +41,7 @@ const InventoryView = (props: Props) => {
   const viewProps: ViewContainerProps = {
     ...restProps,
   };
+  const classes = useStyles();
   const [selectedDisplayOption, setSelectedDisplayOption] = useState(
     DisplayOptions.table,
   );
@@ -58,7 +67,11 @@ const InventoryView = (props: Props) => {
       ],
     };
   }
-  return <ViewContainer {...viewProps} />;
+  return (
+    <div className={classes.root}>
+      <ViewContainer {...viewProps} />
+    </div>
+  );
 };
 
 export default InventoryView;
