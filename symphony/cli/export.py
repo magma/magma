@@ -11,7 +11,7 @@ from distutils.version import LooseVersion
 
 from export_doc import export_doc
 from pyinventory import InventoryClient
-from utils import archive_zip, extract_zip
+from schema_versioning_utils import add_current_schema_with_version
 
 
 GRAPHQL_PYINVENORY_CONTENT = (
@@ -90,9 +90,9 @@ def export(email, password, useLocally, replaceLatestVersion, hasBreakingChange)
     )
 
     export_doc()
-    schemas = extract_zip("graphql_schema_versions/old_schemas.zip")
-    schemas[version] = open("../graph/graphql/schema/symphony.graphql").read()
-    archive_zip("graphql_schema_versions/old_schemas.zip", schemas)
+    add_current_schema_with_version(
+        "graphql_schema_versions", "../graph/graphql/schema/symphony.graphql", version
+    )
 
 
 if __name__ == "__main__":
