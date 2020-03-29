@@ -62,6 +62,15 @@ type UsersGroup implements Node {
   members: [User!]!
 }
 
+type AdministrativePolicy {
+  canRead: Boolean!
+}
+
+type PermissionSettings {
+  canWrite: Boolean!
+  adminPolicy: AdministrativePolicy!
+}
+
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
@@ -71,6 +80,7 @@ type Viewer
       reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
     )
   user: User!
+  permissions: PermissionSettings!
 }
 
 """

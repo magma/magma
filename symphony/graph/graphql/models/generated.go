@@ -216,6 +216,10 @@ type AddWorkOrderTypeInput struct {
 	CheckListCategories []*CheckListCategoryInput   `json:"checkListCategories"`
 }
 
+type AdministrativePolicy struct {
+	CanRead bool `json:"canRead"`
+}
+
 type CheckListCategoryInput struct {
 	ID          *int                  `json:"id"`
 	Title       string                `json:"title"`
@@ -492,6 +496,11 @@ type LocationTypeIndex struct {
 type NetworkTopology struct {
 	Nodes []ent.Noder     `json:"nodes"`
 	Links []*TopologyLink `json:"links"`
+}
+
+type PermissionSettings struct {
+	CanWrite    bool                  `json:"canWrite"`
+	AdminPolicy *AdministrativePolicy `json:"adminPolicy"`
 }
 
 type PortFilterInput struct {
