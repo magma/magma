@@ -454,6 +454,7 @@ input TechnicianCheckListItemInput {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  yesNoResponse: YesNoResponse
 }
 
 input TechnicianWorkOrderUploadInput {

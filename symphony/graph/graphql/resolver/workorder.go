@@ -437,18 +437,8 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 	client := r.ClientFrom(ctx)
 	cl := client.CheckListItem
 	var selectionMode *string
-	var yesNoVal *checklistitem.YesNoVal
 	if input.EnumSelectionMode != nil {
 		selectionMode = pointer.ToString(input.EnumSelectionMode.String())
-	}
-	if input.YesNoResponse != nil {
-		var yesNo checklistitem.YesNoVal
-		if *input.YesNoResponse == models.YesNoResponseYes {
-			yesNo = checklistitem.YesNoValYES
-		} else {
-			yesNo = checklistitem.YesNoValNO
-		}
-		yesNoVal = &yesNo
 	}
 
 	var cli *ent.CheckListItem
@@ -464,7 +454,7 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableStringVal(input.StringValue).
 			SetNillableEnumSelectionMode(selectionMode).
 			SetNillableSelectedEnumValues(input.SelectedEnumValues).
-			SetNillableYesNoVal(yesNoVal).
+			SetNillableYesNoVal(convertYesNoResponseToYesNoVal(input.YesNoResponse)).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list item")
@@ -480,7 +470,7 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableStringVal(input.StringValue).
 			SetNillableEnumSelectionMode(selectionMode).
 			SetNillableSelectedEnumValues(input.SelectedEnumValues).
-			SetNillableYesNoVal(yesNoVal).
+			SetNillableYesNoVal(convertYesNoResponseToYesNoVal(input.YesNoResponse)).
 			Save(ctx)
 	}
 	if err != nil {
@@ -765,6 +755,18 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 	}
 }
 
+func convertYesNoResponseToYesNoVal(response *models.YesNoResponse) *checklistitem.YesNoVal {
+	if response == nil {
+		return nil
+	}
+	yesNoVal := checklistitem.YesNoVal(*response)
+	err := checklistitem.YesNoValValidator(yesNoVal)
+	if err != nil {
+		return nil
+	}
+	return &yesNoVal
+}
+
 func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, input models.TechnicianWorkOrderUploadInput) (*ent.WorkOrder, error) {
 	client := r.ClientFrom(ctx)
 
@@ -799,6 +801,7 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 			SetNillableChecked(clInput.Checked).
 			SetNillableStringVal(clInput.StringValue).
 			SetNillableSelectedEnumValues(clInput.SelectedEnumValues).
+			SetNillableYesNoVal(convertYesNoResponseToYesNoVal(clInput.YesNoResponse)).
 			Save(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("updating checklist item %q: err %w", clInput.ID, err)
