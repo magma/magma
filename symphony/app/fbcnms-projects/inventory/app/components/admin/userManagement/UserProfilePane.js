@@ -98,6 +98,7 @@ const useStyles = makeStyles(() => ({
   },
   field: {
     marginRight: '8px',
+    maxHeight: '58px',
     flexShrink: '1',
     flexBasis: '240px',
   },
