@@ -22,8 +22,8 @@ import UsersView from './UsersView';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import fbt from 'fbt';
 import {UserManagementContextProvider} from './UserManagementContext';
+import {useCallback, useMemo, useState} from 'react';
 import {useHistory, withRouter} from 'react-router-dom';
-import {useMemo, useState} from 'react';
 
 const USERS_HEADER = fbt(
   'Users & Roles',
@@ -36,6 +36,10 @@ const UserManaementView = ({match}: Props) => {
   const history = useHistory();
   const basePath = match.path;
   const [addingNewUser, setAddingNewUser] = useState(false);
+  const gotoGroupsPage = useCallback(() => history.push(`${basePath}/groups`), [
+    history,
+    basePath,
+  ]);
   const VIEWS: Array<NavigatableView> = useMemo(
     () => [
       {
@@ -87,13 +91,14 @@ const UserManaementView = ({match}: Props) => {
         component: {
           children: (
             <PermissionsGroupCard
-              redirectToGroupsView={() => history.push(`${basePath}/groups`)}
+              redirectToGroupsView={gotoGroupsPage}
+              onClose={gotoGroupsPage}
             />
           ),
         },
       },
     ],
-    [basePath, history],
+    [gotoGroupsPage],
   );
 
   return (
