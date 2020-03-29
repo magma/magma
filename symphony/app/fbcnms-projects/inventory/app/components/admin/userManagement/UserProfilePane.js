@@ -12,7 +12,9 @@ import type {EmploymentType, User} from './TempTypes';
 import type {OptionProps} from '@fbcnms/ui/components/design-system/Select/SelectMenu';
 
 import * as React from 'react';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import FileUploadArea from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
+import FileUploadButton from '../../FileUpload/FileUploadButton';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormFieldTextInput from './FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
@@ -21,7 +23,10 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {DocumentAPIUrls} from '../../../common/DocumentAPI';
+import {SQUARE_DIMENSION_PX} from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import {makeStyles} from '@material-ui/styles';
+import {useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -49,10 +54,42 @@ const useStyles = makeStyles(() => ({
     marginBottom: '16px',
   },
   photoContainer: {
+    flexBasis: SQUARE_DIMENSION_PX,
+    flexGrow: 0,
+    flexShrink: 0,
+    overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
     marginRight: '24px',
     height: '138px',
+  },
+  photoWrapper: {
+    maxHeight: '100%',
+    position: 'relative',
+  },
+  photoArea: {
+    display: 'flex',
+    flexDirection: 'column',
+    '&:hover $photoRemoveButton': {
+      display: 'unset',
+    },
+  },
+  photo: {
+    flexBasis: SQUARE_DIMENSION_PX,
+    flexGrow: 1,
+    overflow: 'hidden',
+    width: '100%',
+    objectFit: 'cover',
+    objectPosition: '50% 50%',
+    borderRadius: '4px',
+  },
+  photoRemoveButton: {
+    display: 'none',
+    position: 'absolute',
+    bottom: '8px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    opacity: '0.9',
   },
   fieldsContainer: {
     display: 'flex',
@@ -62,19 +99,6 @@ const useStyles = makeStyles(() => ({
     marginRight: '8px',
     flexShrink: '1',
     flexBasis: '240px',
-  },
-  photoUploadContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '112px',
-    width: '112px',
-    backgroundColor: symphony.palette.D10,
-    border: `1px dashed ${symphony.palette.D100}`,
-    '&:hover': {
-      borderColor: symphony.palette.D900,
-      cursor: 'pointer',
-    },
   },
 }));
 
@@ -100,6 +124,10 @@ export default function UserProfilePane(props: Props) {
   const {user, onChange} = props;
   const classes = useStyles();
 
+  /* temp */
+  const [profilePhoto, setProfilePhoto] = useState<?{storeKey: string}>(null);
+  useEffect(() => setProfilePhoto(null), [user]);
+
   return (
     <div className={classes.root}>
       <div className={classes.section}>
@@ -116,8 +144,44 @@ export default function UserProfilePane(props: Props) {
         </div>
         <div className={classes.personalDetails}>
           <div className={classes.photoContainer}>
-            <FormField label={`${fbt('Photo', '')}`}>
-              <FileUploadArea onFileChanged={files => alert(files[0].name)} />
+            <FormField
+              label={`${fbt('Photo', '')}`}
+              className={classes.photoWrapper}>
+              <FileUploadButton
+                useUploadSnackbar={false}
+                multiple={false}
+                onFileUploaded={
+                  (_file, storeKey) => setProfilePhoto({storeKey})
+                  /*
+                  onChange({
+                    ...user,
+                    profilePhoto: {
+                      id: '',
+                      storeKey,
+                      fileName: file.name,
+                    },
+                  })
+                  */
+                }>
+                {openFileUploadDialog =>
+                  profilePhoto?.storeKey != null ? (
+                    <div className={classes.photoArea}>
+                      <img
+                        src={DocumentAPIUrls.get_url(profilePhoto.storeKey)}
+                        className={classes.photo}
+                      />
+                      <Button
+                        className={classes.photoRemoveButton}
+                        skin="regular"
+                        onClick={() => setProfilePhoto(null)}>
+                        <fbt desc="">Remove</fbt>
+                      </Button>
+                    </div>
+                  ) : (
+                    <FileUploadArea onClick={openFileUploadDialog} />
+                  )
+                }
+              </FileUploadButton>
             </FormField>
           </div>
           <div className={classes.fieldsContainer}>
