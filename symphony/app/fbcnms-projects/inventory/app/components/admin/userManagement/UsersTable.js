@@ -21,6 +21,7 @@ import UserDetailsCard from './UserDetailsCard';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {USER_ROLES, USER_STATUSES} from './TempTypes';
+import {haveDifferentValues} from '../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useUserManagement} from './UserManagementContext';
@@ -138,7 +139,9 @@ export default function UsersTable() {
       <UserDetailsCard
         user={users[userIndex]}
         onChange={user => {
-          editUser(user);
+          if (haveDifferentValues(users[userIndex], user)) {
+            editUser(user);
+          }
         }}
       />
     );
