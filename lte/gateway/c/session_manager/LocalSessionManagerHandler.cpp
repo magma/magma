@@ -24,8 +24,10 @@ const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
   std::shared_ptr<LocalEnforcer> enforcer,
   SessionReporter* reporter,
-  std::shared_ptr<AsyncDirectorydClient> directoryd_client):
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+  SessionMap & session_map):
   enforcer_(enforcer),
+  session_map_(session_map),
   reporter_(reporter),
   directoryd_client_(directoryd_client),
 
@@ -43,7 +45,7 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   auto &request_cpy = *request;
   MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
-    enforcer_->aggregate_records(request_cpy);
+    enforcer_->aggregate_records(session_map_, request_cpy);
     check_usage_for_reporting();
   });
   reported_epoch_ = request_cpy.epoch();
@@ -59,8 +61,8 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
 void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
 {
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  auto request = enforcer_->collect_updates(actions);
-  enforcer_->execute_actions(actions);
+  auto request = enforcer_->collect_updates(session_map_, actions);
+  enforcer_->execute_actions(session_map_, actions);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
     return; // nothing to report
   }
@@ -72,12 +74,12 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
   reporter_->report_updates(
     request, [this, request](Status status, UpdateSessionResponse response) {
       if (!status.ok()) {
-        enforcer_->reset_updates(request);
+        enforcer_->reset_updates(session_map_, request);
         MLOG(MERROR) << "Update of size " << request.updates_size()
                      << " to OCS failed entirely: " << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        enforcer_->update_session_credits_and_rules(response);
+        enforcer_->update_session_credits_and_rules(session_map_, response);
         // Check if we need to report more updates
         check_usage_for_reporting();
       }
@@ -106,9 +108,15 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     enforcer_->get_event_base().runInEventBaseThread([=] {
       enforcer_->get_event_base().timer().scheduleTimeoutFn(
         std::move([=] {
-          enforcer_->setup(epoch,
-            std::bind(&LocalSessionManagerHandlerImpl::handle_setup_callback,
-                      this, epoch, _1, _2));
+          enforcer_->setup(
+            session_map_,
+            epoch,
+            std::bind(
+              &LocalSessionManagerHandlerImpl::handle_setup_callback,
+              this,
+              epoch,
+              _1,
+              _2));
         }),
         retry_timeout_);
     });
@@ -122,9 +130,15 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     enforcer_->get_event_base().runInEventBaseThread([=] {
       enforcer_->get_event_base().timer().scheduleTimeoutFn(
         std::move([=] {
-          enforcer_->setup(epoch,
-            std::bind(&LocalSessionManagerHandlerImpl::handle_setup_callback,
-                      this, epoch, _1, _2));
+          enforcer_->setup(
+            session_map_,
+            epoch,
+            std::bind(
+              &LocalSessionManagerHandlerImpl::handle_setup_callback,
+              this,
+              epoch,
+              _1,
+              _2));
         }),
         retry_timeout_);
     });
@@ -138,9 +152,15 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
 {
   using namespace std::placeholders;
   enforcer_->get_event_base().runInEventBaseThread([this, epoch]() {
-    enforcer_->setup(epoch,
-      std::bind(&LocalSessionManagerHandlerImpl::handle_setup_callback,
-                this, epoch, _1, _2));
+    enforcer_->setup(
+      session_map_,
+      epoch,
+      std::bind(
+        &LocalSessionManagerHandlerImpl::handle_setup_callback,
+        this,
+        epoch,
+        _1,
+        _2));
   });
   return true;
 }
@@ -201,9 +221,10 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   }
   cfg.qos_info = qos_info;
 
-  if (enforcer_->session_with_imsi_exists(imsi)) {
+  if (enforcer_->session_with_imsi_exists(session_map_, imsi)) {
     std::string core_sid;
-    bool same_config = enforcer_->session_with_same_config_exists(imsi, cfg, &core_sid);
+    bool same_config = enforcer_->session_with_same_config_exists(
+      session_map_, imsi, cfg, &core_sid);
     bool is_wifi = request->rat_type() == RATType::TGPP_WLAN;
     if (same_config || is_wifi){
       if (is_wifi) {
@@ -231,7 +252,8 @@ void LocalSessionManagerHandlerImpl::CreateSession(
       // No new session created
       return;
     }
-    if (enforcer_->session_with_apn_exists(imsi, request->apn())) {
+    if (enforcer_->session_with_apn_exists(
+          session_map_, imsi, request->apn())) {
       MLOG(MINFO) << "Found session with the same IMSI " << imsi
                   << " and APN " << request->apn()
                   << ", but different configuration."
@@ -266,7 +288,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
     [this, imsi, sid, cfg, response_callback](
       Status status, CreateSessionResponse response) {
       if (status.ok()) {
-        bool success = enforcer_->init_session_credit(imsi, sid, cfg, response);
+        bool success = enforcer_->init_session_credit(
+          session_map_, imsi, sid, cfg, response);
         if (!success) {
           MLOG(MERROR) << "Failed to init session in for IMSI " << imsi;
           status =
@@ -348,6 +371,7 @@ void LocalSessionManagerHandlerImpl::EndSession(
       try {
         auto reporter = reporter_;
         enforcer_->terminate_subscriber(
+          session_map_,
           request_cpy.sid().id(),
           request_cpy.apn(),
           [reporter](SessionTerminateRequest term_req) {
