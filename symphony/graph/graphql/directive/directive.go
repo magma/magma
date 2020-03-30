@@ -10,11 +10,12 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/pkg/log"
-
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/gqlerror"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 	"go.uber.org/zap"
 )
 
@@ -142,20 +143,29 @@ func (d *directive) isNil(i interface{}) (result bool) {
 	return reflect.ValueOf(i).IsNil()
 }
 
-func (d *directive) DeprecatedInput(ctx context.Context, obj interface{}, next graphql.Resolver, newField *string, reason *string) (res interface{}, err error) {
-	if newField == nil {
-		return next(ctx)
-	}
+func (d *directive) DeprecatedInput(ctx context.Context, obj interface{}, next graphql.Resolver, name, duplicateError string, newField *string) (res interface{}, err error) {
 	value, err := next(ctx)
 	if err != nil || d.isNil(value) {
 		return value, err
+	}
+	tags := []tag.Mutator{
+		tag.Upsert(Field, name),
+	}
+
+	_ = stats.RecordWithTags(
+		ctx,
+		tags,
+		ServerDeprecatedInputs.M(1),
+	)
+	if newField == nil {
+		return next(ctx)
 	}
 	m, ok := obj.(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("unexpected obj type %T", obj)
 	}
 	if newValue, ok := m[*newField]; ok && newValue != nil {
-		return nil, gqlerror.Errorf(*reason)
+		return nil, gqlerror.Errorf(duplicateError)
 	}
 	return value, nil
 }

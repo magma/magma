@@ -298,7 +298,7 @@ func TestDirectiveDeprecatedInputField(t *testing.T) {
 	var (
 		d                    = New(logtest.NewTestLogger(t))
 		deprecatedInputField = func(in interface{}, next graphql.Resolver) (interface{}, error) {
-			return d.DeprecatedInput(context.Background(), in, next, pointer.ToString("input2"), pointer.ToString("Reason"))
+			return d.DeprecatedInput(context.Background(), in, next, "AddInput.input", "Don't use both", pointer.ToString("input2"))
 		}
 	)
 	t.Run("OnlyDeprecatedField", func(t *testing.T) {

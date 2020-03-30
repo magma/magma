@@ -91,7 +91,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	DeprecatedInput func(ctx context.Context, obj interface{}, next graphql.Resolver, newField *string, reason *string) (res interface{}, err error)
+	DeprecatedInput func(ctx context.Context, obj interface{}, next graphql.Resolver, name string, duplicateError string, newField *string) (res interface{}, err error)
 
 	Length func(ctx context.Context, obj interface{}, next graphql.Resolver, min int, max *int) (res interface{}, err error)
 
@@ -6416,8 +6416,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
 #    %> ./compile_graphql.sh
 
 directive @deprecatedInput(
+  name: String!
+  duplicateError: String!
   newField: String
-  reason: String = "Deprecated field is no longer supported"
 ) on INPUT_FIELD_DEFINITION
 
 enum UserStatus
@@ -6847,14 +6848,16 @@ input AddWorkOrderInput {
   ownerName: String
     @deprecatedInput(
       newField: "ownerId"
-      reason: "Use ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` together"
+      name: "AddWorkOrderInput.ownerName"
+      duplicateError: "Use ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` together"
     )
   ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
   assignee: String
     @deprecatedInput(
       newField: "assigneeId"
-      reason: "Use ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.assignee` + "`" + ` and ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` together"
+      name: "AddWorkOrderInput.assignee"
+      duplicateError: "Use ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.assignee` + "`" + ` and ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` together"
     )
   assigneeId: ID
   index: Int
@@ -6869,14 +6872,16 @@ input EditWorkOrderInput {
   ownerName: String
     @deprecatedInput(
       newField: "ownerId"
-      reason: "Use ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` together"
+      name: "EditWorkOrderInput.ownerName"
+      duplicateError: "Use ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` together"
     )
   ownerId: ID
   installDate: Time
   assignee: String
     @deprecatedInput(
       newField: "assigneeId"
-      reason: "Use ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.assignee` + "`" + ` and ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` together"
+      name: "EditWorkOrderInput.assignee"
+      duplicateError: "Use ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.assignee` + "`" + ` and ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` together"
     )
   assigneeId: ID
   index: Int
@@ -7804,7 +7809,8 @@ input AddProjectInput {
   creator: String
     @deprecatedInput(
       newField: "creatorId"
-      reason: "Use ` + "`" + `AddProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddProjectInput.creator` + "`" + ` and ` + "`" + `AddProjectInput.creatorId` + "`" + ` together"
+      name: "AddProjectInput.creator"
+      duplicateError: "Use ` + "`" + `AddProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddProjectInput.creator` + "`" + ` and ` + "`" + `AddProjectInput.creatorId` + "`" + ` together"
     )
   creatorId: ID
   type: ID!
@@ -7819,7 +7825,8 @@ input EditProjectInput {
   creator: String
     @deprecatedInput(
       newField: "creatorId"
-      reason: "Use ` + "`" + `EditProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditProjectInput.creator` + "`" + ` and ` + "`" + `EditProjectInput.creatorId` + "`" + ` together"
+      name: "EditProjectInput.creator"
+      duplicateError: "Use ` + "`" + `EditProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditProjectInput.creator` + "`" + ` and ` + "`" + `EditProjectInput.creatorId` + "`" + ` together"
     )
   creatorId: ID
   type: ID!
@@ -8919,22 +8926,30 @@ type Subscription {
 func (ec *executionContext) dir_deprecatedInput_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *string
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["duplicateError"]; ok {
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["duplicateError"] = arg1
+	var arg2 *string
 	if tmp, ok := rawArgs["newField"]; ok {
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["newField"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["reason"]; ok {
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["reason"] = arg1
+	args["newField"] = arg2
 	return args, nil
 }
 
@@ -36429,18 +36444,22 @@ func (ec *executionContext) unmarshalInputAddProjectInput(ctx context.Context, o
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
+				name, err := ec.unmarshalNString2string(ctx, "AddProjectInput.creator")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -36666,18 +36685,22 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
+				name, err := ec.unmarshalNString2string(ctx, "AddWorkOrderInput.ownerName")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -36707,18 +36730,22 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
+				name, err := ec.unmarshalNString2string(ctx, "AddWorkOrderInput.assignee")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -37461,18 +37488,22 @@ func (ec *executionContext) unmarshalInputEditProjectInput(ctx context.Context, 
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
+				name, err := ec.unmarshalNString2string(ctx, "EditProjectInput.creator")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -37728,18 +37759,22 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
+				name, err := ec.unmarshalNString2string(ctx, "EditWorkOrderInput.ownerName")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -37769,18 +37804,22 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
+				name, err := ec.unmarshalNString2string(ctx, "EditWorkOrderInput.assignee")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
