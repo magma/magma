@@ -72,7 +72,7 @@ const TextCommentPost = (props: Props) => {
       <div className={classes.commentBody}>
         <Text variant="body2" className={classes.commentContent}>
           <span className={classes.commentAuthor}>
-            {comment.authorName + ' '}
+            {comment.author.email + ' '}
           </span>
           <span>{comment.text}</span>
         </Text>
@@ -90,7 +90,9 @@ export default withAlert(
       comment: graphql`
         fragment TextCommentPost_comment on Comment {
           id
-          authorName
+          author {
+            email
+          }
           text
           createTime
         }

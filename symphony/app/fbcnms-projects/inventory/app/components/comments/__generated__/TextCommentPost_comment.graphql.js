@@ -19,7 +19,9 @@ declare export opaque type TextCommentPost_comment$ref: FragmentReference;
 declare export opaque type TextCommentPost_comment$fragmentType: TextCommentPost_comment$ref;
 export type TextCommentPost_comment = {|
   +id: string,
-  +authorName: string,
+  +author: {|
+    +email: string
+  |},
   +text: string,
   +createTime: any,
   +$refType: TextCommentPost_comment$ref,
@@ -48,11 +50,22 @@ const node/*: ReaderFragment*/ = {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "authorName",
+      "name": "author",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": [
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "email",
+          "args": null,
+          "storageKey": null
+        }
+      ]
     },
     {
       "kind": "ScalarField",
@@ -71,5 +84,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = 'bbba65892bc1bce4eda908c5b4722028';
+(node/*: any*/).hash = '2dc0bd1e406e6fde1cdd0196b9b245eb';
 module.exports = node;

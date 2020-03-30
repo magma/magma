@@ -242,3 +242,7 @@ func (resolver) Viewer() generated.ViewerResolver {
 func (r resolver) ReportFilter() generated.ReportFilterResolver {
 	return reportFilterResolver{}
 }
+
+func (r resolver) Comment() generated.CommentResolver {
+	return commentResolver{}
+}

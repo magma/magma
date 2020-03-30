@@ -1119,8 +1119,12 @@ func (r mutationResolver) DeleteImage(ctx context.Context, _ models.ImageEntity,
 
 func (r mutationResolver) AddComment(ctx context.Context, input models.CommentInput) (*ent.Comment, error) {
 	client := r.ClientFrom(ctx)
+	u, err := viewer.UserFromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying user: %w", err)
+	}
 	c, err := client.Comment.Create().
-		SetAuthorName(r.Me(ctx).User).
+		SetAuthor(u).
 		SetText(input.Text).
 		Save(ctx)
 	if err != nil {

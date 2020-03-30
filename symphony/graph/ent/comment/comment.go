@@ -16,12 +16,21 @@ const (
 	// FieldID holds the string denoting the id field in the database.
 	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
 	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldAuthorName holds the string denoting the author_name vertex property in the database.
-	FieldAuthorName = "author_name" // FieldText holds the string denoting the text vertex property in the database.
+	FieldUpdateTime = "update_time" // FieldText holds the string denoting the text vertex property in the database.
 	FieldText       = "text"
+
+	// EdgeAuthor holds the string denoting the author edge name in mutations.
+	EdgeAuthor = "author"
 
 	// Table holds the table name of the comment in the database.
 	Table = "comments"
+	// AuthorTable is the table the holds the author relation/edge.
+	AuthorTable = "comments"
+	// AuthorInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	AuthorInverseTable = "users"
+	// AuthorColumn is the table column denoting the author relation/edge.
+	AuthorColumn = "comment_author"
 )
 
 // Columns holds all SQL columns for comment fields.
@@ -29,12 +38,12 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldAuthorName,
 	FieldText,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Comment type.
 var ForeignKeys = []string{
+	"comment_author",
 	"project_comments",
 	"work_order_comments",
 }
