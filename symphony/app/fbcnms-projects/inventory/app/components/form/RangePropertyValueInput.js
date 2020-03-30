@@ -10,8 +10,8 @@
 
 import type {FocusEvent} from '@fbcnms/ui/components/design-system/Input/TextInput';
 
+import FormContext from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import InputAffix from '@fbcnms/ui/components/design-system/Input/InputAffix';
 import React from 'react';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
@@ -71,15 +71,15 @@ const RangePropertyValueInput = (props: Props) => {
   const {rangeFrom, rangeTo} = value;
   const fieldIdPrefix = `range-${label || 'field'}-`;
   return (
-    <FormValidationContext.Consumer>
-      {validationContext => {
-        const errorFrom = validationContext.error.check({
+    <FormContext.Consumer>
+      {form => {
+        const errorFrom = form.alerts.error.check({
           fieldId: `${fieldIdPrefix}From`,
           fieldDisplayName: 'From',
           value: parseFloat(rangeFrom),
           required: required,
         });
-        const errorTo = validationContext.error.check({
+        const errorTo = form.alerts.error.check({
           fieldId: `${fieldIdPrefix}To`,
           fieldDisplayName: 'To',
           value: parseFloat(rangeTo),
@@ -140,7 +140,7 @@ const RangePropertyValueInput = (props: Props) => {
           </FormField>
         );
       }}
-    </FormValidationContext.Consumer>
+    </FormContext.Consumer>
   );
 };
 

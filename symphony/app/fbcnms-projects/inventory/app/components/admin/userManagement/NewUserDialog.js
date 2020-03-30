@@ -16,10 +16,8 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import FormContext, {FormContextProvider} from '../../../common/FormContext';
 import FormFieldTextInput from './FormFieldTextInput';
-import FormValidationContext, {
-  FormValidationContextProvider,
-} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Grid from '@material-ui/core/Grid';
 import Strings from '../../../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -92,10 +90,10 @@ const NewUserDialog = ({onClose}: Props) => {
 
   return (
     <Dialog fullWidth={true} maxWidth="md" open={true}>
-      <FormValidationContextProvider>
-        <FormValidationContext.Consumer>
-          {formValidationContext => {
-            formValidationContext.editLock.check({
+      <FormContextProvider>
+        <FormContext.Consumer>
+          {form => {
+            form.alerts.editLock.check({
               fieldId: 'async_save',
               fieldDisplayName: 'Lock while saving',
               value: creatingUser,
@@ -171,18 +169,16 @@ const NewUserDialog = ({onClose}: Props) => {
                   </Button>
                   <Button
                     onClick={addUser}
-                    title={formValidationContext.error.message}
-                    disabled={
-                      formValidationContext.error.detected || creatingUser
-                    }>
+                    title={form.alerts.error.message}
+                    disabled={form.alerts.error.detected || creatingUser}>
                     {Strings.common.saveButton}
                   </Button>
                 </DialogActions>
               </>
             );
           }}
-        </FormValidationContext.Consumer>
-      </FormValidationContextProvider>
+        </FormContext.Consumer>
+      </FormContextProvider>
     </Dialog>
   );
 };

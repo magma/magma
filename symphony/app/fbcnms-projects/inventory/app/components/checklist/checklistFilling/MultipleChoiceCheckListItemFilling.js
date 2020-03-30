@@ -12,13 +12,13 @@ import type {CheckListItemFillingProps} from './CheckListItemFilling';
 import type {OptionProps} from '@fbcnms/ui/components/design-system/Select/SelectMenu';
 
 import * as React from 'react';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import MultiSelect from '@fbcnms/ui/components/design-system/Select/MultiSelect';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import fbt from 'fbt';
 import {enumStringToArray} from '../ChecklistUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useMemo} from 'react';
+import {useFormContext} from '../../../common/FormContext';
+import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   select: {
@@ -31,7 +31,7 @@ const MultipleChoiceCheckListItemFilling = ({
   onChange,
 }: CheckListItemFillingProps): React.Node => {
   const classes = useStyles();
-  const validationContext = useContext(FormValidationContext);
+  const form = useFormContext();
   const enumArrayToOptions = (enumString: ?string) =>
     enumStringToArray(enumString).map(v => ({
       key: v,
@@ -70,7 +70,7 @@ const MultipleChoiceCheckListItemFilling = ({
           : null
       }
       onChange={value => updateOnChange(value)}
-      disabled={validationContext.editLock.detected}
+      disabled={form.alerts.editLock.detected}
     />
   ) : (
     <MultiSelect
@@ -88,7 +88,7 @@ const MultipleChoiceCheckListItemFilling = ({
         );
       }}
       selectedValues={selectedValues}
-      disabled={validationContext.editLock.detected}
+      disabled={form.alerts.editLock.detected}
     />
   );
 };

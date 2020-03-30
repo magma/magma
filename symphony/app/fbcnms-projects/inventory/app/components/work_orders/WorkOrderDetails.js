@@ -28,10 +28,8 @@ import CommentsBox from '../comments/CommentsBox';
 import EntityDocumentsTable from '../EntityDocumentsTable';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FileUploadButton from '../FileUpload/FileUploadButton';
+import FormContext, {FormContextProvider} from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormValidationContext, {
-  FormValidationContextProvider,
-} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Grid from '@material-ui/core/Grid';
 import InsertLinkIcon from '@material-ui/icons/InsertLink';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
@@ -263,7 +261,7 @@ const WorkOrderDetails = ({
   const actionsEnabled = isFeatureEnabled('planned_equipment');
   return (
     <div className={classes.root}>
-      <FormValidationContextProvider>
+      <FormContextProvider>
         <WorkOrderHeader
           workOrderName={propsWorkOrder.name}
           workOrder={workOrder}
@@ -273,15 +271,15 @@ const WorkOrderDetails = ({
           onWorkOrderRemoved={onWorkOrderRemoved}
           onCancelClicked={onCancelClicked}
         />
-        <FormValidationContext.Consumer>
-          {validationContext => {
-            const noOwnerError = validationContext.error.check({
+        <FormContext.Consumer>
+          {form => {
+            const noOwnerError = form.alerts.error.check({
               fieldId: 'Owner',
               fieldDisplayName: 'Owner',
               value: workOrder.owner,
               required: true,
             });
-            validationContext.editLock.check({
+            form.alerts.editLock.check({
               fieldId: 'status',
               fieldDisplayName: 'Status',
               value: propsWorkOrder.status,
@@ -290,7 +288,7 @@ const WorkOrderDetails = ({
                   ? `Work order is on '${doneStatus.label}' state`
                   : '',
             });
-            validationContext.editLock.check({
+            form.alerts.editLock.check({
               fieldId: 'OwnerRule',
               fieldDisplayName: 'Owner rule',
               value: {user, workOrder: propsWorkOrder},
@@ -301,7 +299,7 @@ const WorkOrderDetails = ({
                   ? ''
                   : 'User is not allowed to edit this work order',
             });
-            const nonOwnerAssignee = validationContext.editLock.check({
+            const nonOwnerAssignee = form.alerts.editLock.check({
               fieldId: 'NonOwnerAssigneeRule',
               fieldDisplayName: 'Non Owner assignee rule',
               value: {user, workOrder: propsWorkOrder},
@@ -364,7 +362,7 @@ const WorkOrderDetails = ({
                         <Grid item xs={12} sm={6} lg={4} xl={4}>
                           <FormField
                             label="Status"
-                            disabled={validationContext.error.detected}>
+                            disabled={form.alerts.error.detected}>
                             <Select
                               options={statusValues}
                               selectedValue={workOrder.status}
@@ -581,8 +579,8 @@ const WorkOrderDetails = ({
               </div>
             );
           }}
-        </FormValidationContext.Consumer>
-      </FormValidationContextProvider>
+        </FormContext.Consumer>
+      </FormContextProvider>
     </div>
   );
 };

@@ -17,9 +17,9 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import CheckListCategoryTable from './CheckListCategoryTable';
 import ChecklistCategoriesMutateDispatchContext from '../ChecklistCategoriesMutateDispatchContext';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import fbt from 'fbt';
 import {useContext, useMemo} from 'react';
+import {useFormContext} from '../../../common/FormContext';
 
 type Props = {
   categories: ChecklistCategoriesStateType,
@@ -28,7 +28,7 @@ type Props = {
 const CheckListCategoryExpandingPanel = ({categories}: Props) => {
   const appContext = useContext(AppContext);
   const dispatch = useContext(ChecklistCategoriesMutateDispatchContext);
-  const formValidationContext = useContext(FormValidationContext);
+  const form = useFormContext();
   const categoriesEnabled = useMemo(
     () => appContext.isFeatureEnabled('checklistcategories'),
     [appContext],
@@ -42,10 +42,10 @@ const CheckListCategoryExpandingPanel = ({categories}: Props) => {
       allowExpandCollapse={hasCheckListCategories}
       title={fbt('Checklist Categories', 'Checklist section header')}
       rightContent={
-        formValidationContext.editLock.detected ? null : (
+        form.alerts.editLock.detected ? null : (
           <Button
             variant="text"
-            disabled={formValidationContext.editLock.detected}
+            disabled={form.alerts.editLock.detected}
             onClick={() => dispatch({type: 'ADD_CATEGORY'})}>
             <AddIcon color="primary" />
           </Button>

@@ -13,11 +13,11 @@ import type {YesNoResponse} from '../../work_orders/__generated__/WorkOrderDetai
 
 import * as React from 'react';
 import CommonStrings from '../../../common/CommonStrings';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useMemo} from 'react';
+import {useFormContext} from '../../../common/FormContext';
+import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   select: {
@@ -57,7 +57,7 @@ const YesNoCheckListItemFilling = ({
     onChange(modifiedItem);
   };
 
-  const validationContext = useContext(FormValidationContext);
+  const form = useFormContext();
 
   return (
     <div>
@@ -67,7 +67,7 @@ const YesNoCheckListItemFilling = ({
         options={options}
         selectedValue={item.yesNoResponse ?? null}
         onChange={value => updateOnChange(value)}
-        disabled={validationContext.editLock.detected}
+        disabled={form.alerts.editLock.detected}
       />
     </div>
   );

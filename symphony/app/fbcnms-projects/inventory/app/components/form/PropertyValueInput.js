@@ -17,8 +17,8 @@ import * as React from 'react';
 import EnumPropertySelectValueInput from './EnumPropertySelectValueInput';
 import EnumPropertyValueInput from './EnumPropertyValueInput';
 import EquipmentTypeahead from '../typeahead/EquipmentTypeahead';
+import FormContext from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import GPSPropertyValueInput from './GPSPropertyValueInput';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import RangePropertyValueInput from './RangePropertyValueInput';
@@ -359,9 +359,9 @@ class PropertyValueInput extends React.Component<Props> {
 
   render() {
     return (
-      <FormValidationContext.Consumer>
-        {validationContext => {
-          const input = this.getTextInput(validationContext.editLock.detected);
+      <FormContext.Consumer>
+        {form => {
+          const input = this.getTextInput(form.alerts.editLock.detected);
 
           const {property, headlineVariant, required} = this.props;
           const propertyType = !!property.propertyType
@@ -376,7 +376,7 @@ class PropertyValueInput extends React.Component<Props> {
           ) {
             return input;
           }
-          const errorText = validationContext.error.check({
+          const errorText = form.alerts.error.check({
             fieldId: propertyType.name,
             fieldDisplayName: propertyType.name,
             value: getPropertyValue(property),
@@ -392,7 +392,7 @@ class PropertyValueInput extends React.Component<Props> {
             </FormField>
           );
         }}
-      </FormValidationContext.Consumer>
+      </FormContext.Consumer>
     );
   }
 }

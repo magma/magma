@@ -40,7 +40,7 @@ import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
@@ -213,7 +213,7 @@ class ProjectDetails extends React.Component<Props, State> {
     const {properties} = this.state;
     return (
       <div className={classes.root}>
-        <FormValidationContextProvider>
+        <FormContextProvider>
           <div className={classes.nameHeader}>
             <div className={classes.breadcrumbs}>
               <Breadcrumbs
@@ -373,7 +373,7 @@ class ProjectDetails extends React.Component<Props, State> {
               </Grid>
             </Grid>
           </div>
-        </FormValidationContextProvider>
+        </FormContextProvider>
       </div>
     );
   }

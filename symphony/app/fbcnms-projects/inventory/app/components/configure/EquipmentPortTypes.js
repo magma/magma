@@ -20,7 +20,7 @@ import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
@@ -140,7 +140,7 @@ class EquipmentPortTypes extends React.Component<Props, State> {
               </div>
             ));
           return (
-            <FormValidationContextProvider>
+            <FormContextProvider>
               <div className={classes.typesList}>
                 <div className={classes.firstRow}>
                   <ConfigueTitle
@@ -163,7 +163,7 @@ class EquipmentPortTypes extends React.Component<Props, State> {
                   <div>{listItems}</div>
                 </div>
               </div>
-            </FormValidationContextProvider>
+            </FormContextProvider>
           );
         }}
       />

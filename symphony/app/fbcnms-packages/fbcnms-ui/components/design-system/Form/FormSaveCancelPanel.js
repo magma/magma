@@ -10,7 +10,7 @@
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormAction from './FormAction';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import FormAlertsContext from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import React, {useContext} from 'react';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
@@ -38,7 +38,7 @@ type Props = {
 
 const FormSaveCancelPanel = (props: Props) => {
   const classes = useStyles();
-  const validationContext = useContext(FormValidationContext);
+  const validationContext = useContext(FormAlertsContext);
   return (
     <div title={props.isDisabled && props.disabledMessage}>
       <Button
