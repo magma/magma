@@ -47,7 +47,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
   getNonInstancePropertyTypes,
@@ -233,7 +233,7 @@ class LocationAddEditCard extends React.Component<Props, State> {
     const {latitude, longitude, properties} = editingLocation;
     return (
       <Card>
-        <FormValidationContextProvider>
+        <FormContextProvider>
           <CardContent className={this.props.classes.root}>
             <div className={this.props.classes.header}>
               <Text variant="h5">{editingLocation.locationType.name}</Text>
@@ -294,7 +294,7 @@ class LocationAddEditCard extends React.Component<Props, State> {
               onSave={this.onSave}
             />
           </CardFooter>
-        </FormValidationContextProvider>
+        </FormContextProvider>
       </Card>
     );
   }

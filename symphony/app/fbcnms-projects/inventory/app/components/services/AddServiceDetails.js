@@ -35,7 +35,7 @@ import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
@@ -214,7 +214,7 @@ const AddServiceDetails = (props: Props) => {
   };
 
   return (
-    <FormValidationContextProvider>
+    <FormContextProvider>
       <DialogTitle className={classes.dialogTitle}>
         <Text variant="h6">{service.serviceType.name}</Text>
       </DialogTitle>
@@ -289,7 +289,7 @@ const AddServiceDetails = (props: Props) => {
           captions={{cancelButton: 'Back', saveButton: 'Create'}}
         />
       </DialogActions>
-    </FormValidationContextProvider>
+    </FormContextProvider>
   );
 };
 

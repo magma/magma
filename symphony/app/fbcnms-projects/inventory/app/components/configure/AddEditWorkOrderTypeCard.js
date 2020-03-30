@@ -39,7 +39,7 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
@@ -106,7 +106,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       .slice()
       .sort(sortByIndex);
     return (
-      <FormValidationContextProvider>
+      <FormContextProvider>
         <div className={classes.root}>
           <div className={classes.header}>
             <Breadcrumbs
@@ -173,7 +173,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
             </ExpandingPanel>
           </div>
         </div>
-      </FormValidationContextProvider>
+      </FormContextProvider>
     );
   }
 

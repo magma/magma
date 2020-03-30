@@ -13,13 +13,13 @@ import type {User} from './TempTypes';
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormFieldTextInput from './FormFieldTextInput';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Grid from '@material-ui/core/Grid';
 import Strings from '../../../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
+import {useFormContext} from '../../../common/FormContext';
 
 const useStyles = makeStyles(() => ({
   sectionHeader: {
@@ -65,8 +65,8 @@ const UserAccountDetailsPane = (props: Props) => {
     variant === ACCOUNT_DISPLAY_VARIANTS.newUserDialog,
   );
 
-  const formValidationContext = useContext(FormValidationContext);
-  const passwordRules = formValidationContext.error.check({
+  const form = useFormContext();
+  const passwordRules = form.alerts.error.check({
     fieldId: 'password_rules',
     fieldDisplayName: 'password rules',
     value: password,
@@ -75,7 +75,7 @@ const UserAccountDetailsPane = (props: Props) => {
         ? `${fbt('Password must contain at least 10 characters', '')}`
         : '',
   });
-  const passwordMismatch = formValidationContext.error.check({
+  const passwordMismatch = form.alerts.error.check({
     fieldId: 'password_match',
     fieldDisplayName: 'password match',
     value: !!passwordVerfication && passwordVerfication !== password,
@@ -87,13 +87,13 @@ const UserAccountDetailsPane = (props: Props) => {
     if (
       variant != ACCOUNT_DISPLAY_VARIANTS.newUserDialog ||
       onChange == null ||
-      formValidationContext.error.detected
+      form.alerts.error.detected
     ) {
       return;
     }
     onChange(user, password);
   }, [
-    formValidationContext.error.detected,
+    form.alerts.error.detected,
     isEditable,
     onChange,
     password,
@@ -209,8 +209,8 @@ const UserAccountDetailsPane = (props: Props) => {
                       }
                       exitEditMode();
                     }}
-                    disabled={formValidationContext.error.detected}
-                    title={formValidationContext.error.message}>
+                    disabled={form.alerts.error.detected}
+                    title={form.alerts.error.message}>
                     <fbt desc="">Save Changes</fbt>
                   </Button>
                 </>

@@ -9,8 +9,8 @@
  */
 
 import * as React from 'react';
+import FormAlertsContext from '../Form/FormAlertsContext';
 import FormElementContext from '../Form/FormElementContext';
-import FormValidationContext from '../Form/FormValidationContext';
 import Text from '../Text';
 import classNames from 'classnames';
 import nullthrows from 'nullthrows';
@@ -77,7 +77,7 @@ const FormField = (props: Props) => {
   } = props;
   const classes = useStyles();
 
-  const validationContext = useContext(FormValidationContext);
+  const validationContext = useContext(FormAlertsContext);
   const disabled = useMemo(
     () => disabledProp || validationContext.editLock.detected,
     [disabledProp, validationContext.editLock.detected],

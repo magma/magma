@@ -31,7 +31,7 @@ import React from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {reorder, sortByIndex} from '../draggable/DraggableUtils';
@@ -150,7 +150,7 @@ class LocationTypes extends React.Component<Props, State> {
             );
           }
           return (
-            <FormValidationContextProvider>
+            <FormContextProvider>
               <div className={classes.typesList}>
                 <div className={classes.firstRow}>
                   <ConfigueTitle
@@ -199,7 +199,7 @@ class LocationTypes extends React.Component<Props, State> {
                   </DroppableTableBody>
                 </div>
               </div>
-            </FormValidationContextProvider>
+            </FormContextProvider>
           );
         }}
       />

@@ -17,7 +17,7 @@ import UserAccountPane from './UserAccountPane';
 import UserPermissionsPane from './UserPermissionsPane';
 import UserProfilePane from './UserProfilePane';
 import fbt from 'fbt';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../../common/FormContext';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo, useState} from 'react';
 
@@ -77,7 +77,7 @@ export default function UserDetailsCard(props: Props) {
 
   return (
     <div className={classes.root}>
-      <FormValidationContextProvider>
+      <FormContextProvider>
         <TabsBar
           className={classes.tabsContainer}
           tabs={userDetailParts.map(part => part.tab)}
@@ -88,7 +88,7 @@ export default function UserDetailsCard(props: Props) {
         <div className={classes.viewContainer}>
           {userDetailParts[activePart].view}
         </div>
-      </FormValidationContextProvider>
+      </FormContextProvider>
     </div>
   );
 }

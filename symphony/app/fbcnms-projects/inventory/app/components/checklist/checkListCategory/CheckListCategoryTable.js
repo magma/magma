@@ -14,13 +14,13 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import CheckListCategoryItemsDialog from './CheckListCategoryItemsDialog';
 import ChecklistCategoriesMutateDispatchContext from '../ChecklistCategoriesMutateDispatchContext';
 import DeleteIcon from '@fbcnms/ui/components/design-system/Icons/Actions/DeleteIcon';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import React, {useContext, useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
 import {isChecklistItemDone} from '../ChecklistUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useFormContext} from '../../../common/FormContext';
 
 const useStyles = makeStyles(() => ({
   categoryRow: {
@@ -49,7 +49,7 @@ type CheckListCategoryTableProps = $ReadOnly<{
 
 const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
   const classes = useStyles();
-  const formValidationContext = useContext(FormValidationContext);
+  const form = useFormContext();
   const dispatch = useContext(ChecklistCategoriesMutateDispatchContext);
   const [
     browsedCheckListCategoryId,
@@ -92,7 +92,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
               <TextInput
                 id="title"
                 variant="outlined"
-                disabled={formValidationContext.editLock.detected}
+                disabled={form.alerts.editLock.detected}
                 value={row.value.title}
                 autoFocus={true}
                 placeholder={`${fbt(
@@ -120,7 +120,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
               <TextInput
                 id="description"
                 variant="outlined"
-                disabled={formValidationContext.editLock.detected}
+                disabled={form.alerts.editLock.detected}
                 value={row.value.description || ''}
                 placeholder={`${fbt(
                   'Short description of category (optional)',
@@ -146,7 +146,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
             render: row => (
               <Button
                 skin="gray"
-                disabled={formValidationContext.editLock.detected}
+                disabled={form.alerts.editLock.detected}
                 className={classes.addItemsButton}
                 onClick={() => setBrowsedCheckListCategoryId(row.value.id)}>
                 {row.value.checkList.length > 0 ? (
@@ -161,7 +161,7 @@ const CheckListCategoryTable = ({categories}: CheckListCategoryTableProps) => {
             key: '3',
             title: '',
             render: row =>
-              formValidationContext.editLock.detected ? null : (
+              form.alerts.editLock.detected ? null : (
                 <Button
                   variant="text"
                   className={classes.deleteButton}

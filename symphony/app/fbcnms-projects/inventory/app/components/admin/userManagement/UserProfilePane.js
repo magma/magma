@@ -17,7 +17,6 @@ import FileUploadArea from '@fbcnms/ui/components/design-system/Experimental/Fil
 import FileUploadButton from '../../FileUpload/FileUploadButton';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormFieldTextInput from './FormFieldTextInput';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Grid from '@material-ui/core/Grid';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -27,7 +26,8 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import {DocumentAPIUrls} from '../../../common/DocumentAPI';
 import {SQUARE_DIMENSION_PX} from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
+import {useFormContext} from '../../../common/FormContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -128,10 +128,10 @@ export default function UserProfilePane(props: Props) {
   const [user, setUser] = useState<?User>(null);
   useEffect(() => setUser(propUser), [propUser]);
 
-  const formValidationContext = useContext(FormValidationContext);
+  const form = useFormContext();
   const callOnChange = (newUser: User) => {
     setUser(newUser);
-    if (formValidationContext.error.detected) {
+    if (form.alerts.error.detected) {
       return;
     }
     onChange(newUser);

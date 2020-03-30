@@ -32,7 +32,7 @@ import LocationSiteSurveyTab from './LocationSiteSurveyTab';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'react-relay';
 import {withSnackbar} from 'notistack';
@@ -208,7 +208,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
           }
 
           return (
-            <FormValidationContextProvider>
+            <FormContextProvider>
               <div className={classes.root}>
                 <div className={classes.cardHeader}>
                   <div className={classes.locationNameHeader}>
@@ -312,7 +312,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                   )}
                 </div>
               </div>
-            </FormValidationContextProvider>
+            </FormContextProvider>
           );
         }}
       />

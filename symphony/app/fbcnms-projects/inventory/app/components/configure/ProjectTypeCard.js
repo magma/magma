@@ -17,7 +17,7 @@ import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
 
@@ -79,7 +79,7 @@ const ProjectTypeCard = ({className, projectType, onEditClicked}: Props) => {
   const {name, description, numberOfProjects, workOrders} = projectType;
   const classes = useStyles();
   return (
-    <FormValidationContextProvider>
+    <FormContextProvider>
       <div className={classNames(classes.root, className)}>
         <div className={classes.descriptionContainer}>
           <div className={classes.nameContainer}>
@@ -109,7 +109,7 @@ const ProjectTypeCard = ({className, projectType, onEditClicked}: Props) => {
           </FormAction>
         </div>
       </div>
-    </FormValidationContextProvider>
+    </FormContextProvider>
   );
 };
 

@@ -27,7 +27,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import React, {useContext, useState} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
@@ -228,7 +228,7 @@ const EquipmentPropertiesCard = (props: Props) => {
 
             return (
               <div className={classes.root}>
-                <FormValidationContextProvider>
+                <FormContextProvider>
                   <div className={classes.cardHeader}>
                     <div>
                       <div className={classes.equipmentBreadcrumbs}>
@@ -326,7 +326,7 @@ const EquipmentPropertiesCard = (props: Props) => {
                       ) : null}
                     </PerfectScrollbar>
                   </div>
-                </FormValidationContextProvider>
+                </FormContextProvider>
               </div>
             );
           }}

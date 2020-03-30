@@ -24,14 +24,14 @@ import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_
 import Button from '@fbcnms/ui/components/design-system/Button';
 import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
 import FormAction from '../../../../../fbcnms-packages/fbcnms-ui/components/design-system/Form/FormAction';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {isTempId} from '../../common/EntUtils';
 import {toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useFormContext} from '../../common/FormContext';
 
 type Props = {
   workOrder: WorkOrderDetails_workOrder,
@@ -147,11 +147,11 @@ const WorkOrderSaveButton = (props: Props) => {
     match.url,
   ]);
 
-  const validationContext = useContext(FormValidationContext);
+  const form = useFormContext();
 
   return (
-    <FormAction disabled={validationContext.error.detected}>
-      <Button tooltip={validationContext.error.message} onClick={saveWorkOrder}>
+    <FormAction disabled={form.alerts.error.detected}>
+      <Button tooltip={form.alerts.error.message} onClick={saveWorkOrder}>
         Save
       </Button>
     </FormAction>
