@@ -215,7 +215,7 @@ const UserAccountDetailsPane = (props: Props) => {
                   </Button>
                 </>
               ) : (
-                <Button skin="gray" onClick={() => setIsEditable(true)}>
+                <Button onClick={() => setIsEditable(true)}>
                   <fbt desc="">Change Password</fbt>
                 </Button>
               )}
