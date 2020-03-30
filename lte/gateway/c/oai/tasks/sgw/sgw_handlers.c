@@ -1447,7 +1447,7 @@ int sgw_handle_release_access_bearers_request(
     // (set target on GTPUSP to order the buffering)
     rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
 
-    OAILOG_DEBUG(LOG_SPGW_APP, "Release Access Bearer Respone sent to SGW\n");
+    OAILOG_DEBUG(LOG_SPGW_APP, "Release Access Bearer Response sent to MME\n");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
   } else {
     release_access_bearers_resp_p->cause.cause_value = CONTEXT_NOT_FOUND;
