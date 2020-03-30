@@ -360,12 +360,13 @@ void LocalEnforcer::install_redirect_flow(
 }
 
 UpdateSessionRequest LocalEnforcer::collect_updates(
-  std::vector<std::unique_ptr<ServiceAction>>& actions) const
+  std::vector<std::unique_ptr<ServiceAction>>& actions, const bool force_update) const
 {
   UpdateSessionRequest request;
   for (const auto &session_pair : session_map_) {
     for (const auto &session : session_pair.second) {
-      session->get_updates(request, &actions);
+      SessionStateUpdateCriteria update_criteria = get_default_update_criteria();
+      session->get_updates(request, &actions, update_criteria, force_update);
     }
   }
   return request;
@@ -1381,7 +1382,7 @@ void LocalEnforcer::schedule_revalidation(
     evb_->timer().scheduleTimeoutFn(
       std::move([=] {
         MLOG(MDEBUG) << "Revalidation timeout!";
-        check_usage_for_reporting();
+        check_usage_for_reporting(true);
       }),
       delta);
   });
@@ -1411,10 +1412,10 @@ void LocalEnforcer::create_bearer(
   return;
 }
 
-void LocalEnforcer::check_usage_for_reporting()
+void LocalEnforcer::check_usage_for_reporting(const bool force_update)
 {
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  auto request = collect_updates(actions);
+  auto request = collect_updates(actions, force_update);
   execute_actions(actions);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
     return; // nothing to report

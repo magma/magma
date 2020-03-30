@@ -110,11 +110,13 @@ class SessionState {
    * Only updates request number
    * @param update_request (out) - request to add new updates to
    * @param actions (out) - actions to take on services
+   * @param force_update force updates if revalidation timer expires
    */
   void get_updates(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    const bool force_update = false);
 
   /**
    * start_termination starts the termination process for the session.
@@ -312,11 +314,13 @@ class SessionState {
    *
    * @param update_request_out Modified with added CreditUsageUpdate
    * @param actions_out Modified with additional actions to take on session
+   * @param force_update force updates if revalidation timer expires
    */
   void get_updates_from_charging_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    const bool force_update = false);
 
   /**
    * For this session, add the UsageMonitoringUpdateRequest to the
@@ -324,11 +328,13 @@ class SessionState {
    *
    * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
    * @param actions_out Modified with additional actions to take on session.
+   * @param force_update force updates if revalidation timer expires
    */
   void get_updates_from_monitor_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    const bool force_update = false);
 };
 
 } // namespace magma

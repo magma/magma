@@ -54,7 +54,8 @@ class CreditPool {
     DynamicRuleStore *dynamic_rules,
     std::vector<UpdateRequestType> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-    SessionStateUpdateCriteria& update_criteria) = 0;
+    SessionStateUpdateCriteria& update_criteria,
+    const bool force_update) = 0;
 
   /**
    * get_termination_updates gets updates from all credits in the pool at the
@@ -121,7 +122,8 @@ class ChargingCreditPool :
     DynamicRuleStore *dynamic_rules,
     std::vector<CreditUsage> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    const bool force_update = false) override;
 
   bool get_termination_updates(
     SessionTerminateRequest *termination_out) const override;
@@ -223,7 +225,8 @@ class UsageMonitoringCreditPool :
     DynamicRuleStore *dynamic_rules,
     std::vector<UsageMonitorUpdate> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-    SessionStateUpdateCriteria& _ = UNUSED_UPDATE_CRITERIA) override;
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    const bool force_update = false) override;
 
   bool get_termination_updates(
     SessionTerminateRequest *termination_out) const override;
