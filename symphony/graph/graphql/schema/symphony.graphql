@@ -15,8 +15,9 @@
 #    %> ./compile_graphql.sh
 
 directive @deprecatedInput(
+  name: String!
+  duplicateError: String!
   newField: String
-  reason: String = "Deprecated field is no longer supported"
 ) on INPUT_FIELD_DEFINITION
 
 enum UserStatus
@@ -446,14 +447,16 @@ input AddWorkOrderInput {
   ownerName: String
     @deprecatedInput(
       newField: "ownerId"
-      reason: "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together"
+      name: "AddWorkOrderInput.ownerName"
+      duplicateError: "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together"
     )
   ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
   assignee: String
     @deprecatedInput(
       newField: "assigneeId"
-      reason: "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together"
+      name: "AddWorkOrderInput.assignee"
+      duplicateError: "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together"
     )
   assigneeId: ID
   index: Int
@@ -468,14 +471,16 @@ input EditWorkOrderInput {
   ownerName: String
     @deprecatedInput(
       newField: "ownerId"
-      reason: "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together"
+      name: "EditWorkOrderInput.ownerName"
+      duplicateError: "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together"
     )
   ownerId: ID
   installDate: Time
   assignee: String
     @deprecatedInput(
       newField: "assigneeId"
-      reason: "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together"
+      name: "EditWorkOrderInput.assignee"
+      duplicateError: "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together"
     )
   assigneeId: ID
   index: Int
@@ -1403,7 +1408,8 @@ input AddProjectInput {
   creator: String
     @deprecatedInput(
       newField: "creatorId"
-      reason: "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together"
+      name: "AddProjectInput.creator"
+      duplicateError: "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together"
     )
   creatorId: ID
   type: ID!
@@ -1418,7 +1424,8 @@ input EditProjectInput {
   creator: String
     @deprecatedInput(
       newField: "creatorId"
-      reason: "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together"
+      name: "EditProjectInput.creator"
+      duplicateError: "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together"
     )
   creatorId: ID
   type: ID!

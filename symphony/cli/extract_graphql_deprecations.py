@@ -68,7 +68,7 @@ def document_all_deprecated_functions(schema_library: str, doc_filepath: str) ->
                     if directive.name.value == "deprecatedInput":
                         field_long_name = ".".join([type_name, field_name])
                         for argument in directive.arguments:
-                            if argument.name.value == "reason":
+                            if argument.name.value == "duplicateError":
                                 deprecation_reason = (
                                     argument.value.value
                                     if directive.arguments
