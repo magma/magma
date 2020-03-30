@@ -1,0 +1,47 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+}
+
+configurations.all {
+    resolutionStrategy {
+        force "com.fasterxml.jackson.core:jackson-core:${revJacksonCore}"
+        force "com.fasterxml.jackson.core:jackson-databind:${revJacksonDatabind}"
+        force "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${revJaxrsJackson}"
+    }
+}
+
+apply plugin: 'war'
+
+dependencies {
+    compile project(':model')
+    compile project(':jersey')
+
+    compile "com.netflix.runtime:health-guice:${revHealth}"
+
+    //Jetty
+    compile "org.eclipse.jetty:jetty-server:${revJetteyServer}"
+    compile "org.eclipse.jetty:jetty-servlet:${revJettyServlet}"
+    compile "org.eclipse.jetty:jetty-jmx:${revJettyServlet}"
+
+    //Guice
+    compile "com.sun.jersey.contribs:jersey-guice:${revJerseyGuice}"
+    compile "com.google.inject:guice:${revGuice}"
+    compile "com.google.inject.extensions:guice-servlet:${revGuiceServlet}"
+
+    //Swagger
+    compile "io.swagger:swagger-jersey-jaxrs:${revSwagger}"
+
+    //Logging
+    compile "org.slf4j:slf4j-log4j12:${revSlf4jlog4j}"
+}
+def MAIN_CLASS = 'com.netflix.conductor.contribs.tenancy.server.bootstrap.Main'
+shadowJar {
+    mergeServiceFiles()
+    configurations = [project.configurations.compile]
+    manifest {
+        attributes 'Description': 'Self contained Conductor server jar'
+        attributes 'Main-Class': MAIN_CLASS
+    }
+}
+
+build.dependsOn('shadowJar')

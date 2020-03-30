@@ -1,0 +1,16 @@
+apply from: "$rootDir/versionsOfDependencies.gradle"
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+configure(subprojects) {
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+subprojects {
+    version = '1.0'
+}

@@ -1,0 +1,23 @@
+configurations.all {
+    resolutionStrategy {
+        force "com.fasterxml.jackson.core:jackson-core:${revJacksonCore}"
+        force "com.fasterxml.jackson.core:jackson-databind:${revJacksonDatabind}"
+        force "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${revJaxrsJackson}"
+    }
+}
+
+dependencies {
+    compile project(':model')
+
+    //Jetty
+    compile "org.eclipse.jetty:jetty-server:${revJetteyServer}"
+    compile "org.eclipse.jetty:jetty-servlet:${revJettyServlet}"
+    compile "org.eclipse.jetty:jetty-jmx:${revJettyServlet}"
+
+    //Guice, jersey
+    compile "com.sun.jersey.contribs:jersey-guice:${revJerseyGuice}"
+    compile "com.google.inject:guice:${revGuice}"
+    compile "com.google.inject.extensions:guice-servlet:${revGuiceServlet}"
+    //Swagger
+    compile "io.swagger:swagger-jersey-jaxrs:${revSwagger}"
+}

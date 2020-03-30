@@ -1,0 +1,7 @@
+dependencies {
+    compile "com.fasterxml.jackson.core:jackson-databind:${revJacksonDatabind}"
+    compile "com.fasterxml.jackson.core:jackson-core:${revJacksonCore}"
+    compile "org.apache.commons:commons-lang3:${revCommonsLang3}"
+    compile "javax.validation:validation-api:${revValidationApi}"
+    compile "com.google.protobuf:protobuf-java:${revProtoBuf}" // for Any. TODO: remove
+}

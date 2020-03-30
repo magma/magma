@@ -1,0 +1,6 @@
+rootProject.name = 'conductor-tenancy-sanitizer'
+
+include 'model'
+include 'server'
+include 'jersey'
+
