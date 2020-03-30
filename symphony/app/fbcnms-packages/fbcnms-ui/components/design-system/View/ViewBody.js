@@ -23,19 +23,33 @@ const useStyles = makeStyles(() => ({
     flexGrow: 1,
     overflowX: 'hidden',
     overflowY: 'auto',
-    padding: `8px ${paddingRight}px 4px 24px`,
     display: 'flex',
+    '&:not($plain)': {
+      padding: `8px ${paddingRight}px 4px 24px`,
+      '&$withScrollY': {
+        paddingRight: `${paddingRight - scrollWidth}px`,
+      },
+    },
   },
-  withScrollY: {
-    paddingRight: `${paddingRight - scrollWidth}px`,
-  },
+  withScrollY: {},
+  idented: {},
+  plain: {},
 }));
 
-type Props = {
-  children: React.Node,
+export const VARIANTS = {
+  idented: 'idented',
+  plain: 'plain',
 };
 
+export type Variant = $Keys<typeof VARIANTS>;
+
+type Props = $ReadOnly<{|
+  children: React.Node,
+  variant?: ?Variant,
+|}>;
+
 const ViewBody = React.forwardRef<Props, HTMLElement>((props, ref) => {
+  const {children, variant = VARIANTS.idented} = props;
   const classes = useStyles();
   const refs: CombinedRefs = [useRef(null), ref];
   const combinedRef = useCombinedRefs(refs);
@@ -55,9 +69,10 @@ const ViewBody = React.forwardRef<Props, HTMLElement>((props, ref) => {
         {
           [classes.withScrollY]: hasScrollY,
         },
+        variant ? classes[variant] : null,
         classes.viewWrapper,
       )}>
-      {props.children}
+      {children}
     </div>
   );
 });

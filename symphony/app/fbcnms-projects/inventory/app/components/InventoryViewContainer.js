@@ -14,6 +14,7 @@ import * as React from 'react';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapIcon from '@material-ui/icons/Map';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
+import {VARIANTS} from '@fbcnms/ui/components/design-system/View/ViewBody';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
@@ -45,6 +46,9 @@ const InventoryView = (props: Props) => {
   const [selectedDisplayOption, setSelectedDisplayOption] = useState(
     DisplayOptions.table,
   );
+  if (selectedDisplayOption == DisplayOptions.map) {
+    viewProps.bodyVariant = VARIANTS.plain;
+  }
   if (viewProps.header && onViewToggleClicked) {
     const onViewOptionClicked = displayOptionId => {
       setSelectedDisplayOption(displayOptionId);

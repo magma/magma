@@ -9,6 +9,7 @@
  */
 
 import type {FullViewHeaderProps} from './ViewHeader';
+import type {Variant} from './ViewBody';
 
 import * as React from 'react';
 import ViewBody from './ViewBody';
@@ -29,11 +30,12 @@ const useStyles = makeStyles(() => ({
 export type ViewContainerProps = {
   header?: ?FullViewHeaderProps,
   useBodyScrollingEffect?: ?boolean,
+  bodyVariant?: ?Variant,
   children: React.Node,
 };
 
 export default function ViewContainer(props: ViewContainerProps) {
-  const {header, useBodyScrollingEffect = true, children} = props;
+  const {header, useBodyScrollingEffect = true, bodyVariant, children} = props;
   const classes = useStyles();
   const bodyElement = useRef(null);
   const [bodyIsScrolled, setBodyIsScrolled] = useState(false);
@@ -51,7 +53,9 @@ export default function ViewContainer(props: ViewContainerProps) {
   return (
     <div className={classes.viewPanel}>
       {!!header && <ViewHeader {...header} showMinimal={bodyIsScrolled} />}
-      <ViewBody ref={bodyElement}>{children}</ViewBody>
+      <ViewBody ref={bodyElement} variant={bodyVariant}>
+        {children}
+      </ViewBody>
     </div>
   );
 }
