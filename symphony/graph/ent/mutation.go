@@ -2413,9 +2413,10 @@ type CommentMutation struct {
 	id            *int
 	create_time   *time.Time
 	update_time   *time.Time
-	author_name   *string
 	text          *string
 	clearedFields map[string]struct{}
+	author        *int
+	clearedauthor bool
 }
 
 var _ ent.Mutation = (*CommentMutation)(nil)
@@ -2496,25 +2497,6 @@ func (m *CommentMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
 
-// SetAuthorName sets the author_name field.
-func (m *CommentMutation) SetAuthorName(s string) {
-	m.author_name = &s
-}
-
-// AuthorName returns the author_name value in the mutation.
-func (m *CommentMutation) AuthorName() (r string, exists bool) {
-	v := m.author_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetAuthorName reset all changes of the author_name field.
-func (m *CommentMutation) ResetAuthorName() {
-	m.author_name = nil
-}
-
 // SetText sets the text field.
 func (m *CommentMutation) SetText(s string) {
 	m.text = &s
@@ -2534,6 +2516,45 @@ func (m *CommentMutation) ResetText() {
 	m.text = nil
 }
 
+// SetAuthorID sets the author edge to User by id.
+func (m *CommentMutation) SetAuthorID(id int) {
+	m.author = &id
+}
+
+// ClearAuthor clears the author edge to User.
+func (m *CommentMutation) ClearAuthor() {
+	m.clearedauthor = true
+}
+
+// AuthorCleared returns if the edge author was cleared.
+func (m *CommentMutation) AuthorCleared() bool {
+	return m.clearedauthor
+}
+
+// AuthorID returns the author id in the mutation.
+func (m *CommentMutation) AuthorID() (id int, exists bool) {
+	if m.author != nil {
+		return *m.author, true
+	}
+	return
+}
+
+// AuthorIDs returns the author ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// AuthorID instead. It exists only for internal usage by the builders.
+func (m *CommentMutation) AuthorIDs() (ids []int) {
+	if id := m.author; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAuthor reset all changes of the author edge.
+func (m *CommentMutation) ResetAuthor() {
+	m.author = nil
+	m.clearedauthor = false
+}
+
 // Op returns the operation name.
 func (m *CommentMutation) Op() Op {
 	return m.op
@@ -2548,15 +2569,12 @@ func (m *CommentMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *CommentMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 3)
 	if m.create_time != nil {
 		fields = append(fields, comment.FieldCreateTime)
 	}
 	if m.update_time != nil {
 		fields = append(fields, comment.FieldUpdateTime)
-	}
-	if m.author_name != nil {
-		fields = append(fields, comment.FieldAuthorName)
 	}
 	if m.text != nil {
 		fields = append(fields, comment.FieldText)
@@ -2573,8 +2591,6 @@ func (m *CommentMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case comment.FieldUpdateTime:
 		return m.UpdateTime()
-	case comment.FieldAuthorName:
-		return m.AuthorName()
 	case comment.FieldText:
 		return m.Text()
 	}
@@ -2599,13 +2615,6 @@ func (m *CommentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
-		return nil
-	case comment.FieldAuthorName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAuthorName(v)
 		return nil
 	case comment.FieldText:
 		v, ok := value.(string)
@@ -2670,9 +2679,6 @@ func (m *CommentMutation) ResetField(name string) error {
 	case comment.FieldUpdateTime:
 		m.ResetUpdateTime()
 		return nil
-	case comment.FieldAuthorName:
-		m.ResetAuthorName()
-		return nil
 	case comment.FieldText:
 		m.ResetText()
 		return nil
@@ -2683,7 +2689,10 @@ func (m *CommentMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *CommentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.author != nil {
+		edges = append(edges, comment.EdgeAuthor)
+	}
 	return edges
 }
 
@@ -2691,6 +2700,10 @@ func (m *CommentMutation) AddedEdges() []string {
 // the given edge name.
 func (m *CommentMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case comment.EdgeAuthor:
+		if id := m.author; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -2698,7 +2711,7 @@ func (m *CommentMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *CommentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -2713,7 +2726,10 @@ func (m *CommentMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *CommentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedauthor {
+		edges = append(edges, comment.EdgeAuthor)
+	}
 	return edges
 }
 
@@ -2721,6 +2737,8 @@ func (m *CommentMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *CommentMutation) EdgeCleared(name string) bool {
 	switch name {
+	case comment.EdgeAuthor:
+		return m.clearedauthor
 	}
 	return false
 }
@@ -2728,6 +2746,11 @@ func (m *CommentMutation) EdgeCleared(name string) bool {
 // ClearEdge clears the value for the given name. It returns an
 // error if the edge name is not defined in the schema.
 func (m *CommentMutation) ClearEdge(name string) error {
+	switch name {
+	case comment.EdgeAuthor:
+		m.ClearAuthor()
+		return nil
+	}
 	return fmt.Errorf("unknown Comment unique edge %s", name)
 }
 
@@ -2736,6 +2759,9 @@ func (m *CommentMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *CommentMutation) ResetEdge(name string) error {
 	switch name {
+	case comment.EdgeAuthor:
+		m.ResetAuthor()
+		return nil
 	}
 	return fmt.Errorf("unknown Comment edge %s", name)
 }

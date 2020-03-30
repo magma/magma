@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 )
 
 // CommentCreate is the builder for creating a Comment entity.
@@ -52,16 +53,21 @@ func (cc *CommentCreate) SetNillableUpdateTime(t *time.Time) *CommentCreate {
 	return cc
 }
 
-// SetAuthorName sets the author_name field.
-func (cc *CommentCreate) SetAuthorName(s string) *CommentCreate {
-	cc.mutation.SetAuthorName(s)
-	return cc
-}
-
 // SetText sets the text field.
 func (cc *CommentCreate) SetText(s string) *CommentCreate {
 	cc.mutation.SetText(s)
 	return cc
+}
+
+// SetAuthorID sets the author edge to User by id.
+func (cc *CommentCreate) SetAuthorID(id int) *CommentCreate {
+	cc.mutation.SetAuthorID(id)
+	return cc
+}
+
+// SetAuthor sets the author edge to User.
+func (cc *CommentCreate) SetAuthor(u *User) *CommentCreate {
+	return cc.SetAuthorID(u.ID)
 }
 
 // Save creates the Comment in the database.
@@ -74,11 +80,11 @@ func (cc *CommentCreate) Save(ctx context.Context) (*Comment, error) {
 		v := comment.DefaultUpdateTime()
 		cc.mutation.SetUpdateTime(v)
 	}
-	if _, ok := cc.mutation.AuthorName(); !ok {
-		return nil, errors.New("ent: missing required field \"author_name\"")
-	}
 	if _, ok := cc.mutation.Text(); !ok {
 		return nil, errors.New("ent: missing required field \"text\"")
+	}
+	if _, ok := cc.mutation.AuthorID(); !ok {
+		return nil, errors.New("ent: missing required edge \"author\"")
 	}
 	var (
 		err  error
@@ -142,14 +148,6 @@ func (cc *CommentCreate) sqlSave(ctx context.Context) (*Comment, error) {
 		})
 		c.UpdateTime = value
 	}
-	if value, ok := cc.mutation.AuthorName(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: comment.FieldAuthorName,
-		})
-		c.AuthorName = value
-	}
 	if value, ok := cc.mutation.Text(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -157,6 +155,25 @@ func (cc *CommentCreate) sqlSave(ctx context.Context) (*Comment, error) {
 			Column: comment.FieldText,
 		})
 		c.Text = value
+	}
+	if nodes := cc.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   comment.AuthorTable,
+			Columns: []string{comment.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if err := sqlgraph.CreateNode(ctx, cc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

@@ -6,6 +6,7 @@ package schema
 
 import (
 	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
 )
 
@@ -17,7 +18,15 @@ type Comment struct {
 // Fields returns comment fields.
 func (Comment) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("author_name"),
 		field.String("text"),
+	}
+}
+
+// Edges returns work order edges.
+func (Comment) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("author", User.Type).
+			Required().
+			Unique(),
 	}
 }

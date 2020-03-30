@@ -23,6 +23,7 @@ title: Graphql API Breaking Changes
 * `Viewer.email` - Use `Viewer.user.email` instead. Will be removed on 2020-05-01
 * `WorkOrder.ownerName` - Use `WorkOrder.owner.email` instead. Will be removed on 2020-05-01
 * `WorkOrder.assignee` - Use `WorkOrder.assignedTo.email` instead. Will be removed on 2020-05-01
+* `Comment.authorName` - Use `Comment.author.email` instead. Will be removed on 2020-05-01
 * `Project.creator` - Use `Project.createdBy.email` instead. Will be removed on 2020-05-01
 
 ## Deprecated Input Fields
