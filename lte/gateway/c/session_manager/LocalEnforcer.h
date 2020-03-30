@@ -93,8 +93,11 @@ class LocalEnforcer {
    * Collect any credit keys that are either exhausted, timed out, or terminated
    * and apply actions to the services if need be
    * @param updates_out (out) - vector to add usage updates to, if they exist
+   * @param force_update force updates if revalidation timer expires
    */
-  UpdateSessionRequest collect_updates(std::vector<std::unique_ptr<ServiceAction>>& actions) const;
+  UpdateSessionRequest collect_updates(
+      std::vector<std::unique_ptr<ServiceAction>>& actions,
+      const bool force_update = false) const;
 
   /**
    * Perform any rule installs/removals that need to be executed given a
@@ -361,7 +364,7 @@ class LocalEnforcer {
   void schedule_revalidation(
     const google::protobuf::Timestamp& revalidation_time);
 
-  void check_usage_for_reporting();
+  void check_usage_for_reporting(const bool force_update = false);
 
   /**
     * Deactivate rules for certain IMSI.
