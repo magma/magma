@@ -49,6 +49,9 @@ var (
 
 	// Error is the GraphQL exit error.
 	Error = tag.MustNewKey("graphql.error")
+
+	// Deprecated is whether the GraphQL object field being resolved is deprecated.
+	Deprecated = tag.MustNewKey("graphql.deprecated")
 )
 
 // Default distributions used by views in this package.
@@ -118,7 +121,7 @@ var (
 	ServerResolveCountByObjectField = &view.View{
 		Name:        "graphql/server/resolve_count_by_object_field",
 		Description: "Count of GraphQL resolves by object and field",
-		TagKeys:     []tag.Key{Object, Field},
+		TagKeys:     []tag.Key{Object, Field, Deprecated},
 		Measure:     ServerResolveCount,
 		Aggregation: view.Count(),
 	}
