@@ -294,8 +294,16 @@ function GatewayRowItem(props: Props) {
     <TableRow>
       <TableCell>
         <DeviceStatusCircle
-          isGrey={!gateway.enodebRFTXOn}
-          isActive={gateway.enodebRFTXOn === gateway.enodebRFTXEnabled}
+          isGrey={gateway.isBackhaulDown}
+          isYellow={
+              !gateway.enodebRFTXEnabled && 
+              (!gateway.enodebRFTXOn ||
+              !gateway.mmeConnected)
+          }
+          isActive={
+              gateway.enodebRFTXOn === gateway.enodebRFTXEnabled &&
+              gateway.mmeConnected
+          }
         />
         {gateway.name}
       </TableCell>

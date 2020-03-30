@@ -13,6 +13,7 @@ import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   isGrey: boolean,
+  isYellow: boolean,
   isActive: boolean,
 };
 
@@ -35,6 +36,10 @@ export default function DeviceStatusCircle(props: Props) {
   if (props.isGrey) {
     return (
       <span className={classes.status} style={{backgroundColor: '#bec3c8'}} />
+    );
+  } else if (props.isYellow) {
+    return (
+      <span className={classes.status} style={{backgroundColor: '#f5e945'}} />
     );
   } else if (props.isActive) {
     return (
