@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
       margin = margin_from_config;
     } else {
       MLOG(MWARNING) << "The extra_quota_margin from the config "
-                     << margin_from_config << "is smaller than the default "
+                     << margin_from_config << " is smaller than the default "
                      << DEFAULT_EXTRA_QUOTA_MARGIN
                      << ", using the default value instead.";
     }
