@@ -11,13 +11,11 @@ import (
 
 	"github.com/facebookincubator/symphony/frontier/ent/auditlog"
 	"github.com/facebookincubator/symphony/frontier/ent/schema"
-
 	"github.com/facebookincubator/symphony/frontier/ent/tenant"
-
 	"github.com/facebookincubator/symphony/frontier/ent/token"
+	"github.com/facebookincubator/symphony/frontier/ent/user"
 
 	"github.com/facebookincubator/ent"
-	"github.com/facebookincubator/symphony/frontier/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime

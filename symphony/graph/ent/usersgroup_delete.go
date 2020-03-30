@@ -49,8 +49,8 @@ func (ugd *UsersGroupDelete) Exec(ctx context.Context) (int, error) {
 			affected, err = ugd.sqlExec(ctx)
 			return affected, err
 		})
-		for i := len(ugd.hooks); i > 0; i-- {
-			mut = ugd.hooks[i-1](mut)
+		for i := len(ugd.hooks) - 1; i >= 0; i-- {
+			mut = ugd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ugd.mutation); err != nil {
 			return 0, err

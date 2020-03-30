@@ -178,8 +178,8 @@ func (ptu *ProjectTypeUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = ptu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(ptu.hooks); i > 0; i-- {
-			mut = ptu.hooks[i-1](mut)
+		for i := len(ptu.hooks) - 1; i >= 0; i-- {
+			mut = ptu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ptu.mutation); err != nil {
 			return 0, err
@@ -531,8 +531,8 @@ func (ptuo *ProjectTypeUpdateOne) Save(ctx context.Context) (*ProjectType, error
 			node, err = ptuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(ptuo.hooks); i > 0; i-- {
-			mut = ptuo.hooks[i-1](mut)
+		for i := len(ptuo.hooks) - 1; i >= 0; i-- {
+			mut = ptuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ptuo.mutation); err != nil {
 			return nil, err

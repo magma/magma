@@ -34,7 +34,7 @@ type TodoMutation struct {
 	typ             string
 	id              *int
 	text            *string
-	clearedFields   map[string]bool
+	clearedFields   map[string]struct{}
 	parent          *int
 	clearedparent   bool
 	children        map[int]struct{}
@@ -49,7 +49,7 @@ func newTodoMutation(c config, op Op) *TodoMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeTodo,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -260,7 +260,8 @@ func (m *TodoMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *TodoMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an

@@ -145,8 +145,8 @@ func (ugc *UsersGroupCreate) Save(ctx context.Context) (*UsersGroup, error) {
 			node, err = ugc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(ugc.hooks); i > 0; i-- {
-			mut = ugc.hooks[i-1](mut)
+		for i := len(ugc.hooks) - 1; i >= 0; i-- {
+			mut = ugc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ugc.mutation); err != nil {
 			return nil, err

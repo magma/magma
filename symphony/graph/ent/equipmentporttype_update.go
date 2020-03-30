@@ -152,8 +152,8 @@ func (eptu *EquipmentPortTypeUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = eptu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(eptu.hooks); i > 0; i-- {
-			mut = eptu.hooks[i-1](mut)
+		for i := len(eptu.hooks) - 1; i >= 0; i-- {
+			mut = eptu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, eptu.mutation); err != nil {
 			return 0, err
@@ -467,8 +467,8 @@ func (eptuo *EquipmentPortTypeUpdateOne) Save(ctx context.Context) (*EquipmentPo
 			node, err = eptuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(eptuo.hooks); i > 0; i-- {
-			mut = eptuo.hooks[i-1](mut)
+		for i := len(eptuo.hooks) - 1; i >= 0; i-- {
+			mut = eptuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, eptuo.mutation); err != nil {
 			return nil, err

@@ -299,8 +299,8 @@ func (swfsu *SurveyWiFiScanUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = swfsu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(swfsu.hooks); i > 0; i-- {
-			mut = swfsu.hooks[i-1](mut)
+		for i := len(swfsu.hooks) - 1; i >= 0; i-- {
+			mut = swfsu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, swfsu.mutation); err != nil {
 			return 0, err
@@ -864,8 +864,8 @@ func (swfsuo *SurveyWiFiScanUpdateOne) Save(ctx context.Context) (*SurveyWiFiSca
 			node, err = swfsuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(swfsuo.hooks); i > 0; i-- {
-			mut = swfsuo.hooks[i-1](mut)
+		for i := len(swfsuo.hooks) - 1; i >= 0; i-- {
+			mut = swfsuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, swfsuo.mutation); err != nil {
 			return nil, err

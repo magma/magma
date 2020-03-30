@@ -210,8 +210,8 @@ func (etu *EquipmentTypeUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = etu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(etu.hooks); i > 0; i-- {
-			mut = etu.hooks[i-1](mut)
+		for i := len(etu.hooks) - 1; i >= 0; i-- {
+			mut = etu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, etu.mutation); err != nil {
 			return 0, err
@@ -653,8 +653,8 @@ func (etuo *EquipmentTypeUpdateOne) Save(ctx context.Context) (*EquipmentType, e
 			node, err = etuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(etuo.hooks); i > 0; i-- {
-			mut = etuo.hooks[i-1](mut)
+		for i := len(etuo.hooks) - 1; i >= 0; i-- {
+			mut = etuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, etuo.mutation); err != nil {
 			return nil, err

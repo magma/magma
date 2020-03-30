@@ -112,8 +112,8 @@ func (seu *ServiceEndpointUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = seu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(seu.hooks); i > 0; i-- {
-			mut = seu.hooks[i-1](mut)
+		for i := len(seu.hooks) - 1; i >= 0; i-- {
+			mut = seu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, seu.mutation); err != nil {
 			return 0, err
@@ -343,8 +343,8 @@ func (seuo *ServiceEndpointUpdateOne) Save(ctx context.Context) (*ServiceEndpoin
 			node, err = seuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(seuo.hooks); i > 0; i-- {
-			mut = seuo.hooks[i-1](mut)
+		for i := len(seuo.hooks) - 1; i >= 0; i-- {
+			mut = seuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, seuo.mutation); err != nil {
 			return nil, err

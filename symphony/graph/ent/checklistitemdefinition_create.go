@@ -158,8 +158,8 @@ func (clidc *CheckListItemDefinitionCreate) Save(ctx context.Context) (*CheckLis
 			node, err = clidc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(clidc.hooks); i > 0; i-- {
-			mut = clidc.hooks[i-1](mut)
+		for i := len(clidc.hooks) - 1; i >= 0; i-- {
+			mut = clidc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, clidc.mutation); err != nil {
 			return nil, err

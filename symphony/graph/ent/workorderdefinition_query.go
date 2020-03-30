@@ -33,8 +33,9 @@ type WorkOrderDefinitionQuery struct {
 	withType        *WorkOrderTypeQuery
 	withProjectType *ProjectTypeQuery
 	withFKs         bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -64,24 +65,36 @@ func (wodq *WorkOrderDefinitionQuery) Order(o ...Order) *WorkOrderDefinitionQuer
 // QueryType chains the current query on the type edge.
 func (wodq *WorkOrderDefinitionQuery) QueryType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: wodq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
-		sqlgraph.To(workordertype.Table, workordertype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, workorderdefinition.TypeTable, workorderdefinition.TypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(wodq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wodq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
+			sqlgraph.To(workordertype.Table, workordertype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workorderdefinition.TypeTable, workorderdefinition.TypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wodq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryProjectType chains the current query on the project_type edge.
 func (wodq *WorkOrderDefinitionQuery) QueryProjectType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: wodq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
-		sqlgraph.To(projecttype.Table, projecttype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, workorderdefinition.ProjectTypeTable, workorderdefinition.ProjectTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(wodq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wodq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
+			sqlgraph.To(projecttype.Table, projecttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, workorderdefinition.ProjectTypeTable, workorderdefinition.ProjectTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wodq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -181,6 +194,9 @@ func (wodq *WorkOrderDefinitionQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of WorkOrderDefinitions.
 func (wodq *WorkOrderDefinitionQuery) All(ctx context.Context) ([]*WorkOrderDefinition, error) {
+	if err := wodq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return wodq.sqlAll(ctx)
 }
 
@@ -213,6 +229,9 @@ func (wodq *WorkOrderDefinitionQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (wodq *WorkOrderDefinitionQuery) Count(ctx context.Context) (int, error) {
+	if err := wodq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return wodq.sqlCount(ctx)
 }
 
@@ -227,6 +246,9 @@ func (wodq *WorkOrderDefinitionQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (wodq *WorkOrderDefinitionQuery) Exist(ctx context.Context) (bool, error) {
+	if err := wodq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return wodq.sqlExist(ctx)
 }
 
@@ -250,7 +272,8 @@ func (wodq *WorkOrderDefinitionQuery) Clone() *WorkOrderDefinitionQuery {
 		unique:     append([]string{}, wodq.unique...),
 		predicates: append([]predicate.WorkOrderDefinition{}, wodq.predicates...),
 		// clone intermediate query.
-		sql: wodq.sql.Clone(),
+		sql:  wodq.sql.Clone(),
+		path: wodq.path,
 	}
 }
 
@@ -294,7 +317,12 @@ func (wodq *WorkOrderDefinitionQuery) WithProjectType(opts ...func(*ProjectTypeQ
 func (wodq *WorkOrderDefinitionQuery) GroupBy(field string, fields ...string) *WorkOrderDefinitionGroupBy {
 	group := &WorkOrderDefinitionGroupBy{config: wodq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = wodq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := wodq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return wodq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -313,8 +341,24 @@ func (wodq *WorkOrderDefinitionQuery) GroupBy(field string, fields ...string) *W
 func (wodq *WorkOrderDefinitionQuery) Select(field string, fields ...string) *WorkOrderDefinitionSelect {
 	selector := &WorkOrderDefinitionSelect{config: wodq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = wodq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := wodq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return wodq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (wodq *WorkOrderDefinitionQuery) prepareQuery(ctx context.Context) error {
+	if wodq.path != nil {
+		prev, err := wodq.path(ctx)
+		if err != nil {
+			return err
+		}
+		wodq.sql = prev
+	}
+	return nil
 }
 
 func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderDefinition, error) {
@@ -489,8 +533,9 @@ type WorkOrderDefinitionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -501,6 +546,11 @@ func (wodgb *WorkOrderDefinitionGroupBy) Aggregate(fns ...Aggregate) *WorkOrderD
 
 // Scan applies the group-by query and scan the result into the given value.
 func (wodgb *WorkOrderDefinitionGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := wodgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	wodgb.sql = query
 	return wodgb.sqlScan(ctx, v)
 }
 
@@ -619,12 +669,18 @@ func (wodgb *WorkOrderDefinitionGroupBy) sqlQuery() *sql.Selector {
 type WorkOrderDefinitionSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (wods *WorkOrderDefinitionSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := wods.path(ctx)
+	if err != nil {
+		return err
+	}
+	wods.sql = query
 	return wods.sqlScan(ctx, v)
 }
 

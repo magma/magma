@@ -181,8 +181,8 @@ func (wotc *WorkOrderTypeCreate) Save(ctx context.Context) (*WorkOrderType, erro
 			node, err = wotc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(wotc.hooks); i > 0; i-- {
-			mut = wotc.hooks[i-1](mut)
+		for i := len(wotc.hooks) - 1; i >= 0; i-- {
+			mut = wotc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wotc.mutation); err != nil {
 			return nil, err

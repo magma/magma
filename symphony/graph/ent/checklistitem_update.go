@@ -291,8 +291,8 @@ func (cliu *CheckListItemUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = cliu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(cliu.hooks); i > 0; i-- {
-			mut = cliu.hooks[i-1](mut)
+		for i := len(cliu.hooks) - 1; i >= 0; i-- {
+			mut = cliu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, cliu.mutation); err != nil {
 			return 0, err
@@ -815,8 +815,8 @@ func (cliuo *CheckListItemUpdateOne) Save(ctx context.Context) (*CheckListItem, 
 			node, err = cliuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(cliuo.hooks); i > 0; i-- {
-			mut = cliuo.hooks[i-1](mut)
+		for i := len(cliuo.hooks) - 1; i >= 0; i-- {
+			mut = cliuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, cliuo.mutation); err != nil {
 			return nil, err

@@ -54,7 +54,7 @@ type AuditLogMutation struct {
 	ip_address          *string
 	status              *string
 	status_code         *string
-	clearedFields       map[string]bool
+	clearedFields       map[string]struct{}
 }
 
 var _ ent.Mutation = (*AuditLogMutation)(nil)
@@ -65,7 +65,7 @@ func newAuditLogMutation(c config, op Op) *AuditLogMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeAuditLog,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -602,7 +602,8 @@ func (m *AuditLogMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *AuditLogMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -735,7 +736,7 @@ type TenantMutation struct {
 	_SSOCert       *string
 	_SSOEntryPoint *string
 	_SSOIssuer     *string
-	clearedFields  map[string]bool
+	clearedFields  map[string]struct{}
 }
 
 var _ ent.Mutation = (*TenantMutation)(nil)
@@ -746,7 +747,7 @@ func newTenantMutation(c config, op Op) *TenantMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeTenant,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -890,12 +891,13 @@ func (m *TenantMutation) Tabs() (r []string, exists bool) {
 // ClearTabs clears the value of tabs.
 func (m *TenantMutation) ClearTabs() {
 	m.tabs = nil
-	m.clearedFields[tenant.FieldTabs] = true
+	m.clearedFields[tenant.FieldTabs] = struct{}{}
 }
 
 // TabsCleared returns if the field tabs was cleared in this mutation.
 func (m *TenantMutation) TabsCleared() bool {
-	return m.clearedFields[tenant.FieldTabs]
+	_, ok := m.clearedFields[tenant.FieldTabs]
+	return ok
 }
 
 // ResetTabs reset all changes of the tabs field.
@@ -1131,7 +1133,7 @@ func (m *TenantMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *TenantMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[tenant.FieldTabs] {
+	if m.FieldCleared(tenant.FieldTabs) {
 		fields = append(fields, tenant.FieldTabs)
 	}
 	return fields
@@ -1140,7 +1142,8 @@ func (m *TenantMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *TenantMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -1260,7 +1263,7 @@ type TokenMutation struct {
 	created_at    *time.Time
 	updated_at    *time.Time
 	value         *string
-	clearedFields map[string]bool
+	clearedFields map[string]struct{}
 	user          *int
 	cleareduser   bool
 }
@@ -1273,7 +1276,7 @@ func newTokenMutation(c config, op Op) *TokenMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeToken,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -1504,7 +1507,8 @@ func (m *TokenMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *TokenMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -1627,7 +1631,7 @@ type UserMutation struct {
 	tenant        *string
 	networks      *[]string
 	tabs          *[]string
-	clearedFields map[string]bool
+	clearedFields map[string]struct{}
 	tokens        map[int]struct{}
 	removedtokens map[int]struct{}
 }
@@ -1640,7 +1644,7 @@ func newUserMutation(c config, op Op) *UserMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeUser,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -1842,12 +1846,13 @@ func (m *UserMutation) Tabs() (r []string, exists bool) {
 // ClearTabs clears the value of tabs.
 func (m *UserMutation) ClearTabs() {
 	m.tabs = nil
-	m.clearedFields[user.FieldTabs] = true
+	m.clearedFields[user.FieldTabs] = struct{}{}
 }
 
 // TabsCleared returns if the field tabs was cleared in this mutation.
 func (m *UserMutation) TabsCleared() bool {
-	return m.clearedFields[user.FieldTabs]
+	_, ok := m.clearedFields[user.FieldTabs]
+	return ok
 }
 
 // ResetTabs reset all changes of the tabs field.
@@ -2071,7 +2076,7 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *UserMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[user.FieldTabs] {
+	if m.FieldCleared(user.FieldTabs) {
 		fields = append(fields, user.FieldTabs)
 	}
 	return fields
@@ -2080,7 +2085,8 @@ func (m *UserMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *UserMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an

@@ -135,8 +135,8 @@ func (ugu *UsersGroupUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = ugu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(ugu.hooks); i > 0; i-- {
-			mut = ugu.hooks[i-1](mut)
+		for i := len(ugu.hooks) - 1; i >= 0; i-- {
+			mut = ugu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ugu.mutation); err != nil {
 			return 0, err
@@ -378,8 +378,8 @@ func (uguo *UsersGroupUpdateOne) Save(ctx context.Context) (*UsersGroup, error) 
 			node, err = uguo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(uguo.hooks); i > 0; i-- {
-			mut = uguo.hooks[i-1](mut)
+		for i := len(uguo.hooks) - 1; i >= 0; i-- {
+			mut = uguo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, uguo.mutation); err != nil {
 			return nil, err

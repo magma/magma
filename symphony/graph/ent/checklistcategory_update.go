@@ -111,8 +111,8 @@ func (clcu *CheckListCategoryUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = clcu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(clcu.hooks); i > 0; i-- {
-			mut = clcu.hooks[i-1](mut)
+		for i := len(clcu.hooks) - 1; i >= 0; i-- {
+			mut = clcu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, clcu.mutation); err != nil {
 			return 0, err
@@ -323,8 +323,8 @@ func (clcuo *CheckListCategoryUpdateOne) Save(ctx context.Context) (*CheckListCa
 			node, err = clcuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(clcuo.hooks); i > 0; i-- {
-			mut = clcuo.hooks[i-1](mut)
+		for i := len(clcuo.hooks) - 1; i >= 0; i-- {
+			mut = clcuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, clcuo.mutation); err != nil {
 			return nil, err

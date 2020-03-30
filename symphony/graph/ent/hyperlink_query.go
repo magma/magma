@@ -28,8 +28,9 @@ type HyperlinkQuery struct {
 	unique     []string
 	predicates []predicate.Hyperlink
 	withFKs    bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -152,6 +153,9 @@ func (hq *HyperlinkQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of Hyperlinks.
 func (hq *HyperlinkQuery) All(ctx context.Context) ([]*Hyperlink, error) {
+	if err := hq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return hq.sqlAll(ctx)
 }
 
@@ -184,6 +188,9 @@ func (hq *HyperlinkQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (hq *HyperlinkQuery) Count(ctx context.Context) (int, error) {
+	if err := hq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return hq.sqlCount(ctx)
 }
 
@@ -198,6 +205,9 @@ func (hq *HyperlinkQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (hq *HyperlinkQuery) Exist(ctx context.Context) (bool, error) {
+	if err := hq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return hq.sqlExist(ctx)
 }
 
@@ -221,7 +231,8 @@ func (hq *HyperlinkQuery) Clone() *HyperlinkQuery {
 		unique:     append([]string{}, hq.unique...),
 		predicates: append([]predicate.Hyperlink{}, hq.predicates...),
 		// clone intermediate query.
-		sql: hq.sql.Clone(),
+		sql:  hq.sql.Clone(),
+		path: hq.path,
 	}
 }
 
@@ -243,7 +254,12 @@ func (hq *HyperlinkQuery) Clone() *HyperlinkQuery {
 func (hq *HyperlinkQuery) GroupBy(field string, fields ...string) *HyperlinkGroupBy {
 	group := &HyperlinkGroupBy{config: hq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = hq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := hq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return hq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -262,8 +278,24 @@ func (hq *HyperlinkQuery) GroupBy(field string, fields ...string) *HyperlinkGrou
 func (hq *HyperlinkQuery) Select(field string, fields ...string) *HyperlinkSelect {
 	selector := &HyperlinkSelect{config: hq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = hq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := hq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return hq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (hq *HyperlinkQuery) prepareQuery(ctx context.Context) error {
+	if hq.path != nil {
+		prev, err := hq.path(ctx)
+		if err != nil {
+			return err
+		}
+		hq.sql = prev
+	}
+	return nil
 }
 
 func (hq *HyperlinkQuery) sqlAll(ctx context.Context) ([]*Hyperlink, error) {
@@ -379,8 +411,9 @@ type HyperlinkGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -391,6 +424,11 @@ func (hgb *HyperlinkGroupBy) Aggregate(fns ...Aggregate) *HyperlinkGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (hgb *HyperlinkGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := hgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	hgb.sql = query
 	return hgb.sqlScan(ctx, v)
 }
 
@@ -509,12 +547,18 @@ func (hgb *HyperlinkGroupBy) sqlQuery() *sql.Selector {
 type HyperlinkSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (hs *HyperlinkSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := hs.path(ctx)
+	if err != nil {
+		return err
+	}
+	hs.sql = query
 	return hs.sqlScan(ctx, v)
 }
 

@@ -49,8 +49,8 @@ func (clidd *CheckListItemDefinitionDelete) Exec(ctx context.Context) (int, erro
 			affected, err = clidd.sqlExec(ctx)
 			return affected, err
 		})
-		for i := len(clidd.hooks); i > 0; i-- {
-			mut = clidd.hooks[i-1](mut)
+		for i := len(clidd.hooks) - 1; i >= 0; i-- {
+			mut = clidd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, clidd.mutation); err != nil {
 			return 0, err
