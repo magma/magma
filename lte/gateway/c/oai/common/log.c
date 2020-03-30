@@ -551,10 +551,6 @@ void log_configure(const log_config_t *const config)
     (MIN_LOG_LEVEL <= config->spgw_app_log_level))
     g_oai_log.log_level[LOG_SPGW_APP] = config->spgw_app_log_level;
   if (
-    (MAX_LOG_LEVEL > config->pgw_app_log_level) &&
-    (MIN_LOG_LEVEL <= config->pgw_app_log_level))
-    g_oai_log.log_level[LOG_PGW_APP] = config->pgw_app_log_level;
-  if (
     (MAX_LOG_LEVEL > config->s11_log_level) &&
     (MIN_LOG_LEVEL <= config->s11_log_level))
     g_oai_log.log_level[LOG_S11] = config->s11_log_level;
