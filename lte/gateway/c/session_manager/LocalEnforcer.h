@@ -24,6 +24,7 @@
 #include "DirectorydClient.h"
 #include "RuleStore.h"
 #include "SessionState.h"
+#include "SessionStore.h"
 #include "SpgwServiceClient.h"
 
 namespace magma {
@@ -39,6 +40,9 @@ class SessionNotFound : public std::exception {
  */
 class LocalEnforcer {
  public:
+
+  static SessionMap UNUSED_SESSION_MAP;
+
   LocalEnforcer();
 
   LocalEnforcer(
@@ -66,6 +70,7 @@ class LocalEnforcer {
    * restarts and needs to recover state
    */
   bool setup(
+    SessionMap& session_map,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback);
 
@@ -76,7 +81,9 @@ class LocalEnforcer {
    *
    * @param records - a RuleRecordTable protobuf with a vector of RuleRecords
    */
-  void aggregate_records(const RuleRecordTable& records);
+  void aggregate_records(
+    SessionMap& session_map,
+    const RuleRecordTable& records);
 
   /**
    * reset_updates resets all of the charging keys being updated in
@@ -87,7 +94,9 @@ class LocalEnforcer {
    * @param failed_request - UpdateSessionRequest that couldn't be sent to the
    *                         cloud for whatever reason
    */
-  void reset_updates(const UpdateSessionRequest& failed_request);
+  void reset_updates(
+    SessionMap& session_map,
+    const UpdateSessionRequest& failed_request);
 
   /**
    * Collect any credit keys that are either exhausted, timed out, or terminated
@@ -96,6 +105,7 @@ class LocalEnforcer {
    * @param force_update force updates if revalidation timer expires
    */
   UpdateSessionRequest collect_updates(
+      SessionMap& session_map,
       std::vector<std::unique_ptr<ServiceAction>>& actions,
       const bool force_update = false) const;
 
@@ -104,6 +114,7 @@ class LocalEnforcer {
    * CreateSessionResponse.
    */
   bool handle_session_init_rule_updates(
+    SessionMap& session_map,
     const std::string& imsi,
     SessionState& session_state,
     const CreateSessionResponse& response,
@@ -116,6 +127,7 @@ class LocalEnforcer {
    * @return true if init was successful
    */
   bool init_session_credit(
+    SessionMap& session_map,
     const std::string& imsi,
     const std::string& session_id,
     const SessionState::Config& cfg,
@@ -126,7 +138,9 @@ class LocalEnforcer {
    * monitoring/charging credits and attached rules.
    * @param credit_response - message from cloud containing new credits
    */
-  void update_session_credits_and_rules(const UpdateSessionResponse& response);
+  void update_session_credits_and_rules(
+    SessionMap& session_map,
+    const UpdateSessionResponse& response);
 
   /**
    * Starts the termination process for the session. When termination completes,
@@ -136,16 +150,19 @@ class LocalEnforcer {
    * termination
    */
   void terminate_subscriber(
+    SessionMap& session_map,
     const std::string& imsi,
     const std::string& apn,
     std::function<void(SessionTerminateRequest)> on_termination_callback);
 
   uint64_t get_charging_credit(
+    SessionMap& session_map,
     const std::string& imsi,
     const CreditKey& charging_key,
     Bucket bucket) const;
 
   uint64_t get_monitor_credit(
+    SessionMap& session_map,
     const std::string& imsi,
     const std::string& mkey,
     Bucket bucket) const;
@@ -155,6 +172,7 @@ class LocalEnforcer {
    * found, the method returns SESSION_NOT_FOUND
    */
   ChargingReAuthAnswer::Result init_charging_reauth(
+    SessionMap& session_map,
     ChargingReAuthRequest request);
 
   /**
@@ -169,13 +187,21 @@ class LocalEnforcer {
    * sessions with the specified IMSI.
    */
   void init_policy_reauth(
+    SessionMap& session_map,
     PolicyReAuthRequest request,
     PolicyReAuthAnswer& answer_out);
 
-  bool session_with_imsi_exists(const std::string& imsi) const;
-  bool session_with_apn_exists(const std::string& imsi, const std::string& apn) const;
+  bool session_with_imsi_exists(
+    SessionMap& session_map,
+    const std::string& imsi) const;
+
+  bool session_with_apn_exists(
+    SessionMap& session_map,
+    const std::string& imsi,
+    const std::string& apn) const;
 
   bool session_with_same_config_exists(
+    SessionMap& session_map,
     const std::string& imsi,
     const magma::SessionState::Config& config,
     std::string* core_session_id) const;
@@ -185,6 +211,7 @@ class LocalEnforcer {
    * just continue
    */
   void execute_actions(
+    SessionMap& session_map,
     const std::vector<std::unique_ptr<ServiceAction>>& actions);
 
   static uint32_t REDIRECT_FLOW_PRIORITY;
@@ -211,17 +238,17 @@ class LocalEnforcer {
 
  private:
   /**
-   * new_report notifies all sessions that a new usage report is going to be
+   * notify_new_report_for_sessions notifies all sessions that a new usage report is going to be
    * aggregated.
    */
-  void new_report();
+  void notify_new_report_for_sessions(SessionMap& session_map);
 
   /**
-   * finish_report notifies all sessions that the aggregation of the usage
+   * notify_finish_report_for_sessions notifies all sessions that the aggregation of the usage
    * report is finished. For sessions that are terminating, complete the
    * termination if the session is not included in the report.
    */
-  void finish_report();
+  void notify_finish_report_for_sessions(SessionMap& session_map);
 
   /**
    * Process the create session response to get rules to activate/deactivate
@@ -229,6 +256,7 @@ class LocalEnforcer {
    * to activate/deactivate later. No state change is made.
    */
   void process_create_session_response(
+    SessionMap& session_map,
     const CreateSessionResponse& response,
     const std::unordered_set<uint32_t>& successful_credits,
     const std::string& imsi,
@@ -241,6 +269,7 @@ class LocalEnforcer {
    * Updates charging credits according to the response.
    */
   void update_charging_credits(
+    SessionMap& session_map,
     const UpdateSessionResponse& response,
     std::unordered_set<std::string>& subscribers_to_terminate);
 
@@ -252,6 +281,7 @@ class LocalEnforcer {
    * terminate
    */
   void update_monitoring_credits_and_rules(
+    SessionMap& session_map,
     const UpdateSessionResponse& response,
     std::unordered_set<std::string>& subscribers_to_terminate);
 
@@ -284,6 +314,7 @@ class LocalEnforcer {
    * TODO separate out logic that modifies state vs logic that does not.
    */
   void process_rules_to_install(
+    SessionMap& session_map,
     const std::string& imsi,
     const std::unique_ptr<SessionState>& session,
     const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
@@ -299,6 +330,7 @@ class LocalEnforcer {
    * Also create a bearer for the session.
    */
   void init_policy_reauth_for_session(
+    SessionMap& session_map,
     const PolicyReAuthRequest& request,
     const std::unique_ptr<SessionState>& session,
     bool& activate_success,
@@ -316,26 +348,31 @@ class LocalEnforcer {
    * nothing.
    */
   void complete_termination(
+    SessionMap& session_map,
     const std::string& imsi,
     const std::string& session_id);
 
   void schedule_static_rule_activation(
+    SessionMap& session_map,
     const std::string& imsi,
     const std::string& ip_addr,
     const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_activation(
+    SessionMap& session_map,
     const std::string& imsi,
     const std::string& ip_addr,
     const DynamicRuleInstall& dynamic_rule);
 
   void schedule_static_rule_deactivation(
+    SessionMap& session_map,
     const std::string& imsi,
     const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
+    SessionMap& session_map,
     const std::string& imsi,
-    const DynamicRuleInstall &dynamic_rule);
+    const DynamicRuleInstall& dynamic_rule);
 
   /**
    * Get the monitoring credits from PolicyReAuthRequest (RAR) message
@@ -362,15 +399,19 @@ class LocalEnforcer {
     const google::protobuf::RepeatedField<int>& event_triggers);
 
   void schedule_revalidation(
+    SessionMap& session_map,
     const google::protobuf::Timestamp& revalidation_time);
 
-  void check_usage_for_reporting(const bool force_update = false);
+  void check_usage_for_reporting(
+    SessionMap& session_map,
+    const bool force_update = false);
 
   /**
     * Deactivate rules for certain IMSI.
     * Notify AAA service if the session is a CWF session.
     */
   void terminate_service(
+    SessionMap& session_map,
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
     const std::vector<PolicyRule>& dynamic_rules);
@@ -381,6 +422,7 @@ class LocalEnforcer {
     * Notify AAA service if the session is a CWF session.
     */
   void terminate_multiple_services(
+    SessionMap& session_map,
     const std::unordered_set<std::string>& imsis);
 
   /**
@@ -403,6 +445,7 @@ class LocalEnforcer {
    * the session to be terminated in a configured amount of time.
    */
   void handle_session_init_subscriber_quota_state(
+    SessionMap& session_map,
     const std::string& imsi,
     SessionState& session_state);
 };

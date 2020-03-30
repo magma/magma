@@ -19,6 +19,7 @@
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
+#include "SessionStore.h"
 #include "magma_logging.h"
 
 
@@ -49,8 +50,9 @@ class SessionManagerHandlerTest : public ::testing::Test {
                 0);
         evb = folly::EventBaseManager::get()->getEventBase();
         local_enforcer->attachEventBase(evb);
-        session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
-                local_enforcer, reporter.get(), directoryd_client);
+      session_map = SessionMap{};
+      session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
+                local_enforcer, reporter.get(), directoryd_client, session_map);
     }
 
   protected:
@@ -59,6 +61,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     std::shared_ptr <LocalEnforcer> local_enforcer;
     SessionIDGenerator id_gen_;
     folly::EventBase *evb;
+    SessionMap session_map;
 };
 
 TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
@@ -84,7 +87,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
             .hardware_addr = hardware_addr_bytes,
             .radius_session_id = radius_session_id};
 
-    local_enforcer->init_session_credit(imsi, sid, cfg, response);
+    local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
 
     grpc::ServerContext create_context;
     request.mutable_sid()->set_id("IMSI1");

@@ -65,17 +65,18 @@ class SessiondTest : public ::testing::Test {
       nullptr,
       SESSION_TERMINATION_TIMEOUT_MS,
       0);
+    session_map = SessionMap{};
 
     local_service =
       std::make_shared<service303::MagmaService>("sessiond", "1.0");
     session_manager = std::make_shared<LocalSessionManagerAsyncService>(
       local_service->GetNewCompletionQueue(),
       std::make_unique<LocalSessionManagerHandlerImpl>(
-        monitor, reporter.get(), directoryd_client));
+        monitor, reporter.get(), directoryd_client, session_map));
 
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
       local_service->GetNewCompletionQueue(),
-      std::make_unique<SessionProxyResponderHandlerImpl>(monitor));
+      std::make_unique<SessionProxyResponderHandlerImpl>(monitor, session_map));
 
     local_service->AddServiceToServer(session_manager.get());
     local_service->AddServiceToServer(proxy_responder.get());
@@ -158,6 +159,7 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<AsyncDirectorydClient> directoryd_client;
   std::shared_ptr<AsyncEventdClient> eventd_client;
   std::shared_ptr<AsyncSpgwServiceClient> spgw_client;
+  SessionMap session_map;
 };
 
 MATCHER_P(CheckCreateSession, imsi, "")
