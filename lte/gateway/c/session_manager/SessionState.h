@@ -82,16 +82,16 @@ class SessionState {
   StoredSessionState marshal();
 
   /**
-   * new_report sets the state of terminating session to aggregating, to tell if
+   * notify_new_report_for_sessions sets the state of terminating session to aggregating, to tell if
    * flows for the terminating session is in the latest report.
    * Should be called before add_used_credit.
    */
   void new_report();
 
   /**
-   * finish_report updates the state of aggregating session not included report
+   * notify_finish_report_for_sessions updates the state of aggregating session not included report
    * to specify its flows are deleted and termination can be completed.
-   * Should be called after new_report and add_used_credit.
+   * Should be called after notify_new_report_for_sessions and add_used_credit.
    */
   void finish_report();
 
@@ -264,11 +264,11 @@ class SessionState {
    *       V                   V
    * SESSION_TERMINATING_FLOW_ACTIVE <----------
    *       |                                   |
-   *       | (new_report)                      | (add_used_credit)
+   *       | (notify_new_report_for_sessions)  | (add_used_credit)
    *       V                                   |
    * SESSION_TERMINATING_AGGREGATING_STATS -----
    *       |
-   *       | (finish_report)
+   *       | (notify_finish_report_for_sessions)
    *       V
    * SESSION_TERMINATING_FLOW_DELETED
    *       |

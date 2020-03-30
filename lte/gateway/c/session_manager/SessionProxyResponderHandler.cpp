@@ -17,8 +17,10 @@ using grpc::Status;
 namespace magma {
 
 SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
-  std::shared_ptr<LocalEnforcer> enforcer):
-  enforcer_(enforcer)
+  std::shared_ptr<LocalEnforcer> enforcer,
+  SessionMap& session_map):
+  enforcer_(enforcer),
+  session_map_(session_map)
 {
 }
 
@@ -30,7 +32,7 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
   auto &request_cpy = *request;
   enforcer_->get_event_base().runInEventBaseThread(
     [this, request_cpy, response_callback]() {
-      auto result = enforcer_->init_charging_reauth(request_cpy);
+      auto result = enforcer_->init_charging_reauth(session_map_, request_cpy);
       ChargingReAuthAnswer ans;
       ans.set_result(result);
       response_callback(Status::OK, ans);
@@ -46,7 +48,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
   enforcer_->get_event_base().runInEventBaseThread(
     [this, request_cpy, response_callback]() {
       PolicyReAuthAnswer ans;
-      enforcer_->init_policy_reauth(request_cpy, ans);
+      enforcer_->init_policy_reauth(session_map_, request_cpy, ans);
       response_callback(Status::OK, ans);
     });
 }

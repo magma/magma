@@ -21,6 +21,7 @@
 #include "MConfigLoader.h"
 #include "magma_logging.h"
 #include "SessionCredit.h"
+#include "SessionStore.h"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -211,6 +212,7 @@ int main(int argc, char *argv[])
       DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS;
   }
 
+  magma::SessionMap session_map{};
   auto monitor = std::make_shared<magma::LocalEnforcer>(
     reporter,
     rule_store,
@@ -224,12 +226,12 @@ int main(int argc, char *argv[])
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-    monitor, reporter.get(), directoryd_client);
+    monitor, reporter.get(), directoryd_client, session_map);
   auto proxy_handler =
-    std::make_unique<magma::SessionProxyResponderHandlerImpl>(monitor);
+    std::make_unique<magma::SessionProxyResponderHandlerImpl>(monitor, session_map);
 
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
-    directoryd_client, monitor, reporter.get());
+    directoryd_client, monitor, reporter.get(), session_map);
   std::thread restart_handler_thread([&]() {
     MLOG(MINFO) << "Started sessiond restart handler thread";
     restart_handler->cleanup_previous_sessions();

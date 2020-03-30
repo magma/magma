@@ -16,6 +16,7 @@
 #include "LocalEnforcer.h"
 #include "SessionReporter.h"
 #include "SessionID.h"
+#include "SessionStore.h"
 
 using grpc::Server;
 using grpc::ServerContext;
@@ -65,7 +66,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   LocalSessionManagerHandlerImpl(
     std::shared_ptr<LocalEnforcer> monitor,
     SessionReporter* reporter,
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client);
+    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    SessionMap& session_map);
   ~LocalSessionManagerHandlerImpl() {}
   /**
    * Report flow stats from pipelined and track the usage per rule
@@ -93,6 +95,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
     std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
  private:
+  SessionMap& session_map_;
   std::shared_ptr<LocalEnforcer> enforcer_;
   SessionReporter* reporter_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;

@@ -14,6 +14,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "LocalEnforcer.h"
+#include "SessionStore.h"
 
 using grpc::Server;
 using grpc::ServerContext;
@@ -46,7 +47,9 @@ class SessionProxyResponderHandler {
  */
 class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
  public:
-  SessionProxyResponderHandlerImpl(std::shared_ptr<LocalEnforcer> monitor);
+  SessionProxyResponderHandlerImpl(
+    std::shared_ptr<LocalEnforcer> monitor,
+    SessionMap& session_map);
 
   ~SessionProxyResponderHandlerImpl() {}
 
@@ -68,6 +71,7 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
     std::function<void(Status, PolicyReAuthAnswer)> response_callback);
 
  private:
+   SessionMap& session_map_;
    std::shared_ptr<LocalEnforcer> enforcer_;
 };
 
