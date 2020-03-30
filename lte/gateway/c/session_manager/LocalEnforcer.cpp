@@ -416,15 +416,30 @@ static bool should_activate(
       rule.tracking_type() == PolicyRule::OCS_AND_PCRF) {
     const bool exists = successful_credits.count(rule.rating_group()) > 0;
     if (!exists) {
-      MLOG(MDEBUG) << "Should not activate " << rule.id()
+      MLOG(MERROR) << "Not activating Gy tracked " << rule.id()
                    << " because credit w/ rating group " << rule.rating_group()
                    << " does not exist";
+      return false;
     }
-    return exists;
   }
-  MLOG(MDEBUG) << "Should activate because NO OCS TRACKING for rule "
-               << rule.id();
-  // no tracking or PCRF-only tracking, activate
+  switch (rule.tracking_type()) {
+    case PolicyRule::ONLY_PCRF:
+      MLOG(MINFO) << "Activating Gx tracked rule " << rule.id()
+                   << " with monitoring key " << rule.monitoring_key();
+      break;
+    case PolicyRule::ONLY_OCS:
+      MLOG(MINFO) << "Activating Gy tracked rule " << rule.id()
+                   << " with rating group " << rule.rating_group();
+      break;
+    case PolicyRule::OCS_AND_PCRF:
+      MLOG(MINFO) << "Activating Gx+Gy tracked rule " << rule.id()
+                   << " with monitoring key " << rule.monitoring_key()
+                   << " with rating group " << rule.rating_group();
+      break;
+    case PolicyRule::NO_TRACKING:
+      MLOG(MINFO) << "Activating untracked rule " << rule.id();
+      break;
+  }
   return true;
 }
 
@@ -590,7 +605,6 @@ void LocalEnforcer::process_create_session_response(
         // it will be set as 0 by default
         // when it is 0 or some past time, the rule should be activated instanly
         rules_to_activate.static_rules.push_back(id);
-        MLOG(MDEBUG) << "Activate Static rule id " << id;
       }
 
       auto deactivation_time =
