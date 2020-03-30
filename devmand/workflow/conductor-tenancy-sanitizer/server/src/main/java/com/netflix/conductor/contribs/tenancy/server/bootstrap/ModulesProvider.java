@@ -14,7 +14,7 @@ package com.netflix.conductor.contribs.tenancy.server.bootstrap;
 
 import com.google.inject.AbstractModule;
 import com.netflix.conductor.contribs.tenancy.server.jackson.JacksonModule;
-import com.netflix.conductor.contribs.tenancy.server.server.JerseyModule;
+import com.netflix.conductor.contribs.tenancy.server.contribs.tenancy.jersey.module.JerseyModule;
 import com.netflix.conductor.contribs.tenancy.server.server.ServerModule;
 import java.util.ArrayList;
 import java.util.List;

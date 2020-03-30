@@ -15,6 +15,7 @@ package com.netflix.conductor.contribs.tenancy.server.bootstrap;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.netflix.conductor.contribs.tenancy.server.jetty.server.JettyServerProvider;
+import com.netflix.conductor.contribs.tenancy.server.logging.LoggingUtils;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.lang.invoke.MethodHandles;
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory;
 public class Main {
 
     public static void main(String[] args) {
+        LoggingUtils.setUpJULBridge();
         if (args.length == 0) {
             URL log4j = Main.class.getResource("/log4j.properties");
             PropertyConfigurator.configure(log4j);

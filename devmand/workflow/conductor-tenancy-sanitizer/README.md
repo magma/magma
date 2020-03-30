@@ -21,5 +21,5 @@ This starts http server on `localhost:8081`.
 Make sure conductor is listening on `localhost:8080`.
 Start the proxy and issue a HTTP request:
 ```sh
-curl -v "localhost:8081/api/workflow/search?query="
+curl -v  -H "x-auth-organization: foo" "localhost:8081/api/workflow/search?query="
 ```

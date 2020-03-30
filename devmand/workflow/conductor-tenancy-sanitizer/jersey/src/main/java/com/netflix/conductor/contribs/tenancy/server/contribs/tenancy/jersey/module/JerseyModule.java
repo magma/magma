@@ -13,38 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.conductor.contribs.tenancy.server.server;
-
-import com.netflix.conductor.contribs.tenancy.server.contribs.tenancy.jersey.resources.WorkflowResource;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.inject.Singleton;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
+package com.netflix.conductor.contribs.tenancy.server.contribs.tenancy.jersey.module;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.inject.Provides;
+import com.netflix.conductor.contribs.tenancy.server.contribs.tenancy.jersey.filter.auth.AuthFilter;
+import com.netflix.conductor.contribs.tenancy.server.contribs.tenancy.jersey.filter.CORSFilter;
+import com.netflix.conductor.contribs.tenancy.server.contribs.tenancy.jersey.resources.WorkflowResource;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.JerseyServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
-
+import java.util.HashMap;
+import java.util.Map;
+import javax.inject.Singleton;
 
 public final class JerseyModule extends JerseyServletModule {
 
-
     @Override
     protected void configureServlets() {
-        filter("/*").through(apiOriginFilter());
-
         Map<String, String> jerseyParams = new HashMap<>();
         jerseyParams.put("com.sun.jersey.config.feature.FilterForwardOn404", "true");
         jerseyParams.put("com.sun.jersey.config.property.WebPageContentRegex", "/(((webjars|api-docs|swagger-ui/docs|manage)/.*)|(favicon\\.ico))");
@@ -53,40 +41,16 @@ public final class JerseyModule extends JerseyServletModule {
                         ";io.swagger.jaxrs.json;io.swagger.jaxrs.listing");
         jerseyParams.put(ResourceConfig.FEATURE_DISABLE_WADL, "false");
         serve("/api/*").with(GuiceContainer.class, jerseyParams);
+
+        filter("/*").through(AuthFilter.class);
+        filter("/*").through(CORSFilter.class);
+
     }
 
     @Provides
     @Singleton
     JacksonJsonProvider jacksonJsonProvider(ObjectMapper mapper) {
         return new JacksonJsonProvider(mapper);
-    }
-
-    @Provides
-    @Singleton
-    public Filter apiOriginFilter() {
-        return new Filter() {
-
-            @Override
-            public void init(FilterConfig filterConfig) throws ServletException {
-            }
-
-            @Override
-            public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-                HttpServletResponse res = (HttpServletResponse) response;
-                if (!res.containsHeader("Access-Control-Allow-Origin")) {
-                    res.setHeader("Access-Control-Allow-Origin", "*");
-                }
-                res.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT");
-                res.addHeader("Access-Control-Allow-Headers", "Content-Type, api_key, Authorization");
-
-                chain.doFilter(request, response);
-            }
-
-            @Override
-            public void destroy() {
-            }
-
-        };
     }
 
     @Override
