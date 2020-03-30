@@ -49,8 +49,8 @@ func (ld *LocationDelete) Exec(ctx context.Context) (int, error) {
 			affected, err = ld.sqlExec(ctx)
 			return affected, err
 		})
-		for i := len(ld.hooks); i > 0; i-- {
-			mut = ld.hooks[i-1](mut)
+		for i := len(ld.hooks) - 1; i >= 0; i-- {
+			mut = ld.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ld.mutation); err != nil {
 			return 0, err

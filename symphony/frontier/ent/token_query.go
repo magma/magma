@@ -31,8 +31,9 @@ type TokenQuery struct {
 	// eager-loading edges.
 	withUser *UserQuery
 	withFKs  bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -62,12 +63,18 @@ func (tq *TokenQuery) Order(o ...Order) *TokenQuery {
 // QueryUser chains the current query on the user edge.
 func (tq *TokenQuery) QueryUser() *UserQuery {
 	query := &UserQuery{config: tq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(token.Table, token.FieldID, tq.sqlQuery()),
-		sqlgraph.To(user.Table, user.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, token.UserTable, token.UserColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(token.Table, token.FieldID, tq.sqlQuery()),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, token.UserTable, token.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -167,6 +174,9 @@ func (tq *TokenQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of Tokens.
 func (tq *TokenQuery) All(ctx context.Context) ([]*Token, error) {
+	if err := tq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return tq.sqlAll(ctx)
 }
 
@@ -199,6 +209,9 @@ func (tq *TokenQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (tq *TokenQuery) Count(ctx context.Context) (int, error) {
+	if err := tq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return tq.sqlCount(ctx)
 }
 
@@ -213,6 +226,9 @@ func (tq *TokenQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (tq *TokenQuery) Exist(ctx context.Context) (bool, error) {
+	if err := tq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return tq.sqlExist(ctx)
 }
 
@@ -236,7 +252,8 @@ func (tq *TokenQuery) Clone() *TokenQuery {
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Token{}, tq.predicates...),
 		// clone intermediate query.
-		sql: tq.sql.Clone(),
+		sql:  tq.sql.Clone(),
+		path: tq.path,
 	}
 }
 
@@ -269,7 +286,12 @@ func (tq *TokenQuery) WithUser(opts ...func(*UserQuery)) *TokenQuery {
 func (tq *TokenQuery) GroupBy(field string, fields ...string) *TokenGroupBy {
 	group := &TokenGroupBy{config: tq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = tq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return tq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -288,8 +310,24 @@ func (tq *TokenQuery) GroupBy(field string, fields ...string) *TokenGroupBy {
 func (tq *TokenQuery) Select(field string, fields ...string) *TokenSelect {
 	selector := &TokenSelect{config: tq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = tq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return tq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (tq *TokenQuery) prepareQuery(ctx context.Context) error {
+	if tq.path != nil {
+		prev, err := tq.path(ctx)
+		if err != nil {
+			return err
+		}
+		tq.sql = prev
+	}
+	return nil
 }
 
 func (tq *TokenQuery) sqlAll(ctx context.Context) ([]*Token, error) {
@@ -438,8 +476,9 @@ type TokenGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -450,6 +489,11 @@ func (tgb *TokenGroupBy) Aggregate(fns ...Aggregate) *TokenGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (tgb *TokenGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := tgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	tgb.sql = query
 	return tgb.sqlScan(ctx, v)
 }
 
@@ -568,12 +612,18 @@ func (tgb *TokenGroupBy) sqlQuery() *sql.Selector {
 type TokenSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ts *TokenSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ts.path(ctx)
+	if err != nil {
+		return err
+	}
+	ts.sql = query
 	return ts.sqlScan(ctx, v)
 }
 

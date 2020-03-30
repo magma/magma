@@ -383,8 +383,8 @@ func (sqc *SurveyQuestionCreate) Save(ctx context.Context) (*SurveyQuestion, err
 			node, err = sqc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(sqc.hooks); i > 0; i-- {
-			mut = sqc.hooks[i-1](mut)
+		for i := len(sqc.hooks) - 1; i >= 0; i-- {
+			mut = sqc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, sqc.mutation); err != nil {
 			return nil, err

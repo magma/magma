@@ -167,8 +167,8 @@ func (fpc *FloorPlanCreate) Save(ctx context.Context) (*FloorPlan, error) {
 			node, err = fpc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(fpc.hooks); i > 0; i-- {
-			mut = fpc.hooks[i-1](mut)
+		for i := len(fpc.hooks) - 1; i >= 0; i-- {
+			mut = fpc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, fpc.mutation); err != nil {
 			return nil, err

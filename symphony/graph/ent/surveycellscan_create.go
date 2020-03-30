@@ -388,8 +388,8 @@ func (scsc *SurveyCellScanCreate) Save(ctx context.Context) (*SurveyCellScan, er
 			node, err = scsc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(scsc.hooks); i > 0; i-- {
-			mut = scsc.hooks[i-1](mut)
+		for i := len(scsc.hooks) - 1; i >= 0; i-- {
+			mut = scsc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, scsc.mutation); err != nil {
 			return nil, err

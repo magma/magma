@@ -235,8 +235,8 @@ func (wotu *WorkOrderTypeUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = wotu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(wotu.hooks); i > 0; i-- {
-			mut = wotu.hooks[i-1](mut)
+		for i := len(wotu.hooks) - 1; i >= 0; i-- {
+			mut = wotu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wotu.mutation); err != nil {
 			return 0, err
@@ -719,8 +719,8 @@ func (wotuo *WorkOrderTypeUpdateOne) Save(ctx context.Context) (*WorkOrderType, 
 			node, err = wotuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(wotuo.hooks); i > 0; i-- {
-			mut = wotuo.hooks[i-1](mut)
+		for i := len(wotuo.hooks) - 1; i >= 0; i-- {
+			mut = wotuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wotuo.mutation); err != nil {
 			return nil, err

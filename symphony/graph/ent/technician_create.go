@@ -122,8 +122,8 @@ func (tc *TechnicianCreate) Save(ctx context.Context) (*Technician, error) {
 			node, err = tc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(tc.hooks); i > 0; i-- {
-			mut = tc.hooks[i-1](mut)
+		for i := len(tc.hooks) - 1; i >= 0; i-- {
+			mut = tc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, tc.mutation); err != nil {
 			return nil, err

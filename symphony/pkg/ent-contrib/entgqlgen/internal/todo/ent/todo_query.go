@@ -32,8 +32,9 @@ type TodoQuery struct {
 	withParent   *TodoQuery
 	withChildren *TodoQuery
 	withFKs      bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -63,24 +64,36 @@ func (tq *TodoQuery) Order(o ...Order) *TodoQuery {
 // QueryParent chains the current query on the parent edge.
 func (tq *TodoQuery) QueryParent() *TodoQuery {
 	query := &TodoQuery{config: tq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(todo.Table, todo.FieldID, tq.sqlQuery()),
-		sqlgraph.To(todo.Table, todo.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, todo.ParentTable, todo.ParentColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(todo.Table, todo.FieldID, tq.sqlQuery()),
+			sqlgraph.To(todo.Table, todo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, todo.ParentTable, todo.ParentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryChildren chains the current query on the children edge.
 func (tq *TodoQuery) QueryChildren() *TodoQuery {
 	query := &TodoQuery{config: tq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(todo.Table, todo.FieldID, tq.sqlQuery()),
-		sqlgraph.To(todo.Table, todo.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, todo.ChildrenTable, todo.ChildrenColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(todo.Table, todo.FieldID, tq.sqlQuery()),
+			sqlgraph.To(todo.Table, todo.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, todo.ChildrenTable, todo.ChildrenColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -180,6 +193,9 @@ func (tq *TodoQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of Todos.
 func (tq *TodoQuery) All(ctx context.Context) ([]*Todo, error) {
+	if err := tq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return tq.sqlAll(ctx)
 }
 
@@ -212,6 +228,9 @@ func (tq *TodoQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (tq *TodoQuery) Count(ctx context.Context) (int, error) {
+	if err := tq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return tq.sqlCount(ctx)
 }
 
@@ -226,6 +245,9 @@ func (tq *TodoQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (tq *TodoQuery) Exist(ctx context.Context) (bool, error) {
+	if err := tq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return tq.sqlExist(ctx)
 }
 
@@ -249,7 +271,8 @@ func (tq *TodoQuery) Clone() *TodoQuery {
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Todo{}, tq.predicates...),
 		// clone intermediate query.
-		sql: tq.sql.Clone(),
+		sql:  tq.sql.Clone(),
+		path: tq.path,
 	}
 }
 
@@ -293,7 +316,12 @@ func (tq *TodoQuery) WithChildren(opts ...func(*TodoQuery)) *TodoQuery {
 func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 	group := &TodoGroupBy{config: tq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = tq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return tq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -312,8 +340,24 @@ func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 func (tq *TodoQuery) Select(field string, fields ...string) *TodoSelect {
 	selector := &TodoSelect{config: tq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = tq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return tq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (tq *TodoQuery) prepareQuery(ctx context.Context) error {
+	if tq.path != nil {
+		prev, err := tq.path(ctx)
+		if err != nil {
+			return err
+		}
+		tq.sql = prev
+	}
+	return nil
 }
 
 func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
@@ -491,8 +535,9 @@ type TodoGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -503,6 +548,11 @@ func (tgb *TodoGroupBy) Aggregate(fns ...Aggregate) *TodoGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (tgb *TodoGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := tgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	tgb.sql = query
 	return tgb.sqlScan(ctx, v)
 }
 
@@ -621,12 +671,18 @@ func (tgb *TodoGroupBy) sqlQuery() *sql.Selector {
 type TodoSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ts *TodoSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ts.path(ctx)
+	if err != nil {
+		return err
+	}
+	ts.sql = query
 	return ts.sqlScan(ctx, v)
 }
 

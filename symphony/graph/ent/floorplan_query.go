@@ -37,8 +37,9 @@ type FloorPlanQuery struct {
 	withScale          *FloorPlanScaleQuery
 	withImage          *FileQuery
 	withFKs            bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -68,48 +69,72 @@ func (fpq *FloorPlanQuery) Order(o ...Order) *FloorPlanQuery {
 // QueryLocation chains the current query on the location edge.
 func (fpq *FloorPlanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: fpq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
-		sqlgraph.To(location.Table, location.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.LocationTable, floorplan.LocationColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, floorplan.LocationTable, floorplan.LocationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryReferencePoint chains the current query on the reference_point edge.
 func (fpq *FloorPlanQuery) QueryReferencePoint() *FloorPlanReferencePointQuery {
 	query := &FloorPlanReferencePointQuery{config: fpq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
-		sqlgraph.To(floorplanreferencepoint.Table, floorplanreferencepoint.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ReferencePointTable, floorplan.ReferencePointColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+			sqlgraph.To(floorplanreferencepoint.Table, floorplanreferencepoint.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ReferencePointTable, floorplan.ReferencePointColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryScale chains the current query on the scale edge.
 func (fpq *FloorPlanQuery) QueryScale() *FloorPlanScaleQuery {
 	query := &FloorPlanScaleQuery{config: fpq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
-		sqlgraph.To(floorplanscale.Table, floorplanscale.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ScaleTable, floorplan.ScaleColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+			sqlgraph.To(floorplanscale.Table, floorplanscale.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ScaleTable, floorplan.ScaleColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryImage chains the current query on the image edge.
 func (fpq *FloorPlanQuery) QueryImage() *FileQuery {
 	query := &FileQuery{config: fpq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
-		sqlgraph.To(file.Table, file.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -209,6 +234,9 @@ func (fpq *FloorPlanQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of FloorPlans.
 func (fpq *FloorPlanQuery) All(ctx context.Context) ([]*FloorPlan, error) {
+	if err := fpq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return fpq.sqlAll(ctx)
 }
 
@@ -241,6 +269,9 @@ func (fpq *FloorPlanQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (fpq *FloorPlanQuery) Count(ctx context.Context) (int, error) {
+	if err := fpq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return fpq.sqlCount(ctx)
 }
 
@@ -255,6 +286,9 @@ func (fpq *FloorPlanQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (fpq *FloorPlanQuery) Exist(ctx context.Context) (bool, error) {
+	if err := fpq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return fpq.sqlExist(ctx)
 }
 
@@ -278,7 +312,8 @@ func (fpq *FloorPlanQuery) Clone() *FloorPlanQuery {
 		unique:     append([]string{}, fpq.unique...),
 		predicates: append([]predicate.FloorPlan{}, fpq.predicates...),
 		// clone intermediate query.
-		sql: fpq.sql.Clone(),
+		sql:  fpq.sql.Clone(),
+		path: fpq.path,
 	}
 }
 
@@ -344,7 +379,12 @@ func (fpq *FloorPlanQuery) WithImage(opts ...func(*FileQuery)) *FloorPlanQuery {
 func (fpq *FloorPlanQuery) GroupBy(field string, fields ...string) *FloorPlanGroupBy {
 	group := &FloorPlanGroupBy{config: fpq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = fpq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := fpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return fpq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -363,8 +403,24 @@ func (fpq *FloorPlanQuery) GroupBy(field string, fields ...string) *FloorPlanGro
 func (fpq *FloorPlanQuery) Select(field string, fields ...string) *FloorPlanSelect {
 	selector := &FloorPlanSelect{config: fpq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = fpq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := fpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return fpq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (fpq *FloorPlanQuery) prepareQuery(ctx context.Context) error {
+	if fpq.path != nil {
+		prev, err := fpq.path(ctx)
+		if err != nil {
+			return err
+		}
+		fpq.sql = prev
+	}
+	return nil
 }
 
 func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
@@ -591,8 +647,9 @@ type FloorPlanGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -603,6 +660,11 @@ func (fpgb *FloorPlanGroupBy) Aggregate(fns ...Aggregate) *FloorPlanGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (fpgb *FloorPlanGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := fpgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	fpgb.sql = query
 	return fpgb.sqlScan(ctx, v)
 }
 
@@ -721,12 +783,18 @@ func (fpgb *FloorPlanGroupBy) sqlQuery() *sql.Selector {
 type FloorPlanSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (fps *FloorPlanSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := fps.path(ctx)
+	if err != nil {
+		return err
+	}
+	fps.sql = query
 	return fps.sqlScan(ctx, v)
 }
 

@@ -49,8 +49,8 @@ func (etd *EquipmentTypeDelete) Exec(ctx context.Context) (int, error) {
 			affected, err = etd.sqlExec(ctx)
 			return affected, err
 		})
-		for i := len(etd.hooks); i > 0; i-- {
-			mut = etd.hooks[i-1](mut)
+		for i := len(etd.hooks) - 1; i >= 0; i-- {
+			mut = etd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, etd.mutation); err != nil {
 			return 0, err

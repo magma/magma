@@ -32,8 +32,9 @@ type SurveyTemplateCategoryQuery struct {
 	// eager-loading edges.
 	withSurveyTemplateQuestions *SurveyTemplateQuestionQuery
 	withFKs                     bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -63,12 +64,18 @@ func (stcq *SurveyTemplateCategoryQuery) Order(o ...Order) *SurveyTemplateCatego
 // QuerySurveyTemplateQuestions chains the current query on the survey_template_questions edge.
 func (stcq *SurveyTemplateCategoryQuery) QuerySurveyTemplateQuestions() *SurveyTemplateQuestionQuery {
 	query := &SurveyTemplateQuestionQuery{config: stcq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, stcq.sqlQuery()),
-		sqlgraph.To(surveytemplatequestion.Table, surveytemplatequestion.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, surveytemplatecategory.SurveyTemplateQuestionsTable, surveytemplatecategory.SurveyTemplateQuestionsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(stcq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := stcq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, stcq.sqlQuery()),
+			sqlgraph.To(surveytemplatequestion.Table, surveytemplatequestion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, surveytemplatecategory.SurveyTemplateQuestionsTable, surveytemplatecategory.SurveyTemplateQuestionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(stcq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -168,6 +175,9 @@ func (stcq *SurveyTemplateCategoryQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of SurveyTemplateCategories.
 func (stcq *SurveyTemplateCategoryQuery) All(ctx context.Context) ([]*SurveyTemplateCategory, error) {
+	if err := stcq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return stcq.sqlAll(ctx)
 }
 
@@ -200,6 +210,9 @@ func (stcq *SurveyTemplateCategoryQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (stcq *SurveyTemplateCategoryQuery) Count(ctx context.Context) (int, error) {
+	if err := stcq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return stcq.sqlCount(ctx)
 }
 
@@ -214,6 +227,9 @@ func (stcq *SurveyTemplateCategoryQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (stcq *SurveyTemplateCategoryQuery) Exist(ctx context.Context) (bool, error) {
+	if err := stcq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return stcq.sqlExist(ctx)
 }
 
@@ -237,7 +253,8 @@ func (stcq *SurveyTemplateCategoryQuery) Clone() *SurveyTemplateCategoryQuery {
 		unique:     append([]string{}, stcq.unique...),
 		predicates: append([]predicate.SurveyTemplateCategory{}, stcq.predicates...),
 		// clone intermediate query.
-		sql: stcq.sql.Clone(),
+		sql:  stcq.sql.Clone(),
+		path: stcq.path,
 	}
 }
 
@@ -270,7 +287,12 @@ func (stcq *SurveyTemplateCategoryQuery) WithSurveyTemplateQuestions(opts ...fun
 func (stcq *SurveyTemplateCategoryQuery) GroupBy(field string, fields ...string) *SurveyTemplateCategoryGroupBy {
 	group := &SurveyTemplateCategoryGroupBy{config: stcq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = stcq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := stcq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return stcq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -289,8 +311,24 @@ func (stcq *SurveyTemplateCategoryQuery) GroupBy(field string, fields ...string)
 func (stcq *SurveyTemplateCategoryQuery) Select(field string, fields ...string) *SurveyTemplateCategorySelect {
 	selector := &SurveyTemplateCategorySelect{config: stcq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = stcq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := stcq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return stcq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (stcq *SurveyTemplateCategoryQuery) prepareQuery(ctx context.Context) error {
+	if stcq.path != nil {
+		prev, err := stcq.path(ctx)
+		if err != nil {
+			return err
+		}
+		stcq.sql = prev
+	}
+	return nil
 }
 
 func (stcq *SurveyTemplateCategoryQuery) sqlAll(ctx context.Context) ([]*SurveyTemplateCategory, error) {
@@ -439,8 +477,9 @@ type SurveyTemplateCategoryGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -451,6 +490,11 @@ func (stcgb *SurveyTemplateCategoryGroupBy) Aggregate(fns ...Aggregate) *SurveyT
 
 // Scan applies the group-by query and scan the result into the given value.
 func (stcgb *SurveyTemplateCategoryGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := stcgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	stcgb.sql = query
 	return stcgb.sqlScan(ctx, v)
 }
 
@@ -569,12 +613,18 @@ func (stcgb *SurveyTemplateCategoryGroupBy) sqlQuery() *sql.Selector {
 type SurveyTemplateCategorySelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (stcs *SurveyTemplateCategorySelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := stcs.path(ctx)
+	if err != nil {
+		return err
+	}
+	stcs.sql = query
 	return stcs.sqlScan(ctx, v)
 }
 

@@ -27,8 +27,9 @@ type ReportFilterQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.ReportFilter
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -151,6 +152,9 @@ func (rfq *ReportFilterQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of ReportFilters.
 func (rfq *ReportFilterQuery) All(ctx context.Context) ([]*ReportFilter, error) {
+	if err := rfq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return rfq.sqlAll(ctx)
 }
 
@@ -183,6 +187,9 @@ func (rfq *ReportFilterQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (rfq *ReportFilterQuery) Count(ctx context.Context) (int, error) {
+	if err := rfq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return rfq.sqlCount(ctx)
 }
 
@@ -197,6 +204,9 @@ func (rfq *ReportFilterQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (rfq *ReportFilterQuery) Exist(ctx context.Context) (bool, error) {
+	if err := rfq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return rfq.sqlExist(ctx)
 }
 
@@ -220,7 +230,8 @@ func (rfq *ReportFilterQuery) Clone() *ReportFilterQuery {
 		unique:     append([]string{}, rfq.unique...),
 		predicates: append([]predicate.ReportFilter{}, rfq.predicates...),
 		// clone intermediate query.
-		sql: rfq.sql.Clone(),
+		sql:  rfq.sql.Clone(),
+		path: rfq.path,
 	}
 }
 
@@ -242,7 +253,12 @@ func (rfq *ReportFilterQuery) Clone() *ReportFilterQuery {
 func (rfq *ReportFilterQuery) GroupBy(field string, fields ...string) *ReportFilterGroupBy {
 	group := &ReportFilterGroupBy{config: rfq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = rfq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := rfq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return rfq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -261,8 +277,24 @@ func (rfq *ReportFilterQuery) GroupBy(field string, fields ...string) *ReportFil
 func (rfq *ReportFilterQuery) Select(field string, fields ...string) *ReportFilterSelect {
 	selector := &ReportFilterSelect{config: rfq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = rfq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := rfq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return rfq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (rfq *ReportFilterQuery) prepareQuery(ctx context.Context) error {
+	if rfq.path != nil {
+		prev, err := rfq.path(ctx)
+		if err != nil {
+			return err
+		}
+		rfq.sql = prev
+	}
+	return nil
 }
 
 func (rfq *ReportFilterQuery) sqlAll(ctx context.Context) ([]*ReportFilter, error) {
@@ -371,8 +403,9 @@ type ReportFilterGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -383,6 +416,11 @@ func (rfgb *ReportFilterGroupBy) Aggregate(fns ...Aggregate) *ReportFilterGroupB
 
 // Scan applies the group-by query and scan the result into the given value.
 func (rfgb *ReportFilterGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := rfgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	rfgb.sql = query
 	return rfgb.sqlScan(ctx, v)
 }
 
@@ -501,12 +539,18 @@ func (rfgb *ReportFilterGroupBy) sqlQuery() *sql.Selector {
 type ReportFilterSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (rfs *ReportFilterSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := rfs.path(ctx)
+	if err != nil {
+		return err
+	}
+	rfs.sql = query
 	return rfs.sqlScan(ctx, v)
 }
 

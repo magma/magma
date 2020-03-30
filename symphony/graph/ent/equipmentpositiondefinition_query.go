@@ -34,8 +34,9 @@ type EquipmentPositionDefinitionQuery struct {
 	withPositions     *EquipmentPositionQuery
 	withEquipmentType *EquipmentTypeQuery
 	withFKs           bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -65,24 +66,36 @@ func (epdq *EquipmentPositionDefinitionQuery) Order(o ...Order) *EquipmentPositi
 // QueryPositions chains the current query on the positions edge.
 func (epdq *EquipmentPositionDefinitionQuery) QueryPositions() *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: epdq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, epdq.sqlQuery()),
-		sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, equipmentpositiondefinition.PositionsTable, equipmentpositiondefinition.PositionsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := epdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, epdq.sqlQuery()),
+			sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, equipmentpositiondefinition.PositionsTable, equipmentpositiondefinition.PositionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryEquipmentType chains the current query on the equipment_type edge.
 func (epdq *EquipmentPositionDefinitionQuery) QueryEquipmentType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: epdq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, epdq.sqlQuery()),
-		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, equipmentpositiondefinition.EquipmentTypeTable, equipmentpositiondefinition.EquipmentTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := epdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, epdq.sqlQuery()),
+			sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, equipmentpositiondefinition.EquipmentTypeTable, equipmentpositiondefinition.EquipmentTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -182,6 +195,9 @@ func (epdq *EquipmentPositionDefinitionQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of EquipmentPositionDefinitions.
 func (epdq *EquipmentPositionDefinitionQuery) All(ctx context.Context) ([]*EquipmentPositionDefinition, error) {
+	if err := epdq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return epdq.sqlAll(ctx)
 }
 
@@ -214,6 +230,9 @@ func (epdq *EquipmentPositionDefinitionQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (epdq *EquipmentPositionDefinitionQuery) Count(ctx context.Context) (int, error) {
+	if err := epdq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return epdq.sqlCount(ctx)
 }
 
@@ -228,6 +247,9 @@ func (epdq *EquipmentPositionDefinitionQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (epdq *EquipmentPositionDefinitionQuery) Exist(ctx context.Context) (bool, error) {
+	if err := epdq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return epdq.sqlExist(ctx)
 }
 
@@ -251,7 +273,8 @@ func (epdq *EquipmentPositionDefinitionQuery) Clone() *EquipmentPositionDefiniti
 		unique:     append([]string{}, epdq.unique...),
 		predicates: append([]predicate.EquipmentPositionDefinition{}, epdq.predicates...),
 		// clone intermediate query.
-		sql: epdq.sql.Clone(),
+		sql:  epdq.sql.Clone(),
+		path: epdq.path,
 	}
 }
 
@@ -295,7 +318,12 @@ func (epdq *EquipmentPositionDefinitionQuery) WithEquipmentType(opts ...func(*Eq
 func (epdq *EquipmentPositionDefinitionQuery) GroupBy(field string, fields ...string) *EquipmentPositionDefinitionGroupBy {
 	group := &EquipmentPositionDefinitionGroupBy{config: epdq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = epdq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := epdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return epdq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -314,8 +342,24 @@ func (epdq *EquipmentPositionDefinitionQuery) GroupBy(field string, fields ...st
 func (epdq *EquipmentPositionDefinitionQuery) Select(field string, fields ...string) *EquipmentPositionDefinitionSelect {
 	selector := &EquipmentPositionDefinitionSelect{config: epdq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = epdq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := epdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return epdq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (epdq *EquipmentPositionDefinitionQuery) prepareQuery(ctx context.Context) error {
+	if epdq.path != nil {
+		prev, err := epdq.path(ctx)
+		if err != nil {
+			return err
+		}
+		epdq.sql = prev
+	}
+	return nil
 }
 
 func (epdq *EquipmentPositionDefinitionQuery) sqlAll(ctx context.Context) ([]*EquipmentPositionDefinition, error) {
@@ -493,8 +537,9 @@ type EquipmentPositionDefinitionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -505,6 +550,11 @@ func (epdgb *EquipmentPositionDefinitionGroupBy) Aggregate(fns ...Aggregate) *Eq
 
 // Scan applies the group-by query and scan the result into the given value.
 func (epdgb *EquipmentPositionDefinitionGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := epdgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	epdgb.sql = query
 	return epdgb.sqlScan(ctx, v)
 }
 
@@ -623,12 +673,18 @@ func (epdgb *EquipmentPositionDefinitionGroupBy) sqlQuery() *sql.Selector {
 type EquipmentPositionDefinitionSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (epds *EquipmentPositionDefinitionSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := epds.path(ctx)
+	if err != nil {
+		return err
+	}
+	epds.sql = query
 	return epds.sqlScan(ctx, v)
 }
 

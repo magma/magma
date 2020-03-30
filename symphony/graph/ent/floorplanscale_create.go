@@ -123,8 +123,8 @@ func (fpsc *FloorPlanScaleCreate) Save(ctx context.Context) (*FloorPlanScale, er
 			node, err = fpsc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(fpsc.hooks); i > 0; i-- {
-			mut = fpsc.hooks[i-1](mut)
+		for i := len(fpsc.hooks) - 1; i >= 0; i-- {
+			mut = fpsc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, fpsc.mutation); err != nil {
 			return nil, err

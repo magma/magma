@@ -124,8 +124,8 @@ func (rfc *ReportFilterCreate) Save(ctx context.Context) (*ReportFilter, error) 
 			node, err = rfc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(rfc.hooks); i > 0; i-- {
-			mut = rfc.hooks[i-1](mut)
+		for i := len(rfc.hooks) - 1; i >= 0; i-- {
+			mut = rfc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, rfc.mutation); err != nil {
 			return nil, err

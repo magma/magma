@@ -118,8 +118,8 @@ func (fpsu *FloorPlanScaleUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = fpsu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(fpsu.hooks); i > 0; i-- {
-			mut = fpsu.hooks[i-1](mut)
+		for i := len(fpsu.hooks) - 1; i >= 0; i-- {
+			mut = fpsu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, fpsu.mutation); err != nil {
 			return 0, err
@@ -350,8 +350,8 @@ func (fpsuo *FloorPlanScaleUpdateOne) Save(ctx context.Context) (*FloorPlanScale
 			node, err = fpsuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(fpsuo.hooks); i > 0; i-- {
-			mut = fpsuo.hooks[i-1](mut)
+		for i := len(fpsuo.hooks) - 1; i >= 0; i-- {
+			mut = fpsuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, fpsuo.mutation); err != nil {
 			return nil, err

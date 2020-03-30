@@ -117,8 +117,8 @@ func (clcc *CheckListCategoryCreate) Save(ctx context.Context) (*CheckListCatego
 			node, err = clcc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(clcc.hooks); i > 0; i-- {
-			mut = clcc.hooks[i-1](mut)
+		for i := len(clcc.hooks) - 1; i >= 0; i-- {
+			mut = clcc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, clcc.mutation); err != nil {
 			return nil, err

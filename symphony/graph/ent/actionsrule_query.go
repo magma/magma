@@ -27,8 +27,9 @@ type ActionsRuleQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.ActionsRule
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -151,6 +152,9 @@ func (arq *ActionsRuleQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of ActionsRules.
 func (arq *ActionsRuleQuery) All(ctx context.Context) ([]*ActionsRule, error) {
+	if err := arq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return arq.sqlAll(ctx)
 }
 
@@ -183,6 +187,9 @@ func (arq *ActionsRuleQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (arq *ActionsRuleQuery) Count(ctx context.Context) (int, error) {
+	if err := arq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return arq.sqlCount(ctx)
 }
 
@@ -197,6 +204,9 @@ func (arq *ActionsRuleQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (arq *ActionsRuleQuery) Exist(ctx context.Context) (bool, error) {
+	if err := arq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return arq.sqlExist(ctx)
 }
 
@@ -220,7 +230,8 @@ func (arq *ActionsRuleQuery) Clone() *ActionsRuleQuery {
 		unique:     append([]string{}, arq.unique...),
 		predicates: append([]predicate.ActionsRule{}, arq.predicates...),
 		// clone intermediate query.
-		sql: arq.sql.Clone(),
+		sql:  arq.sql.Clone(),
+		path: arq.path,
 	}
 }
 
@@ -242,7 +253,12 @@ func (arq *ActionsRuleQuery) Clone() *ActionsRuleQuery {
 func (arq *ActionsRuleQuery) GroupBy(field string, fields ...string) *ActionsRuleGroupBy {
 	group := &ActionsRuleGroupBy{config: arq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = arq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := arq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return arq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -261,8 +277,24 @@ func (arq *ActionsRuleQuery) GroupBy(field string, fields ...string) *ActionsRul
 func (arq *ActionsRuleQuery) Select(field string, fields ...string) *ActionsRuleSelect {
 	selector := &ActionsRuleSelect{config: arq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = arq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := arq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return arq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (arq *ActionsRuleQuery) prepareQuery(ctx context.Context) error {
+	if arq.path != nil {
+		prev, err := arq.path(ctx)
+		if err != nil {
+			return err
+		}
+		arq.sql = prev
+	}
+	return nil
 }
 
 func (arq *ActionsRuleQuery) sqlAll(ctx context.Context) ([]*ActionsRule, error) {
@@ -371,8 +403,9 @@ type ActionsRuleGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -383,6 +416,11 @@ func (argb *ActionsRuleGroupBy) Aggregate(fns ...Aggregate) *ActionsRuleGroupBy 
 
 // Scan applies the group-by query and scan the result into the given value.
 func (argb *ActionsRuleGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := argb.path(ctx)
+	if err != nil {
+		return err
+	}
+	argb.sql = query
 	return argb.sqlScan(ctx, v)
 }
 
@@ -501,12 +539,18 @@ func (argb *ActionsRuleGroupBy) sqlQuery() *sql.Selector {
 type ActionsRuleSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ars *ActionsRuleSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ars.path(ctx)
+	if err != nil {
+		return err
+	}
+	ars.sql = query
 	return ars.sqlScan(ctx, v)
 }
 

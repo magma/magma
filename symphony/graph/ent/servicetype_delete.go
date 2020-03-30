@@ -49,8 +49,8 @@ func (std *ServiceTypeDelete) Exec(ctx context.Context) (int, error) {
 			affected, err = std.sqlExec(ctx)
 			return affected, err
 		})
-		for i := len(std.hooks); i > 0; i-- {
-			mut = std.hooks[i-1](mut)
+		for i := len(std.hooks) - 1; i >= 0; i-- {
+			mut = std.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, std.mutation); err != nil {
 			return 0, err

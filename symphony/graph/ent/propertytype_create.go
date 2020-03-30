@@ -463,8 +463,8 @@ func (ptc *PropertyTypeCreate) Save(ctx context.Context) (*PropertyType, error) 
 			node, err = ptc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(ptc.hooks); i > 0; i-- {
-			mut = ptc.hooks[i-1](mut)
+		for i := len(ptc.hooks) - 1; i >= 0; i-- {
+			mut = ptc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ptc.mutation); err != nil {
 			return nil, err

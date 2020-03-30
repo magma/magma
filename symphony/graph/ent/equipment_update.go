@@ -385,8 +385,8 @@ func (eu *EquipmentUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = eu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(eu.hooks); i > 0; i-- {
-			mut = eu.hooks[i-1](mut)
+		for i := len(eu.hooks) - 1; i >= 0; i-- {
+			mut = eu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, eu.mutation); err != nil {
 			return 0, err
@@ -1181,8 +1181,8 @@ func (euo *EquipmentUpdateOne) Save(ctx context.Context) (*Equipment, error) {
 			node, err = euo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(euo.hooks); i > 0; i-- {
-			mut = euo.hooks[i-1](mut)
+		for i := len(euo.hooks) - 1; i >= 0; i-- {
+			mut = euo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, euo.mutation); err != nil {
 			return nil, err
