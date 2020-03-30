@@ -32,13 +32,12 @@ from lte.protos.session_manager_pb2 import (
 from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
-from magma.common.service_registry import ServiceRegistry
 from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
-from orc8r.protos.directoryd_pb2 import UpdateRecordRequest, \
-    GetDirectoryFieldRequest
+from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
 DEFAULT_GRPC_TIMEOUT = 10
+
 
 class S1ApUtil(object):
     """
@@ -548,8 +547,12 @@ class SessionManagerUtil(object):
         """
         Initialize sessionManager util.
         """
-        self._session_stub = SessionProxyResponderStub(get_rpc_channel("sessiond"))
-        self._directorydstub = GatewayDirectoryServiceStub(get_rpc_channel("directoryd"))
+        self._session_stub = SessionProxyResponderStub(
+            get_rpc_channel("sessiond")
+        )
+        self._directorydstub = GatewayDirectoryServiceStub(
+            get_rpc_channel("directoryd")
+        )
 
     def create_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
         """
@@ -563,7 +566,7 @@ class SessionManagerUtil(object):
         for flow in flow_list:
             if flow["direction"] == "UL":
                 flow_direction = FlowMatch.UPLINK
-            else :
+            else:
                 flow_direction = FlowMatch.DOWNLINK
 
             ip_protocol = flow["ip_proto"]
@@ -589,7 +592,7 @@ class SessionManagerUtil(object):
                     udp_src_port = 0
 
                 if "udp_dst_port" in flow:
-                    udp_dst_port = int(flow["udp_dst_port"]  )
+                    udp_dst_port = int(flow["udp_dst_port"])
                 else:
                     udp_dst_port = 0
             else:
@@ -600,7 +603,7 @@ class SessionManagerUtil(object):
 
             if "ipv4_src" in flow:
                 ipv4_src_addr = flow["ipv4_src"]
-            
+
             if "ipv4_dst" in flow:
                 ipv4_dst_addr = flow["ipv4_dst"]
 
@@ -620,18 +623,17 @@ class SessionManagerUtil(object):
                 )
             )
 
-
         policy_qos = FlowQos(
-          qci=qos["qci"],
-          max_req_bw_ul=qos["max_req_bw_ul"],
-          max_req_bw_dl=qos["max_req_bw_dl"],
-          gbr_ul=qos["gbr_ul"],
-          gbr_dl=qos["gbr_dl"],
-          arp=QosArp(
-            priority_level=qos["arp_prio"],
-            pre_capability=qos["pre_cap"],
-            pre_vulnerability=qos["pre_vul"],
-          )
+            qci=qos["qci"],
+            max_req_bw_ul=qos["max_req_bw_ul"],
+            max_req_bw_dl=qos["max_req_bw_dl"],
+            gbr_ul=qos["gbr_ul"],
+            gbr_dl=qos["gbr_dl"],
+            arp=QosArp(
+                priority_level=qos["arp_prio"],
+                pre_capability=qos["pre_cap"],
+                pre_vulnerability=qos["pre_vul"],
+            ),
         )
 
         policy_rule = PolicyRule(
@@ -649,25 +651,29 @@ class SessionManagerUtil(object):
         # Get sessionid
         req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
         try:
-            res = self._directorydstub.GetDirectoryField(req, DEFAULT_GRPC_TIMEOUT)
+            res = self._directorydstub.GetDirectoryField(
+                req, DEFAULT_GRPC_TIMEOUT
+            )
         except grpc.RpcError as err:
             logging.error(
                 "GetDirectoryFieldRequest error for id: %s! [%s] %s",
                 imsi,
                 err.code(),
-                err.details())
+                err.details(),
+            )
 
-        reauth_result = self._session_stub.PolicyReAuth(
-          PolicyReAuthRequest(
-            session_id=res.value,
-            imsi=imsi,
-            rules_to_remove=[],
-            rules_to_install=[],
-            dynamic_rules_to_install=[DynamicRuleInstall(policy_rule=policy_rule)],
-            event_triggers=[],
-            revalidation_time=None,
-            usage_monitoring_credits=[],
-            qos_info=qos,
-          )
+        self._session_stub.PolicyReAuth(
+            PolicyReAuthRequest(
+                session_id=res.value,
+                imsi=imsi,
+                rules_to_remove=[],
+                rules_to_install=[],
+                dynamic_rules_to_install=[
+                    DynamicRuleInstall(policy_rule=policy_rule)
+                ],
+                event_triggers=[],
+                revalidation_time=None,
+                usage_monitoring_credits=[],
+                qos_info=qos,
+            )
         )
-
