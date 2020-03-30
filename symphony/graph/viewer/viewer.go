@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
@@ -36,10 +37,6 @@ const (
 	UserAttribute      = "viewer.user"
 	RoleAttribute      = "viewer.role"
 	UserAgentAttribute = "viewer.user_agent"
-)
-
-const (
-	UserIsDeactivatedError = "USER_IS_DEACTIVATED"
 )
 
 // The following tags are applied to context recorded by this package.
@@ -79,11 +76,15 @@ func (v *Viewer) traceAttrs() []trace.Attribute {
 }
 
 func (v *Viewer) tags(r *http.Request) []tag.Mutator {
+	var userAgent string
+	if parts := strings.SplitN(r.UserAgent(), " ", 2); len(parts) > 0 {
+		userAgent = parts[0]
+	}
 	return []tag.Mutator{
 		tag.Upsert(KeyTenant, v.Tenant),
 		tag.Upsert(KeyUser, v.User),
 		tag.Upsert(KeyRole, v.Role),
-		tag.Upsert(KeyUserAgent, r.UserAgent()),
+		tag.Upsert(KeyUserAgent, userAgent),
 	}
 }
 
