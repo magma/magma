@@ -746,6 +746,9 @@ imsi64_t itti_get_associated_imsi(MessageDef* msg)
       msg->ittiMsgHeader.messageId,
       msg->ittiMsgHeader.originTaskId,
       msg->ittiMsgHeader.destinationTaskId);
+  } else {
+    OAILOG_DEBUG_UE(
+        LOG_ITTI, msg->ittiMsgHeader.imsi, "Getting IMSI from ITTI message");
   }
   return msg->ittiMsgHeader.imsi;
 }

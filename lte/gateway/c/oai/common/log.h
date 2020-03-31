@@ -336,6 +336,13 @@ void log_message(
   const char *format,
   ...) __attribute__((format(printf, 6, 7)));
 
+void log_message_prefix_id(
+    uint64_t prefix_id,
+    log_level_t log_levelP,
+    log_proto_t protoP, const char* source_fileP,
+    unsigned int line_numP, char* format, ...)
+    __attribute__((format(printf, 6, 7)));
+
 const char *const get_short_file_name(
   const char *const source_file_nameP);
 
@@ -427,6 +434,11 @@ const char *const get_short_file_name(
     log_message(                                                               \
       NULL, OAILOG_LEVEL_DEBUG, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);     \
   } while (0) /*!< \brief debug informations */
+#define OAILOG_DEBUG_UE(pRoTo, ue_id, ...)                                     \
+  do {                                                                         \
+    log_message_prefix_id(                                                     \
+        ue_id, OAILOG_LEVEL_DEBUG, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);  \
+  } while (0) /*!< \brief debug informations */
 #if TRACE_IS_ON
 #define OAILOG_EXTERNAL(lOgLeVeL, pRoTo, ...)                                  \
   do {                                                                         \
@@ -436,7 +448,12 @@ const char *const get_short_file_name(
   do {                                                                         \
     log_message(                                                               \
       NULL, OAILOG_LEVEL_TRACE, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);     \
-  } while (0) /*!< \brief most detailled informations, struct dumps */
+  } while (0) /*!< \brief most detailed information, struct dumps */
+#define OAILOG_TRACE_UE(pRoTo, ue_id, ...)                                     \
+  do {                                                                         \
+    log_message_prefix_id(                                                     \
+        ue_id, OAILOG_LEVEL_TRACE, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);  \
+  } while (0) /*!< \brief most detailed information, struct dumps */
 #define OAILOG_FUNC_IN(pRoTo)                                                  \
   do {                                                                         \
     log_func(true, pRoTo, __FILE__, __LINE__, __FUNCTION__);                   \
@@ -511,4 +528,37 @@ const char *const get_short_file_name(
     fflush(stderr);                                                            \
   } while (0)
 #endif
+
+#define OAILOG_ALERT_UE(pRoTo, ue_id, ...)                                     \
+  do {                                                                         \
+    log_message_prefix_id(                                                     \
+        ue_id, OAILOG_LEVEL_ALERT, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);  \
+  } while (0) /*!< \brief action must be taken immediately */
+#define OAILOG_CRITICAL_UE(pRoTo, ue_id, ...)                                  \
+  do {                                                                         \
+    log_message_prefix_id(                                                     \
+        ue_id, OAILOG_LEVEL_CRITICAL, pRoTo, __FILE__, __LINE__,               \
+        ##__VA_ARGS__);                                                        \
+  } while (0) /*!< \brief critical conditions */
+#define OAILOG_ERROR_UE(pRoTo, ue_id, ...)                                     \
+  do {                                                                         \
+    log_message_prefix_id(                                                     \
+        ue_id, OAILOG_LEVEL_ERROR, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);  \
+  } while (0) /*!< \brief error conditions */
+#define OAILOG_WARNING_UE(pRoTo, ue_id, ...)                                   \
+  do {                                                                         \
+    log_message_prefix_id(                                                     \
+        ue_id, OAILOG_LEVEL_WARNING, pRoTo, __FILE__, __LINE__,                \
+        ##__VA_ARGS__);                                                        \
+  } while (0) /*!< \brief warning conditions */
+#define OAILOG_NOTICE_UE(pRoTo, ue_id, ...)                                    \
+  do {                                                                         \
+    log_message_prefix_id(                                                     \
+        ue_id, OAILOG_LEVEL_NOTICE, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__); \
+  } while (0) /*!< \brief normal but significant condition */
+#define OAILOG_INFO_UE(pRoTo, ue_id, ...)                                      \
+  do {                                                                         \
+    log_message_prefix_id(                                                     \
+        ue_id, OAILOG_LEVEL_INFO, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);   \
+  } while (0) /*!< \brief informational */
 #endif /* FILE_LOG_SEEN */

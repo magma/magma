@@ -1539,6 +1539,44 @@ void log_message(
   }
 }
 
+void log_message_prefix_id(
+  const uint64_t prefix_id,
+  const log_level_t log_levelP,
+  const log_proto_t protoP, const char* const source_fileP,
+  const unsigned int line_numP, char* format, ...) {
+  va_list args;
+  void* new_item_p                                 = NULL;
+  log_queue_item_t* new_item_p_sync                = NULL;
+  struct shared_log_queue_item_s* new_item_p_async = NULL;
+
+  // Adding prefix identifier to buffer string
+  char buffer[4096];
+  snprintf(buffer, sizeof(buffer), "[%lu] %s", prefix_id, format);
+
+  va_start(args, format);
+  log_message_int(
+      NULL, log_levelP, protoP, &new_item_p, source_fileP, line_numP,
+      buffer, args);
+  va_end(args);
+
+  if (NULL == new_item_p) {
+    return;
+  }
+  if (g_oai_log.is_async) {
+    new_item_p_async = (struct shared_log_queue_item_s*) new_item_p;
+    if (g_oai_log.is_ansi_codes) {
+      bformata(new_item_p_async->bstr, "%s", ANSI_COLOR_RESET);
+    }
+    _LOG_ASYNC(new_item_p_async);
+  } else {
+    new_item_p_sync = (log_queue_item_t*) new_item_p;
+    if (g_oai_log.is_ansi_codes) {
+      bformata(new_item_p_sync->bstr, "%s", ANSI_COLOR_RESET);
+    }
+    _LOG(new_item_p_sync);
+  }
+}
+
 void log_message_int(
   log_thread_ctxt_t *const thread_ctxtP,
   const log_level_t log_levelP,
