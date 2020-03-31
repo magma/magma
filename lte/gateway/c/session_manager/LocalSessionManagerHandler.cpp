@@ -236,7 +236,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
                     << " and RAT Type is WLAN, not creating a new session";
         // Wifi only supports one session per subscriber, so update the config
         // here
-        enforcer_->handle_cwf_roaming(imsi, cfg);
+        enforcer_->handle_cwf_roaming(session_map_, imsi, cfg);
       } else {
         MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
                     << " and APN " << request->apn()

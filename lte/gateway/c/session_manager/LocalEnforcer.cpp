@@ -1607,10 +1607,12 @@ bool LocalEnforcer::session_with_same_config_exists(
 }
 
 void LocalEnforcer::handle_cwf_roaming(
-  const std::string& imsi, const magma::SessionState::Config& config)
+  SessionMap& session_map,
+  const std::string& imsi,
+  const magma::SessionState::Config& config)
 {
-  auto it = session_map_.find(imsi);
-  if (it != session_map_.end()) {
+  auto it = session_map.find(imsi);
+  if (it != session_map.end()) {
     for (const auto &session : it->second) {
       session->set_config(config);
       // TODO Check for event triggers and send updates to the core if needed
