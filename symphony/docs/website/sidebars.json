@@ -7,7 +7,7 @@
     "Inventory": [
       "inventory-intro",
       "csv-upload",
-      "equipment-export",
+      "export",
       "service-export"
     ],
     "Workforce": [
