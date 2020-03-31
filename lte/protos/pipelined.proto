@@ -215,6 +215,13 @@ service Pipelined {
   // Delete a flow for a subscriber by matching the provided UE MAC address
   rpc DeleteUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
 
+  // -----------
+  // IPFIX App:
+  // -----------
+
+  // Update subscriber IPFIX flows
+  rpc UpdateIPFIXFlow (UEMacFlowRequest) returns (FlowResponse) {}
+
   // --------
   // Debugging:
   // --------

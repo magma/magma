@@ -1614,7 +1614,22 @@ void LocalEnforcer::handle_cwf_roaming(
     for (const auto &session : it->second) {
       session->set_config(config);
       // TODO Check for event triggers and send updates to the core if needed
-      // TODO Update APN information to pipelined
+      MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
+      SubscriberID sid;
+      sid.set_id(imsi);
+      std::string apn_mac_addr;
+      std::string apn_name;
+      if (!parse_apn(config.apn, apn_mac_addr, apn_name)) {
+          MLOG(MWARNING) << "Failed mac/name parsiong for apn " << config.apn;
+          apn_mac_addr = "";
+          apn_name = config.apn;
+      }
+      auto ue_mac_addr = session->get_mac_addr();
+      bool add_ue_mac_flow_success = pipelined_client_->update_ipfix_flow(
+        sid, ue_mac_addr, config.msisdn, apn_mac_addr, apn_name);
+      if (!add_ue_mac_flow_success) {
+        MLOG(MERROR) << "Failed to update IPFIX flow for subscriber " << imsi;
+      }
     }
   }
 }
