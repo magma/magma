@@ -77,8 +77,8 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         except SubscriberNotFoundError as e:
             logging.warning("Subscriber not found: %s", e)
             metrics.S6A_AUTH_FAILURE_TOTAL.labels(
-                code=metrics.DIAMETER_AUTHORIZATION_REJECTED).inc()
-            aia.error_code = metrics.DIAMETER_AUTHORIZATION_REJECTED
+                code=metrics.DIAMETER_ERROR_USER_UNKNOWN).inc()
+            aia.error_code = metrics.DIAMETER_ERROR_USER_UNKNOWN
             return aia
 
     def UpdateLocation(self, request, context):
