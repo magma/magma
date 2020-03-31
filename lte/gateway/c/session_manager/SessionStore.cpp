@@ -61,13 +61,23 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria)
 
   // Now attempt to modify the state
   for (auto& it : session_map) {
-    for (auto& session : it.second) {
+    auto it2 = it.second.begin();
+    while (it2 != it.second.end())
+    {
       auto updates = update_criteria.find(it.first)->second;
-      if (updates.find(session->get_session_id()) != updates.end()) {
-        if (!merge_into_session(session, updates[session->get_session_id()])) {
+      if (updates.find((*it2)->get_session_id()) != updates.end()) {
+        auto update = updates[(*it2)->get_session_id()];
+        if (!merge_into_session(*it2, update)) {
           return false;
         }
+        if (update.is_session_ended) {
+          // TODO: Instead of deleting from session_map, mark as ended and
+          //       no longer mark on read
+          it2 = it.second.erase(it2);
+          continue;
+        }
       }
+      ++it2;
     }
   }
   return store_client_.write_sessions(std::move(session_map));
