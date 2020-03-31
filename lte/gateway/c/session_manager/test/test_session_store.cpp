@@ -200,8 +200,10 @@ class SessionStoreTest : public ::testing::Test {
  * 7) Commit updates to SessionStore
  * 8) Read in session for IMSI1 again, and check that the update was successful
  * 9) Check request numbers again
- * 10) Delete the session for IMSI1
- * 11) Verify IMSI1 no longer has any sessions
+ * 10) Update request numbers again and check to see that they're updated
+ *     correctly still for multiple monitoring keys
+ * 11) Delete the session for IMSI1
+ * 12) Verify IMSI1 no longer has any sessions
  */
 TEST_F(SessionStoreTest, test_read_and_write)
 {
@@ -233,9 +235,9 @@ TEST_F(SessionStoreTest, test_read_and_write)
   session_store->create_sessions(imsi, std::move(sessions));
 
   // 4) Read session for IMSI1 from SessionStore
-  auto read_req = SessionRead{};
-  read_req[imsi] = 5;
-  auto session_map = session_store->read_sessions(read_req);
+  SessionRead read_req = {};
+  read_req.push_back(imsi);
+  auto session_map = session_store->read_sessions_for_reporting(read_req);
 
   // 5) Verify that state was written for IMSI1 and has been retrieved.
   EXPECT_EQ(session_map.size(), 1);
@@ -289,17 +291,28 @@ TEST_F(SessionStoreTest, test_read_and_write)
   // 9) Check request numbers again
   // This request number should increment in storage every time a read is done.
   // The incremented value is set by the read request to the storage interface.
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 7);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 3);
 
-  // 10) Delete sessions for IMSI1
+  // 10) Read sessions for reporting to update request numbers for the session
+  // The request number should be incremented by 2 for the session, 1 for
+  // each monitoring key and charging key associated to it.
+  session_map = session_store->read_sessions_for_reporting(read_req);
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_EQ(session_map[imsi].size(), 1);
+
+  session_map = session_store->read_sessions(read_req);
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 5);
+
+  // 11) Delete sessions for IMSI1
   update_req = SessionUpdate{};
   update_criteria = SessionStateUpdateCriteria{};
   update_criteria.is_session_ended = true;
   update_req[imsi][sid] = update_criteria;
   session_store->update_sessions(update_req);
 
-  // 11) Verify that IMSI1 no longer has a session
-  session_map = session_store->read_sessions(read_req);
+  // 12) Verify that IMSI1 no longer has a session
+  session_map = session_store->read_sessions_for_reporting(read_req);
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 0);
 }
