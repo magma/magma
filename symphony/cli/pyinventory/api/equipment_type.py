@@ -414,6 +414,7 @@ def delete_equipment_type_with_equipments(
             client,
             Equipment(
                 id=equipment.id,
+                external_id=equipment.externalId,
                 name=equipment.name,
                 equipment_type_name=equipment.equipmentType.name,
             ),

@@ -22,6 +22,7 @@ This is template for release notes
 - Equipment functionality:
     - `get_equipments_by_type`
     - `get_equipments_by_location`
+    - `get_equipment_by_external_id`
 ### Changes
 ### Deprecated
 ### Removed

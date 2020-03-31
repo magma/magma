@@ -83,6 +83,7 @@ class InventoryClient(SymphonyClient):
         get_equipment_properties,
         get_equipments_by_type,
         get_equipments_by_location,
+        get_equipment_by_external_id,
     )
     from .api.link import (
         add_link,
