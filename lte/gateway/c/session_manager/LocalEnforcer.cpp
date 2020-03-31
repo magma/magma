@@ -1363,9 +1363,10 @@ void LocalEnforcer::init_policy_reauth_for_session(
       session_map, imsi, rules.static_rules, rules.dynamic_rules, session_update);
     return;
   }
-
-  create_bearer(
-    activate_success, session, request, rules_to_activate.dynamic_rules);
+  if (!session->is_radius_cwf_session()) {
+    create_bearer(
+      activate_success, session, request, rules_to_activate.dynamic_rules);
+  }
 }
 
 void LocalEnforcer::receive_monitoring_credit_from_rar(
@@ -1514,8 +1515,7 @@ void LocalEnforcer::create_bearer(
   const PolicyReAuthRequest& request,
   const std::vector<PolicyRule>& dynamic_rules)
 {
-  if (!activate_success || session->is_radius_cwf_session() ||
-    !session->qos_enabled() || !request.has_qos_info()) {
+  if (!activate_success || !session->qos_enabled() || !request.has_qos_info()) {
     MLOG(MDEBUG) << "Not creating bearer";
     return;
   }
