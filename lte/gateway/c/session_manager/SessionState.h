@@ -203,6 +203,8 @@ class SessionState {
     const magma::lte::TgppContext& tgpp_context,
     SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
+  void set_config(const Config& config);
+
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
   void set_subscriber_quota_state(
