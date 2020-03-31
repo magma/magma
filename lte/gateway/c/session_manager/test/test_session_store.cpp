@@ -197,6 +197,8 @@ class SessionStoreTest : public ::testing::Test {
  * 7) Commit updates to SessionStore
  * 8) Read in session for IMSI1 again, and check that the update was successful
  * 9) Check request numbers again
+ * 10) Delete the session for IMSI1
+ * 11) Verify IMSI1 no longer has any sessions
  */
 TEST_F(SessionStoreTest, test_read_and_write)
 {
@@ -285,6 +287,18 @@ TEST_F(SessionStoreTest, test_read_and_write)
   // This request number should increment in storage every time a read is done.
   // The incremented value is set by the read request to the storage interface.
   EXPECT_EQ(session_map[imsi].front()->get_request_number(), 7);
+
+  // 10) Delete sessions for IMSI1
+  update_req = SessionUpdate{};
+  update_criteria = SessionStateUpdateCriteria{};
+  update_criteria.is_session_ended = true;
+  update_req[imsi][sid] = update_criteria;
+  session_store->update_sessions(update_req);
+
+  // 11) Verify that IMSI1 no longer has a session
+  session_map = session_store->read_sessions(read_req);
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_EQ(session_map[imsi].size(), 0);
 }
 
 int main(int argc, char **argv)
