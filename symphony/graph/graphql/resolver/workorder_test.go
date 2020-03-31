@@ -17,6 +17,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/99designs/gqlgen/client"
@@ -1802,10 +1803,12 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	c := newGraphClient(t, r)
 
 	wo := createWorkOrder(ctx, t, *r, "Foo")
-	wo, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
-		ID:       wo.ID,
-		Name:     longWorkOrderName,
-		Assignee: pointer.ToString("tester@example.com"),
+	u, err := viewer.UserFromContext(ctx)
+	require.NoError(t, err)
+	wo, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       longWorkOrderName,
+		AssigneeID: &u.ID,
 		CheckListCategories: []*models.CheckListCategoryInput{{
 			Title: "Bar",
 			CheckList: []*models.CheckListItemInput{{

@@ -39,13 +39,3 @@ export type Location = BasicLocation & {
   locationHierarchy: Array<Location>,
   surveys: $PropertyType<LocationSiteSurveyTab_location, 'surveys'>,
 };
-
-export const locationFormat = {
-  nameAndCoordinates: (locationInput: 'string' | BasicLocation) => {
-    const loc: BasicLocation =
-      typeof locationInput === 'string'
-        ? JSON.parse(locationInput)
-        : locationInput;
-    return `${loc.name} (${loc.latitude}, ${loc.longitude})`;
-  },
-};
