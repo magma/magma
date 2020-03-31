@@ -10,6 +10,9 @@
       "equipment-export",
       "service-export"
     ],
+    "Workforce": [
+      "workforce-intro"
+    ],
     "Mobile App": [
       "mobile-app-intro",
       "root-device"
