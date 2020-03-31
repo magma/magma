@@ -359,6 +359,11 @@ void ChargingCreditPool::merge_credit_update(
   }
 }
 
+uint32_t ChargingCreditPool::get_credit_key_count() const
+{
+  return credit_map_.size();
+}
+
 ChargingReAuthAnswer::Result ChargingCreditPool::reauth_key(
   const CreditKey &charging_key,
   SessionStateUpdateCriteria& update_criteria)
@@ -698,6 +703,11 @@ void UsageMonitoringCreditPool::merge_credit_update(
     it->second->credit.add_credit(
       credit_update.bucket_deltas.find(bucket)->second, bucket);
   }
+}
+
+uint32_t UsageMonitoringCreditPool::get_credit_key_count() const
+{
+  return monitor_map_.size();
 }
 
 std::unique_ptr<std::string> UsageMonitoringCreditPool::get_session_level_key()

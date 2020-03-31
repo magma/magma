@@ -22,18 +22,17 @@ SessionStore::SessionStore(std::shared_ptr<StaticRuleStore> rule_store):
 
 SessionMap SessionStore::read_sessions(const SessionRead& req)
 {
-  // First allocate some request numbers
-  auto subscriber_ids = std::vector<std::string> {};
-  for (const auto& it : req) {
-    subscriber_ids.push_back(it.first);
-  }
-  auto session_map = store_client_.read_sessions(subscriber_ids);
-  auto session_map_2 = store_client_.read_sessions(subscriber_ids);
+  return store_client_.read_sessions(req);
+}
 
+SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req)
+{
+  auto session_map = store_client_.read_sessions(req);
+  auto session_map_2 = store_client_.read_sessions(req);
   // For all sessions of the subscriber, increment the request numbers
-  for (const auto& it : req) {
-    for (auto& session : session_map_2[it.first]) {
-      session->increment_request_number(it.second);
+  for (const std::string& imsi : req) {
+    for (auto& session : session_map_2[imsi]) {
+      session->increment_request_number(session->get_credit_key_count());
     }
   }
   store_client_.write_sessions(std::move(session_map_2));
