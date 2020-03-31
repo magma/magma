@@ -7868,6 +7868,7 @@ what type of equipment we filter about
 """
 enum EquipmentFilterType {
   EQUIP_INST_NAME
+  EQUIP_INST_EXTERNAL_ID
   PROPERTY
   LOCATION_INST
   EQUIPMENT_TYPE
