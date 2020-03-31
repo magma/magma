@@ -28,6 +28,7 @@ import React, {useCallback} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {getGraphError} from '../../common/EntUtils';
 import {isTempId} from '../../common/EntUtils';
 import {toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -129,8 +130,8 @@ const WorkOrderSaveButton = (props: Props) => {
           history.push(match.url);
         }
       },
-      onError: () => {
-        enqueueError('Error saving work order');
+      onError: (error: Error) => {
+        enqueueError(getGraphError(error));
       },
     };
     ServerLogger.info(LogEvents.SAVE_WORK_ORDER_BUTTON_CLICKED, {

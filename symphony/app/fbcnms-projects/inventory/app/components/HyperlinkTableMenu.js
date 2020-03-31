@@ -24,6 +24,7 @@ import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../common/EntUtils';
 import {withSnackbar} from 'notistack';
 
 type Props = {
@@ -89,7 +90,7 @@ const HyperlinkTableMenu = (props: Props) => {
           }
         },
         onError: error => {
-          errorMessageHandling(error.message);
+          errorMessageHandling(getGraphError(error));
         },
       };
 

@@ -45,6 +45,7 @@ import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {FormContextProvider} from '../../common/FormContext';
 import {fetchQuery, graphql} from 'relay-runtime';
+import {getGraphError} from '../../common/EntUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
   getNonInstancePropertyTypes,
@@ -311,7 +312,7 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
         this.setState({isSubmitting: false});
       },
       onError: (error: Error) => {
-        this.setState({error: error.message});
+        this.setState({error: getGraphError(error)});
       },
     };
     AddEquipmentMutation(variables, callbacks);
@@ -341,7 +342,7 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
         this.setState({isSubmitting: false});
       },
       onError: (error: Error) => {
-        this.setState({error: error.message});
+        this.setState({error: getGraphError(error)});
       },
     };
 

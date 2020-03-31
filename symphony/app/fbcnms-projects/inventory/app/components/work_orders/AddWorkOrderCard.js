@@ -40,6 +40,7 @@ import UserTypeahead from '../typeahead/UserTypeahead';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {getGraphError} from '../../common/EntUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
@@ -244,8 +245,8 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
           history.push(match.url);
         }
       },
-      onError: () => {
-        _enqueueError('Error saving work order');
+      onError: (error: Error) => {
+        _enqueueError(getGraphError(error));
       },
     };
     ServerLogger.info(LogEvents.SAVE_PROJECT_BUTTON_CLICKED, {

@@ -45,6 +45,7 @@ import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '../../../../fbcnms-packages/fbcnms-ui/theme/symphony';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
+import {getGraphError} from '../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {stringToOperator} from './comparison_view/FilterUtils';
 import {useEffect} from 'react';
@@ -179,9 +180,10 @@ const FilterBookmark = (props: Props) => {
         setBookmark(null);
       },
       onError: (error: Error) => {
-        props.enqueueSnackbar(error.message, {
+        const errMsg = getGraphError(error);
+        props.enqueueSnackbar(errMsg, {
           children: key => (
-            <SnackbarItem id={key} message={error.message} variant="error" />
+            <SnackbarItem id={key} message={errMsg} variant="error" />
           ),
         });
         handleClose();
@@ -225,9 +227,10 @@ const FilterBookmark = (props: Props) => {
       onError: (error: Error) => {
         handleClose();
         setBookmark(null);
-        props.enqueueSnackbar(error.message, {
+        const errMsg = getGraphError(error);
+        props.enqueueSnackbar(errMsg, {
           children: key => (
-            <SnackbarItem id={key} message={error.message} variant="error" />
+            <SnackbarItem id={key} message={errMsg} variant="error" />
           ),
         });
       },
@@ -271,9 +274,10 @@ const FilterBookmark = (props: Props) => {
       onError: (error: Error) => {
         setSaving(false);
         setBookmark(null);
-        props.enqueueSnackbar(error.message, {
+        const errMsg = getGraphError(error);
+        props.enqueueSnackbar(errMsg, {
           children: key => (
-            <SnackbarItem id={key} message={error.message} variant="error" />
+            <SnackbarItem id={key} message={errMsg} variant="error" />
           ),
         });
       },

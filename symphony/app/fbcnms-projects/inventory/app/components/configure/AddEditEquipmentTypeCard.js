@@ -42,6 +42,7 @@ import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
 import {withSnackbar} from 'notistack';
@@ -330,7 +331,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
       },
 
       onError: (error: Error) => {
-        this.setState({error: error.message, isSaving: false});
+        this.setState({error: getGraphError(error), isSaving: false});
       },
     };
 
@@ -358,7 +359,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
       },
 
       onError: (error: Error) => {
-        this.setState({error: error.message, isSaving: false});
+        this.setState({error: getGraphError(error), isSaving: false});
       },
     };
     const updater = store => {

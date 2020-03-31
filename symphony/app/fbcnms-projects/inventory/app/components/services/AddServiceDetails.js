@@ -37,6 +37,7 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {getGraphError} from '../../common/EntUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
@@ -203,10 +204,16 @@ const AddServiceDetails = (props: Props) => {
           onServiceCreated(nullthrows(response.addService?.id));
         }
       },
-      onError: () => {
-        enqueueError('Error saving service');
+      onError: (error: Error) => {
+        const errMsg = getGraphError(error);
+        enqueueSnackbar(errMsg, {
+          children: key => (
+            <SnackbarItem id={key} message={errMsg} variant="error" />
+          ),
+        });
       },
     };
+
     ServerLogger.info(LogEvents.SAVE_SERVICE_BUTTON_CLICKED, {
       source: 'service_details',
     });
