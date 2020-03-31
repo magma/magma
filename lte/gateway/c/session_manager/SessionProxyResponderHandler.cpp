@@ -18,9 +18,11 @@ namespace magma {
 
 SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
   std::shared_ptr<LocalEnforcer> enforcer,
-  SessionMap& session_map):
+  SessionMap& session_map,
+  SessionStore& session_store):
   enforcer_(enforcer),
-  session_map_(session_map)
+  session_map_(session_map),
+  session_store_(session_store)
 {
 }
 
@@ -55,5 +57,19 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
       // TODO: write the update back into the SessionStore
       response_callback(Status::OK, ans);
     });
+}
+
+SessionMap SessionProxyResponderHandlerImpl::get_sessions_for_charging(
+  const ChargingReAuthRequest& request)
+{
+  SessionRead req = {request.sid()};
+  return session_store_.read_sessions(req);
+}
+
+SessionMap SessionProxyResponderHandlerImpl::get_sessions_for_policy(
+  const PolicyReAuthRequest& request)
+{
+  SessionRead req = {request.imsi()};
+  return session_store_.read_sessions(req);
 }
 } // namespace magma
