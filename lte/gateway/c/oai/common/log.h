@@ -120,7 +120,6 @@ extern int fd_g_debug_lvl;
 #define LOG_CONFIG_STRING_SECU_LOG_LEVEL "SECU_LOG_LEVEL"
 #define LOG_CONFIG_STRING_SCTP_LOG_LEVEL "SCTP_LOG_LEVEL"
 #define LOG_CONFIG_STRING_SPGW_APP_LOG_LEVEL "SPGW_APP_LOG_LEVEL"
-#define LOG_CONFIG_STRING_PGW_APP_LOG_LEVEL "PGW_APP_LOG_LEVEL"
 #define LOG_CONFIG_STRING_OUTPUT_SYSLOG "SYSLOG"
 #define LOG_CONFIG_STRING_OUTPUT_THREAD_SAFE "THREAD_SAFE"
 #define LOG_CONFIG_STRING_UDP_LOG_LEVEL "UDP_LOG_LEVEL"
@@ -153,7 +152,6 @@ typedef enum {
   LOG_NAS_EMM,
   LOG_NAS_ESM,
   LOG_SPGW_APP,
-  LOG_PGW_APP,
   LOG_S11,
   LOG_S6A,
   LOG_SECU,
@@ -221,8 +219,6 @@ typedef struct log_config_s {
     mme_app_log_level; /*!< \brief MME-APP ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
     spgw_app_log_level; /*!< \brief SP-GW ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
-  log_level_t
-    pgw_app_log_level; /*!< \brief PGW ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
     s11_log_level; /*!< \brief S11 ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
