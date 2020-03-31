@@ -49,7 +49,8 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
  public:
   SessionProxyResponderHandlerImpl(
     std::shared_ptr<LocalEnforcer> monitor,
-    SessionMap& session_map);
+    SessionMap& session_map,
+    SessionStore& session_store);
 
   ~SessionProxyResponderHandlerImpl() {}
 
@@ -72,7 +73,29 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
 
  private:
    SessionMap& session_map_;
+   SessionStore& session_store_;
    std::shared_ptr<LocalEnforcer> enforcer_;
+
+ private:
+  /**
+   * Get the most recently written state of the session to be updated for
+   * charging reauth.
+   * Does not get any other sessions.
+   *
+   * NOTE: Call only from the main EventBase thread, otherwise there will
+   *       be undefined behavior.
+   */
+    SessionMap get_sessions_for_charging(const ChargingReAuthRequest& request);
+
+  /**
+   * Get the most recently written state of the session to be updated for
+   * policy reauth.
+   * Does not get any other sessions.
+   *
+   * NOTE: Call only from the main EventBase thread, otherwise there will
+   *       be undefined behavior.
+   */
+    SessionMap get_sessions_for_policy(const PolicyReAuthRequest& request);
 };
 
 } // namespace magma

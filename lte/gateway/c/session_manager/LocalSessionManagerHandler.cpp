@@ -25,9 +25,11 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
   std::shared_ptr<LocalEnforcer> enforcer,
   SessionReporter* reporter,
   std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-  SessionMap & session_map):
+  SessionMap& session_map,
+  SessionStore& session_store):
   enforcer_(enforcer),
   session_map_(session_map),
+  session_store_(session_store),
   reporter_(reporter),
   directoryd_client_(directoryd_client),
 
@@ -393,6 +395,30 @@ void LocalSessionManagerHandlerImpl::EndSession(
         response_callback(status, LocalEndSessionResponse());
       }
     });
+}
+
+SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_creation(
+  const LocalCreateSessionRequest& request)
+{
+  SessionRead req = {request.sid().id()};
+  return session_store_.read_sessions(req);
+}
+
+SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_reporting(
+  const RuleRecordTable& records)
+{
+  SessionRead req = {};
+  for (const RuleRecord &record : records.records()) {
+    req.insert(record.sid());
+  }
+  return session_store_.read_sessions(req);
+}
+
+SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_deletion(
+  const LocalEndSessionRequest& request)
+{
+  SessionRead req = {request.sid().id()};
+  return session_store_.read_sessions(req);
 }
 
 } // namespace magma

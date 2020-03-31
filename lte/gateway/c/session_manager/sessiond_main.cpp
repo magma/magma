@@ -213,6 +213,7 @@ int main(int argc, char *argv[])
   }
 
   magma::SessionMap session_map{};
+  auto session_store = new magma::SessionStore(rule_store);
   auto monitor = std::make_shared<magma::LocalEnforcer>(
     reporter,
     rule_store,
@@ -226,9 +227,9 @@ int main(int argc, char *argv[])
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-    monitor, reporter.get(), directoryd_client, session_map);
-  auto proxy_handler =
-    std::make_unique<magma::SessionProxyResponderHandlerImpl>(monitor, session_map);
+    monitor, reporter.get(), directoryd_client, session_map, *session_store);
+  auto proxy_handler =std::make_unique<magma::SessionProxyResponderHandlerImpl>(
+    monitor, session_map, *session_store);
 
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
     directoryd_client, monitor, reporter.get(), session_map);
