@@ -119,8 +119,9 @@ void LocalEnforcer::notify_finish_report_for_sessions(
     }
   }
   for (const auto &imsi_sid_pair : imsi_to_terminate) {
+    SessionStateUpdateCriteria& update_criteria = session_update[imsi_sid_pair.first][imsi_sid_pair.second];
     complete_termination(
-      session_map, imsi_sid_pair.first, imsi_sid_pair.second);
+      session_map, imsi_sid_pair.first, imsi_sid_pair.second, update_criteria);
   }
 }
 
@@ -197,7 +198,7 @@ bool LocalEnforcer::setup(
 void LocalEnforcer::aggregate_records(
   SessionMap& session_map,
   const RuleRecordTable& records,
-  SessionUpdate& session_udpate)
+  SessionUpdate& session_update)
 {
   notify_new_report_for_sessions(session_map); // unmark all credits
   for (const RuleRecord &record : records.records()) {
@@ -214,11 +215,12 @@ void LocalEnforcer::aggregate_records(
     }
     // Update sessions
     for (const auto &session : it->second) {
+      SessionStateUpdateCriteria& uc = session_update[record.sid()][session->get_session_id()];
       session->add_used_credit(
-        record.rule_id(), record.bytes_tx(), record.bytes_rx());
+        record.rule_id(), record.bytes_tx(), record.bytes_rx(), uc);
     }
   }
-  notify_finish_report_for_sessions(session_map);
+  notify_finish_report_for_sessions(session_map, session_update);
 }
 
 void LocalEnforcer::execute_actions(
@@ -232,7 +234,8 @@ void LocalEnforcer::execute_actions(
         session_map,
         action_p->get_imsi(),
         action_p->get_rule_ids(),
-        action_p->get_rule_definitions());
+        action_p->get_rule_definitions(),
+        session_update);
     } else if (action_p->get_type() == ACTIVATE_SERVICE) {
       pipelined_client_->activate_flows_for_rules(
         action_p->get_imsi(),
@@ -248,7 +251,8 @@ void LocalEnforcer::execute_actions(
         session_map,
         action_p->get_imsi(),
         action_p->get_rule_ids(),
-        action_p->get_rule_definitions());
+        action_p->get_rule_definitions(),
+        session_update);
     }
   }
 }
@@ -272,12 +276,14 @@ void LocalEnforcer::terminate_service(
   }
 
   for (const auto &session : it->second) {
+    auto update_criteria = session_update[imsi][session->get_session_id()];
+
     session->start_termination([this](SessionTerminateRequest term_req) {
       // report to cloud
       auto logging_cb =
         SessionReporter::get_terminate_logging_cb(term_req);
       reporter_->report_terminate_session(term_req, logging_cb);
-    });
+    }, update_criteria);
 
     // tell AAA service to terminate radius session if necessary
     if (session->is_radius_cwf_session()) {
@@ -297,7 +303,7 @@ void LocalEnforcer::terminate_service(
       MLOG(MDEBUG) << "Setting subscriber quota state as TERMINATE "
                    << "for subscriber " << imsi;
       session->set_subscriber_quota_state(
-        SubscriberQuotaUpdate_Type_TERMINATE);
+        SubscriberQuotaUpdate_Type_TERMINATE, update_criteria);
       report_subscriber_state_to_pipelined(
         imsi, session->get_mac_addr(), SubscriberQuotaUpdate_Type_TERMINATE);
     }
@@ -307,9 +313,9 @@ void LocalEnforcer::terminate_service(
    // includes the imsi. If this has not occurred after the timeout, force
    // terminate the session.
    evb_->runAfterDelay(
-     [this, imsi, session_id, &session_map] {
+     [this, imsi, session_id, &session_map, &update_criteria] {
        MLOG(MDEBUG) << "Forced service termination for IMSI " << imsi;
-       complete_termination(session_map, imsi, session_id);
+       complete_termination(session_map, imsi, session_id, update_criteria);
       },
      session_force_termination_timeout_ms_);
   }
@@ -384,7 +390,9 @@ UpdateSessionRequest LocalEnforcer::collect_updates(
   UpdateSessionRequest request;
   for (const auto &session_pair : session_map) {
     for (const auto &session : session_pair.second) {
-      SessionStateUpdateCriteria update_criteria = get_default_update_criteria();
+      std::string imsi = session_pair.first;
+      std::string sid = session->get_session_id();
+      auto update_criteria = session_update[imsi][sid];
       session->get_updates(request, &actions, update_criteria, force_update);
     }
   }
@@ -847,8 +855,10 @@ void LocalEnforcer::handle_session_init_subscriber_quota_state(
         populate_rules_from_session_to_remove(imsi, session, rules);
         // terminate_service will properly propagate subscriber quota state
         // as terminated
+        // TODO: make a new SessionUpdate and run with that
+        SessionUpdate session_update = SessionStore::get_default_session_update(session_map);
         terminate_service(
-          session_map, imsi, rules.static_rules, rules.dynamic_rules);
+          session_map, imsi, rules.static_rules, rules.dynamic_rules, session_update);
       }
     },
     quota_exhaustion_termination_on_init_ms_);
@@ -890,7 +900,7 @@ void LocalEnforcer::complete_termination(
             session_it != it->second.end(); ++session_it) {
     if ((*session_it)->get_session_id() == session_id) {
       // Complete session termination and remove session from session_map.
-      (*session_it)->complete_termination();
+      (*session_it)->complete_termination(update_criteria);
       // Send to eventd
         if ((*session_it)->is_radius_cwf_session() == false) {
           session_events::session_terminated(eventd_client_, *session_it);
@@ -898,6 +908,7 @@ void LocalEnforcer::complete_termination(
       // We break the loop below, but for extra code safety in case
       // someone removes the break in the future, adjust the iterator
       // after erasing the element
+      update_criteria.is_session_ended = true;
       it->second.erase(session_it--);
       MLOG(MDEBUG) << "Successfully terminated session for IMSI " << imsi
                    << "session ID " << session_id;
@@ -931,7 +942,7 @@ void LocalEnforcer::terminate_multiple_services(
       RulesToProcess rules;
       populate_rules_from_session_to_remove(imsi, session, rules);
       terminate_service(
-        session_map, imsi, rules.static_rules, rules.dynamic_rules);
+        session_map, imsi, rules.static_rules, rules.dynamic_rules, session_update);
     }
    }
 }
@@ -942,7 +953,7 @@ void LocalEnforcer::update_charging_credits(
   std::unordered_set<std::string>& subscribers_to_terminate,
   SessionUpdate& session_update)
 {
-   for (const auto &credit_update_resp : response.responses()) {
+  for (const auto &credit_update_resp : response.responses()) {
     const std::string& imsi = credit_update_resp.sid();
 
     if (!credit_update_resp.success()) {
@@ -960,8 +971,10 @@ void LocalEnforcer::update_charging_credits(
       continue;
     }
     for (const auto &session : it->second) {
-      session->get_charging_pool().receive_credit(credit_update_resp);
-      session->set_tgpp_context(credit_update_resp.tgpp_ctx());
+      std::string sid = session->get_session_id();
+      SessionStateUpdateCriteria& update_criteria = session_update[imsi][sid];
+      session->get_charging_pool().receive_credit(credit_update_resp, update_criteria);
+      session->set_tgpp_context(credit_update_resp.tgpp_ctx(), update_criteria);
     }
   }
 }
@@ -1022,6 +1035,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
       bool activate_success = true;
 
       if (rules_to_process_is_not_empty(rules_to_deactivate)) {
+        // TODO: modify the SessionUpdate
         deactivate_success = pipelined_client_->deactivate_flows_for_rules(
           imsi,
           rules_to_deactivate.static_rules,
@@ -1029,6 +1043,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
       }
 
       if (rules_to_process_is_not_empty(rules_to_activate)) {
+        // TODO: modify the SessionUpdate
         activate_success = pipelined_client_->activate_flows_for_rules(
           imsi,
           ip_addr,
@@ -1068,11 +1083,11 @@ void LocalEnforcer::update_session_credits_and_rules(
   // have run out of monitoring quota.
   std::unordered_set<std::string> subscribers_to_terminate;
 
-  update_charging_credits(session_map, response, subscribers_to_terminate);
+  update_charging_credits(session_map, response, subscribers_to_terminate, session_update);
   update_monitoring_credits_and_rules(
-    session_map, response, subscribers_to_terminate);
+    session_map, response, subscribers_to_terminate, session_update);
 
-  terminate_multiple_services(session_map, subscribers_to_terminate);
+  terminate_multiple_services(session_map, subscribers_to_terminate, session_update);
 }
 
 // terminate_subscriber (for externally triggered EndSession)
@@ -1082,7 +1097,7 @@ void LocalEnforcer::terminate_subscriber(
   const std::string& imsi,
   const std::string& apn,
   std::function<void(SessionTerminateRequest)> on_termination_callback,
-  SessionStateUpdateCriteria& update_criteria)
+  SessionUpdate& session_update)
 {
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
@@ -1093,6 +1108,7 @@ void LocalEnforcer::terminate_subscriber(
 
   for (const auto &session : it->second) {
     if (session->get_apn() == apn) {
+      SessionStateUpdateCriteria& update_criteria = session_update[imsi][session->get_session_id()];
       RulesToProcess rules_to_deactivate;
       // The assumption here is that
       // mutually exclusive rule names are used for different apns
@@ -1100,6 +1116,12 @@ void LocalEnforcer::terminate_subscriber(
                                             session,
                                             rules_to_deactivate);
       bool deactivate_success = true;
+      for (const std::string& static_rule : rules_to_deactivate.static_rules) {
+        update_criteria.static_rules_to_uninstall.push_back(static_rule);
+      }
+      for (const PolicyRule& dynamic_rule : rules_to_deactivate.dynamic_rules) {
+        update_criteria.dynamic_rules_to_uninstall.push_back(dynamic_rule.id());
+      }
       deactivate_success = pipelined_client_->deactivate_flows_for_rules(
                             imsi,
                             rules_to_deactivate.static_rules,
@@ -1119,20 +1141,21 @@ void LocalEnforcer::terminate_subscriber(
         if (!delete_ue_mac_flow_success) {
           MLOG(MERROR) << "Failed to delete UE MAC flow for subscriber " << imsi;
         }
-        session->set_subscriber_quota_state(SubscriberQuotaUpdate_Type_TERMINATE);
+        session->set_subscriber_quota_state(SubscriberQuotaUpdate_Type_TERMINATE, update_criteria);
         report_subscriber_state_to_pipelined(
           imsi, session->get_mac_addr(), SubscriberQuotaUpdate_Type_TERMINATE);
       }
 
-      session->start_termination(on_termination_callback);
+      session->start_termination(on_termination_callback, update_criteria);
       std::string session_id = session->get_session_id();
       // The termination should be completed when aggregated usage record no
       // longer includes the imsi. If this has not occurred after the timeout,
       // force terminate the session.
       evb_->runAfterDelay(
-        [this, imsi, session_id, &session_map] {
+        [this, imsi, session_id, &session_map, &update_criteria] {
         MLOG(MDEBUG) << "Completing forced termination for IMSI " << imsi;
-        complete_termination(session_map, imsi, session_id);
+        complete_termination(session_map, imsi, session_id, update_criteria);
+        // TODO: Write the UpdateCriteria back into SessionStore
         },
         session_force_termination_timeout_ms_);
     }
@@ -1189,13 +1212,14 @@ ChargingReAuthAnswer::Result LocalEnforcer::init_charging_reauth(
                  << " during reauth";
     return ChargingReAuthAnswer::SESSION_NOT_FOUND;
   }
+  SessionStateUpdateCriteria& update_criteria = session_update[request.sid()][request.session_id()];
   if (request.type() == ChargingReAuthRequest::SINGLE_SERVICE) {
     MLOG(MDEBUG) << "Initiating reauth of key " << request.charging_key()
                  << " for subscriber " << request.sid()
                  << " for session " << request.session_id();
     for (const auto &session : it->second) {
       if (session->get_session_id() == request.session_id()) {
-        return session->get_charging_pool().reauth_key(CreditKey(request));
+        return session->get_charging_pool().reauth_key(CreditKey(request), update_criteria);
       }
     }
     MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
@@ -1207,7 +1231,7 @@ ChargingReAuthAnswer::Result LocalEnforcer::init_charging_reauth(
                << request.session_id();
   for (const auto &session : it->second) {
     if (session->get_session_id() == request.session_id()) {
-      return session->get_charging_pool().reauth_all();
+      return session->get_charging_pool().reauth_all(update_criteria);
     }
   }
   MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
@@ -1240,7 +1264,7 @@ void LocalEnforcer::init_policy_reauth(
     bool all_deactivated = true;
     for (const auto& session : it->second) {
       init_policy_reauth_for_session(
-        session_map, request, session, activate_success, deactivate_success);
+        session_map, request, session, activate_success, deactivate_success, session_update);
       all_activated &= activate_success;
       all_deactivated &= deactivate_success;
     }
@@ -1253,7 +1277,7 @@ void LocalEnforcer::init_policy_reauth(
       if (session->get_session_id() == request.session_id()) {
         session_id_valid = true;
         init_policy_reauth_for_session(
-          session_map, request, session, activate_success, deactivate_success);
+          session_map, request, session, activate_success, deactivate_success, session_update);
       }
     }
     if(!session_id_valid) {
@@ -1276,9 +1300,12 @@ void LocalEnforcer::init_policy_reauth_for_session(
   bool& deactivate_success,
   SessionUpdate& session_update)
 {
+  std::string imsi = request.imsi();
+  SessionStateUpdateCriteria& update_criteria = session_update[imsi][session->get_session_id()];
+
   activate_success = true;
   deactivate_success = true;
-  receive_monitoring_credit_from_rar(request, session);
+  receive_monitoring_credit_from_rar(request, session, update_criteria);
 
   RulesToProcess rules_to_activate;
   RulesToProcess rules_to_deactivate;
@@ -1287,8 +1314,6 @@ void LocalEnforcer::init_policy_reauth_for_session(
   if (revalidation_required(request.event_triggers())) {
     schedule_revalidation(session_map, request.revalidation_time());
   }
-
-  std::string imsi = request.imsi();
 
   process_rules_to_remove(
     imsi,
@@ -1307,11 +1332,23 @@ void LocalEnforcer::init_policy_reauth_for_session(
 
   auto ip_addr = session->get_subscriber_ip_addr();
   if (rules_to_process_is_not_empty(rules_to_deactivate)) {
+    for (const std::string& static_rule : rules_to_deactivate.static_rules) {
+      update_criteria.static_rules_to_uninstall.push_back(static_rule);
+    }
+    for (const PolicyRule& dynamic_rule : rules_to_deactivate.dynamic_rules) {
+      update_criteria.dynamic_rules_to_uninstall.push_back(dynamic_rule.id());
+    }
     deactivate_success = pipelined_client_->deactivate_flows_for_rules(
       request.imsi(), rules_to_deactivate.static_rules,
       rules_to_deactivate.dynamic_rules);
   }
   if (rules_to_process_is_not_empty(rules_to_activate)) {
+    for (const std::string& static_rule : rules_to_activate.static_rules) {
+      update_criteria.static_rules_to_install.push_back(static_rule);
+    }
+    for (const PolicyRule& dynamic_rule : rules_to_activate.dynamic_rules) {
+      update_criteria.dynamic_rules_to_install.push_back(dynamic_rule);
+    }
     activate_success = pipelined_client_->activate_flows_for_rules(
       request.imsi(), ip_addr, rules_to_activate.static_rules,
       rules_to_activate.dynamic_rules);
@@ -1323,7 +1360,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
           RulesToProcess rules;
     populate_rules_from_session_to_remove(imsi, session, rules);
     terminate_service(
-      session_map, imsi, rules.static_rules, rules.dynamic_rules);
+      session_map, imsi, rules.static_rules, rules.dynamic_rules, session_update);
     return;
   }
 
@@ -1345,7 +1382,7 @@ void LocalEnforcer::receive_monitoring_credit_from_rar(
   for (const auto &usage_monitoring_credit :
        request.usage_monitoring_credits()) {
     credit->CopyFrom(usage_monitoring_credit);
-    session->get_monitor_pool().receive_credit(monitoring_credit);
+    session->get_monitor_pool().receive_credit(monitoring_credit, update_criteria);
   }
 }
 
@@ -1463,7 +1500,9 @@ void LocalEnforcer::schedule_revalidation(
     evb_->timer().scheduleTimeoutFn(
       std::move([=, &session_map] {
         MLOG(MDEBUG) << "Revalidation timeout!";
-        check_usage_for_reporting(session_map, true);
+        // TODO: make a new SessionUpdate here and run with that
+        SessionUpdate update = SessionStore::get_default_session_update(session_map);
+        check_usage_for_reporting(session_map, update, true);
       }),
       delta);
   });
@@ -1495,12 +1534,12 @@ void LocalEnforcer::create_bearer(
 
 void LocalEnforcer::check_usage_for_reporting(
   SessionMap& session_map,
-  const bool force_update,
-  SessionUpdate& session_update)
+  SessionUpdate& session_update,
+  const bool force_update)
 {
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto request = collect_updates(session_map, actions, session_update, force_update);
-  execute_actions(session_map, actions);
+  execute_actions(session_map, actions, session_update);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
     return; // nothing to report
   }
@@ -1510,7 +1549,7 @@ void LocalEnforcer::check_usage_for_reporting(
 
   // report to cloud
   (*reporter_).report_updates(
-    request, [this, request, &session_map](Status status, UpdateSessionResponse response) {
+    request, [this, request, &session_map, &session_update](Status status, UpdateSessionResponse response) {
       if (!status.ok()) {
         reset_updates(session_map, request);
         MLOG(MERROR) << "Update of size " << request.updates_size()
@@ -1518,9 +1557,9 @@ void LocalEnforcer::check_usage_for_reporting(
                      << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        update_session_credits_and_rules(session_map, response);
+        update_session_credits_and_rules(session_map, response, session_update);
         // Check if we need to report more updates
-        check_usage_for_reporting(session_map);
+        check_usage_for_reporting(session_map, session_update);
       }
     });
 }
