@@ -45,8 +45,9 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   auto &request_cpy = *request;
   MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
-    enforcer_->aggregate_records(session_map_, request_cpy);
-    check_usage_for_reporting();
+    SessionUpdate update = SessionStore::get_default_session_update(session_map_);
+    enforcer_->aggregate_records(session_map_, request_cpy, update);
+    check_usage_for_reporting(update);
   });
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
@@ -58,12 +59,13 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   response_callback(Status::OK, Void());
 }
 
-void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
+void LocalSessionManagerHandlerImpl::check_usage_for_reporting(SessionUpdate& session_update)
 {
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  auto request = enforcer_->collect_updates(session_map_, actions);
-  enforcer_->execute_actions(session_map_, actions);
+  auto request = enforcer_->collect_updates(session_map_, actions, session_update);
+  enforcer_->execute_actions(session_map_, actions, session_update);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
+    // TODO: Save updates back into the SessionStore
     return; // nothing to report
   }
   MLOG(MDEBUG) << "Sending " << request.updates_size()
@@ -72,16 +74,16 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
 
   // report to cloud
   reporter_->report_updates(
-    request, [this, request](Status status, UpdateSessionResponse response) {
+    request, [this, request, &session_update](Status status, UpdateSessionResponse response) {
       if (!status.ok()) {
         enforcer_->reset_updates(session_map_, request);
         MLOG(MERROR) << "Update of size " << request.updates_size()
                      << " to OCS failed entirely: " << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        enforcer_->update_session_credits_and_rules(session_map_, response);
+        enforcer_->update_session_credits_and_rules(session_map_, response, session_update);
         // Check if we need to report more updates
-        check_usage_for_reporting();
+        check_usage_for_reporting(session_update);
       }
     });
 }
@@ -370,6 +372,7 @@ void LocalSessionManagerHandlerImpl::EndSession(
     [this, request_cpy, response_callback]() {
       try {
         auto reporter = reporter_;
+        SessionStateUpdateCriteria update_criteria = get_default_update_criteria();
         enforcer_->terminate_subscriber(
           session_map_,
           request_cpy.sid().id(),
@@ -379,7 +382,9 @@ void LocalSessionManagerHandlerImpl::EndSession(
             auto logging_cb =
               SessionReporter::get_terminate_logging_cb(term_req);
             reporter->report_terminate_session(term_req, logging_cb);
-          });
+          },
+          update_criteria);
+        // TODO: Write the delete back into the SessionStore
         response_callback(grpc::Status::OK, LocalEndSessionResponse());
       } catch (const SessionNotFound &ex) {
         MLOG(MERROR) << "Failed to find session to terminate for subscriber "

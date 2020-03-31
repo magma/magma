@@ -38,6 +38,9 @@ std::chrono::milliseconds time_difference_from_now(
 
 namespace magma {
 
+SessionUpdate LocalEnforcer::UNUSED_SESSION_UPDATE = {};
+SessionStateUpdateCriteria LocalEnforcer::UNUSED_UPDATE_CRITERIA = get_default_update_criteria();
+
 uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY = 2000;
 
 using google::protobuf::RepeatedPtrField;
@@ -100,7 +103,9 @@ void LocalEnforcer::notify_new_report_for_sessions(SessionMap& session_map)
   }
 }
 
-void LocalEnforcer::notify_finish_report_for_sessions(SessionMap& session_map)
+void LocalEnforcer::notify_finish_report_for_sessions(
+  SessionMap& session_map,
+  SessionUpdate& session_update)
 {
   // Iterate through sessions and notify that report has finished. Terminate any
   // sessions that can be terminated.
@@ -191,7 +196,8 @@ bool LocalEnforcer::setup(
 
 void LocalEnforcer::aggregate_records(
   SessionMap& session_map,
-  const RuleRecordTable& records)
+  const RuleRecordTable& records,
+  SessionUpdate& session_udpate)
 {
   notify_new_report_for_sessions(session_map); // unmark all credits
   for (const RuleRecord &record : records.records()) {
@@ -217,7 +223,8 @@ void LocalEnforcer::aggregate_records(
 
 void LocalEnforcer::execute_actions(
   SessionMap& session_map,
-  const std::vector<std::unique_ptr<ServiceAction>>& actions)
+  const std::vector<std::unique_ptr<ServiceAction>>& actions,
+  SessionUpdate& session_update)
 {
   for (const auto &action_p : actions) {
     if (action_p->get_type() == TERMINATE_SERVICE) {
@@ -252,7 +259,8 @@ void LocalEnforcer::terminate_service(
   SessionMap& session_map,
   const std::string& imsi,
   const std::vector<std::string>& rule_ids,
-  const std::vector<PolicyRule>& dynamic_rules)
+  const std::vector<PolicyRule>& dynamic_rules,
+  SessionUpdate& session_update)
 {
   pipelined_client_->deactivate_flows_for_rules(imsi, rule_ids, dynamic_rules);
 
@@ -370,6 +378,7 @@ void LocalEnforcer::install_redirect_flow(
 UpdateSessionRequest LocalEnforcer::collect_updates(
   SessionMap& session_map,
   std::vector<std::unique_ptr<ServiceAction>>& actions,
+  SessionUpdate& session_update,
   const bool force_update) const
 {
   UpdateSessionRequest request;
@@ -863,7 +872,8 @@ void LocalEnforcer::report_subscriber_state_to_pipelined(
 void LocalEnforcer::complete_termination(
   SessionMap& session_map,
   const std::string& imsi,
-  const std::string& session_id)
+  const std::string& session_id,
+  SessionStateUpdateCriteria& update_criteria)
 {
   // If the session cannot be found in session_map, or a new session has
   // already begun, do nothing.
@@ -909,7 +919,8 @@ bool LocalEnforcer::rules_to_process_is_not_empty(
 
 void LocalEnforcer::terminate_multiple_services(
   SessionMap& session_map,
-  const std::unordered_set<std::string>& imsis)
+  const std::unordered_set<std::string>& imsis,
+  SessionUpdate& session_update)
 {
    for (const auto& imsi : imsis) {
     auto it = session_map.find(imsi);
@@ -928,7 +939,8 @@ void LocalEnforcer::terminate_multiple_services(
 void LocalEnforcer::update_charging_credits(
   SessionMap& session_map,
   const UpdateSessionResponse& response,
-  std::unordered_set<std::string>& subscribers_to_terminate)
+  std::unordered_set<std::string>& subscribers_to_terminate,
+  SessionUpdate& session_update)
 {
    for (const auto &credit_update_resp : response.responses()) {
     const std::string& imsi = credit_update_resp.sid();
@@ -957,7 +969,8 @@ void LocalEnforcer::update_charging_credits(
 void LocalEnforcer::update_monitoring_credits_and_rules(
   SessionMap& session_map,
   const UpdateSessionResponse& response,
-  std::unordered_set<std::string>& subscribers_to_terminate)
+  std::unordered_set<std::string>& subscribers_to_terminate,
+  SessionUpdate& session_update)
 {
   for (const auto &usage_monitor_resp : response.usage_monitor_responses()) {
     const std::string& imsi = usage_monitor_resp.sid();
@@ -1047,7 +1060,8 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 
 void LocalEnforcer::update_session_credits_and_rules(
   SessionMap& session_map,
-  const UpdateSessionResponse& response)
+  const UpdateSessionResponse& response,
+  SessionUpdate& session_update)
 {
   // These subscribers will include any subscriber that received a permanent
   // diameter error code. Additionally, it will also include CWF sessions that
@@ -1067,7 +1081,8 @@ void LocalEnforcer::terminate_subscriber(
   SessionMap& session_map,
   const std::string& imsi,
   const std::string& apn,
-  std::function<void(SessionTerminateRequest)> on_termination_callback)
+  std::function<void(SessionTerminateRequest)> on_termination_callback,
+  SessionStateUpdateCriteria& update_criteria)
 {
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
@@ -1165,7 +1180,8 @@ uint64_t LocalEnforcer::get_monitor_credit(
 
 ChargingReAuthAnswer::Result LocalEnforcer::init_charging_reauth(
   SessionMap& session_map,
-  ChargingReAuthRequest request)
+  ChargingReAuthRequest request,
+  SessionUpdate& session_update)
 {
   auto it = session_map.find(request.sid());
   if (it == session_map.end()) {
@@ -1203,7 +1219,8 @@ ChargingReAuthAnswer::Result LocalEnforcer::init_charging_reauth(
 void LocalEnforcer::init_policy_reauth(
   SessionMap& session_map,
   PolicyReAuthRequest request,
-  PolicyReAuthAnswer& answer_out)
+  PolicyReAuthAnswer& answer_out,
+  SessionUpdate& session_update)
 {
   auto it = session_map.find(request.imsi());
   if (it == session_map.end()) {
@@ -1256,7 +1273,8 @@ void LocalEnforcer::init_policy_reauth_for_session(
   const PolicyReAuthRequest& request,
   const std::unique_ptr<SessionState>& session,
   bool& activate_success,
-  bool& deactivate_success)
+  bool& deactivate_success,
+  SessionUpdate& session_update)
 {
   activate_success = true;
   deactivate_success = true;
@@ -1315,7 +1333,8 @@ void LocalEnforcer::init_policy_reauth_for_session(
 
 void LocalEnforcer::receive_monitoring_credit_from_rar(
   const PolicyReAuthRequest& request,
-  const std::unique_ptr<SessionState>& session)
+  const std::unique_ptr<SessionState>& session,
+  SessionStateUpdateCriteria& update_criteria)
 {
   UsageMonitoringUpdateResponse monitoring_credit;
   monitoring_credit.set_session_id(request.session_id());
@@ -1476,10 +1495,11 @@ void LocalEnforcer::create_bearer(
 
 void LocalEnforcer::check_usage_for_reporting(
   SessionMap& session_map,
-  const bool force_update)
+  const bool force_update,
+  SessionUpdate& session_update)
 {
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  auto request = collect_updates(session_map, actions, force_update);
+  auto request = collect_updates(session_map, actions, session_update, force_update);
   execute_actions(session_map, actions);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
     return; // nothing to report

@@ -106,7 +106,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   static const std::string hex_digit_;
 
  private:
-  void check_usage_for_reporting();
+  void check_usage_for_reporting(SessionUpdate& session_update);
   bool is_pipelined_restarted();
   bool restart_pipelined(const std::uint64_t& epoch);
 
