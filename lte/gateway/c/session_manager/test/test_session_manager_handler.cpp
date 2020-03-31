@@ -33,6 +33,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     virtual void SetUp() {
         reporter = std::make_shared<MockSessionReporter>();
         auto rule_store = std::make_shared<StaticRuleStore>();
+        auto session_store = new SessionStore(rule_store);
         auto pipelined_client = std::make_shared<MockPipelinedClient>();
         auto directoryd_client = std::make_shared<MockDirectorydClient>();
         auto eventd_client = std::make_shared<MockEventdClient>();
@@ -51,8 +52,9 @@ class SessionManagerHandlerTest : public ::testing::Test {
         evb = folly::EventBaseManager::get()->getEventBase();
         local_enforcer->attachEventBase(evb);
       session_map = SessionMap{};
+
       session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
-                local_enforcer, reporter.get(), directoryd_client, session_map);
+        local_enforcer, reporter.get(), directoryd_client, session_map, *session_store);
     }
 
   protected:
