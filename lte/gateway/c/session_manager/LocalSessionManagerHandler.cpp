@@ -74,7 +74,7 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(SessionUpdate& se
 
   // report to cloud
   reporter_->report_updates(
-    request, [this, request, &session_update](Status status, UpdateSessionResponse response) {
+    request, [this, request, session_update = std::move(session_update)/*, &update*/](Status status, UpdateSessionResponse response) mutable {
       if (!status.ok()) {
         enforcer_->reset_updates(session_map_, request);
         MLOG(MERROR) << "Update of size " << request.updates_size()
@@ -372,7 +372,7 @@ void LocalSessionManagerHandlerImpl::EndSession(
     [this, request_cpy, response_callback]() {
       try {
         auto reporter = reporter_;
-        SessionStateUpdateCriteria update_criteria = get_default_update_criteria();
+        auto update = SessionStore::get_default_session_update(session_map_);
         enforcer_->terminate_subscriber(
           session_map_,
           request_cpy.sid().id(),
@@ -383,7 +383,7 @@ void LocalSessionManagerHandlerImpl::EndSession(
               SessionReporter::get_terminate_logging_cb(term_req);
             reporter->report_terminate_session(term_req, logging_cb);
           },
-          update_criteria);
+          update);
         // TODO: Write the delete back into the SessionStore
         response_callback(grpc::Status::OK, LocalEndSessionResponse());
       } catch (const SessionNotFound &ex) {
