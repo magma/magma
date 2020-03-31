@@ -297,36 +297,25 @@ metrics:
       worker-type: metrics
 
 nms:
+  enabled: false
+
   imagePullSecrets:
     - name: orc8r-secrets-registry
 
   magmalte:
-    manifests:
-      secrets: false
-      deployment: false
-      service: false
-      rbac: false
-
+    create: true
     image:
       repository: YOUR-DOCKER-REGISTRY/magmalte
       tag: v1.0.1
-
     env:
       api_host: controller.YOURDOMAIN.COM
       mysql_host: YOUR RDS MYSQL HOST
       mysql_user: magma
       mysql_pass: YOUR RDS MYSQL PASSWORD
   nginx:
-    manifests:
-      configmap: false
-      secrets: false
-      deployment: false
-      service: false
-      rbac: false
-
+    create: true
     service:
       type: LoadBalancer
-
     deployment:
       spec:
         ssl_cert_name: controller.crt
@@ -403,36 +392,25 @@ Now that we've got an admin operator cert, we can deploy NMS. Edit the
 
 ```
 nms:
+  enabled: true
+
   imagePullSecrets:
     - name: orc8r-secrets-registry
 
   magmalte:
-    manifests:
-      secrets: true
-      deployment: true
-      service: true
-      rbac: false
-
+    create: true:
     image:
       repository: YOUR-DOCKER-REGISTRY/magmalte
       tag: v1.0.1
-
     env:
       api_host: controller.YOURDOMAIN.COM
       mysql_host: YOUR RDS MYSQL HOST
       mysql_user: magma
       mysql_pass: YOUR RDS MYSQL PASSWORD
   nginx:
-    manifests:
-      configmap: true
-      secrets: true
-      deployment: true
-      service: true
-      rbac: false
-
+    create: true
     service:
       type: LoadBalancer
-
     deployment:
       spec:
         ssl_cert_name: controller.crt

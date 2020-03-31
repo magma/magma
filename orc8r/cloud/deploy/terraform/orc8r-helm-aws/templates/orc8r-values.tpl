@@ -145,11 +145,7 @@ nms:
     certs: ${nms_certs_secret}
 
   magmalte:
-    manifests:
-      secrets: true
-      deployment: true
-      service: true
-      rbac: false
+    create: true
 
     image:
       repository: ${docker_registry}/magmalte
@@ -162,12 +158,7 @@ nms:
       grafana_address: ${user_grafana_hostname}
 
   nginx:
-    manifests:
-      configmap: true
-      secrets: true
-      deployment: true
-      service: true
-      rbac: false
+    create: true
 
     service:
       type: LoadBalancer
