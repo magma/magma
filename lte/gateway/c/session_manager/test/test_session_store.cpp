@@ -236,7 +236,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
 
   // 4) Read session for IMSI1 from SessionStore
   SessionRead read_req = {};
-  read_req.push_back(imsi);
+  read_req.insert(imsi);
   auto session_map = session_store->read_sessions_for_reporting(read_req);
 
   // 5) Verify that state was written for IMSI1 and has been retrieved.
