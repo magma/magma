@@ -88,6 +88,7 @@ const Strings = {
       'Archivos Simulación',
       'Reportes de Mantenimiento',
       'Fotos',
+      'Site Folder',
     ],
   },
 };
