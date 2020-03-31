@@ -8,11 +8,13 @@
  * @format
  */
 
+import type {BasicLocation} from '../../common/Location';
 import type {
   EditWorkOrderMutationResponse,
   EditWorkOrderMutationVariables,
 } from '../../mutations/__generated__/EditWorkOrderMutation.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {ShortUser} from '../../common/EntUtils';
 import type {WorkOrderProperties} from '../map/MapUtil';
 
 import * as React from 'react';
@@ -27,7 +29,6 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {Link} from 'react-router-dom';
 import {formatMultiSelectValue} from '@fbcnms/ui/utils/displayUtils';
-import {locationFormat} from '../../common/Location';
 import {makeStyles} from '@material-ui/styles';
 import {priorityValues, statusValues} from '../../common/WorkOrder';
 
@@ -140,7 +141,7 @@ const WorkOrderPopover = (props: Props) => {
         ownerId: workOrder.owner.id,
         status: workOrder.status,
         priority: workOrder.priority,
-        assigneeId: workOrder.assignee?.id,
+        assigneeId: workOrder.assignedTo?.id,
       },
     };
     switch (key) {
@@ -158,8 +159,8 @@ const WorkOrderPopover = (props: Props) => {
     EditWorkOrderMutation(variables, callbacks);
   };
 
-  const showAssignee = (assignee: ?string) => {
-    return assignee || Strings.common.unassignedItem;
+  const showAssignee = (assignee: ?ShortUser) => {
+    return assignee?.email || Strings.common.unassignedItem;
   };
 
   const woHeader = (
@@ -171,6 +172,10 @@ const WorkOrderPopover = (props: Props) => {
       </Text>
     </Link>
   );
+
+  const nameAndCoordinates = (locationInput: BasicLocation) => {
+    return `${locationInput.name} (${locationInput.latitude}, ${locationInput.longitude})`;
+  };
 
   return (
     <div className={containerClassName}>
@@ -191,11 +196,11 @@ const WorkOrderPopover = (props: Props) => {
                 {fbt('Assignee:', 'Work Order card "Assignee" field title')}
               </strong>
               {!!viewMode ? (
-                <span>{showAssignee(workOrder.assignee?.id)}</span>
+                <span>{showAssignee(workOrder.assignedTo)}</span>
               ) : (
                 <UserTypeahead
                   margin="dense"
-                  selectedUser={workOrder.assignee}
+                  selectedUser={workOrder.assignedTo}
                   onUserSelection={user =>
                     setWorkOrderDetails('assigneeId', user?.id)
                   }
@@ -207,9 +212,7 @@ const WorkOrderPopover = (props: Props) => {
                 <strong>
                   {fbt('Location:', 'Work Order card "Location" field title')}
                 </strong>
-                <span>
-                  {locationFormat.nameAndCoordinates(workOrder.location)}
-                </span>
+                <span>{nameAndCoordinates(workOrder.location)}</span>
               </Text>
             )}
           </div>
@@ -252,7 +255,7 @@ const WorkOrderPopover = (props: Props) => {
       ) : (
         <div className={classes.quickPeek}>
           {woHeader}
-          <div>{showAssignee(workOrder.assignee?.email)}</div>
+          <div>{showAssignee(workOrder.assignedTo)}</div>
         </div>
       )}
     </div>

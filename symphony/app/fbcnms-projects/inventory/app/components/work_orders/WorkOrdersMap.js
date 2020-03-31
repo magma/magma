@@ -9,6 +9,7 @@
  */
 
 import type {BasicLocation} from '../../common/Location';
+import type {ShortUser} from '../../common/EntUtils';
 import type {WorkOrder} from '../../common/WorkOrder';
 import type {
   WorkOrderLocation,
@@ -132,6 +133,32 @@ const WorkOrdersMap = (props: Props) => {
       },
     };
   };
+
+  const userFormat = (userInput: 'string' | ShortUser) => {
+    const user: ShortUser =
+      typeof userInput === 'string' ? JSON.parse(userInput) : userInput;
+    return user;
+  };
+
+  const locationFormat = (locationInput: 'string' | BasicLocation) => {
+    const location: BasicLocation =
+      typeof locationInput === 'string'
+        ? JSON.parse(locationInput)
+        : locationInput;
+    return location;
+  };
+
+  const featurePropertiesToWorkOrderProperties = (
+    properties,
+  ): WorkOrderProperties => {
+    return {
+      ...properties,
+      assignedTo: userFormat(properties.assignedTo),
+      owner: userFormat(properties.owner),
+      location: locationFormat(properties.location),
+    };
+  };
+
   return (
     <MapView
       mapButton={
@@ -143,7 +170,9 @@ const WorkOrdersMap = (props: Props) => {
       showGeocoder={true}
       workOrdersView={true}
       getFeaturePopoutContent={feature => {
-        const workOrder: WorkOrderProperties = feature.properties;
+        const workOrder = featurePropertiesToWorkOrderProperties(
+          feature.properties,
+        );
         return (
           <WorkOrderPopover
             onWorkOrderChanged={onWorkOrderChanged}
@@ -162,7 +191,7 @@ const WorkOrdersMap = (props: Props) => {
       getFeatureHoverPopoutContent={feature => (
         <WorkOrderPopover
           displayFullDetails={false}
-          workOrder={feature.properties}
+          workOrder={featurePropertiesToWorkOrderProperties(feature.properties)}
         />
       )}
     />
