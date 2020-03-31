@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .equipment_fragment import EquipmentFragment, QUERY as EquipmentFragmentQuery
 
 @dataclass
 class EquipmentPositionsQuery(DataClassJsonMixin):
@@ -35,15 +36,8 @@ class EquipmentPositionsQuery(DataClassJsonMixin):
                     name: str
 
                 @dataclass
-                class Equipment(DataClassJsonMixin):
-                    @dataclass
-                    class EquipmentType(DataClassJsonMixin):
-                        id: str
-                        name: str
-
-                    id: str
-                    name: str
-                    equipmentType: EquipmentType
+                class Equipment(EquipmentFragment):
+                    pass
 
                 definition: EquipmentPositionDefinition
                 attachedEquipment: Optional[Equipment] = None
@@ -55,7 +49,7 @@ class EquipmentPositionsQuery(DataClassJsonMixin):
 
     data: EquipmentPositionsQueryData
 
-    __QUERY__: str = """
+    __QUERY__: str = EquipmentFragmentQuery + """
     query EquipmentPositionsQuery($id: ID!) {
   equipment: node(id: $id) {
     ... on Equipment {
@@ -71,12 +65,7 @@ class EquipmentPositionsQuery(DataClassJsonMixin):
           name
         }
         attachedEquipment {
-          id
-          name
-          equipmentType {
-            id
-            name
-          }
+          ...EquipmentFragment
         }
       }
     }

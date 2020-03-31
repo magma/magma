@@ -28,6 +28,7 @@ def _get_one_level_attachments_of_equipment(
                     position.definition.id,
                     Equipment(
                         id=attached_equipment.id,
+                        external_id=attached_equipment.externalId,
                         name=attached_equipment.name,
                         equipment_type_name=attached_equipment.equipmentType.name,
                     ),
@@ -88,6 +89,7 @@ def apply_location_template_to_location(
     equipments = [
         Equipment(
             id=equipment.id,
+            external_id=equipment.externalId,
             name=equipment.name,
             equipment_type_name=equipment.equipmentType.name,
         )

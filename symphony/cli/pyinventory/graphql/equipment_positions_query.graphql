@@ -13,12 +13,7 @@ query EquipmentPositionsQuery($id: ID!) {
           name
         }
         attachedEquipment {
-          id
-          name
-          equipmentType {
-            id
-            name
-          }
+          ...EquipmentFragment
         }
       }
     }

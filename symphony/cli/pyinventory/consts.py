@@ -121,13 +121,15 @@ class EquipmentPortType(NamedTuple):
 class Equipment(NamedTuple):
     """
     Attributes:
-        name (str): equipment name
         id (str): equipment ID
+        external_id (Optional[str]): equipment external ID
+        name (str): equipment name
         equipment_type_name (str): equipment type name
     """
 
-    name: str
     id: str
+    external_id: Optional[str]
+    name: str
     equipment_type_name: str
 
 
