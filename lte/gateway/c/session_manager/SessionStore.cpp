@@ -144,5 +144,16 @@ bool SessionStore::merge_into_session(
   return true;
 }
 
+SessionUpdate SessionStore::get_default_session_update(SessionMap& session_map)
+{
+  SessionUpdate update = {};
+  for (const auto &session_pair : session_map) {
+    for (const auto &session : session_pair.second) {
+      update[session_pair.first][session->get_session_id()] = get_default_update_criteria();
+    }
+  }
+  return update;
+}
+
 } // namespace lte
 } // namespace magma
