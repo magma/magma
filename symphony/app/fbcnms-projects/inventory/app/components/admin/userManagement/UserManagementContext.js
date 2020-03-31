@@ -36,6 +36,7 @@ import {LogEvents, ServerLogger} from '../../../common/LoggingUtils';
 import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {Suspense} from 'react';
 import {USER_ROLES} from './TempTypes';
+import {getGraphError} from '../../../common/EntUtils';
 import {useContext} from 'react';
 import {useLazyLoadQuery} from 'react-relay/hooks';
 
@@ -152,7 +153,7 @@ const editUser = (newUserValue: User, updater?: StoreUpdater) => {
         );
       },
       onError: e => {
-        reject(e.message);
+        reject(getGraphError(e));
       },
     };
     EditUserMutation(
@@ -181,7 +182,7 @@ const editGroup = (newGroupValue: UserPermissionsGroup) => {
         resolve(groupResponse2Group(response.editUsersGroup));
       },
       onError: e => {
-        reject(e.message);
+        reject(getGraphError(e));
       },
     };
     EditUsersGroupMutation(
@@ -208,7 +209,7 @@ const addGroup = (newGroupValue: UserPermissionsGroup) => {
         resolve(groupResponse2Group(response.addUsersGroup));
       },
       onError: e => {
-        reject(e.message);
+        reject(getGraphError(e));
       },
     };
 

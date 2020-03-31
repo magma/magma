@@ -41,6 +41,7 @@ import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
 import {withSnackbar} from 'notistack';
@@ -217,7 +218,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
   };
 
   _onError = (error: Error) => {
-    this._showError(error.message);
+    this._showError(getGraphError(error));
     this.setState({isSaving: false});
   };
 

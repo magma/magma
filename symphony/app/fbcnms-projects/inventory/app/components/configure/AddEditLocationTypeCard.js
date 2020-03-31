@@ -38,6 +38,7 @@ import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
 import {withSnackbar} from 'notistack';
@@ -307,7 +308,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
 
   editLocationType = () => {
     const onError = (error: Error) =>
-      this.setState({error: error.message, isSaving: false});
+      this.setState({error: getGraphError(error), isSaving: false});
 
     const handleErrors = errors => {
       if (errors && errors[0]) {

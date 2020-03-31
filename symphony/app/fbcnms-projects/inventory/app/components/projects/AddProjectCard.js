@@ -38,6 +38,7 @@ import update from 'immutability-helper';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {fetchQuery, graphql} from 'relay-runtime';
+import {getGraphError} from '../../common/EntUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
@@ -327,8 +328,8 @@ class AddProjectCard extends React.Component<Props, State> {
           this.props.history.push(this.props.match.url);
         }
       },
-      onError: () => {
-        this._enqueueError('Error saving work order');
+      onError: (error: Error) => {
+        this._enqueueError(getGraphError(error));
       },
     };
     ServerLogger.info(LogEvents.SAVE_PROJECT_BUTTON_CLICKED, {

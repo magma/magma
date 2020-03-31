@@ -43,6 +43,7 @@ import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
 import {withSnackbar} from 'notistack';
@@ -191,8 +192,8 @@ class ProjectDetails extends React.Component<Props, State> {
           this.props.history.push(this.props.match.url);
         }
       },
-      onError: () => {
-        const msg = 'error saving project';
+      onError: (error: Error) => {
+        const msg = getGraphError(error);
         this.props.enqueueSnackbar(msg, {
           children: key => (
             <SnackbarItem id={key} message={msg} variant="error" />
