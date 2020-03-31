@@ -52,9 +52,9 @@ bool SessionStore::create_sessions(
 bool SessionStore::update_sessions(const SessionUpdate& update_criteria)
 {
   // Read the current state
-  auto subscriber_ids = std::vector<std::string> {};
+  auto subscriber_ids = std::set<std::string> {};
   for (const auto& it : update_criteria) {
-    subscriber_ids.push_back(it.first);
+    subscriber_ids.insert(it.first);
   }
   auto session_map = store_client_.read_sessions(subscriber_ids);
 

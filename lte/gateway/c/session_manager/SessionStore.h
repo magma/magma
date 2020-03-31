@@ -25,7 +25,7 @@ typedef std::
   unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
     SessionMap;
 // Value int represents the request numbers needed for requests to PCRF
-typedef std::vector<std::string> SessionRead;
+typedef std::set<std::string> SessionRead;
 typedef std::unordered_map<
   std::string,
   std::unordered_map<std::string, SessionStateUpdateCriteria>>
