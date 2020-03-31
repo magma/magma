@@ -34,6 +34,7 @@ class SessionStoreTest : public ::testing::Test {
     imsi2 = "IMSI2";
     sid = id_gen_.gen_session_id(imsi);
     sid2 = id_gen_.gen_session_id(imsi2);
+    sid3 = id_gen_.gen_session_id(imsi2);
     monitoring_key = "mk1";
     monitoring_key2 = "mk2";
     rule_id_1 = "test_rule_1";
@@ -53,6 +54,7 @@ class SessionStoreTest : public ::testing::Test {
   }
 
   std::unique_ptr<SessionState> get_session(
+    std::string session_id,
     std::shared_ptr<StaticRuleStore> rule_store)
   {
     std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
@@ -75,7 +77,7 @@ class SessionStoreTest : public ::testing::Test {
       .radius_session_id = radius_session_id};
     auto tgpp_context = TgppContext{};
     auto session = std::make_unique<SessionState>(
-      imsi, sid, core_session_id, cfg, *rule_store, tgpp_context);
+      imsi, session_id, core_session_id, cfg, *rule_store, tgpp_context);
     return std::move(session);
   }
 
@@ -177,6 +179,7 @@ class SessionStoreTest : public ::testing::Test {
   std::string imsi2;
   std::string sid;
   std::string sid2;
+  std::string sid3;
   std::string monitoring_key;
   std::string monitoring_key2;
   std::string rule_id_1;
@@ -207,7 +210,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
   auto session_store = new SessionStore(rule_store);
 
   // 2) Create bare-bones session for IMSI1
-  auto session = get_session(rule_store);
+  auto session = get_session(sid, rule_store);
   session->activate_static_rule(rule_id_3);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session->get_request_number(), 2);
@@ -299,6 +302,29 @@ TEST_F(SessionStoreTest, test_read_and_write)
   session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 0);
+}
+
+TEST_F(SessionStoreTest, test_get_default_session_update)
+{
+  // 1) Create a SessionMap with a few sessions
+  auto rule_store = std::make_shared<StaticRuleStore>();
+  SessionMap session_map = {};
+  auto session1 = get_session(sid, rule_store);
+  auto session2 = get_session(sid2, rule_store);
+  auto session3 = get_session(sid3, rule_store);
+
+  session_map[imsi] = std::vector<std::unique_ptr<SessionState>>{};
+  session_map[imsi2] = std::vector<std::unique_ptr<SessionState>>{};
+
+  session_map[imsi].push_back(std::move(session1));
+  session_map[imsi2].push_back(std::move(session2));
+  session_map[imsi2].push_back(std::move(session3));
+
+  // 2) Build SessionUpdate
+  auto update = SessionStore::get_default_session_update(session_map);
+  EXPECT_EQ(update.size(), 2);
+  EXPECT_EQ(update[imsi].size(), 1);
+  EXPECT_EQ(update[imsi2].size(), 2);
 }
 
 int main(int argc, char **argv)
