@@ -43,11 +43,6 @@ services:
     port: 9093
     proxy_type: "obsidian"
 
-  logger:
-    host: "localhost"
-    port: 9095
-    proxy_type: "clientcert"
-
   dispatcher:
     host: "localhost"
     port: 9096
