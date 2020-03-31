@@ -158,7 +158,7 @@ class LocalEnforcer {
     const std::string& imsi,
     const std::string& apn,
     std::function<void(SessionTerminateRequest)> on_termination_callback,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   uint64_t get_charging_credit(
     SessionMap& session_map,
@@ -419,8 +419,8 @@ class LocalEnforcer {
 
   void check_usage_for_reporting(
     SessionMap& session_map,
-    const bool force_update = false,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE,
+    const bool force_update = false);
 
   /**
     * Deactivate rules for certain IMSI.
