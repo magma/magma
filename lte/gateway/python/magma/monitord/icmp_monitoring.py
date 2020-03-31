@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, List
 
 import grpc
-from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.job import Job
 from magma.common.rpc_utils import grpc_async_wrapper
@@ -71,11 +71,12 @@ class ICMPMonitoring(Job):
             return []
 
     async def _ping_subscribers(self, hosts: List[str],
-                                subscribers: List[IPAddress]):
+                                subscribers: SubscriberIPTable):
         """
         Sends a count of ICMP pings to target IP address, returns response.
         Args:
-            ip_addr: ip address to send ICMP ping
+            hosts: List of ip addresses to ping
+            subscribers: List of valid subscribers to ping to
 
         Returns: (stdout, stderr)
         """
@@ -84,11 +85,11 @@ class ICMPMonitoring(Job):
                                             TIMEOUT_SECS) for host in hosts]
         ping_results = await ping.ping_interface_async(ping_params, self._loop)
         ping_results_list = list(ping_results)
-        for sub, result in zip(subscribers, ping_results_list):
+        for host, sub, result in zip(hosts, subscribers, ping_results_list):
             sid = "IMSI%s" % sub.sid.id
-            self._save_ping_response(sid, result)
+            self._save_ping_response(sid, host, result)
 
-    def _save_ping_response(self, sid: str,
+    def _save_ping_response(self, sid: str, ip_addr: str,
                             ping_resp: PingCommandResult) -> None:
         """
         Saves ping response to in-memory subscriber dict.
@@ -105,7 +106,8 @@ class ICMPMonitoring(Job):
             latency_ms=ping_resp.stats.rtt_avg)
         SUBSCRIBER_ICMP_LATENCY_MS.labels(sid).observe(ping_resp.stats.rtt_avg)
         logging.info(
-            '{} => {}ms'.format(sid, self._subscriber_state[sid].latency_ms))
+            '{}:{} => {}ms'.format(sid, ip_addr,
+                                   self._subscriber_state[sid].latency_ms))
 
     def get_subscriber_state(self) -> Dict[str, ICMPMonitoringResponse]:
         return self._subscriber_state
