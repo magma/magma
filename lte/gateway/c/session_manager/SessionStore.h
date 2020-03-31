@@ -24,7 +24,6 @@ namespace lte {
 typedef std::
   unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
     SessionMap;
-typedef std::function<void(SessionMap)> CallBackOnAccess;
 // Value int represents the request numbers needed for requests to PCRF
 typedef std::unordered_map<std::string, int> SessionRead;
 typedef std::unordered_map<
@@ -47,6 +46,8 @@ typedef std::unordered_map<
  */
 class SessionStore {
  public:
+  static SessionUpdate get_default_session_update(SessionMap& session_map);
+
   SessionStore(std::shared_ptr<StaticRuleStore> rule_store);
 
   /**
@@ -79,6 +80,7 @@ class SessionStore {
    * @return true if successful, otherwise the update to storage is discarded.
    */
   bool update_sessions(const SessionUpdate& update_criteria);
+
 
  private:
   static bool merge_into_session(

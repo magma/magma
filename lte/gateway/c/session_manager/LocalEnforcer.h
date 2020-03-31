@@ -41,7 +41,8 @@ class SessionNotFound : public std::exception {
 class LocalEnforcer {
  public:
 
-  static SessionMap UNUSED_SESSION_MAP;
+  static SessionUpdate UNUSED_SESSION_UPDATE;
+  static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 
   LocalEnforcer();
 
@@ -83,7 +84,8 @@ class LocalEnforcer {
    */
   void aggregate_records(
     SessionMap& session_map,
-    const RuleRecordTable& records);
+    const RuleRecordTable& records,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   /**
    * reset_updates resets all of the charging keys being updated in
@@ -105,9 +107,10 @@ class LocalEnforcer {
    * @param force_update force updates if revalidation timer expires
    */
   UpdateSessionRequest collect_updates(
-      SessionMap& session_map,
-      std::vector<std::unique_ptr<ServiceAction>>& actions,
-      const bool force_update = false) const;
+    SessionMap& session_map,
+    std::vector<std::unique_ptr<ServiceAction>>& actions,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE,
+    const bool force_update = false) const;
 
   /**
    * Perform any rule installs/removals that need to be executed given a
@@ -140,7 +143,8 @@ class LocalEnforcer {
    */
   void update_session_credits_and_rules(
     SessionMap& session_map,
-    const UpdateSessionResponse& response);
+    const UpdateSessionResponse& response,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   /**
    * Starts the termination process for the session. When termination completes,
@@ -153,7 +157,8 @@ class LocalEnforcer {
     SessionMap& session_map,
     const std::string& imsi,
     const std::string& apn,
-    std::function<void(SessionTerminateRequest)> on_termination_callback);
+    std::function<void(SessionTerminateRequest)> on_termination_callback,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   uint64_t get_charging_credit(
     SessionMap& session_map,
@@ -173,7 +178,8 @@ class LocalEnforcer {
    */
   ChargingReAuthAnswer::Result init_charging_reauth(
     SessionMap& session_map,
-    ChargingReAuthRequest request);
+    ChargingReAuthRequest request,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   /**
    * Handles the equivalent of a RAR.
@@ -189,7 +195,8 @@ class LocalEnforcer {
   void init_policy_reauth(
     SessionMap& session_map,
     PolicyReAuthRequest request,
-    PolicyReAuthAnswer& answer_out);
+    PolicyReAuthAnswer& answer_out,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   bool session_with_imsi_exists(
     SessionMap& session_map,
@@ -212,7 +219,8 @@ class LocalEnforcer {
    */
   void execute_actions(
     SessionMap& session_map,
-    const std::vector<std::unique_ptr<ServiceAction>>& actions);
+    const std::vector<std::unique_ptr<ServiceAction>>& actions,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
@@ -248,7 +256,9 @@ class LocalEnforcer {
    * report is finished. For sessions that are terminating, complete the
    * termination if the session is not included in the report.
    */
-  void notify_finish_report_for_sessions(SessionMap& session_map);
+  void notify_finish_report_for_sessions(
+    SessionMap& session_map,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   /**
    * Process the create session response to get rules to activate/deactivate
@@ -271,7 +281,8 @@ class LocalEnforcer {
   void update_charging_credits(
     SessionMap& session_map,
     const UpdateSessionResponse& response,
-    std::unordered_set<std::string>& subscribers_to_terminate);
+    std::unordered_set<std::string>& subscribers_to_terminate,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   /**
    * Processes the monitoring component of UpdateSessionResponse.
@@ -283,7 +294,8 @@ class LocalEnforcer {
   void update_monitoring_credits_and_rules(
     SessionMap& session_map,
     const UpdateSessionResponse& response,
-    std::unordered_set<std::string>& subscribers_to_terminate);
+    std::unordered_set<std::string>& subscribers_to_terminate,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   /**
    * Process the list of rule names given and fill in rules_to_deactivate by
@@ -334,7 +346,8 @@ class LocalEnforcer {
     const PolicyReAuthRequest& request,
     const std::unique_ptr<SessionState>& session,
     bool& activate_success,
-    bool& deactivate_success);
+    bool& deactivate_success,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   /**
    * Completes the session termination and executes the callback function
@@ -350,7 +363,8 @@ class LocalEnforcer {
   void complete_termination(
     SessionMap& session_map,
     const std::string& imsi,
-    const std::string& session_id);
+    const std::string& session_id,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   void schedule_static_rule_activation(
     SessionMap& session_map,
@@ -380,7 +394,8 @@ class LocalEnforcer {
    */
   void receive_monitoring_credit_from_rar(
     const PolicyReAuthRequest& request,
-    const std::unique_ptr<SessionState>& session);
+    const std::unique_ptr<SessionState>& session,
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   /**
    * Send bearer creation request through the PGW client if rules were
@@ -404,7 +419,8 @@ class LocalEnforcer {
 
   void check_usage_for_reporting(
     SessionMap& session_map,
-    const bool force_update = false);
+    const bool force_update = false,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   /**
     * Deactivate rules for certain IMSI.
@@ -414,7 +430,8 @@ class LocalEnforcer {
     SessionMap& session_map,
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules);
+    const std::vector<PolicyRule>& dynamic_rules,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
 
   /**
@@ -423,7 +440,8 @@ class LocalEnforcer {
     */
   void terminate_multiple_services(
     SessionMap& session_map,
-    const std::unordered_set<std::string>& imsis);
+    const std::unordered_set<std::string>& imsis,
+    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   /**
     * Install flow for redirection through pipelined
