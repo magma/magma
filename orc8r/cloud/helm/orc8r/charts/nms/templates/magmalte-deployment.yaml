@@ -7,7 +7,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 */}}
 
-{{- if .Values.magmalte.manifests.deployment }}
+{{- if .Values.magmalte.create }}
 {{- $envAll := . }}
 
 {{- $saNamespace := $envAll.Release.Namespace }}
@@ -20,7 +20,7 @@ metadata:
   labels:
 {{ tuple $envAll "nms" "magmalte" | include "nms.labels" | indent 4 }}
 spec:
-  replicas: {{ .Values.pod.replicas.magmalte.server }}
+  replicas: {{ .Values.magmalte.replicas }}
   selector:
     matchLabels:
 {{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 6 }}
@@ -29,7 +29,7 @@ spec:
       labels:
 {{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 8 }}
     spec:
-      {{- if .Values.magmalte.manifests.rbac }}
+      {{- if .Values.rbac }}
       serviceAccountName: {{ $serviceAccountName }}
       {{- end }}
       {{- with .Values.magmalte.tolerations }}
@@ -49,7 +49,8 @@ spec:
         - name: nms-app
           image: "{{ .Values.magmalte.image.repository }}:{{ .Values.magmalte.image.tag }}"
           imagePullPolicy: {{ .Values.magmalte.image.pullPolicy }}
-{{ tuple $envAll $envAll.Values.pod.resources.magmalte | include "nms.kubernetes_resources" | indent 10 }}
+          resources:
+{{ toYaml .Values.magmalte.resources | indent 12 }}
           args:
             - yarn
             - run

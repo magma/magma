@@ -7,7 +7,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 */}}
 
-{{- if .Values.nginx.manifests.deployment }}
+{{- if .Values.nginx.create }}
 {{- $envAll := . }}
 
 {{- $saNamespace := $envAll.Release.Namespace }}
@@ -20,7 +20,7 @@ metadata:
   labels:
 {{ tuple $envAll "nms" "nginx" | include "nms.labels" | indent 4 }}
 spec:
-  replicas: {{ .Values.pod.replicas.nginx.server }}
+  replicas: {{ .Values.nginx.replicas }}
   strategy:
     type: Recreate
   selector:
@@ -31,7 +31,7 @@ spec:
       labels:
 {{ tuple $envAll "nms" "nginx" | include "nms.selector-labels" | indent 8 }}
     spec:
-      {{- if .Values.nginx.manifests.rbac }}
+      {{- if .Values.rbac }}
       serviceAccountName: {{ $serviceAccountName }}
       {{- end }}
       {{- with .Values.nginx.tolerations }}
@@ -52,7 +52,8 @@ spec:
         - name: nms-nginx
           image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}"
           imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
-{{ tuple $envAll $envAll.Values.pod.resources.nginx | include "nms.kubernetes_resources" | indent 10 }}
+          resources:
+{{ toYaml .Values.nginx.resources | indent 12 }}
           ports:
             - containerPort: 443
           volumeMounts:

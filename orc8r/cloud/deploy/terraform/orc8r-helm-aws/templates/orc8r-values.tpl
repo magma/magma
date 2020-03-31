@@ -112,11 +112,7 @@ nms:
     certs: ${nms_certs_secret}
 
   magmalte:
-    manifests:
-      secrets: true
-      deployment: true
-      service: true
-      rbac: false
+    create: true
 
     image:
       repository: ${docker_registry}/magmalte
@@ -127,12 +123,7 @@ nms:
       mysql_host: ${nms_db_host}
       mysql_user: ${nms_db_user}
   nginx:
-    manifests:
-      configmap: true
-      secrets: true
-      deployment: true
-      service: true
-      rbac: false
+    create: true
 
     service:
       type: LoadBalancer
