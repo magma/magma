@@ -86,6 +86,8 @@ class CreditPool {
   virtual void merge_credit_update(
     const KeyType &key,
     const SessionCreditUpdateCriteria &credit_update) = 0;
+
+  virtual uint32_t get_credit_key_count() const = 0;
 };
 
 /**
@@ -146,6 +148,8 @@ class ChargingCreditPool :
   void merge_credit_update(
     const CreditKey &key,
     const SessionCreditUpdateCriteria &credit_update) override;
+
+  uint32_t get_credit_key_count() const override;
 
   ChargingReAuthAnswer::Result reauth_key(
     const CreditKey &charging_key,
@@ -249,6 +253,8 @@ class UsageMonitoringCreditPool :
   void merge_credit_update(
     const std::string &key,
     const SessionCreditUpdateCriteria &credit_update) override;
+
+  uint32_t get_credit_key_count() const override;
 
   std::unique_ptr<std::string> get_session_level_key();
 

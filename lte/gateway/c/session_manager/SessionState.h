@@ -249,6 +249,8 @@ class SessionState {
 
   uint32_t total_monitored_rules_count();
 
+  uint32_t get_credit_key_count();
+
  private:
   /**
    * State transitions of a session:

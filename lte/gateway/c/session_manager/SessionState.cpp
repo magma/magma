@@ -583,4 +583,9 @@ uint32_t SessionState::total_monitored_rules_count()
   return monitored_dynamic_rules + monitored_static_rules;
 }
 
+uint32_t SessionState::get_credit_key_count()
+{
+  return charging_pool_.get_credit_key_count() + monitor_pool_.get_credit_key_count();
+}
+
 } // namespace magma
