@@ -66,7 +66,7 @@ TEST_F(StoreClientTest, test_read_and_write)
   auto store_client = new MemoryStoreClient(rule_store);
 
   // Emulate CreateSession, which needs to create a new session for a subscriber
-  std::vector<std::string> requested_ids{imsi, imsi2};
+  std::set<std::string> requested_ids{imsi, imsi2};
   auto session_map = store_client->read_sessions(requested_ids);
 
   auto session = std::make_unique<SessionState>(imsi, sid, core_session_id, cfg, *rule_store, tgpp_context);
