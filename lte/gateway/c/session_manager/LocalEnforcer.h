@@ -214,6 +214,13 @@ class LocalEnforcer {
     std::string* core_session_id) const;
 
   /**
+   * Set session config for the IMSI.
+   * Should be only used for WIFI as it will apply it to all sessions with the
+   * IMSI
+   */
+  void handle_cwf_roaming(const std::string& imsi, const magma::SessionState::Config& config);
+
+  /**
    * Execute actions on subscriber's service, eg. terminate, redirect data, or
    * just continue
    */
