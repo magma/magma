@@ -37,6 +37,7 @@ type SurveyQuestionQuery struct {
 	withWifiScan  *SurveyWiFiScanQuery
 	withCellScan  *SurveyCellScanQuery
 	withPhotoData *FileQuery
+	withImages    *FileQuery
 	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -132,6 +133,24 @@ func (sqq *SurveyQuestionQuery) QueryPhotoData() *FileQuery {
 			sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
 			sqlgraph.To(file.Table, file.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, surveyquestion.PhotoDataTable, surveyquestion.PhotoDataColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryImages chains the current query on the images edge.
+func (sqq *SurveyQuestionQuery) QueryImages() *FileQuery {
+	query := &FileQuery{config: sqq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sqq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, surveyquestion.ImagesTable, surveyquestion.ImagesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
 		return fromU, nil
@@ -362,6 +381,17 @@ func (sqq *SurveyQuestionQuery) WithPhotoData(opts ...func(*FileQuery)) *SurveyQ
 	return sqq
 }
 
+//  WithImages tells the query-builder to eager-loads the nodes that are connected to
+// the "images" edge. The optional arguments used to configure the query builder of the edge.
+func (sqq *SurveyQuestionQuery) WithImages(opts ...func(*FileQuery)) *SurveyQuestionQuery {
+	query := &FileQuery{config: sqq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sqq.withImages = query
+	return sqq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -429,11 +459,12 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 		nodes       = []*SurveyQuestion{}
 		withFKs     = sqq.withFKs
 		_spec       = sqq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			sqq.withSurvey != nil,
 			sqq.withWifiScan != nil,
 			sqq.withCellScan != nil,
 			sqq.withPhotoData != nil,
+			sqq.withImages != nil,
 		}
 	)
 	if sqq.withSurvey != nil {
@@ -572,6 +603,34 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_photo_data" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PhotoData = append(node.Edges.PhotoData, n)
+		}
+	}
+
+	if query := sqq.withImages; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*SurveyQuestion)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.File(func(s *sql.Selector) {
+			s.Where(sql.InValues(surveyquestion.ImagesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.survey_question_images
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "survey_question_images" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_images" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Images = append(node.Edges.Images, n)
 		}
 	}
 

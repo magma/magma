@@ -561,6 +561,7 @@ def get_survey_response(
         "questionIndex": question_index,
         "wifiData": [],
         "cellData": [],
+        "imagesData": [],
     }
 
     if form_description:

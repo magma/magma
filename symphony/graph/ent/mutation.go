@@ -22440,6 +22440,8 @@ type SurveyQuestionMutation struct {
 	removedcell_scan     map[int]struct{}
 	photo_data           map[int]struct{}
 	removedphoto_data    map[int]struct{}
+	images               map[int]struct{}
+	removedimages        map[int]struct{}
 }
 
 var _ ent.Mutation = (*SurveyQuestionMutation)(nil)
@@ -23401,6 +23403,48 @@ func (m *SurveyQuestionMutation) ResetPhotoData() {
 	m.removedphoto_data = nil
 }
 
+// AddImageIDs adds the images edge to File by ids.
+func (m *SurveyQuestionMutation) AddImageIDs(ids ...int) {
+	if m.images == nil {
+		m.images = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.images[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveImageIDs removes the images edge to File by ids.
+func (m *SurveyQuestionMutation) RemoveImageIDs(ids ...int) {
+	if m.removedimages == nil {
+		m.removedimages = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedimages[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedImages returns the removed ids of images.
+func (m *SurveyQuestionMutation) RemovedImagesIDs() (ids []int) {
+	for id := range m.removedimages {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ImagesIDs returns the images ids in the mutation.
+func (m *SurveyQuestionMutation) ImagesIDs() (ids []int) {
+	for id := range m.images {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetImages reset all changes of the images edge.
+func (m *SurveyQuestionMutation) ResetImages() {
+	m.images = nil
+	m.removedimages = nil
+}
+
 // Op returns the operation name.
 func (m *SurveyQuestionMutation) Op() Op {
 	return m.op
@@ -23988,7 +24032,7 @@ func (m *SurveyQuestionMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *SurveyQuestionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.survey != nil {
 		edges = append(edges, surveyquestion.EdgeSurvey)
 	}
@@ -24000,6 +24044,9 @@ func (m *SurveyQuestionMutation) AddedEdges() []string {
 	}
 	if m.photo_data != nil {
 		edges = append(edges, surveyquestion.EdgePhotoData)
+	}
+	if m.images != nil {
+		edges = append(edges, surveyquestion.EdgeImages)
 	}
 	return edges
 }
@@ -24030,6 +24077,12 @@ func (m *SurveyQuestionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case surveyquestion.EdgeImages:
+		ids := make([]ent.Value, 0, len(m.images))
+		for id := range m.images {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -24037,7 +24090,7 @@ func (m *SurveyQuestionMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *SurveyQuestionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedwifi_scan != nil {
 		edges = append(edges, surveyquestion.EdgeWifiScan)
 	}
@@ -24046,6 +24099,9 @@ func (m *SurveyQuestionMutation) RemovedEdges() []string {
 	}
 	if m.removedphoto_data != nil {
 		edges = append(edges, surveyquestion.EdgePhotoData)
+	}
+	if m.removedimages != nil {
+		edges = append(edges, surveyquestion.EdgeImages)
 	}
 	return edges
 }
@@ -24072,6 +24128,12 @@ func (m *SurveyQuestionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case surveyquestion.EdgeImages:
+		ids := make([]ent.Value, 0, len(m.removedimages))
+		for id := range m.removedimages {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -24079,7 +24141,7 @@ func (m *SurveyQuestionMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *SurveyQuestionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedsurvey {
 		edges = append(edges, surveyquestion.EdgeSurvey)
 	}
@@ -24123,6 +24185,9 @@ func (m *SurveyQuestionMutation) ResetEdge(name string) error {
 		return nil
 	case surveyquestion.EdgePhotoData:
 		m.ResetPhotoData()
+		return nil
+	case surveyquestion.EdgeImages:
+		m.ResetImages()
 		return nil
 	}
 	return fmt.Errorf("unknown SurveyQuestion edge %s", name)

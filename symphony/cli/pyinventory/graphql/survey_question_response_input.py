@@ -23,6 +23,7 @@ class SurveyQuestionResponse(DataClassJsonMixin):
     questionIndex: int
     wifiData: List[SurveyWiFiScanData]
     cellData: List[SurveyCellScanData]
+    imagesData: List[FileInput]
     formName: Optional[str] = None
     formDescription: Optional[str] = None
     questionFormat: Optional[SurveyQuestionType] = None
