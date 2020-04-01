@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
 from .add_customer_input import AddCustomerInput
 
 
@@ -19,21 +20,17 @@ class AddCustomerMutation(DataClassJsonMixin):
     @dataclass
     class AddCustomerMutationData(DataClassJsonMixin):
         @dataclass
-        class Customer(DataClassJsonMixin):
-            id: str
-            name: str
-            externalId: Optional[str]
+        class Customer(CustomerFragment):
+            pass
 
         addCustomer: Customer
 
     data: AddCustomerMutationData
 
-    __QUERY__: str = """
+    __QUERY__: str = CustomerFragmentQuery + """
     mutation AddCustomerMutation($input: AddCustomerInput!) {
   addCustomer(input: $input) {
-    id
-    name
-    externalId
+    ...CustomerFragment
   }
 }
 

@@ -1,0 +1,5 @@
+fragment CustomerFragment on Customer {
+  id
+  name
+  externalId
+}

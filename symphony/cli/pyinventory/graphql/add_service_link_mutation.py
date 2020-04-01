@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
 from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 from gql.gql.enum_utils import enum_field
 from .service_endpoint_role_enum import ServiceEndpointRole
@@ -23,10 +24,8 @@ class AddServiceLinkMutation(DataClassJsonMixin):
         @dataclass
         class Service(DataClassJsonMixin):
             @dataclass
-            class Customer(DataClassJsonMixin):
-                id: str
-                name: str
-                externalId: Optional[str]
+            class Customer(CustomerFragment):
+                pass
 
             @dataclass
             class ServiceEndpoint(DataClassJsonMixin):
@@ -95,16 +94,14 @@ class AddServiceLinkMutation(DataClassJsonMixin):
 
     data: AddServiceLinkMutationData
 
-    __QUERY__: str = PropertyFragmentQuery + """
+    __QUERY__: str = CustomerFragmentQuery + PropertyFragmentQuery + """
     mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
   addServiceLink(id: $id, linkId: $linkId) {
     id
     name
     externalId
     customer {
-      id
-      name
-      externalId
+      ...CustomerFragment
     }
     endpoints {
       id
