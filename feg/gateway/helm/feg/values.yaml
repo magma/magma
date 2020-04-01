@@ -38,8 +38,6 @@ feg:
   repo:
     url: https://github.com/facebookincubator/magma/
     branch: master
-#  env: |
-#    test=test
 
 ## Key Values for VM running using virtlet runtime
 image:
