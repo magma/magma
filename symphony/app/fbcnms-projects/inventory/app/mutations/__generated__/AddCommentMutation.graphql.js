@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 960fea50de2b63c23ab49dff00c63a28
+ * @relayHash eacd02d5db33a5a2c17ef5e97fafb9e7
  */
 
 /* eslint-disable */
@@ -49,7 +49,10 @@ mutation AddCommentMutation(
 
 fragment TextCommentPost_comment on Comment {
   id
-  authorName
+  author {
+    email
+    id
+  }
   text
   createTime
 }
@@ -70,7 +73,14 @@ v1 = [
     "name": "input",
     "variableName": "input"
   }
-];
+],
+v2 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "id",
+  "args": null,
+  "storageKey": null
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -112,19 +122,25 @@ return {
         "concreteType": "Comment",
         "plural": false,
         "selections": [
+          (v2/*: any*/),
           {
-            "kind": "ScalarField",
+            "kind": "LinkedField",
             "alias": null,
-            "name": "id",
+            "name": "author",
+            "storageKey": null,
             "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "authorName",
-            "args": null,
-            "storageKey": null
+            "concreteType": "User",
+            "plural": false,
+            "selections": [
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "email",
+                "args": null,
+                "storageKey": null
+              },
+              (v2/*: any*/)
+            ]
           },
           {
             "kind": "ScalarField",
@@ -148,7 +164,7 @@ return {
     "operationKind": "mutation",
     "name": "AddCommentMutation",
     "id": null,
-    "text": "mutation AddCommentMutation(\n  $input: CommentInput!\n) {\n  addComment(input: $input) {\n    ...TextCommentPost_comment\n    id\n  }\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  authorName\n  text\n  createTime\n}\n",
+    "text": "mutation AddCommentMutation(\n  $input: CommentInput!\n) {\n  addComment(input: $input) {\n    ...TextCommentPost_comment\n    id\n  }\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  author {\n    email\n    id\n  }\n  text\n  createTime\n}\n",
     "metadata": {}
   }
 };

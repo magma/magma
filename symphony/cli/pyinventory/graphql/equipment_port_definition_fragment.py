@@ -25,5 +25,5 @@ fragment EquipmentPortDefinitionFragment on EquipmentPortDefinition {
 class EquipmentPortDefinitionFragment(DataClassJsonMixin):
     id: str
     name: str
-    index: Optional[int] = None
-    visibleLabel: Optional[str] = None
+    index: Optional[int]
+    visibleLabel: Optional[str]

@@ -33,15 +33,15 @@ class LocationTypeLocationsQuery(DataClassJsonMixin):
                         latitude: Number
                         longitude: Number
                         locationType: LocationType
-                        externalId: Optional[str] = None
+                        externalId: Optional[str]
 
-                    node: Optional[Location] = None
+                    node: Optional[Location]
 
                 edges: List[LocationEdge]
 
-            locations: Optional[LocationConnection] = None
+            locations: Optional[LocationConnection]
 
-        locationType: Optional[Node] = None
+        locationType: Optional[Node]
 
     data: LocationTypeLocationsQueryData
 

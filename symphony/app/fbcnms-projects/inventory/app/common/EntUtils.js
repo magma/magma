@@ -29,6 +29,14 @@ export const isTempId = (id: string): boolean => {
   return id != null && (id.startsWith(ENT_TEMP_ID_PREFIX) || isNaN(id));
 };
 
+export const getGraphError = (error: Error): string => {
+  if (error.hasOwnProperty('source')) {
+    // $FlowFixMe verified there's sources
+    return error.source.errors[0].message;
+  }
+  return error.message;
+};
+
 export const removeTempID = (ent: EntWithID) => {
   if (ent.id && isTempId(ent.id)) {
     const {id: _, ...noIdEnt} = ent;

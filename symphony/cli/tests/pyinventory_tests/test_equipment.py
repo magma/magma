@@ -7,6 +7,7 @@
 from pyinventory.api.equipment import (
     add_equipment,
     get_equipment,
+    get_equipment_by_external_id,
     get_equipment_properties,
     get_equipments_by_location,
     get_equipments_by_type,
@@ -90,6 +91,14 @@ class TestEquipment(BaseTest):
             location=self.location,
             properties_dict={"IP": "127.0.0.1"},
         )
+        self.equipment_with_external_id = add_equipment(
+            client=self.client,
+            name="TPLinkRouterExt",
+            equipment_type="Tp-Link T1600G",
+            location=self.location,
+            properties_dict={"IP": "127.0.0.1"},
+            external_id="12345",
+        )
 
     def tearDown(self) -> None:
         for equipment_type in self.equipment_types_created:
@@ -110,6 +119,13 @@ class TestEquipment(BaseTest):
             client=self.client, name="TPLinkRouter", location=self.location
         )
         self.assertEqual(self.equipment, fetched_equipment)
+
+    def test_equipment_with_external_id_created(self) -> None:
+
+        fetched_equipment = get_equipment(
+            client=self.client, name="TPLinkRouterExt", location=self.location
+        )
+        self.assertEqual(self.equipment_with_external_id, fetched_equipment)
 
     def test_get_or_create_equipment(self) -> None:
         equipment2 = get_or_create_equipment(
@@ -156,12 +172,18 @@ class TestEquipment(BaseTest):
         equipments = get_equipments_by_type(
             client=self.client, equipment_type_id=equipment_type_id
         )
-        self.assertEqual(len(equipments), 1)
+        self.assertEqual(len(equipments), 2)
         self.assertEqual(equipments[0].name, "TPLinkRouter")
 
     def test_get_equipments_by_location(self) -> None:
         equipments = get_equipments_by_location(
             client=self.client, location_id=self.location.id
         )
-        self.assertEqual(len(equipments), 1)
+        self.assertEqual(len(equipments), 2)
         self.assertEqual(equipments[0].name, "TPLinkRouter")
+
+    def test_get_equipment_by_external_id(self) -> None:
+        equipment = get_equipment_by_external_id(
+            client=self.client, external_id="12345"
+        )
+        self.assertEqual(self.equipment_with_external_id, equipment)

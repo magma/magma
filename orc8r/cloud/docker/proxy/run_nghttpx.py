@@ -8,6 +8,8 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 import argparse
+import logging
+
 import jinja2
 import os
 import subprocess
@@ -77,6 +79,7 @@ def main() -> None:
 
     # Run the nghttpx process
     _run_nghttpx(conf)
+    logging.error("nghttpx restarting")
 
 
 if __name__ == '__main__':

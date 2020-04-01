@@ -137,8 +137,8 @@ func (stc *ServiceTypeCreate) Save(ctx context.Context) (*ServiceType, error) {
 			node, err = stc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(stc.hooks); i > 0; i-- {
-			mut = stc.hooks[i-1](mut)
+		for i := len(stc.hooks) - 1; i >= 0; i-- {
+			mut = stc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, stc.mutation); err != nil {
 			return nil, err

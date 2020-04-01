@@ -99,8 +99,8 @@ func (hu *HyperlinkUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = hu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(hu.hooks); i > 0; i-- {
-			mut = hu.hooks[i-1](mut)
+		for i := len(hu.hooks) - 1; i >= 0; i-- {
+			mut = hu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, hu.mutation); err != nil {
 			return 0, err
@@ -275,8 +275,8 @@ func (huo *HyperlinkUpdateOne) Save(ctx context.Context) (*Hyperlink, error) {
 			node, err = huo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(huo.hooks); i > 0; i-- {
-			mut = huo.hooks[i-1](mut)
+		for i := len(huo.hooks) - 1; i >= 0; i-- {
+			mut = huo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, huo.mutation); err != nil {
 			return nil, err

@@ -25,7 +25,7 @@ import (
 func GetGyReAuthHandler(cloudRegistry service_registry.GatewayRegistry) ChargingReAuthHandler {
 	return ChargingReAuthHandler(func(request *ChargingReAuthRequest) *ChargingReAuthAnswer {
 		sid := diameter.DecodeSessionID(request.SessionID)
-		imsi, err := relay.GetIMSIFromSessionID(sid)
+		imsi, err := protos.ParseIMSIfromSessionIdWithPrefix(sid)
 		if err != nil {
 			glog.Errorf("Error retreiving IMSI from Session ID %s: %s", request.SessionID, err)
 			return &ChargingReAuthAnswer{

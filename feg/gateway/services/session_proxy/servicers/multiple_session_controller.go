@@ -161,7 +161,7 @@ func (srv *CentralSessionControllers) TerminateSession(
 	if request == nil || len(request.GetSessionId()) == 0 {
 		return nil, fmt.Errorf("Could not terminate session")
 	}
-	imsi, err := parseImsiFromSessionId(request.GetSessionId())
+	imsi, err := protos.ParseIMSIfromSessionIdNoPrefix(request.GetSessionId())
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func getUpdateSessionRequestPerController(
 
 // getControllerFromSessionId provides the controllerId on a given SessionID (note session ID contains the IMSI)
 func getControllerFromSessionId(controllers []*CentralSessionController, sessionId string) (*CentralSessionController, error) {
-	imsiStr, err := parseImsiFromSessionId(sessionId)
+	imsiStr, err := protos.ParseIMSIfromSessionIdNoPrefix(sessionId)
 	if err != nil {
 		glog.Error(err)
 		return nil, err
@@ -291,17 +291,6 @@ func getControllerFromImsi(imsi string, controllers []*CentralSessionController)
 		return nil, err
 	}
 	return controllers[index], nil
-}
-
-// parseImsiFromSessionId extracts IMSI from a sessionId. SessionId format is is considered
-// to be IMMSIxxxxxx-1234, where xxxxx is the imsi to be extracted
-func parseImsiFromSessionId(sessionId string) (string, error) {
-	sessionId = strings.TrimPrefix(sessionId, "IMSI")
-	data := strings.Split(sessionId, "-")
-	if len(data) != 2 {
-		return "", fmt.Errorf("Couldn't parse Subscrier ID from sessionID. Format should be IMISxxxxx-RandomNumber")
-	}
-	return data[0], nil
 }
 
 // GetControllerIndexFromImsi describes how we allocate the subscriber on the controllers

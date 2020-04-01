@@ -18,6 +18,7 @@ import Client from './GrafanaAPI';
 import GrafanaErrorMessage from './GrafanaErrorMessage';
 import {
   makeGrafanaUsername,
+  syncDashboards,
   syncDatasource,
   syncGrafanaUser,
   syncTenants,
@@ -64,6 +65,12 @@ const syncGrafana = () => {
         tasksCompleted,
         tenantsRes.errorTask,
       );
+    }
+    // Create Dashboards
+    const dbRes = await syncDashboards(grafanaAdminClient, req);
+    tasksCompleted.push(...dbRes.completedTasks);
+    if (dbRes.errorTask) {
+      return await displayErrorMessage(res, tasksCompleted, dbRes.errorTask);
     }
     return next();
   };

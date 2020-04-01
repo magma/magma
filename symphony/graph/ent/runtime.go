@@ -10,88 +10,49 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
-
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
-
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
-
 	"github.com/facebookincubator/symphony/graph/ent/comment"
-
 	"github.com/facebookincubator/symphony/graph/ent/customer"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
-
 	"github.com/facebookincubator/symphony/graph/ent/file"
-
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
-
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
-
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
-
 	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
-
 	"github.com/facebookincubator/symphony/graph/ent/link"
-
 	"github.com/facebookincubator/symphony/graph/ent/location"
-
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
-
 	"github.com/facebookincubator/symphony/graph/ent/project"
-
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
-
 	"github.com/facebookincubator/symphony/graph/ent/property"
-
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-
 	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
-
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 	"github.com/facebookincubator/symphony/graph/ent/service"
-
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
-
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
-
 	"github.com/facebookincubator/symphony/graph/ent/survey"
-
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
-
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
-
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
-
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
-
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
-
 	"github.com/facebookincubator/symphony/graph/ent/technician"
-
 	"github.com/facebookincubator/symphony/graph/ent/user"
-
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
-
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
-
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 
 	"github.com/facebookincubator/ent"
-	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // The init function reads all schema descriptors with runtime

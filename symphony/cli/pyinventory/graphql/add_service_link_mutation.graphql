@@ -4,9 +4,7 @@ mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
     name
     externalId
     customer {
-      id
-      name
-      externalId
+      ...CustomerFragment
     }
     endpoints {
       id

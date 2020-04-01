@@ -28,7 +28,7 @@ class UserQuery(DataClassJsonMixin):
             status: UserStatus = enum_field(UserStatus)
             role: UserRole = enum_field(UserRole)
 
-        user: Optional[User] = None
+        user: Optional[User]
 
     data: UserQueryData
 

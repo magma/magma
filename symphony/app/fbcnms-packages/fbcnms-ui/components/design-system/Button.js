@@ -253,6 +253,7 @@ const useStyles = makeStyles(_theme => ({
       cursor: 'default',
       '& $buttonText, $icon': {
         color: symphony.palette.disabled,
+        fill: symphony.palette.disabled,
       },
     },
   },
@@ -272,6 +273,7 @@ export type ButtonProps = {|
   skin?: ButtonSkin,
   variant?: ButtonVariant,
   disabled?: boolean,
+  tooltip?: string,
 |};
 
 export type Props = {
@@ -282,7 +284,6 @@ export type Props = {
   leftIconClass?: string,
   rightIcon?: SvgIcon,
   rightIconClass?: string,
-  tooltip?: string,
   ...ButtonProps,
 };
 

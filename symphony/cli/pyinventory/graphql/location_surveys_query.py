@@ -27,32 +27,32 @@ class LocationSurveysQuery(DataClassJsonMixin):
                 class File(DataClassJsonMixin):
                     id: str
                     fileName: str
-                    storeKey: Optional[str] = None
+                    storeKey: Optional[str]
 
                 @dataclass
                 class SurveyQuestion(DataClassJsonMixin):
                     questionText: str
-                    formName: Optional[str] = None
-                    questionFormat: Optional[SurveyQuestionType] = None
-                    boolData: Optional[bool] = None
-                    emailData: Optional[str] = None
-                    latitude: Optional[Number] = None
-                    longitude: Optional[Number] = None
-                    phoneData: Optional[str] = None
-                    textData: Optional[str] = None
-                    floatData: Optional[Number] = None
-                    intData: Optional[int] = None
-                    dateData: Optional[int] = None
+                    formName: Optional[str]
+                    questionFormat: Optional[SurveyQuestionType] = enum_field(SurveyQuestionType)
+                    boolData: Optional[bool]
+                    emailData: Optional[str]
+                    latitude: Optional[Number]
+                    longitude: Optional[Number]
+                    phoneData: Optional[str]
+                    textData: Optional[str]
+                    floatData: Optional[Number]
+                    intData: Optional[int]
+                    dateData: Optional[int]
 
                 id: str
                 name: str
                 completionTimestamp: int
                 surveyResponses: List[SurveyQuestion]
-                sourceFile: Optional[File] = None
+                sourceFile: Optional[File]
 
             surveys: List[Survey]
 
-        location: Optional[Node] = None
+        location: Optional[Node]
 
     data: LocationSurveysQueryData
 

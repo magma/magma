@@ -49,8 +49,8 @@ func (clcd *CheckListCategoryDelete) Exec(ctx context.Context) (int, error) {
 			affected, err = clcd.sqlExec(ctx)
 			return affected, err
 		})
-		for i := len(clcd.hooks); i > 0; i-- {
-			mut = clcd.hooks[i-1](mut)
+		for i := len(clcd.hooks) - 1; i >= 0; i-- {
+			mut = clcd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, clcd.mutation); err != nil {
 			return 0, err

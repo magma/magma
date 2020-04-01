@@ -28,7 +28,7 @@ import PropertyTypeTable from '../form/PropertyTypeTable';
 import React, {useCallback, useMemo, useState} from 'react';
 import update from 'immutability-helper';
 import {ConnectionHandler} from 'relay-runtime';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
 import {sortByIndex} from '../draggable/DraggableUtils';
@@ -204,7 +204,7 @@ const AddEditProjectTypeCard = (props: Props) => {
   }, [editingProjectType, onAdd, onEdit]);
 
   return (
-    <FormValidationContextProvider>
+    <FormContextProvider>
       <div className={classes.root}>
         <div className={classes.header}>
           <Breadcrumbs
@@ -288,7 +288,7 @@ const AddEditProjectTypeCard = (props: Props) => {
           </ExpandingPanel>
         </div>
       </div>
-    </FormValidationContextProvider>
+    </FormContextProvider>
   );
 };
 

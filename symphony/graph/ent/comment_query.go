@@ -17,6 +17,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 )
 
 // CommentQuery is the builder for querying Comment entities.
@@ -27,9 +28,12 @@ type CommentQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Comment
+	// eager-loading edges.
+	withAuthor *UserQuery
 	withFKs    bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -54,6 +58,24 @@ func (cq *CommentQuery) Offset(offset int) *CommentQuery {
 func (cq *CommentQuery) Order(o ...Order) *CommentQuery {
 	cq.order = append(cq.order, o...)
 	return cq
+}
+
+// QueryAuthor chains the current query on the author edge.
+func (cq *CommentQuery) QueryAuthor() *UserQuery {
+	query := &UserQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(comment.Table, comment.FieldID, cq.sqlQuery()),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, comment.AuthorTable, comment.AuthorColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Comment entity in the query. Returns *NotFoundError when no comment was found.
@@ -152,6 +174,9 @@ func (cq *CommentQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of Comments.
 func (cq *CommentQuery) All(ctx context.Context) ([]*Comment, error) {
+	if err := cq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return cq.sqlAll(ctx)
 }
 
@@ -184,6 +209,9 @@ func (cq *CommentQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (cq *CommentQuery) Count(ctx context.Context) (int, error) {
+	if err := cq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return cq.sqlCount(ctx)
 }
 
@@ -198,6 +226,9 @@ func (cq *CommentQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (cq *CommentQuery) Exist(ctx context.Context) (bool, error) {
+	if err := cq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return cq.sqlExist(ctx)
 }
 
@@ -221,8 +252,20 @@ func (cq *CommentQuery) Clone() *CommentQuery {
 		unique:     append([]string{}, cq.unique...),
 		predicates: append([]predicate.Comment{}, cq.predicates...),
 		// clone intermediate query.
-		sql: cq.sql.Clone(),
+		sql:  cq.sql.Clone(),
+		path: cq.path,
 	}
+}
+
+//  WithAuthor tells the query-builder to eager-loads the nodes that are connected to
+// the "author" edge. The optional arguments used to configure the query builder of the edge.
+func (cq *CommentQuery) WithAuthor(opts ...func(*UserQuery)) *CommentQuery {
+	query := &UserQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withAuthor = query
+	return cq
 }
 
 // GroupBy used to group vertices by one or more fields/columns.
@@ -243,7 +286,12 @@ func (cq *CommentQuery) Clone() *CommentQuery {
 func (cq *CommentQuery) GroupBy(field string, fields ...string) *CommentGroupBy {
 	group := &CommentGroupBy{config: cq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = cq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return cq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -262,16 +310,38 @@ func (cq *CommentQuery) GroupBy(field string, fields ...string) *CommentGroupBy 
 func (cq *CommentQuery) Select(field string, fields ...string) *CommentSelect {
 	selector := &CommentSelect{config: cq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = cq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return cq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (cq *CommentQuery) prepareQuery(ctx context.Context) error {
+	if cq.path != nil {
+		prev, err := cq.path(ctx)
+		if err != nil {
+			return err
+		}
+		cq.sql = prev
+	}
+	return nil
 }
 
 func (cq *CommentQuery) sqlAll(ctx context.Context) ([]*Comment, error) {
 	var (
-		nodes   = []*Comment{}
-		withFKs = cq.withFKs
-		_spec   = cq.querySpec()
+		nodes       = []*Comment{}
+		withFKs     = cq.withFKs
+		_spec       = cq.querySpec()
+		loadedTypes = [1]bool{
+			cq.withAuthor != nil,
+		}
 	)
+	if cq.withAuthor != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, comment.ForeignKeys...)
 	}
@@ -289,6 +359,7 @@ func (cq *CommentQuery) sqlAll(ctx context.Context) ([]*Comment, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
 	if err := sqlgraph.QueryNodes(ctx, cq.driver, _spec); err != nil {
@@ -297,6 +368,32 @@ func (cq *CommentQuery) sqlAll(ctx context.Context) ([]*Comment, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := cq.withAuthor; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Comment)
+		for i := range nodes {
+			if fk := nodes[i].comment_author; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "comment_author" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Author = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
@@ -379,8 +476,9 @@ type CommentGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -391,6 +489,11 @@ func (cgb *CommentGroupBy) Aggregate(fns ...Aggregate) *CommentGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (cgb *CommentGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := cgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	cgb.sql = query
 	return cgb.sqlScan(ctx, v)
 }
 
@@ -509,12 +612,18 @@ func (cgb *CommentGroupBy) sqlQuery() *sql.Selector {
 type CommentSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (cs *CommentSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := cs.path(ctx)
+	if err != nil {
+		return err
+	}
+	cs.sql = query
 	return cs.sqlScan(ctx, v)
 }
 

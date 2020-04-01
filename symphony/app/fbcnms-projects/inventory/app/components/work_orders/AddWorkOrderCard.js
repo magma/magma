@@ -38,8 +38,9 @@ import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import TextField from '@material-ui/core/TextField';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {getGraphError} from '../../common/EntUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
@@ -244,8 +245,8 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
           history.push(match.url);
         }
       },
-      onError: () => {
-        _enqueueError('Error saving work order');
+      onError: (error: Error) => {
+        _enqueueError(getGraphError(error));
       },
     };
     ServerLogger.info(LogEvents.SAVE_PROJECT_BUTTON_CLICKED, {
@@ -331,7 +332,7 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
         }
         return (
           <div className={classes.root}>
-            <FormValidationContextProvider>
+            <FormContextProvider>
               <div className={classes.nameHeader}>
                 <Breadcrumbs
                   className={classes.breadcrumbs}
@@ -518,7 +519,7 @@ const AddWorkOrderCard = ({workOrderTypeId}: Props) => {
                   </Grid>
                 </div>
               </div>
-            </FormValidationContextProvider>
+            </FormContextProvider>
           </div>
         );
       }}

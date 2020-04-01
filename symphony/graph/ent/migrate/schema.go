@@ -145,8 +145,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "author_name", Type: field.TypeString},
 		{Name: "text", Type: field.TypeString},
+		{Name: "comment_author", Type: field.TypeInt, Nullable: true},
 		{Name: "project_comments", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_comments", Type: field.TypeInt, Nullable: true},
 	}
@@ -156,6 +156,13 @@ var (
 		Columns:    CommentsColumns,
 		PrimaryKey: []*schema.Column{CommentsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "comments_users_author",
+				Columns: []*schema.Column{CommentsColumns[4]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
 			{
 				Symbol:  "comments_projects_comments",
 				Columns: []*schema.Column{CommentsColumns[5]},
@@ -446,6 +453,7 @@ var (
 		{Name: "equipment_files", Type: field.TypeInt, Nullable: true},
 		{Name: "location_files", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_question_photo_data", Type: field.TypeInt, Nullable: true},
+		{Name: "survey_question_images", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_files", Type: field.TypeInt, Nullable: true},
 	}
 	// FilesTable holds the schema information for the "files" table.
@@ -483,8 +491,15 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "files_work_orders_files",
+				Symbol:  "files_survey_questions_images",
 				Columns: []*schema.Column{FilesColumns[15]},
+
+				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "files_work_orders_files",
+				Columns: []*schema.Column{FilesColumns[16]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1638,8 +1653,9 @@ func init() {
 	CheckListItemsTable.ForeignKeys[0].RefTable = CheckListCategoriesTable
 	CheckListItemsTable.ForeignKeys[1].RefTable = WorkOrdersTable
 	CheckListItemDefinitionsTable.ForeignKeys[0].RefTable = WorkOrderTypesTable
-	CommentsTable.ForeignKeys[0].RefTable = ProjectsTable
-	CommentsTable.ForeignKeys[1].RefTable = WorkOrdersTable
+	CommentsTable.ForeignKeys[0].RefTable = UsersTable
+	CommentsTable.ForeignKeys[1].RefTable = ProjectsTable
+	CommentsTable.ForeignKeys[2].RefTable = WorkOrdersTable
 	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTypesTable
 	EquipmentTable.ForeignKeys[1].RefTable = WorkOrdersTable
 	EquipmentTable.ForeignKeys[2].RefTable = EquipmentPositionsTable
@@ -1657,7 +1673,8 @@ func init() {
 	FilesTable.ForeignKeys[1].RefTable = EquipmentTable
 	FilesTable.ForeignKeys[2].RefTable = LocationsTable
 	FilesTable.ForeignKeys[3].RefTable = SurveyQuestionsTable
-	FilesTable.ForeignKeys[4].RefTable = WorkOrdersTable
+	FilesTable.ForeignKeys[4].RefTable = SurveyQuestionsTable
+	FilesTable.ForeignKeys[5].RefTable = WorkOrdersTable
 	FloorPlansTable.ForeignKeys[0].RefTable = LocationsTable
 	FloorPlansTable.ForeignKeys[1].RefTable = FloorPlanReferencePointsTable
 	FloorPlansTable.ForeignKeys[2].RefTable = FloorPlanScalesTable

@@ -12,10 +12,9 @@ import type {CheckListItemFillingProps} from './CheckListItemFilling';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
+import {useFormContext} from '../../../common/FormContext';
 
 const useStyles = makeStyles(() => ({
   container: {
@@ -41,11 +40,11 @@ const BasicCheckListItemFilling = ({
     onChange(modifiedItem);
   };
 
-  const validationContext = useContext(FormValidationContext);
+  const form = useFormContext();
 
   return (
     <div className={classes.container}>
-      {!validationContext.editLock.detected && (
+      {!form.alerts.editLock.detected && (
         <Button onClick={_updateOnChange} variant="text">
           {item.checked
             ? fbt(

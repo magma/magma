@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 22ec156ac0e02f4847e252be9e4e654f
+ * @relayHash c615695b312379ef96124f7721c8c734
  */
 
 /* eslint-disable */
@@ -167,7 +167,10 @@ fragment ProjectWorkOrdersList_workOrders on WorkOrder {
 
 fragment TextCommentPost_comment on Comment {
   id
-  authorName
+  author {
+    email
+    id
+  }
   text
   createTime
 }
@@ -210,77 +213,78 @@ v4 = {
   "args": null,
   "storageKey": null
 },
-v5 = [
-  (v2/*: any*/),
-  {
-    "kind": "ScalarField",
-    "alias": null,
-    "name": "email",
-    "args": null,
-    "storageKey": null
-  }
-],
+v5 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "email",
+  "args": null,
+  "storageKey": null
+},
 v6 = [
+  (v2/*: any*/),
+  (v5/*: any*/)
+],
+v7 = [
   (v3/*: any*/),
   (v2/*: any*/)
 ],
-v7 = {
+v8 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v8 = {
+v9 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "intValue",
   "args": null,
   "storageKey": null
 },
-v9 = {
+v10 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "floatValue",
   "args": null,
   "storageKey": null
 },
-v10 = {
+v11 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
-v11 = {
+v12 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
-v12 = {
+v13 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
-v13 = {
+v14 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
-v14 = {
+v15 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
-v15 = [
+v16 = [
   (v2/*: any*/),
   (v3/*: any*/)
 ];
@@ -365,7 +369,7 @@ return {
                 "args": null,
                 "concreteType": "User",
                 "plural": false,
-                "selections": (v5/*: any*/)
+                "selections": (v6/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -375,7 +379,7 @@ return {
                 "args": null,
                 "concreteType": "ProjectType",
                 "plural": false,
-                "selections": (v6/*: any*/)
+                "selections": (v7/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -448,7 +452,7 @@ return {
                         "args": null,
                         "concreteType": "LocationType",
                         "plural": false,
-                        "selections": (v6/*: any*/)
+                        "selections": (v7/*: any*/)
                       }
                     ]
                   }
@@ -464,7 +468,6 @@ return {
                 "plural": true,
                 "selections": [
                   (v2/*: any*/),
-                  (v7/*: any*/),
                   (v8/*: any*/),
                   (v9/*: any*/),
                   (v10/*: any*/),
@@ -472,6 +475,7 @@ return {
                   (v12/*: any*/),
                   (v13/*: any*/),
                   (v14/*: any*/),
+                  (v15/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -480,7 +484,7 @@ return {
                     "args": null,
                     "concreteType": "Equipment",
                     "plural": false,
-                    "selections": (v15/*: any*/)
+                    "selections": (v16/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -490,7 +494,7 @@ return {
                     "args": null,
                     "concreteType": "Location",
                     "plural": false,
-                    "selections": (v15/*: any*/)
+                    "selections": (v16/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -531,14 +535,14 @@ return {
                         "args": null,
                         "storageKey": null
                       },
-                      (v7/*: any*/),
                       (v8/*: any*/),
                       (v9/*: any*/),
                       (v10/*: any*/),
                       (v11/*: any*/),
                       (v12/*: any*/),
                       (v13/*: any*/),
-                      (v14/*: any*/)
+                      (v14/*: any*/),
+                      (v15/*: any*/)
                     ]
                   }
                 ]
@@ -561,7 +565,7 @@ return {
                     "args": null,
                     "concreteType": "WorkOrderType",
                     "plural": false,
-                    "selections": (v6/*: any*/)
+                    "selections": (v7/*: any*/)
                   },
                   (v3/*: any*/),
                   (v4/*: any*/),
@@ -573,7 +577,7 @@ return {
                     "args": null,
                     "concreteType": "User",
                     "plural": false,
-                    "selections": (v5/*: any*/)
+                    "selections": (v6/*: any*/)
                   },
                   {
                     "kind": "ScalarField",
@@ -616,11 +620,17 @@ return {
                 "selections": [
                   (v2/*: any*/),
                   {
-                    "kind": "ScalarField",
+                    "kind": "LinkedField",
                     "alias": null,
-                    "name": "authorName",
+                    "name": "author",
+                    "storageKey": null,
                     "args": null,
-                    "storageKey": null
+                    "concreteType": "User",
+                    "plural": false,
+                    "selections": [
+                      (v5/*: any*/),
+                      (v2/*: any*/)
+                    ]
                   },
                   {
                     "kind": "ScalarField",
@@ -648,7 +658,7 @@ return {
     "operationKind": "query",
     "name": "ProjectCardQuery",
     "id": null,
-    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project: node(id: $projectId) {\n    __typename\n    ... on Project {\n      ...ProjectMoreActionsButton_project\n      ...ProjectDetails_project\n    }\n    id\n  }\n}\n\nfragment CommentsBox_comments on Comment {\n  ...CommentsLog_comments\n}\n\nfragment CommentsLog_comments on Comment {\n  id\n  ...TextCommentPost_comment\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  createdBy {\n    id\n    email\n  }\n  type {\n    name\n    id\n  }\n  location {\n    id\n    name\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n  comments {\n    ...CommentsBox_comments\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  owner {\n    id\n    email\n  }\n  creationDate\n  installDate\n  status\n  priority\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  authorName\n  text\n  createTime\n}\n",
+    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project: node(id: $projectId) {\n    __typename\n    ... on Project {\n      ...ProjectMoreActionsButton_project\n      ...ProjectDetails_project\n    }\n    id\n  }\n}\n\nfragment CommentsBox_comments on Comment {\n  ...CommentsLog_comments\n}\n\nfragment CommentsLog_comments on Comment {\n  id\n  ...TextCommentPost_comment\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  createdBy {\n    id\n    email\n  }\n  type {\n    name\n    id\n  }\n  location {\n    id\n    name\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n  comments {\n    ...CommentsBox_comments\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  owner {\n    id\n    email\n  }\n  creationDate\n  installDate\n  status\n  priority\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  author {\n    email\n    id\n  }\n  text\n  createTime\n}\n",
     "metadata": {}
   }
 };

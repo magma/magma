@@ -7,8 +7,11 @@
     "Inventory": [
       "inventory-intro",
       "csv-upload",
-      "equipment-export",
+      "export",
       "service-export"
+    ],
+    "Workforce": [
+      "workforce-intro"
     ],
     "Mobile App": [
       "mobile-app-intro",

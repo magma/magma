@@ -105,8 +105,8 @@ func (fprpu *FloorPlanReferencePointUpdate) Save(ctx context.Context) (int, erro
 			affected, err = fprpu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(fprpu.hooks); i > 0; i-- {
-			mut = fprpu.hooks[i-1](mut)
+		for i := len(fprpu.hooks) - 1; i >= 0; i-- {
+			mut = fprpu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, fprpu.mutation); err != nil {
 			return 0, err
@@ -310,8 +310,8 @@ func (fprpuo *FloorPlanReferencePointUpdateOne) Save(ctx context.Context) (*Floo
 			node, err = fprpuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(fprpuo.hooks); i > 0; i-- {
-			mut = fprpuo.hooks[i-1](mut)
+		for i := len(fprpuo.hooks) - 1; i >= 0; i-- {
+			mut = fprpuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, fprpuo.mutation); err != nil {
 			return nil, err

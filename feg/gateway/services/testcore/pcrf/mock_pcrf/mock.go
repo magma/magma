@@ -86,6 +86,14 @@ func (answer GxAnswer) toAVPs() ([]*diam.AVP, uint32) {
 			avps = append(avps, toUsageMonitoringInfoAVP(string(monitor.MonitoringKey), octets, monitor.MonitoringLevel))
 		}
 	}
+	eventTriggers := answer.GetEventTriggers()
+	if eventTriggers != nil {
+		avps = append(avps, toEventTriggersAVPs(eventTriggers)...)
+	}
+	revalidationTime := answer.GetRevalidationTime()
+	if revalidationTime != nil {
+		avps = append(avps, toRevalidationTimeAVPs(revalidationTime))
+	}
 	return avps, answer.GetResultCode()
 }
 

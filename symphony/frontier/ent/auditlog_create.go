@@ -177,8 +177,8 @@ func (alc *AuditLogCreate) Save(ctx context.Context) (*AuditLog, error) {
 			node, err = alc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(alc.hooks); i > 0; i-- {
-			mut = alc.hooks[i-1](mut)
+		for i := len(alc.hooks) - 1; i >= 0; i-- {
+			mut = alc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, alc.mutation); err != nil {
 			return nil, err

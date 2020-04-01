@@ -39,11 +39,12 @@ const (
 
 type (
 	equipmentSearchDataModels struct {
-		locType1 int
-		locType2 int
-		loc1     int
-		loc2     int
-		equType  int
+		locType1  int
+		locType2  int
+		loc1      int
+		loc2      int
+		equType   int
+		equ2ExtID string
 	}
 
 	woSearchDataModels struct {
@@ -99,11 +100,13 @@ func prepareEquipmentData(ctx context.Context, r *TestResolver, name string, pro
 		Location:   &loc1.ID,
 		Properties: props,
 	})
-	_, _ = mr.AddEquipment(ctx, models.AddEquipmentInput{
+	extID := name + "123"
+	equ2, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:       name + "eq_inst2",
 		Type:       equType.ID,
 		Location:   &loc2.ID,
 		Properties: props,
+		ExternalID: &extID,
 	})
 	return equipmentSearchDataModels{
 		locType1.ID,
@@ -111,6 +114,7 @@ func prepareEquipmentData(ctx context.Context, r *TestResolver, name string, pro
 		loc1.ID,
 		loc2.ID,
 		equType.ID,
+		equ2.ExternalID,
 	}
 }
 
@@ -352,6 +356,17 @@ func TestEquipmentSearch(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, res5.Equipment)
 	require.Zero(t, res5.Count)
+
+	f6 := models.EquipmentFilterInput{
+		FilterType:  models.EquipmentFilterTypeEquipInstExternalID,
+		Operator:    models.FilterOperatorIs,
+		StringValue: &model1.equ2ExtID,
+		MaxDepth:    &maxDepth,
+	}
+	res6, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f6}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res6.Equipment, 1)
+	require.Equal(t, res6.Count, 1)
 }
 
 func TestUnsupportedEquipmentSearch(t *testing.T) {

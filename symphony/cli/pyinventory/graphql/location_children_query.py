@@ -29,11 +29,11 @@ class LocationChildrenQuery(DataClassJsonMixin):
                 latitude: Number
                 longitude: Number
                 locationType: LocationType
-                externalId: Optional[str] = None
+                externalId: Optional[str]
 
             children: List[Location]
 
-        location: Optional[Node] = None
+        location: Optional[Node]
 
     data: LocationChildrenQueryData
 

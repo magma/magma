@@ -37,11 +37,13 @@ import SectionedCard from '@fbcnms/ui/components/SectionedCard';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
 import {withSnackbar} from 'notistack';
@@ -128,7 +130,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
             </div>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <FormField label="Name" required>
+                <FormField label={`${fbt('Equipment Name', '')}`} required>
                   <TextInput
                     name="name"
                     variant="outlined"
@@ -330,7 +332,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
       },
 
       onError: (error: Error) => {
-        this.setState({error: error.message, isSaving: false});
+        this.setState({error: getGraphError(error), isSaving: false});
       },
     };
 
@@ -358,7 +360,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
       },
 
       onError: (error: Error) => {
-        this.setState({error: error.message, isSaving: false});
+        this.setState({error: getGraphError(error), isSaving: false});
       },
     };
     const updater = store => {

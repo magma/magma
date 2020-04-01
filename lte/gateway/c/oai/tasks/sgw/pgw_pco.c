@@ -50,7 +50,7 @@ int pgw_pco_push_protocol_or_container_id(
     PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID <=
     pco->num_protocol_or_container_id) {
     OAILOG_ERROR(
-      LOG_PGW_APP,
+      LOG_SPGW_APP,
       "Invalid num_protocol_or_container_id :%d within pco \n",
       pco->num_protocol_or_container_id);
     return RETURNerror;
@@ -339,7 +339,7 @@ int pgw_process_pco_request(
   protocol_configuration_options_t *pco_resp,
   protocol_configuration_options_ids_t *const pco_ids)
 {
-  OAILOG_FUNC_IN(LOG_PGW_APP);
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint32_t rc = RETURNok;
   memset(pco_ids, 0, sizeof *pco_ids);
 

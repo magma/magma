@@ -42,9 +42,9 @@ class EquipmentTypesQuery(DataClassJsonMixin):
                     propertyTypes: List[PropertyType]
                     positionDefinitions: List[EquipmentPositionDefinition]
                     portDefinitions: List[EquipmentPortDefinition]
-                    category: Optional[str] = None
+                    category: Optional[str]
 
-                node: Optional[EquipmentType] = None
+                node: Optional[EquipmentType]
 
             edges: List[EquipmentTypeEdge]
 

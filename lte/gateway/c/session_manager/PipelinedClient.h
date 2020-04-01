@@ -94,6 +94,16 @@ class PipelinedClient {
     const std::string &ap_name) = 0;
 
   /**
+   * Update the IPFIX export rule in pipeliend
+   */
+  virtual bool update_ipfix_flow(
+    const SubscriberID &sid,
+    const std::string &ue_mac_addr,
+    const std::string &msisdn,
+    const std::string &ap_mac_addr,
+    const std::string &ap_name) = 0;
+
+  /**
    * Send the MAC address of UE and the subscriberID
    * for pipelined to delete a flow for the subscriber by matching the MAC
    */
@@ -182,6 +192,16 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string& ap_name);
 
   /**
+   * Update the IPFIX export rule in pipeliend
+   */
+  bool update_ipfix_flow(
+    const SubscriberID& sid,
+    const std::string& ue_mac_addr,
+    const std::string& msisdn,
+    const std::string& ap_mac_addr,
+    const std::string& ap_name);
+
+  /**
    * Propagate whether a subscriber has quota / no quota / or terminated
    */
   bool update_subscriber_quota_state(
@@ -213,6 +233,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     std::function<void(Status, ActivateFlowsResult)> callback);
 
   void add_ue_mac_flow_rpc(
+    const UEMacFlowRequest& request,
+    std::function<void(Status, FlowResponse)> callback);
+
+  void update_ipfix_flow_rpc(
     const UEMacFlowRequest& request,
     std::function<void(Status, FlowResponse)> callback);
 

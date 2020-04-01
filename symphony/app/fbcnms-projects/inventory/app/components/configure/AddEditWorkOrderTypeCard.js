@@ -35,12 +35,14 @@ import PropertyTypeTable from '../form/PropertyTypeTable';
 import React from 'react';
 import RemoveWorkOrderTypeMutation from '../../mutations/RemoveWorkOrderTypeMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
 import {withSnackbar} from 'notistack';
@@ -106,7 +108,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       .slice()
       .sort(sortByIndex);
     return (
-      <FormValidationContextProvider>
+      <FormContextProvider>
         <div className={classes.root}>
           <div className={classes.header}>
             <Breadcrumbs
@@ -123,7 +125,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
                     }
                   : {
                       id: 'new_wo_type',
-                      name: 'New Work Order Template',
+                      name: `${fbt('New work order template', '')}`,
                     },
               ]}
               size="large"
@@ -158,8 +160,12 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
               <NameDescriptionSection
                 title="Title"
                 name={editingWorkOrderType.name ?? ''}
+                namePlaceholder={`${fbt('New work order template', '')}`}
                 description={editingWorkOrderType.description ?? ''}
-                descriptionPlaceholder="Describe the work order"
+                descriptionPlaceholder={`${fbt(
+                  'Write a description if you want it to appear whenever this template of work order is created',
+                  '',
+                )}`}
                 onNameChange={this.nameChanged}
                 onDescriptionChange={this.descriptionChanged}
               />
@@ -173,7 +179,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
             </ExpandingPanel>
           </div>
         </div>
-      </FormValidationContextProvider>
+      </FormContextProvider>
     );
   }
 
@@ -217,7 +223,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
   };
 
   _onError = (error: Error) => {
-    this._showError(error.message);
+    this._showError(getGraphError(error));
     this.setState({isSaving: false});
   };
 

@@ -185,8 +185,8 @@ func (epdc *EquipmentPortDefinitionCreate) Save(ctx context.Context) (*Equipment
 			node, err = epdc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(epdc.hooks); i > 0; i-- {
-			mut = epdc.hooks[i-1](mut)
+		for i := len(epdc.hooks) - 1; i >= 0; i-- {
+			mut = epdc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, epdc.mutation); err != nil {
 			return nil, err

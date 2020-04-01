@@ -13,6 +13,9 @@ import (
 	"magma/orc8r/cloud/go/storage"
 )
 
+// Version of the indexer. Capped to uint32 to fit into Postgres/Maria integer (int32).
+type Version uint32
+
 // StateErrors is a mapping of state type+key to error experienced indexing the state.
 // Type is state type, key is state reporter ID.
 type StateErrors map[storage.TypeAndKey]error
@@ -32,7 +35,7 @@ type Indexer interface {
 
 	// GetVersion returns the current version for the indexer.
 	// Incrementing the version in a release will result in a reindex.
-	GetVersion() uint64
+	GetVersion() Version
 
 	// GetSubscriptions defines the composite keys this indexer is interested in.
 	GetSubscriptions() []Subscription
@@ -41,12 +44,12 @@ type Indexer interface {
 	// Each version should use e.g. a separate SQL table, so preparing for
 	// a reindex would include creating new table(s).
 	// isFirstReindex is set if this is the first time this indexer has been registered.
-	PrepareReindex(from, to uint64, isFirstReindex bool) error
+	PrepareReindex(from, to Version, isFirstReindex bool) error
 
 	// CompleteReindex indicates the reindex operation is complete.
 	// Any internal state relevant only to the from version can subsequently be
 	// safely removed, e.g. dropping old SQL tables.
-	CompleteReindex(from, to uint64) error
+	CompleteReindex(from, to Version) error
 
 	// Index updates secondary indices based on the added/updated states.
 	Index(networkID, reporterHWID string, states []state.State) (StateErrors, error)

@@ -38,8 +38,9 @@ type LinkQuery struct {
 	withProperties *PropertyQuery
 	withService    *ServiceQuery
 	withFKs        bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -69,48 +70,72 @@ func (lq *LinkQuery) Order(o ...Order) *LinkQuery {
 // QueryPorts chains the current query on the ports edge.
 func (lq *LinkQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, link.PortsTable, link.PortsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+			sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, link.PortsTable, link.PortsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
 func (lq *LinkQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sqlgraph.To(workorder.Table, workorder.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, link.WorkOrderTable, link.WorkOrderColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, link.WorkOrderTable, link.WorkOrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (lq *LinkQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sqlgraph.To(property.Table, property.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, link.PropertiesTable, link.PropertiesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+			sqlgraph.To(property.Table, property.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, link.PropertiesTable, link.PropertiesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryService chains the current query on the service edge.
 func (lq *LinkQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, link.ServiceTable, link.ServicePrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, link.ServiceTable, link.ServicePrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -210,6 +235,9 @@ func (lq *LinkQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of Links.
 func (lq *LinkQuery) All(ctx context.Context) ([]*Link, error) {
+	if err := lq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return lq.sqlAll(ctx)
 }
 
@@ -242,6 +270,9 @@ func (lq *LinkQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (lq *LinkQuery) Count(ctx context.Context) (int, error) {
+	if err := lq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return lq.sqlCount(ctx)
 }
 
@@ -256,6 +287,9 @@ func (lq *LinkQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (lq *LinkQuery) Exist(ctx context.Context) (bool, error) {
+	if err := lq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return lq.sqlExist(ctx)
 }
 
@@ -279,7 +313,8 @@ func (lq *LinkQuery) Clone() *LinkQuery {
 		unique:     append([]string{}, lq.unique...),
 		predicates: append([]predicate.Link{}, lq.predicates...),
 		// clone intermediate query.
-		sql: lq.sql.Clone(),
+		sql:  lq.sql.Clone(),
+		path: lq.path,
 	}
 }
 
@@ -345,7 +380,12 @@ func (lq *LinkQuery) WithService(opts ...func(*ServiceQuery)) *LinkQuery {
 func (lq *LinkQuery) GroupBy(field string, fields ...string) *LinkGroupBy {
 	group := &LinkGroupBy{config: lq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = lq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return lq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -364,8 +404,24 @@ func (lq *LinkQuery) GroupBy(field string, fields ...string) *LinkGroupBy {
 func (lq *LinkQuery) Select(field string, fields ...string) *LinkSelect {
 	selector := &LinkSelect{config: lq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = lq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return lq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (lq *LinkQuery) prepareQuery(ctx context.Context) error {
+	if lq.path != nil {
+		prev, err := lq.path(ctx)
+		if err != nil {
+			return err
+		}
+		lq.sql = prev
+	}
+	return nil
 }
 
 func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
@@ -636,8 +692,9 @@ type LinkGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -648,6 +705,11 @@ func (lgb *LinkGroupBy) Aggregate(fns ...Aggregate) *LinkGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (lgb *LinkGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := lgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	lgb.sql = query
 	return lgb.sqlScan(ctx, v)
 }
 
@@ -766,12 +828,18 @@ func (lgb *LinkGroupBy) sqlQuery() *sql.Selector {
 type LinkSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ls *LinkSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ls.path(ctx)
+	if err != nil {
+		return err
+	}
+	ls.sql = query
 	return ls.sqlScan(ctx, v)
 }
 

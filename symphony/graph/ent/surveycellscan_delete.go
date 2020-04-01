@@ -49,8 +49,8 @@ func (scsd *SurveyCellScanDelete) Exec(ctx context.Context) (int, error) {
 			affected, err = scsd.sqlExec(ctx)
 			return affected, err
 		})
-		for i := len(scsd.hooks); i > 0; i-- {
-			mut = scsd.hooks[i-1](mut)
+		for i := len(scsd.hooks) - 1; i >= 0; i-- {
+			mut = scsd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, scsd.mutation); err != nil {
 			return 0, err

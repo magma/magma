@@ -24,7 +24,7 @@ import useFilterBookmarks from '../comparison_view/hooks/filterBookmarksHook';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import usePropertyFilters from '../comparison_view/hooks/propertiesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {ServiceSearchConfig} from './ServiceSearchConfig';
 import {
   buildPropertyFilterConfigs,
@@ -110,7 +110,7 @@ const ServiceComparisonView = () => {
   const hideDialog = useCallback(() => setDialogOpen(false), [setDialogOpen]);
 
   return (
-    <FormValidationContextProvider>
+    <FormContextProvider>
       <Card className={classes.cardRoot}>
         <CardContent className={classes.cardContent}>
           <div className={classes.root}>
@@ -167,7 +167,7 @@ const ServiceComparisonView = () => {
           }}
         />
       </Card>
-    </FormValidationContextProvider>
+    </FormContextProvider>
   );
 };
 

@@ -16,7 +16,7 @@ import InventoryTreeNode from './InventoryTreeNode';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import RelayEnvironment from '../common/RelayEnvironment';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../common/FormContext';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo, useState} from 'react';
@@ -157,7 +157,7 @@ const InventoryTreeView = (props: Props) => {
       </div>
       <div className={classes.treeContainer}>
         <PerfectScrollbar>
-          <FormValidationContextProvider>
+          <FormContextProvider>
             <div>
               {dummyRootTitle !== null && dummyRootTitle !== undefined
                 ? renderDummyTitleNode(dummyRootTitle)
@@ -174,7 +174,7 @@ const InventoryTreeView = (props: Props) => {
                 />
               ))}
             </div>
-          </FormValidationContextProvider>
+          </FormContextProvider>
         </PerfectScrollbar>
       </div>
     </div>

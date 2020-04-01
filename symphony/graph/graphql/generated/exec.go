@@ -54,6 +54,7 @@ type ResolverRoot interface {
 	CheckListCategory() CheckListCategoryResolver
 	CheckListItem() CheckListItemResolver
 	CheckListItemDefinition() CheckListItemDefinitionResolver
+	Comment() CommentResolver
 	Equipment() EquipmentResolver
 	EquipmentPort() EquipmentPortResolver
 	EquipmentPortDefinition() EquipmentPortDefinitionResolver
@@ -91,7 +92,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	DeprecatedInput func(ctx context.Context, obj interface{}, next graphql.Resolver, newField *string, reason *string) (res interface{}, err error)
+	DeprecatedInput func(ctx context.Context, obj interface{}, next graphql.Resolver, name string, duplicateError string, newField *string) (res interface{}, err error)
 
 	Length func(ctx context.Context, obj interface{}, next graphql.Resolver, min int, max *int) (res interface{}, err error)
 
@@ -195,6 +196,7 @@ type ComplexityRoot struct {
 	}
 
 	Comment struct {
+		Author     func(childComplexity int) int
 		AuthorName func(childComplexity int) int
 		CreateTime func(childComplexity int) int
 		ID         func(childComplexity int) int
@@ -833,6 +835,7 @@ type ComplexityRoot struct {
 		FormIndex        func(childComplexity int) int
 		FormName         func(childComplexity int) int
 		ID               func(childComplexity int) int
+		Images           func(childComplexity int) int
 		IntData          func(childComplexity int) int
 		Latitude         func(childComplexity int) int
 		LocationAccuracy func(childComplexity int) int
@@ -1053,6 +1056,10 @@ type CheckListItemResolver interface {
 }
 type CheckListItemDefinitionResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error)
+}
+type CommentResolver interface {
+	AuthorName(ctx context.Context, obj *ent.Comment) (string, error)
+	Author(ctx context.Context, obj *ent.Comment) (*ent.User, error)
 }
 type EquipmentResolver interface {
 	ParentLocation(ctx context.Context, obj *ent.Equipment) (*ent.Location, error)
@@ -1336,6 +1343,7 @@ type SurveyQuestionResolver interface {
 	PhotoData(ctx context.Context, obj *ent.SurveyQuestion) (*ent.File, error)
 	WifiData(ctx context.Context, obj *ent.SurveyQuestion) ([]*ent.SurveyWiFiScan, error)
 	CellData(ctx context.Context, obj *ent.SurveyQuestion) ([]*ent.SurveyCellScan, error)
+	Images(ctx context.Context, obj *ent.SurveyQuestion) ([]*ent.File, error)
 }
 type SurveyTemplateCategoryResolver interface {
 	SurveyTemplateQuestions(ctx context.Context, obj *ent.SurveyTemplateCategory) ([]*ent.SurveyTemplateQuestion, error)
@@ -1784,6 +1792,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CheckListItemDefinition.Type(childComplexity), true
+
+	case "Comment.author":
+		if e.complexity.Comment.Author == nil {
+			break
+		}
+
+		return e.complexity.Comment.Author(childComplexity), true
 
 	case "Comment.authorName":
 		if e.complexity.Comment.AuthorName == nil {
@@ -5461,6 +5476,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SurveyQuestion.ID(childComplexity), true
 
+	case "SurveyQuestion.images":
+		if e.complexity.SurveyQuestion.Images == nil {
+			break
+		}
+
+		return e.complexity.SurveyQuestion.Images(childComplexity), true
+
 	case "SurveyQuestion.intData":
 		if e.complexity.SurveyQuestion.IntData == nil {
 			break
@@ -6416,8 +6438,9 @@ var parsedSchema = gqlparser.MustLoadSchema(
 #    %> ./compile_graphql.sh
 
 directive @deprecatedInput(
+  name: String!
+  duplicateError: String!
   newField: String
-  reason: String = "Deprecated field is no longer supported"
 ) on INPUT_FIELD_DEFINITION
 
 enum UserStatus
@@ -6691,6 +6714,10 @@ input AddImageInput {
 type Comment implements Node {
   id: ID!
   authorName: String!
+    @deprecated(
+      reason: "Use ` + "`" + `Comment.author.email` + "`" + ` instead. Will be removed on 2020-05-01"
+    )
+  author: User!
   text: String!
   createTime: Time!
 }
@@ -6847,14 +6874,16 @@ input AddWorkOrderInput {
   ownerName: String
     @deprecatedInput(
       newField: "ownerId"
-      reason: "Use ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` together"
+      name: "AddWorkOrderInput.ownerName"
+      duplicateError: "Use ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` together"
     )
   ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
   assignee: String
     @deprecatedInput(
       newField: "assigneeId"
-      reason: "Use ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.assignee` + "`" + ` and ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` together"
+      name: "AddWorkOrderInput.assignee"
+      duplicateError: "Use ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.assignee` + "`" + ` and ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` together"
     )
   assigneeId: ID
   index: Int
@@ -6869,14 +6898,16 @@ input EditWorkOrderInput {
   ownerName: String
     @deprecatedInput(
       newField: "ownerId"
-      reason: "Use ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` together"
+      name: "EditWorkOrderInput.ownerName"
+      duplicateError: "Use ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` together"
     )
   ownerId: ID
   installDate: Time
   assignee: String
     @deprecatedInput(
       newField: "assigneeId"
-      reason: "Use ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.assignee` + "`" + ` and ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` together"
+      name: "EditWorkOrderInput.assignee"
+      duplicateError: "Use ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.assignee` + "`" + ` and ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` together"
     )
   assigneeId: ID
   index: Int
@@ -7804,7 +7835,8 @@ input AddProjectInput {
   creator: String
     @deprecatedInput(
       newField: "creatorId"
-      reason: "Use ` + "`" + `AddProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddProjectInput.creator` + "`" + ` and ` + "`" + `AddProjectInput.creatorId` + "`" + ` together"
+      name: "AddProjectInput.creator"
+      duplicateError: "Use ` + "`" + `AddProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddProjectInput.creator` + "`" + ` and ` + "`" + `AddProjectInput.creatorId` + "`" + ` together"
     )
   creatorId: ID
   type: ID!
@@ -7819,7 +7851,8 @@ input EditProjectInput {
   creator: String
     @deprecatedInput(
       newField: "creatorId"
-      reason: "Use ` + "`" + `EditProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditProjectInput.creator` + "`" + ` and ` + "`" + `EditProjectInput.creatorId` + "`" + ` together"
+      name: "EditProjectInput.creator"
+      duplicateError: "Use ` + "`" + `EditProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditProjectInput.creator` + "`" + ` and ` + "`" + `EditProjectInput.creatorId` + "`" + ` together"
     )
   creatorId: ID
   type: ID!
@@ -7844,6 +7877,7 @@ what type of equipment we filter about
 """
 enum EquipmentFilterType {
   EQUIP_INST_NAME
+  EQUIP_INST_EXTERNAL_ID
   PROPERTY
   LOCATION_INST
   EQUIPMENT_TYPE
@@ -8295,6 +8329,7 @@ input SurveyQuestionResponse {
   photoData: FileInput
   wifiData: [SurveyWiFiScanData!]
   cellData: [SurveyCellScanData!]
+  imagesData: [FileInput!]
 }
 
 type SurveyQuestion implements Node {
@@ -8319,6 +8354,7 @@ type SurveyQuestion implements Node {
   photoData: File
   wifiData: [SurveyWiFiScan]
   cellData: [SurveyCellScan]
+  images: [File!]
 }
 
 enum SurveyQuestionType {
@@ -8919,22 +8955,30 @@ type Subscription {
 func (ec *executionContext) dir_deprecatedInput_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *string
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["duplicateError"]; ok {
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["duplicateError"] = arg1
+	var arg2 *string
 	if tmp, ok := rawArgs["newField"]; ok {
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["newField"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["reason"]; ok {
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["reason"] = arg1
+	args["newField"] = arg2
 	return args, nil
 }
 
@@ -13270,13 +13314,13 @@ func (ec *executionContext) _Comment_authorName(ctx context.Context, field graph
 		Object:   "Comment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AuthorName, nil
+		return ec.resolvers.Comment().AuthorName(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13292,6 +13336,43 @@ func (ec *executionContext) _Comment_authorName(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Comment_author(ctx context.Context, field graphql.CollectedField, obj *ent.Comment) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Comment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Comment().Author(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Comment_text(ctx context.Context, field graphql.CollectedField, obj *ent.Comment) (ret graphql.Marshaler) {
@@ -30496,6 +30577,40 @@ func (ec *executionContext) _SurveyQuestion_cellData(ctx context.Context, field 
 	return ec.marshalOSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SurveyQuestion_images(ctx context.Context, field graphql.CollectedField, obj *ent.SurveyQuestion) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "SurveyQuestion",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SurveyQuestion().Images(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.File)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFileᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SurveyTemplateCategory_id(ctx context.Context, field graphql.CollectedField, obj *ent.SurveyTemplateCategory) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -36429,18 +36544,22 @@ func (ec *executionContext) unmarshalInputAddProjectInput(ctx context.Context, o
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
+				name, err := ec.unmarshalNString2string(ctx, "AddProjectInput.creator")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -36666,18 +36785,22 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
+				name, err := ec.unmarshalNString2string(ctx, "AddWorkOrderInput.ownerName")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -36707,18 +36830,22 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
+				name, err := ec.unmarshalNString2string(ctx, "AddWorkOrderInput.assignee")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -37461,18 +37588,22 @@ func (ec *executionContext) unmarshalInputEditProjectInput(ctx context.Context, 
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
+				name, err := ec.unmarshalNString2string(ctx, "EditProjectInput.creator")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -37728,18 +37859,22 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
+				name, err := ec.unmarshalNString2string(ctx, "EditWorkOrderInput.ownerName")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -37769,18 +37904,22 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
+				name, err := ec.unmarshalNString2string(ctx, "EditWorkOrderInput.assignee")
 				if err != nil {
 					return nil, err
 				}
-				reason, err := ec.unmarshalOString2ᚖstring(ctx, "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together")
+				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together")
+				if err != nil {
+					return nil, err
+				}
+				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
 				if err != nil {
 					return nil, err
 				}
 				if ec.directives.DeprecatedInput == nil {
 					return nil, errors.New("directive deprecatedInput is not implemented")
 				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, newField, reason)
+				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
 			}
 
 			tmp, err := directive1(ctx)
@@ -39314,6 +39453,12 @@ func (ec *executionContext) unmarshalInputSurveyQuestionResponse(ctx context.Con
 			if err != nil {
 				return it, err
 			}
+		case "imagesData":
+			var err error
+			it.ImagesData, err = ec.unmarshalOFileInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -40550,22 +40695,45 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Comment_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "authorName":
-			out.Values[i] = ec._Comment_authorName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Comment_authorName(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "author":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Comment_author(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "text":
 			out.Values[i] = ec._Comment_text(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createTime":
 			out.Values[i] = ec._Comment_createTime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -45153,6 +45321,17 @@ func (ec *executionContext) _SurveyQuestion(ctx context.Context, sel ast.Selecti
 					}
 				}()
 				res = ec._SurveyQuestion_cellData(ctx, field, obj)
+				return res
+			})
+		case "images":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SurveyQuestion_images(ctx, field, obj)
 				return res
 			})
 		default:
@@ -52032,6 +52211,46 @@ func (ec *executionContext) marshalOEquipmentType2ᚖgithubᚗcomᚋfacebookincu
 
 func (ec *executionContext) marshalOFile2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx context.Context, sel ast.SelectionSet, v ent.File) graphql.Marshaler {
 	return ec._File(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFileᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.File) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalOFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx context.Context, sel ast.SelectionSet, v *ent.File) graphql.Marshaler {

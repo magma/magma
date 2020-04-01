@@ -16,6 +16,7 @@
 #include "LocalEnforcer.h"
 #include "SessionReporter.h"
 #include "SessionID.h"
+#include "SessionStore.h"
 
 using grpc::Server;
 using grpc::ServerContext;
@@ -65,7 +66,9 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   LocalSessionManagerHandlerImpl(
     std::shared_ptr<LocalEnforcer> monitor,
     SessionReporter* reporter,
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client);
+    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    SessionMap& session_map,
+    SessionStore& session_store);
   ~LocalSessionManagerHandlerImpl() {}
   /**
    * Report flow stats from pipelined and track the usage per rule
@@ -93,6 +96,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
     std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
  private:
+  SessionMap& session_map_;
+  SessionStore& session_store_;
   std::shared_ptr<LocalEnforcer> enforcer_;
   SessionReporter* reporter_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
@@ -103,7 +108,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   static const std::string hex_digit_;
 
  private:
-  void check_usage_for_reporting();
+  void check_usage_for_reporting(SessionUpdate& session_update);
   bool is_pipelined_restarted();
   bool restart_pipelined(const std::uint64_t& epoch);
 
@@ -124,6 +129,33 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
     const std::uint64_t& epoch,
     Status status,
     SetupFlowsResult resp);
+
+  /**
+   * Get the most recently written state of sessions for Creation
+   * Does not get any other sessions.
+   *
+   * NOTE: Call only from the main EventBase thread, otherwise there will
+   *       be undefined behavior.
+   */
+  SessionMap get_sessions_for_creation(const LocalCreateSessionRequest& request);
+
+  /**
+   * Get the most recently written state of sessions for reporting usage.
+   * Does not get sessions that are not required for reporting.
+   *
+   * NOTE: Call only from the main EventBase thread, otherwise there will
+   *       be undefined behavior.
+   */
+  SessionMap get_sessions_for_reporting(const RuleRecordTable& request);
+
+  /**
+   * Get the most recently written state of the session that is to be deleted.
+   * Does not get any other sessions.
+   *
+   * NOTE: Call only from the main EventBase thread, otherwise there will
+   *       be undefined behavior.
+   */
+  SessionMap get_sessions_for_deletion(const LocalEndSessionRequest& request);
 };
 
 } // namespace magma

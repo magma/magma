@@ -41,7 +41,8 @@ type HandlerConfig struct {
 }
 
 func init() {
-	for _, v := range ocgql.DefaultServerViews {
+	views := append(ocgql.DefaultServerViews, directive.ServerDeprecatedCountByObjectInputField)
+	for _, v := range views {
 		v.TagKeys = append(v.TagKeys,
 			viewer.KeyTenant,
 			viewer.KeyUser,
@@ -63,10 +64,12 @@ func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 		),
 	)
 
-	if err := view.Register(ocgql.DefaultServerViews...); err != nil {
+	views := append(ocgql.DefaultServerViews, directive.ServerDeprecatedCountByObjectInputField)
+
+	if err := view.Register(views...); err != nil {
 		return nil, nil, fmt.Errorf("registering views: %w", err)
 	}
-	closer := func() { view.Unregister(ocgql.DefaultServerViews...) }
+	closer := func() { view.Unregister(views...) }
 
 	router := mux.NewRouter()
 	router.Use(func(handler http.Handler) http.Handler {

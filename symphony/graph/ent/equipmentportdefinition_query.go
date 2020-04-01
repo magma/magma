@@ -36,8 +36,9 @@ type EquipmentPortDefinitionQuery struct {
 	withPorts             *EquipmentPortQuery
 	withEquipmentType     *EquipmentTypeQuery
 	withFKs               bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -67,36 +68,54 @@ func (epdq *EquipmentPortDefinitionQuery) Order(o ...Order) *EquipmentPortDefini
 // QueryEquipmentPortType chains the current query on the equipment_port_type edge.
 func (epdq *EquipmentPortDefinitionQuery) QueryEquipmentPortType() *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: epdq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
-		sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, equipmentportdefinition.EquipmentPortTypeTable, equipmentportdefinition.EquipmentPortTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := epdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
+			sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, equipmentportdefinition.EquipmentPortTypeTable, equipmentportdefinition.EquipmentPortTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryPorts chains the current query on the ports edge.
 func (epdq *EquipmentPortDefinitionQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: epdq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
-		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, equipmentportdefinition.PortsTable, equipmentportdefinition.PortsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := epdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
+			sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, equipmentportdefinition.PortsTable, equipmentportdefinition.PortsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryEquipmentType chains the current query on the equipment_type edge.
 func (epdq *EquipmentPortDefinitionQuery) QueryEquipmentType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: epdq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
-		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, equipmentportdefinition.EquipmentTypeTable, equipmentportdefinition.EquipmentTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := epdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
+			sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, equipmentportdefinition.EquipmentTypeTable, equipmentportdefinition.EquipmentTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -196,6 +215,9 @@ func (epdq *EquipmentPortDefinitionQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of EquipmentPortDefinitions.
 func (epdq *EquipmentPortDefinitionQuery) All(ctx context.Context) ([]*EquipmentPortDefinition, error) {
+	if err := epdq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return epdq.sqlAll(ctx)
 }
 
@@ -228,6 +250,9 @@ func (epdq *EquipmentPortDefinitionQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (epdq *EquipmentPortDefinitionQuery) Count(ctx context.Context) (int, error) {
+	if err := epdq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return epdq.sqlCount(ctx)
 }
 
@@ -242,6 +267,9 @@ func (epdq *EquipmentPortDefinitionQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (epdq *EquipmentPortDefinitionQuery) Exist(ctx context.Context) (bool, error) {
+	if err := epdq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return epdq.sqlExist(ctx)
 }
 
@@ -265,7 +293,8 @@ func (epdq *EquipmentPortDefinitionQuery) Clone() *EquipmentPortDefinitionQuery 
 		unique:     append([]string{}, epdq.unique...),
 		predicates: append([]predicate.EquipmentPortDefinition{}, epdq.predicates...),
 		// clone intermediate query.
-		sql: epdq.sql.Clone(),
+		sql:  epdq.sql.Clone(),
+		path: epdq.path,
 	}
 }
 
@@ -320,7 +349,12 @@ func (epdq *EquipmentPortDefinitionQuery) WithEquipmentType(opts ...func(*Equipm
 func (epdq *EquipmentPortDefinitionQuery) GroupBy(field string, fields ...string) *EquipmentPortDefinitionGroupBy {
 	group := &EquipmentPortDefinitionGroupBy{config: epdq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = epdq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := epdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return epdq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -339,8 +373,24 @@ func (epdq *EquipmentPortDefinitionQuery) GroupBy(field string, fields ...string
 func (epdq *EquipmentPortDefinitionQuery) Select(field string, fields ...string) *EquipmentPortDefinitionSelect {
 	selector := &EquipmentPortDefinitionSelect{config: epdq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = epdq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := epdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return epdq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (epdq *EquipmentPortDefinitionQuery) prepareQuery(ctx context.Context) error {
+	if epdq.path != nil {
+		prev, err := epdq.path(ctx)
+		if err != nil {
+			return err
+		}
+		epdq.sql = prev
+	}
+	return nil
 }
 
 func (epdq *EquipmentPortDefinitionQuery) sqlAll(ctx context.Context) ([]*EquipmentPortDefinition, error) {
@@ -544,8 +594,9 @@ type EquipmentPortDefinitionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -556,6 +607,11 @@ func (epdgb *EquipmentPortDefinitionGroupBy) Aggregate(fns ...Aggregate) *Equipm
 
 // Scan applies the group-by query and scan the result into the given value.
 func (epdgb *EquipmentPortDefinitionGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := epdgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	epdgb.sql = query
 	return epdgb.sqlScan(ctx, v)
 }
 
@@ -674,12 +730,18 @@ func (epdgb *EquipmentPortDefinitionGroupBy) sqlQuery() *sql.Selector {
 type EquipmentPortDefinitionSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (epds *EquipmentPortDefinitionSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := epds.path(ctx)
+	if err != nil {
+		return err
+	}
+	epds.sql = query
 	return epds.sqlScan(ctx, v)
 }
 

@@ -42,17 +42,17 @@ class PropertyTypeFragment(DataClassJsonMixin):
     id: str
     name: str
     type: PropertyKind = enum_field(PropertyKind)
-    index: Optional[int] = None
-    category: Optional[str] = None
-    stringValue: Optional[str] = None
-    intValue: Optional[int] = None
-    booleanValue: Optional[bool] = None
-    floatValue: Optional[Number] = None
-    latitudeValue: Optional[Number] = None
-    longitudeValue: Optional[Number] = None
-    rangeFromValue: Optional[Number] = None
-    rangeToValue: Optional[Number] = None
-    isEditable: Optional[bool] = None
-    isInstanceProperty: Optional[bool] = None
-    isMandatory: Optional[bool] = None
-    isDeleted: Optional[bool] = None
+    index: Optional[int]
+    category: Optional[str]
+    stringValue: Optional[str]
+    intValue: Optional[int]
+    booleanValue: Optional[bool]
+    floatValue: Optional[Number]
+    latitudeValue: Optional[Number]
+    longitudeValue: Optional[Number]
+    rangeFromValue: Optional[Number]
+    rangeToValue: Optional[Number]
+    isEditable: Optional[bool]
+    isInstanceProperty: Optional[bool]
+    isMandatory: Optional[bool]
+    isDeleted: Optional[bool]

@@ -11,12 +11,12 @@
 import type {Theme} from '@material-ui/core';
 
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import InputAffix from '@fbcnms/ui/components/design-system/Input/InputAffix';
-import React, {useContext} from 'react';
+import React from 'react';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
+import {useFormContext} from '../../common/FormContext';
 
 type Props = {
   value: any,
@@ -68,8 +68,8 @@ const GPSPropertyValueInput = (props: Props) => {
     longitude: '',
   };
   const fieldIdPrefix = `gpsLocation-${label || 'field'}-`;
-  const validationContext = useContext(FormValidationContext);
-  const errorLatitude = validationContext.error.check({
+  const form = useFormContext();
+  const errorLatitude = form.alerts.error.check({
     fieldId: `${fieldIdPrefix}Latitude`,
     fieldDisplayName: 'Latitude',
     value: latitude,
@@ -79,7 +79,7 @@ const GPSPropertyValueInput = (props: Props) => {
       to: 90,
     },
   });
-  const errorLongitude = validationContext.error.check({
+  const errorLongitude = form.alerts.error.check({
     fieldId: `${fieldIdPrefix}Longitude`,
     fieldDisplayName: 'Longitude',
     value: longitude,

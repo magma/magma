@@ -31,8 +31,9 @@ type UsersGroupQuery struct {
 	predicates []predicate.UsersGroup
 	// eager-loading edges.
 	withMembers *UserQuery
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -62,12 +63,18 @@ func (ugq *UsersGroupQuery) Order(o ...Order) *UsersGroupQuery {
 // QueryMembers chains the current query on the members edge.
 func (ugq *UsersGroupQuery) QueryMembers() *UserQuery {
 	query := &UserQuery{config: ugq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(usersgroup.Table, usersgroup.FieldID, ugq.sqlQuery()),
-		sqlgraph.To(user.Table, user.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, usersgroup.MembersTable, usersgroup.MembersPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(ugq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ugq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usersgroup.Table, usersgroup.FieldID, ugq.sqlQuery()),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, usersgroup.MembersTable, usersgroup.MembersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(ugq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -167,6 +174,9 @@ func (ugq *UsersGroupQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of UsersGroups.
 func (ugq *UsersGroupQuery) All(ctx context.Context) ([]*UsersGroup, error) {
+	if err := ugq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return ugq.sqlAll(ctx)
 }
 
@@ -199,6 +209,9 @@ func (ugq *UsersGroupQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (ugq *UsersGroupQuery) Count(ctx context.Context) (int, error) {
+	if err := ugq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return ugq.sqlCount(ctx)
 }
 
@@ -213,6 +226,9 @@ func (ugq *UsersGroupQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ugq *UsersGroupQuery) Exist(ctx context.Context) (bool, error) {
+	if err := ugq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return ugq.sqlExist(ctx)
 }
 
@@ -236,7 +252,8 @@ func (ugq *UsersGroupQuery) Clone() *UsersGroupQuery {
 		unique:     append([]string{}, ugq.unique...),
 		predicates: append([]predicate.UsersGroup{}, ugq.predicates...),
 		// clone intermediate query.
-		sql: ugq.sql.Clone(),
+		sql:  ugq.sql.Clone(),
+		path: ugq.path,
 	}
 }
 
@@ -269,7 +286,12 @@ func (ugq *UsersGroupQuery) WithMembers(opts ...func(*UserQuery)) *UsersGroupQue
 func (ugq *UsersGroupQuery) GroupBy(field string, fields ...string) *UsersGroupGroupBy {
 	group := &UsersGroupGroupBy{config: ugq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = ugq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := ugq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return ugq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -288,8 +310,24 @@ func (ugq *UsersGroupQuery) GroupBy(field string, fields ...string) *UsersGroupG
 func (ugq *UsersGroupQuery) Select(field string, fields ...string) *UsersGroupSelect {
 	selector := &UsersGroupSelect{config: ugq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = ugq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := ugq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return ugq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (ugq *UsersGroupQuery) prepareQuery(ctx context.Context) error {
+	if ugq.path != nil {
+		prev, err := ugq.path(ctx)
+		if err != nil {
+			return err
+		}
+		ugq.sql = prev
+	}
+	return nil
 }
 
 func (ugq *UsersGroupQuery) sqlAll(ctx context.Context) ([]*UsersGroup, error) {
@@ -466,8 +504,9 @@ type UsersGroupGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -478,6 +517,11 @@ func (uggb *UsersGroupGroupBy) Aggregate(fns ...Aggregate) *UsersGroupGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (uggb *UsersGroupGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := uggb.path(ctx)
+	if err != nil {
+		return err
+	}
+	uggb.sql = query
 	return uggb.sqlScan(ctx, v)
 }
 
@@ -596,12 +640,18 @@ func (uggb *UsersGroupGroupBy) sqlQuery() *sql.Selector {
 type UsersGroupSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ugs *UsersGroupSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ugs.path(ctx)
+	if err != nil {
+		return err
+	}
+	ugs.sql = query
 	return ugs.sqlScan(ctx, v)
 }
 

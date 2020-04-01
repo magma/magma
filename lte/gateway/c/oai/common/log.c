@@ -87,6 +87,11 @@
 #define LOG_FUNC_INDENT_SPACES 3
 #define LOG_LEVEL_NAME_MAX_LENGTH 10
 
+#define LOG_CTXT_INFO_FMT                                                      \
+  "%06" PRIu64 " %s %08lX %-*.*s %-*.*s %-*.*s:%04u   %*s"
+#define LOG_CTXT_INFO_ID_FMT                                                   \
+  "%06" PRIu64 " %s %08lX %-*.*s %-*.*s %-*.*s:%04u   [%lu]%*s"
+
 #define LOG_MAGMA_REPO_ROOT "/oai/"
 //-------------------------------
 
@@ -169,15 +174,6 @@ typedef struct oai_log_s {
 static oai_log_t g_oai_log = {
   0}; /*!< \brief  logging utility internal variables global var definition*/
 
-void log_message_int(
-  log_thread_ctxt_t *const thread_ctxtP,
-  const log_level_t log_levelP,
-  const log_proto_t protoP,
-  void **contextP, // Out parameter
-  const char *const source_fileP,
-  const unsigned int line_numP,
-  const char *format,
-  va_list args);
 static void log_connect_to_server(void);
 static void log_message_finish_sync(log_queue_item_t *messageP);
 
@@ -551,10 +547,6 @@ void log_configure(const log_config_t *const config)
     (MIN_LOG_LEVEL <= config->spgw_app_log_level))
     g_oai_log.log_level[LOG_SPGW_APP] = config->spgw_app_log_level;
   if (
-    (MAX_LOG_LEVEL > config->pgw_app_log_level) &&
-    (MIN_LOG_LEVEL <= config->pgw_app_log_level))
-    g_oai_log.log_level[LOG_PGW_APP] = config->pgw_app_log_level;
-  if (
     (MAX_LOG_LEVEL > config->s11_log_level) &&
     (MIN_LOG_LEVEL <= config->s11_log_level))
     g_oai_log.log_level[LOG_S11] = config->s11_log_level;
@@ -740,10 +732,6 @@ int log_init(
     &g_oai_log.log_proto2str[LOG_SPGW_APP][0],
     LOG_MAX_PROTO_NAME_LENGTH,
     "SPGW-APP");
-  snprintf(
-    &g_oai_log.log_proto2str[LOG_PGW_APP][0],
-    LOG_MAX_PROTO_NAME_LENGTH,
-    "PGW-APP");
   snprintf(
     &g_oai_log.log_proto2str[LOG_S11][0], LOG_MAX_PROTO_NAME_LENGTH, "S11");
   snprintf(
@@ -1547,6 +1535,41 @@ void log_message(
   }
 }
 
+void log_message_prefix_id(
+  const log_level_t log_levelP,
+  const log_proto_t protoP,
+  const char* const source_fileP,
+  const unsigned int line_numP,
+  uint64_t prefix_id,
+  char* format, ...) {
+  va_list args;
+  void* new_item_p                                 = NULL;
+  log_queue_item_t* new_item_p_sync                = NULL;
+  struct shared_log_queue_item_s* new_item_p_async = NULL;
+
+  va_start(args, format);
+  log_message_int_prefix_id(log_levelP, protoP, &new_item_p,
+      source_fileP, line_numP, prefix_id, format, args);
+  va_end(args);
+
+  if (new_item_p == NULL) {
+    return;
+  }
+  if (g_oai_log.is_async) {
+    new_item_p_async = (struct shared_log_queue_item_s*) new_item_p;
+    if (g_oai_log.is_ansi_codes) {
+      bformata(new_item_p_async->bstr, "%s", ANSI_COLOR_RESET);
+    }
+    _LOG_ASYNC(new_item_p_async);
+  } else {
+    new_item_p_sync = (log_queue_item_t*) new_item_p;
+    if (g_oai_log.is_ansi_codes) {
+      bformata(new_item_p_sync->bstr, "%s", ANSI_COLOR_RESET);
+    }
+    _LOG(new_item_p_sync);
+  }
+}
+
 void log_message_int(
   log_thread_ctxt_t *const thread_ctxtP,
   const log_level_t log_levelP,
@@ -1582,24 +1605,9 @@ void log_message_int(
     MIN((strlen(short_source_fileP) - LOG_DISPLAYED_FILENAME_MAX_LENGTH), (0));
   if (!(g_oai_log.is_async)) {
     sync_context_p = (log_queue_item_t **) contextP;
-    rv = bformata(
-      (*sync_context_p)->bstr,
-      "%06" PRIu64 " %s %08lX %-*.*s %-*.*s %-*.*s:%04u   %*s",
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
-      log_get_readable_cur_time(&cur_time),
-      thread_ctxt->tid,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
-      &g_oai_log.log_level2str[log_levelP][0],
-      LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
-      LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
-      &g_oai_log.log_proto2str[protoP][0],
-      LOG_DISPLAYED_FILENAME_MAX_LENGTH,
-      LOG_DISPLAYED_FILENAME_MAX_LENGTH,
-      &short_source_fileP[filename_length],
-      line_numP,
-      thread_ctxt->indent,
-      " ");
+    rv = append_log_ctx_info(
+        (*sync_context_p)->bstr, &log_levelP, &protoP, line_numP,
+        filename_length, thread_ctxt, &cur_time, short_source_fileP);
     if (BSTR_ERR == rv) {
       OAI_FPRINTF_ERR(
         "Error while logging LOG message : %s",
@@ -1616,24 +1624,9 @@ void log_message_int(
     }
   } else {
     async_context_p = (shared_log_queue_item_t **) contextP;
-    rv = bformata(
-      (*async_context_p)->bstr,
-      "%06" PRIu64 " %s %08lX %-*.*s %-*.*s %-*.*s:%04u   %*s",
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
-      log_get_readable_cur_time(&cur_time),
-      thread_ctxt->tid,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
-      &g_oai_log.log_level2str[log_levelP][0],
-      LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
-      LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
-      &g_oai_log.log_proto2str[protoP][0],
-      LOG_DISPLAYED_FILENAME_MAX_LENGTH,
-      LOG_DISPLAYED_FILENAME_MAX_LENGTH,
-      &short_source_fileP[filename_length],
-      line_numP,
-      thread_ctxt->indent,
-      " ");
+    rv = append_log_ctx_info(
+        (*async_context_p)->bstr, &log_levelP, &protoP, line_numP,
+        filename_length, thread_ctxt, &cur_time, short_source_fileP);
     if (BSTR_ERR == rv) {
       OAI_FPRINTF_ERR(
         "Error while logging LOG message : %s",
@@ -1658,6 +1651,134 @@ error_event:
   } else {
     _LOG_FREE_ITEM_ASYNC(*async_context_p);
   }
+}
+
+void log_message_int_prefix_id(
+    const log_level_t log_levelP,
+    const log_proto_t protoP,
+    void **contextP, // Out parameter
+    const char *const source_fileP,
+    const unsigned int line_numP,
+    const uint64_t prefix_id,
+    const char *format,
+    va_list args)
+{
+  int rv = 0;
+  size_t filename_length = 0;
+  log_thread_ctxt_t *thread_ctxt = NULL;
+  log_queue_item_t **sync_context_p = NULL;
+  shared_log_queue_item_t **async_context_p = NULL;
+  if (!log_is_enabled(log_levelP, protoP)) {
+    return;
+  }
+  get_thread_context(&thread_ctxt);
+
+  assert(thread_ctxt != NULL);
+  *contextP = _LOG_GET_ITEM();
+  time_t cur_time;
+
+  // get the short file name to use for printing in log
+  const char *const short_source_fileP = get_short_file_name(source_fileP);
+
+  filename_length =
+      MIN((strlen(short_source_fileP) - LOG_DISPLAYED_FILENAME_MAX_LENGTH), (0));
+  if (!(g_oai_log.is_async)) {
+    sync_context_p = (log_queue_item_t **) contextP;
+    rv = append_log_ctx_info_prefix_id(prefix_id,
+        (*sync_context_p)->bstr, &log_levelP, &protoP, line_numP,
+        filename_length, thread_ctxt, &cur_time, short_source_fileP);
+    if (BSTR_ERR == rv) {
+      OAI_FPRINTF_ERR(
+          "Error while logging LOG message : %s",
+          &g_oai_log.log_proto2str[protoP][0]);
+      goto error_event;
+    }
+    rv = bvcformata((*sync_context_p)->bstr, 4096, format, args); // big number
+    (*sync_context_p)->log_level = g_oai_log.log_level2syslog[log_levelP];
+    if (BSTR_ERR == rv) {
+      OAI_FPRINTF_ERR(
+          "Error while logging LOG message : %s",
+          &g_oai_log.log_proto2str[protoP][0]);
+      goto error_event;
+    }
+  } else {
+    async_context_p = (shared_log_queue_item_t **) contextP;
+    rv = append_log_ctx_info_prefix_id(prefix_id,
+        (*async_context_p)->bstr, &log_levelP, &protoP, line_numP,
+        filename_length, thread_ctxt, &cur_time, short_source_fileP);
+    if (BSTR_ERR == rv) {
+      OAI_FPRINTF_ERR(
+          "Error while logging LOG message : %s",
+          &g_oai_log.log_proto2str[protoP][0]);
+      goto error_event;
+    }
+    rv = bvcformata((*async_context_p)->bstr, 4096, format, args); // big number
+    (*async_context_p)->u_app_log.log.log_level =
+        g_oai_log.log_level2syslog[log_levelP];
+    if (BSTR_ERR == rv) {
+      OAI_FPRINTF_ERR(
+          "Error while logging LOG message : %s",
+          &g_oai_log.log_proto2str[protoP][0]);
+      goto error_event;
+    }
+  }
+  return;
+
+  error_event:
+  if (!(g_oai_log.is_async)) {
+    _LOG_FREE_ITEM(sync_context_p);
+  } else {
+    _LOG_FREE_ITEM_ASYNC(*async_context_p);
+  }
+}
+
+int append_log_ctx_info(
+    bstring bstr,
+    const log_level_t* log_levelP,
+    const log_proto_t* protoP,
+    const unsigned int line_numP,
+    size_t filename_length,
+    const log_thread_ctxt_t* thread_ctxt,
+    time_t* cur_time,
+    const char* short_source_fileP) {
+  int rv;
+  rv = bformata(
+      bstr, LOG_CTXT_INFO_FMT,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
+      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
+      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      &g_oai_log.log_level2str[(*log_levelP)][0],
+      LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
+      &g_oai_log.log_proto2str[(*protoP)][0], LOG_DISPLAYED_FILENAME_MAX_LENGTH,
+      LOG_DISPLAYED_FILENAME_MAX_LENGTH, &short_source_fileP[filename_length],
+      line_numP, thread_ctxt->indent, " ");
+  return rv;
+}
+
+int append_log_ctx_info_prefix_id(
+    const uint64_t prefix_id,
+    bstring bstr,
+    const log_level_t* log_levelP,
+    const log_proto_t* protoP,
+    const unsigned int line_numP,
+    size_t filename_length,
+    const log_thread_ctxt_t* thread_ctxt,
+    time_t* cur_time,
+    const char* short_source_fileP) {
+  int rv;
+  rv = bformata(
+      bstr, LOG_CTXT_INFO_ID_FMT,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
+      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
+      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      &g_oai_log.log_level2str[(*log_levelP)][0],
+      LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
+      &g_oai_log.log_proto2str[(*protoP)][0], LOG_DISPLAYED_FILENAME_MAX_LENGTH,
+      LOG_DISPLAYED_FILENAME_MAX_LENGTH, &short_source_fileP[filename_length],
+      line_numP, prefix_id, thread_ctxt->indent, " ");
+  return rv;
 }
 
 //------------------------------------------------------------------------------

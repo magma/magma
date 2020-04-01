@@ -399,8 +399,8 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     c.ID,
 		Type:   "Comment",
-		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 0),
+		Fields: make([]*Field, 3),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.CreateTime); err != nil {
@@ -419,21 +419,25 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "UpdateTime",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.AuthorName); err != nil {
+	if buf, err = json.Marshal(c.Text); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "AuthorName",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(c.Text); err != nil {
-		return nil, err
-	}
-	node.Fields[3] = &Field{
-		Type:  "string",
 		Name:  "Text",
 		Value: string(buf),
+	}
+	var ids []int
+	ids, err = c.QueryAuthor().
+		Select(user.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "User",
+		Name: "Author",
 	}
 	return node, nil
 }
@@ -3155,7 +3159,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 		ID:     sq.ID,
 		Type:   "SurveyQuestion",
 		Fields: make([]*Field, 20),
-		Edges:  make([]*Edge, 4),
+		Edges:  make([]*Edge, 5),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(sq.CreateTime); err != nil {
@@ -3362,6 +3366,17 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "File",
 		Name: "PhotoData",
+	}
+	ids, err = sq.QueryImages().
+		Select(file.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		IDs:  ids,
+		Type: "File",
+		Name: "Images",
 	}
 	return node, nil
 }

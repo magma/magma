@@ -24,8 +24,12 @@ const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
   std::shared_ptr<LocalEnforcer> enforcer,
   SessionReporter* reporter,
-  std::shared_ptr<AsyncDirectorydClient> directoryd_client):
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+  SessionMap& session_map,
+  SessionStore& session_store):
   enforcer_(enforcer),
+  session_map_(session_map),
+  session_store_(session_store),
   reporter_(reporter),
   directoryd_client_(directoryd_client),
 
@@ -43,8 +47,9 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   auto &request_cpy = *request;
   MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
-    enforcer_->aggregate_records(request_cpy);
-    check_usage_for_reporting();
+    SessionUpdate update = SessionStore::get_default_session_update(session_map_);
+    enforcer_->aggregate_records(session_map_, request_cpy, update);
+    check_usage_for_reporting(update);
   });
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
@@ -56,12 +61,13 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   response_callback(Status::OK, Void());
 }
 
-void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
+void LocalSessionManagerHandlerImpl::check_usage_for_reporting(SessionUpdate& session_update)
 {
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  auto request = enforcer_->collect_updates(actions);
-  enforcer_->execute_actions(actions);
+  auto request = enforcer_->collect_updates(session_map_, actions, session_update);
+  enforcer_->execute_actions(session_map_, actions, session_update);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
+    // TODO: Save updates back into the SessionStore
     return; // nothing to report
   }
   MLOG(MDEBUG) << "Sending " << request.updates_size()
@@ -70,16 +76,16 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
 
   // report to cloud
   reporter_->report_updates(
-    request, [this, request](Status status, UpdateSessionResponse response) {
+    request, [this, request, session_update = std::move(session_update)/*, &update*/](Status status, UpdateSessionResponse response) mutable {
       if (!status.ok()) {
-        enforcer_->reset_updates(request);
+        enforcer_->reset_updates(session_map_, request);
         MLOG(MERROR) << "Update of size " << request.updates_size()
                      << " to OCS failed entirely: " << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        enforcer_->update_session_credits_and_rules(response);
+        enforcer_->update_session_credits_and_rules(session_map_, response, session_update);
         // Check if we need to report more updates
-        check_usage_for_reporting();
+        check_usage_for_reporting(session_update);
       }
     });
 }
@@ -106,9 +112,15 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     enforcer_->get_event_base().runInEventBaseThread([=] {
       enforcer_->get_event_base().timer().scheduleTimeoutFn(
         std::move([=] {
-          enforcer_->setup(epoch,
-            std::bind(&LocalSessionManagerHandlerImpl::handle_setup_callback,
-                      this, epoch, _1, _2));
+          enforcer_->setup(
+            session_map_,
+            epoch,
+            std::bind(
+              &LocalSessionManagerHandlerImpl::handle_setup_callback,
+              this,
+              epoch,
+              _1,
+              _2));
         }),
         retry_timeout_);
     });
@@ -122,9 +134,15 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     enforcer_->get_event_base().runInEventBaseThread([=] {
       enforcer_->get_event_base().timer().scheduleTimeoutFn(
         std::move([=] {
-          enforcer_->setup(epoch,
-            std::bind(&LocalSessionManagerHandlerImpl::handle_setup_callback,
-                      this, epoch, _1, _2));
+          enforcer_->setup(
+            session_map_,
+            epoch,
+            std::bind(
+              &LocalSessionManagerHandlerImpl::handle_setup_callback,
+              this,
+              epoch,
+              _1,
+              _2));
         }),
         retry_timeout_);
     });
@@ -138,9 +156,15 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
 {
   using namespace std::placeholders;
   enforcer_->get_event_base().runInEventBaseThread([this, epoch]() {
-    enforcer_->setup(epoch,
-      std::bind(&LocalSessionManagerHandlerImpl::handle_setup_callback,
-                this, epoch, _1, _2));
+    enforcer_->setup(
+      session_map_,
+      epoch,
+      std::bind(
+        &LocalSessionManagerHandlerImpl::handle_setup_callback,
+        this,
+        epoch,
+        _1,
+        _2));
   });
   return true;
 }
@@ -201,14 +225,18 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   }
   cfg.qos_info = qos_info;
 
-  if (enforcer_->session_with_imsi_exists(imsi)) {
+  if (enforcer_->session_with_imsi_exists(session_map_, imsi)) {
     std::string core_sid;
-    bool same_config = enforcer_->session_with_same_config_exists(imsi, cfg, &core_sid);
+    bool same_config = enforcer_->session_with_same_config_exists(
+      session_map_, imsi, cfg, &core_sid);
     bool is_wifi = request->rat_type() == RATType::TGPP_WLAN;
     if (same_config || is_wifi){
       if (is_wifi) {
         MLOG(MINFO) << "Found a session with the same IMSI " << imsi
                     << " and RAT Type is WLAN, not creating a new session";
+        // Wifi only supports one session per subscriber, so update the config
+        // here
+        enforcer_->handle_cwf_roaming(session_map_, imsi, cfg);
       } else {
         MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
                     << " and APN " << request->apn()
@@ -231,7 +259,8 @@ void LocalSessionManagerHandlerImpl::CreateSession(
       // No new session created
       return;
     }
-    if (enforcer_->session_with_apn_exists(imsi, request->apn())) {
+    if (enforcer_->session_with_apn_exists(
+          session_map_, imsi, request->apn())) {
       MLOG(MINFO) << "Found session with the same IMSI " << imsi
                   << " and APN " << request->apn()
                   << ", but different configuration."
@@ -266,7 +295,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
     [this, imsi, sid, cfg, response_callback](
       Status status, CreateSessionResponse response) {
       if (status.ok()) {
-        bool success = enforcer_->init_session_credit(imsi, sid, cfg, response);
+        bool success = enforcer_->init_session_credit(
+          session_map_, imsi, sid, cfg, response);
         if (!success) {
           MLOG(MERROR) << "Failed to init session in for IMSI " << imsi;
           status =
@@ -347,7 +377,9 @@ void LocalSessionManagerHandlerImpl::EndSession(
     [this, request_cpy, response_callback]() {
       try {
         auto reporter = reporter_;
+        auto update = SessionStore::get_default_session_update(session_map_);
         enforcer_->terminate_subscriber(
+          session_map_,
           request_cpy.sid().id(),
           request_cpy.apn(),
           [reporter](SessionTerminateRequest term_req) {
@@ -355,7 +387,9 @@ void LocalSessionManagerHandlerImpl::EndSession(
             auto logging_cb =
               SessionReporter::get_terminate_logging_cb(term_req);
             reporter->report_terminate_session(term_req, logging_cb);
-          });
+          },
+          update);
+        // TODO: Write the delete back into the SessionStore
         response_callback(grpc::Status::OK, LocalEndSessionResponse());
       } catch (const SessionNotFound &ex) {
         MLOG(MERROR) << "Failed to find session to terminate for subscriber "
@@ -364,6 +398,30 @@ void LocalSessionManagerHandlerImpl::EndSession(
         response_callback(status, LocalEndSessionResponse());
       }
     });
+}
+
+SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_creation(
+  const LocalCreateSessionRequest& request)
+{
+  SessionRead req = {request.sid().id()};
+  return session_store_.read_sessions(req);
+}
+
+SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_reporting(
+  const RuleRecordTable& records)
+{
+  SessionRead req = {};
+  for (const RuleRecord &record : records.records()) {
+    req.insert(record.sid());
+  }
+  return session_store_.read_sessions(req);
+}
+
+SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_deletion(
+  const LocalEndSessionRequest& request)
+{
+  SessionRead req = {request.sid().id()};
+  return session_store_.read_sessions(req);
 }
 
 } // namespace magma

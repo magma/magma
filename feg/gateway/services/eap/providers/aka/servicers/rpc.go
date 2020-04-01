@@ -17,13 +17,17 @@ import (
 
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/client"
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/metrics"
 )
 
 // Handle implements AKA handler RPC
-func (s *EapAkaSrv) Handle(ctx context.Context, req *protos.Eap) (*protos.Eap, error) {
+func (s *EapAkaSrv) Handle(_ context.Context, req *protos.Eap) (*protos.Eap, error) {
+	return s.HandleImpl(req)
+}
+
+// Handle implements AKA handler API
+func (s *EapAkaSrv) HandleImpl(req *protos.Eap) (*protos.Eap, error) {
 	failure := true
 	metrics.Requests.Inc()
 	defer func() {
@@ -50,7 +54,7 @@ func (s *EapAkaSrv) Handle(ctx context.Context, req *protos.Eap) (*protos.Eap, e
 	}
 	identifier := p.Identifier()
 	method := p.Type()
-	if method == client.EapMethodIdentity {
+	if method == eap.MethodIdentity {
 		return &protos.Eap{Payload: aka.NewIdentityReq(identifier+1, aka.AT_PERMANENT_ID_REQ), Ctx: eapCtx}, nil
 	}
 	if method != aka.TYPE {

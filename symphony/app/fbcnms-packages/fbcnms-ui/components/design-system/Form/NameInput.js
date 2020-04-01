@@ -8,8 +8,8 @@
  * @format
  */
 
+import FormAlertsContext from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import React, {useContext, useMemo} from 'react';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import shortid from 'shortid';
@@ -43,7 +43,7 @@ const NameInput = (props: Props) => {
     onChange(event);
   };
   const fieldId = useMemo(() => shortid.generate(), []);
-  const validationContext = useContext(FormValidationContext);
+  const validationContext = useContext(FormAlertsContext);
   const errorText = validationContext.error.check({
     fieldId,
     fieldDisplayName: title,

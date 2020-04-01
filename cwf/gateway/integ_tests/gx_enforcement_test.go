@@ -26,9 +26,10 @@ import (
 )
 
 const (
-	KiloBytes = 1024
-	MegaBytes = 1024 * KiloBytes
-	Buffer    = 50 * KiloBytes
+	KiloBytes                = 1024
+	MegaBytes                = 1024 * KiloBytes
+	Buffer                   = 50 * KiloBytes
+	RevalidationTimeoutEvent = 17
 )
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
@@ -424,4 +425,113 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	// check if all rules have been cleaned up
 	record := recordsBySubID["IMSI"+imsi][ruleKey]
 	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", imsi))
+}
+
+// - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
+//   respond with a rule install (revalidation-time-static-pass-all) with
+//   a revalidation time set to now + 10s and an event trigger REVALIDATION_TIMEOUT.
+// - Set an expectation for a CCR-U to be sent up to PCRF, upon revalidation
+//   timer expiration
+// - Check policy usage and assert revalidation-time-static-pass-all is installed and
+//   no traffic passed
+// Note: things might get weird if there are clock skews
+func testGxRevalidationTime(t *testing.T) {
+	fmt.Println("\nRunning TestGxRevalidationTime...")
+
+	tr := NewTestRunner(t)
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+	assert.NoError(t, usePCRFMockDriver())
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	ues, err := tr.ConfigUEs(1)
+	assert.NoError(t, err)
+	imsi := ues[0].GetImsi()
+
+	err = ruleManager.AddStaticPassAllToDB("revalidation-time-static-pass-all", "mkey1", 0, models.PolicyRuleTrackingTypeONLYPCRF, 1)
+	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
+
+	usageMonitorInfo := []*protos.UsageMonitoringInformation{
+		{
+			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
+			MonitoringKey:   []byte("mkey1"),
+			Octets:          &protos.Octets{TotalOctets: 250 * KiloBytes},
+		},
+	}
+
+	timeUntilRevalidation := 8 * time.Second
+	now := time.Now().Round(1 * time.Second)
+	revalidationTime, err := ptypes.TimestampProto(now.Add(timeUntilRevalidation))
+	assert.NoError(t, err)
+
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL, 1)
+	initAnswer := protos.NewGxCCAnswer(diam.Success).
+		SetStaticRuleInstalls([]string{"revalidation-time-static-pass-all"}, []string{}).
+		SetUsageMonitorInfos(usageMonitorInfo).
+		SetRevalidationTime(revalidationTime).
+		SetEventTriggers([]uint32{RevalidationTimeoutEvent})
+	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+
+	// We expect an update request with some usage update after revalidation timer expires
+	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE, 2).
+		SetUsageReportDelta(250 * KiloBytes).
+		SetUsageMonitorReports(usageMonitorInfo)
+	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
+		SetUsageMonitorInfos(usageMonitorInfo)
+	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
+	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
+	// On unexpected requests, just return the default update answer
+	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
+
+	tr.AuthenticateAndAssertSuccess(imsi)
+	tr.WaitForEnforcementStatsToSync()
+
+	fmt.Printf("Waiting %v for revalidation timer expiration\n", timeUntilRevalidation)
+	time.Sleep(timeUntilRevalidation)
+
+	// Assert that enforcement_stats rules are properly installed and no data was passed through
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	record := recordsBySubID["IMSI"+imsi]["revalidation-time-static-pass-all"]
+	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
+	if record != nil {
+		// We should not be seeing any data here
+		assert.True(t, record.BytesTx == uint64(0), fmt.Sprintf("%s did pass some data", record.RuleId))
+	}
+
+	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
+	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	assert.NoError(t, err)
+	assert.Empty(t, errByIndex)
+	expectedResult := []*protos.ExpectationResult{
+		{ExpectationIndex: 0, ExpectationMet: true},
+		{ExpectationIndex: 1, ExpectationMet: true},
+	}
+	assert.ElementsMatch(t, expectedResult, resultByIndex)
+
+	// When we initiate a UE disconnect, we expect a terminate request to go up
+	terminateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_TERMINATION, 3)
+	terminateAnswer := protos.NewGxCCAnswer(diam.Success)
+	terminateExpectation := protos.NewGxCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
+	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}
+	assert.NoError(t, setPCRFExpectations(expectations, nil))
+
+	_, err = tr.Disconnect(imsi)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Assert that we saw a Terminate request
+	resultByIndex, errByIndex, err = getAssertExpectationsResult()
+	assert.NoError(t, err)
+	assert.Empty(t, errByIndex)
+	expectedResult = []*protos.ExpectationResult{
+		{ExpectationIndex: 0, ExpectationMet: true},
+	}
+	assert.ElementsMatch(t, expectedResult, resultByIndex)
 }

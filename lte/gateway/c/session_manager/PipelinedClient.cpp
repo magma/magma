@@ -267,6 +267,25 @@ bool AsyncPipelinedClient::add_ue_mac_flow(
   return true;
 }
 
+bool AsyncPipelinedClient::update_ipfix_flow(
+    const SubscriberID& sid,
+    const std::string& ue_mac_addr,
+    const std::string& msisdn,
+    const std::string& ap_mac_addr,
+    const std::string& ap_name)
+{
+  auto req = create_add_ue_mac_flow_req(sid, ue_mac_addr, msisdn, ap_mac_addr,
+    ap_name);
+  update_ipfix_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not update ipfix flow for subscriber with MAC"
+                   << ue_mac_addr << ": " << status.error_message();
+    }
+  });
+  return true;
+}
+
+
 bool AsyncPipelinedClient::delete_ue_mac_flow(
     const SubscriberID &sid,
     const std::string &ue_mac_addr)
@@ -342,6 +361,16 @@ void AsyncPipelinedClient::add_ue_mac_flow_rpc(
     std::move(callback), RESPONSE_TIMEOUT);
   local_resp->set_response_reader(std::move(
     stub_->AsyncAddUEMacFlow(local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncPipelinedClient::update_ipfix_flow_rpc(
+    const UEMacFlowRequest& request,
+    std::function<void(Status, FlowResponse)> callback)
+{
+  auto local_resp = new AsyncLocalResponse<FlowResponse>(
+    std::move(callback), RESPONSE_TIMEOUT);
+  local_resp->set_response_reader(std::move(
+    stub_->AsyncUpdateIPFIXFlow(local_resp->get_context(), request, &queue_)));
 }
 
 void AsyncPipelinedClient::delete_ue_mac_flow_rpc(

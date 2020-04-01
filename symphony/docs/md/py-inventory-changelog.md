@@ -22,7 +22,16 @@ This is template for release notes
 - Equipment functionality:
     - `get_equipments_by_type`
     - `get_equipments_by_location`
+    - `get_equipment_by_external_id`
 ### Changes
+- Equipment functionality:
+    - `external_id` variable added to functions
+        - 'add_equipment`
+        - `add_equipment_to_position`
+        - `copy_equipment_in_position`
+        - `copy_equipment`
+        - `get_or_create_equipment`
+        - `get_or_create_equipment_in_position`
 ### Deprecated
 ### Removed
 ### Bug fixes

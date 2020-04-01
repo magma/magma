@@ -40,7 +40,7 @@ class EditEquipmentTypeMutation(DataClassJsonMixin):
             propertyTypes: List[PropertyType]
             positionDefinitions: List[EquipmentPositionDefinition]
             portDefinitions: List[EquipmentPortDefinition]
-            category: Optional[str] = None
+            category: Optional[str]
 
         editEquipmentType: EquipmentType
 

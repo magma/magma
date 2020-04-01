@@ -4,9 +4,7 @@ mutation AddServiceMutation($data: ServiceCreateData!) {
     name
     externalId
     customer {
-      id
-      name
-      externalId
+      ...CustomerFragment
     }
     endpoints {
       id

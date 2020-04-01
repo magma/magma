@@ -183,7 +183,7 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.Config
 		return err
 	}
 	configurator.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
-	if err := indexer.RegisterIndexers(orc8rPlugin.GetStateIndexers()...); err != nil {
+	if err := indexer.RegisterAll(orc8rPlugin.GetStateIndexers()...); err != nil {
 		return err
 	}
 

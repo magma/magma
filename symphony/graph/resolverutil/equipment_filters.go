@@ -17,12 +17,21 @@ import (
 
 func handleEquipmentFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilterInput) (*ent.EquipmentQuery, error) {
 	switch filter.FilterType {
+	case models.EquipmentFilterTypeEquipInstExternalID:
+		return equipmentExternalID(q, filter)
 	case models.EquipmentFilterTypeEquipInstName:
 		return equipmentNameFilter(q, filter)
 	case models.EquipmentFilterTypeProperty:
 		return equipmentPropertyFilter(q, filter)
 	}
 	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
+}
+
+func equipmentExternalID(q *ent.EquipmentQuery, filter *models.EquipmentFilterInput) (*ent.EquipmentQuery, error) {
+	if filter.Operator == models.FilterOperatorIs {
+		return q.Where(equipment.ExternalIDEqualFold(*filter.StringValue)), nil
+	}
+	return nil, errors.Errorf("operation %q not supported", filter.Operator)
 }
 
 func equipmentNameFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilterInput) (*ent.EquipmentQuery, error) {

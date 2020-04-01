@@ -20,12 +20,15 @@ from ..graphql.add_equipment_input import AddEquipmentInput
 from ..graphql.add_equipment_mutation import AddEquipmentMutation
 from ..graphql.edit_equipment_input import EditEquipmentInput
 from ..graphql.edit_equipment_mutation import EditEquipmentMutation
+from ..graphql.equipment_filter_input import EquipmentFilterInput
+from ..graphql.equipment_filter_type_enum import EquipmentFilterType
 from ..graphql.equipment_positions_query import EquipmentPositionsQuery
 from ..graphql.equipment_search_query import EquipmentSearchQuery
 from ..graphql.equipment_type_and_properties_query import (
     EquipmentTypeAndPropertiesQuery,
 )
 from ..graphql.equipment_type_equipments_query import EquipmentTypeEquipmentQuery
+from ..graphql.filter_operator_enum import FilterOperator
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
 from ..graphql.property_kind_enum import PropertyKind
 from ..graphql.remove_equipment_mutation import RemoveEquipmentMutation
@@ -58,6 +61,7 @@ def _get_equipment_if_exists(
         return None
     return Equipment(
         id=equipments[0].id,
+        external_id=equipments[0].externalId,
         name=equipments[0].name,
         equipment_type_name=equipments[0].equipmentType.name,
     )
@@ -94,6 +98,34 @@ def get_equipment(client: SymphonyClient, name: str, location: Location) -> Equi
     if equipment is None:
         raise EquipmentNotFoundException(equipment_name=name)
     return equipment
+
+
+def get_equipment_by_external_id(client: SymphonyClient, external_id: str) -> Equipment:
+    equipment_filter = EquipmentFilterInput(
+        filterType=EquipmentFilterType.EQUIP_INST_EXTERNAL_ID,
+        operator=FilterOperator.IS,
+        stringValue=external_id,
+        idSet=[],
+        stringSet=[],
+    )
+    equipments = EquipmentSearchQuery.execute(
+        client, filters=[equipment_filter], limit=5
+    ).equipmentSearch
+
+    if not equipments or equipments.count == 0:
+        raise EntityNotFoundError(
+            entity=Entity.Equipment, msg=f"external_id={external_id}"
+        )
+
+    if equipments.count > 1:
+        raise EquipmentIsNotUniqueException(external_id)
+
+    return Equipment(
+        id=equipments.equipment[0].id,
+        external_id=equipments.equipment[0].externalId,
+        name=equipments.equipment[0].name,
+        equipment_type_name=equipments.equipment[0].equipmentType.name,
+    )
 
 
 def get_equipment_properties(
@@ -153,6 +185,7 @@ def get_equipments_by_type(
         result.append(
             Equipment(
                 id=equipment.id,
+                external_id=equipment.externalId,
                 name=equipment.name,
                 equipment_type_name=equipment.equipmentType.name,
             )
@@ -188,6 +221,7 @@ def get_equipments_by_location(
         result.append(
             Equipment(
                 id=equipment.id,
+                external_id=equipment.externalId,
                 name=equipment.name,
                 equipment_type_name=equipment.equipmentType.name,
             )
@@ -237,7 +271,7 @@ def get_equipment_in_position(
     """
 
     equipment = _get_equipment_in_position_if_exists(
-        client, parent_equipment, position_name
+        client=client, parent_equipment=parent_equipment, position_name=position_name
     )
     if equipment is None:
         raise EquipmentNotFoundException(
@@ -253,6 +287,7 @@ def add_equipment(
     equipment_type: str,
     location: Location,
     properties_dict: Mapping[str, PropertyValue],
+    external_id: Optional[str] = None,
 ) -> Equipment:
     """Create a new equipment in a given location. 
         The equipment will be of the given equipment type, 
@@ -270,6 +305,8 @@ def add_equipment(
             properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
+
+            external_id (Optional[str]): equipment external ID
 
         Returns:
             pyinventory.consts.Equipment object: 
@@ -307,6 +344,7 @@ def add_equipment(
         type=client.equipmentTypes[equipment_type].id,
         location=location.id,
         properties=properties,
+        externalId=external_id,
     )
 
     try:
@@ -327,6 +365,7 @@ def add_equipment(
 
     return Equipment(
         id=equipment.id,
+        external_id=equipment.externalId,
         name=equipment.name,
         equipment_type_name=equipment.equipmentType.name,
     )
@@ -387,7 +426,10 @@ def edit_equipment(
             edit_equipment_input.__dict__,
         )
     return Equipment(
-        id=result.id, name=result.name, equipment_type_name=result.equipmentType.name
+        id=result.id,
+        external_id=result.externalId,
+        name=result.name,
+        equipment_type_name=result.equipmentType.name,
     )
 
 
@@ -426,6 +468,7 @@ def _find_position_definition_id(
                 position.id,
                 Equipment(
                     id=attached_equipment.id,
+                    external_id=attached_equipment.externalId,
                     name=attached_equipment.name,
                     equipment_type_name=attached_equipment.equipmentType.name,
                 ),
@@ -440,6 +483,7 @@ def add_equipment_to_position(
     existing_equipment: Equipment,
     position_name: str,
     properties_dict: Mapping[str, PropertyValue],
+    external_id: Optional[str] = None,
 ) -> Equipment:
     """Create a new equipment inside a given positionName of the given existingEquipment.
         The equipment will be of the given equipment type, with the given name and with the given properties.
@@ -458,6 +502,8 @@ def add_equipment_to_position(
             properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
+
+            external_id (Optional[str]): equipment external ID
 
         Returns:
             pyinventory.consts.Equipment object: 
@@ -501,6 +547,7 @@ def add_equipment_to_position(
         parent=existing_equipment.id,
         positionDefinition=position_definition_id,
         properties=properties,
+        externalId=external_id,
     )
 
     try:
@@ -521,6 +568,7 @@ def add_equipment_to_position(
 
     return Equipment(
         id=equipment.id,
+        external_id=equipment.externalId,
         name=equipment.name,
         equipment_type_name=equipment.equipmentType.name,
     )
@@ -564,6 +612,7 @@ def search_for_equipments(
     equipments = [
         Equipment(
             id=equipment.id,
+            external_id=equipment.externalId,
             name=equipment.name,
             equipment_type_name=equipment.equipmentType.name,
         )
@@ -583,7 +632,7 @@ def delete_all_equipments(client: SymphonyClient) -> None:
     equipments, total_count = search_for_equipments(client, NUM_EQUIPMENTS_TO_SEARCH)
 
     for equipment in equipments:
-        delete_equipment(client, equipment)
+        delete_equipment(client=client, equipment=equipment)
 
     if total_count == len(equipments):
         return
@@ -593,7 +642,7 @@ def delete_all_equipments(client: SymphonyClient) -> None:
         while len(equipments) != 0:
             equipments, _ = search_for_equipments(client, NUM_EQUIPMENTS_TO_SEARCH)
             for equipment in equipments:
-                delete_equipment(client, equipment)
+                delete_equipment(client=client, equipment=equipment)
             progress_bar.update(len(equipments))
 
 
@@ -621,7 +670,9 @@ def _get_equipment_type_and_properties_dict(
             equipment_type, property_type_id
         )
         property_type = property_types_with_id[0]
-        property_value = _get_property_value(property_type.type.value, property)
+        property_value = _get_property_value(
+            property_type=property_type.type.value, property=property
+        )
         if property_type.type == PropertyKind.gps_location:
             properties_dict[property_type.name] = (property_value[0], property_value[1])
         else:
@@ -634,6 +685,7 @@ def copy_equipment_in_position(
     equipment: Equipment,
     dest_parent_equipment: Equipment,
     dest_position_name: str,
+    new_external_id: Optional[str] = None,
 ) -> Equipment:
     """Copy equipment in position.
 
@@ -641,6 +693,7 @@ def copy_equipment_in_position(
             equipment (pyinventory.consts.Equipment object): equipment object to be copied
             dest_parent_equipment (pyinventory.consts.Equipment object): parent equipment, destination to copy to
             dest_position_name (str): destination position name
+            new_external_id (Optional[str]): new external ID for equipment
 
         Returns:
             pyinventory.consts.Equipment object
@@ -657,23 +710,28 @@ def copy_equipment_in_position(
         client, equipment
     )
     return add_equipment_to_position(
-        client,
-        equipment.name,
-        equipment_type,
-        dest_parent_equipment,
-        dest_position_name,
-        properties_dict,
+        client=client,
+        name=equipment.name,
+        equipment_type=equipment_type,
+        existing_equipment=dest_parent_equipment,
+        position_name=dest_position_name,
+        properties_dict=properties_dict,
+        external_id=new_external_id,
     )
 
 
 def copy_equipment(
-    client: SymphonyClient, equipment: Equipment, dest_location: Location
+    client: SymphonyClient,
+    equipment: Equipment,
+    dest_location: Location,
+    new_external_id: Optional[str] = None,
 ) -> Equipment:
     """Copy equipment.
 
         Args:
             equipment (pyinventory.consts.Equipment object): equipment object to be copied
             dest_location (pyinventory.consts.Location): destination locatoin to copy to
+            new_external_id (Optional[str]): equipment external ID
 
         Returns:
             pyinventory.consts.Equipment object
@@ -687,10 +745,15 @@ def copy_equipment(
             ```
     """
     equipment_type, properties_dict = _get_equipment_type_and_properties_dict(
-        client, equipment
+        client=client, equipment=equipment
     )
     return add_equipment(
-        client, equipment.name, equipment_type, dest_location, properties_dict
+        client=client,
+        name=equipment.name,
+        equipment_type=equipment_type,
+        location=dest_location,
+        properties_dict=properties_dict,
+        external_id=new_external_id,
     )
 
 
@@ -712,7 +775,9 @@ def get_equipment_type_of_equipment(
             equipment_type = client.get_equipment_type_of_equipment(equipment=equipment)
             ```
     """
-    equipment_type, _ = _get_equipment_type_and_properties_dict(client, equipment)
+    equipment_type, _ = _get_equipment_type_and_properties_dict(
+        client=client, equipment=equipment
+    )
     return client.equipmentTypes[equipment_type]
 
 
@@ -722,6 +787,7 @@ def get_or_create_equipment(
     equipment_type: str,
     location: Location,
     properties_dict: Mapping[str, PropertyValue],
+    external_id: Optional[str] = None,
 ) -> Equipment:
     """This function checks if equipment existence in specific location by name, 
         in case it is not found by name, creates one.
@@ -731,10 +797,13 @@ def get_or_create_equipment(
             equipment_type (str): equipment type name
             location (pyinventory.consts.Location object): location object could be retrieved from 
             - `pyinventory.api.location.get_location`
-            - `pyinventory.api.location.add_location`            
+            - `pyinventory.api.location.add_location`
+
             properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
+
+            external_id (Optional[str]): equipment external ID
 
         Returns:
             pyinventory.consts.Equipment object
@@ -764,7 +833,14 @@ def get_or_create_equipment(
     equipment = _get_equipment_if_exists(client, name, location)
     if equipment is not None:
         return equipment
-    return add_equipment(client, name, equipment_type, location, properties_dict)
+    return add_equipment(
+        client=client,
+        name=name,
+        equipment_type=equipment_type,
+        location=location,
+        properties_dict=properties_dict,
+        external_id=external_id,
+    )
 
 
 def get_or_create_equipment_in_position(
@@ -774,6 +850,7 @@ def get_or_create_equipment_in_position(
     existing_equipment: Equipment,
     position_name: str,
     properties_dict: Mapping[str, PropertyValue],
+    external_id: Optional[str] = None,
 ) -> Equipment:
     """This function checks equipment existence in specific location by name, 
         in case it is not found by name, creates one.
@@ -786,6 +863,8 @@ def get_or_create_equipment_in_position(
             properties_dict (Mapping[str, PropertyValue]): dict of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
+
+            external_id (Optional[str]): equipment external ID
 
         Returns:
             pyinventory.consts.Equipment object
@@ -815,11 +894,17 @@ def get_or_create_equipment_in_position(
             ```
     """
     equipment = _get_equipment_in_position_if_exists(
-        client, existing_equipment, position_name
+        client=client, parent_equipment=existing_equipment, position_name=position_name
     )
     if equipment is not None:
         return equipment
 
     return add_equipment_to_position(
-        client, name, equipment_type, existing_equipment, position_name, properties_dict
+        client=client,
+        name=name,
+        equipment_type=equipment_type,
+        existing_equipment=existing_equipment,
+        position_name=position_name,
+        properties_dict=properties_dict,
+        external_id=external_id,
     )

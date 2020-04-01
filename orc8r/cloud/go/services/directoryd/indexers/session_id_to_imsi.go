@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	sidID      = "directoryd_session_id"
-	sidVersion = uint64(1)
+	sidID                      = "directoryd_session_id"
+	sidVersion indexer.Version = 1
 )
 
 type sessionIDToIMSI struct{}
@@ -44,7 +44,7 @@ func (s *sessionIDToIMSI) GetID() string {
 	return sidID
 }
 
-func (s *sessionIDToIMSI) GetVersion() uint64 {
+func (s *sessionIDToIMSI) GetVersion() indexer.Version {
 	return sidVersion
 }
 
@@ -55,11 +55,11 @@ func (s *sessionIDToIMSI) GetSubscriptions() []indexer.Subscription {
 }
 
 // No reindex preparation needed since all storage is handled by directoryd service.
-func (s *sessionIDToIMSI) PrepareReindex(from, to uint64, isFirstReindex bool) error {
+func (s *sessionIDToIMSI) PrepareReindex(from, to indexer.Version, isFirstReindex bool) error {
 	return nil
 }
 
-func (s *sessionIDToIMSI) CompleteReindex(from, to uint64) error {
+func (s *sessionIDToIMSI) CompleteReindex(from, to indexer.Version) error {
 	if from == 0 && to == 1 {
 		return nil
 	}

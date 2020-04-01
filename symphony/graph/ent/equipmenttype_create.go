@@ -171,8 +171,8 @@ func (etc *EquipmentTypeCreate) Save(ctx context.Context) (*EquipmentType, error
 			node, err = etc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(etc.hooks); i > 0; i-- {
-			mut = etc.hooks[i-1](mut)
+		for i := len(etc.hooks) - 1; i >= 0; i-- {
+			mut = etc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, etc.mutation); err != nil {
 			return nil, err

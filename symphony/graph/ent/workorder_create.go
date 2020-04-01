@@ -435,8 +435,8 @@ func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 			node, err = woc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(woc.hooks); i > 0; i-- {
-			mut = woc.hooks[i-1](mut)
+		for i := len(woc.hooks) - 1; i >= 0; i-- {
+			mut = woc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, woc.mutation); err != nil {
 			return nil, err

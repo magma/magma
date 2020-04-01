@@ -193,8 +193,8 @@ func (lu *LinkUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = lu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(lu.hooks); i > 0; i-- {
-			mut = lu.hooks[i-1](mut)
+		for i := len(lu.hooks) - 1; i >= 0; i-- {
+			mut = lu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, lu.mutation); err != nil {
 			return 0, err
@@ -588,8 +588,8 @@ func (luo *LinkUpdateOne) Save(ctx context.Context) (*Link, error) {
 			node, err = luo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(luo.hooks); i > 0; i-- {
-			mut = luo.hooks[i-1](mut)
+		for i := len(luo.hooks) - 1; i >= 0; i-- {
+			mut = luo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, luo.mutation); err != nil {
 			return nil, err

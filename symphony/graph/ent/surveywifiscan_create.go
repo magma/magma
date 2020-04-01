@@ -247,8 +247,8 @@ func (swfsc *SurveyWiFiScanCreate) Save(ctx context.Context) (*SurveyWiFiScan, e
 			node, err = swfsc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(swfsc.hooks); i > 0; i-- {
-			mut = swfsc.hooks[i-1](mut)
+		for i := len(swfsc.hooks) - 1; i >= 0; i-- {
+			mut = swfsc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, swfsc.mutation); err != nil {
 			return nil, err

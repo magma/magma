@@ -16,6 +16,7 @@ import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
 import ProjectCard from './ProjectCard';
 import ProjectComparisonViewQueryRenderer from './ProjectComparisonViewQueryRenderer';
 import React, {useMemo, useState} from 'react';
+import fbt from 'fbt';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 
@@ -73,7 +74,7 @@ const ProjectComparisonView = () => {
     title: 'Projects',
     actionButtons: [
       {
-        title: 'Add Project',
+        title: fbt('Create Project', ''),
         action: () => {
           setDialogOpen(true);
           setDialogKey(dialogKey + 1);

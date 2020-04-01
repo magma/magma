@@ -718,6 +718,7 @@ type SurveyQuestionResponse struct {
 	PhotoData        *FileInput            `json:"photoData"`
 	WifiData         []*SurveyWiFiScanData `json:"wifiData"`
 	CellData         []*SurveyCellScanData `json:"cellData"`
+	ImagesData       []*FileInput          `json:"imagesData"`
 }
 
 type SurveyTemplateCategoryInput struct {
@@ -996,14 +997,16 @@ func (e CommentEntity) MarshalGQL(w io.Writer) {
 type EquipmentFilterType string
 
 const (
-	EquipmentFilterTypeEquipInstName EquipmentFilterType = "EQUIP_INST_NAME"
-	EquipmentFilterTypeProperty      EquipmentFilterType = "PROPERTY"
-	EquipmentFilterTypeLocationInst  EquipmentFilterType = "LOCATION_INST"
-	EquipmentFilterTypeEquipmentType EquipmentFilterType = "EQUIPMENT_TYPE"
+	EquipmentFilterTypeEquipInstName       EquipmentFilterType = "EQUIP_INST_NAME"
+	EquipmentFilterTypeEquipInstExternalID EquipmentFilterType = "EQUIP_INST_EXTERNAL_ID"
+	EquipmentFilterTypeProperty            EquipmentFilterType = "PROPERTY"
+	EquipmentFilterTypeLocationInst        EquipmentFilterType = "LOCATION_INST"
+	EquipmentFilterTypeEquipmentType       EquipmentFilterType = "EQUIPMENT_TYPE"
 )
 
 var AllEquipmentFilterType = []EquipmentFilterType{
 	EquipmentFilterTypeEquipInstName,
+	EquipmentFilterTypeEquipInstExternalID,
 	EquipmentFilterTypeProperty,
 	EquipmentFilterTypeLocationInst,
 	EquipmentFilterTypeEquipmentType,
@@ -1011,7 +1014,7 @@ var AllEquipmentFilterType = []EquipmentFilterType{
 
 func (e EquipmentFilterType) IsValid() bool {
 	switch e {
-	case EquipmentFilterTypeEquipInstName, EquipmentFilterTypeProperty, EquipmentFilterTypeLocationInst, EquipmentFilterTypeEquipmentType:
+	case EquipmentFilterTypeEquipInstName, EquipmentFilterTypeEquipInstExternalID, EquipmentFilterTypeProperty, EquipmentFilterTypeLocationInst, EquipmentFilterTypeEquipmentType:
 		return true
 	}
 	return false

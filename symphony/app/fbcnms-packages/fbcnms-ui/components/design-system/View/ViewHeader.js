@@ -19,7 +19,7 @@ import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import ToggleButton from '../ToggleButton/ToggleButtonGroup';
 import classNames from 'classnames';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormAlertsContextProvider} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -139,7 +139,7 @@ const ViewHeader = (props: FullViewHeaderProps) => {
           </div>
         )}
         {actionButtons != null && (
-          <FormValidationContextProvider>
+          <FormAlertsContextProvider>
             <div
               className={classNames(
                 classes.actionButtons,
@@ -171,7 +171,7 @@ const ViewHeader = (props: FullViewHeaderProps) => {
                 );
               })}
             </div>
-          </FormValidationContextProvider>
+          </FormAlertsContextProvider>
         )}
       </div>
     </div>

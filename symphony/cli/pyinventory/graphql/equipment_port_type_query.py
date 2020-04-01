@@ -28,7 +28,7 @@ class EquipmentPortTypeQuery(DataClassJsonMixin):
             propertyTypes: List[PropertyType]
             linkPropertyTypes: List[PropertyType]
 
-        port_type: Optional[Node] = None
+        port_type: Optional[Node]
 
     data: EquipmentPortTypeQueryData
 

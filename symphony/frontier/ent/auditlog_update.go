@@ -126,8 +126,8 @@ func (alu *AuditLogUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = alu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(alu.hooks); i > 0; i-- {
-			mut = alu.hooks[i-1](mut)
+		for i := len(alu.hooks) - 1; i >= 0; i-- {
+			mut = alu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, alu.mutation); err != nil {
 			return 0, err
@@ -380,8 +380,8 @@ func (aluo *AuditLogUpdateOne) Save(ctx context.Context) (*AuditLog, error) {
 			node, err = aluo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(aluo.hooks); i > 0; i-- {
-			mut = aluo.hooks[i-1](mut)
+		for i := len(aluo.hooks) - 1; i >= 0; i-- {
+			mut = aluo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, aluo.mutation); err != nil {
 			return nil, err

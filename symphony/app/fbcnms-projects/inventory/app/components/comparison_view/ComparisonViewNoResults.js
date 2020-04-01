@@ -9,25 +9,21 @@
  */
 
 import * as React from 'react';
-import SearchIcon from '@material-ui/icons/Search';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import {SearchIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   noResultsRoot: {
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: '100px',
-  },
-  noResultsLabel: {
-    color: theme.palette.grey[600],
+    width: '100%',
   },
   searchIcon: {
-    color: theme.palette.grey[600],
-    marginBottom: '6px',
-    fontSize: '36px',
+    marginRight: '8px',
   },
 }));
 
@@ -35,8 +31,8 @@ const ComparisonViewNoResults = () => {
   const classes = useStyles();
   return (
     <div className={classes.noResultsRoot}>
-      <SearchIcon className={classes.searchIcon} />
-      <Text variant="h6" className={classes.noResultsLabel}>
+      <SearchIcon className={classes.searchIcon} color="gray" />
+      <Text variant="h6" color="gray">
         No results found
       </Text>
     </div>

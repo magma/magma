@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package protos_test
 
 import (
+	"fmt"
 	"testing"
 
 	"magma/lte/cloud/go/protos"
@@ -31,4 +32,20 @@ func TestSidString(t *testing.T) {
 	pb := protos.SubscriberID{Id: "12345"}
 	out := protos.SidString(&pb)
 	assert.Equal(t, out, str)
+}
+
+func TestParseImsiFromSessionId(t *testing.T) {
+	randomSid := "99999"
+	IMSI := "123456789"
+	prefixedIMSI := fmt.Sprintf("IMSI%s", IMSI)
+	magmaSid := fmt.Sprintf("%s-%s", prefixedIMSI, randomSid)
+
+	resultIMSINoprefix, err := protos.ParseIMSIfromSessionIdNoPrefix(magmaSid)
+	assert.NoError(t, err)
+	assert.Equal(t, resultIMSINoprefix, IMSI)
+
+	resultIMSIWithprefix, err := protos.ParseIMSIfromSessionIdWithPrefix(magmaSid)
+	assert.NoError(t, err)
+	assert.Equal(t, resultIMSIWithprefix, prefixedIMSI)
+
 }

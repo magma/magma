@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
 from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 from gql.gql.enum_utils import enum_field
 from .service_endpoint_role_enum import ServiceEndpointRole
@@ -25,10 +26,8 @@ class AddServiceMutation(DataClassJsonMixin):
         @dataclass
         class Service(DataClassJsonMixin):
             @dataclass
-            class Customer(DataClassJsonMixin):
-                id: str
-                name: str
-                externalId: Optional[str] = None
+            class Customer(CustomerFragment):
+                pass
 
             @dataclass
             class ServiceEndpoint(DataClassJsonMixin):
@@ -47,7 +46,7 @@ class AddServiceMutation(DataClassJsonMixin):
 
                         id: str
                         name: str
-                        portType: Optional[EquipmentPortType] = None
+                        portType: Optional[EquipmentPortType]
 
                     @dataclass
                     class Link(DataClassJsonMixin):
@@ -66,7 +65,7 @@ class AddServiceMutation(DataClassJsonMixin):
                     id: str
                     properties: List[Property]
                     definition: EquipmentPortDefinition
-                    link: Optional[Link] = None
+                    link: Optional[Link]
 
                 id: str
                 port: EquipmentPort
@@ -90,23 +89,21 @@ class AddServiceMutation(DataClassJsonMixin):
             name: str
             endpoints: List[ServiceEndpoint]
             links: List[Link]
-            externalId: Optional[str] = None
-            customer: Optional[Customer] = None
+            externalId: Optional[str]
+            customer: Optional[Customer]
 
         addService: Service
 
     data: AddServiceMutationData
 
-    __QUERY__: str = PropertyFragmentQuery + """
+    __QUERY__: str = CustomerFragmentQuery + PropertyFragmentQuery + """
     mutation AddServiceMutation($data: ServiceCreateData!) {
   addService(data: $data) {
     id
     name
     externalId
     customer {
-      id
-      name
-      externalId
+      ...CustomerFragment
     }
     endpoints {
       id

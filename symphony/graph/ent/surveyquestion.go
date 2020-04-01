@@ -77,9 +77,11 @@ type SurveyQuestionEdges struct {
 	CellScan []*SurveyCellScan
 	// PhotoData holds the value of the photo_data edge.
 	PhotoData []*File
+	// Images holds the value of the images edge.
+	Images []*File
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // SurveyOrErr returns the Survey value or an error if the edge
@@ -121,6 +123,15 @@ func (e SurveyQuestionEdges) PhotoDataOrErr() ([]*File, error) {
 		return e.PhotoData, nil
 	}
 	return nil, &NotLoadedError{edge: "photo_data"}
+}
+
+// ImagesOrErr returns the Images value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyQuestionEdges) ImagesOrErr() ([]*File, error) {
+	if e.loadedTypes[4] {
+		return e.Images, nil
+	}
+	return nil, &NotLoadedError{edge: "images"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -299,6 +310,11 @@ func (sq *SurveyQuestion) QueryCellScan() *SurveyCellScanQuery {
 // QueryPhotoData queries the photo_data edge of the SurveyQuestion.
 func (sq *SurveyQuestion) QueryPhotoData() *FileQuery {
 	return (&SurveyQuestionClient{config: sq.config}).QueryPhotoData(sq)
+}
+
+// QueryImages queries the images edge of the SurveyQuestion.
+func (sq *SurveyQuestion) QueryImages() *FileQuery {
+	return (&SurveyQuestionClient{config: sq.config}).QueryImages(sq)
 }
 
 // Update returns a builder for updating this SurveyQuestion.

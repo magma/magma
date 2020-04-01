@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .equipment_fragment import EquipmentFragment, QUERY as EquipmentFragmentQuery
 from .edit_equipment_input import EditEquipmentInput
 
 
@@ -19,29 +20,17 @@ class EditEquipmentMutation(DataClassJsonMixin):
     @dataclass
     class EditEquipmentMutationData(DataClassJsonMixin):
         @dataclass
-        class Equipment(DataClassJsonMixin):
-            @dataclass
-            class EquipmentType(DataClassJsonMixin):
-                id: str
-                name: str
-
-            id: str
-            name: str
-            equipmentType: EquipmentType
+        class Equipment(EquipmentFragment):
+            pass
 
         editEquipment: Equipment
 
     data: EditEquipmentMutationData
 
-    __QUERY__: str = """
+    __QUERY__: str = EquipmentFragmentQuery + """
     mutation EditEquipmentMutation($input: EditEquipmentInput!) {
   editEquipment(input: $input) {
-    id
-    name
-    equipmentType {
-      id
-      name
-    }
+    ...EquipmentFragment
   }
 }
 

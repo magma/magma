@@ -97,8 +97,8 @@ func (stcu *SurveyTemplateCategoryUpdate) Save(ctx context.Context) (int, error)
 			affected, err = stcu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(stcu.hooks); i > 0; i-- {
-			mut = stcu.hooks[i-1](mut)
+		for i := len(stcu.hooks) - 1; i >= 0; i-- {
+			mut = stcu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, stcu.mutation); err != nil {
 			return 0, err
@@ -289,8 +289,8 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) Save(ctx context.Context) (*Survey
 			node, err = stcuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(stcuo.hooks); i > 0; i-- {
-			mut = stcuo.hooks[i-1](mut)
+		for i := len(stcuo.hooks) - 1; i >= 0; i-- {
+			mut = stcuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, stcuo.mutation); err != nil {
 			return nil, err

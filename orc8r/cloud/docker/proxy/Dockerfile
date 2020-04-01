@@ -1,38 +1,54 @@
-FROM ubuntu:xenial
+ARG NGHTTP_VERSION=1.40.0
+
+FROM ubuntu:bionic as builder
+
+# From nghttp2 readme, minus libsystemd-dev
+RUN apt-get update && \
+    apt-get install -y git curl g++ make binutils autoconf automake autotools-dev libtool pkg-config \
+      zlib1g-dev libcunit1-dev openssl libssl-dev libxml2-dev libev-dev libevent-dev libjansson-dev \
+      libc-ares-dev libjemalloc-dev ruby bison \
+      cython python3-dev python-setuptools
+
+# Compile nghttp2 with serial number patch
+ARG NGHTTP_VERSION
+WORKDIR /tmp
+RUN git clone https://github.com/nghttp2/nghttp2.git
+WORKDIR /tmp/nghttp2
+RUN git checkout v${NGHTTP_VERSION}
+
+RUN git submodule update --init
+COPY /src/magma/orc8r/cloud/docker/proxy/0001-Fix-get_x509_serial-for-long-serial-numbers.patch /tmp
+RUN git apply /tmp/0001-Fix-get_x509_serial-for-long-serial-numbers.patch
+RUN autoreconf -i
+RUN automake
+RUN autoconf
+RUN ./configure --with-mruby --enable-app --disable-examples --disable-python-bindings
+RUN make
+RUN make install DESTDIR=/tmp/nghttp2/install
+
+FROM ubuntu:bionic
 
 ARG CNTLR_FILES=src/magma/orc8r/cloud/docker/controller
 ARG PROXY_FILES=src/magma/orc8r/cloud/docker/proxy
+ARG NGHTTP_VERSION
 
-# Install the runtime deps from apt
-# Add the magma apt repo
+# Runtime dependencies for nghttpx, supervisord, etc
 RUN apt-get update && \
     apt-get install -y \
         daemontools netcat openssl supervisor wget unzip \
-        apt-utils software-properties-common apt-transport-https
-COPY src/magma/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ xenial main"
-
-# Install the proxy deps from apt
-RUN apt-get update && \
-    apt-get install -y \
-        libssl-dev libev-dev libevent-dev libjansson-dev libjemalloc-dev libc-ares-dev magma-nghttpx=1.31.1-1 \
-        daemontools \
-        supervisor \
+        libssl-dev libev-dev libevent-dev libjansson-dev libjemalloc-dev libc-ares-dev \
         python3-pip \
         squid
+
+# Install nghttpx
+COPY --from=builder /tmp/nghttp2/install/usr /usr
+RUN ldconfig
 
 # Install python3 deps from pip
 RUN pip3 install PyYAML jinja2
 
 # Create an empty envdir for overriding in production
 RUN mkdir -p /var/opt/magma/envdir
-# We only care to collect and report metrics on Proxy, and not much else
-ENV CONTROLLER_SERVICES METRICSD
-# TODO: fix dispatcher to work on containers
-ENV SERVICE_HOST_NAME localhost
-# TODO: fix metricsd for fetching host level metrics
-ENV HOST_NAME dev
 
 # Copy the configs
 COPY configs /etc/magma/configs
@@ -43,10 +59,6 @@ COPY ${PROXY_FILES}/magma_headers.rb /etc/nghttpx/magma_headers.rb
 COPY ${PROXY_FILES}/run_nghttpx.py /usr/local/bin/run_nghttpx.py
 COPY ${PROXY_FILES}/squid.conf /etc/squid/squid.conf
 COPY ${PROXY_FILES}/create_test_proxy_certs /usr/local/bin/create_test_proxy_certs
-
-# Copy the build artifacts
-COPY --from=orc8r_controller /var/opt/magma/bin /var/opt/magma/bin
-COPY --from=orc8r_controller /var/opt/magma/plugins /var/opt/magma/plugins
 
 # Copy the supervisor configs
 COPY ${PROXY_FILES}/supervisord.conf /etc/supervisor/conf.d/supervisord.conf

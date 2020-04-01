@@ -51,6 +51,7 @@ var ForeignKeys = []string{
 	"equipment_files",
 	"location_files",
 	"survey_question_photo_data",
+	"survey_question_images",
 	"work_order_files",
 }
 

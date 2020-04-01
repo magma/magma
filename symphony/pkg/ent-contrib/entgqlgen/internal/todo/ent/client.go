@@ -187,28 +187,32 @@ func (c *TodoClient) GetX(ctx context.Context, id int) *Todo {
 // QueryParent queries the parent edge of a Todo.
 func (c *TodoClient) QueryParent(t *Todo) *TodoQuery {
 	query := &TodoQuery{config: c.config}
-	id := t.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(todo.Table, todo.FieldID, id),
-		sqlgraph.To(todo.Table, todo.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, todo.ParentTable, todo.ParentColumn),
-	)
-	query.sql = sqlgraph.Neighbors(t.driver.Dialect(), step)
-
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(todo.Table, todo.FieldID, id),
+			sqlgraph.To(todo.Table, todo.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, todo.ParentTable, todo.ParentColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
 	return query
 }
 
 // QueryChildren queries the children edge of a Todo.
 func (c *TodoClient) QueryChildren(t *Todo) *TodoQuery {
 	query := &TodoQuery{config: c.config}
-	id := t.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(todo.Table, todo.FieldID, id),
-		sqlgraph.To(todo.Table, todo.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, todo.ChildrenTable, todo.ChildrenColumn),
-	)
-	query.sql = sqlgraph.Neighbors(t.driver.Dialect(), step)
-
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(todo.Table, todo.FieldID, id),
+			sqlgraph.To(todo.Table, todo.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, todo.ChildrenTable, todo.ChildrenColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
 	return query
 }
 

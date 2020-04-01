@@ -49,8 +49,8 @@ func (wodd *WorkOrderDefinitionDelete) Exec(ctx context.Context) (int, error) {
 			affected, err = wodd.sqlExec(ctx)
 			return affected, err
 		})
-		for i := len(wodd.hooks); i > 0; i-- {
-			mut = wodd.hooks[i-1](mut)
+		for i := len(wodd.hooks) - 1; i >= 0; i-- {
+			mut = wodd.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wodd.mutation); err != nil {
 			return 0, err
