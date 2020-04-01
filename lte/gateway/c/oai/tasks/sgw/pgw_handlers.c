@@ -105,7 +105,7 @@ void handle_s5_create_session_request(
   teid_t context_teid,
   ebi_t eps_bearer_id)
 {
-  OAILOG_FUNC_IN(LOG_PGW_APP);
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
   s5_create_session_response_t s5_response = {0};
   struct in_addr inaddr;
@@ -113,7 +113,7 @@ void handle_s5_create_session_request(
   char *apn = NULL;
 
   OAILOG_DEBUG(
-    LOG_PGW_APP,
+    LOG_SPGW_APP,
     "Handle s5_create_session_request, for context sgw s11 teid, " TEID_FMT
     "EPS bearer id %u\n",
     context_teid,
@@ -121,7 +121,7 @@ void handle_s5_create_session_request(
 
   if (!new_bearer_ctxt_info_p) {
     OAILOG_ERROR(
-      LOG_PGW_APP,
+      LOG_SPGW_APP,
       "Failed to fetch sgw bearer context from the received context "
       "teid" TEID_FMT "\n",
       context_teid);
@@ -145,7 +145,7 @@ void handle_s5_create_session_request(
 
   if (pgw_process_pco_request(pco_req, &pco_resp, &pco_ids) != RETURNok) {
     OAILOG_ERROR(
-      LOG_PGW_APP,
+      LOG_SPGW_APP,
       "Error in processing PCO in create session request for "
       "context_id: " TEID_FMT "\n",
       context_teid);
@@ -215,7 +215,7 @@ void handle_s5_create_session_request(
     case IPv6:
       increment_counter(
         "ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result", "failure");
-      OAILOG_ERROR(LOG_PGW_APP, "IPV6 PDN type NOT Supported\n");
+      OAILOG_ERROR(LOG_SPGW_APP, "IPV6 PDN type NOT Supported\n");
       sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_SERVICE_NOT_SUPPORTED;
       break;
 
@@ -254,14 +254,14 @@ void _spgw_handle_s5_response_with_error(
   s5_response->failure_cause = S5_OK;
 
   OAILOG_DEBUG(
-    LOG_PGW_APP,
+    LOG_SPGW_APP,
     "Sending S5 Create Session Response to SGW: with context teid, " TEID_FMT
     "EPS Bearer Id = %u\n",
     s5_response->context_teid,
     s5_response->eps_bearer_id);
   handle_s5_create_session_response(
     spgw_state, new_bearer_ctxt_info_p, (*s5_response));
-  OAILOG_FUNC_OUT(LOG_PGW_APP);
+  OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 
 /*
@@ -273,7 +273,7 @@ int spgw_handle_nw_initiated_bearer_actv_req(
   imsi64_t imsi64,
   gtpv2c_cause_value_t* failed_cause)
 {
-  OAILOG_FUNC_IN(LOG_PGW_APP);
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint32_t i = 0;
   int rc = RETURNok;
   hash_table_ts_t* hashtblP = NULL;
@@ -545,7 +545,7 @@ int spgw_send_nw_init_activate_bearer_rsp(
   imsi64_t imsi64,
   uint8_t eps_bearer_id)
 {
-  OAILOG_FUNC_IN(LOG_PGW_APP);
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint32_t rc = RETURNok;
 
   OAILOG_INFO(

@@ -215,7 +215,6 @@ MME :
         SCTP_LOG_LEVEL     = "ERROR";
         GTPV1U_LOG_LEVEL   = "{{ oai_log_level }}";
         SPGW_APP_LOG_LEVEL = "{{ oai_log_level }}";
-        PGW_APP_LOG_LEVEL  = "{{ oai_log_level }}";
         UDP_LOG_LEVEL      = "{{ oai_log_level }}";
         S1AP_LOG_LEVEL     = "{{ oai_log_level }}";
         NAS_LOG_LEVEL      = "{{ oai_log_level }}";
