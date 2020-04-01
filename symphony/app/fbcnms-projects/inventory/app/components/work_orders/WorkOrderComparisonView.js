@@ -161,7 +161,7 @@ const WorkOrderComparisonView = () => {
     ),
     actionButtons: [
       {
-        title: 'Add Work Order',
+        title: `${fbt('Create Work Order', '')}`,
         action: showDialog,
       },
     ],

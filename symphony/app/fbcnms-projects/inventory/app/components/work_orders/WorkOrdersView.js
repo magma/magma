@@ -15,6 +15,7 @@ import DateTimeFormat from '../../common/DateTimeFormat';
 import LocationLink from '../location/LocationLink';
 import React, {useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
+import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -75,7 +76,7 @@ const WorkOrdersView = (props: Props) => {
         },
         {
           key: 'type',
-          title: 'Type',
+          title: `${fbt('Template', '')}`,
           render: row => row.workOrderType?.name ?? '',
         },
         {

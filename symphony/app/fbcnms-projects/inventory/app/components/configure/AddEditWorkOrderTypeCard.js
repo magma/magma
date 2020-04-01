@@ -35,6 +35,7 @@ import PropertyTypeTable from '../form/PropertyTypeTable';
 import React from 'react';
 import RemoveWorkOrderTypeMutation from '../../mutations/RemoveWorkOrderTypeMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -124,7 +125,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
                     }
                   : {
                       id: 'new_wo_type',
-                      name: 'New Work Order Template',
+                      name: `${fbt('New work order template', '')}`,
                     },
               ]}
               size="large"
@@ -159,8 +160,12 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
               <NameDescriptionSection
                 title="Title"
                 name={editingWorkOrderType.name ?? ''}
+                namePlaceholder={`${fbt('New work order template', '')}`}
                 description={editingWorkOrderType.description ?? ''}
-                descriptionPlaceholder="Describe the work order"
+                descriptionPlaceholder={`${fbt(
+                  'Write a description if you want it to appear whenever this template of work order is created',
+                  '',
+                )}`}
                 onNameChange={this.nameChanged}
                 onDescriptionChange={this.descriptionChanged}
               />
