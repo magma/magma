@@ -37,6 +37,7 @@ import SectionedCard from '@fbcnms/ui/components/SectionedCard';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -129,7 +130,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
             </div>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <FormField label="Name" required>
+                <FormField label={`${fbt('Equipment Name', '')}`} required>
                   <TextInput
                     name="name"
                     variant="outlined"

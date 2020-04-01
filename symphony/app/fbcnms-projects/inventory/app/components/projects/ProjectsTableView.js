@@ -15,6 +15,7 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import LocationLink from '../location/LocationLink';
 import React, {useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
+import fbt from 'fbt';
 import {createFragmentContainer, graphql} from 'react-relay';
 
 type Props = {
@@ -70,7 +71,7 @@ const ProjectsTableView = (props: Props) => {
         },
         {
           key: 'type',
-          title: 'Type',
+          title: `${fbt('Template', '')}`,
           render: row => row.type?.name ?? '',
         },
         {
