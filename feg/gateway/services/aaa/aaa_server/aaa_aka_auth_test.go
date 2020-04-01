@@ -110,7 +110,7 @@ func TestEAPPeerNak(t *testing.T) {
 	failureEAP := []byte{4, 237, 0, 4}
 	akaPrimeIdentity := eap.NewPacket(
 		eap.ResponseCode, 236,
-		append([]byte{eap_client.EapMethodIdentity}, []byte("6001010000000091@wlan.mnc001.mcc001.3gppnetwork.org")...))
+		append([]byte{eap.MethodIdentity}, []byte("6001010000000091@wlan.mnc001.mcc001.3gppnetwork.org")...))
 	permIdReq := []byte{0x01, 237, 0x00, 0x0c, 0x17, 0x05, 0x00, 0x00, 0x0a, 0x01, 0x00, 0x00}
 	akaPrimeNak := []byte{0x02, 237, 0x00, 0x06, 0x03, 50}
 	akaAkaPrimeNak := []byte{0x02, 236, 0x00, 0x07, 0x03, 50, 23}

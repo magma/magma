@@ -20,6 +20,8 @@ import (
 const (
 	TYPE           = uint8(protos.EapType_AKA)
 	MIN_PACKET_LEN = eap.EapSubtype
+
+	EapAkaServiceName = "eap_aka"
 )
 
 const (

@@ -10,9 +10,9 @@ LICENSE file in the root directory of this source tree.
 package registry
 
 import (
-	"magma/feg/gateway/services/eap/providers/aka"
+	aka_provider "magma/feg/gateway/services/eap/providers/aka/provider"
 )
 
 func init() {
-	Register(aka.New())
+	Register(aka_provider.New())
 }
