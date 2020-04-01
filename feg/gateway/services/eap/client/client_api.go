@@ -21,13 +21,6 @@ import (
 	"magma/feg/gateway/services/eap/providers/registry"
 )
 
-const (
-	// EAP Related Consts
-	EapMethodIdentity = uint8(protos.EapType_Identity)
-	EapMethodNak      = uint8(protos.EapType_Legacy_Nak)
-	EapCodeResponse   = uint8(protos.EapCode_Response)
-)
-
 // HandleIdentityResponse passes Identity EAP payload to corresponding method provider & returns corresponding
 // EAP result
 // NOTE: Identity Request is handled by APs & does not involve EAP Authenticator's support
@@ -39,10 +32,10 @@ func HandleIdentityResponse(providerType uint8, msg *protos.Eap) (*protos.Eap, e
 	if err != nil {
 		return newFailureMsg(msg), err
 	}
-	if msg.Payload[eap.EapMsgMethodType] != EapMethodIdentity {
+	if msg.Payload[eap.EapMsgMethodType] != eap.MethodIdentity {
 		return newFailureMsg(msg), fmt.Errorf(
 			"Invalid EAP Method Type for Identity Response: %d. Expecting EAP Identity (%d)",
-			msg.Payload[eap.EapMsgMethodType], EapMethodIdentity)
+			msg.Payload[eap.EapMsgMethodType], eap.MethodIdentity)
 	}
 	if msg.Ctx != nil {
 		td := eap.Packet(msg.Payload).TypeData()
@@ -77,7 +70,7 @@ func Handle(msg *protos.Eap) (*protos.Eap, error) {
 	var p providers.Method
 	// Legacy Nak Based Auth Method Discovery
 	// If the method is Nak, try to find a replacement handle (if specified by the Nak)
-	if method == EapMethodNak {
+	if method == eap.MethodNak {
 		// Get Nak's desired auth types array. If the peer did not provide desired auth types
 		// or none of the types is supported - return EAP Failure
 		td := eap.Packet(msg.Payload).TypeDataUnsafe()
@@ -87,7 +80,7 @@ func Handle(msg *protos.Eap) (*protos.Eap, error) {
 			if p != nil {
 				// a matching handler is found, call it with a simulated EAP Identity (1) Request,
 				// use previously saved identity (if any) to create the request
-				identity := []byte{EapMethodIdentity}
+				identity := []byte{eap.MethodIdentity}
 				if msg.Ctx != nil {
 					identity = append(identity, []byte(msg.Ctx.Identity)...)
 				}
@@ -131,10 +124,10 @@ func verifyEapPayload(payload []byte) error {
 	if el < int(mLen) {
 		return fmt.Errorf("Invalid EAP Message: bytes received %d are below specified length %d", el, mLen)
 	}
-	if payload[eap.EapMsgCode] != EapCodeResponse {
+	if payload[eap.EapMsgCode] != eap.CodeResponse {
 		return fmt.Errorf(
 			"Unsupported EAP Code: %d. Expecting EAP-Response (%d)",
-			payload[eap.EapMsgCode], EapCodeResponse)
+			payload[eap.EapMsgCode], eap.CodeResponse)
 	}
 	return nil
 }

@@ -55,6 +55,8 @@ services:
   aaa_server:
     <<: *goservice
     container_name: aaa_server
+    environment:
+      USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/aaa_server -logtostderr=true -v=0
 
   feg_hello:

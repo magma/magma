@@ -1,17 +1,22 @@
-/*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+//
+// Copyright (c) Facebook, Inc. and its affiliates.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+//
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+// +build !link_local_service
 
 // Package aka implements EAP-AKA provider
-package aka
+package provider
 
 import (
 	"errors"
 	"fmt"
+
+	"magma/feg/gateway/services/eap/providers"
+	"magma/feg/gateway/services/eap/providers/aka/servicers"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -20,15 +25,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
 	eapp "magma/feg/gateway/services/eap/protos"
-	"magma/feg/gateway/services/eap/providers"
 )
-
-// AKA Provider Implementation
-type providerImpl struct{} // singleton for now
-
-func New() providers.Method {
-	return providerImpl{}
-}
 
 // Wrapper to provide a wrapper for GRPC Client to extend it with Cleanup
 // functionality
@@ -57,18 +54,9 @@ func getAKAClient() (*akaClient, error) {
 	}, err
 }
 
-// String returns EAP AKA Provider name/info
-func (providerImpl) String() string {
-	return "<Magma EAP-AKA Method Provider>"
-}
-
-// EAPType returns EAP AKA Type - 23
-func (providerImpl) EAPType() uint8 {
-	return TYPE
-}
-
 // Handle handles passed EAP-AKA payload & returns corresponding result
-func (providerImpl) Handle(msg *protos.Eap) (*protos.Eap, error) {
+// this Handle implementation is using GRPC based AKA provider service
+func (*providerImpl) Handle(msg *protos.Eap) (*protos.Eap, error) {
 	if msg == nil {
 		return nil, errors.New("Invalid EAP AKA Message")
 	}
@@ -77,4 +65,8 @@ func (providerImpl) Handle(msg *protos.Eap) (*protos.Eap, error) {
 		return nil, err
 	}
 	return cli.Handle(context.Background(), msg)
+}
+
+func NewServiced(_ *servicers.EapAkaSrv) providers.Method {
+	return New()
 }

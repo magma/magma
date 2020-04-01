@@ -46,6 +46,8 @@ services:
   aaa_server:
     <<: *feggoservice
     container_name: aaa_server
+    environment:
+      USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/aaa_server -logtostderr=true -v=0
 
   control_proxy:
