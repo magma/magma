@@ -245,8 +245,8 @@ message GxCreditControlAnswer {
     repeated UsageMonitoringInformation usage_monitoring_infos = 11;
     RuleInstalls rule_installs = 12;
     RuleRemovals rule_removals = 13;
-    // TODO repeated magma.lte.EventTrigger event_triggers = 14;
-    // TODO google.protobuf.Timestamp revalidation_time = 15;
+    repeated uint32 event_triggers = 14;
+    google.protobuf.Timestamp revalidation_time = 15;
 }
 
 message GyCreditControlExpectation {

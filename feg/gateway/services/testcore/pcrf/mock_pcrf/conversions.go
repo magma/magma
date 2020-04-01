@@ -195,3 +195,18 @@ func toUsageMonitorByMkey(monitors []*usageMonitorRequestAVP) map[string]*usageM
 	}
 	return monitorByKey
 }
+
+func toRevalidationTimeAVPs(revalidationTime *timestamp.Timestamp) *diam.AVP {
+	if rTime, err := ptypes.Timestamp(revalidationTime); revalidationTime != nil && err == nil {
+		return diam.NewAVP(avp.RevalidationTime, avp.Mbit, diameter.Vendor3GPP, datatype.Time(rTime))
+	}
+	return nil
+}
+
+func toEventTriggersAVPs(eventTriggers []uint32) []*diam.AVP {
+	avps := make([]*diam.AVP, 0, len(eventTriggers))
+	for _, event := range eventTriggers {
+		avps = append(avps, diam.NewAVP(avp.EventTrigger, avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(event)))
+	}
+	return avps
+}
