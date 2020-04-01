@@ -156,7 +156,9 @@ bool PolicyRuleBiMap::remove_rule(
   }
 
   auto rule_ptr = it->second;
-  rule_out->CopyFrom(*rule_ptr);
+  if (rule_out) {
+    rule_out->CopyFrom(*rule_ptr);
+  }
 
   // Remove the rule from all mappings
   rules_by_rule_id_.erase(it);
