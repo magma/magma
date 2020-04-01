@@ -71,6 +71,16 @@ func (m *GxCreditControlAnswer) SetStaticRuleRemovals(rulesIDs, baseNames []stri
 	return m
 }
 
+func (m *GxCreditControlAnswer) SetEventTriggers(eventTriggers []uint32) *GxCreditControlAnswer {
+	m.EventTriggers = eventTriggers
+	return m
+}
+
+func (m *GxCreditControlAnswer) SetRevalidationTime(revalidationTime *timestamp.Timestamp) *GxCreditControlAnswer {
+	m.RevalidationTime = revalidationTime
+	return m
+}
+
 func (m *GxCreditControlRequest) SetUsageMonitorReports(reports []*UsageMonitoringInformation) *GxCreditControlRequest {
 	m.UsageMonitoringReports = reports
 	return m
