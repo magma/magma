@@ -24,16 +24,16 @@ class ServiceTypeServicesQuery(DataClassJsonMixin):
                 class Customer(DataClassJsonMixin):
                     id: str
                     name: str
-                    externalId: Optional[str] = None
+                    externalId: Optional[str]
 
                 id: str
                 name: str
-                externalId: Optional[str] = None
-                customer: Optional[Customer] = None
+                externalId: Optional[str]
+                customer: Optional[Customer]
 
             services: List[Service]
 
-        serviceType: Optional[Node] = None
+        serviceType: Optional[Node]
 
     data: ServiceTypeServicesQueryData
 

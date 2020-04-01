@@ -30,9 +30,9 @@ class SearchQuery(DataClassJsonMixin):
                     id: str
                     name: str
                     locationType: LocationType
-                    externalId: Optional[str] = None
+                    externalId: Optional[str]
 
-                node: Optional[Node] = None
+                node: Optional[Node]
 
             edges: List[SearchNodeEdge]
 

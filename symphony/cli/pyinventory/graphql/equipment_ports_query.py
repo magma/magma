@@ -34,7 +34,7 @@ class EquipmentPortsQuery(DataClassJsonMixin):
 
                     id: str
                     name: str
-                    portType: Optional[EquipmentPortType] = None
+                    portType: Optional[EquipmentPortType]
 
                 @dataclass
                 class Link(DataClassJsonMixin):
@@ -53,11 +53,11 @@ class EquipmentPortsQuery(DataClassJsonMixin):
                 id: str
                 properties: List[Property]
                 definition: EquipmentPortDefinition
-                link: Optional[Link] = None
+                link: Optional[Link]
 
             ports: List[EquipmentPort]
 
-        equipment: Optional[Node] = None
+        equipment: Optional[Node]
 
     data: EquipmentPortsQueryData
 

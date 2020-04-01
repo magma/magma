@@ -29,7 +29,7 @@ class AddLocationMutation(DataClassJsonMixin):
             latitude: Number
             longitude: Number
             locationType: LocationType
-            externalId: Optional[str] = None
+            externalId: Optional[str]
 
         addLocation: Location
 

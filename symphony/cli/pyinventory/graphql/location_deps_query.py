@@ -40,7 +40,7 @@ class LocationDepsQuery(DataClassJsonMixin):
             surveys: List[Survey]
             equipments: List[Equipment]
 
-        location: Optional[Node] = None
+        location: Optional[Node]
 
     data: LocationDepsQueryData
 

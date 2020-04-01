@@ -27,7 +27,7 @@ class AddServiceEndpointMutation(DataClassJsonMixin):
             class Customer(DataClassJsonMixin):
                 id: str
                 name: str
-                externalId: Optional[str] = None
+                externalId: Optional[str]
 
             @dataclass
             class ServiceEndpoint(DataClassJsonMixin):
@@ -47,8 +47,8 @@ class AddServiceEndpointMutation(DataClassJsonMixin):
             name: str
             endpoints: List[ServiceEndpoint]
             links: List[Link]
-            externalId: Optional[str] = None
-            customer: Optional[Customer] = None
+            externalId: Optional[str]
+            customer: Optional[Customer]
 
         addServiceEndpoint: Service
 

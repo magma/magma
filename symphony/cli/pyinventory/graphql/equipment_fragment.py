@@ -34,4 +34,4 @@ class EquipmentFragment(DataClassJsonMixin):
     id: str
     name: str
     equipmentType: EquipmentType
-    externalId: Optional[str] = None
+    externalId: Optional[str]

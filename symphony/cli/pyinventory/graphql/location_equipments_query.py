@@ -25,7 +25,7 @@ class LocationEquipmentsQuery(DataClassJsonMixin):
 
             equipments: List[Equipment]
 
-        location: Optional[Node] = None
+        location: Optional[Node]
 
     data: LocationEquipmentsQueryData
 

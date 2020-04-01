@@ -22,12 +22,12 @@ class LocationDocumentsQuery(DataClassJsonMixin):
             class File(DataClassJsonMixin):
                 id: str
                 fileName: str
-                category: Optional[str] = None
+                category: Optional[str]
 
             files: List[File]
             images: List[File]
 
-        location: Optional[Node] = None
+        location: Optional[Node]
 
     data: LocationDocumentsQueryData
 

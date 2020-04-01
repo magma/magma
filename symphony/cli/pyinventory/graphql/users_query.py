@@ -32,11 +32,11 @@ class UsersQuery(DataClassJsonMixin):
                     status: UserStatus = enum_field(UserStatus)
                     role: UserRole = enum_field(UserRole)
 
-                node: Optional[User] = None
+                node: Optional[User]
 
             edges: List[UserEdge]
 
-        users: Optional[UserConnection] = None
+        users: Optional[UserConnection]
 
     data: UsersQueryData
 
