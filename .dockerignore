@@ -6,6 +6,7 @@
 
 !cwf/cloud/
 !cwf/gateway/
+!cwf/k8s
 
 !feg/cloud/
 !feg/gateway/
