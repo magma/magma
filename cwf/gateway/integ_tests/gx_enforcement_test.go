@@ -435,7 +435,7 @@ func TestGxAbortSessionRequest(t *testing.T) {
 // - Check policy usage and assert revalidation-time-static-pass-all is installed and
 //   no traffic passed
 // Note: things might get weird if there are clock skews
-func TestGxRevalidationTime(t *testing.T) {
+func testGxRevalidationTime(t *testing.T) {
 	fmt.Println("\nRunning TestGxRevalidationTime...")
 
 	tr := NewTestRunner(t)
