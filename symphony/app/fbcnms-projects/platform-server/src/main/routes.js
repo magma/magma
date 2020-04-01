@@ -21,6 +21,7 @@ import {MAPBOX_ACCESS_TOKEN} from '../config';
 import {access} from '@fbcnms/auth/access';
 import {getEnabledFeatures} from '@fbcnms/platform-server/features';
 import {masterOrgMiddleware} from '@fbcnms/platform-server/master/middleware';
+const workflowRouter = require('../hub/routes');
 
 const router = express.Router();
 
@@ -63,6 +64,7 @@ const handleReact = tab =>
     });
   };
 
+router.use('/hub/workflow', workflowRouter);
 router.use('/healthz', (req: FBCNMSRequest, res) => res.send('OK'));
 router.use(
   '/admin',
