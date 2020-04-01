@@ -91,8 +91,6 @@ void *mme_app_thread(void *args)
     }
 
     imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-    OAILOG_DEBUG(
-      LOG_MME_APP, "Received message with imsi: " IMSI_64_FMT, imsi64);
 
     OAILOG_DEBUG(LOG_MME_APP, "Getting mme_nas_state");
     mme_app_desc_p = get_mme_nas_state(false);
