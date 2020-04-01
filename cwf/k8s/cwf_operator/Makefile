@@ -10,9 +10,15 @@ clean::
 fmt::
 	go fmt ./...
 
+# operator-sdk enforces a strict directory
+# structure and magma ignores build
+# directories. Copy to allow generation,
+# then remove
 gen::
+	cp -r docker build
 	operator-sdk generate k8s
 	operator-sdk generate crds
+	rm -rf build
 
 test::
 	go test ./...
