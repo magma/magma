@@ -13,7 +13,7 @@
          - install
       vars:
         distribution: "bionic"
-        repo: "cwf"
+        repo: "cwf-prod"
     - role: ovs
       tags:
          - install
