@@ -13,6 +13,7 @@ func (tr {{$.Type}}) WithTransaction(ctx context.Context, f func(context.Context
 	if err != nil {
 		return fmt.Errorf("creating transaction: %w", err)
 	}
+	ctx = ent.NewTxContext(ctx, tx)
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
