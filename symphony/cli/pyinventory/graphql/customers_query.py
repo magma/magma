@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
 
 @dataclass
 class CustomersQuery(DataClassJsonMixin):
@@ -21,10 +22,8 @@ class CustomersQuery(DataClassJsonMixin):
             @dataclass
             class CustomerEdge(DataClassJsonMixin):
                 @dataclass
-                class Customer(DataClassJsonMixin):
-                    id: str
-                    name: str
-                    externalId: Optional[str]
+                class Customer(CustomerFragment):
+                    pass
 
                 node: Optional[Customer]
 
@@ -34,14 +33,12 @@ class CustomersQuery(DataClassJsonMixin):
 
     data: CustomersQueryData
 
-    __QUERY__: str = """
+    __QUERY__: str = CustomerFragmentQuery + """
     query CustomersQuery {
   customers {
     edges {
       node {
-        id
-        name
-        externalId
+        ...CustomerFragment
       }
     }
   }

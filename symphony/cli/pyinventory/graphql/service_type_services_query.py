@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
 
 @dataclass
 class ServiceTypeServicesQuery(DataClassJsonMixin):
@@ -21,10 +22,8 @@ class ServiceTypeServicesQuery(DataClassJsonMixin):
             @dataclass
             class Service(DataClassJsonMixin):
                 @dataclass
-                class Customer(DataClassJsonMixin):
-                    id: str
-                    name: str
-                    externalId: Optional[str]
+                class Customer(CustomerFragment):
+                    pass
 
                 id: str
                 name: str
@@ -37,7 +36,7 @@ class ServiceTypeServicesQuery(DataClassJsonMixin):
 
     data: ServiceTypeServicesQueryData
 
-    __QUERY__: str = """
+    __QUERY__: str = CustomerFragmentQuery + """
     query ServiceTypeServicesQuery($id: ID!) {
   serviceType: node(id: $id) {
     ... on ServiceType {
@@ -46,9 +45,7 @@ class ServiceTypeServicesQuery(DataClassJsonMixin):
         name
         externalId
         customer {
-          id
-          name
-          externalId
+          ...CustomerFragment
         }
       }
     }
