@@ -114,7 +114,7 @@ def get_equipment_by_external_id(client: SymphonyClient, external_id: str) -> Eq
 
     if not equipments or equipments.count == 0:
         raise EntityNotFoundError(
-            entity=Entity.Equipment, msg="external_id={external_id}"
+            entity=Entity.Equipment, msg=f"external_id={external_id}"
         )
 
     if equipments.count > 1:
