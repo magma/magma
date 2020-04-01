@@ -30,7 +30,7 @@ class EquipmentTypeAndPropertiesQuery(DataClassJsonMixin):
             equipmentType: EquipmentType
             properties: List[Property]
 
-        equipment: Optional[Node] = None
+        equipment: Optional[Node]
 
     data: EquipmentTypeAndPropertiesQueryData
 

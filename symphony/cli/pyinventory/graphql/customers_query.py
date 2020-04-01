@@ -24,13 +24,13 @@ class CustomersQuery(DataClassJsonMixin):
                 class Customer(DataClassJsonMixin):
                     id: str
                     name: str
-                    externalId: Optional[str] = None
+                    externalId: Optional[str]
 
-                node: Optional[Customer] = None
+                node: Optional[Customer]
 
             edges: List[CustomerEdge]
 
-        customers: Optional[CustomerConnection] = None
+        customers: Optional[CustomerConnection]
 
     data: CustomersQueryData
 

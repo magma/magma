@@ -25,5 +25,5 @@ fragment EquipmentPositionDefinitionFragment on EquipmentPositionDefinition {
 class EquipmentPositionDefinitionFragment(DataClassJsonMixin):
     id: str
     name: str
-    index: Optional[int] = None
-    visibleLabel: Optional[str] = None
+    index: Optional[int]
+    visibleLabel: Optional[str]

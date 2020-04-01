@@ -32,11 +32,11 @@ class ServiceTypesQuery(DataClassJsonMixin):
                     hasCustomer: bool
                     propertyTypes: List[PropertyType]
 
-                node: Optional[ServiceType] = None
+                node: Optional[ServiceType]
 
             edges: List[ServiceTypeEdge]
 
-        serviceTypes: Optional[ServiceTypeConnection] = None
+        serviceTypes: Optional[ServiceTypeConnection]
 
     data: ServiceTypesQueryData
 

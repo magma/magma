@@ -22,7 +22,7 @@ class AddCustomerMutation(DataClassJsonMixin):
         class Customer(DataClassJsonMixin):
             id: str
             name: str
-            externalId: Optional[str] = None
+            externalId: Optional[str]
 
         addCustomer: Customer
 

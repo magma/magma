@@ -40,12 +40,12 @@ class EquipmentPositionsQuery(DataClassJsonMixin):
                     pass
 
                 definition: EquipmentPositionDefinition
-                attachedEquipment: Optional[Equipment] = None
+                attachedEquipment: Optional[Equipment]
 
             equipmentType: EquipmentType
             positions: List[EquipmentPosition]
 
-        equipment: Optional[Node] = None
+        equipment: Optional[Node]
 
     data: EquipmentPositionsQueryData
 

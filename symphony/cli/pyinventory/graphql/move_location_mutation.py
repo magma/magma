@@ -27,7 +27,7 @@ class MoveLocationMutation(DataClassJsonMixin):
             latitude: Number
             longitude: Number
             locationType: LocationType
-            externalId: Optional[str] = None
+            externalId: Optional[str]
 
         moveLocation: Location
 

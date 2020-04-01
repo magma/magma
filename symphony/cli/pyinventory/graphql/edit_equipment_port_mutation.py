@@ -34,7 +34,7 @@ class EditEquipmentPortMutation(DataClassJsonMixin):
 
                 id: str
                 name: str
-                portType: Optional[EquipmentPortType] = None
+                portType: Optional[EquipmentPortType]
 
             @dataclass
             class Link(DataClassJsonMixin):
@@ -48,7 +48,7 @@ class EditEquipmentPortMutation(DataClassJsonMixin):
             id: str
             properties: List[Property]
             definition: EquipmentPortDefinition
-            link: Optional[Link] = None
+            link: Optional[Link]
 
         editEquipmentPort: EquipmentPort
 

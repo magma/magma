@@ -22,10 +22,10 @@ class LatestPythonPackageQuery(DataClassJsonMixin):
             class PythonPackage(DataClassJsonMixin):
                 version: str
 
-            lastPythonPackage: Optional[PythonPackage] = None
-            lastBreakingPythonPackage: Optional[PythonPackage] = None
+            lastPythonPackage: Optional[PythonPackage]
+            lastBreakingPythonPackage: Optional[PythonPackage]
 
-        latestPythonPackage: Optional[LatestPythonPackageResult] = None
+        latestPythonPackage: Optional[LatestPythonPackageResult]
 
     data: LatestPythonPackageQueryData
 

@@ -31,11 +31,11 @@ class LocationTypesQuery(DataClassJsonMixin):
                     name: str
                     propertyTypes: List[PropertyType]
 
-                node: Optional[LocationType] = None
+                node: Optional[LocationType]
 
             edges: List[LocationTypeEdge]
 
-        locationTypes: Optional[LocationTypeConnection] = None
+        locationTypes: Optional[LocationTypeConnection]
 
     data: LocationTypesQueryData
 

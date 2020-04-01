@@ -28,7 +28,7 @@ class AddServiceMutation(DataClassJsonMixin):
             class Customer(DataClassJsonMixin):
                 id: str
                 name: str
-                externalId: Optional[str] = None
+                externalId: Optional[str]
 
             @dataclass
             class ServiceEndpoint(DataClassJsonMixin):
@@ -47,7 +47,7 @@ class AddServiceMutation(DataClassJsonMixin):
 
                         id: str
                         name: str
-                        portType: Optional[EquipmentPortType] = None
+                        portType: Optional[EquipmentPortType]
 
                     @dataclass
                     class Link(DataClassJsonMixin):
@@ -66,7 +66,7 @@ class AddServiceMutation(DataClassJsonMixin):
                     id: str
                     properties: List[Property]
                     definition: EquipmentPortDefinition
-                    link: Optional[Link] = None
+                    link: Optional[Link]
 
                 id: str
                 port: EquipmentPort
@@ -90,8 +90,8 @@ class AddServiceMutation(DataClassJsonMixin):
             name: str
             endpoints: List[ServiceEndpoint]
             links: List[Link]
-            externalId: Optional[str] = None
-            customer: Optional[Customer] = None
+            externalId: Optional[str]
+            customer: Optional[Customer]
 
         addService: Service
 

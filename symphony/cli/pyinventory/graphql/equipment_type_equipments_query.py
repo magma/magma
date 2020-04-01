@@ -25,7 +25,7 @@ class EquipmentTypeEquipmentQuery(DataClassJsonMixin):
 
             equipments: List[Equipment]
 
-        equipmentType: Optional[Node] = None
+        equipmentType: Optional[Node]
 
     data: EquipmentTypeEquipmentQueryData
 

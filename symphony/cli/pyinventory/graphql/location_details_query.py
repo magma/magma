@@ -27,9 +27,9 @@ class LocationDetailsQuery(DataClassJsonMixin):
             latitude: Number
             longitude: Number
             locationType: LocationType
-            externalId: Optional[str] = None
+            externalId: Optional[str]
 
-        location: Optional[Node] = None
+        location: Optional[Node]
 
     data: LocationDetailsQueryData
 
