@@ -44,6 +44,7 @@ type File struct {
 	equipment_files            *int
 	location_files             *int
 	survey_question_photo_data *int
+	survey_question_images     *int
 	work_order_files           *int
 }
 
@@ -71,6 +72,7 @@ func (*File) fkValues() []interface{} {
 		&sql.NullInt64{}, // equipment_files
 		&sql.NullInt64{}, // location_files
 		&sql.NullInt64{}, // survey_question_photo_data
+		&sql.NullInt64{}, // survey_question_images
 		&sql.NullInt64{}, // work_order_files
 	}
 }
@@ -164,6 +166,12 @@ func (f *File) assignValues(values ...interface{}) error {
 			*f.survey_question_photo_data = int(value.Int64)
 		}
 		if value, ok := values[4].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_images", value)
+		} else if value.Valid {
+			f.survey_question_images = new(int)
+			*f.survey_question_images = int(value.Int64)
+		}
+		if value, ok := values[5].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_files", value)
 		} else if value.Valid {
 			f.work_order_files = new(int)

@@ -453,6 +453,7 @@ var (
 		{Name: "equipment_files", Type: field.TypeInt, Nullable: true},
 		{Name: "location_files", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_question_photo_data", Type: field.TypeInt, Nullable: true},
+		{Name: "survey_question_images", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_files", Type: field.TypeInt, Nullable: true},
 	}
 	// FilesTable holds the schema information for the "files" table.
@@ -490,8 +491,15 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "files_work_orders_files",
+				Symbol:  "files_survey_questions_images",
 				Columns: []*schema.Column{FilesColumns[15]},
+
+				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "files_work_orders_files",
+				Columns: []*schema.Column{FilesColumns[16]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1665,7 +1673,8 @@ func init() {
 	FilesTable.ForeignKeys[1].RefTable = EquipmentTable
 	FilesTable.ForeignKeys[2].RefTable = LocationsTable
 	FilesTable.ForeignKeys[3].RefTable = SurveyQuestionsTable
-	FilesTable.ForeignKeys[4].RefTable = WorkOrdersTable
+	FilesTable.ForeignKeys[4].RefTable = SurveyQuestionsTable
+	FilesTable.ForeignKeys[5].RefTable = WorkOrdersTable
 	FloorPlansTable.ForeignKeys[0].RefTable = LocationsTable
 	FloorPlansTable.ForeignKeys[1].RefTable = FloorPlanReferencePointsTable
 	FloorPlansTable.ForeignKeys[2].RefTable = FloorPlanScalesTable

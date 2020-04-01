@@ -835,6 +835,7 @@ type ComplexityRoot struct {
 		FormIndex        func(childComplexity int) int
 		FormName         func(childComplexity int) int
 		ID               func(childComplexity int) int
+		Images           func(childComplexity int) int
 		IntData          func(childComplexity int) int
 		Latitude         func(childComplexity int) int
 		LocationAccuracy func(childComplexity int) int
@@ -1342,6 +1343,7 @@ type SurveyQuestionResolver interface {
 	PhotoData(ctx context.Context, obj *ent.SurveyQuestion) (*ent.File, error)
 	WifiData(ctx context.Context, obj *ent.SurveyQuestion) ([]*ent.SurveyWiFiScan, error)
 	CellData(ctx context.Context, obj *ent.SurveyQuestion) ([]*ent.SurveyCellScan, error)
+	Images(ctx context.Context, obj *ent.SurveyQuestion) ([]*ent.File, error)
 }
 type SurveyTemplateCategoryResolver interface {
 	SurveyTemplateQuestions(ctx context.Context, obj *ent.SurveyTemplateCategory) ([]*ent.SurveyTemplateQuestion, error)
@@ -5474,6 +5476,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SurveyQuestion.ID(childComplexity), true
 
+	case "SurveyQuestion.images":
+		if e.complexity.SurveyQuestion.Images == nil {
+			break
+		}
+
+		return e.complexity.SurveyQuestion.Images(childComplexity), true
+
 	case "SurveyQuestion.intData":
 		if e.complexity.SurveyQuestion.IntData == nil {
 			break
@@ -8320,6 +8329,7 @@ input SurveyQuestionResponse {
   photoData: FileInput
   wifiData: [SurveyWiFiScanData!]
   cellData: [SurveyCellScanData!]
+  imagesData: [FileInput!]
 }
 
 type SurveyQuestion implements Node {
@@ -8344,6 +8354,7 @@ type SurveyQuestion implements Node {
   photoData: File
   wifiData: [SurveyWiFiScan]
   cellData: [SurveyCellScan]
+  images: [File!]
 }
 
 enum SurveyQuestionType {
@@ -30566,6 +30577,40 @@ func (ec *executionContext) _SurveyQuestion_cellData(ctx context.Context, field 
 	return ec.marshalOSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SurveyQuestion_images(ctx context.Context, field graphql.CollectedField, obj *ent.SurveyQuestion) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "SurveyQuestion",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SurveyQuestion().Images(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.File)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFileᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SurveyTemplateCategory_id(ctx context.Context, field graphql.CollectedField, obj *ent.SurveyTemplateCategory) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -39408,6 +39453,12 @@ func (ec *executionContext) unmarshalInputSurveyQuestionResponse(ctx context.Con
 			if err != nil {
 				return it, err
 			}
+		case "imagesData":
+			var err error
+			it.ImagesData, err = ec.unmarshalOFileInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -45270,6 +45321,17 @@ func (ec *executionContext) _SurveyQuestion(ctx context.Context, sel ast.Selecti
 					}
 				}()
 				res = ec._SurveyQuestion_cellData(ctx, field, obj)
+				return res
+			})
+		case "images":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SurveyQuestion_images(ctx, field, obj)
 				return res
 			})
 		default:
@@ -52149,6 +52211,46 @@ func (ec *executionContext) marshalOEquipmentType2ᚖgithubᚗcomᚋfacebookincu
 
 func (ec *executionContext) marshalOFile2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx context.Context, sel ast.SelectionSet, v ent.File) graphql.Marshaler {
 	return ec._File(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFileᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.File) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalOFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx context.Context, sel ast.SelectionSet, v *ent.File) graphql.Marshaler {

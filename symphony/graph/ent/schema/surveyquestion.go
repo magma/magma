@@ -75,5 +75,6 @@ func (SurveyQuestion) Edges() []ent.Edge {
 		edge.From("cell_scan", SurveyCellScan.Type).
 			Ref("survey_question"),
 		edge.To("photo_data", File.Type),
+		edge.To("images", File.Type),
 	}
 }

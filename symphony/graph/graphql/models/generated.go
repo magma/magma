@@ -718,6 +718,7 @@ type SurveyQuestionResponse struct {
 	PhotoData        *FileInput            `json:"photoData"`
 	WifiData         []*SurveyWiFiScanData `json:"wifiData"`
 	CellData         []*SurveyCellScanData `json:"cellData"`
+	ImagesData       []*FileInput          `json:"imagesData"`
 }
 
 type SurveyTemplateCategoryInput struct {
