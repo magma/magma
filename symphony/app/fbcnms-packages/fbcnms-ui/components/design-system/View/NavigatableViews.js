@@ -56,6 +56,7 @@ export type NavigatableView_MenuItemRouting = {|
 export type NavigatableView_PossibleRoutingToGivenComponent = {|
   component: ViewContainerProps,
   routingPath: string,
+  relatedMenuItemIndex: ?number,
 |};
 export type NavigatableView =
   | NavigatableView_MenuItemOnly
@@ -69,6 +70,38 @@ type Props = {
   header?: ?React.Node,
   views: Array<NavigatableView>,
   routingBasePath?: string,
+};
+
+const PATH_DELIMITER = '/';
+const PATH_PARAM_PREFIX = ':';
+const getPathParts: string => Array<string> = path => {
+  const parts = path.split(PATH_DELIMITER);
+  if (parts[0] == '') {
+    return parts.slice(1);
+  }
+  return parts;
+};
+
+const pathNameFitsDefinition = (definition: string, pathName: string) => {
+  const definitionParts = getPathParts(definition);
+  const pathParts = getPathParts(pathName);
+
+  if (definitionParts.length != pathParts.length) {
+    return false;
+  }
+
+  let i = 0;
+  while (i < definitionParts.length) {
+    if (
+      !definitionParts[i].startsWith(PATH_PARAM_PREFIX) &&
+      pathParts[i] != definitionParts[i]
+    ) {
+      return false;
+    }
+    i++;
+  }
+
+  return true;
 };
 
 export default function NavigatableViews(props: Props) {
@@ -104,7 +137,9 @@ export default function NavigatableViews(props: Props) {
     }
     const activePath = location.pathname.substring(routingBasePath.length + 1);
     const relatedActiveViewIndex = views.findIndex(
-      view => view.routingPath != null && view.routingPath === activePath,
+      view =>
+        view.routingPath != null &&
+        pathNameFitsDefinition(view.routingPath, activePath),
     );
     if (
       relatedActiveViewIndex !== -1 &&
@@ -151,7 +186,11 @@ export default function NavigatableViews(props: Props) {
         <SideMenu
           header={header}
           items={menuItems}
-          activeItemIndex={activeViewIndex}
+          activeItemIndex={
+            activeView.relatedMenuItemIndex != null
+              ? activeView.relatedMenuItemIndex
+              : activeViewIndex
+          }
           onActiveItemChanged={(_item, index) => onNavigation(index)}
         />
       )}
