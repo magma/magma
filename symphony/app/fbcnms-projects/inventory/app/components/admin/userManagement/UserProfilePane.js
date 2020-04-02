@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {EmploymentType, User} from './TempTypes';
+import type {EmploymentType, User} from './UserManagementUtils';
 import type {OptionProps} from '@fbcnms/ui/components/design-system/Select/SelectMenu';
 
 import * as React from 'react';

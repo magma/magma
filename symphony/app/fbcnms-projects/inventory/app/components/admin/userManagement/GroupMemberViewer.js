@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {User, UserPermissionsGroup} from './TempTypes';
+import type {User, UserPermissionsGroup} from './UserManagementUtils';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';

@@ -9,12 +9,12 @@
  */
 
 import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
-import type {UserPermissionsGroup} from './TempTypes';
+import type {UserPermissionsGroup} from './UserManagementUtils';
 
 import * as React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
-import {GROUP_STATUSES} from './TempTypes';
+import {GROUP_STATUSES} from './UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';

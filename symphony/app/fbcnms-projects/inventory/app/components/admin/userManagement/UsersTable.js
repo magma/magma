@@ -12,7 +12,7 @@ import type {
   TableRowDataType,
   TableRowId,
 } from '@fbcnms/ui/components/design-system/Table/Table';
-import type {User} from './TempTypes';
+import type {User} from './UserManagementUtils';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -22,7 +22,7 @@ import UserDetailsCard from './UserDetailsCard';
 import UserViewer from './UserViewer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {USER_ROLES, USER_STATUSES} from './TempTypes';
+import {USER_ROLES, USER_STATUSES} from './UserManagementUtils';
 import {haveDifferentValues} from '../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';

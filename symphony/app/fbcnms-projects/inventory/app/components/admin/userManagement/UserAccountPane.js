@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {User} from './TempTypes';
+import type {User} from './UserManagementUtils';
 
 import * as React from 'react';
 import UserAccountDetailsPane, {

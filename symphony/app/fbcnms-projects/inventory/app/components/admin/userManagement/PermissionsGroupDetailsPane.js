@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from './TempTypes';
+import type {UserPermissionsGroup} from './UserManagementUtils';
 import type {UsersGroupStatus} from './__generated__/UserManagementContextQuery.graphql';
 
 import * as React from 'react';
@@ -21,7 +21,7 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {GROUP_STATUSES} from './TempTypes';
+import {GROUP_STATUSES} from './UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useMemo} from 'react';
 

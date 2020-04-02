@@ -17,13 +17,13 @@ import type {EditUsersGroupMutationResponse} from '../../../mutations/__generate
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
 import type {StoreUpdater} from '../../../common/RelayEnvironment';
 import type {UpdateUsersGroupMembersMutationResponse} from '../../../mutations/__generated__/UpdateUsersGroupMembersMutation.graphql';
-import type {User, UserPermissionsGroup} from './TempTypes';
+import type {User, UserPermissionsGroup} from './UserManagementUtils';
 import type {
   UserManagementContextQuery,
-  UserManagementContextQueryResponse,
   UserRole,
 } from './__generated__/UserManagementContextQuery.graphql';
 import type {UserManagementContext_UserQuery} from './__generated__/UserManagementContext_UserQuery.graphql';
+import type {UsersMap} from './UserManagementUtils';
 
 import * as React from 'react';
 import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
@@ -38,26 +38,17 @@ import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
 import {LogEvents, ServerLogger} from '../../../common/LoggingUtils';
 import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {Suspense} from 'react';
-import {USER_ROLES} from './TempTypes';
+import {USER_ROLES} from './UserManagementUtils';
 import {getGraphError} from '../../../common/EntUtils';
+import {
+  groupResponse2Group,
+  groupsResponse2Groups,
+  userResponse2User,
+  users2UsersMap,
+  usersResponse2Users,
+} from './UserManagementUtils';
 import {useContext} from 'react';
 import {useLazyLoadQuery} from 'react-relay/hooks';
-
-export type UserManagementContextValue = {
-  groups: Array<UserPermissionsGroup>,
-  users: Array<User>,
-  usersMap: UsersMap,
-  addUser: (user: User, password: string) => Promise<User>,
-  editUser: (newUserValue: User, updater?: StoreUpdater) => Promise<User>,
-  changeUserPassword: (user: User, password: string) => Promise<User>,
-  addGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
-  editGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
-  updateGroupMembers: (
-    group: UserPermissionsGroup,
-    addUserIds: Array<string>,
-    removeUserIds: Array<string>,
-  ) => Promise<UserPermissionsGroup>,
-};
 
 const userQuery = graphql`
   query UserManagementContext_UserQuery($authID: String!) {
@@ -77,8 +68,9 @@ const createNewUserInNode = (newUserValue: User, password: string) => {
     role: roleToNodeRole(newUserValue.role),
     networkIDs: [],
   };
-  return axios.post('/user/async/', newUserPayload);
+  return axios.post<empty, empty>('/user/async/', newUserPayload);
 };
+
 const getUserEntIdByAuthID = authID => {
   return fetchQuery<UserManagementContext_UserQuery>(
     RelayEnvironment,
@@ -88,6 +80,7 @@ const getUserEntIdByAuthID = authID => {
     },
   ).then(response => nullthrows(response.user?.id));
 };
+
 const setNewUserEntValues = (userEntId: string, userValues: User) => {
   userValues.id = userEntId;
   const addNewUserToStore = store => {
@@ -113,6 +106,7 @@ const setNewUserEntValues = (userEntId: string, userValues: User) => {
   };
   return editUser(userValues, addNewUserToStore);
 };
+
 const addUser = (newUserValue: User, password: string) => {
   return createNewUserInNode(newUserValue, password)
     .then(() => getUserEntIdByAuthID(newUserValue.authID))
@@ -294,6 +288,22 @@ const addGroup = (usersMap: UsersMap) => (
   });
 };
 
+type UserManagementContextValue = {
+  groups: Array<UserPermissionsGroup>,
+  users: Array<User>,
+  usersMap: UsersMap,
+  addUser: (user: User, password: string) => Promise<User>,
+  editUser: (newUserValue: User, updater?: StoreUpdater) => Promise<User>,
+  changeUserPassword: (user: User, password: string) => Promise<User>,
+  addGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
+  editGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
+  updateGroupMembers: (
+    group: UserPermissionsGroup,
+    addUserIds: Array<string>,
+    removeUserIds: Array<string>,
+  ) => Promise<UserPermissionsGroup>,
+};
+
 const emptyUsersMap = new Map<string, User>();
 const UserManagementContext = React.createContext<UserManagementContextValue>({
   groups: [],
@@ -306,10 +316,6 @@ const UserManagementContext = React.createContext<UserManagementContextValue>({
   editGroup: editGroup(emptyUsersMap),
   updateGroupMembers: updateGroupMembers(emptyUsersMap),
 });
-
-export function useUserManagement() {
-  return useContext(UserManagementContext);
-}
 
 type Props = {
   children: React.Node,
@@ -357,83 +363,6 @@ const usersQuery = graphql`
   }
 `;
 
-type UsersReponsePart = $ElementType<
-  UserManagementContextQueryResponse,
-  'users',
->;
-type UsersEdgesResponsePart = $ElementType<
-  $NonMaybeType<UsersReponsePart>,
-  'edges',
->;
-type UserNodeReponseFieldsPart = $ElementType<UsersEdgesResponsePart, number>;
-type UsersReponseFieldsPart = $NonMaybeType<
-  $ElementType<$NonMaybeType<UserNodeReponseFieldsPart>, 'node'>,
->;
-type GroupsReponsePart = $ElementType<
-  UserManagementContextQueryResponse,
-  'usersGroups',
->;
-type GroupsEdgesResponsePart = $ElementType<
-  $NonMaybeType<GroupsReponsePart>,
-  'edges',
->;
-type GroupNodeReponseFieldsPart = $ElementType<GroupsEdgesResponsePart, number>;
-type GroupReponseFieldsPart = $NonMaybeType<
-  $ElementType<$NonMaybeType<GroupNodeReponseFieldsPart>, 'node'>,
->;
-
-export const userResponse2User: UsersReponseFieldsPart => User = (
-  userNode: UsersReponseFieldsPart,
-) => ({
-  id: userNode.id,
-  authID: userNode.authID,
-  firstName: userNode.firstName,
-  lastName: userNode.lastName,
-  role: userNode.role,
-  status: userNode.status,
-  groups: userNode.groups ?? [],
-  photoId: userNode.profilePhoto?.id,
-});
-
-const usersResponse2Users = (usersResponse: UsersReponsePart) =>
-  usersResponse?.edges == null
-    ? []
-    : usersResponse?.edges
-        .filter(Boolean)
-        .map(ur => ur.node)
-        .filter(Boolean)
-        .map(userResponse2User);
-
-type UsersMap = Map<string, User>;
-const users2UsersMap: (Array<User>) => UsersMap = users =>
-  new Map<string, User>(users.map(user => [user.id, user]));
-
-const groupResponse2Group: (
-  GroupReponseFieldsPart,
-  UsersMap,
-) => UserPermissionsGroup = (groupResponse, usersMap) => ({
-  id: groupResponse.id,
-  name: groupResponse.name,
-  description: groupResponse.description || '',
-  status: groupResponse.status,
-  members: groupResponse.members,
-  memberUsers: groupResponse.members
-    .map(member => usersMap.get(member.id))
-    .filter(Boolean),
-});
-
-const groupsResponse2Groups: (
-  GroupsReponsePart,
-  UsersMap,
-) => Array<UserPermissionsGroup> = (groupsResponse, usersMap) =>
-  groupsResponse?.edges == null
-    ? []
-    : groupsResponse?.edges
-        .filter(Boolean)
-        .map(gr => gr.node)
-        .filter(Boolean)
-        .map(gr => groupResponse2Group(gr, usersMap));
-
 function ProviderWrap(props: Props) {
   const providerValue = (users, groups, usersMap) => ({
     groups,
@@ -469,6 +398,10 @@ export function UserManagementContextProvider(props: Props) {
       </Suspense>
     </RelayEnvironmentProvider>
   );
+}
+
+export function useUserManagement() {
+  return useContext(UserManagementContext);
 }
 
 export default UserManagementContext;
