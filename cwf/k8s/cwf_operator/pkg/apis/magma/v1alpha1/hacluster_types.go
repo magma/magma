@@ -30,8 +30,13 @@ import (
 )
 
 type HAClusterInitState string
+type CarrierWifiAccessGatewayHealthCondition string
+type CarrierWifiAccessGatewayInitState string
 
 const (
+	Healthy   CarrierWifiAccessGatewayHealthCondition = "Healthy"
+	Unhealthy CarrierWifiAccessGatewayHealthCondition = "Unhealthy"
+
 	Initialized   HAClusterInitState = "Initialized"
 	Uninitialized HAClusterInitState = "Uninitialized"
 )
@@ -41,6 +46,8 @@ const (
 // HAClusterSpec defines the desired state of HACluster
 type HAClusterSpec struct {
 	// GatewayResourceNames denotes the list of all gateway resource names in the HACluster
+	// +kubebuilder:validation:MaxItems=2
+	// +kubebuilder:validation:MinItems=1
 	GatewayResourceNames []string `json:"gatewayResourceNames"`
 	// Important: Run "make gen" to regenerate code after modifying this file
 }
