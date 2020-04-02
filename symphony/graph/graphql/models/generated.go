@@ -774,6 +774,18 @@ type TopologyLink struct {
 	Target ent.Noder        `json:"target"`
 }
 
+type UpdateUserGroupsInput struct {
+	ID             int   `json:"id"`
+	AddGroupIds    []int `json:"addGroupIds"`
+	RemoveGroupIds []int `json:"removeGroupIds"`
+}
+
+type UpdateUsersGroupMembersInput struct {
+	ID            int   `json:"id"`
+	AddUserIds    []int `json:"addUserIds"`
+	RemoveUserIds []int `json:"removeUserIds"`
+}
+
 type UserFilterInput struct {
 	FilterType    UserFilterType     `json:"filterType"`
 	Operator      FilterOperator     `json:"operator"`
