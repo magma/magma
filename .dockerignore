@@ -40,5 +40,9 @@
 !orc8r/protos/
 !orc8r/tools/ansible/roles/gateway_services/files
 !orc8r/tools/ansible/roles/pkgrepo/files
+!orc8r/tools/ansible/roles/pkgrepo/tasks
+!orc8r/tools/docker/
 
 !protos/
+
+!xwf/gateway/
