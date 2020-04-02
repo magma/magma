@@ -98,7 +98,7 @@ const UserManaementView = ({match}: Props) => {
             />
           ),
         },
-        relatedMenuItemIndex: null,
+        relatedMenuItemIndex: 1,
       },
     ],
     [gotoGroupsPage, history],
