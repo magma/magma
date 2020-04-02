@@ -29,7 +29,25 @@ class TestAttachDetachTwoPDNsWithTcpTraffic(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
-        print("************************* Running End to End attach for UE id ", ue_id)
+
+        # ims APN
+        ims = {
+            "apn_name": "ims",  # APN-name
+            "qci": 5,  # qci
+            "priority": 15,  # priority
+            "pre_cap": 0,  # preemption-capability
+            "pre_vul": 0,  # preemption-vulnerability
+            "mbr_ul": 200000000,  # MBR UL
+            "mbr_dl": 100000000,  # MBR DL
+        }
+        apn_list = [ims]
+        self._s1ap_wrapper.configAPN(
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+        )
+
+        print(
+            "************************* Running End to End"
+            " attach for UE id ", ue_id)
         # Attach
         self._s1ap_wrapper.s1_util.attach(
             ue_id,
@@ -42,6 +60,7 @@ class TestAttachDetachTwoPDNsWithTcpTraffic(unittest.TestCase):
         self._s1ap_wrapper._s1_util.receive_emm_info()
         default_apn_ip = self._s1ap_wrapper._s1_util.get_ip(ue_id)
 
+        time.sleep(2)
         # Send PDN Connectivity Request
         apn = "ims"
         print(
