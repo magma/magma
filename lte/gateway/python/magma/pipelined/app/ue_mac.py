@@ -20,6 +20,7 @@ from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.directoryd_client import update_record
 from magma.pipelined.imsi import encode_imsi, decode_imsi
 from magma.pipelined.openflow import flows
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, load_passthrough
@@ -46,6 +47,10 @@ class UEMacAddressController(MagmaController):
         self._datapath = None
         self._dhcp_learn_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
+        self._li_port = None
+        if 'li_local_iface' in kwargs['config']:
+            self._li_port = \
+                BridgeTools.get_ofport(kwargs['config']['li_local_iface'])
 
     def initialize_on_connect(self, datapath):
         self.delete_all_flows(datapath)
@@ -310,6 +315,12 @@ class UEMacAddressController(MagmaController):
         """
         # Allows arp packets from uplink(no eth dst set) to go to the arp table
         self._add_uplink_arp_allow_flow()
+
+        if self._li_port:
+            match = MagmaMatch(in_port=self._li_port)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                match, actions=[], priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table)
 
         # TODO We might want a default drop all rule with min priority, but
         # adding it breakes all unit tests for this controller(needs work)
