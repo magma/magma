@@ -67,11 +67,6 @@ static void* sgw_intertask_interface(void* args_p)
     itti_receive_msg(TASK_SPGW_APP, &received_message_p);
 
     imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-    OAILOG_DEBUG(
-      LOG_SPGW_APP,
-      "Received message with imsi: " IMSI_64_FMT,
-      imsi64);
-
     spgw_state_t* spgw_state = get_spgw_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
