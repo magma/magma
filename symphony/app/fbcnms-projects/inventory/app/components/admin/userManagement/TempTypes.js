@@ -60,6 +60,11 @@ export const EMPLOYMENT_TYPES: KeyValueEnum<string> = {
 
 export type EmploymentType = $Keys<typeof EMPLOYMENT_TYPES>;
 
+export type UserGroups = {|
+  +id: string,
+  +name: string,
+|};
+
 export type User = {|
   id: string,
   authID: string,
@@ -72,6 +77,7 @@ export type User = {|
   employeeID?: string,
   jobTitle?: string,
   phoneNumber?: string,
+  groups: $ReadOnlyArray<?UserGroups>,
 |};
 
 export const NEW_GROUP_DIALOG_PARAM = 'new';
@@ -97,4 +103,5 @@ export type UserPermissionsGroup = {|
   description: string,
   status: UsersGroupStatus,
   members: $ReadOnlyArray<UserPermissionsGroupMember>,
+  memberUsers: $ReadOnlyArray<User>,
 |};

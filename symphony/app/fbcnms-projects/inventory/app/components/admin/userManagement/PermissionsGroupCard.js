@@ -49,6 +49,7 @@ const initialNewGroup: UserPermissionsGroup = {
   description: '',
   status: GROUP_STATUSES.ACTIVE.key,
   members: [],
+  memberUsers: [],
 };
 
 export default function PermissionsGroupCard({

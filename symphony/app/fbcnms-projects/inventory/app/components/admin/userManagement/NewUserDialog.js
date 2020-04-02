@@ -41,6 +41,7 @@ const initialUserData: User = {
   lastName: '',
   role: USER_ROLES.USER.key,
   status: USER_STATUSES.ACTIVE.key,
+  groups: [],
 };
 
 const useStyles = makeStyles(() => ({

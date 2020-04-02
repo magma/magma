@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 77a9d8aceca2a00a17e6b70ef1fa0b2b
+ * @relayHash 763f5e8e461442174769f2e7b4a37ed9
  */
 
 /* eslint-disable */
@@ -36,6 +36,15 @@ export type EditUserMutationResponse = {|
     +email: string,
     +status: UserStatus,
     +role: UserRole,
+    +groups: $ReadOnlyArray<?{|
+      +id: string,
+      +name: string,
+    |}>,
+    +profilePhoto: ?{|
+      +id: string,
+      +fileName: string,
+      +storeKey: ?string,
+    |},
   |}
 |};
 export type EditUserMutation = {|
@@ -57,6 +66,15 @@ mutation EditUserMutation(
     email
     status
     role
+    groups {
+      id
+      name
+    }
+    profilePhoto {
+      id
+      fileName
+      storeKey
+    }
   }
 }
 */
@@ -70,7 +88,14 @@ var v0 = [
     "defaultValue": null
   }
 ],
-v1 = [
+v1 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "id",
+  "args": null,
+  "storageKey": null
+},
+v2 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -86,13 +111,7 @@ v1 = [
     "concreteType": "User",
     "plural": false,
     "selections": [
-      {
-        "kind": "ScalarField",
-        "alias": null,
-        "name": "id",
-        "args": null,
-        "storageKey": null
-      },
+      (v1/*: any*/),
       {
         "kind": "ScalarField",
         "alias": null,
@@ -134,6 +153,51 @@ v1 = [
         "name": "role",
         "args": null,
         "storageKey": null
+      },
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "groups",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "UsersGroup",
+        "plural": true,
+        "selections": [
+          (v1/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "name",
+            "args": null,
+            "storageKey": null
+          }
+        ]
+      },
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "profilePhoto",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "File",
+        "plural": false,
+        "selections": [
+          (v1/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "fileName",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "storeKey",
+            "args": null,
+            "storageKey": null
+          }
+        ]
       }
     ]
   }
@@ -146,23 +210,23 @@ return {
     "type": "Mutation",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v1/*: any*/)
+    "selections": (v2/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "EditUserMutation",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v1/*: any*/)
+    "selections": (v2/*: any*/)
   },
   "params": {
     "operationKind": "mutation",
     "name": "EditUserMutation",
     "id": null,
-    "text": "mutation EditUserMutation(\n  $input: EditUserInput!\n) {\n  editUser(input: $input) {\n    id\n    authID\n    firstName\n    lastName\n    email\n    status\n    role\n  }\n}\n",
+    "text": "mutation EditUserMutation(\n  $input: EditUserInput!\n) {\n  editUser(input: $input) {\n    id\n    authID\n    firstName\n    lastName\n    email\n    status\n    role\n    groups {\n      id\n      name\n    }\n    profilePhoto {\n      id\n      fileName\n      storeKey\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '922ae64cfd1dfae825cf91689b51b867';
+(node/*: any*/).hash = '1e8b49468fc4fea4b5620fa5df5ee304';
 module.exports = node;
