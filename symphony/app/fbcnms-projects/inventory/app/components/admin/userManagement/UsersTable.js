@@ -18,6 +18,7 @@ import * as React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserDetailsCard from './UserDetailsCard';
+import UserViewer from './UserViewer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {USER_ROLES, USER_STATUSES} from './TempTypes';
@@ -42,12 +43,12 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type UserTableRow = TableRowDataType<User>;
+type UserTableRow = TableRowDataType<{|data: User|}>;
 type UserTableData = Array<UserTableRow>;
 
-const user2UserTableRow: (User | UserTableRow) => UserTableRow = user => ({
-  key: user.key || user.authID,
-  ...user,
+const user2UserTableRow: User => UserTableRow = user => ({
+  key: user.authID,
+  data: user,
 });
 
 export default function UsersTable() {
@@ -68,47 +69,34 @@ export default function UsersTable() {
         titleClassName: classes.nameColumn,
         className: classes.nameColumn,
         render: userRow => (
-          <>
-            <Text
-              variant="subtitle2"
-              color={isActiveUser(userRow.key) ? 'primary' : undefined}
-              useEllipsis={true}
-              className={classes.field}>
-              {userRow.firstName || userRow.lastName
-                ? `${userRow.firstName} ${userRow.lastName}`
-                : '_'}
-            </Text>
-            <Text
-              variant="caption"
-              color="gray"
-              useEllipsis={true}
-              className={classes.field}>
-              {userRow.authID}
-            </Text>
-          </>
+          <UserViewer
+            user={userRow.data}
+            highlightName={isActiveUser(userRow.key)}
+            className={classes.field}
+          />
         ),
       },
       {
         key: 'role',
         title: <fbt desc="Role column header in users table">Role</fbt>,
         render: userRow =>
-          userRow.status === USER_STATUSES.DEACTIVATED.key
+          userRow.data.status === USER_STATUSES.DEACTIVATED.key
             ? null
-            : USER_ROLES[userRow.role].value || userRow.role,
+            : USER_ROLES[userRow.data.role].value || userRow.data.role,
       },
       {
         key: 'job_title',
         title: (
           <fbt desc="Job Title column header in users table">Job Title</fbt>
         ),
-        render: userRow => userRow.jobTitle ?? '',
+        render: userRow => userRow.data.jobTitle ?? '',
       },
       {
         key: 'employment',
         title: (
           <fbt desc="Employment column header in users table">Employment</fbt>
         ),
-        render: userRow => userRow.employmentType ?? '',
+        render: userRow => userRow.data.employmentType ?? '',
       },
       {
         key: 'status',
@@ -117,11 +105,11 @@ export default function UsersTable() {
           <Text
             useEllipsis={true}
             color={
-              userRow.status === USER_STATUSES.DEACTIVATED.key
+              userRow.data.status === USER_STATUSES.DEACTIVATED.key
                 ? 'error'
                 : undefined
             }>
-            {USER_STATUSES[userRow.status].value || userRow.status}
+            {USER_STATUSES[userRow.data.status].value || userRow.data.status}
           </Text>
         ),
       },
