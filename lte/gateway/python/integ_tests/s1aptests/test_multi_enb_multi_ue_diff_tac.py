@@ -22,19 +22,32 @@ class TestMultiEnbWithDifferentTac(unittest.TestCase):
 
     def test_attach_detach_multienb_different_tac(self):
         """ Multi Enb attach with different TAC values """
-        num_of_enbs = 5
-        # column is a enb parameter,  row is a number of enbs
-        """            Cell Id,   Tac, EnbType, PLMN Id """
-        enb_list = list([[1,       1,     1,    "001010"],
-                         [2,       2,     1,    "001010"],
-                         [3,       3,     1,    "001010"],
-                         [4,       4,     1,    "001010"],
-                         [5,       5,     1,    "001010"]])
 
-        assert (num_of_enbs == len(enb_list)), "Number of enbs configured"
-        "not equal to enbs in the list!!!"
+        """ Note: Before execution of this test case,
+        make sure that following steps are correct
+        1. Configure same plmn and tac in both MME and s1ap tester
+        2. How to configure plmn and tac in MME:
+           a. For single PLMN, set mcc and mnc in gateway.mconfig for mme service
+           b. For single tac, set tac in gateway.mconfig for mme service
+           c. For different PLMNs/TACs, add an entry for each MCC, MNC and TAC in
+           mme.conf.template under TAI_LIST and GUMMEI_LIST
+           d. Restart MME service
+        3. How to configure plmn and tac in s1ap tester,
+           a. For multi-eNB test case, configure plmn and tac from test case.
+             In each multi-eNB test case, set plmn, plmn length and tac
+             in enb_list
+           b. For single eNB test case, configure plmn and tac in nbAppCfg.txt
+        """
 
-        self._s1ap_wrapper.multiEnbConfig(num_of_enbs, enb_list)
+        # column is an enb parameter, row is number of enbs
+        """            Cell Id, Tac, EnbType, PLMN Id, PLMN length """
+        enb_list = [[1, 1, 1, "00101", 5],
+                    [2, 2, 1, "00101", 5],
+                    [3, 3, 1, "00101", 5],
+                    [4, 4, 1, "00101", 5],
+                    [5, 5, 1, "00101", 5]]
+
+        self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
         time.sleep(2)
 
