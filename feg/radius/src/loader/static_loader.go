@@ -24,6 +24,7 @@ import (
 	modeap "fbc/cwf/radius/modules/eap"
 	modlbserve "fbc/cwf/radius/modules/lbserve"
 	modmagmaacct "fbc/cwf/radius/modules/magmaacct"
+	ofpanalytics "fbc/cwf/radius/modules/ofpanalytics"
 	modproxy "fbc/cwf/radius/modules/proxy"
 	modloopback "fbc/cwf/radius/modules/testloopback"
 	testsessionstorage "fbc/cwf/radius/modules/testsessionstorage"
@@ -58,6 +59,7 @@ var CWFModuleMap = ModuleNameMap{
 	"eap":                func() modules.Module { return NewModule(modeap.Init, modeap.Handle) },
 	"lbserve":            func() modules.Module { return NewModule(modlbserve.Init, modlbserve.Handle) },
 	"proxy":              func() modules.Module { return NewModule(modproxy.Init, modproxy.Handle) },
+	"ofpanalytics":       func() modules.Module { return NewModule(ofpanalytics.Init, ofpanalytics.Handle) },
 	"xwfv3":              func() modules.Module { return NewModule(modxwfv3.Init, modxwfv3.Handle) },
 	"testloopback":       func() modules.Module { return NewModule(modloopback.Init, modloopback.Handle) },
 	"coafixedip":         func() modules.Module { return NewModule(modcoafixed.Init, modcoafixed.Handle) },
