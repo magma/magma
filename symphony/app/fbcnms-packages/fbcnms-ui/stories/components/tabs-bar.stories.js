@@ -37,6 +37,7 @@ const tabs: Array<TabProps> = [
   },
   {
     label: 'Option 4',
+    disabled: true,
   },
 ];
 
@@ -52,11 +53,27 @@ const TabsBarRoot = () => {
         size="large"
         activeTabIndex={activeTab}
         onChange={setActiveTab}
+        spread={false}
+      />
+      <TabsBar
+        className={classes.tabsContainer}
+        tabs={tabs}
+        activeTabIndex={activeTab}
+        onChange={setActiveTab}
+        spread={false}
+      />
+      <TabsBar
+        className={classes.tabsContainer}
+        tabs={tabs}
+        size="large"
+        activeTabIndex={activeTab}
+        onChange={setActiveTab}
         spread={true}
       />
       <TabsBar
         className={classes.tabsContainer}
         tabs={tabs}
+        size="small"
         activeTabIndex={activeTab}
         onChange={setActiveTab}
         spread={false}

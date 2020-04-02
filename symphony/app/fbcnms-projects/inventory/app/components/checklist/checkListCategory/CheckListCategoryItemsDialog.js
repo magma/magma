@@ -69,7 +69,7 @@ type View = {
 };
 
 const DESIGN_VIEW: View = {
-  label: `${fbt('items', 'Header for tab showing checklist items')}`,
+  label: `${fbt('Items', 'Header for tab showing checklist items')}`,
   labelSuffix: itemsList => (itemsList ? ` (${itemsList.length})` : ''),
   value: 0,
 };
@@ -121,7 +121,8 @@ const CheckListCategoryItemsDialog = ({
             }))}
             activeTabIndex={pickedView}
             onChange={setPickedView}
-            spread={true}
+            spread={false}
+            size="small"
           />
           {pickedView === TabViewValues.items && (
             <FormAction>
