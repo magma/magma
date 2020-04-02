@@ -9,9 +9,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 from magma.pipelined.openflow import flows
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.configuration.mconfig_managers import load_service_mconfig
+
+from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction
+from lte.protos.mconfig import mconfigs_pb2
 
+from ryu.lib import hub
 from ryu.lib.packet import ether_types
 
 
@@ -37,6 +42,7 @@ class LIMirrorController(MagmaController):
         self._li_dst_port = kwargs['config'].get('li_dst_iface', None)
         self._li_dst_port_num = BridgeTools.get_ofport(self._li_dst_port)
         self._datapath = None
+        self._li_imsis = []
 
     def initialize_on_connect(self, datapath):
         """
@@ -48,6 +54,7 @@ class LIMirrorController(MagmaController):
         self.delete_all_flows(datapath)
         self._install_default_flows(datapath)
         self._datapath = datapath
+        hub.spawn(self._monitor)
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -91,3 +98,35 @@ class LIMirrorController(MagmaController):
         li_match = MagmaMatch(in_port=self._li_local_port_num)
         flows.add_output_flow(datapath, self.tbl_num, li_match, [],
                               output_port=self._li_dst_port_num)
+
+    def _install_mirror_flows(self, imsis):
+        parser = self._datapath.ofproto_parser
+        for imsi in imsis:
+            self.logger.error("adding imsi %s", imsi)
+            match = MagmaMatch(imsi=encode_imsi(imsi))
+            actions = [parser.OFPActionOutput(self._li_dst_port_num)]
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                match, actions, priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table)
+
+    def _remove_mirror_flows(self, imsis):
+        for imsi in imsis:
+            self.logger.error("removing imsi %s", imsi)
+            match = MagmaMatch(imsi=encode_imsi(imsi))
+            flows.delete_flow(self._datapath, self.tbl_num, match)
+
+    def _monitor(self, poll_interval=15):
+        """
+        Main thread that polls config updates and updates LI mirror flows
+        """
+        while True:
+            li_imsis = load_service_mconfig('pipelined',
+                                            mconfigs_pb2.PipelineD()).li_imsis
+            imsis_to_add = [imsi for imsi in li_imsis if
+                            imsi not in self._li_imsis]
+            self._install_mirror_flows(imsis_to_add)
+            imsis_to_rm = [imsi for imsi in self._li_imsis if
+                           imsi not in li_imsis]
+            self._remove_mirror_flows(imsis_to_rm)
+            self._li_imsis = li_imsis
+            hub.sleep(poll_interval)

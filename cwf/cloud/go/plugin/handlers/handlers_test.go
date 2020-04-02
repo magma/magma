@@ -308,6 +308,8 @@ func TestCwfGateways(t *testing.T) {
 	getGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.GET).HandlerFunc
 	getCarrierWifiGatewayConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/carrier_wifi", obsidian.GET).HandlerFunc
 	updateCarrierWifiGatewayConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/carrier_wifi", obsidian.PUT).HandlerFunc
+	getCarrierWifiGatewayLiImsis := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/li_imsis", obsidian.GET).HandlerFunc
+	updateCarrierWifiGatewayLiImsis := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/li_imsis", obsidian.PUT).HandlerFunc
 	updateGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.PUT).HandlerFunc
 	deleteGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.DELETE).HandlerFunc
 	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.POST).HandlerFunc
@@ -508,6 +510,45 @@ func TestCwfGateways(t *testing.T) {
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 400,
 		ExpectedError:  "Found duplicate peer 2.2.2.2/24 with key 444",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Test update gateway LiImsis config
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/cwf/n1/gateways/g1/li_imsis",
+		Handler:        updateCarrierWifiGatewayLiImsis,
+		Payload:        tests.JSONMarshaler([]string{"IMSI001010000000009"}),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/gateways/g1/li_imsis",
+		Handler:        getCarrierWifiGatewayLiImsis,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler([]string{"IMSI001010000000009"}),
+	}
+
+	// Test get gateway CarrierWifi config
+	expectedGwConfGet = &models2.GatewayCwfConfigs{
+		AllowedGrePeers: models2.AllowedGrePeers{
+			{IP: "1.1.1.1"},
+		},
+		LiImsis: []string{"IMSI001010000000009"},
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/gateways/g1",
+		Handler:        getCarrierWifiGatewayConfig,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: expectedGwConfGet,
 	}
 	tests.RunUnitTest(t, e, tc)
 

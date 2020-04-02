@@ -541,6 +541,39 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /cwf/{network_id}/gateways/{gateway_id}/li_imsis:
+    get:
+      summary: Get monitored LI IMSIs for Carrier Wifi network
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: List of LI IMSIs
+          schema:
+            $ref: '#/definitions/li_imsis'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update monitored LI IMSIs for Carrier Wifi network
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - name: description
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/li_imsis'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /cwf/{network_id}/gateways/{gateway_id}/device:
     get:
       summary: Get the physical device for a carrier wifi gateway
@@ -835,6 +868,10 @@ definitions:
     type: array
     items:
       $ref: '#/definitions/allowed_gre_peer'
+  li_imsis:
+    type: array
+    items:
+      type: string
   ipdr_export_dst:
     type: object
     required:
@@ -859,6 +896,8 @@ definitions:
     properties:
       allowed_gre_peers:
         $ref: '#/definitions/allowed_gre_peers'
+      li_imsis:
+        $ref: '#/definitions/li_imsis'
       ipdr_export_dst:
         $ref: '#/definitions/ipdr_export_dst'
 
