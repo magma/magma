@@ -15,6 +15,7 @@ import type {
 import type {User} from './TempTypes';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserDetailsCard from './UserDetailsCard';
@@ -25,6 +26,7 @@ import {USER_ROLES, USER_STATUSES} from './TempTypes';
 import {haveDifferentValues} from '../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useContext} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useUserManagement} from './UserManagementContext';
 
@@ -53,6 +55,10 @@ const user2UserTableRow: User => UserTableRow = user => ({
 
 export default function UsersTable() {
   const classes = useStyles();
+
+  const {isFeatureEnabled} = useContext(AppContext);
+  const userManagementDevMode = isFeatureEnabled('user_management_dev');
+
   const [usersTableData, setUsersTableData] = useState<UserTableData>([]);
   const {users, editUser} = useUserManagement();
   useEffect(() => setUsersTableData(users.map(user2UserTableRow)), [users]);
@@ -62,7 +68,7 @@ export default function UsersTable() {
   const columns = useMemo(() => {
     const isActiveUser = userId =>
       activeUserId != null && activeUserId === userId;
-    return [
+    const returnCols = [
       {
         key: 'name',
         title: <fbt desc="Name column header in users table">Name</fbt>,
@@ -85,20 +91,6 @@ export default function UsersTable() {
             : USER_ROLES[userRow.data.role].value || userRow.data.role,
       },
       {
-        key: 'job_title',
-        title: (
-          <fbt desc="Job Title column header in users table">Job Title</fbt>
-        ),
-        render: userRow => userRow.data.jobTitle ?? '',
-      },
-      {
-        key: 'employment',
-        title: (
-          <fbt desc="Employment column header in users table">Employment</fbt>
-        ),
-        render: userRow => userRow.data.employmentType ?? '',
-      },
-      {
         key: 'status',
         title: <fbt desc="Status column header in users table">Status</fbt>,
         render: userRow => (
@@ -114,7 +106,30 @@ export default function UsersTable() {
         ),
       },
     ];
-  }, [classes.nameColumn, classes.field, activeUserId]);
+    if (userManagementDevMode) {
+      returnCols.push(
+        ...[
+          {
+            key: 'job_title',
+            title: (
+              <fbt desc="Job Title column header in users table">Job Title</fbt>
+            ),
+            render: userRow => userRow.data.jobTitle ?? '',
+          },
+          {
+            key: 'employment',
+            title: (
+              <fbt desc="Employment column header in users table">
+                Employment
+              </fbt>
+            ),
+            render: userRow => userRow.data.employmentType ?? '',
+          },
+        ],
+      );
+    }
+    return returnCols;
+  }, [classes.nameColumn, classes.field, userManagementDevMode, activeUserId]);
 
   const enqueueSnackbar = useEnqueueSnackbar();
   const handleError = useCallback(
