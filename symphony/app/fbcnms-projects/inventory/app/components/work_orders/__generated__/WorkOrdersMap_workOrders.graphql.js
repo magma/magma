@@ -23,10 +23,16 @@ export type WorkOrdersMap_workOrders = $ReadOnlyArray<{|
   +id: string,
   +name: string,
   +description: ?string,
-  +ownerName: string,
+  +owner: {|
+    +id: string,
+    +email: string,
+  |},
   +status: WorkOrderStatus,
   +priority: WorkOrderPriority,
-  +assignee: ?string,
+  +assignedTo: ?{|
+    +id: string,
+    +email: string,
+  |},
   +installDate: ?any,
   +location: ?{|
     +id: string,
@@ -59,7 +65,17 @@ v1 = {
   "name": "name",
   "args": null,
   "storageKey": null
-};
+},
+v2 = [
+  (v0/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "email",
+    "args": null,
+    "storageKey": null
+  }
+];
 return {
   "kind": "Fragment",
   "name": "WorkOrdersMap_workOrders",
@@ -79,11 +95,14 @@ return {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "ownerName",
+      "name": "owner",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": (v2/*: any*/)
     },
     {
       "kind": "ScalarField",
@@ -100,11 +119,14 @@ return {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "assignee",
+      "name": "assignedTo",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "User",
+      "plural": false,
+      "selections": (v2/*: any*/)
     },
     {
       "kind": "ScalarField",
@@ -144,5 +166,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '6a0ec53daa3697e01fdf851e534739ba';
+(node/*: any*/).hash = '6bb7dd94318b80fa9274ae5e245b1e70';
 module.exports = node;

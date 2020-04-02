@@ -41,7 +41,7 @@ class CliTest : public ::testing::Test {
 
   void SetUp() override {
     devmand::test::utils::log::initLog(MDEBUG);
-    cliEngine = make_unique<channels::cli::Engine>();
+    cliEngine = make_unique<channels::cli::Engine>(dynamic::object());
     ssh = startSshServer();
   }
 
@@ -73,9 +73,12 @@ TEST_F(CliTest, writeMultipleTimesAllExecute) {
   deviceConfig.ip = "localhost";
   deviceConfig.id = "localhost-test-device";
 
-  IoConfigurationBuilder ioConfigurationBuilder(deviceConfig, *cliEngine);
-  const shared_ptr<Cli>& cli =
-      ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
+  IoConfigurationBuilder ioConfigurationBuilder(
+      deviceConfig, *cliEngine, CliFlavour::getDefaultInstance());
+  const shared_ptr<Cli>& cli = ioConfigurationBuilder.createAll(
+      ReadCachingCli::createCache(),
+      make_shared<TreeCache>(
+          ioConfigurationBuilder.getConnectionParameters()->flavour));
   const function<bool()>& connectionTest = ensureConnected(cli);
 
   EXPECT_BECOMES_TRUE(connectionTest());

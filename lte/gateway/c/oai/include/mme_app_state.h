@@ -36,15 +36,6 @@ extern "C" {
 int mme_nas_state_init(const mme_config_t* mme_config_p);
 
 /**
- * Lock the MME NAS state and return pointer to the in-memory MME/NAS state from
- * state manager before processing any message. This is a thread safe call. If
- * the read_from_db flag is set to true, the state is loaded from data store
- * before returning the pointer. The lock acquired here is released by
- * put_mme_nas_state()
-*/
-mme_app_desc_t* get_locked_mme_nas_state(bool read_from_db);
-
-/**
  * Return pointer to the in-memory MME/NAS state from state manager before
  * processing any message. This is a thread safe call
  * If the read_from_db flag is set to true, the state is loaded from data store
@@ -56,13 +47,20 @@ mme_app_desc_t* get_mme_nas_state(bool read_from_db);
  * Write the MME/NAS state to data store after processing any message. This is a
  * thread safe call
 */
-void put_mme_nas_state(mme_app_desc_t** task_state_ptr);
+void put_mme_nas_state(void);
 
 /**
  * Release the memory allocated for the MME NAS state, this does not clean the
  * state persisted in data store
 */
 void clear_mme_nas_state(void);
+
+// Returns UE MME state hashtable, indexed by IMSI
+hash_table_ts_t* get_mme_ue_state(void);
+// Persists UE MME state for subscriber into db
+void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64);
+// Deletes entry for UE MME state on db
+void delete_mme_ue_state(imsi64_t imsi64);
 
 #ifdef __cplusplus
 }

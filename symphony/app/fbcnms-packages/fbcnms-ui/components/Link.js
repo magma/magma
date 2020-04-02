@@ -11,6 +11,7 @@
 import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
+import symphony from '../theme/symphony';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
@@ -18,11 +19,11 @@ type Props = {
   children: React.Node,
 } & WithStyles<typeof styles>;
 
-const styles = theme => ({
+const styles = () => ({
   root: {
     cursor: 'pointer',
     textDecoration: 'underline',
-    color: theme.palette.primary.main,
+    color: symphony.palette.primary,
   },
 });
 

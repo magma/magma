@@ -7,20 +7,18 @@ package importer
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 
 	"github.com/stretchr/testify/require"
-	"gocloud.dev/pubsub"
-	"gocloud.dev/pubsub/mempubsub"
 )
 
 const (
@@ -48,13 +46,11 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestImporterResolver {
 	err := client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true))
 	require.NoError(t, err)
 
-	topic := mempubsub.NewTopic()
+	emitter, subscriber := event.Pipe()
 	r := resolver.New(resolver.Config{
-		Logger: logtest.NewTestLogger(t),
-		Topic:  topic,
-		Subscribe: func(context.Context) (*pubsub.Subscription, error) {
-			return mempubsub.NewSubscription(topic, time.Second), nil
-		},
+		Logger:     logtest.NewTestLogger(t),
+		Emitter:    emitter,
+		Subscriber: subscriber,
 	})
 	return &TestImporterResolver{
 		drv:    drv,

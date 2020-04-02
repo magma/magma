@@ -5,15 +5,7 @@ query EquipmentTypeAndPropertiesQuery($id: ID!) {
         name
       }
       properties {
-        propertyType {
-          id
-        }
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
+        ...PropertyFragment
       }
     }
   }

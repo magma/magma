@@ -27,8 +27,9 @@ type AuditLogQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.AuditLog
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -151,6 +152,9 @@ func (alq *AuditLogQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of AuditLogs.
 func (alq *AuditLogQuery) All(ctx context.Context) ([]*AuditLog, error) {
+	if err := alq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return alq.sqlAll(ctx)
 }
 
@@ -183,6 +187,9 @@ func (alq *AuditLogQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (alq *AuditLogQuery) Count(ctx context.Context) (int, error) {
+	if err := alq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return alq.sqlCount(ctx)
 }
 
@@ -197,6 +204,9 @@ func (alq *AuditLogQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (alq *AuditLogQuery) Exist(ctx context.Context) (bool, error) {
+	if err := alq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return alq.sqlExist(ctx)
 }
 
@@ -220,7 +230,8 @@ func (alq *AuditLogQuery) Clone() *AuditLogQuery {
 		unique:     append([]string{}, alq.unique...),
 		predicates: append([]predicate.AuditLog{}, alq.predicates...),
 		// clone intermediate query.
-		sql: alq.sql.Clone(),
+		sql:  alq.sql.Clone(),
+		path: alq.path,
 	}
 }
 
@@ -242,7 +253,12 @@ func (alq *AuditLogQuery) Clone() *AuditLogQuery {
 func (alq *AuditLogQuery) GroupBy(field string, fields ...string) *AuditLogGroupBy {
 	group := &AuditLogGroupBy{config: alq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = alq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := alq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return alq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -261,8 +277,24 @@ func (alq *AuditLogQuery) GroupBy(field string, fields ...string) *AuditLogGroup
 func (alq *AuditLogQuery) Select(field string, fields ...string) *AuditLogSelect {
 	selector := &AuditLogSelect{config: alq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = alq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := alq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return alq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (alq *AuditLogQuery) prepareQuery(ctx context.Context) error {
+	if alq.path != nil {
+		prev, err := alq.path(ctx)
+		if err != nil {
+			return err
+		}
+		alq.sql = prev
+	}
+	return nil
 }
 
 func (alq *AuditLogQuery) sqlAll(ctx context.Context) ([]*AuditLog, error) {
@@ -371,8 +403,9 @@ type AuditLogGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -383,6 +416,11 @@ func (algb *AuditLogGroupBy) Aggregate(fns ...Aggregate) *AuditLogGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (algb *AuditLogGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := algb.path(ctx)
+	if err != nil {
+		return err
+	}
+	algb.sql = query
 	return algb.sqlScan(ctx, v)
 }
 
@@ -501,12 +539,18 @@ func (algb *AuditLogGroupBy) sqlQuery() *sql.Selector {
 type AuditLogSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (als *AuditLogSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := als.path(ctx)
+	if err != nil {
+		return err
+	}
+	als.sql = query
 	return als.sqlScan(ctx, v)
 }
 

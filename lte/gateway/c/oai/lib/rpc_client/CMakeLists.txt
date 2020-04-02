@@ -1,26 +1,56 @@
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
-# compile the needed protos
-set(RPC_ORC8R_CPP_PROTOS common)
-set(RPC_LTE_CPP_PROTOS mobilityd subscriberdb)
-set(RPC_ORC8R_GRPC_PROTOS "")
-set(RPC_LTE_GRPC_PROTOS mobilityd subscriberdb)
+include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
+
+set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+
+set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
+include_directories("${OUTPUT_DIR}")
+
+include_directories(${MAGMA_LIB_DIR}/async_grpc)
+
+create_proto_dir("lte" LTE_CPP_OUT_DIR)
+create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)
+
 
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-generate_all_protos("${RPC_LTE_CPP_PROTOS}" "${RPC_ORC8R_CPP_PROTOS}"
-  "${RPC_LTE_GRPC_PROTOS}" "${RPC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
+# compile the needed protos
+set(RPC_LTE_CPP_PROTOS mobilityd subscriberdb)
+generate_cpp_protos("${RPC_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+        "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
+
+set(RPC_ORC8R_CPP_PROTOS common)
+generate_cpp_protos("${RPC_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
+        "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
+
+set(RPC_LTE_GRPC_PROTOS mobilityd subscriberdb)
+generate_grpc_protos("${RPC_LTE_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
+
+set(RPC_ORC8R_GRPC_PROTOS "")
+generate_grpc_protos("${RPC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+link_directories(
+        ${MAGMA_LIB_DIR}/async_grpc
+)
+
 add_library(LIB_RPC_CLIENT
-    MobilityClient.cpp
-    RpcClient.cpp
+    MobilityServiceClient.cpp
+    MobilityClientAPI.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
-    )
+)
+
+target_link_libraries(LIB_RPC_CLIENT
+        COMMON
+        LIB_BSTR
+        LIB_PCEF
+)
 
 target_include_directories(LIB_RPC_CLIENT PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ASYNC_GRPC COMMON
 )

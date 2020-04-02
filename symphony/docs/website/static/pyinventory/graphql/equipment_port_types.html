@@ -35,62 +35,59 @@
 <dl>
 <dt id="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery"><code class="flex name class">
 <span>class <span class="ident">EquipmentPortTypesQuery</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData">EquipmentPortTypesQuery.EquipmentPortTypesQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentPortTypesQuery(data: Union[pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
+<section class="desc"><p>EquipmentPortTypesQuery(data: pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
+id\n
+name\n
+type\n
+index\n
+category\n
+stringValue\n
+intValue\n
+booleanValue\n
+floatValue\n
+latitudeValue\n
+longitudeValue\n
+rangeFromValue\n
+rangeToValue\n
+isEditable\n
+isInstanceProperty\n
+isMandatory\n
+isDeleted\n}\n\n\n
+query EquipmentPortTypesQuery {\n
+equipmentPortTypes {\n
+edges {\n
+node {\n
+id\n
+name\n
+propertyTypes {\n
+&hellip;PropertyTypeFragment\n
+}\n
+linkPropertyTypes {\n
+&hellip;PropertyTypeFragment\n
+}\n
+}\n
+}\n
+}\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData"><code class="name">var <span class="ident">EquipmentPortTypesQueryData</span></code></dt>
 <dd>
 <section class="desc"><p>EquipmentPortTypesQueryData(equipmentPortTypes: pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData.EquipmentPortTypeConnection)</p></section>
 </dd>
-<dt id="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient) -> <a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData">EquipmentPortTypesQuery.EquipmentPortTypesQueryData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -117,14 +114,7 @@
 <h4><code><a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery">EquipmentPortTypesQuery</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData">EquipmentPortTypesQueryData</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.data" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.errors" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.execute" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.from_dict" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.from_json" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.schema" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.to_dict" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.to_json" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

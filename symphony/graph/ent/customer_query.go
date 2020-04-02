@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -32,8 +31,9 @@ type CustomerQuery struct {
 	predicates []predicate.Customer
 	// eager-loading edges.
 	withServices *ServiceQuery
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -63,12 +63,18 @@ func (cq *CustomerQuery) Order(o ...Order) *CustomerQuery {
 // QueryServices chains the current query on the services edge.
 func (cq *CustomerQuery) QueryServices() *ServiceQuery {
 	query := &ServiceQuery{config: cq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(customer.Table, customer.FieldID, cq.sqlQuery()),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, customer.ServicesTable, customer.ServicesPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(customer.Table, customer.FieldID, cq.sqlQuery()),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, customer.ServicesTable, customer.ServicesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -94,8 +100,8 @@ func (cq *CustomerQuery) FirstX(ctx context.Context) *Customer {
 }
 
 // FirstID returns the first Customer id in the query. Returns *NotFoundError when no id was found.
-func (cq *CustomerQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (cq *CustomerQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = cq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -107,7 +113,7 @@ func (cq *CustomerQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (cq *CustomerQuery) FirstXID(ctx context.Context) string {
+func (cq *CustomerQuery) FirstXID(ctx context.Context) int {
 	id, err := cq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -141,8 +147,8 @@ func (cq *CustomerQuery) OnlyX(ctx context.Context) *Customer {
 }
 
 // OnlyID returns the only Customer id in the query, returns an error if not exactly one id was returned.
-func (cq *CustomerQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (cq *CustomerQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = cq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -158,7 +164,7 @@ func (cq *CustomerQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (cq *CustomerQuery) OnlyXID(ctx context.Context) string {
+func (cq *CustomerQuery) OnlyXID(ctx context.Context) int {
 	id, err := cq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -168,6 +174,9 @@ func (cq *CustomerQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of Customers.
 func (cq *CustomerQuery) All(ctx context.Context) ([]*Customer, error) {
+	if err := cq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return cq.sqlAll(ctx)
 }
 
@@ -181,8 +190,8 @@ func (cq *CustomerQuery) AllX(ctx context.Context) []*Customer {
 }
 
 // IDs executes the query and returns a list of Customer ids.
-func (cq *CustomerQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (cq *CustomerQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := cq.Select(customer.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -190,7 +199,7 @@ func (cq *CustomerQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (cq *CustomerQuery) IDsX(ctx context.Context) []string {
+func (cq *CustomerQuery) IDsX(ctx context.Context) []int {
 	ids, err := cq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -200,6 +209,9 @@ func (cq *CustomerQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (cq *CustomerQuery) Count(ctx context.Context) (int, error) {
+	if err := cq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return cq.sqlCount(ctx)
 }
 
@@ -214,6 +226,9 @@ func (cq *CustomerQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (cq *CustomerQuery) Exist(ctx context.Context) (bool, error) {
+	if err := cq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return cq.sqlExist(ctx)
 }
 
@@ -237,7 +252,8 @@ func (cq *CustomerQuery) Clone() *CustomerQuery {
 		unique:     append([]string{}, cq.unique...),
 		predicates: append([]predicate.Customer{}, cq.predicates...),
 		// clone intermediate query.
-		sql: cq.sql.Clone(),
+		sql:  cq.sql.Clone(),
+		path: cq.path,
 	}
 }
 
@@ -270,7 +286,12 @@ func (cq *CustomerQuery) WithServices(opts ...func(*ServiceQuery)) *CustomerQuer
 func (cq *CustomerQuery) GroupBy(field string, fields ...string) *CustomerGroupBy {
 	group := &CustomerGroupBy{config: cq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = cq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return cq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -289,8 +310,24 @@ func (cq *CustomerQuery) GroupBy(field string, fields ...string) *CustomerGroupB
 func (cq *CustomerQuery) Select(field string, fields ...string) *CustomerSelect {
 	selector := &CustomerSelect{config: cq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = cq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return cq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (cq *CustomerQuery) prepareQuery(ctx context.Context) error {
+	if cq.path != nil {
+		prev, err := cq.path(ctx)
+		if err != nil {
+			return err
+		}
+		cq.sql = prev
+	}
+	return nil
 }
 
 func (cq *CustomerQuery) sqlAll(ctx context.Context) ([]*Customer, error) {
@@ -324,14 +361,14 @@ func (cq *CustomerQuery) sqlAll(ctx context.Context) ([]*Customer, error) {
 
 	if query := cq.withServices; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Customer, len(nodes))
+		ids := make(map[int]*Customer, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Customer)
+			edgeids []int
+			edges   = make(map[int][]*Customer)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -355,8 +392,8 @@ func (cq *CustomerQuery) sqlAll(ctx context.Context) ([]*Customer, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -407,7 +444,7 @@ func (cq *CustomerQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   customer.Table,
 			Columns: customer.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: customer.FieldID,
 			},
 		},
@@ -467,8 +504,9 @@ type CustomerGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -479,6 +517,11 @@ func (cgb *CustomerGroupBy) Aggregate(fns ...Aggregate) *CustomerGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (cgb *CustomerGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := cgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	cgb.sql = query
 	return cgb.sqlScan(ctx, v)
 }
 
@@ -597,12 +640,18 @@ func (cgb *CustomerGroupBy) sqlQuery() *sql.Selector {
 type CustomerSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (cs *CustomerSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := cs.path(ctx)
+	if err != nil {
+		return err
+	}
+	cs.sql = query
 	return cs.sqlScan(ctx, v)
 }
 

@@ -8,11 +8,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
@@ -30,19 +30,19 @@ import (
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
 	"go.uber.org/zap"
-	"gocloud.dev/pubsub"
 )
 
 // HandlerConfig configures graphql handler.
 type HandlerConfig struct {
 	Logger      log.Logger
-	Topic       *pubsub.Topic
-	Subscribe   func(context.Context) (*pubsub.Subscription, error)
+	Emitter     event.Emitter
+	Subscriber  event.Subscriber
 	Orc8rClient *http.Client
 }
 
 func init() {
-	for _, v := range ocgql.DefaultServerViews {
+	views := append(ocgql.DefaultServerViews, directive.ServerDeprecatedCountByObjectInputField)
+	for _, v := range views {
 		v.TagKeys = append(v.TagKeys,
 			viewer.KeyTenant,
 			viewer.KeyUser,
@@ -55,19 +55,21 @@ func init() {
 func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 	rsv := resolver.New(
 		resolver.Config{
-			Logger:    cfg.Logger,
-			Topic:     cfg.Topic,
-			Subscribe: cfg.Subscribe,
+			Logger:     cfg.Logger,
+			Emitter:    cfg.Emitter,
+			Subscriber: cfg.Subscriber,
 		},
 		resolver.WithOrc8rClient(
 			cfg.Orc8rClient,
 		),
 	)
 
-	if err := view.Register(ocgql.DefaultServerViews...); err != nil {
+	views := append(ocgql.DefaultServerViews, directive.ServerDeprecatedCountByObjectInputField)
+
+	if err := view.Register(views...); err != nil {
 		return nil, nil, fmt.Errorf("registering views: %w", err)
 	}
-	closer := func() { view.Unregister(ocgql.DefaultServerViews...) }
+	closer := func() { view.Unregister(views...) }
 
 	router := mux.NewRouter()
 	router.Use(func(handler http.Handler) http.Handler {
@@ -82,10 +84,6 @@ func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 	})
 
 	router.Path("/graphiql").
-		MatcherFunc(func(*http.Request, *mux.RouteMatch) bool {
-			_, ok := os.LookupEnv("GQL_DEBUG")
-			return ok
-		}).
 		Handler(ochttp.WithRouteTag(
 			handler.Playground("GraphIQL", "/graph/query"),
 			"graphiql",

@@ -10,7 +10,9 @@
 #define LOG_WITH_GLOG
 #include <magma_logging.h>
 
+#include <devmand/channels/cli/CliFlavour.h>
 #include <devmand/devices/cli/translation/ReaderRegistry.h>
+#include <devmand/devices/cli/translation/WriterRegistry.h>
 #include <folly/dynamic.h>
 #include <ostream>
 
@@ -21,28 +23,12 @@ namespace cli {
 using namespace folly;
 using namespace std;
 
-struct DeviceType {
-  string device;
-  string version;
-
-  friend ostream& operator<<(ostream& os, const DeviceType& type);
-  string str() const;
-
-  bool operator==(const DeviceType& rhs) const;
-  bool operator!=(const DeviceType& rhs) const;
-
-  bool operator<(const DeviceType& rhs) const;
-  bool operator>(const DeviceType& rhs) const;
-  bool operator<=(const DeviceType& rhs) const;
-  bool operator>=(const DeviceType& rhs) const;
-};
-
 class Plugin {
  public:
   virtual DeviceType getDeviceType() const = 0;
 
   virtual void provideReaders(ReaderRegistryBuilder& registry) const = 0;
-  virtual void provideWriters() const {};
+  virtual void provideWriters(WriterRegistryBuilder& registry) const = 0;
 };
 
 class DeviceContext : public Plugin {
@@ -56,7 +42,7 @@ class DeviceContext : public Plugin {
 
   DeviceType getDeviceType() const override;
   void provideReaders(ReaderRegistryBuilder& registry) const override;
-  void provideWriters() const override;
+  void provideWriters(WriterRegistryBuilder& registry) const override;
 
   shared_ptr<DeviceContext> addPlugin(shared_ptr<Plugin> plugin) const;
 
@@ -83,9 +69,15 @@ class PluginRegistry {
 
   friend ostream& operator<<(ostream& os, const PluginRegistry& reg);
 
+  void registerFlavours(
+      map<DeviceType, shared_ptr<CliFlavourParameters>> newFlavours);
+
+  shared_ptr<CliFlavour> getCliFlavour(const DeviceType& deviceType);
+
  private:
   map<DeviceType, shared_ptr<DeviceContext>> contexts;
   bool containsDeviceType(const DeviceType& type);
+  map<DeviceType, shared_ptr<CliFlavour>> flavours;
 };
 
 } // namespace cli

@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
@@ -43,7 +44,7 @@ func (serviceResolver) ServiceType(ctx context.Context, obj *ent.Service) (*ent.
 	return obj.QueryType().Only(ctx)
 }
 
-func (serviceResolver) Status(ctx context.Context, obj *ent.Service) (models.ServiceStatus, error) {
+func (serviceResolver) Status(_ context.Context, obj *ent.Service) (models.ServiceStatus, error) {
 	return models.ServiceStatus(obj.Status), nil
 }
 
@@ -88,7 +89,7 @@ func (r serviceResolver) Topology(ctx context.Context, obj *ent.Service) (*model
 	}
 
 	var nodes []ent.Noder
-	eqsMap := make(map[string]*ent.Equipment)
+	eqsMap := make(map[int]*ent.Equipment)
 	for _, eq := range eqs {
 		node := r.rootNode(ctx, eq)
 		eqsMap[node.ID] = node
@@ -144,7 +145,7 @@ func (r serviceEndpointResolver) Port(ctx context.Context, obj *ent.ServiceEndpo
 	return obj.QueryPort().Only(ctx)
 }
 
-func (r serviceEndpointResolver) Role(ctx context.Context, obj *ent.ServiceEndpoint) (models.ServiceEndpointRole, error) {
+func (r serviceEndpointResolver) Role(_ context.Context, obj *ent.ServiceEndpoint) (models.ServiceEndpointRole, error) {
 	return models.ServiceEndpointRole(obj.Role), nil
 }
 
@@ -152,22 +153,21 @@ func (serviceEndpointResolver) Service(ctx context.Context, obj *ent.ServiceEndp
 	return obj.QueryService().Only(ctx)
 }
 
-func (r mutationResolver) RemoveService(ctx context.Context, id string) (string, error) {
+func (r mutationResolver) RemoveService(ctx context.Context, id int) (int, error) {
 	client := r.ClientFrom(ctx)
-
 	if _, err := client.ServiceEndpoint.Delete().
 		Where(serviceendpoint.HasServiceWith(service.ID(id))).
 		Exec(ctx); err != nil {
-		return "", errors.Wrapf(err, "deleting service endpoints: id=%q", id)
+		return id, errors.Wrapf(err, "deleting service endpoints: id=%q", id)
 	}
 
 	if _, err := client.Property.Delete().
 		Where(property.HasServiceWith(service.ID(id))).
 		Exec(ctx); err != nil {
-		return "", errors.Wrapf(err, "deleting service properties: id=%q", id)
+		return id, errors.Wrapf(err, "deleting service properties: id=%q", id)
 	}
 	if err := client.Service.DeleteOneID(id).Exec(ctx); err != nil {
-		return "", errors.Wrapf(err, "deleting service: id=%q", id)
+		return id, errors.Wrapf(err, "deleting service: id=%q", id)
 	}
 	return id, nil
 }
@@ -190,7 +190,7 @@ func (r mutationResolver) AddServiceEndpoint(ctx context.Context, input models.A
 	return s, nil
 }
 
-func (r mutationResolver) RemoveServiceEndpoint(ctx context.Context, serviceEndpointID string) (*ent.Service, error) {
+func (r mutationResolver) RemoveServiceEndpoint(ctx context.Context, serviceEndpointID int) (*ent.Service, error) {
 	client := r.ClientFrom(ctx)
 
 	s, err := client.Service.Query().Where(service.HasEndpointsWith(serviceendpoint.ID(serviceEndpointID))).Only(ctx)

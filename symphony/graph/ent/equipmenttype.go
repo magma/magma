@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 type EquipmentType struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -31,7 +30,7 @@ type EquipmentType struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentTypeQuery when eager-loading is set.
 	Edges                   EquipmentTypeEdges `json:"edges"`
-	equipment_type_category *string
+	equipment_type_category *int
 }
 
 // EquipmentTypeEdges holds the relations/edges for other nodes in the graph.
@@ -128,7 +127,7 @@ func (et *EquipmentType) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	et.ID = strconv.FormatInt(value.Int64, 10)
+	et.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -150,8 +149,8 @@ func (et *EquipmentType) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_type_category", value)
 		} else if value.Valid {
-			et.equipment_type_category = new(string)
-			*et.equipment_type_category = strconv.FormatInt(value.Int64, 10)
+			et.equipment_type_category = new(int)
+			*et.equipment_type_category = int(value.Int64)
 		}
 	}
 	return nil
@@ -159,34 +158,34 @@ func (et *EquipmentType) assignValues(values ...interface{}) error {
 
 // QueryPortDefinitions queries the port_definitions edge of the EquipmentType.
 func (et *EquipmentType) QueryPortDefinitions() *EquipmentPortDefinitionQuery {
-	return (&EquipmentTypeClient{et.config}).QueryPortDefinitions(et)
+	return (&EquipmentTypeClient{config: et.config}).QueryPortDefinitions(et)
 }
 
 // QueryPositionDefinitions queries the position_definitions edge of the EquipmentType.
 func (et *EquipmentType) QueryPositionDefinitions() *EquipmentPositionDefinitionQuery {
-	return (&EquipmentTypeClient{et.config}).QueryPositionDefinitions(et)
+	return (&EquipmentTypeClient{config: et.config}).QueryPositionDefinitions(et)
 }
 
 // QueryPropertyTypes queries the property_types edge of the EquipmentType.
 func (et *EquipmentType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&EquipmentTypeClient{et.config}).QueryPropertyTypes(et)
+	return (&EquipmentTypeClient{config: et.config}).QueryPropertyTypes(et)
 }
 
 // QueryEquipment queries the equipment edge of the EquipmentType.
 func (et *EquipmentType) QueryEquipment() *EquipmentQuery {
-	return (&EquipmentTypeClient{et.config}).QueryEquipment(et)
+	return (&EquipmentTypeClient{config: et.config}).QueryEquipment(et)
 }
 
 // QueryCategory queries the category edge of the EquipmentType.
 func (et *EquipmentType) QueryCategory() *EquipmentCategoryQuery {
-	return (&EquipmentTypeClient{et.config}).QueryCategory(et)
+	return (&EquipmentTypeClient{config: et.config}).QueryCategory(et)
 }
 
 // Update returns a builder for updating this EquipmentType.
 // Note that, you need to call EquipmentType.Unwrap() before calling this method, if this EquipmentType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (et *EquipmentType) Update() *EquipmentTypeUpdateOne {
-	return (&EquipmentTypeClient{et.config}).UpdateOne(et)
+	return (&EquipmentTypeClient{config: et.config}).UpdateOne(et)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -213,12 +212,6 @@ func (et *EquipmentType) String() string {
 	builder.WriteString(et.Name)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (et *EquipmentType) id() int {
-	id, _ := strconv.Atoi(et.ID)
-	return id
 }
 
 // EquipmentTypes is a parsable slice of EquipmentType.

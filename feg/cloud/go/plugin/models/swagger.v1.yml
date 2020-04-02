@@ -853,6 +853,10 @@ definitions:
     properties:
       server:
         $ref: '#/definitions/diameter_client_configs'
+      overwrite_apn:
+        type: string
+        example: ""
+
   gy:
     type: object
     properties:
@@ -867,6 +871,10 @@ definitions:
         # 2 - Gx Init Method PER_KEY
         - 2
         default: 2
+      overwrite_apn:
+        type: string
+        example: ""
+
   swx:
     type: object
     description: swx configuration

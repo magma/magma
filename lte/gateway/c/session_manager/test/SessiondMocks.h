@@ -16,6 +16,7 @@
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <orc8r/protos/eventd.pb.h>
 
 #include <folly/io/async/EventBase.h>
 
@@ -64,7 +65,8 @@ class MockPipelinedClient : public PipelinedClient {
  public:
   MockPipelinedClient()
   {
-    ON_CALL(*this, setup(_,_,_)).WillByDefault(Return(true));
+    ON_CALL(*this, setup_cwf(_,_,_,_,_,_,_,_)).WillByDefault(Return(true));
+    ON_CALL(*this, setup_lte(_,_,_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _))
       .WillByDefault(Return(true));
@@ -72,11 +74,22 @@ class MockPipelinedClient : public PipelinedClient {
       .WillByDefault(Return(true));
     ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
+    ON_CALL(*this, update_ipfix_flow(_, _, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, update_subscriber_quota_state(_))
       .WillByDefault(Return(true));
   }
 
-  MOCK_METHOD3(setup,
+  MOCK_METHOD8(setup_cwf,
+    bool(
+      const std::vector<SessionState::SessionInfo>& infos,
+      const std::vector<SubscriberQuotaUpdate>& quota_updates,
+      const std::vector<std::string> ue_mac_addrs,
+      const std::vector<std::string> msisdns,
+      const std::vector<std::string> apn_mac_addrs,
+      const std::vector<std::string> apn_names,
+      const std::uint64_t& epoch,
+      std::function<void(Status status, SetupFlowsResult)> callback));
+  MOCK_METHOD3(setup_lte,
     bool(
       const std::vector<SessionState::SessionInfo>& infos,
       const std::uint64_t& epoch,
@@ -108,6 +121,14 @@ class MockPipelinedClient : public PipelinedClient {
     bool(
       const SubscriberID &sid,
       const std::string &ue_mac_addr));
+  MOCK_METHOD5(
+    update_ipfix_flow,
+    bool(
+      const SubscriberID &sid,
+      const std::string &ue_mac_addr,
+      const std::string &msisdn,
+      const std::string &ap_mac_addr,
+      const std::string &ap_name));
   MOCK_METHOD1(
     update_subscriber_quota_state,
     bool(const std::vector<SubscriberQuotaUpdate>& updates));
@@ -124,6 +145,18 @@ class MockDirectorydClient : public AsyncDirectorydClient {
     bool(
       const std::string& imsi,
       std::function<void(Status status, DirectoryField)> callback));
+};
+
+class MockEventdClient : public AsyncEventdClient {
+ public:
+  MockEventdClient()
+  {
+  }
+
+  MOCK_METHOD2(log_event,
+    void(
+      const Event& request,
+      std::function<void(Status status, Void)> callback));
 };
 
 /**

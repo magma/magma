@@ -48,8 +48,9 @@ type PropertyQuery struct {
 	withLocationValue  *LocationQuery
 	withServiceValue   *ServiceQuery
 	withFKs            bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -79,132 +80,198 @@ func (pq *PropertyQuery) Order(o ...Order) *PropertyQuery {
 // QueryType chains the current query on the type edge.
 func (pq *PropertyQuery) QueryType() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(propertytype.Table, propertytype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, property.TypeTable, property.TypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(propertytype.Table, propertytype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.TypeTable, property.TypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (pq *PropertyQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(location.Table, location.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, property.LocationTable, property.LocationColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, property.LocationTable, property.LocationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryEquipment chains the current query on the equipment edge.
 func (pq *PropertyQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(equipment.Table, equipment.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, property.EquipmentTable, property.EquipmentColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, property.EquipmentTable, property.EquipmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryService chains the current query on the service edge.
 func (pq *PropertyQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, property.ServiceTable, property.ServiceColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, property.ServiceTable, property.ServiceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryEquipmentPort chains the current query on the equipment_port edge.
 func (pq *PropertyQuery) QueryEquipmentPort() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, property.EquipmentPortTable, property.EquipmentPortColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, property.EquipmentPortTable, property.EquipmentPortColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryLink chains the current query on the link edge.
 func (pq *PropertyQuery) QueryLink() *LinkQuery {
 	query := &LinkQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(link.Table, link.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, property.LinkTable, property.LinkColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(link.Table, link.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, property.LinkTable, property.LinkColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
 func (pq *PropertyQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(workorder.Table, workorder.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, property.WorkOrderTable, property.WorkOrderColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, property.WorkOrderTable, property.WorkOrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryProject chains the current query on the project edge.
 func (pq *PropertyQuery) QueryProject() *ProjectQuery {
 	query := &ProjectQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(project.Table, project.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, property.ProjectTable, property.ProjectColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, property.ProjectTable, property.ProjectColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryEquipmentValue chains the current query on the equipment_value edge.
 func (pq *PropertyQuery) QueryEquipmentValue() *EquipmentQuery {
 	query := &EquipmentQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(equipment.Table, equipment.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, property.EquipmentValueTable, property.EquipmentValueColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.EquipmentValueTable, property.EquipmentValueColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryLocationValue chains the current query on the location_value edge.
 func (pq *PropertyQuery) QueryLocationValue() *LocationQuery {
 	query := &LocationQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(location.Table, location.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, property.LocationValueTable, property.LocationValueColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.LocationValueTable, property.LocationValueColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryServiceValue chains the current query on the service_value edge.
 func (pq *PropertyQuery) QueryServiceValue() *ServiceQuery {
 	query := &ServiceQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, property.ServiceValueTable, property.ServiceValueColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, property.ServiceValueTable, property.ServiceValueColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -230,8 +297,8 @@ func (pq *PropertyQuery) FirstX(ctx context.Context) *Property {
 }
 
 // FirstID returns the first Property id in the query. Returns *NotFoundError when no id was found.
-func (pq *PropertyQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (pq *PropertyQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = pq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -243,7 +310,7 @@ func (pq *PropertyQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (pq *PropertyQuery) FirstXID(ctx context.Context) string {
+func (pq *PropertyQuery) FirstXID(ctx context.Context) int {
 	id, err := pq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -277,8 +344,8 @@ func (pq *PropertyQuery) OnlyX(ctx context.Context) *Property {
 }
 
 // OnlyID returns the only Property id in the query, returns an error if not exactly one id was returned.
-func (pq *PropertyQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (pq *PropertyQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = pq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -294,7 +361,7 @@ func (pq *PropertyQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (pq *PropertyQuery) OnlyXID(ctx context.Context) string {
+func (pq *PropertyQuery) OnlyXID(ctx context.Context) int {
 	id, err := pq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -304,6 +371,9 @@ func (pq *PropertyQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of Properties.
 func (pq *PropertyQuery) All(ctx context.Context) ([]*Property, error) {
+	if err := pq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return pq.sqlAll(ctx)
 }
 
@@ -317,8 +387,8 @@ func (pq *PropertyQuery) AllX(ctx context.Context) []*Property {
 }
 
 // IDs executes the query and returns a list of Property ids.
-func (pq *PropertyQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (pq *PropertyQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := pq.Select(property.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -326,7 +396,7 @@ func (pq *PropertyQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (pq *PropertyQuery) IDsX(ctx context.Context) []string {
+func (pq *PropertyQuery) IDsX(ctx context.Context) []int {
 	ids, err := pq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -336,6 +406,9 @@ func (pq *PropertyQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (pq *PropertyQuery) Count(ctx context.Context) (int, error) {
+	if err := pq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return pq.sqlCount(ctx)
 }
 
@@ -350,6 +423,9 @@ func (pq *PropertyQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (pq *PropertyQuery) Exist(ctx context.Context) (bool, error) {
+	if err := pq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return pq.sqlExist(ctx)
 }
 
@@ -373,7 +449,8 @@ func (pq *PropertyQuery) Clone() *PropertyQuery {
 		unique:     append([]string{}, pq.unique...),
 		predicates: append([]predicate.Property{}, pq.predicates...),
 		// clone intermediate query.
-		sql: pq.sql.Clone(),
+		sql:  pq.sql.Clone(),
+		path: pq.path,
 	}
 }
 
@@ -516,7 +593,12 @@ func (pq *PropertyQuery) WithServiceValue(opts ...func(*ServiceQuery)) *Property
 func (pq *PropertyQuery) GroupBy(field string, fields ...string) *PropertyGroupBy {
 	group := &PropertyGroupBy{config: pq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = pq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return pq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -535,8 +617,24 @@ func (pq *PropertyQuery) GroupBy(field string, fields ...string) *PropertyGroupB
 func (pq *PropertyQuery) Select(field string, fields ...string) *PropertySelect {
 	selector := &PropertySelect{config: pq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = pq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return pq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (pq *PropertyQuery) prepareQuery(ctx context.Context) error {
+	if pq.path != nil {
+		prev, err := pq.path(ctx)
+		if err != nil {
+			return err
+		}
+		pq.sql = prev
+	}
+	return nil
 }
 
 func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
@@ -589,8 +687,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].property_type; fk != nil {
 				ids = append(ids, *fk)
@@ -614,8 +712,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].location_properties; fk != nil {
 				ids = append(ids, *fk)
@@ -639,8 +737,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withEquipment; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].equipment_properties; fk != nil {
 				ids = append(ids, *fk)
@@ -664,8 +762,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withService; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].service_properties; fk != nil {
 				ids = append(ids, *fk)
@@ -689,8 +787,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withEquipmentPort; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].equipment_port_properties; fk != nil {
 				ids = append(ids, *fk)
@@ -714,8 +812,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withLink; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].link_properties; fk != nil {
 				ids = append(ids, *fk)
@@ -739,8 +837,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withWorkOrder; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].work_order_properties; fk != nil {
 				ids = append(ids, *fk)
@@ -764,8 +862,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withProject; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].project_properties; fk != nil {
 				ids = append(ids, *fk)
@@ -789,8 +887,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withEquipmentValue; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].property_equipment_value; fk != nil {
 				ids = append(ids, *fk)
@@ -814,8 +912,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withLocationValue; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].property_location_value; fk != nil {
 				ids = append(ids, *fk)
@@ -839,8 +937,8 @@ func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
 	}
 
 	if query := pq.withServiceValue; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Property)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Property)
 		for i := range nodes {
 			if fk := nodes[i].property_service_value; fk != nil {
 				ids = append(ids, *fk)
@@ -885,7 +983,7 @@ func (pq *PropertyQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   property.Table,
 			Columns: property.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: property.FieldID,
 			},
 		},
@@ -945,8 +1043,9 @@ type PropertyGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -957,6 +1056,11 @@ func (pgb *PropertyGroupBy) Aggregate(fns ...Aggregate) *PropertyGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (pgb *PropertyGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := pgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	pgb.sql = query
 	return pgb.sqlScan(ctx, v)
 }
 
@@ -1075,12 +1179,18 @@ func (pgb *PropertyGroupBy) sqlQuery() *sql.Selector {
 type PropertySelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ps *PropertySelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ps.path(ctx)
+	if err != nil {
+		return err
+	}
+	ps.sql = query
 	return ps.sqlScan(ctx, v)
 }
 

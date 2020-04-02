@@ -293,3 +293,85 @@ func TestDirectiveUniqueField(t *testing.T) {
 		assert.EqualError(t, err, io.EOF.Error())
 	})
 }
+
+func TestDirectiveDeprecatedInputField(t *testing.T) {
+	var (
+		d                    = New(logtest.NewTestLogger(t))
+		deprecatedInputField = func(in interface{}, next graphql.Resolver) (interface{}, error) {
+			return d.DeprecatedInput(context.Background(), in, next, "AddInput.input", "Don't use both", pointer.ToString("input2"))
+		}
+	)
+	t.Run("OnlyDeprecatedField", func(t *testing.T) {
+		input := map[string]interface{}{
+			"input": "Valid",
+		}
+		var tr testResolver
+		tr.On("resolve", mock.Anything).
+			Return(input["input"], nil).
+			Once()
+		defer tr.AssertExpectations(t)
+
+		outputs, err := deprecatedInputField(input, tr.resolve)
+		assert.Equal(t, "Valid", outputs)
+		assert.NoError(t, err)
+	})
+	t.Run("OnlyNewField", func(t *testing.T) {
+		input := map[string]interface{}{
+			"input2": "Valid",
+		}
+		var tr testResolver
+		tr.On("resolve", mock.Anything).
+			Return(input["input"], nil).
+			Once()
+		defer tr.AssertExpectations(t)
+
+		outputs, err := deprecatedInputField(input, tr.resolve)
+		assert.Equal(t, nil, outputs)
+		assert.NoError(t, err)
+	})
+	t.Run("BothFields", func(t *testing.T) {
+		input := map[string]interface{}{
+			"input":  "Valid",
+			"input2": "Invalid",
+		}
+		var tr testResolver
+		tr.On("resolve", mock.Anything).
+			Return(input["input"], nil).
+			Once()
+		defer tr.AssertExpectations(t)
+
+		outputs, err := deprecatedInputField(input, tr.resolve)
+		assert.Nil(t, outputs)
+		assert.Error(t, err)
+	})
+	t.Run("BothFieldWithDeprecatedEmpty", func(t *testing.T) {
+		input := map[string]interface{}{
+			"input":  "",
+			"input2": "Valid",
+		}
+		var tr testResolver
+		tr.On("resolve", mock.Anything).
+			Return(input["input"], nil).
+			Once()
+		defer tr.AssertExpectations(t)
+
+		outputs, err := deprecatedInputField(input, tr.resolve)
+		assert.Nil(t, outputs)
+		assert.Error(t, err)
+	})
+	t.Run("BothFieldWithNewEmpty", func(t *testing.T) {
+		input := map[string]interface{}{
+			"input":  "Valid",
+			"input2": "",
+		}
+		var tr testResolver
+		tr.On("resolve", mock.Anything).
+			Return(input["input"], nil).
+			Once()
+		defer tr.AssertExpectations(t)
+
+		outputs, err := deprecatedInputField(input, tr.resolve)
+		assert.Nil(t, outputs)
+		assert.Error(t, err)
+	})
+}

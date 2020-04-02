@@ -13,5 +13,5 @@ class FilterOperator(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, value: str) -> "FilterOperator":
         return cls.MISSING_ENUM

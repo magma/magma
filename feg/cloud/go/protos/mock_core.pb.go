@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -25,6 +26,119 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+
+type MonitoringLevel int32
+
+const (
+	MonitoringLevel_SessionLevel MonitoringLevel = 0
+	MonitoringLevel_RuleLevel    MonitoringLevel = 1
+)
+
+var MonitoringLevel_name = map[int32]string{
+	0: "SessionLevel",
+	1: "RuleLevel",
+}
+
+var MonitoringLevel_value = map[string]int32{
+	"SessionLevel": 0,
+	"RuleLevel":    1,
+}
+
+func (x MonitoringLevel) String() string {
+	return proto.EnumName(MonitoringLevel_name, int32(x))
+}
+
+func (MonitoringLevel) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{0}
+}
+
+type CCRequestType int32
+
+const (
+	// proto3 requires enums to start at value 0. This should not be used.
+	CCRequestType__INVALID    CCRequestType = 0
+	CCRequestType_INITIAL     CCRequestType = 1
+	CCRequestType_UPDATE      CCRequestType = 2
+	CCRequestType_TERMINATION CCRequestType = 3
+)
+
+var CCRequestType_name = map[int32]string{
+	0: "_INVALID",
+	1: "INITIAL",
+	2: "UPDATE",
+	3: "TERMINATION",
+}
+
+var CCRequestType_value = map[string]int32{
+	"_INVALID":    0,
+	"INITIAL":     1,
+	"UPDATE":      2,
+	"TERMINATION": 3,
+}
+
+func (x CCRequestType) String() string {
+	return proto.EnumName(CCRequestType_name, int32(x))
+}
+
+func (CCRequestType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{1}
+}
+
+type UnexpectedRequestBehavior int32
+
+const (
+	// Answer with a permanent failure diameter code, then the session will
+	// be terminated. This will be the default behavior unless a default answer
+	// is specified
+	UnexpectedRequestBehavior_CONTINUE_WITH_ERROR          UnexpectedRequestBehavior = 0
+	UnexpectedRequestBehavior_CONTINUE_WITH_DEFAULT_ANSWER UnexpectedRequestBehavior = 1
+)
+
+var UnexpectedRequestBehavior_name = map[int32]string{
+	0: "CONTINUE_WITH_ERROR",
+	1: "CONTINUE_WITH_DEFAULT_ANSWER",
+}
+
+var UnexpectedRequestBehavior_value = map[string]int32{
+	"CONTINUE_WITH_ERROR":          0,
+	"CONTINUE_WITH_DEFAULT_ANSWER": 1,
+}
+
+func (x UnexpectedRequestBehavior) String() string {
+	return proto.EnumName(UnexpectedRequestBehavior_name, int32(x))
+}
+
+func (UnexpectedRequestBehavior) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{2}
+}
+
+type AbortCauseType int32
+
+const (
+	AbortCauseType_BearerReleased              AbortCauseType = 0
+	AbortCauseType_InsufficientServerResources AbortCauseType = 1
+	AbortCauseType_InsufficientBearerResources AbortCauseType = 2
+)
+
+var AbortCauseType_name = map[int32]string{
+	0: "BearerReleased",
+	1: "InsufficientServerResources",
+	2: "InsufficientBearerResources",
+}
+
+var AbortCauseType_value = map[string]int32{
+	"BearerReleased":              0,
+	"InsufficientServerResources": 1,
+	"InsufficientBearerResources": 2,
+}
+
+func (x AbortCauseType) String() string {
+	return proto.EnumName(AbortCauseType_name, int32(x))
+}
+
+func (AbortCauseType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{3}
+}
 
 type Reply_ServerBehavior int32
 
@@ -77,31 +191,6 @@ func (x CreditInfo_UnitType) String() string {
 
 func (CreditInfo_UnitType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_ef3afe2df05d1dc6, []int{5, 0}
-}
-
-type UsageMonitorCredit_MonitoringLevel int32
-
-const (
-	UsageMonitorCredit_SessionLevel UsageMonitorCredit_MonitoringLevel = 0
-	UsageMonitorCredit_RuleLevel    UsageMonitorCredit_MonitoringLevel = 1
-)
-
-var UsageMonitorCredit_MonitoringLevel_name = map[int32]string{
-	0: "SessionLevel",
-	1: "RuleLevel",
-}
-
-var UsageMonitorCredit_MonitoringLevel_value = map[string]int32{
-	"SessionLevel": 0,
-	"RuleLevel":    1,
-}
-
-func (x UsageMonitorCredit_MonitoringLevel) String() string {
-	return proto.EnumName(UsageMonitorCredit_MonitoringLevel_name, int32(x))
-}
-
-func (UsageMonitorCredit_MonitoringLevel) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_ef3afe2df05d1dc6, []int{11, 0}
 }
 
 type Reply struct {
@@ -829,7 +918,7 @@ func (m *ServerConfiguration) GetRequestReply() []*RequestReply {
 }
 
 type OCSConfig struct {
-	MaxUsageBytes        uint32   `protobuf:"varint,1,opt,name=max_usage_bytes,json=maxUsageBytes,proto3" json:"max_usage_bytes,omitempty"`
+	MaxUsageOctets       *Octets  `protobuf:"bytes,1,opt,name=max_usage_octets,json=maxUsageOctets,proto3" json:"max_usage_octets,omitempty"`
 	MaxUsageTime         uint32   `protobuf:"varint,2,opt,name=max_usage_time,json=maxUsageTime,proto3" json:"max_usage_time,omitempty"`
 	ValidityTime         uint32   `protobuf:"varint,3,opt,name=validity_time,json=validityTime,proto3" json:"validity_time,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -862,11 +951,11 @@ func (m *OCSConfig) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_OCSConfig proto.InternalMessageInfo
 
-func (m *OCSConfig) GetMaxUsageBytes() uint32 {
+func (m *OCSConfig) GetMaxUsageOctets() *Octets {
 	if m != nil {
-		return m.MaxUsageBytes
+		return m.MaxUsageOctets
 	}
-	return 0
+	return nil
 }
 
 func (m *OCSConfig) GetMaxUsageTime() uint32 {
@@ -886,7 +975,7 @@ func (m *OCSConfig) GetValidityTime() uint32 {
 type CreditInfo struct {
 	Imsi                 string              `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
 	ChargingKey          uint32              `protobuf:"varint,2,opt,name=charging_key,json=chargingKey,proto3" json:"charging_key,omitempty"`
-	Volume               uint64              `protobuf:"varint,3,opt,name=volume,proto3" json:"volume,omitempty"`
+	Volume               *Octets             `protobuf:"bytes,3,opt,name=volume,proto3" json:"volume,omitempty"`
 	UnitType             CreditInfo_UnitType `protobuf:"varint,4,opt,name=unit_type,json=unitType,proto3,enum=magma.feg.CreditInfo_UnitType" json:"unit_type,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
 	XXX_unrecognized     []byte              `json:"-"`
@@ -932,11 +1021,11 @@ func (m *CreditInfo) GetChargingKey() uint32 {
 	return 0
 }
 
-func (m *CreditInfo) GetVolume() uint64 {
+func (m *CreditInfo) GetVolume() *Octets {
 	if m != nil {
 		return m.Volume
 	}
-	return 0
+	return nil
 }
 
 func (m *CreditInfo) GetUnitType() CreditInfo_UnitType {
@@ -946,7 +1035,7 @@ func (m *CreditInfo) GetUnitType() CreditInfo_UnitType {
 	return CreditInfo_Bytes
 }
 
-type ReAuthTarget struct {
+type ChargingReAuthTarget struct {
 	Imsi                 string   `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
 	RatingGroup          uint32   `protobuf:"varint,2,opt,name=rating_group,json=ratingGroup,proto3" json:"rating_group,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -954,46 +1043,46 @@ type ReAuthTarget struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ReAuthTarget) Reset()         { *m = ReAuthTarget{} }
-func (m *ReAuthTarget) String() string { return proto.CompactTextString(m) }
-func (*ReAuthTarget) ProtoMessage()    {}
-func (*ReAuthTarget) Descriptor() ([]byte, []int) {
+func (m *ChargingReAuthTarget) Reset()         { *m = ChargingReAuthTarget{} }
+func (m *ChargingReAuthTarget) String() string { return proto.CompactTextString(m) }
+func (*ChargingReAuthTarget) ProtoMessage()    {}
+func (*ChargingReAuthTarget) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ef3afe2df05d1dc6, []int{6}
 }
 
-func (m *ReAuthTarget) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReAuthTarget.Unmarshal(m, b)
+func (m *ChargingReAuthTarget) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ChargingReAuthTarget.Unmarshal(m, b)
 }
-func (m *ReAuthTarget) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReAuthTarget.Marshal(b, m, deterministic)
+func (m *ChargingReAuthTarget) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ChargingReAuthTarget.Marshal(b, m, deterministic)
 }
-func (m *ReAuthTarget) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReAuthTarget.Merge(m, src)
+func (m *ChargingReAuthTarget) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ChargingReAuthTarget.Merge(m, src)
 }
-func (m *ReAuthTarget) XXX_Size() int {
-	return xxx_messageInfo_ReAuthTarget.Size(m)
+func (m *ChargingReAuthTarget) XXX_Size() int {
+	return xxx_messageInfo_ChargingReAuthTarget.Size(m)
 }
-func (m *ReAuthTarget) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReAuthTarget.DiscardUnknown(m)
+func (m *ChargingReAuthTarget) XXX_DiscardUnknown() {
+	xxx_messageInfo_ChargingReAuthTarget.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ReAuthTarget proto.InternalMessageInfo
+var xxx_messageInfo_ChargingReAuthTarget proto.InternalMessageInfo
 
-func (m *ReAuthTarget) GetImsi() string {
+func (m *ChargingReAuthTarget) GetImsi() string {
 	if m != nil {
 		return m.Imsi
 	}
 	return ""
 }
 
-func (m *ReAuthTarget) GetRatingGroup() uint32 {
+func (m *ChargingReAuthTarget) GetRatingGroup() uint32 {
 	if m != nil {
 		return m.RatingGroup
 	}
 	return 0
 }
 
-type ReAuthAnswer struct {
+type ChargingReAuthAnswer struct {
 	SessionId            string   `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	ResultCode           uint32   `protobuf:"varint,2,opt,name=result_code,json=resultCode,proto3" json:"result_code,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -1001,60 +1090,99 @@ type ReAuthAnswer struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ReAuthAnswer) Reset()         { *m = ReAuthAnswer{} }
-func (m *ReAuthAnswer) String() string { return proto.CompactTextString(m) }
-func (*ReAuthAnswer) ProtoMessage()    {}
-func (*ReAuthAnswer) Descriptor() ([]byte, []int) {
+func (m *ChargingReAuthAnswer) Reset()         { *m = ChargingReAuthAnswer{} }
+func (m *ChargingReAuthAnswer) String() string { return proto.CompactTextString(m) }
+func (*ChargingReAuthAnswer) ProtoMessage()    {}
+func (*ChargingReAuthAnswer) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ef3afe2df05d1dc6, []int{7}
 }
 
-func (m *ReAuthAnswer) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReAuthAnswer.Unmarshal(m, b)
+func (m *ChargingReAuthAnswer) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ChargingReAuthAnswer.Unmarshal(m, b)
 }
-func (m *ReAuthAnswer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReAuthAnswer.Marshal(b, m, deterministic)
+func (m *ChargingReAuthAnswer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ChargingReAuthAnswer.Marshal(b, m, deterministic)
 }
-func (m *ReAuthAnswer) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReAuthAnswer.Merge(m, src)
+func (m *ChargingReAuthAnswer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ChargingReAuthAnswer.Merge(m, src)
 }
-func (m *ReAuthAnswer) XXX_Size() int {
-	return xxx_messageInfo_ReAuthAnswer.Size(m)
+func (m *ChargingReAuthAnswer) XXX_Size() int {
+	return xxx_messageInfo_ChargingReAuthAnswer.Size(m)
 }
-func (m *ReAuthAnswer) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReAuthAnswer.DiscardUnknown(m)
+func (m *ChargingReAuthAnswer) XXX_DiscardUnknown() {
+	xxx_messageInfo_ChargingReAuthAnswer.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ReAuthAnswer proto.InternalMessageInfo
+var xxx_messageInfo_ChargingReAuthAnswer proto.InternalMessageInfo
 
-func (m *ReAuthAnswer) GetSessionId() string {
+func (m *ChargingReAuthAnswer) GetSessionId() string {
 	if m != nil {
 		return m.SessionId
 	}
 	return ""
 }
 
-func (m *ReAuthAnswer) GetResultCode() uint32 {
+func (m *ChargingReAuthAnswer) GetResultCode() uint32 {
 	if m != nil {
 		return m.ResultCode
 	}
 	return 0
 }
 
+type PCRFConfigs struct {
+	UseMockDriver        bool     `protobuf:"varint,1,opt,name=use_mock_driver,json=useMockDriver,proto3" json:"use_mock_driver,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PCRFConfigs) Reset()         { *m = PCRFConfigs{} }
+func (m *PCRFConfigs) String() string { return proto.CompactTextString(m) }
+func (*PCRFConfigs) ProtoMessage()    {}
+func (*PCRFConfigs) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{8}
+}
+
+func (m *PCRFConfigs) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PCRFConfigs.Unmarshal(m, b)
+}
+func (m *PCRFConfigs) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PCRFConfigs.Marshal(b, m, deterministic)
+}
+func (m *PCRFConfigs) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PCRFConfigs.Merge(m, src)
+}
+func (m *PCRFConfigs) XXX_Size() int {
+	return xxx_messageInfo_PCRFConfigs.Size(m)
+}
+func (m *PCRFConfigs) XXX_DiscardUnknown() {
+	xxx_messageInfo_PCRFConfigs.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PCRFConfigs proto.InternalMessageInfo
+
+func (m *PCRFConfigs) GetUseMockDriver() bool {
+	if m != nil {
+		return m.UseMockDriver
+	}
+	return false
+}
+
 type AccountRules struct {
-	Imsi                 string            `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
-	RuleNames            []string          `protobuf:"bytes,2,rep,name=rule_names,json=ruleNames,proto3" json:"rule_names,omitempty"`
-	RuleBaseNames        []string          `protobuf:"bytes,3,rep,name=rule_base_names,json=ruleBaseNames,proto3" json:"rule_base_names,omitempty"`
-	RuleDefinitions      []*RuleDefinition `protobuf:"bytes,4,rep,name=rule_definitions,json=ruleDefinitions,proto3" json:"rule_definitions,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	Imsi                   string            `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	StaticRuleNames        []string          `protobuf:"bytes,2,rep,name=static_rule_names,json=staticRuleNames,proto3" json:"static_rule_names,omitempty"`
+	StaticRuleBaseNames    []string          `protobuf:"bytes,3,rep,name=static_rule_base_names,json=staticRuleBaseNames,proto3" json:"static_rule_base_names,omitempty"`
+	DynamicRuleDefinitions []*RuleDefinition `protobuf:"bytes,4,rep,name=dynamic_rule_definitions,json=dynamicRuleDefinitions,proto3" json:"dynamic_rule_definitions,omitempty"`
+	XXX_NoUnkeyedLiteral   struct{}          `json:"-"`
+	XXX_unrecognized       []byte            `json:"-"`
+	XXX_sizecache          int32             `json:"-"`
 }
 
 func (m *AccountRules) Reset()         { *m = AccountRules{} }
 func (m *AccountRules) String() string { return proto.CompactTextString(m) }
 func (*AccountRules) ProtoMessage()    {}
 func (*AccountRules) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ef3afe2df05d1dc6, []int{8}
+	return fileDescriptor_ef3afe2df05d1dc6, []int{9}
 }
 
 func (m *AccountRules) XXX_Unmarshal(b []byte) error {
@@ -1082,23 +1210,23 @@ func (m *AccountRules) GetImsi() string {
 	return ""
 }
 
-func (m *AccountRules) GetRuleNames() []string {
+func (m *AccountRules) GetStaticRuleNames() []string {
 	if m != nil {
-		return m.RuleNames
+		return m.StaticRuleNames
 	}
 	return nil
 }
 
-func (m *AccountRules) GetRuleBaseNames() []string {
+func (m *AccountRules) GetStaticRuleBaseNames() []string {
 	if m != nil {
-		return m.RuleBaseNames
+		return m.StaticRuleBaseNames
 	}
 	return nil
 }
 
-func (m *AccountRules) GetRuleDefinitions() []*RuleDefinition {
+func (m *AccountRules) GetDynamicRuleDefinitions() []*RuleDefinition {
 	if m != nil {
-		return m.RuleDefinitions
+		return m.DynamicRuleDefinitions
 	}
 	return nil
 }
@@ -1120,7 +1248,7 @@ func (m *RuleDefinition) Reset()         { *m = RuleDefinition{} }
 func (m *RuleDefinition) String() string { return proto.CompactTextString(m) }
 func (*RuleDefinition) ProtoMessage()    {}
 func (*RuleDefinition) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ef3afe2df05d1dc6, []int{9}
+	return fileDescriptor_ef3afe2df05d1dc6, []int{10}
 }
 
 func (m *RuleDefinition) XXX_Unmarshal(b []byte) error {
@@ -1190,256 +1318,1416 @@ func (m *RuleDefinition) GetQosInformation() *protos.FlowQos {
 	return nil
 }
 
-type UsageMonitorInfo struct {
-	Imsi                 string                `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
-	UsageMonitorCredits  []*UsageMonitorCredit `protobuf:"bytes,2,rep,name=usage_monitor_credits,json=usageMonitorCredits,proto3" json:"usage_monitor_credits,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
-	XXX_unrecognized     []byte                `json:"-"`
-	XXX_sizecache        int32                 `json:"-"`
+type UsageMonitorConfiguration struct {
+	Imsi                 string          `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	UsageMonitorCredits  []*UsageMonitor `protobuf:"bytes,2,rep,name=usage_monitor_credits,json=usageMonitorCredits,proto3" json:"usage_monitor_credits,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
 }
 
-func (m *UsageMonitorInfo) Reset()         { *m = UsageMonitorInfo{} }
-func (m *UsageMonitorInfo) String() string { return proto.CompactTextString(m) }
-func (*UsageMonitorInfo) ProtoMessage()    {}
-func (*UsageMonitorInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ef3afe2df05d1dc6, []int{10}
+func (m *UsageMonitorConfiguration) Reset()         { *m = UsageMonitorConfiguration{} }
+func (m *UsageMonitorConfiguration) String() string { return proto.CompactTextString(m) }
+func (*UsageMonitorConfiguration) ProtoMessage()    {}
+func (*UsageMonitorConfiguration) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{11}
 }
 
-func (m *UsageMonitorInfo) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UsageMonitorInfo.Unmarshal(m, b)
+func (m *UsageMonitorConfiguration) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UsageMonitorConfiguration.Unmarshal(m, b)
 }
-func (m *UsageMonitorInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UsageMonitorInfo.Marshal(b, m, deterministic)
+func (m *UsageMonitorConfiguration) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UsageMonitorConfiguration.Marshal(b, m, deterministic)
 }
-func (m *UsageMonitorInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UsageMonitorInfo.Merge(m, src)
+func (m *UsageMonitorConfiguration) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UsageMonitorConfiguration.Merge(m, src)
 }
-func (m *UsageMonitorInfo) XXX_Size() int {
-	return xxx_messageInfo_UsageMonitorInfo.Size(m)
+func (m *UsageMonitorConfiguration) XXX_Size() int {
+	return xxx_messageInfo_UsageMonitorConfiguration.Size(m)
 }
-func (m *UsageMonitorInfo) XXX_DiscardUnknown() {
-	xxx_messageInfo_UsageMonitorInfo.DiscardUnknown(m)
+func (m *UsageMonitorConfiguration) XXX_DiscardUnknown() {
+	xxx_messageInfo_UsageMonitorConfiguration.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_UsageMonitorInfo proto.InternalMessageInfo
+var xxx_messageInfo_UsageMonitorConfiguration proto.InternalMessageInfo
 
-func (m *UsageMonitorInfo) GetImsi() string {
+func (m *UsageMonitorConfiguration) GetImsi() string {
 	if m != nil {
 		return m.Imsi
 	}
 	return ""
 }
 
-func (m *UsageMonitorInfo) GetUsageMonitorCredits() []*UsageMonitorCredit {
+func (m *UsageMonitorConfiguration) GetUsageMonitorCredits() []*UsageMonitor {
 	if m != nil {
 		return m.UsageMonitorCredits
 	}
 	return nil
 }
 
-type UsageMonitorCredit struct {
-	MonitoringKey        string                             `protobuf:"bytes,1,opt,name=monitoring_key,json=monitoringKey,proto3" json:"monitoring_key,omitempty"`
-	MonitoringLevel      UsageMonitorCredit_MonitoringLevel `protobuf:"varint,2,opt,name=monitoring_level,json=monitoringLevel,proto3,enum=magma.feg.UsageMonitorCredit_MonitoringLevel" json:"monitoring_level,omitempty"`
-	ReturnBytes          uint64                             `protobuf:"varint,3,opt,name=return_bytes,json=returnBytes,proto3" json:"return_bytes,omitempty"`
-	Volume               uint64                             `protobuf:"varint,4,opt,name=volume,proto3" json:"volume,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                           `json:"-"`
-	XXX_unrecognized     []byte                             `json:"-"`
-	XXX_sizecache        int32                              `json:"-"`
+type UsageMonitor struct {
+	// the usage monitoring information the PCRF sends per answer
+	MonitorInfoPerRequest *UsageMonitoringInformation `protobuf:"bytes,1,opt,name=monitor_info_per_request,json=monitorInfoPerRequest,proto3" json:"monitor_info_per_request,omitempty"`
+	// the total amount of quota assigned to the monitoring key
+	TotalQuota           *Octets  `protobuf:"bytes,2,opt,name=total_quota,json=totalQuota,proto3" json:"total_quota,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *UsageMonitorCredit) Reset()         { *m = UsageMonitorCredit{} }
-func (m *UsageMonitorCredit) String() string { return proto.CompactTextString(m) }
-func (*UsageMonitorCredit) ProtoMessage()    {}
-func (*UsageMonitorCredit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ef3afe2df05d1dc6, []int{11}
+func (m *UsageMonitor) Reset()         { *m = UsageMonitor{} }
+func (m *UsageMonitor) String() string { return proto.CompactTextString(m) }
+func (*UsageMonitor) ProtoMessage()    {}
+func (*UsageMonitor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{12}
 }
 
-func (m *UsageMonitorCredit) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UsageMonitorCredit.Unmarshal(m, b)
+func (m *UsageMonitor) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UsageMonitor.Unmarshal(m, b)
 }
-func (m *UsageMonitorCredit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UsageMonitorCredit.Marshal(b, m, deterministic)
+func (m *UsageMonitor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UsageMonitor.Marshal(b, m, deterministic)
 }
-func (m *UsageMonitorCredit) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UsageMonitorCredit.Merge(m, src)
+func (m *UsageMonitor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UsageMonitor.Merge(m, src)
 }
-func (m *UsageMonitorCredit) XXX_Size() int {
-	return xxx_messageInfo_UsageMonitorCredit.Size(m)
+func (m *UsageMonitor) XXX_Size() int {
+	return xxx_messageInfo_UsageMonitor.Size(m)
 }
-func (m *UsageMonitorCredit) XXX_DiscardUnknown() {
-	xxx_messageInfo_UsageMonitorCredit.DiscardUnknown(m)
+func (m *UsageMonitor) XXX_DiscardUnknown() {
+	xxx_messageInfo_UsageMonitor.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_UsageMonitorCredit proto.InternalMessageInfo
+var xxx_messageInfo_UsageMonitor proto.InternalMessageInfo
 
-func (m *UsageMonitorCredit) GetMonitoringKey() string {
+func (m *UsageMonitor) GetMonitorInfoPerRequest() *UsageMonitoringInformation {
 	if m != nil {
-		return m.MonitoringKey
+		return m.MonitorInfoPerRequest
+	}
+	return nil
+}
+
+func (m *UsageMonitor) GetTotalQuota() *Octets {
+	if m != nil {
+		return m.TotalQuota
+	}
+	return nil
+}
+
+type GxCreditControlExpectations struct {
+	Expectations              []*GxCreditControlExpectation `protobuf:"bytes,1,rep,name=expectations,proto3" json:"expectations,omitempty"`
+	UnexpectedRequestBehavior UnexpectedRequestBehavior     `protobuf:"varint,2,opt,name=unexpected_request_behavior,json=unexpectedRequestBehavior,proto3,enum=magma.feg.UnexpectedRequestBehavior" json:"unexpected_request_behavior,omitempty"`
+	GxDefaultCca              *GxCreditControlAnswer        `protobuf:"bytes,3,opt,name=gx_default_cca,json=gxDefaultCca,proto3" json:"gx_default_cca,omitempty"`
+	TotalExpectedUsage        *Octets                       `protobuf:"bytes,4,opt,name=total_expected_usage,json=totalExpectedUsage,proto3" json:"total_expected_usage,omitempty"`
+	XXX_NoUnkeyedLiteral      struct{}                      `json:"-"`
+	XXX_unrecognized          []byte                        `json:"-"`
+	XXX_sizecache             int32                         `json:"-"`
+}
+
+func (m *GxCreditControlExpectations) Reset()         { *m = GxCreditControlExpectations{} }
+func (m *GxCreditControlExpectations) String() string { return proto.CompactTextString(m) }
+func (*GxCreditControlExpectations) ProtoMessage()    {}
+func (*GxCreditControlExpectations) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{13}
+}
+
+func (m *GxCreditControlExpectations) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GxCreditControlExpectations.Unmarshal(m, b)
+}
+func (m *GxCreditControlExpectations) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GxCreditControlExpectations.Marshal(b, m, deterministic)
+}
+func (m *GxCreditControlExpectations) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GxCreditControlExpectations.Merge(m, src)
+}
+func (m *GxCreditControlExpectations) XXX_Size() int {
+	return xxx_messageInfo_GxCreditControlExpectations.Size(m)
+}
+func (m *GxCreditControlExpectations) XXX_DiscardUnknown() {
+	xxx_messageInfo_GxCreditControlExpectations.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GxCreditControlExpectations proto.InternalMessageInfo
+
+func (m *GxCreditControlExpectations) GetExpectations() []*GxCreditControlExpectation {
+	if m != nil {
+		return m.Expectations
+	}
+	return nil
+}
+
+func (m *GxCreditControlExpectations) GetUnexpectedRequestBehavior() UnexpectedRequestBehavior {
+	if m != nil {
+		return m.UnexpectedRequestBehavior
+	}
+	return UnexpectedRequestBehavior_CONTINUE_WITH_ERROR
+}
+
+func (m *GxCreditControlExpectations) GetGxDefaultCca() *GxCreditControlAnswer {
+	if m != nil {
+		return m.GxDefaultCca
+	}
+	return nil
+}
+
+func (m *GxCreditControlExpectations) GetTotalExpectedUsage() *Octets {
+	if m != nil {
+		return m.TotalExpectedUsage
+	}
+	return nil
+}
+
+type GxCreditControlResult struct {
+	Results              []*ExpectationResult `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	Errors               []*ErrorByIndex      `protobuf:"bytes,2,rep,name=errors,proto3" json:"errors,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *GxCreditControlResult) Reset()         { *m = GxCreditControlResult{} }
+func (m *GxCreditControlResult) String() string { return proto.CompactTextString(m) }
+func (*GxCreditControlResult) ProtoMessage()    {}
+func (*GxCreditControlResult) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{14}
+}
+
+func (m *GxCreditControlResult) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GxCreditControlResult.Unmarshal(m, b)
+}
+func (m *GxCreditControlResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GxCreditControlResult.Marshal(b, m, deterministic)
+}
+func (m *GxCreditControlResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GxCreditControlResult.Merge(m, src)
+}
+func (m *GxCreditControlResult) XXX_Size() int {
+	return xxx_messageInfo_GxCreditControlResult.Size(m)
+}
+func (m *GxCreditControlResult) XXX_DiscardUnknown() {
+	xxx_messageInfo_GxCreditControlResult.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GxCreditControlResult proto.InternalMessageInfo
+
+func (m *GxCreditControlResult) GetResults() []*ExpectationResult {
+	if m != nil {
+		return m.Results
+	}
+	return nil
+}
+
+func (m *GxCreditControlResult) GetErrors() []*ErrorByIndex {
+	if m != nil {
+		return m.Errors
+	}
+	return nil
+}
+
+type ErrorByIndex struct {
+	Index                int32    `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	Error                string   `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ErrorByIndex) Reset()         { *m = ErrorByIndex{} }
+func (m *ErrorByIndex) String() string { return proto.CompactTextString(m) }
+func (*ErrorByIndex) ProtoMessage()    {}
+func (*ErrorByIndex) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{15}
+}
+
+func (m *ErrorByIndex) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ErrorByIndex.Unmarshal(m, b)
+}
+func (m *ErrorByIndex) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ErrorByIndex.Marshal(b, m, deterministic)
+}
+func (m *ErrorByIndex) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ErrorByIndex.Merge(m, src)
+}
+func (m *ErrorByIndex) XXX_Size() int {
+	return xxx_messageInfo_ErrorByIndex.Size(m)
+}
+func (m *ErrorByIndex) XXX_DiscardUnknown() {
+	xxx_messageInfo_ErrorByIndex.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ErrorByIndex proto.InternalMessageInfo
+
+func (m *ErrorByIndex) GetIndex() int32 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+func (m *ErrorByIndex) GetError() string {
+	if m != nil {
+		return m.Error
 	}
 	return ""
 }
 
-func (m *UsageMonitorCredit) GetMonitoringLevel() UsageMonitorCredit_MonitoringLevel {
+type ExpectationResult struct {
+	ExpectationIndex     int32    `protobuf:"varint,1,opt,name=expectation_index,json=expectationIndex,proto3" json:"expectation_index,omitempty"`
+	ExpectationMet       bool     `protobuf:"varint,2,opt,name=expectation_met,json=expectationMet,proto3" json:"expectation_met,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ExpectationResult) Reset()         { *m = ExpectationResult{} }
+func (m *ExpectationResult) String() string { return proto.CompactTextString(m) }
+func (*ExpectationResult) ProtoMessage()    {}
+func (*ExpectationResult) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{16}
+}
+
+func (m *ExpectationResult) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ExpectationResult.Unmarshal(m, b)
+}
+func (m *ExpectationResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ExpectationResult.Marshal(b, m, deterministic)
+}
+func (m *ExpectationResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExpectationResult.Merge(m, src)
+}
+func (m *ExpectationResult) XXX_Size() int {
+	return xxx_messageInfo_ExpectationResult.Size(m)
+}
+func (m *ExpectationResult) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExpectationResult.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ExpectationResult proto.InternalMessageInfo
+
+func (m *ExpectationResult) GetExpectationIndex() int32 {
+	if m != nil {
+		return m.ExpectationIndex
+	}
+	return 0
+}
+
+func (m *ExpectationResult) GetExpectationMet() bool {
+	if m != nil {
+		return m.ExpectationMet
+	}
+	return false
+}
+
+type GxCreditControlExpectation struct {
+	ExpectedRequest      *GxCreditControlRequest `protobuf:"bytes,1,opt,name=expected_request,json=expectedRequest,proto3" json:"expected_request,omitempty"`
+	Answer               *GxCreditControlAnswer  `protobuf:"bytes,2,opt,name=answer,proto3" json:"answer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *GxCreditControlExpectation) Reset()         { *m = GxCreditControlExpectation{} }
+func (m *GxCreditControlExpectation) String() string { return proto.CompactTextString(m) }
+func (*GxCreditControlExpectation) ProtoMessage()    {}
+func (*GxCreditControlExpectation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{17}
+}
+
+func (m *GxCreditControlExpectation) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GxCreditControlExpectation.Unmarshal(m, b)
+}
+func (m *GxCreditControlExpectation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GxCreditControlExpectation.Marshal(b, m, deterministic)
+}
+func (m *GxCreditControlExpectation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GxCreditControlExpectation.Merge(m, src)
+}
+func (m *GxCreditControlExpectation) XXX_Size() int {
+	return xxx_messageInfo_GxCreditControlExpectation.Size(m)
+}
+func (m *GxCreditControlExpectation) XXX_DiscardUnknown() {
+	xxx_messageInfo_GxCreditControlExpectation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GxCreditControlExpectation proto.InternalMessageInfo
+
+func (m *GxCreditControlExpectation) GetExpectedRequest() *GxCreditControlRequest {
+	if m != nil {
+		return m.ExpectedRequest
+	}
+	return nil
+}
+
+func (m *GxCreditControlExpectation) GetAnswer() *GxCreditControlAnswer {
+	if m != nil {
+		return m.Answer
+	}
+	return nil
+}
+
+type GxCreditControlRequest struct {
+	Imsi                   string                        `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	RequestType            CCRequestType                 `protobuf:"varint,2,opt,name=request_type,json=requestType,proto3,enum=magma.feg.CCRequestType" json:"request_type,omitempty"`
+	RequestNumber          uint32                        `protobuf:"varint,3,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
+	UsageMonitoringReports []*UsageMonitoringInformation `protobuf:"bytes,11,rep,name=usage_monitoring_reports,json=usageMonitoringReports,proto3" json:"usage_monitoring_reports,omitempty"`
+	// As long as we use real traffic for the test, usage reporting will differ
+	// each time. So this field will specify the acceptable range for the
+	// value. We will accept a request as matching if
+	// (expected report - delta) < actual report < (expected report + delta)
+	UsageReportDelta     uint64   `protobuf:"varint,12,opt,name=usage_report_delta,json=usageReportDelta,proto3" json:"usage_report_delta,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GxCreditControlRequest) Reset()         { *m = GxCreditControlRequest{} }
+func (m *GxCreditControlRequest) String() string { return proto.CompactTextString(m) }
+func (*GxCreditControlRequest) ProtoMessage()    {}
+func (*GxCreditControlRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{18}
+}
+
+func (m *GxCreditControlRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GxCreditControlRequest.Unmarshal(m, b)
+}
+func (m *GxCreditControlRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GxCreditControlRequest.Marshal(b, m, deterministic)
+}
+func (m *GxCreditControlRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GxCreditControlRequest.Merge(m, src)
+}
+func (m *GxCreditControlRequest) XXX_Size() int {
+	return xxx_messageInfo_GxCreditControlRequest.Size(m)
+}
+func (m *GxCreditControlRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GxCreditControlRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GxCreditControlRequest proto.InternalMessageInfo
+
+func (m *GxCreditControlRequest) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
+func (m *GxCreditControlRequest) GetRequestType() CCRequestType {
+	if m != nil {
+		return m.RequestType
+	}
+	return CCRequestType__INVALID
+}
+
+func (m *GxCreditControlRequest) GetRequestNumber() uint32 {
+	if m != nil {
+		return m.RequestNumber
+	}
+	return 0
+}
+
+func (m *GxCreditControlRequest) GetUsageMonitoringReports() []*UsageMonitoringInformation {
+	if m != nil {
+		return m.UsageMonitoringReports
+	}
+	return nil
+}
+
+func (m *GxCreditControlRequest) GetUsageReportDelta() uint64 {
+	if m != nil {
+		return m.UsageReportDelta
+	}
+	return 0
+}
+
+type GxCreditControlAnswer struct {
+	// request type and request number will be taken from the request
+	ResultCode           uint32                        `protobuf:"varint,1,opt,name=result_code,json=resultCode,proto3" json:"result_code,omitempty"`
+	UsageMonitoringInfos []*UsageMonitoringInformation `protobuf:"bytes,11,rep,name=usage_monitoring_infos,json=usageMonitoringInfos,proto3" json:"usage_monitoring_infos,omitempty"`
+	RuleInstalls         *RuleInstalls                 `protobuf:"bytes,12,opt,name=rule_installs,json=ruleInstalls,proto3" json:"rule_installs,omitempty"`
+	RuleRemovals         *RuleRemovals                 `protobuf:"bytes,13,opt,name=rule_removals,json=ruleRemovals,proto3" json:"rule_removals,omitempty"`
+	EventTriggers        []uint32                      `protobuf:"varint,14,rep,packed,name=event_triggers,json=eventTriggers,proto3" json:"event_triggers,omitempty"`
+	RevalidationTime     *timestamp.Timestamp          `protobuf:"bytes,15,opt,name=revalidation_time,json=revalidationTime,proto3" json:"revalidation_time,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
+}
+
+func (m *GxCreditControlAnswer) Reset()         { *m = GxCreditControlAnswer{} }
+func (m *GxCreditControlAnswer) String() string { return proto.CompactTextString(m) }
+func (*GxCreditControlAnswer) ProtoMessage()    {}
+func (*GxCreditControlAnswer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{19}
+}
+
+func (m *GxCreditControlAnswer) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GxCreditControlAnswer.Unmarshal(m, b)
+}
+func (m *GxCreditControlAnswer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GxCreditControlAnswer.Marshal(b, m, deterministic)
+}
+func (m *GxCreditControlAnswer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GxCreditControlAnswer.Merge(m, src)
+}
+func (m *GxCreditControlAnswer) XXX_Size() int {
+	return xxx_messageInfo_GxCreditControlAnswer.Size(m)
+}
+func (m *GxCreditControlAnswer) XXX_DiscardUnknown() {
+	xxx_messageInfo_GxCreditControlAnswer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GxCreditControlAnswer proto.InternalMessageInfo
+
+func (m *GxCreditControlAnswer) GetResultCode() uint32 {
+	if m != nil {
+		return m.ResultCode
+	}
+	return 0
+}
+
+func (m *GxCreditControlAnswer) GetUsageMonitoringInfos() []*UsageMonitoringInformation {
+	if m != nil {
+		return m.UsageMonitoringInfos
+	}
+	return nil
+}
+
+func (m *GxCreditControlAnswer) GetRuleInstalls() *RuleInstalls {
+	if m != nil {
+		return m.RuleInstalls
+	}
+	return nil
+}
+
+func (m *GxCreditControlAnswer) GetRuleRemovals() *RuleRemovals {
+	if m != nil {
+		return m.RuleRemovals
+	}
+	return nil
+}
+
+func (m *GxCreditControlAnswer) GetEventTriggers() []uint32 {
+	if m != nil {
+		return m.EventTriggers
+	}
+	return nil
+}
+
+func (m *GxCreditControlAnswer) GetRevalidationTime() *timestamp.Timestamp {
+	if m != nil {
+		return m.RevalidationTime
+	}
+	return nil
+}
+
+type GyCreditControlExpectation struct {
+	ExpectedRequest      *GyCreditControlRequest `protobuf:"bytes,1,opt,name=expected_request,json=expectedRequest,proto3" json:"expected_request,omitempty"`
+	Answer               *GyCreditControlAnswer  `protobuf:"bytes,2,opt,name=answer,proto3" json:"answer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
+}
+
+func (m *GyCreditControlExpectation) Reset()         { *m = GyCreditControlExpectation{} }
+func (m *GyCreditControlExpectation) String() string { return proto.CompactTextString(m) }
+func (*GyCreditControlExpectation) ProtoMessage()    {}
+func (*GyCreditControlExpectation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{20}
+}
+
+func (m *GyCreditControlExpectation) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GyCreditControlExpectation.Unmarshal(m, b)
+}
+func (m *GyCreditControlExpectation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GyCreditControlExpectation.Marshal(b, m, deterministic)
+}
+func (m *GyCreditControlExpectation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GyCreditControlExpectation.Merge(m, src)
+}
+func (m *GyCreditControlExpectation) XXX_Size() int {
+	return xxx_messageInfo_GyCreditControlExpectation.Size(m)
+}
+func (m *GyCreditControlExpectation) XXX_DiscardUnknown() {
+	xxx_messageInfo_GyCreditControlExpectation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GyCreditControlExpectation proto.InternalMessageInfo
+
+func (m *GyCreditControlExpectation) GetExpectedRequest() *GyCreditControlRequest {
+	if m != nil {
+		return m.ExpectedRequest
+	}
+	return nil
+}
+
+func (m *GyCreditControlExpectation) GetAnswer() *GyCreditControlAnswer {
+	if m != nil {
+		return m.Answer
+	}
+	return nil
+}
+
+type GyCreditControlRequest struct {
+	Imsi                 string        `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	RequestType          CCRequestType `protobuf:"varint,2,opt,name=request_type,json=requestType,proto3,enum=magma.feg.CCRequestType" json:"request_type,omitempty"`
+	RequestNumber        uint32        `protobuf:"varint,3,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
+	QosInfo              *QosInfo      `protobuf:"bytes,21,opt,name=qos_info,json=qosInfo,proto3" json:"qos_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *GyCreditControlRequest) Reset()         { *m = GyCreditControlRequest{} }
+func (m *GyCreditControlRequest) String() string { return proto.CompactTextString(m) }
+func (*GyCreditControlRequest) ProtoMessage()    {}
+func (*GyCreditControlRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{21}
+}
+
+func (m *GyCreditControlRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GyCreditControlRequest.Unmarshal(m, b)
+}
+func (m *GyCreditControlRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GyCreditControlRequest.Marshal(b, m, deterministic)
+}
+func (m *GyCreditControlRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GyCreditControlRequest.Merge(m, src)
+}
+func (m *GyCreditControlRequest) XXX_Size() int {
+	return xxx_messageInfo_GyCreditControlRequest.Size(m)
+}
+func (m *GyCreditControlRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GyCreditControlRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GyCreditControlRequest proto.InternalMessageInfo
+
+func (m *GyCreditControlRequest) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
+func (m *GyCreditControlRequest) GetRequestType() CCRequestType {
+	if m != nil {
+		return m.RequestType
+	}
+	return CCRequestType__INVALID
+}
+
+func (m *GyCreditControlRequest) GetRequestNumber() uint32 {
+	if m != nil {
+		return m.RequestNumber
+	}
+	return 0
+}
+
+func (m *GyCreditControlRequest) GetQosInfo() *QosInfo {
+	if m != nil {
+		return m.QosInfo
+	}
+	return nil
+}
+
+type GyCreditControlAnswer struct {
+	RequestType          CCRequestType `protobuf:"varint,1,opt,name=request_type,json=requestType,proto3,enum=magma.feg.CCRequestType" json:"request_type,omitempty"`
+	RequestNumber        uint32        `protobuf:"varint,2,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
+	ResultCode           uint32        `protobuf:"varint,3,opt,name=result_code,json=resultCode,proto3" json:"result_code,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *GyCreditControlAnswer) Reset()         { *m = GyCreditControlAnswer{} }
+func (m *GyCreditControlAnswer) String() string { return proto.CompactTextString(m) }
+func (*GyCreditControlAnswer) ProtoMessage()    {}
+func (*GyCreditControlAnswer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{22}
+}
+
+func (m *GyCreditControlAnswer) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GyCreditControlAnswer.Unmarshal(m, b)
+}
+func (m *GyCreditControlAnswer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GyCreditControlAnswer.Marshal(b, m, deterministic)
+}
+func (m *GyCreditControlAnswer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GyCreditControlAnswer.Merge(m, src)
+}
+func (m *GyCreditControlAnswer) XXX_Size() int {
+	return xxx_messageInfo_GyCreditControlAnswer.Size(m)
+}
+func (m *GyCreditControlAnswer) XXX_DiscardUnknown() {
+	xxx_messageInfo_GyCreditControlAnswer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GyCreditControlAnswer proto.InternalMessageInfo
+
+func (m *GyCreditControlAnswer) GetRequestType() CCRequestType {
+	if m != nil {
+		return m.RequestType
+	}
+	return CCRequestType__INVALID
+}
+
+func (m *GyCreditControlAnswer) GetRequestNumber() uint32 {
+	if m != nil {
+		return m.RequestNumber
+	}
+	return 0
+}
+
+func (m *GyCreditControlAnswer) GetResultCode() uint32 {
+	if m != nil {
+		return m.ResultCode
+	}
+	return 0
+}
+
+// AVP: 1067
+type UsageMonitoringInformation struct {
+	MonitoringKey        []byte          `protobuf:"bytes,1,opt,name=monitoring_key,json=monitoringKey,proto3" json:"monitoring_key,omitempty"`
+	MonitoringLevel      MonitoringLevel `protobuf:"varint,2,opt,name=monitoring_level,json=monitoringLevel,proto3,enum=magma.feg.MonitoringLevel" json:"monitoring_level,omitempty"`
+	Octets               *Octets         `protobuf:"bytes,3,opt,name=octets,proto3" json:"octets,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *UsageMonitoringInformation) Reset()         { *m = UsageMonitoringInformation{} }
+func (m *UsageMonitoringInformation) String() string { return proto.CompactTextString(m) }
+func (*UsageMonitoringInformation) ProtoMessage()    {}
+func (*UsageMonitoringInformation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{23}
+}
+
+func (m *UsageMonitoringInformation) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UsageMonitoringInformation.Unmarshal(m, b)
+}
+func (m *UsageMonitoringInformation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UsageMonitoringInformation.Marshal(b, m, deterministic)
+}
+func (m *UsageMonitoringInformation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UsageMonitoringInformation.Merge(m, src)
+}
+func (m *UsageMonitoringInformation) XXX_Size() int {
+	return xxx_messageInfo_UsageMonitoringInformation.Size(m)
+}
+func (m *UsageMonitoringInformation) XXX_DiscardUnknown() {
+	xxx_messageInfo_UsageMonitoringInformation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UsageMonitoringInformation proto.InternalMessageInfo
+
+func (m *UsageMonitoringInformation) GetMonitoringKey() []byte {
+	if m != nil {
+		return m.MonitoringKey
+	}
+	return nil
+}
+
+func (m *UsageMonitoringInformation) GetMonitoringLevel() MonitoringLevel {
 	if m != nil {
 		return m.MonitoringLevel
 	}
-	return UsageMonitorCredit_SessionLevel
+	return MonitoringLevel_SessionLevel
 }
 
-func (m *UsageMonitorCredit) GetReturnBytes() uint64 {
+func (m *UsageMonitoringInformation) GetOctets() *Octets {
 	if m != nil {
-		return m.ReturnBytes
+		return m.Octets
+	}
+	return nil
+}
+
+type QosInfo struct {
+	// AVP: 1041
+	ApnAggMaxBitRateUl uint32 `protobuf:"varint,1,opt,name=apn_agg_max_bit_rate_ul,json=apnAggMaxBitRateUl,proto3" json:"apn_agg_max_bit_rate_ul,omitempty"`
+	// AVP: 1040
+	ApnAggMaxBitRateDl   uint32   `protobuf:"varint,2,opt,name=apn_agg_max_bit_rate_dl,json=apnAggMaxBitRateDl,proto3" json:"apn_agg_max_bit_rate_dl,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *QosInfo) Reset()         { *m = QosInfo{} }
+func (m *QosInfo) String() string { return proto.CompactTextString(m) }
+func (*QosInfo) ProtoMessage()    {}
+func (*QosInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{24}
+}
+
+func (m *QosInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_QosInfo.Unmarshal(m, b)
+}
+func (m *QosInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_QosInfo.Marshal(b, m, deterministic)
+}
+func (m *QosInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QosInfo.Merge(m, src)
+}
+func (m *QosInfo) XXX_Size() int {
+	return xxx_messageInfo_QosInfo.Size(m)
+}
+func (m *QosInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_QosInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QosInfo proto.InternalMessageInfo
+
+func (m *QosInfo) GetApnAggMaxBitRateUl() uint32 {
+	if m != nil {
+		return m.ApnAggMaxBitRateUl
 	}
 	return 0
 }
 
-func (m *UsageMonitorCredit) GetVolume() uint64 {
+func (m *QosInfo) GetApnAggMaxBitRateDl() uint32 {
 	if m != nil {
-		return m.Volume
+		return m.ApnAggMaxBitRateDl
 	}
 	return 0
+}
+
+type RuleInstalls struct {
+	RuleNames            []string             `protobuf:"bytes,1,rep,name=rule_names,json=ruleNames,proto3" json:"rule_names,omitempty"`
+	RuleBaseNames        []string             `protobuf:"bytes,2,rep,name=rule_base_names,json=ruleBaseNames,proto3" json:"rule_base_names,omitempty"`
+	RuleDefinitions      []*RuleDefinition    `protobuf:"bytes,3,rep,name=rule_definitions,json=ruleDefinitions,proto3" json:"rule_definitions,omitempty"`
+	ActivationTime       *timestamp.Timestamp `protobuf:"bytes,4,opt,name=activation_time,json=activationTime,proto3" json:"activation_time,omitempty"`
+	DeactivationTime     *timestamp.Timestamp `protobuf:"bytes,5,opt,name=deactivation_time,json=deactivationTime,proto3" json:"deactivation_time,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *RuleInstalls) Reset()         { *m = RuleInstalls{} }
+func (m *RuleInstalls) String() string { return proto.CompactTextString(m) }
+func (*RuleInstalls) ProtoMessage()    {}
+func (*RuleInstalls) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{25}
+}
+
+func (m *RuleInstalls) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RuleInstalls.Unmarshal(m, b)
+}
+func (m *RuleInstalls) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RuleInstalls.Marshal(b, m, deterministic)
+}
+func (m *RuleInstalls) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RuleInstalls.Merge(m, src)
+}
+func (m *RuleInstalls) XXX_Size() int {
+	return xxx_messageInfo_RuleInstalls.Size(m)
+}
+func (m *RuleInstalls) XXX_DiscardUnknown() {
+	xxx_messageInfo_RuleInstalls.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RuleInstalls proto.InternalMessageInfo
+
+func (m *RuleInstalls) GetRuleNames() []string {
+	if m != nil {
+		return m.RuleNames
+	}
+	return nil
+}
+
+func (m *RuleInstalls) GetRuleBaseNames() []string {
+	if m != nil {
+		return m.RuleBaseNames
+	}
+	return nil
+}
+
+func (m *RuleInstalls) GetRuleDefinitions() []*RuleDefinition {
+	if m != nil {
+		return m.RuleDefinitions
+	}
+	return nil
+}
+
+func (m *RuleInstalls) GetActivationTime() *timestamp.Timestamp {
+	if m != nil {
+		return m.ActivationTime
+	}
+	return nil
+}
+
+func (m *RuleInstalls) GetDeactivationTime() *timestamp.Timestamp {
+	if m != nil {
+		return m.DeactivationTime
+	}
+	return nil
+}
+
+type RuleRemovals struct {
+	RuleNames            []string `protobuf:"bytes,1,rep,name=rule_names,json=ruleNames,proto3" json:"rule_names,omitempty"`
+	RuleBaseNames        []string `protobuf:"bytes,2,rep,name=rule_base_names,json=ruleBaseNames,proto3" json:"rule_base_names,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RuleRemovals) Reset()         { *m = RuleRemovals{} }
+func (m *RuleRemovals) String() string { return proto.CompactTextString(m) }
+func (*RuleRemovals) ProtoMessage()    {}
+func (*RuleRemovals) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{26}
+}
+
+func (m *RuleRemovals) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RuleRemovals.Unmarshal(m, b)
+}
+func (m *RuleRemovals) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RuleRemovals.Marshal(b, m, deterministic)
+}
+func (m *RuleRemovals) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RuleRemovals.Merge(m, src)
+}
+func (m *RuleRemovals) XXX_Size() int {
+	return xxx_messageInfo_RuleRemovals.Size(m)
+}
+func (m *RuleRemovals) XXX_DiscardUnknown() {
+	xxx_messageInfo_RuleRemovals.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RuleRemovals proto.InternalMessageInfo
+
+func (m *RuleRemovals) GetRuleNames() []string {
+	if m != nil {
+		return m.RuleNames
+	}
+	return nil
+}
+
+func (m *RuleRemovals) GetRuleBaseNames() []string {
+	if m != nil {
+		return m.RuleBaseNames
+	}
+	return nil
+}
+
+type Octets struct {
+	TotalOctets          uint64   `protobuf:"varint,1,opt,name=total_octets,json=totalOctets,proto3" json:"total_octets,omitempty"`
+	InputOctets          uint64   `protobuf:"varint,2,opt,name=input_octets,json=inputOctets,proto3" json:"input_octets,omitempty"`
+	OutputOctets         uint64   `protobuf:"varint,3,opt,name=output_octets,json=outputOctets,proto3" json:"output_octets,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Octets) Reset()         { *m = Octets{} }
+func (m *Octets) String() string { return proto.CompactTextString(m) }
+func (*Octets) ProtoMessage()    {}
+func (*Octets) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{27}
+}
+
+func (m *Octets) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Octets.Unmarshal(m, b)
+}
+func (m *Octets) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Octets.Marshal(b, m, deterministic)
+}
+func (m *Octets) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Octets.Merge(m, src)
+}
+func (m *Octets) XXX_Size() int {
+	return xxx_messageInfo_Octets.Size(m)
+}
+func (m *Octets) XXX_DiscardUnknown() {
+	xxx_messageInfo_Octets.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Octets proto.InternalMessageInfo
+
+func (m *Octets) GetTotalOctets() uint64 {
+	if m != nil {
+		return m.TotalOctets
+	}
+	return 0
+}
+
+func (m *Octets) GetInputOctets() uint64 {
+	if m != nil {
+		return m.InputOctets
+	}
+	return 0
+}
+
+func (m *Octets) GetOutputOctets() uint64 {
+	if m != nil {
+		return m.OutputOctets
+	}
+	return 0
+}
+
+type PolicyReAuthTarget struct {
+	Imsi                 string                        `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	RulesToRemove        *RuleRemovals                 `protobuf:"bytes,2,opt,name=rules_to_remove,json=rulesToRemove,proto3" json:"rules_to_remove,omitempty"`
+	RulesToInstall       *RuleInstalls                 `protobuf:"bytes,3,opt,name=rules_to_install,json=rulesToInstall,proto3" json:"rules_to_install,omitempty"`
+	UsageMonitoringInfos []*UsageMonitoringInformation `protobuf:"bytes,4,rep,name=usage_monitoring_infos,json=usageMonitoringInfos,proto3" json:"usage_monitoring_infos,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
+}
+
+func (m *PolicyReAuthTarget) Reset()         { *m = PolicyReAuthTarget{} }
+func (m *PolicyReAuthTarget) String() string { return proto.CompactTextString(m) }
+func (*PolicyReAuthTarget) ProtoMessage()    {}
+func (*PolicyReAuthTarget) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{28}
+}
+
+func (m *PolicyReAuthTarget) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PolicyReAuthTarget.Unmarshal(m, b)
+}
+func (m *PolicyReAuthTarget) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PolicyReAuthTarget.Marshal(b, m, deterministic)
+}
+func (m *PolicyReAuthTarget) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PolicyReAuthTarget.Merge(m, src)
+}
+func (m *PolicyReAuthTarget) XXX_Size() int {
+	return xxx_messageInfo_PolicyReAuthTarget.Size(m)
+}
+func (m *PolicyReAuthTarget) XXX_DiscardUnknown() {
+	xxx_messageInfo_PolicyReAuthTarget.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PolicyReAuthTarget proto.InternalMessageInfo
+
+func (m *PolicyReAuthTarget) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
+func (m *PolicyReAuthTarget) GetRulesToRemove() *RuleRemovals {
+	if m != nil {
+		return m.RulesToRemove
+	}
+	return nil
+}
+
+func (m *PolicyReAuthTarget) GetRulesToInstall() *RuleInstalls {
+	if m != nil {
+		return m.RulesToInstall
+	}
+	return nil
+}
+
+func (m *PolicyReAuthTarget) GetUsageMonitoringInfos() []*UsageMonitoringInformation {
+	if m != nil {
+		return m.UsageMonitoringInfos
+	}
+	return nil
+}
+
+type PolicyReAuthAnswer struct {
+	SessionId            string            `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	ResultCode           uint32            `protobuf:"varint,2,opt,name=result_code,json=resultCode,proto3" json:"result_code,omitempty"`
+	FailedRules          map[string]uint32 `protobuf:"bytes,3,rep,name=failed_rules,json=failedRules,proto3" json:"failed_rules,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *PolicyReAuthAnswer) Reset()         { *m = PolicyReAuthAnswer{} }
+func (m *PolicyReAuthAnswer) String() string { return proto.CompactTextString(m) }
+func (*PolicyReAuthAnswer) ProtoMessage()    {}
+func (*PolicyReAuthAnswer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{29}
+}
+
+func (m *PolicyReAuthAnswer) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PolicyReAuthAnswer.Unmarshal(m, b)
+}
+func (m *PolicyReAuthAnswer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PolicyReAuthAnswer.Marshal(b, m, deterministic)
+}
+func (m *PolicyReAuthAnswer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PolicyReAuthAnswer.Merge(m, src)
+}
+func (m *PolicyReAuthAnswer) XXX_Size() int {
+	return xxx_messageInfo_PolicyReAuthAnswer.Size(m)
+}
+func (m *PolicyReAuthAnswer) XXX_DiscardUnknown() {
+	xxx_messageInfo_PolicyReAuthAnswer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PolicyReAuthAnswer proto.InternalMessageInfo
+
+func (m *PolicyReAuthAnswer) GetSessionId() string {
+	if m != nil {
+		return m.SessionId
+	}
+	return ""
+}
+
+func (m *PolicyReAuthAnswer) GetResultCode() uint32 {
+	if m != nil {
+		return m.ResultCode
+	}
+	return 0
+}
+
+func (m *PolicyReAuthAnswer) GetFailedRules() map[string]uint32 {
+	if m != nil {
+		return m.FailedRules
+	}
+	return nil
+}
+
+// gx interface
+type PolicyAbortSessionRequest struct {
+	Imsi                 string         `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	Cause                AbortCauseType `protobuf:"varint,2,opt,name=cause,proto3,enum=magma.feg.AbortCauseType" json:"cause,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
+}
+
+func (m *PolicyAbortSessionRequest) Reset()         { *m = PolicyAbortSessionRequest{} }
+func (m *PolicyAbortSessionRequest) String() string { return proto.CompactTextString(m) }
+func (*PolicyAbortSessionRequest) ProtoMessage()    {}
+func (*PolicyAbortSessionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{30}
+}
+
+func (m *PolicyAbortSessionRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PolicyAbortSessionRequest.Unmarshal(m, b)
+}
+func (m *PolicyAbortSessionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PolicyAbortSessionRequest.Marshal(b, m, deterministic)
+}
+func (m *PolicyAbortSessionRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PolicyAbortSessionRequest.Merge(m, src)
+}
+func (m *PolicyAbortSessionRequest) XXX_Size() int {
+	return xxx_messageInfo_PolicyAbortSessionRequest.Size(m)
+}
+func (m *PolicyAbortSessionRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PolicyAbortSessionRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PolicyAbortSessionRequest proto.InternalMessageInfo
+
+func (m *PolicyAbortSessionRequest) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
+func (m *PolicyAbortSessionRequest) GetCause() AbortCauseType {
+	if m != nil {
+		return m.Cause
+	}
+	return AbortCauseType_BearerReleased
+}
+
+type PolicyAbortSessionResponse struct {
+	SessionId            string   `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	ResultCode           uint32   `protobuf:"varint,2,opt,name=result_code,json=resultCode,proto3" json:"result_code,omitempty"`
+	ErrorMessage         string   `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PolicyAbortSessionResponse) Reset()         { *m = PolicyAbortSessionResponse{} }
+func (m *PolicyAbortSessionResponse) String() string { return proto.CompactTextString(m) }
+func (*PolicyAbortSessionResponse) ProtoMessage()    {}
+func (*PolicyAbortSessionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef3afe2df05d1dc6, []int{31}
+}
+
+func (m *PolicyAbortSessionResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PolicyAbortSessionResponse.Unmarshal(m, b)
+}
+func (m *PolicyAbortSessionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PolicyAbortSessionResponse.Marshal(b, m, deterministic)
+}
+func (m *PolicyAbortSessionResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PolicyAbortSessionResponse.Merge(m, src)
+}
+func (m *PolicyAbortSessionResponse) XXX_Size() int {
+	return xxx_messageInfo_PolicyAbortSessionResponse.Size(m)
+}
+func (m *PolicyAbortSessionResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PolicyAbortSessionResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PolicyAbortSessionResponse proto.InternalMessageInfo
+
+func (m *PolicyAbortSessionResponse) GetSessionId() string {
+	if m != nil {
+		return m.SessionId
+	}
+	return ""
+}
+
+func (m *PolicyAbortSessionResponse) GetResultCode() uint32 {
+	if m != nil {
+		return m.ResultCode
+	}
+	return 0
+}
+
+func (m *PolicyAbortSessionResponse) GetErrorMessage() string {
+	if m != nil {
+		return m.ErrorMessage
+	}
+	return ""
 }
 
 func init() {
+	proto.RegisterEnum("magma.feg.MonitoringLevel", MonitoringLevel_name, MonitoringLevel_value)
+	proto.RegisterEnum("magma.feg.CCRequestType", CCRequestType_name, CCRequestType_value)
+	proto.RegisterEnum("magma.feg.UnexpectedRequestBehavior", UnexpectedRequestBehavior_name, UnexpectedRequestBehavior_value)
+	proto.RegisterEnum("magma.feg.AbortCauseType", AbortCauseType_name, AbortCauseType_value)
 	proto.RegisterEnum("magma.feg.Reply_ServerBehavior", Reply_ServerBehavior_name, Reply_ServerBehavior_value)
 	proto.RegisterEnum("magma.feg.CreditInfo_UnitType", CreditInfo_UnitType_name, CreditInfo_UnitType_value)
-	proto.RegisterEnum("magma.feg.UsageMonitorCredit_MonitoringLevel", UsageMonitorCredit_MonitoringLevel_name, UsageMonitorCredit_MonitoringLevel_value)
 	proto.RegisterType((*Reply)(nil), "magma.feg.Reply")
 	proto.RegisterType((*ExpectedRequest)(nil), "magma.feg.ExpectedRequest")
 	proto.RegisterType((*RequestReply)(nil), "magma.feg.RequestReply")
 	proto.RegisterType((*ServerConfiguration)(nil), "magma.feg.ServerConfiguration")
 	proto.RegisterType((*OCSConfig)(nil), "magma.feg.OCSConfig")
 	proto.RegisterType((*CreditInfo)(nil), "magma.feg.CreditInfo")
-	proto.RegisterType((*ReAuthTarget)(nil), "magma.feg.ReAuthTarget")
-	proto.RegisterType((*ReAuthAnswer)(nil), "magma.feg.ReAuthAnswer")
+	proto.RegisterType((*ChargingReAuthTarget)(nil), "magma.feg.ChargingReAuthTarget")
+	proto.RegisterType((*ChargingReAuthAnswer)(nil), "magma.feg.ChargingReAuthAnswer")
+	proto.RegisterType((*PCRFConfigs)(nil), "magma.feg.PCRFConfigs")
 	proto.RegisterType((*AccountRules)(nil), "magma.feg.AccountRules")
 	proto.RegisterType((*RuleDefinition)(nil), "magma.feg.RuleDefinition")
-	proto.RegisterType((*UsageMonitorInfo)(nil), "magma.feg.UsageMonitorInfo")
-	proto.RegisterType((*UsageMonitorCredit)(nil), "magma.feg.UsageMonitorCredit")
+	proto.RegisterType((*UsageMonitorConfiguration)(nil), "magma.feg.UsageMonitorConfiguration")
+	proto.RegisterType((*UsageMonitor)(nil), "magma.feg.UsageMonitor")
+	proto.RegisterType((*GxCreditControlExpectations)(nil), "magma.feg.GxCreditControlExpectations")
+	proto.RegisterType((*GxCreditControlResult)(nil), "magma.feg.GxCreditControlResult")
+	proto.RegisterType((*ErrorByIndex)(nil), "magma.feg.ErrorByIndex")
+	proto.RegisterType((*ExpectationResult)(nil), "magma.feg.ExpectationResult")
+	proto.RegisterType((*GxCreditControlExpectation)(nil), "magma.feg.GxCreditControlExpectation")
+	proto.RegisterType((*GxCreditControlRequest)(nil), "magma.feg.GxCreditControlRequest")
+	proto.RegisterType((*GxCreditControlAnswer)(nil), "magma.feg.GxCreditControlAnswer")
+	proto.RegisterType((*GyCreditControlExpectation)(nil), "magma.feg.GyCreditControlExpectation")
+	proto.RegisterType((*GyCreditControlRequest)(nil), "magma.feg.GyCreditControlRequest")
+	proto.RegisterType((*GyCreditControlAnswer)(nil), "magma.feg.GyCreditControlAnswer")
+	proto.RegisterType((*UsageMonitoringInformation)(nil), "magma.feg.UsageMonitoringInformation")
+	proto.RegisterType((*QosInfo)(nil), "magma.feg.QosInfo")
+	proto.RegisterType((*RuleInstalls)(nil), "magma.feg.RuleInstalls")
+	proto.RegisterType((*RuleRemovals)(nil), "magma.feg.RuleRemovals")
+	proto.RegisterType((*Octets)(nil), "magma.feg.Octets")
+	proto.RegisterType((*PolicyReAuthTarget)(nil), "magma.feg.PolicyReAuthTarget")
+	proto.RegisterType((*PolicyReAuthAnswer)(nil), "magma.feg.PolicyReAuthAnswer")
+	proto.RegisterMapType((map[string]uint32)(nil), "magma.feg.PolicyReAuthAnswer.FailedRulesEntry")
+	proto.RegisterType((*PolicyAbortSessionRequest)(nil), "magma.feg.PolicyAbortSessionRequest")
+	proto.RegisterType((*PolicyAbortSessionResponse)(nil), "magma.feg.PolicyAbortSessionResponse")
 }
 
 func init() { proto.RegisterFile("feg/protos/mock_core.proto", fileDescriptor_ef3afe2df05d1dc6) }
 
 var fileDescriptor_ef3afe2df05d1dc6 = []byte{
-	// 1873 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x58, 0xcb, 0x72, 0xdb, 0xc8,
-	0x15, 0x25, 0xf5, 0xb2, 0x78, 0xc5, 0x97, 0x5b, 0x92, 0x45, 0xc9, 0x65, 0x5b, 0xa1, 0x93, 0x29,
-	0x57, 0x4d, 0x45, 0xaa, 0x52, 0x52, 0x95, 0xa9, 0x78, 0x92, 0x14, 0x45, 0x69, 0x46, 0x4a, 0x24,
-	0xd9, 0x06, 0xa5, 0x38, 0xe3, 0x0d, 0x02, 0x02, 0x57, 0x14, 0x22, 0xbc, 0xdc, 0xdd, 0x90, 0xcd,
-	0x4d, 0x56, 0xc9, 0x2e, 0x1f, 0x90, 0xbf, 0xc8, 0x32, 0xc9, 0x7f, 0xe4, 0x83, 0x52, 0xfd, 0x00,
-	0xd1, 0x20, 0xa0, 0xf1, 0xd4, 0x78, 0x45, 0xf6, 0xb9, 0xa7, 0x4f, 0x3f, 0xee, 0xed, 0xd3, 0x00,
-	0x60, 0xe7, 0x1a, 0x27, 0xfb, 0x09, 0x8d, 0x79, 0xcc, 0xf6, 0xc3, 0xd8, 0xbd, 0xb5, 0xdd, 0x98,
-	0xe2, 0x9e, 0x04, 0x48, 0x23, 0x74, 0x26, 0xa1, 0xb3, 0x77, 0x8d, 0x93, 0x9d, 0xed, 0x98, 0xba,
-	0x5f, 0xd1, 0x8c, 0xe8, 0xc6, 0x61, 0x18, 0x47, 0x8a, 0xb5, 0xb3, 0x69, 0x28, 0xb8, 0xec, 0x7a,
-	0xac, 0xe1, 0xed, 0x80, 0x63, 0x06, 0x27, 0x71, 0xe0, 0xbb, 0x53, 0x2f, 0x0b, 0xed, 0x1a, 0x21,
-	0x86, 0x8c, 0xf9, 0x71, 0x64, 0x87, 0x4e, 0xe4, 0x4c, 0x90, 0x6a, 0xc6, 0x13, 0x93, 0x91, 0x8e,
-	0x99, 0x4b, 0xfd, 0x31, 0xd2, 0x4c, 0xa0, 0xff, 0xcf, 0x35, 0x58, 0xb6, 0x30, 0x09, 0xa6, 0xe4,
-	0x04, 0x3a, 0x0c, 0xe9, 0x1d, 0x52, 0x7b, 0x8c, 0x37, 0xce, 0x9d, 0x1f, 0xd3, 0x5e, 0x7d, 0xb7,
-	0xfe, 0xa2, 0x7d, 0xf0, 0x6c, 0x6f, 0x36, 0xf9, 0x3d, 0x49, 0xdd, 0x1b, 0x49, 0xde, 0xa1, 0xa6,
-	0x59, 0x6d, 0x56, 0x68, 0x93, 0x67, 0xb0, 0x46, 0x05, 0xcf, 0xf6, 0x30, 0x70, 0xa6, 0xbd, 0x85,
-	0xdd, 0xfa, 0x8b, 0x65, 0x0b, 0x24, 0x74, 0x24, 0x10, 0xf2, 0x5b, 0x68, 0x39, 0x01, 0x52, 0x6e,
-	0x53, 0x7c, 0x9f, 0x22, 0xe3, 0xbd, 0xc5, 0xdd, 0xfa, 0x8b, 0xb5, 0x83, 0x2d, 0x63, 0xa0, 0x81,
-	0x88, 0x5b, 0x2a, 0x7c, 0x52, 0xb3, 0x9a, 0x8e, 0xd1, 0x26, 0xbf, 0x87, 0x87, 0x5e, 0xfc, 0x21,
-	0x0a, 0xfc, 0xe8, 0xd6, 0x4e, 0x23, 0x9f, 0x7b, 0x0e, 0x77, 0x7a, 0x4b, 0x52, 0xe3, 0xb1, 0xa1,
-	0x71, 0xa4, 0x39, 0x57, 0x9a, 0x72, 0x52, 0xb3, 0xba, 0xde, 0x1c, 0x46, 0x7e, 0x07, 0x6d, 0x4c,
-	0x98, 0xed, 0x21, 0x77, 0xdc, 0x1b, 0xdb, 0x71, 0x6f, 0x7b, 0xcb, 0xa5, 0xc9, 0x1c, 0xbf, 0x1e,
-	0x1d, 0xc9, 0xf8, 0xc0, 0xbd, 0x15, 0x93, 0xc1, 0x84, 0xcd, 0xda, 0xe4, 0x10, 0x3a, 0x7e, 0xc8,
-	0x7c, 0x53, 0x61, 0x45, 0x2a, 0xf4, 0x0c, 0x85, 0xd3, 0xf3, 0xd1, 0xa9, 0x29, 0xd1, 0x12, 0x5d,
-	0x72, 0x8d, 0xb7, 0xf0, 0x28, 0x88, 0x5d, 0x87, 0x8b, 0xf4, 0xa5, 0x89, 0xe7, 0x70, 0xb4, 0x1d,
-	0xd7, 0xc5, 0x84, 0xf7, 0x1e, 0x48, 0x29, 0x33, 0x05, 0x67, 0x9a, 0x78, 0x25, 0x79, 0x03, 0x49,
-	0x3b, 0xa9, 0x59, 0x1b, 0x41, 0x05, 0x5e, 0x25, 0x4c, 0xf1, 0x2f, 0xe8, 0xf2, 0xde, 0xea, 0x27,
-	0x84, 0x2d, 0x49, 0x2b, 0x0b, 0x2b, 0x5c, 0x08, 0x87, 0xa1, 0xed, 0x47, 0xd7, 0x31, 0x0d, 0x95,
-	0x7c, 0x96, 0xcb, 0x46, 0x49, 0xf8, 0xfc, 0xfc, 0x34, 0xe7, 0xe5, 0x39, 0xdd, 0x08, 0xc3, 0x32,
-	0x4e, 0x06, 0xd0, 0x4e, 0x9c, 0x89, 0x1f, 0x4d, 0x66, 0x82, 0x50, 0xda, 0xcd, 0xd7, 0x92, 0x90,
-	0x2b, 0xb5, 0x12, 0x13, 0x20, 0x47, 0xd0, 0xa1, 0x18, 0xa0, 0xc3, 0x70, 0xa6, 0xb1, 0x26, 0x35,
-	0xb6, 0x0b, 0x95, 0x2c, 0x19, 0xb9, 0x48, 0x9b, 0x16, 0x10, 0x72, 0x09, 0x9b, 0xa2, 0xae, 0x7d,
-	0x17, 0x6d, 0x67, 0x1c, 0x1b, 0xc5, 0xda, 0x94, 0x5a, 0x4f, 0x0d, 0xad, 0x91, 0xe2, 0x0d, 0x04,
-	0x2d, 0x17, 0x5c, 0x67, 0x65, 0x98, 0x1c, 0x40, 0x83, 0x22, 0x43, 0x2e, 0xeb, 0xa4, 0x25, 0x95,
-	0xd6, 0x0b, 0xb3, 0x62, 0xc8, 0x55, 0x89, 0xac, 0x52, 0xfd, 0x9f, 0x7c, 0x0b, 0x5d, 0xd5, 0xc7,
-	0x8f, 0x3c, 0x5f, 0xe5, 0xa2, 0xd7, 0x96, 0x5d, 0x77, 0xe6, 0xbb, 0x9e, 0xce, 0x18, 0x27, 0x35,
-	0xab, 0x43, 0x8b, 0x10, 0xf9, 0x12, 0x56, 0x18, 0x77, 0x78, 0xca, 0x7a, 0x1d, 0xd9, 0xfd, 0xa1,
-	0xb9, 0x06, 0x19, 0x38, 0xa9, 0x59, 0x9a, 0x42, 0xde, 0xc1, 0x96, 0x4b, 0x51, 0x54, 0x4c, 0x66,
-	0x2c, 0x14, 0x59, 0x12, 0x47, 0x0c, 0x7b, 0x5d, 0xd9, 0x7b, 0x57, 0xf7, 0x0e, 0x38, 0xee, 0x0d,
-	0x25, 0x73, 0xa4, 0x88, 0x96, 0xe6, 0x9d, 0xd4, 0xad, 0x4d, 0xb7, 0x2a, 0x20, 0xb4, 0x75, 0x35,
-	0x96, 0xb4, 0x1f, 0x96, 0xb4, 0x55, 0xdd, 0x55, 0x68, 0xa7, 0x55, 0x01, 0xe2, 0xc2, 0x4e, 0x26,
-	0xca, 0x91, 0x86, 0x7e, 0xa4, 0x8a, 0x5e, 0xcb, 0x13, 0x29, 0xff, 0xdc, 0x90, 0xd7, 0xfd, 0x2f,
-	0x33, 0xae, 0x31, 0x42, 0x8f, 0xdd, 0x13, 0xeb, 0x0f, 0xa1, 0x5d, 0x34, 0x41, 0xb2, 0x0e, 0x1d,
-	0xeb, 0xf8, 0xf5, 0xd9, 0x77, 0xf6, 0xe9, 0xc5, 0xe8, 0x72, 0x70, 0x71, 0x79, 0xf6, 0x5d, 0xb7,
-	0x46, 0xda, 0x00, 0x0a, 0x3c, 0x1b, 0x5c, 0x1e, 0x77, 0xeb, 0xa4, 0x09, 0xab, 0x17, 0xaf, 0x6c,
-	0x09, 0x75, 0x17, 0x0e, 0x5b, 0xb0, 0xc6, 0x26, 0xcc, 0x0e, 0x91, 0x31, 0x67, 0x82, 0x87, 0x6d,
-	0x68, 0x4e, 0x3e, 0x4e, 0xa6, 0x59, 0xbb, 0xff, 0x6f, 0x80, 0xce, 0xf1, 0xc7, 0x04, 0x5d, 0x8e,
-	0x9e, 0x51, 0x3e, 0xca, 0x39, 0x45, 0xf9, 0xd4, 0x4b, 0xe5, 0x23, 0x5d, 0x53, 0x97, 0x8f, 0xa3,
-	0xff, 0x93, 0x97, 0xd0, 0xcc, 0xdc, 0x56, 0x9e, 0xfc, 0x05, 0xd9, 0xed, 0x51, 0xd9, 0x6c, 0xf5,
-	0x81, 0x5f, 0x73, 0xf2, 0xa6, 0x38, 0x05, 0x86, 0x3d, 0x1a, 0x05, 0xb8, 0x58, 0x3a, 0x05, 0x33,
-	0x97, 0x2c, 0x14, 0xe1, 0xfa, 0xcc, 0x2c, 0x8d, 0x42, 0x7c, 0x0b, 0x8f, 0x4c, 0xcf, 0x34, 0x64,
-	0x97, 0x4a, 0xee, 0x91, 0x5b, 0x67, 0x41, 0x77, 0x23, 0x77, 0x50, 0x43, 0xf8, 0x1d, 0x6c, 0x95,
-	0xfd, 0x4e, 0x1d, 0xdb, 0xe5, 0x42, 0x61, 0x55, 0x19, 0x5e, 0x76, 0x70, 0x37, 0x83, 0xaa, 0x80,
-	0xb8, 0xb5, 0x66, 0xce, 0x24, 0x37, 0x72, 0xa5, 0x74, 0x51, 0x64, 0xc6, 0xa4, 0x77, 0xb2, 0x99,
-	0x18, 0x6d, 0x61, 0x4b, 0x99, 0xa1, 0x64, 0x73, 0x7a, 0x50, 0xb2, 0x25, 0x6d, 0x25, 0x86, 0x2d,
-	0xb1, 0x02, 0x22, 0xca, 0x9b, 0x8b, 0xad, 0xa3, 0xe8, 0x04, 0xb3, 0xa5, 0xba, 0x71, 0x98, 0x04,
-	0xc8, 0x51, 0xbb, 0xfa, 0x73, 0x43, 0xf0, 0xf2, 0x7c, 0x74, 0x6a, 0x19, 0xdc, 0xa1, 0xa6, 0x9e,
-	0xd4, 0xac, 0x9e, 0x10, 0xaa, 0x8a, 0x89, 0xfc, 0xa4, 0xe2, 0x0a, 0xe2, 0xfe, 0x9d, 0xcf, 0xa7,
-	0x66, 0x7e, 0xca, 0xee, 0x7e, 0x75, 0x3c, 0xd0, 0xbc, 0x62, 0x7e, 0x52, 0x2c, 0xe3, 0xc2, 0xdd,
-	0x53, 0xb4, 0xd3, 0x88, 0xa2, 0xe3, 0xde, 0x38, 0xe3, 0x00, 0x2b, 0xdc, 0xfd, 0xea, 0xf8, 0x2a,
-	0x8f, 0x0b, 0x77, 0x4f, 0xd1, 0x00, 0xc4, 0x36, 0xa6, 0x49, 0xf1, 0xea, 0x2f, 0xbb, 0xfb, 0x55,
-	0x32, 0x77, 0xf1, 0xb7, 0xd3, 0x02, 0x52, 0xf4, 0xe1, 0xe6, 0x8f, 0xf7, 0xe1, 0xd6, 0xe7, 0xf9,
-	0x70, 0xfb, 0xd3, 0x3e, 0xfc, 0x16, 0x1e, 0x95, 0x7c, 0x58, 0x55, 0x4f, 0xa7, 0x90, 0x8b, 0x0a,
-	0x1b, 0x56, 0x35, 0x54, 0xb7, 0x36, 0xdc, 0x0a, 0x5c, 0x26, 0x79, 0xde, 0x84, 0x95, 0x70, 0xb7,
-	0x24, 0x3c, 0xe7, 0xc1, 0x33, 0xe1, 0xb4, 0x02, 0x27, 0x7f, 0x86, 0xed, 0x2a, 0x07, 0x56, 0xda,
-	0xca, 0xdf, 0xfb, 0xdf, 0x6b, 0xc0, 0x99, 0xfc, 0x16, 0xab, 0x0e, 0x7d, 0xca, 0x39, 0x03, 0x68,
-	0x6a, 0xa6, 0x7a, 0xb4, 0xfd, 0x25, 0x3c, 0xc8, 0x86, 0xaf, 0x97, 0xf2, 0x35, 0x67, 0xb1, 0x56,
-	0x46, 0x25, 0x5f, 0xc0, 0xb2, 0x7c, 0x66, 0xd5, 0x86, 0xd9, 0x9d, 0x7f, 0x0c, 0xb6, 0x54, 0xb8,
-	0x3f, 0x82, 0x75, 0x75, 0x17, 0x0c, 0xe3, 0xe8, 0xda, 0x9f, 0xa4, 0x54, 0x25, 0xf9, 0x6b, 0x68,
-	0x69, 0x25, 0x5b, 0xc9, 0xd4, 0x77, 0x17, 0xe7, 0xec, 0xc2, 0x9c, 0xa4, 0xd5, 0xa4, 0x46, 0xab,
-	0xff, 0x57, 0x68, 0xbc, 0x1a, 0x8e, 0x94, 0x22, 0xf9, 0x02, 0x3a, 0xa1, 0xf3, 0xd1, 0x4e, 0xc5,
-	0xe2, 0xec, 0xf1, 0x94, 0x23, 0x93, 0xeb, 0x68, 0x59, 0xad, 0xd0, 0xf9, 0x78, 0x25, 0xb7, 0x40,
-	0x80, 0xe4, 0xa7, 0xd0, 0xce, 0x79, 0xdc, 0x0f, 0x51, 0x4e, 0xbd, 0x65, 0x35, 0x33, 0xda, 0xa5,
-	0x1f, 0x22, 0x79, 0x0e, 0xad, 0x3b, 0x27, 0xf0, 0x3d, 0x71, 0xb2, 0x25, 0x69, 0x51, 0x91, 0x32,
-	0x50, 0x90, 0xfa, 0xff, 0xad, 0x03, 0x0c, 0x29, 0x7a, 0x3e, 0x17, 0xcf, 0x68, 0x84, 0xc0, 0x92,
-	0xf0, 0x5b, 0x39, 0x6c, 0xc3, 0x92, 0xff, 0xc9, 0x4f, 0xa0, 0xe9, 0xde, 0x38, 0x54, 0x3a, 0xe2,
-	0x2d, 0x4e, 0xf5, 0x58, 0x6b, 0x19, 0xf6, 0x07, 0x9c, 0x92, 0x47, 0xb0, 0x72, 0x17, 0x07, 0xa9,
-	0x1e, 0x63, 0xc9, 0xd2, 0x2d, 0xf2, 0x12, 0x1a, 0xe2, 0xf0, 0xda, 0x7c, 0x9a, 0xa0, 0xb4, 0xfc,
-	0x76, 0xe1, 0x26, 0xc9, 0x07, 0xde, 0x13, 0x07, 0xf6, 0x72, 0x9a, 0xa0, 0xb5, 0x9a, 0xea, 0x7f,
-	0xfd, 0x67, 0xb0, 0x9a, 0xa1, 0xa4, 0x01, 0xcb, 0x72, 0xe9, 0xdd, 0x1a, 0x59, 0x85, 0x25, 0x31,
-	0xf3, 0x6e, 0xbd, 0x7f, 0x2c, 0xd2, 0x3f, 0x48, 0xf9, 0xcd, 0xa5, 0x43, 0x27, 0xc8, 0xef, 0x9b,
-	0xbc, 0xc8, 0x53, 0x34, 0xb1, 0x27, 0x34, 0x4e, 0x93, 0x6c, 0xf2, 0x0a, 0xfb, 0x56, 0x40, 0xfd,
-	0x8b, 0x4c, 0x66, 0x10, 0xb1, 0x0f, 0x48, 0xc9, 0x13, 0x80, 0xac, 0xac, 0x7d, 0x4f, 0x8b, 0x35,
-	0x34, 0x72, 0xea, 0xa9, 0xb7, 0x1e, 0x96, 0x06, 0xdc, 0x76, 0x63, 0x2f, 0xdb, 0x79, 0x50, 0xd0,
-	0x30, 0xf6, 0xb0, 0xff, 0xaf, 0x3a, 0x34, 0x07, 0xae, 0x1b, 0xa7, 0x11, 0xb7, 0xd2, 0x00, 0x59,
-	0xe5, 0xbc, 0x9e, 0x00, 0xd0, 0x34, 0x40, 0x3b, 0x72, 0x42, 0x64, 0xbd, 0x85, 0xdd, 0x45, 0x31,
-	0x88, 0x40, 0x2e, 0x04, 0x20, 0x2a, 0x41, 0x86, 0xc7, 0xe2, 0xe1, 0x56, 0x71, 0x16, 0x25, 0xa7,
-	0x25, 0xe0, 0x43, 0x87, 0x69, 0xde, 0x11, 0x74, 0x25, 0xcf, 0xc3, 0x6b, 0x3f, 0xf2, 0x45, 0x3d,
-	0xb2, 0xde, 0x92, 0xac, 0xbf, 0xc2, 0x33, 0x70, 0x1a, 0xe0, 0xd1, 0x8c, 0x61, 0x49, 0xe9, 0xbc,
-	0xcd, 0xfa, 0xff, 0x5b, 0x80, 0x76, 0x91, 0x43, 0x1e, 0x43, 0x63, 0x36, 0x3f, 0x3d, 0xf1, 0xd5,
-	0x6c, 0x7a, 0x3f, 0x60, 0x53, 0xc9, 0x53, 0x80, 0x84, 0xa2, 0x8b, 0x1e, 0x46, 0x6e, 0x56, 0x79,
-	0x06, 0x42, 0x7e, 0x06, 0xed, 0x30, 0x8e, 0x7c, 0x1e, 0xd3, 0xac, 0xac, 0x96, 0xe4, 0x20, 0xad,
-	0x1c, 0x15, 0x85, 0xf5, 0x25, 0x3c, 0xbc, 0x0e, 0xe2, 0x0f, 0xb6, 0x87, 0xe2, 0x85, 0x36, 0x51,
-	0x0b, 0x5c, 0x96, 0x3b, 0xd1, 0x15, 0x81, 0x23, 0x03, 0x27, 0x6f, 0x60, 0x43, 0x14, 0x14, 0x45,
-	0x97, 0x9b, 0x6f, 0x2c, 0xfa, 0xf6, 0x7d, 0x6a, 0x58, 0x91, 0xa5, 0x69, 0xe6, 0x7b, 0xc9, 0x3a,
-	0x2d, 0x83, 0xe4, 0x25, 0x74, 0xde, 0xc7, 0xac, 0xa0, 0xa6, 0xae, 0x5e, 0x62, 0xa8, 0x7d, 0x13,
-	0xc4, 0x1f, 0xde, 0xc4, 0xcc, 0x6a, 0xbf, 0x8f, 0x99, 0xd1, 0xb9, 0x3f, 0x85, 0xae, 0x3c, 0x8d,
-	0xe7, 0x6a, 0x49, 0xf7, 0x1e, 0xb0, 0x37, 0xb0, 0xa9, 0x8e, 0xb2, 0x5e, 0xbb, 0xed, 0xca, 0x73,
-	0xa1, 0xca, 0x62, 0xed, 0xe0, 0x89, 0x79, 0xdf, 0x19, 0x7a, 0xea, 0xf4, 0x58, 0xeb, 0x69, 0x09,
-	0x63, 0xfd, 0xbf, 0x2d, 0x00, 0x29, 0x73, 0x2b, 0x76, 0xbd, 0x5e, 0xb5, 0xeb, 0x7f, 0x82, 0xae,
-	0x41, 0x0b, 0xf0, 0x0e, 0x03, 0x99, 0xe3, 0xf6, 0xc1, 0xcf, 0xbf, 0x77, 0x2e, 0x7b, 0xe7, 0xb3,
-	0x5e, 0x67, 0xa2, 0x93, 0xd5, 0x09, 0x8b, 0x80, 0xac, 0x1c, 0xe4, 0x29, 0x8d, 0xb4, 0xbd, 0x29,
-	0xbb, 0x58, 0x53, 0x98, 0x32, 0xb7, 0xdc, 0x4b, 0x96, 0x4c, 0x2f, 0xe9, 0x1f, 0x40, 0x67, 0x4e,
-	0x9e, 0x74, 0xa1, 0xa9, 0x2f, 0x15, 0xd9, 0xee, 0xd6, 0x48, 0x0b, 0x1a, 0xa2, 0x90, 0x55, 0xb3,
-	0x7e, 0xf0, 0x8f, 0x3a, 0x6c, 0x9c, 0xc7, 0xee, 0xed, 0x30, 0xa6, 0x98, 0xbb, 0x76, 0x4c, 0xc9,
-	0x10, 0x9a, 0xaa, 0xad, 0x1c, 0x9d, 0xcc, 0xbf, 0xe5, 0xcd, 0x99, 0xfc, 0x4e, 0x76, 0x73, 0xcb,
-	0x6f, 0x3a, 0x7b, 0x7f, 0x8c, 0x7d, 0xaf, 0x5f, 0x23, 0xfb, 0xb0, 0x2c, 0x1f, 0x02, 0x48, 0x39,
-	0x5a, 0xd9, 0xe1, 0xe0, 0x3f, 0x0b, 0xf0, 0x40, 0x4c, 0xe7, 0xd5, 0x70, 0x44, 0x5e, 0x8a, 0x37,
-	0x0b, 0xfe, 0x6a, 0x38, 0x1a, 0x21, 0x17, 0xc7, 0x86, 0x91, 0x0d, 0x63, 0x0e, 0xb3, 0x3b, 0xa1,
-	0x7a, 0xe4, 0x5f, 0x41, 0x63, 0x84, 0x5c, 0x27, 0x75, 0xb3, 0xd2, 0x51, 0xab, 0x3b, 0xfe, 0x06,
-	0x5a, 0xea, 0xd9, 0x41, 0x1b, 0x14, 0xd9, 0x32, 0x2f, 0xe8, 0xd9, 0x67, 0xa3, 0xd3, 0xa3, 0xea,
-	0xee, 0xbf, 0x86, 0xee, 0x30, 0x40, 0x87, 0xe6, 0x4c, 0xf6, 0x43, 0x17, 0x4f, 0xbe, 0x86, 0x15,
-	0x65, 0xb3, 0xa4, 0x78, 0x35, 0xe6, 0x06, 0xbe, 0x53, 0x0e, 0x28, 0x4b, 0xee, 0xd7, 0x0e, 0xfe,
-	0xbe, 0x00, 0xab, 0x62, 0xeb, 0x5e, 0x0f, 0xad, 0x6f, 0x3e, 0x77, 0x15, 0x5f, 0xc1, 0xea, 0x08,
-	0xb5, 0x37, 0x17, 0xbe, 0x45, 0x19, 0xa6, 0x5d, 0xdd, 0xf3, 0x08, 0xba, 0x23, 0xe4, 0x66, 0xe1,
-	0x33, 0xf2, 0xf8, 0x9e, 0x23, 0x71, 0x7f, 0x12, 0x3e, 0x63, 0x17, 0x0f, 0x1f, 0xbf, 0xdb, 0x96,
-	0xe8, 0xfe, 0x35, 0x4e, 0xf6, 0xdd, 0x20, 0x4e, 0xbd, 0xfd, 0x49, 0xac, 0xbf, 0xfb, 0x8d, 0x57,
-	0xe4, 0xef, 0x2f, 0xfe, 0x1f, 0x00, 0x00, 0xff, 0xff, 0xdd, 0x75, 0x01, 0xed, 0xa2, 0x14, 0x00,
-	0x00,
+	// 3163 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x5a, 0x4b, 0x6f, 0x1b, 0xc9,
+	0xb5, 0x66, 0x53, 0x0f, 0x8b, 0x47, 0x7c, 0xb4, 0x4a, 0x2f, 0x4a, 0x1e, 0x8f, 0x35, 0xed, 0x19,
+	0x5f, 0x5f, 0xcf, 0xbd, 0x12, 0xe0, 0xb9, 0x0f, 0x63, 0x7c, 0x67, 0x06, 0x14, 0x25, 0x5b, 0xbc,
+	0xa3, 0x97, 0x9b, 0x94, 0x8d, 0x99, 0x8b, 0x9b, 0x9e, 0x56, 0xb3, 0x44, 0x77, 0xdc, 0xec, 0xa6,
+	0xab, 0xaa, 0x65, 0x11, 0xc8, 0x22, 0xb3, 0x0c, 0x90, 0xdd, 0x6c, 0xb2, 0x08, 0x10, 0x20, 0xc8,
+	0x26, 0x3f, 0x20, 0xc8, 0x32, 0xdb, 0x2c, 0xb2, 0xcc, 0x22, 0x40, 0x7e, 0x40, 0xfe, 0x46, 0x50,
+	0x8f, 0x26, 0xab, 0xd9, 0x4d, 0xcb, 0x89, 0x27, 0xc8, 0x4a, 0xac, 0x53, 0xdf, 0xf9, 0xea, 0x75,
+	0xea, 0xab, 0x53, 0xd5, 0x82, 0xcd, 0x0b, 0xdc, 0xdb, 0x19, 0x90, 0x88, 0x45, 0x74, 0xa7, 0x1f,
+	0x79, 0x2f, 0x1d, 0x2f, 0x22, 0x78, 0x5b, 0x18, 0x50, 0xa9, 0xef, 0xf6, 0xfa, 0xee, 0xf6, 0x05,
+	0xee, 0x6d, 0x6e, 0x44, 0xc4, 0x7b, 0x48, 0x12, 0xa0, 0x17, 0xf5, 0xfb, 0x51, 0x28, 0x51, 0x9b,
+	0xab, 0x1a, 0x83, 0x47, 0x2f, 0xce, 0x95, 0x79, 0x23, 0x60, 0x38, 0x31, 0x0f, 0xa2, 0xc0, 0xf7,
+	0x86, 0xdd, 0xa4, 0x6a, 0x4b, 0xab, 0xa2, 0x98, 0x52, 0x3f, 0x0a, 0x9d, 0xbe, 0x1b, 0xba, 0x3d,
+	0x4c, 0x14, 0xe2, 0x96, 0x8e, 0x88, 0xcf, 0xa9, 0x47, 0xfc, 0x73, 0x4c, 0x46, 0x04, 0xb7, 0x7b,
+	0x51, 0xd4, 0x0b, 0x14, 0xe2, 0x3c, 0xbe, 0xd8, 0x61, 0x7e, 0x1f, 0x53, 0xe6, 0xf6, 0x07, 0x12,
+	0x60, 0xfd, 0x6c, 0x11, 0xe6, 0x6c, 0x3c, 0x08, 0x86, 0xe8, 0x00, 0x6a, 0x14, 0x93, 0x4b, 0x4c,
+	0x9c, 0x73, 0xfc, 0xc2, 0xbd, 0xf4, 0x23, 0x52, 0x37, 0xb6, 0x8c, 0x7b, 0xd5, 0x07, 0xb7, 0xb7,
+	0x47, 0xa3, 0xdb, 0x16, 0xd0, 0xed, 0xb6, 0xc0, 0xed, 0x2a, 0x98, 0x5d, 0xa5, 0xa9, 0x32, 0xba,
+	0x0d, 0x8b, 0x84, 0xe3, 0x9c, 0x2e, 0x0e, 0xdc, 0x61, 0xbd, 0xb8, 0x65, 0xdc, 0x9b, 0xb3, 0x41,
+	0x98, 0xf6, 0xb8, 0x05, 0x7d, 0x0e, 0x15, 0x37, 0xc0, 0x84, 0x39, 0x04, 0xbf, 0x8a, 0x31, 0x65,
+	0xf5, 0x99, 0x2d, 0xe3, 0xde, 0xe2, 0x83, 0x75, 0xad, 0xa1, 0x06, 0xaf, 0xb7, 0x65, 0xf5, 0x41,
+	0xc1, 0x2e, 0xbb, 0x5a, 0x19, 0xfd, 0x2f, 0x2c, 0x75, 0xa3, 0xd7, 0x61, 0xe0, 0x87, 0x2f, 0x9d,
+	0x38, 0xf4, 0x59, 0xd7, 0x65, 0x6e, 0x7d, 0x56, 0x70, 0xdc, 0xd4, 0x38, 0xf6, 0x14, 0xe6, 0x4c,
+	0x41, 0x0e, 0x0a, 0xb6, 0xd9, 0x9d, 0xb0, 0xa1, 0x2f, 0xa0, 0x8a, 0x07, 0xd4, 0xe9, 0x62, 0xe6,
+	0x7a, 0x2f, 0x1c, 0xd7, 0x7b, 0x59, 0x9f, 0xcb, 0x74, 0x66, 0xff, 0xb4, 0xbd, 0x27, 0xea, 0x1b,
+	0xde, 0x4b, 0xde, 0x19, 0x3c, 0xa0, 0xa3, 0x32, 0xda, 0x85, 0x9a, 0xdf, 0xa7, 0xbe, 0xce, 0x30,
+	0x2f, 0x18, 0xea, 0x1a, 0x43, 0xeb, 0xa8, 0xdd, 0xd2, 0x29, 0x2a, 0xdc, 0x65, 0xcc, 0xf1, 0x1c,
+	0xd6, 0x82, 0xc8, 0x73, 0x19, 0x5f, 0xdf, 0x78, 0xd0, 0x75, 0x19, 0x76, 0x5c, 0xcf, 0xc3, 0x03,
+	0x56, 0xbf, 0x21, 0xa8, 0xf4, 0x25, 0x38, 0x54, 0xc0, 0x33, 0x81, 0x6b, 0x08, 0xd8, 0x41, 0xc1,
+	0x5e, 0x09, 0x72, 0xec, 0x79, 0xc4, 0x04, 0xff, 0x10, 0x7b, 0xac, 0xbe, 0x70, 0x0d, 0xb1, 0x2d,
+	0x60, 0x59, 0x62, 0x69, 0xe7, 0xc4, 0xfd, 0xbe, 0xe3, 0x87, 0x17, 0x11, 0xe9, 0x4b, 0xfa, 0x64,
+	0x2d, 0x4b, 0x19, 0xe2, 0xa3, 0xa3, 0xd6, 0x18, 0x37, 0x5e, 0xd3, 0x95, 0x7e, 0x3f, 0x6b, 0x47,
+	0x0d, 0xa8, 0x0e, 0xdc, 0x9e, 0x1f, 0xf6, 0x46, 0x84, 0x90, 0x99, 0xcd, 0x53, 0x01, 0x18, 0x33,
+	0x55, 0x06, 0xba, 0x01, 0xed, 0x41, 0x8d, 0xe0, 0x00, 0xbb, 0x14, 0x8f, 0x38, 0x16, 0x05, 0xc7,
+	0x46, 0x2a, 0x92, 0x05, 0x62, 0x4c, 0x52, 0x25, 0x29, 0x0b, 0xea, 0xc0, 0x2a, 0x8f, 0x6b, 0xdf,
+	0xc3, 0x8e, 0x7b, 0x1e, 0x69, 0xc1, 0x5a, 0x16, 0x5c, 0xef, 0x6b, 0x5c, 0x6d, 0x89, 0x6b, 0x70,
+	0xd8, 0x98, 0x70, 0x99, 0x66, 0xcd, 0xe8, 0x01, 0x94, 0x08, 0xa6, 0x98, 0x89, 0x38, 0xa9, 0x08,
+	0xa6, 0xe5, 0x54, 0xaf, 0x28, 0x66, 0x32, 0x44, 0x16, 0x88, 0xfa, 0x8d, 0x9e, 0x80, 0x29, 0x7d,
+	0xfc, 0xb0, 0xeb, 0xcb, 0xb5, 0xa8, 0x57, 0x85, 0xeb, 0xe6, 0xa4, 0x6b, 0x6b, 0x84, 0x38, 0x28,
+	0xd8, 0x35, 0x92, 0x36, 0xa1, 0x8f, 0x61, 0x9e, 0x32, 0x97, 0xc5, 0xb4, 0x5e, 0x13, 0xee, 0x4b,
+	0xfa, 0x18, 0x44, 0xc5, 0x41, 0xc1, 0x56, 0x10, 0xf4, 0x35, 0xac, 0x7b, 0x04, 0xf3, 0x88, 0x49,
+	0x94, 0x87, 0x60, 0x3a, 0x88, 0x42, 0x8a, 0xeb, 0xa6, 0xf0, 0xde, 0x52, 0xde, 0x01, 0xc3, 0xdb,
+	0x4d, 0x81, 0x6c, 0x4b, 0xa0, 0xad, 0x70, 0x07, 0x86, 0xbd, 0xea, 0xe5, 0x55, 0x70, 0x6e, 0x15,
+	0x8d, 0x19, 0xee, 0xa5, 0x0c, 0xb7, 0x8c, 0xbb, 0x1c, 0xee, 0x38, 0xaf, 0x02, 0x79, 0xb0, 0x99,
+	0x90, 0x32, 0x4c, 0xfa, 0x7e, 0x28, 0x83, 0x5e, 0xd1, 0x23, 0x41, 0x7f, 0x47, 0xa3, 0x57, 0xfe,
+	0x9d, 0x04, 0xab, 0xb5, 0x50, 0xa7, 0x53, 0xea, 0xac, 0x26, 0x54, 0xd3, 0x22, 0x88, 0x96, 0xa1,
+	0x66, 0xef, 0x9f, 0x1e, 0x7e, 0xe5, 0xb4, 0x8e, 0xdb, 0x9d, 0xc6, 0x71, 0xe7, 0xf0, 0x2b, 0xb3,
+	0x80, 0xaa, 0x00, 0xd2, 0x78, 0xd8, 0xe8, 0xec, 0x9b, 0x06, 0x2a, 0xc3, 0xc2, 0xf1, 0x89, 0x23,
+	0x4c, 0x66, 0x71, 0xb7, 0x02, 0x8b, 0xb4, 0x47, 0x9d, 0x3e, 0xa6, 0xd4, 0xed, 0xe1, 0xdd, 0x2a,
+	0x94, 0x7b, 0x57, 0xbd, 0x61, 0x52, 0xb6, 0x7e, 0x0b, 0x50, 0xdb, 0xbf, 0x1a, 0x60, 0x8f, 0xe1,
+	0xae, 0x16, 0x3e, 0x52, 0x39, 0x79, 0xf8, 0x18, 0x99, 0xf0, 0x11, 0xaa, 0xa9, 0xc2, 0xc7, 0x55,
+	0xbf, 0xd1, 0x23, 0x28, 0x27, 0x6a, 0x2b, 0x76, 0x7e, 0x51, 0xb8, 0xad, 0x65, 0xc5, 0x56, 0x6d,
+	0xf8, 0x45, 0x77, 0x5c, 0xe4, 0xbb, 0x40, 0x93, 0x47, 0x2d, 0x00, 0x67, 0x32, 0xbb, 0x60, 0xa4,
+	0x92, 0xa9, 0x20, 0x5c, 0x1e, 0x89, 0xa5, 0x16, 0x88, 0xcf, 0x61, 0x4d, 0xd7, 0x4c, 0x8d, 0x76,
+	0x36, 0xa3, 0x1e, 0x63, 0xe9, 0x4c, 0xf1, 0xae, 0x8c, 0x15, 0x54, 0x23, 0xfe, 0x1a, 0xd6, 0xb3,
+	0x7a, 0x27, 0xb7, 0xed, 0x5c, 0x2a, 0xb0, 0xf2, 0x04, 0x2f, 0xd9, 0xb8, 0xab, 0x41, 0x5e, 0x05,
+	0x3f, 0xb5, 0x46, 0xca, 0x24, 0x26, 0x72, 0x3e, 0x73, 0x50, 0x24, 0xc2, 0xa4, 0x66, 0xb2, 0x3c,
+	0xd0, 0xca, 0x5c, 0x96, 0x12, 0x41, 0x49, 0xfa, 0x74, 0x23, 0x23, 0x4b, 0x4a, 0x4a, 0x34, 0x59,
+	0xa2, 0x29, 0x0b, 0x0f, 0x6f, 0xc6, 0xa7, 0x8e, 0x60, 0x37, 0x18, 0x0d, 0xd5, 0x8b, 0xfa, 0x83,
+	0x00, 0x33, 0xac, 0x54, 0xfd, 0x8e, 0x46, 0xd8, 0x39, 0x6a, 0xb7, 0x6c, 0x0d, 0xdb, 0x54, 0xd0,
+	0x83, 0x82, 0x5d, 0xe7, 0x44, 0x79, 0x75, 0x7c, 0x7d, 0x62, 0x7e, 0x04, 0x31, 0xff, 0xd2, 0x67,
+	0x43, 0x7d, 0x7d, 0xb2, 0xea, 0x7e, 0xb6, 0xdf, 0x50, 0xb8, 0xf4, 0xfa, 0xc4, 0x38, 0x6b, 0xe7,
+	0xea, 0x1e, 0x63, 0x27, 0x0e, 0x09, 0x76, 0xbd, 0x17, 0xee, 0x79, 0x80, 0x73, 0xd4, 0xfd, 0x6c,
+	0xff, 0x6c, 0x5c, 0xcf, 0xd5, 0x3d, 0xc6, 0x9a, 0x81, 0x4f, 0x63, 0x3c, 0x48, 0x1f, 0xfd, 0x59,
+	0x75, 0x3f, 0x1b, 0x4c, 0x1c, 0xfc, 0xd5, 0x38, 0x65, 0x49, 0xeb, 0x70, 0xf9, 0xef, 0xd7, 0xe1,
+	0xca, 0xbb, 0xe9, 0x70, 0xf5, 0x7a, 0x1d, 0x7e, 0x0e, 0x6b, 0x19, 0x1d, 0x96, 0xd1, 0x53, 0x4b,
+	0xad, 0x45, 0x8e, 0x0c, 0xcb, 0x18, 0x32, 0xec, 0x15, 0x2f, 0xc7, 0x2e, 0x16, 0x79, 0x52, 0x84,
+	0x25, 0xb1, 0x99, 0x21, 0x9e, 0xd0, 0xe0, 0x11, 0x71, 0x9c, 0x63, 0x47, 0xdf, 0xc0, 0x46, 0x9e,
+	0x02, 0x4b, 0x6e, 0xa9, 0xef, 0xd6, 0x1b, 0x05, 0x38, 0xa1, 0x5f, 0xa7, 0xf9, 0x55, 0xd7, 0x29,
+	0x67, 0x00, 0x65, 0x85, 0x94, 0xa9, 0xed, 0x7f, 0xc0, 0x8d, 0xa4, 0x79, 0x23, 0xb3, 0x5e, 0x13,
+	0x12, 0x6b, 0x27, 0x50, 0x74, 0x17, 0xe6, 0x44, 0xce, 0xaa, 0x04, 0xd3, 0x9c, 0x4c, 0x83, 0x6d,
+	0x59, 0x6d, 0xb5, 0x61, 0x59, 0x9e, 0x05, 0xcd, 0x28, 0xbc, 0xf0, 0x7b, 0x31, 0x91, 0x8b, 0xfc,
+	0x3f, 0x50, 0x51, 0x4c, 0x8e, 0xa4, 0x31, 0xb6, 0x66, 0x26, 0xe4, 0x42, 0xef, 0xa4, 0x5d, 0x26,
+	0x5a, 0xc9, 0xfa, 0xce, 0x80, 0xd2, 0x49, 0xb3, 0x2d, 0x29, 0xd1, 0x23, 0x30, 0xfb, 0xee, 0x95,
+	0x13, 0xf3, 0xd1, 0x39, 0x91, 0xc7, 0x30, 0xa3, 0x6a, 0x24, 0x7a, 0xe8, 0x9c, 0x88, 0x0a, 0xbb,
+	0xda, 0x77, 0xaf, 0xce, 0x38, 0x52, 0x96, 0xd1, 0x87, 0x50, 0x1d, 0x3b, 0xf3, 0xfc, 0x5f, 0x0c,
+	0xa8, 0x62, 0x97, 0x13, 0x5c, 0xc7, 0xef, 0x63, 0x74, 0x07, 0x2a, 0x97, 0x6e, 0xe0, 0x77, 0xf9,
+	0x7e, 0x17, 0xa0, 0x19, 0x09, 0x4a, 0x8c, 0x1c, 0x64, 0xfd, 0xc1, 0x00, 0x68, 0x12, 0xdc, 0xf5,
+	0x19, 0xcf, 0xdc, 0x10, 0x82, 0x59, 0xae, 0xc2, 0xa2, 0x2b, 0x25, 0x5b, 0xfc, 0x46, 0x1f, 0x40,
+	0xd9, 0x7b, 0xe1, 0x12, 0xa1, 0x93, 0x2f, 0xf1, 0x50, 0xb5, 0xb5, 0x98, 0xd8, 0xbe, 0xc4, 0x43,
+	0xf4, 0xaf, 0x30, 0x7f, 0x19, 0x05, 0xb1, 0x6a, 0x23, 0x77, 0x0c, 0x0a, 0x80, 0x1e, 0x41, 0x89,
+	0xef, 0x72, 0x87, 0x0d, 0x07, 0x58, 0x9c, 0x0d, 0xd5, 0xd4, 0x91, 0x33, 0xee, 0xcb, 0x36, 0xdf,
+	0xd9, 0x9d, 0xe1, 0x00, 0xdb, 0x0b, 0xb1, 0xfa, 0x65, 0xdd, 0x86, 0x85, 0xc4, 0x8a, 0x4a, 0x30,
+	0xb7, 0x3b, 0x64, 0x98, 0x9a, 0x05, 0xb4, 0x00, 0xb3, 0x7c, 0x30, 0xa6, 0x61, 0x1d, 0xc1, 0x4a,
+	0x53, 0xf5, 0xcb, 0xc6, 0x8d, 0x98, 0xbd, 0xe8, 0xb8, 0xa4, 0x87, 0xd9, 0xb4, 0x71, 0xf1, 0x85,
+	0x0d, 0x7b, 0x4e, 0x8f, 0x44, 0xf1, 0x20, 0x19, 0x97, 0xb4, 0x3d, 0xe1, 0x26, 0xeb, 0xd9, 0x24,
+	0x5d, 0x23, 0xa4, 0xaf, 0x31, 0x41, 0xb7, 0x00, 0x92, 0xfd, 0xe0, 0x77, 0x15, 0x69, 0x49, 0x59,
+	0x5a, 0x5d, 0x79, 0x5d, 0xa2, 0x71, 0xc0, 0x1c, 0x2f, 0xea, 0x26, 0x8b, 0x03, 0xd2, 0xd4, 0x8c,
+	0xba, 0xd8, 0xfa, 0x4f, 0x58, 0x3c, 0x6d, 0xda, 0x8f, 0x65, 0x2c, 0x50, 0x74, 0x17, 0x6a, 0x31,
+	0xc5, 0x8e, 0xb8, 0x83, 0x76, 0x89, 0x7f, 0x89, 0xe5, 0x45, 0x6d, 0xc1, 0xae, 0xc4, 0x14, 0x1f,
+	0x45, 0xde, 0xcb, 0x3d, 0x61, 0xb4, 0xfe, 0x64, 0x40, 0xb9, 0xe1, 0x79, 0x51, 0x1c, 0x32, 0x3b,
+	0x0e, 0x30, 0xcd, 0x1d, 0xd6, 0x7d, 0x58, 0xe2, 0x3a, 0xe3, 0x7b, 0x0e, 0x89, 0x03, 0xec, 0x84,
+	0x6e, 0x1f, 0xd3, 0x7a, 0x71, 0x6b, 0xe6, 0x5e, 0xc9, 0xae, 0xc9, 0x0a, 0xee, 0x7b, 0xcc, 0xcd,
+	0xe8, 0x13, 0x58, 0xd3, 0xb1, 0xe7, 0x3c, 0xc1, 0x96, 0x0e, 0x33, 0xc2, 0x61, 0x79, 0xec, 0xb0,
+	0xeb, 0x52, 0xe5, 0xd4, 0x86, 0x7a, 0x77, 0x18, 0xba, 0xfd, 0xc4, 0xab, 0x8b, 0x2f, 0xfc, 0xd0,
+	0xe7, 0x3b, 0x84, 0xd6, 0x67, 0xc5, 0x8e, 0x48, 0x65, 0xe5, 0x71, 0x80, 0xf7, 0x46, 0x08, 0x7b,
+	0x4d, 0xb9, 0xa6, 0xcd, 0xd4, 0xfa, 0x63, 0x11, 0xaa, 0x69, 0x1b, 0xba, 0x09, 0xa5, 0xd1, 0x08,
+	0xd4, 0x08, 0x17, 0x88, 0xea, 0xfa, 0x5b, 0x2c, 0x1e, 0x7a, 0x1f, 0x60, 0x40, 0xb0, 0x87, 0xbb,
+	0x38, 0xf4, 0x92, 0xe0, 0xd7, 0x2c, 0xe8, 0x23, 0xa8, 0xf6, 0xa3, 0xd0, 0x67, 0x11, 0x49, 0x22,
+	0x7b, 0x56, 0x34, 0x52, 0x19, 0x5b, 0x79, 0x6c, 0x7f, 0x0c, 0x4b, 0x17, 0x41, 0xf4, 0xda, 0xe9,
+	0x62, 0x7e, 0x15, 0x1f, 0xc8, 0x71, 0xce, 0x89, 0xe9, 0x31, 0x79, 0xc5, 0x9e, 0x66, 0x47, 0x4f,
+	0x61, 0x85, 0x07, 0x30, 0xc1, 0x1e, 0xd3, 0xaf, 0x52, 0x2a, 0x2d, 0x78, 0x5f, 0xd3, 0x48, 0x5b,
+	0xc1, 0xf4, 0x0b, 0xd3, 0x32, 0xc9, 0x1a, 0xd1, 0x23, 0xa8, 0xbd, 0x8a, 0x68, 0x8a, 0x4d, 0xe6,
+	0x04, 0x48, 0x63, 0x7b, 0x1c, 0x44, 0xaf, 0x9f, 0x46, 0xd4, 0xae, 0xbe, 0x8a, 0xa8, 0xe6, 0x6c,
+	0xfd, 0x08, 0x36, 0x84, 0x20, 0x1c, 0xc9, 0x21, 0xa5, 0xf5, 0x2c, 0x2f, 0x7a, 0xbe, 0x84, 0x55,
+	0x29, 0x2b, 0x6a, 0x12, 0x1c, 0x4f, 0x6c, 0x48, 0x19, 0x41, 0x69, 0xad, 0xd3, 0x89, 0xed, 0xe5,
+	0x58, 0x6f, 0x46, 0xfa, 0x58, 0xbf, 0x34, 0xa0, 0xac, 0xa3, 0xd0, 0x0f, 0xa0, 0x9e, 0xf0, 0xf2,
+	0xf1, 0x38, 0x03, 0x4c, 0x9c, 0xb4, 0x8e, 0x7f, 0x34, 0xa5, 0x01, 0x3f, 0xec, 0xe9, 0x33, 0xb5,
+	0xaa, 0x68, 0xb8, 0xed, 0x14, 0x93, 0x71, 0x32, 0xbd, 0xc8, 0x22, 0xe6, 0x06, 0xce, 0xab, 0x38,
+	0x62, 0xae, 0x92, 0xf9, 0x1c, 0x31, 0x02, 0x81, 0x7a, 0xca, 0x41, 0xd6, 0x9f, 0x8b, 0x70, 0xf3,
+	0xc9, 0x95, 0xec, 0x72, 0x33, 0x0a, 0x19, 0x89, 0x02, 0x79, 0x80, 0xb8, 0x72, 0x49, 0x5b, 0x50,
+	0xc6, 0x5a, 0x59, 0x89, 0xbe, 0xde, 0xcf, 0xe9, 0xde, 0x76, 0xca, 0x15, 0x75, 0xe1, 0x66, 0x1c,
+	0x62, 0x75, 0x3a, 0x25, 0x03, 0x1f, 0x3f, 0xce, 0x14, 0x85, 0x1a, 0x7e, 0xa8, 0xcf, 0xc0, 0x08,
+	0x9d, 0x9c, 0x93, 0xc9, 0x0b, 0xcd, 0x46, 0x3c, 0xad, 0x0a, 0x3d, 0x86, 0x6a, 0xef, 0x8a, 0xef,
+	0x4a, 0x57, 0x28, 0x90, 0xe7, 0x2a, 0x51, 0xde, 0x9a, 0xde, 0x65, 0x29, 0x6b, 0x76, 0xb9, 0x77,
+	0xb5, 0x27, 0xdd, 0x9a, 0x9e, 0x8b, 0x9a, 0xb0, 0x22, 0x27, 0x73, 0xd4, 0x63, 0xb1, 0xc6, 0x2a,
+	0xa1, 0xcf, 0x99, 0x55, 0x24, 0xe0, 0xc9, 0xe9, 0x2b, 0x56, 0xcf, 0xfa, 0xb1, 0x01, 0xab, 0x13,
+	0x8d, 0xd9, 0x42, 0x07, 0xd1, 0x7f, 0xf1, 0x23, 0x9c, 0xff, 0x4a, 0xa6, 0xf4, 0xbd, 0xcc, 0x11,
+	0xae, 0x9e, 0x11, 0x38, 0xc8, 0x4e, 0xc0, 0x68, 0x07, 0xe6, 0x31, 0x21, 0x11, 0xc9, 0x0b, 0xc9,
+	0x7d, 0x5e, 0xb1, 0xcb, 0xd3, 0x53, 0x7c, 0x65, 0x2b, 0x98, 0xf5, 0x29, 0x94, 0x75, 0x3b, 0x5a,
+	0x81, 0x39, 0x9f, 0xff, 0x10, 0x11, 0x37, 0x67, 0xcb, 0x02, 0xb7, 0x0a, 0xbc, 0x58, 0x85, 0x92,
+	0x2d, 0x0b, 0x96, 0x0f, 0x4b, 0x99, 0xae, 0x70, 0x45, 0xd0, 0x96, 0xd5, 0xd1, 0xc9, 0x4c, 0xad,
+	0x42, 0xb6, 0xf6, 0x2f, 0x50, 0xd3, 0xc1, 0x7d, 0x2c, 0xaf, 0x6b, 0x0b, 0x76, 0x55, 0x33, 0x1f,
+	0x61, 0x66, 0xfd, 0xca, 0x80, 0xcd, 0xe9, 0x91, 0x84, 0x0e, 0xc1, 0x9c, 0x8c, 0x1c, 0xb5, 0x65,
+	0x3e, 0x98, 0xbe, 0xae, 0x49, 0x3a, 0x52, 0x9b, 0x88, 0x15, 0xf4, 0x10, 0xe6, 0x5d, 0xb1, 0xe6,
+	0x6a, 0x8f, 0x5c, 0x1f, 0x1b, 0x0a, 0x6f, 0xfd, 0xa2, 0x08, 0x6b, 0xf9, 0xad, 0xe4, 0xea, 0xc9,
+	0x23, 0x48, 0xb2, 0x20, 0x79, 0xe2, 0xcb, 0x18, 0xd7, 0x2f, 0x07, 0xcd, 0xa6, 0xf2, 0x17, 0x67,
+	0xfd, 0x22, 0x19, 0x17, 0xb8, 0x42, 0x27, 0xce, 0x61, 0xdc, 0x3f, 0xc7, 0x44, 0xa9, 0x78, 0x92,
+	0x86, 0x1d, 0x0b, 0x23, 0x72, 0xa0, 0x9e, 0xd2, 0x2c, 0x79, 0xa1, 0x1b, 0x44, 0x84, 0xd1, 0xfa,
+	0x62, 0x66, 0xb7, 0xbe, 0x41, 0x55, 0xd6, 0xe2, 0x74, 0x9d, 0x2d, 0x49, 0xd0, 0xbf, 0x01, 0x92,
+	0x0d, 0x48, 0x56, 0xa7, 0x8b, 0x03, 0xe6, 0x8a, 0x3b, 0xc6, 0xac, 0x6d, 0x8a, 0x1a, 0x89, 0xdc,
+	0xe3, 0x76, 0xeb, 0xdb, 0x99, 0x4c, 0xc8, 0xab, 0xb4, 0x61, 0x22, 0x2f, 0x30, 0x26, 0xf3, 0x02,
+	0xf4, 0x7f, 0xb0, 0x96, 0x19, 0x09, 0x17, 0xca, 0xbf, 0x71, 0x1c, 0x2b, 0x71, 0xb6, 0x8e, 0x8a,
+	0xf4, 0x95, 0x9f, 0xa7, 0x7e, 0x48, 0x99, 0x1b, 0x04, 0x54, 0x5d, 0x92, 0xd6, 0x27, 0x0e, 0xeb,
+	0x96, 0xaa, 0xb6, 0xcb, 0x44, 0x2b, 0x8d, 0xbc, 0x09, 0xee, 0x47, 0x97, 0x6e, 0x40, 0xd5, 0x3d,
+	0x69, 0xd2, 0xdb, 0x56, 0xd5, 0xd2, 0x3b, 0x29, 0xf1, 0x95, 0xc4, 0x97, 0x38, 0x64, 0x0e, 0x23,
+	0x7e, 0xaf, 0x87, 0x09, 0xbf, 0x27, 0xcd, 0xf0, 0x95, 0x14, 0xd6, 0x8e, 0x32, 0xa2, 0x27, 0xb0,
+	0x44, 0xb0, 0xc8, 0x4f, 0xe5, 0x6e, 0x11, 0x69, 0x6b, 0x4d, 0x25, 0xf8, 0xf2, 0xe1, 0x7b, 0x3b,
+	0x79, 0xf8, 0xde, 0xee, 0x24, 0x0f, 0xdf, 0xb6, 0xa9, 0x3b, 0x89, 0xb4, 0x56, 0x6c, 0xa6, 0xe1,
+	0xbb, 0x6e, 0xa6, 0xe1, 0xf7, 0xb0, 0x99, 0x86, 0x6f, 0xda, 0x4c, 0xbf, 0x33, 0x60, 0x2d, 0xbf,
+	0x95, 0x7f, 0xda, 0x66, 0xfa, 0x77, 0x58, 0x48, 0xd2, 0x8d, 0xfa, 0x6a, 0x2a, 0xcf, 0xe0, 0xfc,
+	0x4f, 0x65, 0x7a, 0x61, 0xdf, 0x50, 0x79, 0x86, 0xf5, 0x73, 0xae, 0xef, 0x79, 0x63, 0xcc, 0x74,
+	0xd6, 0x78, 0xb7, 0xce, 0x16, 0xf3, 0x3a, 0x3b, 0xb1, 0xa1, 0x66, 0x32, 0x89, 0xf6, 0x6f, 0x0c,
+	0xd8, 0x9c, 0xbe, 0x51, 0x72, 0x52, 0x40, 0xde, 0xcb, 0xf2, 0x64, 0x0a, 0xb8, 0x0f, 0xa6, 0x06,
+	0x0b, 0xf0, 0x25, 0x0e, 0xd4, 0xdc, 0xeb, 0xd7, 0xce, 0x71, 0x13, 0x87, 0x1c, 0x61, 0xd7, 0xfa,
+	0x69, 0x03, 0xbf, 0x25, 0xa9, 0x9b, 0xde, 0xf4, 0x5b, 0x92, 0x04, 0x58, 0x14, 0x6e, 0xa8, 0xa9,
+	0x46, 0x9f, 0xc0, 0xba, 0x3b, 0x08, 0x1d, 0xb7, 0xd7, 0x73, 0xf8, 0xa5, 0xef, 0xdc, 0x67, 0x0e,
+	0xe1, 0xd7, 0xef, 0x38, 0x50, 0x02, 0x82, 0xdc, 0x41, 0xd8, 0xe8, 0xf5, 0x8e, 0xdc, 0xab, 0x5d,
+	0x9f, 0xd9, 0x2e, 0xc3, 0x67, 0xc1, 0x54, 0xa7, 0x6e, 0xa0, 0x26, 0x32, 0xe3, 0xb4, 0x17, 0x58,
+	0xbf, 0x2e, 0x42, 0x59, 0x57, 0x00, 0x7e, 0xcd, 0xd1, 0xee, 0x10, 0x86, 0xc8, 0x79, 0x4b, 0x64,
+	0x74, 0x7b, 0xb8, 0x0b, 0xb5, 0xc9, 0x6b, 0x83, 0xbc, 0x67, 0x08, 0xa5, 0x18, 0x5f, 0x18, 0xf6,
+	0xc0, 0xcc, 0x5c, 0x14, 0x66, 0xae, 0xbb, 0x28, 0x08, 0x6a, 0xed, 0x86, 0x80, 0x9a, 0x50, 0x13,
+	0xcf, 0x57, 0x9a, 0x32, 0xcc, 0x5e, 0xab, 0x0c, 0xd5, 0xb1, 0x8b, 0xb8, 0x13, 0x3f, 0x81, 0xa5,
+	0x2e, 0x9e, 0xa4, 0x99, 0xbb, 0x5e, 0x60, 0x74, 0x27, 0x21, 0x30, 0x67, 0x72, 0xaa, 0x46, 0x02,
+	0xf7, 0xfd, 0x4c, 0x95, 0x45, 0x61, 0x5e, 0xdd, 0xf1, 0x3f, 0x80, 0xb2, 0xcc, 0xbe, 0xb4, 0xc7,
+	0x81, 0x59, 0x5b, 0xa6, 0xb7, 0x63, 0x88, 0x1f, 0x0e, 0x62, 0x96, 0x40, 0x8a, 0x12, 0x22, 0x6c,
+	0x0a, 0x72, 0x07, 0x2a, 0x51, 0xcc, 0x34, 0xcc, 0x8c, 0xc0, 0x94, 0xa5, 0x51, 0x82, 0xac, 0x9f,
+	0x14, 0x01, 0x9d, 0x8a, 0xcf, 0x94, 0xd7, 0xde, 0x99, 0xbf, 0x90, 0xe3, 0xa0, 0x0e, 0x8b, 0xe4,
+	0x49, 0x80, 0x95, 0xe6, 0x4d, 0x3d, 0x07, 0xc4, 0x00, 0x69, 0x27, 0x12, 0x06, 0x8c, 0x1a, 0x32,
+	0x16, 0x04, 0x81, 0x3a, 0x88, 0x72, 0xbe, 0x15, 0xa6, 0xce, 0xa1, 0xaa, 0x62, 0x50, 0x86, 0x37,
+	0x1c, 0x92, 0xb3, 0xef, 0x7c, 0x48, 0x5a, 0x7f, 0x31, 0xd2, 0x73, 0xf1, 0xfd, 0x5c, 0xf8, 0xd1,
+	0x53, 0x28, 0x5f, 0xb8, 0x7e, 0xc0, 0x8f, 0x1b, 0x3e, 0x18, 0x15, 0xfe, 0xdb, 0xfa, 0x43, 0x73,
+	0xa6, 0xd1, 0xed, 0xc7, 0xc2, 0x43, 0xdc, 0xf4, 0xf7, 0x43, 0x46, 0x86, 0xf6, 0xe2, 0xc5, 0xd8,
+	0xb2, 0xf9, 0x39, 0x98, 0x93, 0x00, 0x64, 0xc2, 0x4c, 0x22, 0x62, 0x25, 0x9b, 0xff, 0xe4, 0x69,
+	0xed, 0xa5, 0x1b, 0xc4, 0x49, 0x9f, 0x64, 0xe1, 0xd3, 0xe2, 0x43, 0xc3, 0xfa, 0x06, 0x36, 0x64,
+	0x9b, 0xe2, 0x6b, 0xd6, 0xc4, 0x83, 0x5f, 0xde, 0xda, 0xef, 0xc0, 0x9c, 0xe7, 0xc6, 0x34, 0x39,
+	0x76, 0xf4, 0xbd, 0x2b, 0x28, 0x9a, 0xbc, 0x52, 0x48, 0xb9, 0xc4, 0x59, 0xdf, 0x1a, 0xb0, 0x99,
+	0xd7, 0x84, 0xfa, 0xac, 0xf3, 0xae, 0x73, 0x7a, 0x07, 0x2a, 0x22, 0x49, 0x4f, 0x1e, 0x09, 0x45,
+	0x1c, 0x95, 0xec, 0xb2, 0x30, 0x1e, 0x49, 0xdb, 0xfd, 0x07, 0x50, 0x9b, 0xd0, 0x65, 0x64, 0x42,
+	0x59, 0x75, 0x45, 0x94, 0xcd, 0x02, 0xaa, 0x40, 0x89, 0x4f, 0xa2, 0x2c, 0x1a, 0xf7, 0x9f, 0x40,
+	0x25, 0x75, 0x34, 0xa1, 0x32, 0x2c, 0x38, 0xad, 0xe3, 0x67, 0x8d, 0xc3, 0xd6, 0x9e, 0x59, 0x40,
+	0x8b, 0x70, 0xa3, 0x75, 0xdc, 0xea, 0xb4, 0x1a, 0x87, 0xa6, 0x81, 0x00, 0xe6, 0xcf, 0x4e, 0xf7,
+	0x1a, 0x9d, 0x7d, 0xb3, 0x88, 0x6a, 0xb0, 0xd8, 0xd9, 0xb7, 0x8f, 0x5a, 0xc7, 0x8d, 0x4e, 0xeb,
+	0xe4, 0xd8, 0x9c, 0xb9, 0xff, 0x0c, 0x36, 0xa6, 0xde, 0xe0, 0xd0, 0x3a, 0x2c, 0x37, 0x4f, 0x8e,
+	0x3b, 0xad, 0xe3, 0xb3, 0x7d, 0xe7, 0x79, 0xab, 0x73, 0xe0, 0xec, 0xdb, 0xf6, 0x89, 0x6d, 0x16,
+	0xd0, 0x16, 0xbc, 0x97, 0xae, 0xd8, 0xdb, 0x7f, 0xdc, 0x38, 0x3b, 0xec, 0x38, 0x8d, 0xe3, 0xf6,
+	0xf3, 0x7d, 0xdb, 0x34, 0xee, 0x5f, 0x40, 0x35, 0x3d, 0xe3, 0x08, 0x41, 0x75, 0x17, 0xbb, 0x84,
+	0xdf, 0x84, 0xc5, 0x27, 0xcf, 0xae, 0x59, 0x40, 0xb7, 0xe1, 0x66, 0x2b, 0xa4, 0xf1, 0xc5, 0x85,
+	0xef, 0xf9, 0x38, 0x64, 0xf2, 0x45, 0xd3, 0xc6, 0x34, 0x8a, 0x89, 0x87, 0xa9, 0x69, 0x4c, 0x02,
+	0x12, 0x82, 0x04, 0x50, 0x7c, 0xf0, 0x53, 0x03, 0x56, 0x8e, 0x22, 0xef, 0x65, 0x33, 0x22, 0x78,
+	0xfc, 0x74, 0x10, 0x11, 0xd4, 0x84, 0xb2, 0x2c, 0x4b, 0x52, 0x34, 0xf9, 0xe9, 0x74, 0xe2, 0xe5,
+	0x74, 0x33, 0x39, 0xe9, 0xc4, 0x7f, 0x52, 0x6c, 0x3f, 0x8b, 0xfc, 0xae, 0x55, 0xe0, 0xf1, 0x24,
+	0x5e, 0xd6, 0x51, 0xb6, 0x36, 0xd7, 0xe1, 0xc1, 0xef, 0x8b, 0x70, 0x83, 0x77, 0xe7, 0xa4, 0xd9,
+	0x46, 0x8f, 0xa0, 0xda, 0xc6, 0xec, 0xa4, 0xd9, 0x6e, 0x63, 0xc6, 0xfc, 0xb0, 0x47, 0xd1, 0x8a,
+	0x7e, 0x9a, 0x26, 0xef, 0xac, 0xf9, 0x2d, 0xff, 0x37, 0x94, 0xda, 0x98, 0xc9, 0xa4, 0x05, 0xad,
+	0xe6, 0xbe, 0x3e, 0xe6, 0x3b, 0x7e, 0x06, 0x15, 0xf9, 0x20, 0xaf, 0x5e, 0xe1, 0xd0, 0xba, 0xfe,
+	0xea, 0x3d, 0xfa, 0x67, 0x8d, 0xd6, 0x5e, 0xbe, 0xfb, 0xa7, 0x60, 0x36, 0x03, 0xec, 0x92, 0x31,
+	0x92, 0xbe, 0xed, 0xe0, 0xd1, 0x21, 0xcc, 0x4b, 0x71, 0x40, 0xfa, 0xa7, 0x9a, 0xbc, 0xc7, 0xce,
+	0xcd, 0xe9, 0x00, 0x29, 0x2c, 0x56, 0xe1, 0xc1, 0x77, 0x73, 0xb0, 0xc0, 0xa7, 0xf2, 0xb4, 0x69,
+	0x3f, 0x46, 0x9f, 0x89, 0xb9, 0xd4, 0x1f, 0x24, 0xf5, 0x4f, 0x89, 0x9a, 0xfd, 0x1f, 0x32, 0x29,
+	0x0f, 0x61, 0xa1, 0x8d, 0xd5, 0x7b, 0x66, 0xea, 0xff, 0x45, 0xb4, 0x87, 0xce, 0x7c, 0xcf, 0x23,
+	0x30, 0xdb, 0x98, 0xe9, 0x12, 0x4f, 0xd1, 0x87, 0x53, 0xc4, 0xff, 0x2d, 0xe2, 0xf1, 0x5d, 0x56,
+	0xe7, 0x60, 0xb4, 0x3a, 0xb7, 0xa6, 0x68, 0xba, 0x5a, 0x9b, 0x5b, 0x6f, 0x94, 0x7c, 0xab, 0x80,
+	0xfe, 0x1f, 0xca, 0xba, 0x5a, 0xa6, 0x06, 0x34, 0x55, 0xaf, 0x37, 0x3f, 0xba, 0x06, 0xa5, 0x3e,
+	0x72, 0x17, 0xd0, 0x31, 0xd4, 0xda, 0x98, 0xa5, 0x1e, 0xb8, 0xee, 0xbe, 0xd5, 0x53, 0xd6, 0x94,
+	0x35, 0xf8, 0x12, 0x50, 0x83, 0x52, 0x4c, 0xd2, 0x94, 0x39, 0xd3, 0xb6, 0xf5, 0xa6, 0x57, 0x0a,
+	0xae, 0xe9, 0x56, 0x61, 0xf7, 0xe6, 0xd7, 0x1b, 0x02, 0xb4, 0x73, 0x81, 0x7b, 0x3b, 0x5e, 0x10,
+	0xc5, 0xdd, 0x9d, 0x5e, 0xa4, 0xfe, 0x17, 0xea, 0x7c, 0x5e, 0xfc, 0xfd, 0xe4, 0xaf, 0x01, 0x00,
+	0x00, 0xff, 0xff, 0xbe, 0xbd, 0x0d, 0x99, 0xb6, 0x25, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1566,7 +2854,7 @@ type MockOCSClient interface {
 	SetCredit(ctx context.Context, in *CreditInfo, opts ...grpc.CallOption) (*protos1.Void, error)
 	CreateAccount(ctx context.Context, in *protos.SubscriberID, opts ...grpc.CallOption) (*protos1.Void, error)
 	ClearSubscribers(ctx context.Context, in *protos1.Void, opts ...grpc.CallOption) (*protos1.Void, error)
-	ReAuth(ctx context.Context, in *ReAuthTarget, opts ...grpc.CallOption) (*ReAuthAnswer, error)
+	ReAuth(ctx context.Context, in *ChargingReAuthTarget, opts ...grpc.CallOption) (*ChargingReAuthAnswer, error)
 }
 
 type mockOCSClient struct {
@@ -1613,8 +2901,8 @@ func (c *mockOCSClient) ClearSubscribers(ctx context.Context, in *protos1.Void, 
 	return out, nil
 }
 
-func (c *mockOCSClient) ReAuth(ctx context.Context, in *ReAuthTarget, opts ...grpc.CallOption) (*ReAuthAnswer, error) {
-	out := new(ReAuthAnswer)
+func (c *mockOCSClient) ReAuth(ctx context.Context, in *ChargingReAuthTarget, opts ...grpc.CallOption) (*ChargingReAuthAnswer, error) {
+	out := new(ChargingReAuthAnswer)
 	err := c.cc.Invoke(ctx, "/magma.feg.MockOCS/ReAuth", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1628,7 +2916,7 @@ type MockOCSServer interface {
 	SetCredit(context.Context, *CreditInfo) (*protos1.Void, error)
 	CreateAccount(context.Context, *protos.SubscriberID) (*protos1.Void, error)
 	ClearSubscribers(context.Context, *protos1.Void) (*protos1.Void, error)
-	ReAuth(context.Context, *ReAuthTarget) (*ReAuthAnswer, error)
+	ReAuth(context.Context, *ChargingReAuthTarget) (*ChargingReAuthAnswer, error)
 }
 
 // UnimplementedMockOCSServer can be embedded to have forward compatible implementations.
@@ -1647,7 +2935,7 @@ func (*UnimplementedMockOCSServer) CreateAccount(ctx context.Context, req *proto
 func (*UnimplementedMockOCSServer) ClearSubscribers(ctx context.Context, req *protos1.Void) (*protos1.Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClearSubscribers not implemented")
 }
-func (*UnimplementedMockOCSServer) ReAuth(ctx context.Context, req *ReAuthTarget) (*ReAuthAnswer, error) {
+func (*UnimplementedMockOCSServer) ReAuth(ctx context.Context, req *ChargingReAuthTarget) (*ChargingReAuthAnswer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReAuth not implemented")
 }
 
@@ -1728,7 +3016,7 @@ func _MockOCS_ClearSubscribers_Handler(srv interface{}, ctx context.Context, dec
 }
 
 func _MockOCS_ReAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReAuthTarget)
+	in := new(ChargingReAuthTarget)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1740,7 +3028,7 @@ func _MockOCS_ReAuth_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: "/magma.feg.MockOCS/ReAuth",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MockOCSServer).ReAuth(ctx, req.(*ReAuthTarget))
+		return srv.(MockOCSServer).ReAuth(ctx, req.(*ChargingReAuthTarget))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1778,10 +3066,15 @@ var _MockOCS_serviceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MockPCRFClient interface {
+	SetPCRFConfigs(ctx context.Context, in *PCRFConfigs, opts ...grpc.CallOption) (*protos1.Void, error)
 	CreateAccount(ctx context.Context, in *protos.SubscriberID, opts ...grpc.CallOption) (*protos1.Void, error)
 	SetRules(ctx context.Context, in *AccountRules, opts ...grpc.CallOption) (*protos1.Void, error)
-	SetUsageMonitors(ctx context.Context, in *UsageMonitorInfo, opts ...grpc.CallOption) (*protos1.Void, error)
+	SetUsageMonitors(ctx context.Context, in *UsageMonitorConfiguration, opts ...grpc.CallOption) (*protos1.Void, error)
 	ClearSubscribers(ctx context.Context, in *protos1.Void, opts ...grpc.CallOption) (*protos1.Void, error)
+	ReAuth(ctx context.Context, in *PolicyReAuthTarget, opts ...grpc.CallOption) (*PolicyReAuthAnswer, error)
+	AbortSession(ctx context.Context, in *PolicyAbortSessionRequest, opts ...grpc.CallOption) (*PolicyAbortSessionResponse, error)
+	SetExpectations(ctx context.Context, in *GxCreditControlExpectations, opts ...grpc.CallOption) (*protos1.Void, error)
+	AssertExpectations(ctx context.Context, in *protos1.Void, opts ...grpc.CallOption) (*GxCreditControlResult, error)
 }
 
 type mockPCRFClient struct {
@@ -1790,6 +3083,15 @@ type mockPCRFClient struct {
 
 func NewMockPCRFClient(cc grpc.ClientConnInterface) MockPCRFClient {
 	return &mockPCRFClient{cc}
+}
+
+func (c *mockPCRFClient) SetPCRFConfigs(ctx context.Context, in *PCRFConfigs, opts ...grpc.CallOption) (*protos1.Void, error) {
+	out := new(protos1.Void)
+	err := c.cc.Invoke(ctx, "/magma.feg.MockPCRF/SetPCRFConfigs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *mockPCRFClient) CreateAccount(ctx context.Context, in *protos.SubscriberID, opts ...grpc.CallOption) (*protos1.Void, error) {
@@ -1810,7 +3112,7 @@ func (c *mockPCRFClient) SetRules(ctx context.Context, in *AccountRules, opts ..
 	return out, nil
 }
 
-func (c *mockPCRFClient) SetUsageMonitors(ctx context.Context, in *UsageMonitorInfo, opts ...grpc.CallOption) (*protos1.Void, error) {
+func (c *mockPCRFClient) SetUsageMonitors(ctx context.Context, in *UsageMonitorConfiguration, opts ...grpc.CallOption) (*protos1.Void, error) {
 	out := new(protos1.Void)
 	err := c.cc.Invoke(ctx, "/magma.feg.MockPCRF/SetUsageMonitors", in, out, opts...)
 	if err != nil {
@@ -1828,33 +3130,107 @@ func (c *mockPCRFClient) ClearSubscribers(ctx context.Context, in *protos1.Void,
 	return out, nil
 }
 
+func (c *mockPCRFClient) ReAuth(ctx context.Context, in *PolicyReAuthTarget, opts ...grpc.CallOption) (*PolicyReAuthAnswer, error) {
+	out := new(PolicyReAuthAnswer)
+	err := c.cc.Invoke(ctx, "/magma.feg.MockPCRF/ReAuth", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mockPCRFClient) AbortSession(ctx context.Context, in *PolicyAbortSessionRequest, opts ...grpc.CallOption) (*PolicyAbortSessionResponse, error) {
+	out := new(PolicyAbortSessionResponse)
+	err := c.cc.Invoke(ctx, "/magma.feg.MockPCRF/AbortSession", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mockPCRFClient) SetExpectations(ctx context.Context, in *GxCreditControlExpectations, opts ...grpc.CallOption) (*protos1.Void, error) {
+	out := new(protos1.Void)
+	err := c.cc.Invoke(ctx, "/magma.feg.MockPCRF/SetExpectations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mockPCRFClient) AssertExpectations(ctx context.Context, in *protos1.Void, opts ...grpc.CallOption) (*GxCreditControlResult, error) {
+	out := new(GxCreditControlResult)
+	err := c.cc.Invoke(ctx, "/magma.feg.MockPCRF/AssertExpectations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MockPCRFServer is the server API for MockPCRF service.
 type MockPCRFServer interface {
+	SetPCRFConfigs(context.Context, *PCRFConfigs) (*protos1.Void, error)
 	CreateAccount(context.Context, *protos.SubscriberID) (*protos1.Void, error)
 	SetRules(context.Context, *AccountRules) (*protos1.Void, error)
-	SetUsageMonitors(context.Context, *UsageMonitorInfo) (*protos1.Void, error)
+	SetUsageMonitors(context.Context, *UsageMonitorConfiguration) (*protos1.Void, error)
 	ClearSubscribers(context.Context, *protos1.Void) (*protos1.Void, error)
+	ReAuth(context.Context, *PolicyReAuthTarget) (*PolicyReAuthAnswer, error)
+	AbortSession(context.Context, *PolicyAbortSessionRequest) (*PolicyAbortSessionResponse, error)
+	SetExpectations(context.Context, *GxCreditControlExpectations) (*protos1.Void, error)
+	AssertExpectations(context.Context, *protos1.Void) (*GxCreditControlResult, error)
 }
 
 // UnimplementedMockPCRFServer can be embedded to have forward compatible implementations.
 type UnimplementedMockPCRFServer struct {
 }
 
+func (*UnimplementedMockPCRFServer) SetPCRFConfigs(ctx context.Context, req *PCRFConfigs) (*protos1.Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetPCRFConfigs not implemented")
+}
 func (*UnimplementedMockPCRFServer) CreateAccount(ctx context.Context, req *protos.SubscriberID) (*protos1.Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAccount not implemented")
 }
 func (*UnimplementedMockPCRFServer) SetRules(ctx context.Context, req *AccountRules) (*protos1.Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetRules not implemented")
 }
-func (*UnimplementedMockPCRFServer) SetUsageMonitors(ctx context.Context, req *UsageMonitorInfo) (*protos1.Void, error) {
+func (*UnimplementedMockPCRFServer) SetUsageMonitors(ctx context.Context, req *UsageMonitorConfiguration) (*protos1.Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUsageMonitors not implemented")
 }
 func (*UnimplementedMockPCRFServer) ClearSubscribers(ctx context.Context, req *protos1.Void) (*protos1.Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClearSubscribers not implemented")
 }
+func (*UnimplementedMockPCRFServer) ReAuth(ctx context.Context, req *PolicyReAuthTarget) (*PolicyReAuthAnswer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReAuth not implemented")
+}
+func (*UnimplementedMockPCRFServer) AbortSession(ctx context.Context, req *PolicyAbortSessionRequest) (*PolicyAbortSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AbortSession not implemented")
+}
+func (*UnimplementedMockPCRFServer) SetExpectations(ctx context.Context, req *GxCreditControlExpectations) (*protos1.Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetExpectations not implemented")
+}
+func (*UnimplementedMockPCRFServer) AssertExpectations(ctx context.Context, req *protos1.Void) (*GxCreditControlResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssertExpectations not implemented")
+}
 
 func RegisterMockPCRFServer(s *grpc.Server, srv MockPCRFServer) {
 	s.RegisterService(&_MockPCRF_serviceDesc, srv)
+}
+
+func _MockPCRF_SetPCRFConfigs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PCRFConfigs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MockPCRFServer).SetPCRFConfigs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.feg.MockPCRF/SetPCRFConfigs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MockPCRFServer).SetPCRFConfigs(ctx, req.(*PCRFConfigs))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _MockPCRF_CreateAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1894,7 +3270,7 @@ func _MockPCRF_SetRules_Handler(srv interface{}, ctx context.Context, dec func(i
 }
 
 func _MockPCRF_SetUsageMonitors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UsageMonitorInfo)
+	in := new(UsageMonitorConfiguration)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1906,7 +3282,7 @@ func _MockPCRF_SetUsageMonitors_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: "/magma.feg.MockPCRF/SetUsageMonitors",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MockPCRFServer).SetUsageMonitors(ctx, req.(*UsageMonitorInfo))
+		return srv.(MockPCRFServer).SetUsageMonitors(ctx, req.(*UsageMonitorConfiguration))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1929,10 +3305,86 @@ func _MockPCRF_ClearSubscribers_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MockPCRF_ReAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PolicyReAuthTarget)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MockPCRFServer).ReAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.feg.MockPCRF/ReAuth",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MockPCRFServer).ReAuth(ctx, req.(*PolicyReAuthTarget))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MockPCRF_AbortSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PolicyAbortSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MockPCRFServer).AbortSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.feg.MockPCRF/AbortSession",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MockPCRFServer).AbortSession(ctx, req.(*PolicyAbortSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MockPCRF_SetExpectations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GxCreditControlExpectations)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MockPCRFServer).SetExpectations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.feg.MockPCRF/SetExpectations",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MockPCRFServer).SetExpectations(ctx, req.(*GxCreditControlExpectations))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MockPCRF_AssertExpectations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(protos1.Void)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MockPCRFServer).AssertExpectations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.feg.MockPCRF/AssertExpectations",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MockPCRFServer).AssertExpectations(ctx, req.(*protos1.Void))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _MockPCRF_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "magma.feg.MockPCRF",
 	HandlerType: (*MockPCRFServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SetPCRFConfigs",
+			Handler:    _MockPCRF_SetPCRFConfigs_Handler,
+		},
 		{
 			MethodName: "CreateAccount",
 			Handler:    _MockPCRF_CreateAccount_Handler,
@@ -1948,6 +3400,22 @@ var _MockPCRF_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClearSubscribers",
 			Handler:    _MockPCRF_ClearSubscribers_Handler,
+		},
+		{
+			MethodName: "ReAuth",
+			Handler:    _MockPCRF_ReAuth_Handler,
+		},
+		{
+			MethodName: "AbortSession",
+			Handler:    _MockPCRF_AbortSession_Handler,
+		},
+		{
+			MethodName: "SetExpectations",
+			Handler:    _MockPCRF_SetExpectations_Handler,
+		},
+		{
+			MethodName: "AssertExpectations",
+			Handler:    _MockPCRF_AssertExpectations_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -99,6 +99,8 @@ class RedisClient {
 
   int clear_keys(const std::vector<std::string>& keys_to_clear);
 
+  std::vector<std::string> get_keys(const std::string& pattern);
+
   bool is_connected() { return is_connected_; }
 
  private:

@@ -24,6 +24,7 @@ import {useTableCommonStyles} from './TableCommons';
 const useStyles = makeStyles(() => ({
   root: {
     backgroundColor: symphony.palette.white,
+    borderLeft: `2px solid transparent`,
   },
   cellText: {
     display: 'flex',
@@ -31,8 +32,8 @@ const useStyles = makeStyles(() => ({
     color: symphony.palette.D400,
   },
   checkBox: {
-    width: '24px',
-    paddingLeft: '8px',
+    width: '28px',
+    paddingLeft: '12px',
   },
   cellContent: {
     display: 'flex',
@@ -65,9 +66,15 @@ type Props<T> = {
   columns: Array<TableColumnType<T>>,
   onSortClicked?: (colKey: string) => void,
   cellClassName?: string,
+  paddingRight?: ?number,
 };
 
-const TableHeader = <T>({onSortClicked, columns, cellClassName}: Props<T>) => {
+const TableHeader = <T>({
+  onSortClicked,
+  columns,
+  cellClassName,
+  paddingRight,
+}: Props<T>) => {
   const classes = useStyles();
   const commonClasses = useTableCommonStyles();
   const {showSelection} = useTable();
@@ -88,7 +95,7 @@ const TableHeader = <T>({onSortClicked, columns, cellClassName}: Props<T>) => {
   };
 
   return (
-    <thead className={classes.root}>
+    <thead className={classes.root} style={{paddingRight: paddingRight || 0}}>
       <tr>
         {showSelection && (
           <th className={classes.checkBox}>
@@ -98,20 +105,21 @@ const TableHeader = <T>({onSortClicked, columns, cellClassName}: Props<T>) => {
         {columns.map(col => (
           <th
             key={col.key}
-            className={classNames(commonClasses.cell, cellClassName, {
-              [classes.sortableCell]: col.sortable,
-            })}
+            className={classNames(
+              commonClasses.cell,
+              col.titleClassName,
+              cellClassName,
+              {
+                [classes.sortableCell]: col.sortable,
+              },
+            )}
             onClick={() =>
               col.sortable && onSortClicked && onSortClicked(col.key)
             }>
             <div className={classes.cellContent}>
-              {typeof col.title === 'string' ? (
-                <Text className={classes.cellText} variant="body2">
-                  {col.title}
-                </Text>
-              ) : (
-                col.title
-              )}
+              <Text className={classes.cellText} variant="body2">
+                {col.title}
+              </Text>
               {getSortIcon(col)}
             </div>
           </th>

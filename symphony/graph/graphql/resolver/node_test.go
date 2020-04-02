@@ -5,17 +5,11 @@
 package resolver
 
 import (
-	"context"
 	"strconv"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
-	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/graphql/directive"
-	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/pkg/log/logtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,21 +17,7 @@ import (
 func TestQueryNode(t *testing.T) {
 	resolver := newTestResolver(t)
 	defer resolver.drv.Close()
-
-	c := client.New(handler.GraphQL(
-		generated.NewExecutableSchema(
-			generated.Config{
-				Resolvers:  resolver,
-				Directives: directive.New(logtest.NewTestLogger(t)),
-			},
-		),
-		handler.RequestMiddleware(
-			func(ctx context.Context, next func(context.Context) []byte) []byte {
-				ctx = ent.NewContext(ctx, resolver.client)
-				return next(ctx)
-			},
-		),
-	))
+	c := newGraphClient(t, resolver)
 
 	var lt struct{ AddLocationType struct{ ID string } }
 	c.MustPost(
@@ -45,12 +25,14 @@ func TestQueryNode(t *testing.T) {
 		&lt,
 		client.Var("input", models.AddLocationTypeInput{Name: "city"}),
 	)
+	id, err := strconv.Atoi(lt.AddLocationType.ID)
+	require.NoError(t, err)
 
 	var l struct{ AddLocation struct{ ID string } }
 	c.MustPost(
 		`mutation($input: AddLocationInput!) { addLocation(input: $input) { id } }`,
 		&l,
-		client.Var("input", models.AddLocationInput{Name: "tlv", Type: lt.AddLocationType.ID}),
+		client.Var("input", models.AddLocationInput{Name: "tlv", Type: id}),
 	)
 
 	t.Run("LocationType", func(t *testing.T) {

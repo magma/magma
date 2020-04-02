@@ -12,30 +12,55 @@ import Sequelize from 'sequelize';
 
 import type {AssociateProp} from './AssociateTypes.flow';
 import type {DataTypes, Model} from 'sequelize';
+import type {SSOSelectedType} from '@fbcnms/types/auth';
+import type {Tab} from '@fbcnms/types/tabs';
 
-export type OrganizationRawType = {
+type OrganizationInitAttributes = {
+  id?: number,
   name: string,
-  tabs?: Array<string>,
+  tabs?: Array<Tab>,
   customDomains?: Array<string>,
   networkIDs: Array<string>,
   csvCharset: string,
+  ssoSelectedType?: SSOSelectedType,
   ssoCert: string,
   ssoEntrypoint: string,
   ssoIssuer: string,
+  ssoOidcClientID?: string,
+  ssoOidcClientSecret?: string,
+  ssoOidcConfigurationURL?: string,
+};
+
+export type OrganizationPlainAttributes = {
+  id: number,
+  name: string,
+  tabs: Array<Tab>,
+  customDomains: Array<string>,
+  networkIDs: Array<string>,
+  csvCharset: string,
+  ssoSelectedType: SSOSelectedType,
+  ssoCert: string,
+  ssoEntrypoint: string,
+  ssoIssuer: string,
+  ssoOidcClientID: string,
+  ssoOidcClientSecret: string,
+  ssoOidcConfigurationURL: string,
 };
 
 type OrganizationGetters = {
   isMasterOrg: boolean,
 };
 
-type OrganizationModel = Model<
-  OrganizationRawType & OrganizationGetters,
-  OrganizationRawType,
+type OrganizationAttributes = OrganizationPlainAttributes & OrganizationGetters;
+
+export type OrganizationModel = Model<
+  OrganizationAttributes,
+  OrganizationInitAttributes,
+  OrganizationPlainAttributes,
 >;
+export type OrganizationType = OrganizationModel & OrganizationAttributes;
+
 export type StaticOrganizationModel = Class<OrganizationModel>;
-export type OrganizationType = OrganizationModel &
-  OrganizationRawType &
-  OrganizationGetters;
 
 const MASTER_ORG = 'master';
 
@@ -66,6 +91,11 @@ export default (
         allowNull: false,
         defaultValue: [],
       },
+      ssoSelectedType: {
+        type: types.ENUM('none', 'saml', 'oidc'),
+        allowNull: false,
+        defaultValue: 'none',
+      },
       ssoCert: {
         type: types.TEXT,
         allowNull: false,
@@ -77,6 +107,21 @@ export default (
         defaultValue: '',
       },
       ssoIssuer: {
+        type: types.STRING,
+        allowNull: false,
+        defaultValue: '',
+      },
+      ssoOidcClientID: {
+        type: types.STRING,
+        allowNull: false,
+        defaultValue: '',
+      },
+      ssoOidcClientSecret: {
+        type: types.STRING,
+        allowNull: false,
+        defaultValue: '',
+      },
+      ssoOidcConfigurationURL: {
         type: types.STRING,
         allowNull: false,
         defaultValue: '',

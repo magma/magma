@@ -7,9 +7,6 @@
 package migrate
 
 import (
-	"github.com/facebookincubator/symphony/frontier/ent/tenant"
-	"github.com/facebookincubator/symphony/frontier/ent/user"
-
 	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/ent/schema/field"
 )
@@ -48,9 +45,9 @@ var (
 		{Name: "customDomains", Type: field.TypeJSON},
 		{Name: "networkIDs", Type: field.TypeJSON},
 		{Name: "tabs", Type: field.TypeJSON, Nullable: true},
-		{Name: "ssoCert", Type: field.TypeString, Size: 2147483647, Default: tenant.DefaultSSOCert},
-		{Name: "ssoEntrypoint", Type: field.TypeString, Default: tenant.DefaultSSOEntryPoint},
-		{Name: "ssoIssuer", Type: field.TypeString, Default: tenant.DefaultSSOIssuer},
+		{Name: "ssoCert", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "ssoEntrypoint", Type: field.TypeString, Default: ""},
+		{Name: "ssoIssuer", Type: field.TypeString, Default: ""},
 	}
 	// OrganizationsTable holds the schema information for the "Organizations" table.
 	OrganizationsTable = &schema.Table{
@@ -65,7 +62,7 @@ var (
 		{Name: "createdAt", Type: field.TypeTime},
 		{Name: "updatedAt", Type: field.TypeTime},
 		{Name: "value", Type: field.TypeString},
-		{Name: "user_id", Type: field.TypeInt, Nullable: true},
+		{Name: "user_tokens", Type: field.TypeInt, Nullable: true},
 	}
 	// TokensTable holds the schema information for the "tokens" table.
 	TokensTable = &schema.Table{
@@ -83,7 +80,7 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "token_value_user_id",
+				Name:    "token_value_user_tokens",
 				Unique:  true,
 				Columns: []*schema.Column{TokensColumns[3], TokensColumns[4]},
 			},
@@ -96,8 +93,8 @@ var (
 		{Name: "updatedAt", Type: field.TypeTime},
 		{Name: "email", Type: field.TypeString},
 		{Name: "password", Type: field.TypeString},
-		{Name: "role", Type: field.TypeInt, Default: user.DefaultRole},
-		{Name: "organization", Type: field.TypeString, Default: user.DefaultTenant},
+		{Name: "role", Type: field.TypeInt},
+		{Name: "organization", Type: field.TypeString, Default: "fb-test"},
 		{Name: "networkIDs", Type: field.TypeJSON},
 		{Name: "tabs", Type: field.TypeJSON, Nullable: true},
 	}

@@ -128,7 +128,7 @@ func TestValidateGenerateSIPAuthVectorInputs(t *testing.T) {
 	assert.EqualError(t, err, "incorrect opc size. Expected 16 bytes, but got 8 bytes")
 
 	err = validateGenerateSIPAuthVectorInputs(key, opc, maxSqn+1)
-	assert.EqualError(t, err, "sequence number too large, expected a number which can fit in 48 bits. Got: 140737488355328")
+	assert.EqualError(t, err, "sequence number too large, expected a number which can fit in 48 bits. Got: 281474976710656")
 }
 
 func TestValidateGenerateSIPAuthVectorWithRandInputs(t *testing.T) {
@@ -154,7 +154,7 @@ func TestValidateGenerateSIPAuthVectorWithRandInputs(t *testing.T) {
 	assert.EqualError(t, err, "incorrect opc size. Expected 16 bytes, but got 8 bytes")
 
 	err = validateGenerateSIPAuthVectorWithRandInputs(rand, key, opc, maxSqn+1)
-	assert.EqualError(t, err, "sequence number too large, expected a number which can fit in 48 bits. Got: 140737488355328")
+	assert.EqualError(t, err, "sequence number too large, expected a number which can fit in 48 bits. Got: 281474976710656")
 }
 
 func TestNewMilenageError(t *testing.T) {

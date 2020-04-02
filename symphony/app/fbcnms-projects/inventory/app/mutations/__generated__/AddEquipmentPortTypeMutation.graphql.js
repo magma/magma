@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b4bb79d41855520ed43309ca0573b5fd
+ * @relayHash eace6c36bb52d48493c1fbcfa6c06fb3
  */
 
 /* eslint-disable */
@@ -45,7 +45,7 @@ export type AddEquipmentPortTypeMutationVariables = {|
   input: AddEquipmentPortTypeInput
 |};
 export type AddEquipmentPortTypeMutationResponse = {|
-  +addEquipmentPortType: ?{|
+  +addEquipmentPortType: {|
     +id: string,
     +name: string,
     +$fragmentRefs: EquipmentPortTypeItem_equipmentPortType$ref,
@@ -105,6 +105,8 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   isEditable
   isInstanceProperty
   isMandatory
+  category
+  isDeleted
 }
 */
 
@@ -231,6 +233,20 @@ v4 = [
     "name": "isMandatory",
     "args": null,
     "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "category",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isDeleted",
+    "args": null,
+    "storageKey": null
   }
 ];
 return {
@@ -313,7 +329,7 @@ return {
     "operationKind": "mutation",
     "name": "AddEquipmentPortTypeMutation",
     "id": null,
-    "text": "mutation AddEquipmentPortTypeMutation(\n  $input: AddEquipmentPortTypeInput!\n) {\n  addEquipmentPortType(input: $input) {\n    id\n    name\n    ...EquipmentPortTypeItem_equipmentPortType\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment EquipmentPortTypeItem_equipmentPortType on EquipmentPortType {\n  id\n  name\n  numberOfPortDefinitions\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  linkPropertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
+    "text": "mutation AddEquipmentPortTypeMutation(\n  $input: AddEquipmentPortTypeInput!\n) {\n  addEquipmentPortType(input: $input) {\n    id\n    name\n    ...EquipmentPortTypeItem_equipmentPortType\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment EquipmentPortTypeItem_equipmentPortType on EquipmentPortType {\n  id\n  name\n  numberOfPortDefinitions\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  linkPropertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n  category\n  isDeleted\n}\n",
     "metadata": {}
   }
 };

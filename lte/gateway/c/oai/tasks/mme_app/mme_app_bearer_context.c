@@ -33,7 +33,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "assertions.h"
 #include "common_types.h"
 #include "mme_app_ue_context.h"
 #include "common_defs.h"
@@ -41,30 +40,13 @@
 #include "3gpp_29.274.h"
 #include "esm_data.h"
 
-static void mme_app_bearer_context_init(bearer_context_t *const bearer_context);
-
-//------------------------------------------------------------------------------
-bstring bearer_state2string(const mme_app_bearer_state_t bearer_state)
-{
-  bstring bsstr = NULL;
-  if (BEARER_STATE_NULL == bearer_state) {
-    bsstr = bfromcstr("BEARER_STATE_NULL");
-    return bsstr;
-  }
-  bsstr = bfromcstr(" ");
-  if (BEARER_STATE_SGW_CREATED & bearer_state) bcatcstr(bsstr, "SGW_CREATED ");
-  if (BEARER_STATE_MME_CREATED & bearer_state) bcatcstr(bsstr, "MME_CREATED ");
-  if (BEARER_STATE_ENB_CREATED & bearer_state) bcatcstr(bsstr, "ENB_CREATED ");
-  if (BEARER_STATE_ACTIVE & bearer_state) bcatcstr(bsstr, "ACTIVE");
-  return bsstr;
-}
+static void mme_app_bearer_context_init(bearer_context_t* const bearer_context);
 
 //------------------------------------------------------------------------------
 static void mme_app_bearer_context_init(bearer_context_t *const bearer_context)
 {
   if (bearer_context) {
     memset(bearer_context, 0, sizeof(*bearer_context));
-    bearer_context->bearer_state = BEARER_STATE_NULL;
 
     esm_bearer_context_init(&bearer_context->esm_ebr_context);
   }
@@ -118,39 +100,22 @@ bearer_context_t *mme_app_get_bearer_context(
 }
 
 //------------------------------------------------------------------------------
-bearer_context_t *mme_app_get_bearer_context_by_state(
-  ue_mm_context_t *const ue_context,
-  const pdn_cid_t cid,
-  const mme_app_bearer_state_t state)
-{
-  for (int i = 0; i < BEARERS_PER_UE; i++) {
-    bearer_context_t *bc = ue_context->bearer_contexts[i];
-    if ((bc) && (state == bc->bearer_state)) {
-      if (cid == bc->pdn_cx_id) {
-        return bc;
-      }
-      // if no specific PDN id selected
-      if (MAX_APN_PER_UE == cid) {
-        return bc;
-      }
-    }
-  }
-
-  return NULL;
-}
-
-//------------------------------------------------------------------------------
 void mme_app_add_bearer_context(
   ue_mm_context_t *const ue_context,
   bearer_context_t *const bc,
   const pdn_cid_t pdn_cid,
   const bool is_default)
 {
-  AssertFatal(
-    (EPS_BEARER_IDENTITY_LAST >= bc->ebi) &&
-      (EPS_BEARER_IDENTITY_FIRST <= bc->ebi),
-    "Bad ebi %u",
-    bc->ebi);
+  if (
+    bc->ebi > EPS_BEARER_IDENTITY_LAST || bc->ebi < EPS_BEARER_IDENTITY_FIRST) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid EBI (%u) received in bearer context "
+      "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+      bc->ebi,
+      ue_context->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   int index = EBI_TO_INDEX(bc->ebi);
   if (!ue_context->bearer_contexts[index]) {
     if (ue_context->pdn_contexts[pdn_cid]) {
@@ -202,7 +167,6 @@ void mme_app_bearer_context_s1_release_enb_informations(
   bearer_context_t *const bc)
 {
   if (bc) {
-    bc->bearer_state = BEARER_STATE_S1_RELEASED;
     memset(&bc->enb_fteid_s1u, 0, sizeof(bc->enb_fteid_s1u));
     bc->enb_fteid_s1u.teid = INVALID_TEID;
   }

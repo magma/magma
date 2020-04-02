@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -46,8 +45,9 @@ type PropertyTypeQuery struct {
 	withWorkOrderType         *WorkOrderTypeQuery
 	withProjectType           *ProjectTypeQuery
 	withFKs                   bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -77,96 +77,144 @@ func (ptq *PropertyTypeQuery) Order(o ...Order) *PropertyTypeQuery {
 // QueryProperties chains the current query on the properties edge.
 func (ptq *PropertyTypeQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(property.Table, property.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, propertytype.PropertiesTable, propertytype.PropertiesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(property.Table, property.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, propertytype.PropertiesTable, propertytype.PropertiesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryLocationType chains the current query on the location_type edge.
 func (ptq *PropertyTypeQuery) QueryLocationType() *LocationTypeQuery {
 	query := &LocationTypeQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(locationtype.Table, locationtype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.LocationTypeTable, propertytype.LocationTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(locationtype.Table, locationtype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, propertytype.LocationTypeTable, propertytype.LocationTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryEquipmentPortType chains the current query on the equipment_port_type edge.
 func (ptq *PropertyTypeQuery) QueryEquipmentPortType() *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.EquipmentPortTypeTable, propertytype.EquipmentPortTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, propertytype.EquipmentPortTypeTable, propertytype.EquipmentPortTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryLinkEquipmentPortType chains the current query on the link_equipment_port_type edge.
 func (ptq *PropertyTypeQuery) QueryLinkEquipmentPortType() *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.LinkEquipmentPortTypeTable, propertytype.LinkEquipmentPortTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, propertytype.LinkEquipmentPortTypeTable, propertytype.LinkEquipmentPortTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryEquipmentType chains the current query on the equipment_type edge.
 func (ptq *PropertyTypeQuery) QueryEquipmentType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.EquipmentTypeTable, propertytype.EquipmentTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, propertytype.EquipmentTypeTable, propertytype.EquipmentTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryServiceType chains the current query on the service_type edge.
 func (ptq *PropertyTypeQuery) QueryServiceType() *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(servicetype.Table, servicetype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.ServiceTypeTable, propertytype.ServiceTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(servicetype.Table, servicetype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, propertytype.ServiceTypeTable, propertytype.ServiceTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryWorkOrderType chains the current query on the work_order_type edge.
 func (ptq *PropertyTypeQuery) QueryWorkOrderType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(workordertype.Table, workordertype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.WorkOrderTypeTable, propertytype.WorkOrderTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(workordertype.Table, workordertype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, propertytype.WorkOrderTypeTable, propertytype.WorkOrderTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryProjectType chains the current query on the project_type edge.
 func (ptq *PropertyTypeQuery) QueryProjectType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(projecttype.Table, projecttype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.ProjectTypeTable, propertytype.ProjectTypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(projecttype.Table, projecttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, propertytype.ProjectTypeTable, propertytype.ProjectTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -192,8 +240,8 @@ func (ptq *PropertyTypeQuery) FirstX(ctx context.Context) *PropertyType {
 }
 
 // FirstID returns the first PropertyType id in the query. Returns *NotFoundError when no id was found.
-func (ptq *PropertyTypeQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ptq *PropertyTypeQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ptq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -205,7 +253,7 @@ func (ptq *PropertyTypeQuery) FirstID(ctx context.Context) (id string, err error
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (ptq *PropertyTypeQuery) FirstXID(ctx context.Context) string {
+func (ptq *PropertyTypeQuery) FirstXID(ctx context.Context) int {
 	id, err := ptq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -239,8 +287,8 @@ func (ptq *PropertyTypeQuery) OnlyX(ctx context.Context) *PropertyType {
 }
 
 // OnlyID returns the only PropertyType id in the query, returns an error if not exactly one id was returned.
-func (ptq *PropertyTypeQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ptq *PropertyTypeQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ptq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -256,7 +304,7 @@ func (ptq *PropertyTypeQuery) OnlyID(ctx context.Context) (id string, err error)
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (ptq *PropertyTypeQuery) OnlyXID(ctx context.Context) string {
+func (ptq *PropertyTypeQuery) OnlyXID(ctx context.Context) int {
 	id, err := ptq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -266,6 +314,9 @@ func (ptq *PropertyTypeQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of PropertyTypes.
 func (ptq *PropertyTypeQuery) All(ctx context.Context) ([]*PropertyType, error) {
+	if err := ptq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return ptq.sqlAll(ctx)
 }
 
@@ -279,8 +330,8 @@ func (ptq *PropertyTypeQuery) AllX(ctx context.Context) []*PropertyType {
 }
 
 // IDs executes the query and returns a list of PropertyType ids.
-func (ptq *PropertyTypeQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (ptq *PropertyTypeQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := ptq.Select(propertytype.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -288,7 +339,7 @@ func (ptq *PropertyTypeQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ptq *PropertyTypeQuery) IDsX(ctx context.Context) []string {
+func (ptq *PropertyTypeQuery) IDsX(ctx context.Context) []int {
 	ids, err := ptq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -298,6 +349,9 @@ func (ptq *PropertyTypeQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (ptq *PropertyTypeQuery) Count(ctx context.Context) (int, error) {
+	if err := ptq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return ptq.sqlCount(ctx)
 }
 
@@ -312,6 +366,9 @@ func (ptq *PropertyTypeQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ptq *PropertyTypeQuery) Exist(ctx context.Context) (bool, error) {
+	if err := ptq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return ptq.sqlExist(ctx)
 }
 
@@ -335,7 +392,8 @@ func (ptq *PropertyTypeQuery) Clone() *PropertyTypeQuery {
 		unique:     append([]string{}, ptq.unique...),
 		predicates: append([]predicate.PropertyType{}, ptq.predicates...),
 		// clone intermediate query.
-		sql: ptq.sql.Clone(),
+		sql:  ptq.sql.Clone(),
+		path: ptq.path,
 	}
 }
 
@@ -445,7 +503,12 @@ func (ptq *PropertyTypeQuery) WithProjectType(opts ...func(*ProjectTypeQuery)) *
 func (ptq *PropertyTypeQuery) GroupBy(field string, fields ...string) *PropertyTypeGroupBy {
 	group := &PropertyTypeGroupBy{config: ptq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = ptq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return ptq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -464,8 +527,24 @@ func (ptq *PropertyTypeQuery) GroupBy(field string, fields ...string) *PropertyT
 func (ptq *PropertyTypeQuery) Select(field string, fields ...string) *PropertyTypeSelect {
 	selector := &PropertyTypeSelect{config: ptq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = ptq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return ptq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (ptq *PropertyTypeQuery) prepareQuery(ctx context.Context) error {
+	if ptq.path != nil {
+		prev, err := ptq.path(ctx)
+		if err != nil {
+			return err
+		}
+		ptq.sql = prev
+	}
+	return nil
 }
 
 func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, error) {
@@ -516,13 +595,9 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 
 	if query := ptq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*PropertyType)
+		nodeids := make(map[int]*PropertyType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -547,8 +622,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withLocationType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].location_type_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -572,8 +647,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withEquipmentPortType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].equipment_port_type_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -597,8 +672,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withLinkEquipmentPortType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].equipment_port_type_link_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -622,8 +697,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withEquipmentType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].equipment_type_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -647,8 +722,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withServiceType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].service_type_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -672,8 +747,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withWorkOrderType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].work_order_type_property_types; fk != nil {
 				ids = append(ids, *fk)
@@ -697,8 +772,8 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 	}
 
 	if query := ptq.withProjectType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*PropertyType)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
 		for i := range nodes {
 			if fk := nodes[i].project_type_properties; fk != nil {
 				ids = append(ids, *fk)
@@ -743,7 +818,7 @@ func (ptq *PropertyTypeQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   propertytype.Table,
 			Columns: propertytype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: propertytype.FieldID,
 			},
 		},
@@ -803,8 +878,9 @@ type PropertyTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -815,6 +891,11 @@ func (ptgb *PropertyTypeGroupBy) Aggregate(fns ...Aggregate) *PropertyTypeGroupB
 
 // Scan applies the group-by query and scan the result into the given value.
 func (ptgb *PropertyTypeGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := ptgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	ptgb.sql = query
 	return ptgb.sqlScan(ctx, v)
 }
 
@@ -933,12 +1014,18 @@ func (ptgb *PropertyTypeGroupBy) sqlQuery() *sql.Selector {
 type PropertyTypeSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (pts *PropertyTypeSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := pts.path(ctx)
+	if err != nil {
+		return err
+	}
+	pts.sql = query
 	return pts.sqlScan(ctx, v)
 }
 

@@ -2,16 +2,36 @@
 import os
 import re
 
-SPACES = ' ' * 4
+
+SPACES = " " * 4
 
 
-def get_enum_filename(enum_name):
-    return '_'.join([re.sub(r'(?<!^)(?=[A-Z])', '_', enum_name).lower(), 'enum'])
+def camel_case_to_lower_case(string: str) -> str:
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", string).lower()
+
+
+def get_filename_by_extension(name: str, extension: str) -> str:
+    lower_case_name = camel_case_to_lower_case(name)
+    if lower_case_name.endswith("".join(["_", extension])):
+        return lower_case_name
+    return "_".join([lower_case_name, extension])
+
+
+def get_enum_filename(enum_name: str) -> str:
+    return get_filename_by_extension(enum_name, "enum")
+
+
+def get_input_filename(input_name: str) -> str:
+    return get_filename_by_extension(input_name, "input")
+
+
+def get_fragment_filename(fragment_name: str) -> str:
+    return get_filename_by_extension(fragment_name, "fragment")
 
 
 class CodeChunk:
     class Block:
-        def __init__(self, codegen: 'CodeChunk'):
+        def __init__(self, codegen: "CodeChunk"):
             self.gen = codegen
 
         def __enter__(self):
@@ -37,7 +57,7 @@ class CodeChunk:
         return self.level * SPACES
 
     def write(self, value: str, *args, **kwargs):
-        if value != '':
+        if value != "":
             value = self.indent_string + value
         if args or kwargs:
             value = value.format(*args, **kwargs)

@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -38,9 +37,11 @@ type SurveyQuestionQuery struct {
 	withWifiScan  *SurveyWiFiScanQuery
 	withCellScan  *SurveyCellScanQuery
 	withPhotoData *FileQuery
+	withImages    *FileQuery
 	withFKs       bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -70,48 +71,90 @@ func (sqq *SurveyQuestionQuery) Order(o ...Order) *SurveyQuestionQuery {
 // QuerySurvey chains the current query on the survey edge.
 func (sqq *SurveyQuestionQuery) QuerySurvey() *SurveyQuery {
 	query := &SurveyQuery{config: sqq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
-		sqlgraph.To(survey.Table, survey.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, surveyquestion.SurveyTable, surveyquestion.SurveyColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sqq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveyquestion.SurveyTable, surveyquestion.SurveyColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryWifiScan chains the current query on the wifi_scan edge.
 func (sqq *SurveyQuestionQuery) QueryWifiScan() *SurveyWiFiScanQuery {
 	query := &SurveyWiFiScanQuery{config: sqq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
-		sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, surveyquestion.WifiScanTable, surveyquestion.WifiScanColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sqq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
+			sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, surveyquestion.WifiScanTable, surveyquestion.WifiScanColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryCellScan chains the current query on the cell_scan edge.
 func (sqq *SurveyQuestionQuery) QueryCellScan() *SurveyCellScanQuery {
 	query := &SurveyCellScanQuery{config: sqq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
-		sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, surveyquestion.CellScanTable, surveyquestion.CellScanColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sqq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
+			sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, surveyquestion.CellScanTable, surveyquestion.CellScanColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryPhotoData chains the current query on the photo_data edge.
 func (sqq *SurveyQuestionQuery) QueryPhotoData() *FileQuery {
 	query := &FileQuery{config: sqq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
-		sqlgraph.To(file.Table, file.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, surveyquestion.PhotoDataTable, surveyquestion.PhotoDataColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sqq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, surveyquestion.PhotoDataTable, surveyquestion.PhotoDataColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryImages chains the current query on the images edge.
+func (sqq *SurveyQuestionQuery) QueryImages() *FileQuery {
+	query := &FileQuery{config: sqq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sqq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, surveyquestion.ImagesTable, surveyquestion.ImagesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -137,8 +180,8 @@ func (sqq *SurveyQuestionQuery) FirstX(ctx context.Context) *SurveyQuestion {
 }
 
 // FirstID returns the first SurveyQuestion id in the query. Returns *NotFoundError when no id was found.
-func (sqq *SurveyQuestionQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sqq *SurveyQuestionQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sqq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -150,7 +193,7 @@ func (sqq *SurveyQuestionQuery) FirstID(ctx context.Context) (id string, err err
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (sqq *SurveyQuestionQuery) FirstXID(ctx context.Context) string {
+func (sqq *SurveyQuestionQuery) FirstXID(ctx context.Context) int {
 	id, err := sqq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -184,8 +227,8 @@ func (sqq *SurveyQuestionQuery) OnlyX(ctx context.Context) *SurveyQuestion {
 }
 
 // OnlyID returns the only SurveyQuestion id in the query, returns an error if not exactly one id was returned.
-func (sqq *SurveyQuestionQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sqq *SurveyQuestionQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sqq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -201,7 +244,7 @@ func (sqq *SurveyQuestionQuery) OnlyID(ctx context.Context) (id string, err erro
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (sqq *SurveyQuestionQuery) OnlyXID(ctx context.Context) string {
+func (sqq *SurveyQuestionQuery) OnlyXID(ctx context.Context) int {
 	id, err := sqq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -211,6 +254,9 @@ func (sqq *SurveyQuestionQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of SurveyQuestions.
 func (sqq *SurveyQuestionQuery) All(ctx context.Context) ([]*SurveyQuestion, error) {
+	if err := sqq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return sqq.sqlAll(ctx)
 }
 
@@ -224,8 +270,8 @@ func (sqq *SurveyQuestionQuery) AllX(ctx context.Context) []*SurveyQuestion {
 }
 
 // IDs executes the query and returns a list of SurveyQuestion ids.
-func (sqq *SurveyQuestionQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (sqq *SurveyQuestionQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := sqq.Select(surveyquestion.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -233,7 +279,7 @@ func (sqq *SurveyQuestionQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sqq *SurveyQuestionQuery) IDsX(ctx context.Context) []string {
+func (sqq *SurveyQuestionQuery) IDsX(ctx context.Context) []int {
 	ids, err := sqq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -243,6 +289,9 @@ func (sqq *SurveyQuestionQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (sqq *SurveyQuestionQuery) Count(ctx context.Context) (int, error) {
+	if err := sqq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return sqq.sqlCount(ctx)
 }
 
@@ -257,6 +306,9 @@ func (sqq *SurveyQuestionQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (sqq *SurveyQuestionQuery) Exist(ctx context.Context) (bool, error) {
+	if err := sqq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return sqq.sqlExist(ctx)
 }
 
@@ -280,7 +332,8 @@ func (sqq *SurveyQuestionQuery) Clone() *SurveyQuestionQuery {
 		unique:     append([]string{}, sqq.unique...),
 		predicates: append([]predicate.SurveyQuestion{}, sqq.predicates...),
 		// clone intermediate query.
-		sql: sqq.sql.Clone(),
+		sql:  sqq.sql.Clone(),
+		path: sqq.path,
 	}
 }
 
@@ -328,6 +381,17 @@ func (sqq *SurveyQuestionQuery) WithPhotoData(opts ...func(*FileQuery)) *SurveyQ
 	return sqq
 }
 
+//  WithImages tells the query-builder to eager-loads the nodes that are connected to
+// the "images" edge. The optional arguments used to configure the query builder of the edge.
+func (sqq *SurveyQuestionQuery) WithImages(opts ...func(*FileQuery)) *SurveyQuestionQuery {
+	query := &FileQuery{config: sqq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sqq.withImages = query
+	return sqq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -346,7 +410,12 @@ func (sqq *SurveyQuestionQuery) WithPhotoData(opts ...func(*FileQuery)) *SurveyQ
 func (sqq *SurveyQuestionQuery) GroupBy(field string, fields ...string) *SurveyQuestionGroupBy {
 	group := &SurveyQuestionGroupBy{config: sqq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = sqq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := sqq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return sqq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -365,8 +434,24 @@ func (sqq *SurveyQuestionQuery) GroupBy(field string, fields ...string) *SurveyQ
 func (sqq *SurveyQuestionQuery) Select(field string, fields ...string) *SurveyQuestionSelect {
 	selector := &SurveyQuestionSelect{config: sqq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = sqq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := sqq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return sqq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (sqq *SurveyQuestionQuery) prepareQuery(ctx context.Context) error {
+	if sqq.path != nil {
+		prev, err := sqq.path(ctx)
+		if err != nil {
+			return err
+		}
+		sqq.sql = prev
+	}
+	return nil
 }
 
 func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, error) {
@@ -374,11 +459,12 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 		nodes       = []*SurveyQuestion{}
 		withFKs     = sqq.withFKs
 		_spec       = sqq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			sqq.withSurvey != nil,
 			sqq.withWifiScan != nil,
 			sqq.withCellScan != nil,
 			sqq.withPhotoData != nil,
+			sqq.withImages != nil,
 		}
 	)
 	if sqq.withSurvey != nil {
@@ -412,8 +498,8 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 	}
 
 	if query := sqq.withSurvey; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*SurveyQuestion)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyQuestion)
 		for i := range nodes {
 			if fk := nodes[i].survey_question_survey; fk != nil {
 				ids = append(ids, *fk)
@@ -438,13 +524,9 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 
 	if query := sqq.withWifiScan; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*SurveyQuestion)
+		nodeids := make(map[int]*SurveyQuestion)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -470,13 +552,9 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 
 	if query := sqq.withCellScan; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*SurveyQuestion)
+		nodeids := make(map[int]*SurveyQuestion)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -502,13 +580,9 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 
 	if query := sqq.withPhotoData; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*SurveyQuestion)
+		nodeids := make(map[int]*SurveyQuestion)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -529,6 +603,34 @@ func (sqq *SurveyQuestionQuery) sqlAll(ctx context.Context) ([]*SurveyQuestion, 
 				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_photo_data" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.PhotoData = append(node.Edges.PhotoData, n)
+		}
+	}
+
+	if query := sqq.withImages; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*SurveyQuestion)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.File(func(s *sql.Selector) {
+			s.Where(sql.InValues(surveyquestion.ImagesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.survey_question_images
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "survey_question_images" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_question_images" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Images = append(node.Edges.Images, n)
 		}
 	}
 
@@ -554,7 +656,7 @@ func (sqq *SurveyQuestionQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   surveyquestion.Table,
 			Columns: surveyquestion.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveyquestion.FieldID,
 			},
 		},
@@ -614,8 +716,9 @@ type SurveyQuestionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -626,6 +729,11 @@ func (sqgb *SurveyQuestionGroupBy) Aggregate(fns ...Aggregate) *SurveyQuestionGr
 
 // Scan applies the group-by query and scan the result into the given value.
 func (sqgb *SurveyQuestionGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := sqgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	sqgb.sql = query
 	return sqgb.sqlScan(ctx, v)
 }
 
@@ -744,12 +852,18 @@ func (sqgb *SurveyQuestionGroupBy) sqlQuery() *sql.Selector {
 type SurveyQuestionSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (sqs *SurveyQuestionSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := sqs.path(ctx)
+	if err != nil {
+		return err
+	}
+	sqs.sql = query
 	return sqs.sqlScan(ctx, v)
 }
 

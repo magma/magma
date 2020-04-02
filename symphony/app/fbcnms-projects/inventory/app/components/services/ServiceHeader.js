@@ -13,11 +13,11 @@ import type {Service} from '../../common/Service';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
-import React, {useContext} from 'react';
+import React from 'react';
 import ServiceDeleteButton from './ServiceDeleteButton';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useFormContext} from '../../common/FormContext';
 
 const useStyles = makeStyles(_ => ({
   nameHeader: {
@@ -50,7 +50,7 @@ type Props = {
 const ServiceHeader = (props: Props) => {
   const classes = useStyles();
   const {service, onBackClicked, onServiceRemoved} = props;
-  const validationContext = useContext(FormValidationContext);
+  const form = useFormContext();
   return (
     <div className={classes.nameHeader}>
       <div className={classes.breadcrumbs}>
@@ -76,9 +76,7 @@ const ServiceHeader = (props: Props) => {
           onServiceRemoved={onServiceRemoved}
         />
       </FormAction>
-      <Button
-        onClick={onBackClicked}
-        disabled={validationContext.error.detected}>
+      <Button onClick={onBackClicked} disabled={form.alerts.error.detected}>
         Done
       </Button>
     </div>

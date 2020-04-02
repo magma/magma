@@ -193,7 +193,7 @@ type CCADiameterMessage struct {
 //					*[ Proxy-Info ]
 //					*[ Route-Record ]
 //					*[ AVP ]
-type ReAuthRequest struct {
+type PolicyReAuthRequest struct {
 	SessionID        string                 `avp:"Session-Id"`
 	OriginHost       string                 `avp:"Origin-Host"`
 	RulesToRemove    []*RuleRemoveAVP       `avp:"Charging-Rule-Remove"`
@@ -234,11 +234,58 @@ type ReAuthRequest struct {
 //					[ Failed-AVP ]
 //					*[ Proxy-Info ]
 //					*[ AVP ]
-type ReAuthAnswer struct {
+type PolicyReAuthAnswer struct {
 	SessionID   string                `avp:"Session-Id"`
 	ResultCode  uint32                `avp:"Result-Code"`
 	RuleReports []*ChargingRuleReport `avp:"Charging-Rule-Report"`
 }
+
+// https://www.etsi.org/deliver/etsi_ts/129200_129299/129214/07.04.00_60/ts_129214v070400p.pdf
+// <AS-Request> ::= < Diameter Header: 274, REQ, PXY >
+//  < Session-Id >
+//  { Origin-Host }
+//  { Origin-Realm }
+//  { Destination-Realm }
+//  { Destination-Host }
+//  { Auth-Application-Id }
+//  { Abort-Cause }
+//  [ Origin-State-Id ]
+//  *[ Proxy-Info ]
+//  *[ Route-Record ]
+//  *[ AVP ]
+type PolicyAbortSessionRequest struct {
+	SessionID  string `avp:"Session-Id"`
+	OriginHost string `avp:"Origin-Host"`
+	// AbortCause AbortCauseType `avp:"Abort-Cause"`
+}
+
+// <AS-Answer> ::= < Diameter Header: 274, PXY >
+//  < Session-Id >
+//  { Origin-Host }
+//  { Origin-Realm }
+//  [ Result-Code ]
+//  [ Experimental-Result ]
+//  [ Origin-State-Id ]
+//  [ Error-Message ]
+//  [ Error-Reporting-Host ]
+//  *[ Failed-AVP ]
+//  *[ Redirected-Host ]
+//  [ Redirected-Host-Usage ]
+//  [ Redirected-Max-Cache-Time ]
+//  *[ Proxy-Info ]
+//  *[ AVP ]
+type PolicyAbortSessionResponse struct {
+	SessionID  string `avp:"Session-Id"`
+	ResultCode uint32 `avp:"Result-Code"`
+}
+
+type AbortCauseType uint32
+
+const (
+	BearerReleased              AbortCauseType = 0
+	InsufficientServerResources AbortCauseType = 1
+	InsufficientBearerResources AbortCauseType = 2
+)
 
 //Charging-Rule-Report ::= < AVP Header: 1018 >
 // 						  *[ Charging-Rule-Name ]

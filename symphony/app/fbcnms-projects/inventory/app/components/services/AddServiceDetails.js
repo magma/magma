@@ -35,8 +35,9 @@ import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {getGraphError} from '../../common/EntUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
@@ -90,25 +91,27 @@ const useStyles = makeStyles(_ => ({
 
 const serviceTypeQuery = graphql`
   query AddServiceDetailsServiceTypeQuery($serviceTypeId: ID!) {
-    serviceType(id: $serviceTypeId) {
-      id
-      name
-      propertyTypes {
+    node(id: $serviceTypeId) {
+      ... on ServiceType {
         id
         name
-        type
-        index
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        isEditable
-        isInstanceProperty
-        isMandatory
+        propertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          rangeFromValue
+          rangeToValue
+          isEditable
+          isInstanceProperty
+          isMandatory
+        }
       }
     }
   }
@@ -143,7 +146,7 @@ const AddServiceDetails = (props: Props) => {
 
   const getService = () => {
     if (!serviceState) {
-      const serviceType = data.serviceType;
+      const serviceType = data.node;
       const initialProps = (serviceType.propertyTypes || [])
         .map(propType => getInitialPropertyFromType(propType))
         .sort(sortPropertiesByIndex);
@@ -184,7 +187,7 @@ const AddServiceDetails = (props: Props) => {
     const variables: AddServiceMutationVariables = {
       data: {
         name,
-        externalId,
+        externalId: externalId != null && externalId !== '' ? externalId : null,
         serviceTypeId,
         customerId: customer?.id,
         properties: toPropertyInput(properties),
@@ -201,10 +204,16 @@ const AddServiceDetails = (props: Props) => {
           onServiceCreated(nullthrows(response.addService?.id));
         }
       },
-      onError: () => {
-        enqueueError('Error saving service');
+      onError: (error: Error) => {
+        const errMsg = getGraphError(error);
+        enqueueSnackbar(errMsg, {
+          children: key => (
+            <SnackbarItem id={key} message={errMsg} variant="error" />
+          ),
+        });
       },
     };
+
     ServerLogger.info(LogEvents.SAVE_SERVICE_BUTTON_CLICKED, {
       source: 'service_details',
     });
@@ -212,7 +221,7 @@ const AddServiceDetails = (props: Props) => {
   };
 
   return (
-    <FormValidationContextProvider>
+    <FormContextProvider>
       <DialogTitle className={classes.dialogTitle}>
         <Text variant="h6">{service.serviceType.name}</Text>
       </DialogTitle>
@@ -287,7 +296,7 @@ const AddServiceDetails = (props: Props) => {
           captions={{cancelButton: 'Back', saveButton: 'Create'}}
         />
       </DialogActions>
-    </FormValidationContextProvider>
+    </FormContextProvider>
   );
 };
 

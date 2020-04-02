@@ -25,16 +25,18 @@ import {useMemo} from 'react';
 const useStyles = makeStyles(() => ({
   root: {
     justifyContent: 'flex-start',
-    padding: '4px',
+    '&&': {
+      padding: '4px',
+    },
     border: `1px solid ${symphony.palette.D100}`,
     '&$disabled': {
-      backgroundColor: symphony.palette.D50,
+      backgroundColor: symphony.palette.background,
     },
   },
   disabled: {
     '&&': {
       '&&': {
-        color: symphony.palette.disabled,
+        color: symphony.palette.secondary,
       },
     },
   },

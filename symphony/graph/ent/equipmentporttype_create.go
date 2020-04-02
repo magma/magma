@@ -9,7 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,17 +22,13 @@ import (
 // EquipmentPortTypeCreate is the builder for creating a EquipmentPortType entity.
 type EquipmentPortTypeCreate struct {
 	config
-	create_time         *time.Time
-	update_time         *time.Time
-	name                *string
-	property_types      map[string]struct{}
-	link_property_types map[string]struct{}
-	port_definitions    map[string]struct{}
+	mutation *EquipmentPortTypeMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (eptc *EquipmentPortTypeCreate) SetCreateTime(t time.Time) *EquipmentPortTypeCreate {
-	eptc.create_time = &t
+	eptc.mutation.SetCreateTime(t)
 	return eptc
 }
 
@@ -46,7 +42,7 @@ func (eptc *EquipmentPortTypeCreate) SetNillableCreateTime(t *time.Time) *Equipm
 
 // SetUpdateTime sets the update_time field.
 func (eptc *EquipmentPortTypeCreate) SetUpdateTime(t time.Time) *EquipmentPortTypeCreate {
-	eptc.update_time = &t
+	eptc.mutation.SetUpdateTime(t)
 	return eptc
 }
 
@@ -60,24 +56,19 @@ func (eptc *EquipmentPortTypeCreate) SetNillableUpdateTime(t *time.Time) *Equipm
 
 // SetName sets the name field.
 func (eptc *EquipmentPortTypeCreate) SetName(s string) *EquipmentPortTypeCreate {
-	eptc.name = &s
+	eptc.mutation.SetName(s)
 	return eptc
 }
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
-func (eptc *EquipmentPortTypeCreate) AddPropertyTypeIDs(ids ...string) *EquipmentPortTypeCreate {
-	if eptc.property_types == nil {
-		eptc.property_types = make(map[string]struct{})
-	}
-	for i := range ids {
-		eptc.property_types[ids[i]] = struct{}{}
-	}
+func (eptc *EquipmentPortTypeCreate) AddPropertyTypeIDs(ids ...int) *EquipmentPortTypeCreate {
+	eptc.mutation.AddPropertyTypeIDs(ids...)
 	return eptc
 }
 
 // AddPropertyTypes adds the property_types edges to PropertyType.
 func (eptc *EquipmentPortTypeCreate) AddPropertyTypes(p ...*PropertyType) *EquipmentPortTypeCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -85,19 +76,14 @@ func (eptc *EquipmentPortTypeCreate) AddPropertyTypes(p ...*PropertyType) *Equip
 }
 
 // AddLinkPropertyTypeIDs adds the link_property_types edge to PropertyType by ids.
-func (eptc *EquipmentPortTypeCreate) AddLinkPropertyTypeIDs(ids ...string) *EquipmentPortTypeCreate {
-	if eptc.link_property_types == nil {
-		eptc.link_property_types = make(map[string]struct{})
-	}
-	for i := range ids {
-		eptc.link_property_types[ids[i]] = struct{}{}
-	}
+func (eptc *EquipmentPortTypeCreate) AddLinkPropertyTypeIDs(ids ...int) *EquipmentPortTypeCreate {
+	eptc.mutation.AddLinkPropertyTypeIDs(ids...)
 	return eptc
 }
 
 // AddLinkPropertyTypes adds the link_property_types edges to PropertyType.
 func (eptc *EquipmentPortTypeCreate) AddLinkPropertyTypes(p ...*PropertyType) *EquipmentPortTypeCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -105,19 +91,14 @@ func (eptc *EquipmentPortTypeCreate) AddLinkPropertyTypes(p ...*PropertyType) *E
 }
 
 // AddPortDefinitionIDs adds the port_definitions edge to EquipmentPortDefinition by ids.
-func (eptc *EquipmentPortTypeCreate) AddPortDefinitionIDs(ids ...string) *EquipmentPortTypeCreate {
-	if eptc.port_definitions == nil {
-		eptc.port_definitions = make(map[string]struct{})
-	}
-	for i := range ids {
-		eptc.port_definitions[ids[i]] = struct{}{}
-	}
+func (eptc *EquipmentPortTypeCreate) AddPortDefinitionIDs(ids ...int) *EquipmentPortTypeCreate {
+	eptc.mutation.AddPortDefinitionIDs(ids...)
 	return eptc
 }
 
 // AddPortDefinitions adds the port_definitions edges to EquipmentPortDefinition.
 func (eptc *EquipmentPortTypeCreate) AddPortDefinitions(e ...*EquipmentPortDefinition) *EquipmentPortTypeCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -126,18 +107,41 @@ func (eptc *EquipmentPortTypeCreate) AddPortDefinitions(e ...*EquipmentPortDefin
 
 // Save creates the EquipmentPortType in the database.
 func (eptc *EquipmentPortTypeCreate) Save(ctx context.Context) (*EquipmentPortType, error) {
-	if eptc.create_time == nil {
+	if _, ok := eptc.mutation.CreateTime(); !ok {
 		v := equipmentporttype.DefaultCreateTime()
-		eptc.create_time = &v
+		eptc.mutation.SetCreateTime(v)
 	}
-	if eptc.update_time == nil {
+	if _, ok := eptc.mutation.UpdateTime(); !ok {
 		v := equipmentporttype.DefaultUpdateTime()
-		eptc.update_time = &v
+		eptc.mutation.SetUpdateTime(v)
 	}
-	if eptc.name == nil {
+	if _, ok := eptc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	return eptc.sqlSave(ctx)
+	var (
+		err  error
+		node *EquipmentPortType
+	)
+	if len(eptc.hooks) == 0 {
+		node, err = eptc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentPortTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			eptc.mutation = mutation
+			node, err = eptc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(eptc.hooks) - 1; i >= 0; i-- {
+			mut = eptc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, eptc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -155,36 +159,36 @@ func (eptc *EquipmentPortTypeCreate) sqlSave(ctx context.Context) (*EquipmentPor
 		_spec = &sqlgraph.CreateSpec{
 			Table: equipmentporttype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentporttype.FieldID,
 			},
 		}
 	)
-	if value := eptc.create_time; value != nil {
+	if value, ok := eptc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentporttype.FieldCreateTime,
 		})
-		ept.CreateTime = *value
+		ept.CreateTime = value
 	}
-	if value := eptc.update_time; value != nil {
+	if value, ok := eptc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentporttype.FieldUpdateTime,
 		})
-		ept.UpdateTime = *value
+		ept.UpdateTime = value
 	}
-	if value := eptc.name; value != nil {
+	if value, ok := eptc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentporttype.FieldName,
 		})
-		ept.Name = *value
+		ept.Name = value
 	}
-	if nodes := eptc.property_types; len(nodes) > 0 {
+	if nodes := eptc.mutation.PropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -193,21 +197,17 @@ func (eptc *EquipmentPortTypeCreate) sqlSave(ctx context.Context) (*EquipmentPor
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := eptc.link_property_types; len(nodes) > 0 {
+	if nodes := eptc.mutation.LinkPropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -216,21 +216,17 @@ func (eptc *EquipmentPortTypeCreate) sqlSave(ctx context.Context) (*EquipmentPor
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := eptc.port_definitions; len(nodes) > 0 {
+	if nodes := eptc.mutation.PortDefinitionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -239,16 +235,12 @@ func (eptc *EquipmentPortTypeCreate) sqlSave(ctx context.Context) (*EquipmentPor
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentportdefinition.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -260,6 +252,6 @@ func (eptc *EquipmentPortTypeCreate) sqlSave(ctx context.Context) (*EquipmentPor
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	ept.ID = strconv.FormatInt(id, 10)
+	ept.ID = int(id)
 	return ept, nil
 }

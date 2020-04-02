@@ -30,7 +30,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "assertions.h"
 #include "intertask_interface.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
@@ -54,7 +53,7 @@ int mme_app_handle_nas_dl_req(
 //------------------------------------------------------------------------------
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
   int rc = RETURNok;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
 
@@ -67,8 +66,7 @@ int mme_app_handle_nas_dl_req(
       "DOWNLINK NAS TRANSPORT. Failed to get global mme_app_desc context \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  ue_mm_context_t* ue_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context_t* ue_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context) {
     enb_ue_s1ap_id = ue_context->enb_ue_s1ap_id;
   } else {

@@ -6,6 +6,7 @@
 
 !cwf/cloud/
 !cwf/gateway/
+!cwf/k8s
 
 !feg/cloud/
 !feg/gateway/
@@ -25,6 +26,8 @@
 !devmand/cloud/
 !devmand/gateway/
 !devmand/protos/
+
+!fb/src/dpi/
 
 !orc8r/cloud/configs/
 !orc8r/lib/

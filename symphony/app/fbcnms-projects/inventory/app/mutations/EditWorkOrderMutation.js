@@ -24,12 +24,18 @@ const mutation = graphql`
       id
       name
       description
-      ownerName
+      owner {
+        id
+        email
+      }
       creationDate
       installDate
       status
       priority
-      assignee
+      assignedTo {
+        id
+        email
+      }
       ...WorkOrderDetails_workOrder
       ...WorkOrdersView_workOrder
     }

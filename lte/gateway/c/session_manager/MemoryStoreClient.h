@@ -26,13 +26,11 @@ class MemoryStoreClient final : public StoreClient {
   MemoryStoreClient(std::shared_ptr<StaticRuleStore> rule_store);
   MemoryStoreClient(MemoryStoreClient const&) = delete;
   MemoryStoreClient(MemoryStoreClient&&) = default;
+  ~MemoryStoreClient() = default;
 
-  SessionMap read_sessions(std::vector<std::string> subscriber_ids);
+  SessionMap read_sessions(std::set<std::string> subscriber_ids);
 
   bool write_sessions(SessionMap session_map);
-
- private:
-  ~MemoryStoreClient() = default;
 
  private:
   std::unordered_map<std::string, std::vector<StoredSessionState>> session_map_;

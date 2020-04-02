@@ -8,8 +8,7 @@ package ent
 
 import (
 	"context"
-	"errors"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,16 +21,13 @@ import (
 // WorkOrderDefinitionCreate is the builder for creating a WorkOrderDefinition entity.
 type WorkOrderDefinitionCreate struct {
 	config
-	create_time  *time.Time
-	update_time  *time.Time
-	index        *int
-	_type        map[string]struct{}
-	project_type map[string]struct{}
+	mutation *WorkOrderDefinitionMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (wodc *WorkOrderDefinitionCreate) SetCreateTime(t time.Time) *WorkOrderDefinitionCreate {
-	wodc.create_time = &t
+	wodc.mutation.SetCreateTime(t)
 	return wodc
 }
 
@@ -45,7 +41,7 @@ func (wodc *WorkOrderDefinitionCreate) SetNillableCreateTime(t *time.Time) *Work
 
 // SetUpdateTime sets the update_time field.
 func (wodc *WorkOrderDefinitionCreate) SetUpdateTime(t time.Time) *WorkOrderDefinitionCreate {
-	wodc.update_time = &t
+	wodc.mutation.SetUpdateTime(t)
 	return wodc
 }
 
@@ -59,7 +55,7 @@ func (wodc *WorkOrderDefinitionCreate) SetNillableUpdateTime(t *time.Time) *Work
 
 // SetIndex sets the index field.
 func (wodc *WorkOrderDefinitionCreate) SetIndex(i int) *WorkOrderDefinitionCreate {
-	wodc.index = &i
+	wodc.mutation.SetIndex(i)
 	return wodc
 }
 
@@ -72,16 +68,13 @@ func (wodc *WorkOrderDefinitionCreate) SetNillableIndex(i *int) *WorkOrderDefini
 }
 
 // SetTypeID sets the type edge to WorkOrderType by id.
-func (wodc *WorkOrderDefinitionCreate) SetTypeID(id string) *WorkOrderDefinitionCreate {
-	if wodc._type == nil {
-		wodc._type = make(map[string]struct{})
-	}
-	wodc._type[id] = struct{}{}
+func (wodc *WorkOrderDefinitionCreate) SetTypeID(id int) *WorkOrderDefinitionCreate {
+	wodc.mutation.SetTypeID(id)
 	return wodc
 }
 
 // SetNillableTypeID sets the type edge to WorkOrderType by id if the given value is not nil.
-func (wodc *WorkOrderDefinitionCreate) SetNillableTypeID(id *string) *WorkOrderDefinitionCreate {
+func (wodc *WorkOrderDefinitionCreate) SetNillableTypeID(id *int) *WorkOrderDefinitionCreate {
 	if id != nil {
 		wodc = wodc.SetTypeID(*id)
 	}
@@ -94,16 +87,13 @@ func (wodc *WorkOrderDefinitionCreate) SetType(w *WorkOrderType) *WorkOrderDefin
 }
 
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
-func (wodc *WorkOrderDefinitionCreate) SetProjectTypeID(id string) *WorkOrderDefinitionCreate {
-	if wodc.project_type == nil {
-		wodc.project_type = make(map[string]struct{})
-	}
-	wodc.project_type[id] = struct{}{}
+func (wodc *WorkOrderDefinitionCreate) SetProjectTypeID(id int) *WorkOrderDefinitionCreate {
+	wodc.mutation.SetProjectTypeID(id)
 	return wodc
 }
 
 // SetNillableProjectTypeID sets the project_type edge to ProjectType by id if the given value is not nil.
-func (wodc *WorkOrderDefinitionCreate) SetNillableProjectTypeID(id *string) *WorkOrderDefinitionCreate {
+func (wodc *WorkOrderDefinitionCreate) SetNillableProjectTypeID(id *int) *WorkOrderDefinitionCreate {
 	if id != nil {
 		wodc = wodc.SetProjectTypeID(*id)
 	}
@@ -117,21 +107,38 @@ func (wodc *WorkOrderDefinitionCreate) SetProjectType(p *ProjectType) *WorkOrder
 
 // Save creates the WorkOrderDefinition in the database.
 func (wodc *WorkOrderDefinitionCreate) Save(ctx context.Context) (*WorkOrderDefinition, error) {
-	if wodc.create_time == nil {
+	if _, ok := wodc.mutation.CreateTime(); !ok {
 		v := workorderdefinition.DefaultCreateTime()
-		wodc.create_time = &v
+		wodc.mutation.SetCreateTime(v)
 	}
-	if wodc.update_time == nil {
+	if _, ok := wodc.mutation.UpdateTime(); !ok {
 		v := workorderdefinition.DefaultUpdateTime()
-		wodc.update_time = &v
+		wodc.mutation.SetUpdateTime(v)
 	}
-	if len(wodc._type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
+	var (
+		err  error
+		node *WorkOrderDefinition
+	)
+	if len(wodc.hooks) == 0 {
+		node, err = wodc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*WorkOrderDefinitionMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			wodc.mutation = mutation
+			node, err = wodc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(wodc.hooks) - 1; i >= 0; i-- {
+			mut = wodc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, wodc.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(wodc.project_type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"project_type\"")
-	}
-	return wodc.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -149,36 +156,36 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 		_spec = &sqlgraph.CreateSpec{
 			Table: workorderdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workorderdefinition.FieldID,
 			},
 		}
 	)
-	if value := wodc.create_time; value != nil {
+	if value, ok := wodc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: workorderdefinition.FieldCreateTime,
 		})
-		wod.CreateTime = *value
+		wod.CreateTime = value
 	}
-	if value := wodc.update_time; value != nil {
+	if value, ok := wodc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: workorderdefinition.FieldUpdateTime,
 		})
-		wod.UpdateTime = *value
+		wod.UpdateTime = value
 	}
-	if value := wodc.index; value != nil {
+	if value, ok := wodc.mutation.Index(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: workorderdefinition.FieldIndex,
 		})
-		wod.Index = *value
+		wod.Index = value
 	}
-	if nodes := wodc._type; len(nodes) > 0 {
+	if nodes := wodc.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -187,21 +194,17 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := wodc.project_type; len(nodes) > 0 {
+	if nodes := wodc.mutation.ProjectTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -210,16 +213,12 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: projecttype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -231,6 +230,6 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	wod.ID = strconv.FormatInt(id, 10)
+	wod.ID = int(id)
 	return wod, nil
 }

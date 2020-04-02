@@ -50,10 +50,12 @@ func ResolverMiddleware() handler.Option {
 		latency := float64(time.Since(start)) / float64(time.Millisecond)
 
 		rc := graphql.GetResolverContext(ctx)
+		deprecated := rc.Field.Definition.Directives.ForName("deprecated") != nil
 		tags := []tag.Mutator{
 			tag.Upsert(Object, rc.Object),
 			tag.Upsert(Field, rc.Field.Name),
 			tag.Upsert(Error, strconv.FormatBool(err != nil)),
+			tag.Upsert(Deprecated, strconv.FormatBool(deprecated)),
 		}
 
 		_ = stats.RecordWithTags(

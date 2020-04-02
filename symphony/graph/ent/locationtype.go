@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type LocationType struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -104,7 +103,7 @@ func (lt *LocationType) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	lt.ID = strconv.FormatInt(value.Int64, 10)
+	lt.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -146,24 +145,24 @@ func (lt *LocationType) assignValues(values ...interface{}) error {
 
 // QueryLocations queries the locations edge of the LocationType.
 func (lt *LocationType) QueryLocations() *LocationQuery {
-	return (&LocationTypeClient{lt.config}).QueryLocations(lt)
+	return (&LocationTypeClient{config: lt.config}).QueryLocations(lt)
 }
 
 // QueryPropertyTypes queries the property_types edge of the LocationType.
 func (lt *LocationType) QueryPropertyTypes() *PropertyTypeQuery {
-	return (&LocationTypeClient{lt.config}).QueryPropertyTypes(lt)
+	return (&LocationTypeClient{config: lt.config}).QueryPropertyTypes(lt)
 }
 
 // QuerySurveyTemplateCategories queries the survey_template_categories edge of the LocationType.
 func (lt *LocationType) QuerySurveyTemplateCategories() *SurveyTemplateCategoryQuery {
-	return (&LocationTypeClient{lt.config}).QuerySurveyTemplateCategories(lt)
+	return (&LocationTypeClient{config: lt.config}).QuerySurveyTemplateCategories(lt)
 }
 
 // Update returns a builder for updating this LocationType.
 // Note that, you need to call LocationType.Unwrap() before calling this method, if this LocationType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (lt *LocationType) Update() *LocationTypeUpdateOne {
-	return (&LocationTypeClient{lt.config}).UpdateOne(lt)
+	return (&LocationTypeClient{config: lt.config}).UpdateOne(lt)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -198,12 +197,6 @@ func (lt *LocationType) String() string {
 	builder.WriteString(fmt.Sprintf("%v", lt.Index))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (lt *LocationType) id() int {
-	id, _ := strconv.Atoi(lt.ID)
-	return id
 }
 
 // LocationTypes is a parsable slice of LocationType.

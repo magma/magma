@@ -25,7 +25,7 @@ unique_ptr<DatastoreTransaction> Datastore::newTx() {
   unique_lock<mutex> lock(_mutex);
   checkIfTransactionRunning();
   setTransactionRunning();
-  return make_unique<DatastoreTransaction>(datastoreState);
+  return make_unique<DatastoreTransaction>(datastoreState, schemaContext);
 }
 
 void Datastore::checkIfTransactionRunning() {

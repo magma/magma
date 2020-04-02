@@ -35,6 +35,7 @@ const PowerSearchWorkOrderTypeFilter = (props: FilterProps) => {
   const [tokens, setTokens] = useState([]);
 
   useEffect(() => {
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, workOrdersQuery).then(data => {
       setworkOrderTypes(data.workOrderTypes.edges.map(edge => edge.node));
     });

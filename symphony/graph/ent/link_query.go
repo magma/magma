@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -39,8 +38,9 @@ type LinkQuery struct {
 	withProperties *PropertyQuery
 	withService    *ServiceQuery
 	withFKs        bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -70,48 +70,72 @@ func (lq *LinkQuery) Order(o ...Order) *LinkQuery {
 // QueryPorts chains the current query on the ports edge.
 func (lq *LinkQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, link.PortsTable, link.PortsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+			sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, link.PortsTable, link.PortsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
 func (lq *LinkQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sqlgraph.To(workorder.Table, workorder.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, link.WorkOrderTable, link.WorkOrderColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, link.WorkOrderTable, link.WorkOrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (lq *LinkQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sqlgraph.To(property.Table, property.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, link.PropertiesTable, link.PropertiesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+			sqlgraph.To(property.Table, property.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, link.PropertiesTable, link.PropertiesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryService chains the current query on the service edge.
 func (lq *LinkQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, link.ServiceTable, link.ServicePrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, link.ServiceTable, link.ServicePrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -137,8 +161,8 @@ func (lq *LinkQuery) FirstX(ctx context.Context) *Link {
 }
 
 // FirstID returns the first Link id in the query. Returns *NotFoundError when no id was found.
-func (lq *LinkQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (lq *LinkQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -150,7 +174,7 @@ func (lq *LinkQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (lq *LinkQuery) FirstXID(ctx context.Context) string {
+func (lq *LinkQuery) FirstXID(ctx context.Context) int {
 	id, err := lq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -184,8 +208,8 @@ func (lq *LinkQuery) OnlyX(ctx context.Context) *Link {
 }
 
 // OnlyID returns the only Link id in the query, returns an error if not exactly one id was returned.
-func (lq *LinkQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (lq *LinkQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -201,7 +225,7 @@ func (lq *LinkQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (lq *LinkQuery) OnlyXID(ctx context.Context) string {
+func (lq *LinkQuery) OnlyXID(ctx context.Context) int {
 	id, err := lq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -211,6 +235,9 @@ func (lq *LinkQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of Links.
 func (lq *LinkQuery) All(ctx context.Context) ([]*Link, error) {
+	if err := lq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return lq.sqlAll(ctx)
 }
 
@@ -224,8 +251,8 @@ func (lq *LinkQuery) AllX(ctx context.Context) []*Link {
 }
 
 // IDs executes the query and returns a list of Link ids.
-func (lq *LinkQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (lq *LinkQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := lq.Select(link.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -233,7 +260,7 @@ func (lq *LinkQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (lq *LinkQuery) IDsX(ctx context.Context) []string {
+func (lq *LinkQuery) IDsX(ctx context.Context) []int {
 	ids, err := lq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -243,6 +270,9 @@ func (lq *LinkQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (lq *LinkQuery) Count(ctx context.Context) (int, error) {
+	if err := lq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return lq.sqlCount(ctx)
 }
 
@@ -257,6 +287,9 @@ func (lq *LinkQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (lq *LinkQuery) Exist(ctx context.Context) (bool, error) {
+	if err := lq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return lq.sqlExist(ctx)
 }
 
@@ -280,7 +313,8 @@ func (lq *LinkQuery) Clone() *LinkQuery {
 		unique:     append([]string{}, lq.unique...),
 		predicates: append([]predicate.Link{}, lq.predicates...),
 		// clone intermediate query.
-		sql: lq.sql.Clone(),
+		sql:  lq.sql.Clone(),
+		path: lq.path,
 	}
 }
 
@@ -346,7 +380,12 @@ func (lq *LinkQuery) WithService(opts ...func(*ServiceQuery)) *LinkQuery {
 func (lq *LinkQuery) GroupBy(field string, fields ...string) *LinkGroupBy {
 	group := &LinkGroupBy{config: lq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = lq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return lq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -365,8 +404,24 @@ func (lq *LinkQuery) GroupBy(field string, fields ...string) *LinkGroupBy {
 func (lq *LinkQuery) Select(field string, fields ...string) *LinkSelect {
 	selector := &LinkSelect{config: lq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = lq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return lq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (lq *LinkQuery) prepareQuery(ctx context.Context) error {
+	if lq.path != nil {
+		prev, err := lq.path(ctx)
+		if err != nil {
+			return err
+		}
+		lq.sql = prev
+	}
+	return nil
 }
 
 func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
@@ -413,13 +468,9 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 
 	if query := lq.withPorts; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Link)
+		nodeids := make(map[int]*Link)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -444,8 +495,8 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 	}
 
 	if query := lq.withWorkOrder; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Link)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Link)
 		for i := range nodes {
 			if fk := nodes[i].link_work_order; fk != nil {
 				ids = append(ids, *fk)
@@ -470,13 +521,9 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 
 	if query := lq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Link)
+		nodeids := make(map[int]*Link)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -502,14 +549,14 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 
 	if query := lq.withService; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Link, len(nodes))
+		ids := make(map[int]*Link, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Link)
+			edgeids []int
+			edges   = make(map[int][]*Link)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -533,8 +580,8 @@ func (lq *LinkQuery) sqlAll(ctx context.Context) ([]*Link, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -585,7 +632,7 @@ func (lq *LinkQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   link.Table,
 			Columns: link.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: link.FieldID,
 			},
 		},
@@ -645,8 +692,9 @@ type LinkGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -657,6 +705,11 @@ func (lgb *LinkGroupBy) Aggregate(fns ...Aggregate) *LinkGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (lgb *LinkGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := lgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	lgb.sql = query
 	return lgb.sqlScan(ctx, v)
 }
 
@@ -775,12 +828,18 @@ func (lgb *LinkGroupBy) sqlQuery() *sql.Selector {
 type LinkSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ls *LinkSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ls.path(ctx)
+	if err != nil {
+		return err
+	}
+	ls.sql = query
 	return ls.sqlScan(ctx, v)
 }
 

@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type File struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -36,15 +35,17 @@ type File struct {
 	// UploadedAt holds the value of the "uploaded_at" field.
 	UploadedAt time.Time `json:"uploaded_at,omitempty" gqlgen:"uploaded"`
 	// ContentType holds the value of the "content_type" field.
-	ContentType string `json:"content_type,omitempty"`
+	ContentType string `json:"content_type,omitempty" gqlgen:"mimeType"`
 	// StoreKey holds the value of the "store_key" field.
 	StoreKey string `json:"store_key,omitempty"`
 	// Category holds the value of the "category" field.
 	Category                   string `json:"category,omitempty"`
-	equipment_files            *string
-	location_files             *string
-	survey_question_photo_data *string
-	work_order_files           *string
+	check_list_item_files      *int
+	equipment_files            *int
+	location_files             *int
+	survey_question_photo_data *int
+	survey_question_images     *int
+	work_order_files           *int
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -67,9 +68,11 @@ func (*File) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*File) fkValues() []interface{} {
 	return []interface{}{
+		&sql.NullInt64{}, // check_list_item_files
 		&sql.NullInt64{}, // equipment_files
 		&sql.NullInt64{}, // location_files
 		&sql.NullInt64{}, // survey_question_photo_data
+		&sql.NullInt64{}, // survey_question_images
 		&sql.NullInt64{}, // work_order_files
 	}
 }
@@ -84,7 +87,7 @@ func (f *File) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	f.ID = strconv.FormatInt(value.Int64, 10)
+	f.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -139,28 +142,40 @@ func (f *File) assignValues(values ...interface{}) error {
 	values = values[10:]
 	if len(values) == len(file.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field equipment_files", value)
+			return fmt.Errorf("unexpected type %T for edge-field check_list_item_files", value)
 		} else if value.Valid {
-			f.equipment_files = new(string)
-			*f.equipment_files = strconv.FormatInt(value.Int64, 10)
+			f.check_list_item_files = new(int)
+			*f.check_list_item_files = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field location_files", value)
+			return fmt.Errorf("unexpected type %T for edge-field equipment_files", value)
 		} else if value.Valid {
-			f.location_files = new(string)
-			*f.location_files = strconv.FormatInt(value.Int64, 10)
+			f.equipment_files = new(int)
+			*f.equipment_files = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field survey_question_photo_data", value)
+			return fmt.Errorf("unexpected type %T for edge-field location_files", value)
 		} else if value.Valid {
-			f.survey_question_photo_data = new(string)
-			*f.survey_question_photo_data = strconv.FormatInt(value.Int64, 10)
+			f.location_files = new(int)
+			*f.location_files = int(value.Int64)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_photo_data", value)
+		} else if value.Valid {
+			f.survey_question_photo_data = new(int)
+			*f.survey_question_photo_data = int(value.Int64)
+		}
+		if value, ok := values[4].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_images", value)
+		} else if value.Valid {
+			f.survey_question_images = new(int)
+			*f.survey_question_images = int(value.Int64)
+		}
+		if value, ok := values[5].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_files", value)
 		} else if value.Valid {
-			f.work_order_files = new(string)
-			*f.work_order_files = strconv.FormatInt(value.Int64, 10)
+			f.work_order_files = new(int)
+			*f.work_order_files = int(value.Int64)
 		}
 	}
 	return nil
@@ -170,7 +185,7 @@ func (f *File) assignValues(values ...interface{}) error {
 // Note that, you need to call File.Unwrap() before calling this method, if this File
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (f *File) Update() *FileUpdateOne {
-	return (&FileClient{f.config}).UpdateOne(f)
+	return (&FileClient{config: f.config}).UpdateOne(f)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -211,12 +226,6 @@ func (f *File) String() string {
 	builder.WriteString(f.Category)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (f *File) id() int {
-	id, _ := strconv.Atoi(f.ID)
-	return id
 }
 
 // Files is a parsable slice of File.

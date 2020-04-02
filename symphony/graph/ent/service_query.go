@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -43,8 +42,9 @@ type ServiceQuery struct {
 	withCustomer   *CustomerQuery
 	withEndpoints  *ServiceEndpointQuery
 	withFKs        bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -74,84 +74,126 @@ func (sq *ServiceQuery) Order(o ...Order) *ServiceQuery {
 // QueryType chains the current query on the type edge.
 func (sq *ServiceQuery) QueryType() *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sqlgraph.To(servicetype.Table, servicetype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, service.TypeTable, service.TypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+			sqlgraph.To(servicetype.Table, servicetype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, service.TypeTable, service.TypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryDownstream chains the current query on the downstream edge.
 func (sq *ServiceQuery) QueryDownstream() *ServiceQuery {
 	query := &ServiceQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, service.DownstreamTable, service.DownstreamPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, service.DownstreamTable, service.DownstreamPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryUpstream chains the current query on the upstream edge.
 func (sq *ServiceQuery) QueryUpstream() *ServiceQuery {
 	query := &ServiceQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, service.UpstreamTable, service.UpstreamPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, service.UpstreamTable, service.UpstreamPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (sq *ServiceQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sqlgraph.To(property.Table, property.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, service.PropertiesTable, service.PropertiesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+			sqlgraph.To(property.Table, property.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, service.PropertiesTable, service.PropertiesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryLinks chains the current query on the links edge.
 func (sq *ServiceQuery) QueryLinks() *LinkQuery {
 	query := &LinkQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sqlgraph.To(link.Table, link.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, service.LinksTable, service.LinksPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+			sqlgraph.To(link.Table, link.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, service.LinksTable, service.LinksPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryCustomer chains the current query on the customer edge.
 func (sq *ServiceQuery) QueryCustomer() *CustomerQuery {
 	query := &CustomerQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sqlgraph.To(customer.Table, customer.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+			sqlgraph.To(customer.Table, customer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryEndpoints chains the current query on the endpoints edge.
 func (sq *ServiceQuery) QueryEndpoints() *ServiceEndpointQuery {
 	query := &ServiceEndpointQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, service.EndpointsTable, service.EndpointsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+			sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, service.EndpointsTable, service.EndpointsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -177,8 +219,8 @@ func (sq *ServiceQuery) FirstX(ctx context.Context) *Service {
 }
 
 // FirstID returns the first Service id in the query. Returns *NotFoundError when no id was found.
-func (sq *ServiceQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sq *ServiceQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -190,7 +232,7 @@ func (sq *ServiceQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (sq *ServiceQuery) FirstXID(ctx context.Context) string {
+func (sq *ServiceQuery) FirstXID(ctx context.Context) int {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -224,8 +266,8 @@ func (sq *ServiceQuery) OnlyX(ctx context.Context) *Service {
 }
 
 // OnlyID returns the only Service id in the query, returns an error if not exactly one id was returned.
-func (sq *ServiceQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sq *ServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -241,7 +283,7 @@ func (sq *ServiceQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (sq *ServiceQuery) OnlyXID(ctx context.Context) string {
+func (sq *ServiceQuery) OnlyXID(ctx context.Context) int {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -251,6 +293,9 @@ func (sq *ServiceQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of Services.
 func (sq *ServiceQuery) All(ctx context.Context) ([]*Service, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return sq.sqlAll(ctx)
 }
 
@@ -264,8 +309,8 @@ func (sq *ServiceQuery) AllX(ctx context.Context) []*Service {
 }
 
 // IDs executes the query and returns a list of Service ids.
-func (sq *ServiceQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (sq *ServiceQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := sq.Select(service.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -273,7 +318,7 @@ func (sq *ServiceQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *ServiceQuery) IDsX(ctx context.Context) []string {
+func (sq *ServiceQuery) IDsX(ctx context.Context) []int {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -283,6 +328,9 @@ func (sq *ServiceQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (sq *ServiceQuery) Count(ctx context.Context) (int, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return sq.sqlCount(ctx)
 }
 
@@ -297,6 +345,9 @@ func (sq *ServiceQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (sq *ServiceQuery) Exist(ctx context.Context) (bool, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return sq.sqlExist(ctx)
 }
 
@@ -320,7 +371,8 @@ func (sq *ServiceQuery) Clone() *ServiceQuery {
 		unique:     append([]string{}, sq.unique...),
 		predicates: append([]predicate.Service{}, sq.predicates...),
 		// clone intermediate query.
-		sql: sq.sql.Clone(),
+		sql:  sq.sql.Clone(),
+		path: sq.path,
 	}
 }
 
@@ -419,7 +471,12 @@ func (sq *ServiceQuery) WithEndpoints(opts ...func(*ServiceEndpointQuery)) *Serv
 func (sq *ServiceQuery) GroupBy(field string, fields ...string) *ServiceGroupBy {
 	group := &ServiceGroupBy{config: sq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = sq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return sq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -438,8 +495,24 @@ func (sq *ServiceQuery) GroupBy(field string, fields ...string) *ServiceGroupBy 
 func (sq *ServiceQuery) Select(field string, fields ...string) *ServiceSelect {
 	selector := &ServiceSelect{config: sq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = sq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return sq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (sq *ServiceQuery) prepareQuery(ctx context.Context) error {
+	if sq.path != nil {
+		prev, err := sq.path(ctx)
+		if err != nil {
+			return err
+		}
+		sq.sql = prev
+	}
+	return nil
 }
 
 func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
@@ -488,8 +561,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 	}
 
 	if query := sq.withType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Service)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Service)
 		for i := range nodes {
 			if fk := nodes[i].service_type; fk != nil {
 				ids = append(ids, *fk)
@@ -514,14 +587,14 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withDownstream; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Service, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Service)
+			edgeids []int
+			edges   = make(map[int][]*Service)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -545,8 +618,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -577,14 +650,14 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withUpstream; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Service, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Service)
+			edgeids []int
+			edges   = make(map[int][]*Service)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -608,8 +681,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -640,13 +713,9 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Service)
+		nodeids := make(map[int]*Service)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -672,14 +741,14 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withLinks; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Service, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Service)
+			edgeids []int
+			edges   = make(map[int][]*Service)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -703,8 +772,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -735,14 +804,14 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withCustomer; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[string]*Service, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Service)
+			edgeids []int
+			edges   = make(map[int][]*Service)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
@@ -766,8 +835,8 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := strconv.FormatInt(eout.Int64, 10)
-				inValue := strconv.FormatInt(ein.Int64, 10)
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -798,13 +867,9 @@ func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 
 	if query := sq.withEndpoints; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Service)
+		nodeids := make(map[int]*Service)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -850,7 +915,7 @@ func (sq *ServiceQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   service.Table,
 			Columns: service.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: service.FieldID,
 			},
 		},
@@ -910,8 +975,9 @@ type ServiceGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -922,6 +988,11 @@ func (sgb *ServiceGroupBy) Aggregate(fns ...Aggregate) *ServiceGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (sgb *ServiceGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := sgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	sgb.sql = query
 	return sgb.sqlScan(ctx, v)
 }
 
@@ -1040,12 +1111,18 @@ func (sgb *ServiceGroupBy) sqlQuery() *sql.Selector {
 type ServiceSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ss *ServiceSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ss.path(ctx)
+	if err != nil {
+		return err
+	}
+	ss.sql = query
 	return ss.sqlScan(ctx, v)
 }
 

@@ -9,7 +9,7 @@
  */
 
 import type {ProjectLink} from '@fbcnms/ui/components/layout/AppDrawerProjectNavigation';
-import type {Tab} from '@fbcnms/ui/context/AppContext';
+import type {Tab} from '@fbcnms/types/tabs';
 
 const allTabs: $ReadOnlyArray<ProjectLink> = [
   {
@@ -35,6 +35,12 @@ const allTabs: $ReadOnlyArray<ProjectLink> = [
     name: 'Automation',
     secondary: 'Automation Management',
     url: '/automation',
+  },
+  {
+    id: 'hub',
+    name: 'Hub',
+    secondary: 'Network Hub',
+    url: '/hub',
   },
 ];
 

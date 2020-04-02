@@ -5,41 +5,28 @@
 package resolver
 
 import (
-	"context"
 	"testing"
 
-	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
-	"github.com/facebookincubator/symphony/graph/graphql/generated"
-	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestQueryMe(t *testing.T) {
 	resolver := newTestResolver(t)
 	defer resolver.drv.Close()
-
-	v := &viewer.Viewer{Tenant: "testing", User: "tester@example.com"}
-	h := handler.GraphQL(
-		generated.NewExecutableSchema(
-			generated.Config{
-				Resolvers: resolver,
-			},
-		),
-		handler.RequestMiddleware(
-			func(ctx context.Context, next func(context.Context) []byte) []byte {
-				return next(viewer.NewContext(ctx, v))
-			},
-		),
-	)
+	c := newGraphClient(t, resolver)
 
 	var rsp struct {
 		Me struct {
 			Tenant string
 			Email  string
+			User   struct {
+				AuthID string
+			}
 		}
 	}
-	client.New(h).MustPost("query { me { tenant, email } }", &rsp)
-	assert.Equal(t, v.Tenant, rsp.Me.Tenant)
-	assert.Equal(t, v.User, rsp.Me.Email)
+	c.MustPost("query { me { tenant, email user { authID } } }", &rsp)
+	assert.Equal(t, viewertest.DefaultViewer.Tenant, rsp.Me.Tenant)
+	assert.Equal(t, viewertest.DefaultViewer.User, rsp.Me.Email)
+	assert.Equal(t, viewertest.DefaultViewer.User, rsp.Me.User.AuthID)
 }

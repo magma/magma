@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
@@ -45,6 +46,7 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		state.NewStateSerde(lte.EnodebStateType, &lteModels.EnodebState{}),
+		state.NewStateSerde(lte.ICMPStateType, &lteModels.IcmpStatus{}),
 
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lteModels.NetworkCellularConfigs{}),
@@ -86,4 +88,8 @@ func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider 
 		&policyStreamer.RuleMappingsProvider{},
 		&policyStreamer.NetworkWideRulesProvider{},
 	}
+}
+
+func (*LteOrchestratorPlugin) GetStateIndexers() []indexer.Indexer {
+	return []indexer.Indexer{}
 }

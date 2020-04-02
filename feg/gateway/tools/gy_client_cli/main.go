@@ -108,9 +108,12 @@ func main() {
 	clientCfg := gy.GetGyClientConfiguration()
 	fmt.Printf("Client config: %+v\n", clientCfg)
 
+	gyGobalCfg := gy.GetGyGlobalConfig()
+	fmt.Printf("Gy global config: %+v\n", gyGobalCfg)
+
 	config := &cliConfig{
 		serverCfg:    serverCfg,
-		gyClient:     gy.NewGyClient(clientCfg, serverCfg, handleReAuth, nil),
+		gyClient:     gy.NewGyClient(clientCfg, serverCfg, handleReAuth, nil, gyGobalCfg),
 		imsi:         imsi,
 		sessionID:    fmt.Sprintf("%s-%s", imsi, sid),
 		ueIP:         ueIP,
@@ -193,7 +196,7 @@ func sendCreditCall(config *cliConfig, requestType credit_control.CreditRequestT
 	}
 }
 
-func handleReAuth(request *gy.ReAuthRequest) *gy.ReAuthAnswer {
+func handleReAuth(request *gy.ChargingReAuthRequest) *gy.ChargingReAuthAnswer {
 	return nil
 }
 

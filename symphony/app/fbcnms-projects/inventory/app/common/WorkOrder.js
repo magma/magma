@@ -8,14 +8,14 @@
  * @format
  */
 
-import type {CheckListCategoryTable_list} from '../components/checklist/checkListCategory/__generated__/CheckListCategoryTable_list.graphql';
-import type {CheckListTable_list} from '../components/checklist/__generated__/CheckListTable_list.graphql';
+import type {CheckListCategoryExpandingPanel_list} from '../components/checklist/checkListCategory/__generated__/CheckListCategoryExpandingPanel_list.graphql';
 import type {Equipment, Link} from './Equipment';
 import type {FileAttachmentType} from './FileAttachment.js';
 import type {ImageAttachmentType} from './ImageAttachment.js';
 import type {Location} from './Location';
 import type {Property} from './Property';
 import type {PropertyType} from './PropertyType';
+import type {ShortUser} from './EntUtils';
 
 export type WorkOrderStatus = 'PENDING' | 'PLANNED' | 'DONE';
 export type WorkOrderPriority = 'URGENT' | 'HIGH' | 'LOW' | 'NONE';
@@ -26,7 +26,6 @@ export type WorkOrderType = {
   description: ?string,
   propertyTypes: Array<PropertyType>,
   numberOfWorkOrders: number,
-  checkListDefinitions: CheckListTable_list,
 };
 
 export type WorkOrder = {
@@ -37,7 +36,7 @@ export type WorkOrder = {
   description: ?string,
   location: ?Location,
   locationId: ?string,
-  ownerName: string,
+  owner: ShortUser,
   creationDate: string,
   installDate: ?string,
   status: WorkOrderStatus,
@@ -48,11 +47,10 @@ export type WorkOrder = {
   linksToRemove: Array<Link>,
   images: Array<ImageAttachmentType>,
   files: Array<FileAttachmentType>,
-  assignee: ?string,
+  assignedTo: ?ShortUser,
   properties: Array<Property>,
   projectId: ?string,
-  checkList: ?CheckListTable_list,
-  checkListCategories: ?CheckListCategoryTable_list,
+  checkListCategories: ?CheckListCategoryExpandingPanel_list,
 };
 
 export type WorkOrderIdentifier = {

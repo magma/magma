@@ -8,8 +8,7 @@ package ent
 
 import (
 	"context"
-	"strconv"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,13 +21,9 @@ import (
 // SurveyTemplateCategoryUpdate is the builder for updating SurveyTemplateCategory entities.
 type SurveyTemplateCategoryUpdate struct {
 	config
-
-	update_time                    *time.Time
-	category_title                 *string
-	category_description           *string
-	survey_template_questions      map[string]struct{}
-	removedSurveyTemplateQuestions map[string]struct{}
-	predicates                     []predicate.SurveyTemplateCategory
+	hooks      []Hook
+	mutation   *SurveyTemplateCategoryMutation
+	predicates []predicate.SurveyTemplateCategory
 }
 
 // Where adds a new predicate for the builder.
@@ -39,30 +34,25 @@ func (stcu *SurveyTemplateCategoryUpdate) Where(ps ...predicate.SurveyTemplateCa
 
 // SetCategoryTitle sets the category_title field.
 func (stcu *SurveyTemplateCategoryUpdate) SetCategoryTitle(s string) *SurveyTemplateCategoryUpdate {
-	stcu.category_title = &s
+	stcu.mutation.SetCategoryTitle(s)
 	return stcu
 }
 
 // SetCategoryDescription sets the category_description field.
 func (stcu *SurveyTemplateCategoryUpdate) SetCategoryDescription(s string) *SurveyTemplateCategoryUpdate {
-	stcu.category_description = &s
+	stcu.mutation.SetCategoryDescription(s)
 	return stcu
 }
 
 // AddSurveyTemplateQuestionIDs adds the survey_template_questions edge to SurveyTemplateQuestion by ids.
-func (stcu *SurveyTemplateCategoryUpdate) AddSurveyTemplateQuestionIDs(ids ...string) *SurveyTemplateCategoryUpdate {
-	if stcu.survey_template_questions == nil {
-		stcu.survey_template_questions = make(map[string]struct{})
-	}
-	for i := range ids {
-		stcu.survey_template_questions[ids[i]] = struct{}{}
-	}
+func (stcu *SurveyTemplateCategoryUpdate) AddSurveyTemplateQuestionIDs(ids ...int) *SurveyTemplateCategoryUpdate {
+	stcu.mutation.AddSurveyTemplateQuestionIDs(ids...)
 	return stcu
 }
 
 // AddSurveyTemplateQuestions adds the survey_template_questions edges to SurveyTemplateQuestion.
 func (stcu *SurveyTemplateCategoryUpdate) AddSurveyTemplateQuestions(s ...*SurveyTemplateQuestion) *SurveyTemplateCategoryUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -70,19 +60,14 @@ func (stcu *SurveyTemplateCategoryUpdate) AddSurveyTemplateQuestions(s ...*Surve
 }
 
 // RemoveSurveyTemplateQuestionIDs removes the survey_template_questions edge to SurveyTemplateQuestion by ids.
-func (stcu *SurveyTemplateCategoryUpdate) RemoveSurveyTemplateQuestionIDs(ids ...string) *SurveyTemplateCategoryUpdate {
-	if stcu.removedSurveyTemplateQuestions == nil {
-		stcu.removedSurveyTemplateQuestions = make(map[string]struct{})
-	}
-	for i := range ids {
-		stcu.removedSurveyTemplateQuestions[ids[i]] = struct{}{}
-	}
+func (stcu *SurveyTemplateCategoryUpdate) RemoveSurveyTemplateQuestionIDs(ids ...int) *SurveyTemplateCategoryUpdate {
+	stcu.mutation.RemoveSurveyTemplateQuestionIDs(ids...)
 	return stcu
 }
 
 // RemoveSurveyTemplateQuestions removes survey_template_questions edges to SurveyTemplateQuestion.
 func (stcu *SurveyTemplateCategoryUpdate) RemoveSurveyTemplateQuestions(s ...*SurveyTemplateQuestion) *SurveyTemplateCategoryUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -91,11 +76,35 @@ func (stcu *SurveyTemplateCategoryUpdate) RemoveSurveyTemplateQuestions(s ...*Su
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (stcu *SurveyTemplateCategoryUpdate) Save(ctx context.Context) (int, error) {
-	if stcu.update_time == nil {
+	if _, ok := stcu.mutation.UpdateTime(); !ok {
 		v := surveytemplatecategory.UpdateDefaultUpdateTime()
-		stcu.update_time = &v
+		stcu.mutation.SetUpdateTime(v)
 	}
-	return stcu.sqlSave(ctx)
+
+	var (
+		err      error
+		affected int
+	)
+	if len(stcu.hooks) == 0 {
+		affected, err = stcu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyTemplateCategoryMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			stcu.mutation = mutation
+			affected, err = stcu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(stcu.hooks) - 1; i >= 0; i-- {
+			mut = stcu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, stcu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -126,7 +135,7 @@ func (stcu *SurveyTemplateCategoryUpdate) sqlSave(ctx context.Context) (n int, e
 			Table:   surveytemplatecategory.Table,
 			Columns: surveytemplatecategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveytemplatecategory.FieldID,
 			},
 		},
@@ -138,28 +147,28 @@ func (stcu *SurveyTemplateCategoryUpdate) sqlSave(ctx context.Context) (n int, e
 			}
 		}
 	}
-	if value := stcu.update_time; value != nil {
+	if value, ok := stcu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: surveytemplatecategory.FieldUpdateTime,
 		})
 	}
-	if value := stcu.category_title; value != nil {
+	if value, ok := stcu.mutation.CategoryTitle(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveytemplatecategory.FieldCategoryTitle,
 		})
 	}
-	if value := stcu.category_description; value != nil {
+	if value, ok := stcu.mutation.CategoryDescription(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveytemplatecategory.FieldCategoryDescription,
 		})
 	}
-	if nodes := stcu.removedSurveyTemplateQuestions; len(nodes) > 0 {
+	if nodes := stcu.mutation.RemovedSurveyTemplateQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -168,21 +177,17 @@ func (stcu *SurveyTemplateCategoryUpdate) sqlSave(ctx context.Context) (n int, e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveytemplatequestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := stcu.survey_template_questions; len(nodes) > 0 {
+	if nodes := stcu.mutation.SurveyTemplateQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -191,16 +196,12 @@ func (stcu *SurveyTemplateCategoryUpdate) sqlSave(ctx context.Context) (n int, e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveytemplatequestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -219,41 +220,31 @@ func (stcu *SurveyTemplateCategoryUpdate) sqlSave(ctx context.Context) (n int, e
 // SurveyTemplateCategoryUpdateOne is the builder for updating a single SurveyTemplateCategory entity.
 type SurveyTemplateCategoryUpdateOne struct {
 	config
-	id string
-
-	update_time                    *time.Time
-	category_title                 *string
-	category_description           *string
-	survey_template_questions      map[string]struct{}
-	removedSurveyTemplateQuestions map[string]struct{}
+	hooks    []Hook
+	mutation *SurveyTemplateCategoryMutation
 }
 
 // SetCategoryTitle sets the category_title field.
 func (stcuo *SurveyTemplateCategoryUpdateOne) SetCategoryTitle(s string) *SurveyTemplateCategoryUpdateOne {
-	stcuo.category_title = &s
+	stcuo.mutation.SetCategoryTitle(s)
 	return stcuo
 }
 
 // SetCategoryDescription sets the category_description field.
 func (stcuo *SurveyTemplateCategoryUpdateOne) SetCategoryDescription(s string) *SurveyTemplateCategoryUpdateOne {
-	stcuo.category_description = &s
+	stcuo.mutation.SetCategoryDescription(s)
 	return stcuo
 }
 
 // AddSurveyTemplateQuestionIDs adds the survey_template_questions edge to SurveyTemplateQuestion by ids.
-func (stcuo *SurveyTemplateCategoryUpdateOne) AddSurveyTemplateQuestionIDs(ids ...string) *SurveyTemplateCategoryUpdateOne {
-	if stcuo.survey_template_questions == nil {
-		stcuo.survey_template_questions = make(map[string]struct{})
-	}
-	for i := range ids {
-		stcuo.survey_template_questions[ids[i]] = struct{}{}
-	}
+func (stcuo *SurveyTemplateCategoryUpdateOne) AddSurveyTemplateQuestionIDs(ids ...int) *SurveyTemplateCategoryUpdateOne {
+	stcuo.mutation.AddSurveyTemplateQuestionIDs(ids...)
 	return stcuo
 }
 
 // AddSurveyTemplateQuestions adds the survey_template_questions edges to SurveyTemplateQuestion.
 func (stcuo *SurveyTemplateCategoryUpdateOne) AddSurveyTemplateQuestions(s ...*SurveyTemplateQuestion) *SurveyTemplateCategoryUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -261,19 +252,14 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) AddSurveyTemplateQuestions(s ...*S
 }
 
 // RemoveSurveyTemplateQuestionIDs removes the survey_template_questions edge to SurveyTemplateQuestion by ids.
-func (stcuo *SurveyTemplateCategoryUpdateOne) RemoveSurveyTemplateQuestionIDs(ids ...string) *SurveyTemplateCategoryUpdateOne {
-	if stcuo.removedSurveyTemplateQuestions == nil {
-		stcuo.removedSurveyTemplateQuestions = make(map[string]struct{})
-	}
-	for i := range ids {
-		stcuo.removedSurveyTemplateQuestions[ids[i]] = struct{}{}
-	}
+func (stcuo *SurveyTemplateCategoryUpdateOne) RemoveSurveyTemplateQuestionIDs(ids ...int) *SurveyTemplateCategoryUpdateOne {
+	stcuo.mutation.RemoveSurveyTemplateQuestionIDs(ids...)
 	return stcuo
 }
 
 // RemoveSurveyTemplateQuestions removes survey_template_questions edges to SurveyTemplateQuestion.
 func (stcuo *SurveyTemplateCategoryUpdateOne) RemoveSurveyTemplateQuestions(s ...*SurveyTemplateQuestion) *SurveyTemplateCategoryUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -282,11 +268,35 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) RemoveSurveyTemplateQuestions(s ..
 
 // Save executes the query and returns the updated entity.
 func (stcuo *SurveyTemplateCategoryUpdateOne) Save(ctx context.Context) (*SurveyTemplateCategory, error) {
-	if stcuo.update_time == nil {
+	if _, ok := stcuo.mutation.UpdateTime(); !ok {
 		v := surveytemplatecategory.UpdateDefaultUpdateTime()
-		stcuo.update_time = &v
+		stcuo.mutation.SetUpdateTime(v)
 	}
-	return stcuo.sqlSave(ctx)
+
+	var (
+		err  error
+		node *SurveyTemplateCategory
+	)
+	if len(stcuo.hooks) == 0 {
+		node, err = stcuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyTemplateCategoryMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			stcuo.mutation = mutation
+			node, err = stcuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(stcuo.hooks) - 1; i >= 0; i-- {
+			mut = stcuo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, stcuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -317,34 +327,38 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) sqlSave(ctx context.Context) (stc 
 			Table:   surveytemplatecategory.Table,
 			Columns: surveytemplatecategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  stcuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveytemplatecategory.FieldID,
 			},
 		},
 	}
-	if value := stcuo.update_time; value != nil {
+	id, ok := stcuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing SurveyTemplateCategory.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := stcuo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: surveytemplatecategory.FieldUpdateTime,
 		})
 	}
-	if value := stcuo.category_title; value != nil {
+	if value, ok := stcuo.mutation.CategoryTitle(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveytemplatecategory.FieldCategoryTitle,
 		})
 	}
-	if value := stcuo.category_description; value != nil {
+	if value, ok := stcuo.mutation.CategoryDescription(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveytemplatecategory.FieldCategoryDescription,
 		})
 	}
-	if nodes := stcuo.removedSurveyTemplateQuestions; len(nodes) > 0 {
+	if nodes := stcuo.mutation.RemovedSurveyTemplateQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -353,21 +367,17 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) sqlSave(ctx context.Context) (stc 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveytemplatequestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := stcuo.survey_template_questions; len(nodes) > 0 {
+	if nodes := stcuo.mutation.SurveyTemplateQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -376,16 +386,12 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) sqlSave(ctx context.Context) (stc 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveytemplatequestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

@@ -11,6 +11,7 @@ package plugin
 import (
 	"fmt"
 	"io/ioutil"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"os"
 	"plugin"
 	"reflect"
@@ -68,6 +69,10 @@ type OrchestratorPlugin interface {
 	// These stream providers are the primary mechanism by which gateways
 	// receive data from the orchestrator (e.g. configuration).
 	GetStreamerProviders() []providers.StreamProvider
+
+	// GetStateIndexers returns a list of Indexers to register with the state service.
+	// These indexers are responsible for generating secondary indices mapped to derived state.
+	GetStateIndexers() []indexer.Indexer
 }
 
 // LoadAllPluginsFatalOnError loads and registers all orchestrator plugins
@@ -178,6 +183,9 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.Config
 		return err
 	}
 	configurator.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
+	if err := indexer.RegisterAll(orc8rPlugin.GetStateIndexers()...); err != nil {
+		return err
+	}
 
 	return nil
 }

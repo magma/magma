@@ -8,7 +8,7 @@ package ent
 
 import (
 	"context"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,14 +20,9 @@ import (
 // HyperlinkUpdate is the builder for updating Hyperlink entities.
 type HyperlinkUpdate struct {
 	config
-
-	update_time   *time.Time
-	url           *string
-	name          *string
-	clearname     bool
-	category      *string
-	clearcategory bool
-	predicates    []predicate.Hyperlink
+	hooks      []Hook
+	mutation   *HyperlinkMutation
+	predicates []predicate.Hyperlink
 }
 
 // Where adds a new predicate for the builder.
@@ -38,13 +33,13 @@ func (hu *HyperlinkUpdate) Where(ps ...predicate.Hyperlink) *HyperlinkUpdate {
 
 // SetURL sets the url field.
 func (hu *HyperlinkUpdate) SetURL(s string) *HyperlinkUpdate {
-	hu.url = &s
+	hu.mutation.SetURL(s)
 	return hu
 }
 
 // SetName sets the name field.
 func (hu *HyperlinkUpdate) SetName(s string) *HyperlinkUpdate {
-	hu.name = &s
+	hu.mutation.SetName(s)
 	return hu
 }
 
@@ -58,14 +53,13 @@ func (hu *HyperlinkUpdate) SetNillableName(s *string) *HyperlinkUpdate {
 
 // ClearName clears the value of name.
 func (hu *HyperlinkUpdate) ClearName() *HyperlinkUpdate {
-	hu.name = nil
-	hu.clearname = true
+	hu.mutation.ClearName()
 	return hu
 }
 
 // SetCategory sets the category field.
 func (hu *HyperlinkUpdate) SetCategory(s string) *HyperlinkUpdate {
-	hu.category = &s
+	hu.mutation.SetCategory(s)
 	return hu
 }
 
@@ -79,18 +73,40 @@ func (hu *HyperlinkUpdate) SetNillableCategory(s *string) *HyperlinkUpdate {
 
 // ClearCategory clears the value of category.
 func (hu *HyperlinkUpdate) ClearCategory() *HyperlinkUpdate {
-	hu.category = nil
-	hu.clearcategory = true
+	hu.mutation.ClearCategory()
 	return hu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (hu *HyperlinkUpdate) Save(ctx context.Context) (int, error) {
-	if hu.update_time == nil {
+	if _, ok := hu.mutation.UpdateTime(); !ok {
 		v := hyperlink.UpdateDefaultUpdateTime()
-		hu.update_time = &v
+		hu.mutation.SetUpdateTime(v)
 	}
-	return hu.sqlSave(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(hu.hooks) == 0 {
+		affected, err = hu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*HyperlinkMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			hu.mutation = mutation
+			affected, err = hu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(hu.hooks) - 1; i >= 0; i-- {
+			mut = hu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, hu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -121,7 +137,7 @@ func (hu *HyperlinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   hyperlink.Table,
 			Columns: hyperlink.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: hyperlink.FieldID,
 			},
 		},
@@ -133,41 +149,41 @@ func (hu *HyperlinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := hu.update_time; value != nil {
+	if value, ok := hu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: hyperlink.FieldUpdateTime,
 		})
 	}
-	if value := hu.url; value != nil {
+	if value, ok := hu.mutation.URL(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: hyperlink.FieldURL,
 		})
 	}
-	if value := hu.name; value != nil {
+	if value, ok := hu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: hyperlink.FieldName,
 		})
 	}
-	if hu.clearname {
+	if hu.mutation.NameCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: hyperlink.FieldName,
 		})
 	}
-	if value := hu.category; value != nil {
+	if value, ok := hu.mutation.Category(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: hyperlink.FieldCategory,
 		})
 	}
-	if hu.clearcategory {
+	if hu.mutation.CategoryCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: hyperlink.FieldCategory,
@@ -187,25 +203,19 @@ func (hu *HyperlinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // HyperlinkUpdateOne is the builder for updating a single Hyperlink entity.
 type HyperlinkUpdateOne struct {
 	config
-	id string
-
-	update_time   *time.Time
-	url           *string
-	name          *string
-	clearname     bool
-	category      *string
-	clearcategory bool
+	hooks    []Hook
+	mutation *HyperlinkMutation
 }
 
 // SetURL sets the url field.
 func (huo *HyperlinkUpdateOne) SetURL(s string) *HyperlinkUpdateOne {
-	huo.url = &s
+	huo.mutation.SetURL(s)
 	return huo
 }
 
 // SetName sets the name field.
 func (huo *HyperlinkUpdateOne) SetName(s string) *HyperlinkUpdateOne {
-	huo.name = &s
+	huo.mutation.SetName(s)
 	return huo
 }
 
@@ -219,14 +229,13 @@ func (huo *HyperlinkUpdateOne) SetNillableName(s *string) *HyperlinkUpdateOne {
 
 // ClearName clears the value of name.
 func (huo *HyperlinkUpdateOne) ClearName() *HyperlinkUpdateOne {
-	huo.name = nil
-	huo.clearname = true
+	huo.mutation.ClearName()
 	return huo
 }
 
 // SetCategory sets the category field.
 func (huo *HyperlinkUpdateOne) SetCategory(s string) *HyperlinkUpdateOne {
-	huo.category = &s
+	huo.mutation.SetCategory(s)
 	return huo
 }
 
@@ -240,18 +249,40 @@ func (huo *HyperlinkUpdateOne) SetNillableCategory(s *string) *HyperlinkUpdateOn
 
 // ClearCategory clears the value of category.
 func (huo *HyperlinkUpdateOne) ClearCategory() *HyperlinkUpdateOne {
-	huo.category = nil
-	huo.clearcategory = true
+	huo.mutation.ClearCategory()
 	return huo
 }
 
 // Save executes the query and returns the updated entity.
 func (huo *HyperlinkUpdateOne) Save(ctx context.Context) (*Hyperlink, error) {
-	if huo.update_time == nil {
+	if _, ok := huo.mutation.UpdateTime(); !ok {
 		v := hyperlink.UpdateDefaultUpdateTime()
-		huo.update_time = &v
+		huo.mutation.SetUpdateTime(v)
 	}
-	return huo.sqlSave(ctx)
+	var (
+		err  error
+		node *Hyperlink
+	)
+	if len(huo.hooks) == 0 {
+		node, err = huo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*HyperlinkMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			huo.mutation = mutation
+			node, err = huo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(huo.hooks) - 1; i >= 0; i-- {
+			mut = huo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, huo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -282,47 +313,51 @@ func (huo *HyperlinkUpdateOne) sqlSave(ctx context.Context) (h *Hyperlink, err e
 			Table:   hyperlink.Table,
 			Columns: hyperlink.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  huo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: hyperlink.FieldID,
 			},
 		},
 	}
-	if value := huo.update_time; value != nil {
+	id, ok := huo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Hyperlink.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := huo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: hyperlink.FieldUpdateTime,
 		})
 	}
-	if value := huo.url; value != nil {
+	if value, ok := huo.mutation.URL(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: hyperlink.FieldURL,
 		})
 	}
-	if value := huo.name; value != nil {
+	if value, ok := huo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: hyperlink.FieldName,
 		})
 	}
-	if huo.clearname {
+	if huo.mutation.NameCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: hyperlink.FieldName,
 		})
 	}
-	if value := huo.category; value != nil {
+	if value, ok := huo.mutation.Category(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: hyperlink.FieldCategory,
 		})
 	}
-	if huo.clearcategory {
+	if huo.mutation.CategoryCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: hyperlink.FieldCategory,

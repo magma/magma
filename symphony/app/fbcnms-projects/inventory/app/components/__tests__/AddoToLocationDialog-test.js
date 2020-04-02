@@ -80,6 +80,7 @@ describe('<AddToLocationDialog />', () => {
       );
 
       act(() => {
+        // $FlowFixMe (T62907961) Relay flow types
         RelayEnvironment.mock.resolveMostRecentOperation(operation =>
           MockPayloadGenerator.generate(operation, {
             LocationType() {
@@ -129,6 +130,7 @@ describe('<AddToLocationDialog />', () => {
       );
 
       act(() => {
+        // $FlowFixMe (T62907961) Relay flow types
         RelayEnvironment.mock.resolveMostRecentOperation(operation =>
           MockPayloadGenerator.generate(operation),
         );
@@ -156,6 +158,7 @@ describe('<AddToLocationDialog />', () => {
       );
 
       act(() => {
+        // $FlowFixMe (T62907961) Relay flow types
         RelayEnvironment.mock.resolveMostRecentOperation(operation =>
           MockPayloadGenerator.generate(operation, {
             EquipmentType() {
@@ -207,7 +210,7 @@ describe('<AddToLocationDialog />', () => {
       expect(getByText('Upload Exported Equipment')).toBeInTheDocument();
       expect(getByText('Upload Exported Ports')).toBeInTheDocument();
       expect(getByText('Upload Exported Links')).toBeInTheDocument();
-      expect(getByText('Upload Locations')).toBeInTheDocument();
+      expect(getByText('Upload Exported Locations')).toBeInTheDocument();
       expect(getByText('Upload Exported Service')).toBeInTheDocument();
     });
   });

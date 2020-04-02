@@ -32,19 +32,19 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.site_survey.add_cell_validation"><code class="name flex">
-<span>def <span class="ident">add_cell_validation</span></span>(<span>worksheet, row_index, column_index, full_question_path, question, question_to_cell, bool_options, date_format, black_format)</span>
+<span>def <span class="ident">add_cell_validation</span></span>(<span>worksheet: xlsxwriter.worksheet.Worksheet, row_index: int, column_index: int, full_question_path: Tuple[str, ...], question: Dict[str, Any], question_to_cell: Dict[Tuple[str, ...], str], bool_options: Dict[str, str], date_format: xlsxwriter.format.Format, black_format: xlsxwriter.format.Format) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.add_workbook_formats"><code class="name flex">
-<span>def <span class="ident">add_workbook_formats</span></span>(<span>workbook)</span>
+<span>def <span class="ident">add_workbook_formats</span></span>(<span>workbook: xlsxwriter.workbook.Workbook) -> Tuple[xlsxwriter.format.Format, xlsxwriter.format.Format, xlsxwriter.format.Format, xlsxwriter.format.Format]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.adjust_column_and_row_sizes"><code class="name flex">
-<span>def <span class="ident">adjust_column_and_row_sizes</span></span>(<span>worksheet, rows, num_columns)</span>
+<span>def <span class="ident">adjust_column_and_row_sizes</span></span>(<span>worksheet: xlsxwriter.worksheet.Worksheet, rows: List[Tuple[str, ...]], num_columns: int) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Rows height:
@@ -58,78 +58,83 @@ Columns width:
 :return:</p></section>
 </dd>
 <dt id="pyinventory.site_survey.break_and_validate_coordinates"><code class="name flex">
-<span>def <span class="ident">break_and_validate_coordinates</span></span>(<span>value, invalid_type_err_msg)</span>
+<span>def <span class="ident">break_and_validate_coordinates</span></span>(<span>value: str, invalid_type_err_msg: str) -> Tuple[float, float]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.build_site_survey_from_survey_response"><code class="name flex">
-<span>def <span class="ident">build_site_survey_from_survey_response</span></span>(<span>survey)</span>
+<span>def <span class="ident">build_site_survey_from_survey_response</span></span>(<span>survey: pyinventory.graphql.location_surveys_query.LocationSurveysQuery.LocationSurveysQueryData.Node.Survey) -> <a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.delete_site_survey"><code class="name flex">
-<span>def <span class="ident">delete_site_survey</span></span>(<span>client, site_survey)</span>
+<span>def <span class="ident">delete_site_survey</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, site_survey: <a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.dependency_check"><code class="name flex">
-<span>def <span class="ident">dependency_check</span></span>(<span>compare, value, result, bool_options)</span>
+<span>def <span class="ident">dependency_check</span></span>(<span>compare: str, value: Union[float, int, str, bool], result: str, bool_options: Dict[str, str]) -> bool</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.export_to_excel"><code class="name flex">
-<span>def <span class="ident">export_to_excel</span></span>(<span>json_file_path, excel_file_path)</span>
+<span>def <span class="ident">export_to_excel</span></span>(<span>json_file_path: str, excel_file_path: str) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.get_response_value"><code class="name flex">
-<span>def <span class="ident">get_response_value</span></span>(<span>full_representation_path, question_type, value, bool_options)</span>
+<span>def <span class="ident">get_response_value</span></span>(<span>full_representation_path: Tuple[str, ...], question_type: str, value: str, bool_options: Dict[str, str]) -> Dict[str, Any]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.get_site_surveys"><code class="name flex">
-<span>def <span class="ident">get_site_surveys</span></span>(<span>client, location)</span>
+<span>def <span class="ident">get_site_surveys</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>) -> List[<a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a>]</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Retrieve all site survey completed in the location.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>location</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
 <dd>could be retrieved from getLocation or addLocation api</dd>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>client.SiteSurvey</code> <code>object</code> (<code>with</code> <code>name</code>, <code>id</code>, <code>completion</code> <code>time</code> <code>and</code> <code>the</code> <code>forms</code>)</dt>
-<dd>The forms are the results of the survey. It is a dict of dicts:
-{
-formA: {
-question1: value1
-question2: value2
+<dt><strong><code>Returns</code></strong> :&ensp;<a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey"><code>SiteSurvey</code></a> <code>object</code> (<code>with</code> <code>name</code>, <code>id</code>, <code>completion</code> <code>time</code> <code>and</code> <code>the</code> <code>forms</code>)</dt>
+<dd>The forms are the results of the survey. It is a dict of dicts:</dd>
+</dl>
+<pre><code>{
+    formA: {
+        question1: value1
+        question2: value2
+    }
+    formB: {
+        question3: value3
+        question4: value4
+    }
 }
-formB: {
-question3: value3
-question4: value4
-}
-}</dd>
+</code></pre>
+<dl>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>&lt;a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"&gt;</code>EntityNotFoundError<code>&lt;/a&gt;</code>: <code>location</code> <code>does</code> <code>not</code> <code>exist</code></dt>
+<dd>&nbsp;</dd>
 </dl></section>
 </dd>
 <dt id="pyinventory.site_survey.get_survey_response"><code class="name flex">
-<span>def <span class="ident">get_survey_response</span></span>(<span>category_name, form_name, form_index, full_representation_path, question_index, question_type, value, bool_options, form_description=None)</span>
+<span>def <span class="ident">get_survey_response</span></span>(<span>category_name: str, form_name: str, form_index: int, full_representation_path: Tuple[str, ...], question_index: int, question_type: str, value: str, bool_options: Dict[str, str], form_description: Union[str, NoneType] = None) -> Dict[str, Any]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.rpad"><code class="name flex">
-<span>def <span class="ident">rpad</span></span>(<span>l, char, size)</span>
+<span>def <span class="ident">rpad</span></span>(<span>l: List[str], char: str, size: int) -> List[str]</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.upload_site_survey"><code class="name flex">
-<span>def <span class="ident">upload_site_survey</span></span>(<span>client, location, name, completion_date, excel_file_path, json_file_path)</span>
+<span>def <span class="ident">upload_site_survey</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>, name: str, completion_date: datetime.datetime, excel_file_path: str, json_file_path: str) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Upload the site survey to the given completion with the data in the
@@ -137,7 +142,7 @@ given excel file. We use the schema file to validate the input in the
 excel is as needed for upload.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>location</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
 <dd>could be retrieved from getLocation or addLocation api</dd>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>name of the site survey</dd>
@@ -147,48 +152,51 @@ excel is as needed for upload.</p>
 <dd>the path for the excel with the site survey information
 The format of this excel should be created by calling site_survey.exportToExcel
 with the paremeter jsonFilePath (the next parameter of this function)</dd>
-<dt>json_file_path(str): the path for the json file of the schema of the site survey</dt>
-<dt>the json file should comply to the schema found in survey_schema.json</dt>
-<dt>Example of the format:</dt>
-<dt>{</dt>
-<dt>"forms": [</dt>
-<dt>{</dt>
-<dt>"formTitle": "Site Management - General Information",</dt>
-<dt>"questions": [</dt>
-<dt>{</dt>
-<dt>"questionName": "Exact address",</dt>
-<dt>"questionType": "TEXT"</dt>
-<dt>},</dt>
-<dt>{</dt>
-<dt>"questionName": "Reference for address",</dt>
-<dt>"questionType": "TEXT"</dt>
-<dt>},</dt>
-<dt>{</dt>
-<dt>"questionName": "Ubigeo",</dt>
-<dt>"questionType": "TEXT"</dt>
-<dt>}</dt>
-<dt>]</dt>
-<dt>}</dt>
-<dt>]</dt>
-<dt>}</dt>
+</dl>
+<p>json_file_path(str): the path for the json file of the schema of the site survey
+the json file should comply to the schema found in survey_schema.json
+Example of the format:</p>
+<pre><code>{
+    &quot;forms&quot;: [
+    {
+        &quot;formTitle&quot;: &quot;Site Management - General Information&quot;,
+        &quot;questions&quot;: [
+        {
+            &quot;questionName&quot;: &quot;Exact address&quot;,
+            &quot;questionType&quot;: &quot;TEXT&quot;
+        },
+        {
+            &quot;questionName&quot;: &quot;Reference for address&quot;,
+            &quot;questionType&quot;: &quot;TEXT&quot;
+        },
+        {
+            &quot;questionName&quot;: &quot;Ubigeo&quot;,
+            &quot;questionType&quot;: &quot;TEXT&quot;
+        }
+        ]
+    }
+    ]
+}
+</code></pre>
+<dl>
 <dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>input</code> <code>values</code> <code>in</code> <code>the</code> <code>excel</code> <code>are</code> <code>incorrect</code></dt>
 <dd>FailedOperationException for internal inventory error</dd>
 </dl></section>
 </dd>
 <dt id="pyinventory.site_survey.write_column_titles"><code class="name flex">
-<span>def <span class="ident">write_column_titles</span></span>(<span>worksheet, num_columns, title_format, translations)</span>
+<span>def <span class="ident">write_column_titles</span></span>(<span>worksheet: xlsxwriter.worksheet.Worksheet, num_columns: int, title_format: xlsxwriter.format.Format, translations: Dict[str, str]) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.write_conditional_blank_color_if_dependency_fails"><code class="name flex">
-<span>def <span class="ident">write_conditional_blank_color_if_dependency_fails</span></span>(<span>worksheet, row_index, column_index, question, full_question_path, question_to_cell, bool_options, black_format)</span>
+<span>def <span class="ident">write_conditional_blank_color_if_dependency_fails</span></span>(<span>worksheet: xlsxwriter.worksheet.Worksheet, row_index: int, column_index: int, question: Dict[str, Any], full_question_path: Tuple[str, ...], question_to_cell: Dict[Tuple[str, ...], str], bool_options: Dict[str, str], black_format: xlsxwriter.format.Format) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.site_survey.write_form_description_as_cell_comment"><code class="name flex">
-<span>def <span class="ident">write_form_description_as_cell_comment</span></span>(<span>worksheet, form_names, question_index_to_row_index, form_name_to_description)</span>
+<span>def <span class="ident">write_form_description_as_cell_comment</span></span>(<span>worksheet: xlsxwriter.worksheet.Worksheet, form_names: List[str], question_index_to_row_index: Dict[int, int], form_name_to_description: Dict[str, str]) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>

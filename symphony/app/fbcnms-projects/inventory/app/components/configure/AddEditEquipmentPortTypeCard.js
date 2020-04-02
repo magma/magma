@@ -39,6 +39,7 @@ import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
 import {withSnackbar} from 'notistack';
@@ -271,9 +272,10 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
       },
 
       onError: (error: Error) => {
-        this.props.enqueueSnackbar(error.message, {
+        const msg = getGraphError(error);
+        this.props.enqueueSnackbar(msg, {
           children: key => (
-            <SnackbarItem id={key} message={error.message} variant="error" />
+            <SnackbarItem id={key} message={msg} variant="error" />
           ),
         });
       },
@@ -301,15 +303,18 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
         }
       },
       onError: (error: Error) => {
-        this.props.enqueueSnackbar(error.message, {
+        const msg = getGraphError(error);
+        this.props.enqueueSnackbar(msg, {
           children: key => (
-            <SnackbarItem id={key} message={error.message} variant="error" />
+            <SnackbarItem id={key} message={msg} variant="error" />
           ),
         });
       },
     };
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const rootQuery = store.getRoot();
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addEquipmentPortType');
       if (!newNode) {
         return;
@@ -319,11 +324,14 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
         'EquipmentPortTypes_equipmentPortTypes',
       );
       const edge = ConnectionHandler.createEdge(
+        // $FlowFixMe (T62907961) Relay flow types
         store,
+        // $FlowFixMe (T62907961) Relay flow types
         types,
         newNode,
         'EquipmentPortTypesEdge',
       );
+      // $FlowFixMe (T62907961) Relay flow types
       ConnectionHandler.insertEdgeBefore(types, edge);
     };
     AddEquipmentPortTypeMutation(variables, callbacks, updater);

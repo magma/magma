@@ -31,6 +31,7 @@ import useVerticalScrollingEffect from '@fbcnms/ui/components/design-system/hook
 
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
   getNonInstancePropertyTypes,
@@ -143,7 +144,11 @@ const ServiceDetailsPanel = (props: Props) => {
       data: {
         id: editableService.id,
         name: editableService.name,
-        externalId: editableService.externalId,
+        externalId:
+          editableService.externalId != null &&
+          editableService.externalId !== ''
+            ? editableService.externalId
+            : null,
         customerId: editableService.customer?.id,
         properties: toPropertyInput(editableService.properties),
         upstreamServiceIds: [],
@@ -167,8 +172,13 @@ const ServiceDetailsPanel = (props: Props) => {
             enqueueError(errors[0].message);
           }
         },
-        onError: () => {
-          enqueueError('Error saving service');
+        onError: (error: Error) => {
+          const errMsg = getGraphError(error);
+          enqueueSnackbar(errMsg, {
+            children: key => (
+              <SnackbarItem id={key} message={errMsg} variant="error" />
+            ),
+          });
         },
       };
 

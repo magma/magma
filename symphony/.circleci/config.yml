@@ -28,9 +28,9 @@ aliases:
 
 orbs:
   artifactory: circleci/artifactory@1.0.0
-  docker: circleci/docker@0.5.13
-  go: circleci/go@0.2.0
-  helm: circleci/helm@0.2.0
+  docker: circleci/docker@1.0.0
+  go: circleci/go@1.1.0
+  helm: circleci/helm@0.2.3
 
 executors:
   node:
@@ -39,14 +39,14 @@ executors:
   golangci:
     parameters:
       tag:
-        default: v1.23
+        default: v1.23.8
         type: string
     docker:
       - image: golangci/golangci-lint:<<parameters.tag>>
   terraform:
     parameters:
       tag:
-        default: 0.12.20
+        default: 0.12.24
         type: string
     docker:
       - image: hashicorp/terraform:<<parameters.tag>>
@@ -337,7 +337,7 @@ jobs:
           name: Collect tests results
           command: |
             mv integration/tests/integration.xml ~/test-results/
-            mv integration/pytests/*.xml ~/test-results/
+            mv cli/tests/*.xml ~/test-results/
           when: always
       - run:
           name: Stop and remove containers
@@ -469,6 +469,7 @@ jobs:
             testim --project "<<parameters.project>>" \
               --grid "<<parameters.grid>>" \
               --token "$<<parameters.token>>" \
+              --retries 3 \
               --report-file ~/test-results/testim.xml \
               --base-url testimio.staging.thesymphony.cloud/ \
               <<#parameters.options>><<parameters.options>><</parameters.options>>
@@ -553,7 +554,7 @@ workflows:
           <<: *onlymaster
     jobs:
       - tfdiff:
-          workspace: staging
+          workspace: default
           <<: *tfvardir
       - tfapply:
           name: staging/deploy

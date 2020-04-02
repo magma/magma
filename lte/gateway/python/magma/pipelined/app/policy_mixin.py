@@ -12,7 +12,8 @@ from abc import ABCMeta, abstractmethod
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult, \
-    ActivateFlowsResult, ActivateFlowsRequest, SubscriberQuotaUpdate
+    ActivateFlowsResult, ActivateFlowsRequest
+from magma.pipelined.app.base import ControllerNotReadyException
 from magma.pipelined.openflow import flows
 from magma.policydb.rule_store import PolicyRuleDict
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -42,16 +43,31 @@ class PolicyMixin(metaclass=ABCMeta):
             self.logger.info('Relay mode is not enabled, init finished')
             self.init_finished = True
 
-    # pylint:disable=unused-argument
-    def setup(self, requests: List[ActivateFlowsRequest],
-              quota_updates: List[SubscriberQuotaUpdate],
-              startup_flows: List[OFPFlowStats]) -> SetupFlowsResult:
+    def handle_restart(self,
+                       requests: List[ActivateFlowsRequest]
+                       ) -> SetupFlowsResult:
         """
-        Setup flows for subscribers, used on restart.
+        Setup the policy flows for subscribers, this is used when
+        the controller restarts.
+        """
+        if self._clean_restart:
+            self.delete_all_flows(self._datapath)
+            self.logger.info('Controller is in clean restart mode, remaining '
+                              'flows were removed, continuing with setup.')
 
-        Args:
-            rules (List[OFPFlowStats]): list of subcriber policyrules
-        """
+        if self._startup_flow_controller is None:
+            if (self._startup_flows_fut.done()):
+                self._startup_flow_controller = self._startup_flows_fut.result()
+            else:
+                self.logger.error('Flow Startup controller is not ready')
+                return SetupFlowsResult.FAILURE
+        try:
+            startup_flows = \
+                self._startup_flow_controller.get_flows(self.tbl_num)
+        except ControllerNotReadyException as err:
+            self.logger.error('Setup failed: %s', err)
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
+
         self.logger.debug('Setting up enforcer default rules')
         remaining_flows = self._install_default_flows_if_not_installed(
             self._datapath, startup_flows)
@@ -70,7 +86,7 @@ class PolicyMixin(metaclass=ABCMeta):
         self._process_redirection_rules(requests)
 
         self.init_finished = True
-        return SetupFlowsResult.SUCCESS
+        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def _remove_extra_flows(self, extra_flows):
         msg_list = []

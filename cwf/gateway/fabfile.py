@@ -9,6 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import sys
 from distutils.util import strtobool
+from enum import Enum
 
 from fabric.api import cd, env, execute, lcd, local, put, run, settings, sudo
 
@@ -26,8 +27,19 @@ CWAG_BR_NAME = "cwag_br0"
 CWAG_TEST_BR_NAME = "cwag_test_br0"
 
 
+class SubTests(Enum):
+    ALL = "integ_test"
+    AUTH = "authenticate"
+    GX = "gx"
+    GY = "gy"
+
+    @staticmethod
+    def list():
+        return list(map(lambda t: t.value, SubTests))
+
+
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
-               destroy_vm="False"):
+               destroy_vm="False", no_build="False", tests_to_run="integ_test"):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -44,9 +56,17 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     trf_host: The ssh address string of the machine to run the tests on
         on. Formatted as "host:port". If not specified, defaults to the
         `magma_trfserver` vagrant box.
-    """
 
+    no_build: When set to true, this script will NOT rebuild all docker images.
+    """
+    try:
+        tests_to_run = SubTests(tests_to_run)
+    except ValueError:
+        print("{} is not a valid value. We support {}".format(
+            tests_to_run, SubTests.list()))
+        return
     destroy_vm = bool(strtobool(destroy_vm))
+    no_build = bool(strtobool(no_build))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -66,7 +86,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         execute(_transfer_docker_images)
     else:
         execute(_stop_gateway)
-        execute(_build_gateway)
+        if not no_build:
+            execute(_build_gateway)
     execute(_run_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
@@ -105,7 +126,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
-    execute(_run_integ_tests, test_host, trf_host)
+    execute(_run_integ_tests, test_host, trf_host, tests_to_run)
 
 
 def _transfer_docker_images():
@@ -173,6 +194,7 @@ def _build_gateway():
         sudo(' docker-compose'
              ' -f docker-compose.yml'
              ' -f docker-compose.override.yml'
+             ' -f docker-compose.nginx.yml'
              ' -f docker-compose.integ-test.yml'
              ' build --parallel')
 
@@ -195,7 +217,7 @@ def _start_ue_simulator():
 
 def _start_trfserver():
     """ Starts the traffic gen server"""
-    run('nohup iperf3 -s -B %s > /dev/null &' % TRF_SERVER_IP, pty=False)
+    run('nohup iperf3 -s --json -B %s > /dev/null &' % TRF_SERVER_IP, pty=False)
 
 
 def _run_unit_tests():
@@ -205,11 +227,11 @@ def _run_unit_tests():
         run('make test')
 
 
-def _run_integ_tests(test_host, trf_host):
+def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests):
     """ Run the integration tests """
     with cd(CWAG_INTEG_ROOT):
-        result = run('make integ_test', warn_only=True)
-
+        command = "make " + str(tests_to_run.value)
+        result = run(command, warn_only=True)
     if not test_host and not trf_host:
         # Clean up only for now when running locally
         execute(_clean_up)

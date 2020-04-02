@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 5f3f5882d185e559104b28a856daf83e
+ * @relayHash 3724b87b4b4bda0499e6778d2dde1c7f
  */
 
 /* eslint-disable */
@@ -17,14 +17,14 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type DocumentTable_files$ref = any;
 type FileAttachment_file$ref = any;
-export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "WORK_ORDER" | "%future added value";
+export type ImageEntity = "CHECKLIST_ITEM" | "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "USER" | "WORK_ORDER" | "%future added value";
 export type DeleteImageMutationVariables = {|
   entityType: ImageEntity,
   entityId: string,
   id: string,
 |};
 export type DeleteImageMutationResponse = {|
-  +deleteImage: ?{|
+  +deleteImage: {|
     +$fragmentRefs: DocumentTable_files$ref & FileAttachment_file$ref
   |}
 |};
@@ -48,13 +48,6 @@ mutation DeleteImageMutation(
   }
 }
 
-fragment DocumentMenu_document on File {
-  id
-  fileName
-  storeKey
-  fileType
-}
-
 fragment DocumentTable_files on File {
   id
   fileName
@@ -70,7 +63,6 @@ fragment FileAttachment_file on File {
   fileType
   storeKey
   category
-  ...DocumentMenu_document
   ...ImageDialog_img
 }
 
@@ -221,7 +213,7 @@ return {
     "operationKind": "mutation",
     "name": "DeleteImageMutation",
     "id": null,
-    "text": "mutation DeleteImageMutation(\n  $entityType: ImageEntity!\n  $entityId: ID!\n  $id: ID!\n) {\n  deleteImage(entityType: $entityType, entityId: $entityId, id: $id) {\n    ...DocumentTable_files\n    ...FileAttachment_file\n    id\n  }\n}\n\nfragment DocumentMenu_document on File {\n  id\n  fileName\n  storeKey\n  fileType\n}\n\nfragment DocumentTable_files on File {\n  id\n  fileName\n  category\n  ...FileAttachment_file\n}\n\nfragment FileAttachment_file on File {\n  id\n  fileName\n  sizeInBytes\n  uploaded\n  fileType\n  storeKey\n  category\n  ...DocumentMenu_document\n  ...ImageDialog_img\n}\n\nfragment ImageDialog_img on File {\n  storeKey\n  fileName\n}\n",
+    "text": "mutation DeleteImageMutation(\n  $entityType: ImageEntity!\n  $entityId: ID!\n  $id: ID!\n) {\n  deleteImage(entityType: $entityType, entityId: $entityId, id: $id) {\n    ...DocumentTable_files\n    ...FileAttachment_file\n    id\n  }\n}\n\nfragment DocumentTable_files on File {\n  id\n  fileName\n  category\n  ...FileAttachment_file\n}\n\nfragment FileAttachment_file on File {\n  id\n  fileName\n  sizeInBytes\n  uploaded\n  fileType\n  storeKey\n  category\n  ...ImageDialog_img\n}\n\nfragment ImageDialog_img on File {\n  storeKey\n  fileName\n}\n",
     "metadata": {}
   }
 };

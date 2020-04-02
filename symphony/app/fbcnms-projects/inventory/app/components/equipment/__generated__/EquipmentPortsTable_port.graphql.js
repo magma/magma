@@ -48,6 +48,8 @@ export type EquipmentPortsTable_port = {|
         +isEditable: ?boolean,
         +isInstanceProperty: ?boolean,
         +isMandatory: ?boolean,
+        +category: ?string,
+        +isDeleted: ?boolean,
       |}>,
       +linkPropertyTypes: $ReadOnlyArray<?{|
         +id: string,
@@ -65,6 +67,8 @@ export type EquipmentPortsTable_port = {|
         +isEditable: ?boolean,
         +isInstanceProperty: ?boolean,
         +isMandatory: ?boolean,
+        +category: ?string,
+        +isDeleted: ?boolean,
       |}>,
     |},
   |},
@@ -112,6 +116,8 @@ export type EquipmentPortsTable_port = {|
             +isEditable: ?boolean,
             +isInstanceProperty: ?boolean,
             +isMandatory: ?boolean,
+            +category: ?string,
+            +isDeleted: ?boolean,
           |}>
         |},
       |},
@@ -135,6 +141,12 @@ export type EquipmentPortsTable_port = {|
         |},
         +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
       |},
+      +serviceEndpoints: $ReadOnlyArray<{|
+        +role: ServiceEndpointRole,
+        +service: {|
+          +name: string
+        |},
+      |}>,
     |}>,
     +workOrder: ?{|
       +id: string,
@@ -146,10 +158,20 @@ export type EquipmentPortsTable_port = {|
         +id: string,
         +name: string,
         +type: PropertyKind,
-        +isEditable: ?boolean,
-        +isMandatory: ?boolean,
-        +isInstanceProperty: ?boolean,
+        +index: ?number,
         +stringValue: ?string,
+        +intValue: ?number,
+        +booleanValue: ?boolean,
+        +floatValue: ?number,
+        +latitudeValue: ?number,
+        +longitudeValue: ?number,
+        +rangeFromValue: ?number,
+        +rangeToValue: ?number,
+        +isEditable: ?boolean,
+        +isInstanceProperty: ?boolean,
+        +isMandatory: ?boolean,
+        +category: ?string,
+        +isDeleted: ?boolean,
       |},
       +stringValue: ?string,
       +intValue: ?number,
@@ -183,10 +205,20 @@ export type EquipmentPortsTable_port = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
-      +isEditable: ?boolean,
-      +isMandatory: ?boolean,
-      +isInstanceProperty: ?boolean,
+      +index: ?number,
       +stringValue: ?string,
+      +intValue: ?number,
+      +booleanValue: ?boolean,
+      +floatValue: ?number,
+      +latitudeValue: ?number,
+      +longitudeValue: ?number,
+      +rangeFromValue: ?number,
+      +rangeToValue: ?number,
+      +isEditable: ?boolean,
+      +isInstanceProperty: ?boolean,
+      +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
     |},
     +stringValue: ?string,
     +intValue: ?number,
@@ -258,92 +290,71 @@ v3 = {
 v4 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "type",
+  "name": "stringValue",
   "args": null,
   "storageKey": null
 },
 v5 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "stringValue",
+  "name": "intValue",
   "args": null,
   "storageKey": null
 },
 v6 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "intValue",
+  "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
 v7 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "booleanValue",
+  "name": "floatValue",
   "args": null,
   "storageKey": null
 },
 v8 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "floatValue",
+  "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
 v9 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "latitudeValue",
+  "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
 v10 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "longitudeValue",
+  "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
 v11 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "rangeFromValue",
-  "args": null,
-  "storageKey": null
-},
-v12 = {
-  "kind": "ScalarField",
-  "alias": null,
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
-v13 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "isEditable",
-  "args": null,
-  "storageKey": null
-},
-v14 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "isInstanceProperty",
-  "args": null,
-  "storageKey": null
-},
-v15 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "isMandatory",
-  "args": null,
-  "storageKey": null
-},
-v16 = [
+v12 = [
   (v0/*: any*/),
   (v1/*: any*/),
-  (v4/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "type",
+    "args": null,
+    "storageKey": null
+  },
   (v2/*: any*/),
+  (v4/*: any*/),
   (v5/*: any*/),
   (v6/*: any*/),
   (v7/*: any*/),
@@ -351,12 +362,43 @@ v16 = [
   (v9/*: any*/),
   (v10/*: any*/),
   (v11/*: any*/),
-  (v12/*: any*/),
-  (v13/*: any*/),
-  (v14/*: any*/),
-  (v15/*: any*/)
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isEditable",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isInstanceProperty",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isMandatory",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "category",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isDeleted",
+    "args": null,
+    "storageKey": null
+  }
 ],
-v17 = {
+v13 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "linkPropertyTypes",
@@ -364,13 +406,13 @@ v17 = {
   "args": null,
   "concreteType": "PropertyType",
   "plural": true,
-  "selections": (v16/*: any*/)
+  "selections": (v12/*: any*/)
 },
-v18 = [
+v14 = [
   (v0/*: any*/),
   (v1/*: any*/)
 ],
-v19 = {
+v15 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "portType",
@@ -378,23 +420,53 @@ v19 = {
   "args": null,
   "concreteType": "EquipmentPortType",
   "plural": false,
-  "selections": (v18/*: any*/)
+  "selections": (v14/*: any*/)
 },
-v20 = {
+v16 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "bandwidth",
   "args": null,
   "storageKey": null
 },
-v21 = {
+v17 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "futureState",
   "args": null,
   "storageKey": null
 },
-v22 = {
+v18 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "serviceEndpoints",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "ServiceEndpoint",
+  "plural": true,
+  "selections": [
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "role",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "service",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": [
+        (v1/*: any*/)
+      ]
+    }
+  ]
+},
+v19 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "properties",
@@ -412,24 +484,16 @@ v22 = {
       "args": null,
       "concreteType": "PropertyType",
       "plural": false,
-      "selections": [
-        (v0/*: any*/),
-        (v1/*: any*/),
-        (v4/*: any*/),
-        (v13/*: any*/),
-        (v15/*: any*/),
-        (v14/*: any*/),
-        (v5/*: any*/)
-      ]
+      "selections": (v12/*: any*/)
     },
+    (v4/*: any*/),
     (v5/*: any*/),
+    (v7/*: any*/),
     (v6/*: any*/),
     (v8/*: any*/),
-    (v7/*: any*/),
     (v9/*: any*/),
     (v10/*: any*/),
     (v11/*: any*/),
-    (v12/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -438,7 +502,7 @@ v22 = {
       "args": null,
       "concreteType": "Equipment",
       "plural": false,
-      "selections": (v18/*: any*/)
+      "selections": (v14/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -448,7 +512,7 @@ v22 = {
       "args": null,
       "concreteType": "Location",
       "plural": false,
-      "selections": (v18/*: any*/)
+      "selections": (v14/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -458,7 +522,7 @@ v22 = {
       "args": null,
       "concreteType": "Service",
       "plural": false,
-      "selections": (v18/*: any*/)
+      "selections": (v14/*: any*/)
     }
   ]
 };
@@ -502,9 +566,9 @@ return {
               "args": null,
               "concreteType": "PropertyType",
               "plural": true,
-              "selections": (v16/*: any*/)
+              "selections": (v12/*: any*/)
             },
-            (v17/*: any*/)
+            (v13/*: any*/)
           ]
         }
       ]
@@ -543,8 +607,8 @@ return {
                 (v0/*: any*/),
                 (v1/*: any*/),
                 (v3/*: any*/),
-                (v19/*: any*/),
-                (v20/*: any*/)
+                (v15/*: any*/),
+                (v16/*: any*/)
               ]
             }
           ]
@@ -561,7 +625,7 @@ return {
       "plural": false,
       "selections": [
         (v0/*: any*/),
-        (v21/*: any*/),
+        (v17/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -593,7 +657,7 @@ return {
                   "concreteType": "EquipmentPortType",
                   "plural": false,
                   "selections": [
-                    (v17/*: any*/)
+                    (v13/*: any*/)
                   ]
                 }
               ]
@@ -609,7 +673,7 @@ return {
               "selections": [
                 (v0/*: any*/),
                 (v1/*: any*/),
-                (v21/*: any*/),
+                (v17/*: any*/),
                 {
                   "kind": "LinkedField",
                   "alias": null,
@@ -633,8 +697,8 @@ return {
                         (v0/*: any*/),
                         (v1/*: any*/),
                         (v3/*: any*/),
-                        (v20/*: any*/),
-                        (v19/*: any*/)
+                        (v16/*: any*/),
+                        (v15/*: any*/)
                       ]
                     }
                   ]
@@ -645,7 +709,8 @@ return {
                   "args": null
                 }
               ]
-            }
+            },
+            (v18/*: any*/)
           ]
         },
         {
@@ -667,7 +732,7 @@ return {
             }
           ]
         },
-        (v22/*: any*/),
+        (v19/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -676,41 +741,12 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": true,
-          "selections": (v18/*: any*/)
+          "selections": (v14/*: any*/)
         }
       ]
     },
-    (v22/*: any*/),
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "serviceEndpoints",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "ServiceEndpoint",
-      "plural": true,
-      "selections": [
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "role",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "LinkedField",
-          "alias": null,
-          "name": "service",
-          "storageKey": null,
-          "args": null,
-          "concreteType": "Service",
-          "plural": false,
-          "selections": [
-            (v1/*: any*/)
-          ]
-        }
-      ]
-    }
+    (v19/*: any*/),
+    (v18/*: any*/)
   ]
 };
 })();

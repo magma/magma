@@ -86,11 +86,19 @@ func TestBuilder_Build(t *testing.T) {
 			DefaultRuleId: "",
 			RelayEnabled:  true,
 			Services: []ltemconfig.PipelineD_NetworkServices{
+				ltemconfig.PipelineD_DPI,
 				ltemconfig.PipelineD_ENFORCEMENT,
 			},
 			AllowedGrePeers: []*ltemconfig.PipelineD_AllowedGrePeer{
 				{Ip: "1.2.3.4/24"},
 				{Ip: "1.1.1.1/24", Key: 111},
+			},
+			LiImsis: []string{
+				"IMSI001010000000013",
+			},
+			IpdrExportDst: &ltemconfig.PipelineD_IPDRExportDst{
+				Ip:   "192.168.128.88",
+				Port: 2040,
 			},
 		},
 		"sessiond": &ltemconfig.SessionD{
@@ -124,7 +132,7 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,
 	},
-	NetworkServices: []string{"policy_enforcement"},
+	NetworkServices: []string{"dpi", "policy_enforcement"},
 	DefaultRuleID:   swag.String(""),
 }
 
@@ -132,5 +140,12 @@ var defaultgwConfig = &models.GatewayCwfConfigs{
 	AllowedGrePeers: models.AllowedGrePeers{
 		{IP: "1.2.3.4/24"},
 		{IP: "1.1.1.1/24", Key: swag.Uint32(111)},
+	},
+	LiImsis: []string{
+		"IMSI001010000000013",
+	},
+	IPDRExportDst: &models.IPDRExportDst{
+		IP:   "192.168.128.88",
+		Port: 2040,
 	},
 }

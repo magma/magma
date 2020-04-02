@@ -13,8 +13,8 @@ import {commitMutation, graphql} from 'react-relay';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {
   RemoveProjectMutation,
-  RemoveProjectMutationMutationResponse,
-  RemoveProjectMutationMutationVariables,
+  RemoveProjectMutationResponse,
+  RemoveProjectMutationVariables,
 } from './__generated__/RemoveProjectMutation.graphql';
 import type {StoreUpdater} from '../common/RelayEnvironment';
 
@@ -25,8 +25,8 @@ const mutation = graphql`
 `;
 
 export default (
-  variables: RemoveProjectMutationMutationVariables,
-  callbacks?: MutationCallbacks<RemoveProjectMutationMutationResponse>,
+  variables: RemoveProjectMutationVariables,
+  callbacks?: MutationCallbacks<RemoveProjectMutationResponse>,
   updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};

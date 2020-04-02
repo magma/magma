@@ -17,8 +17,8 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
-	"magma/feg/gateway/streamer"
-	"magma/orc8r/cloud/go/service"
+	"magma/gateway/streamer"
+	"magma/orc8r/lib/go/service"
 )
 
 func main() {
@@ -38,9 +38,12 @@ func main() {
 	protos.RegisterHSSConfiguratorServer(srv.GrpcServer, servicer)
 
 	if config.StreamSubscribers {
-		streamerClient := streamer.NewStreamerClient(registry.NewCloudRegistry())
-		if err = streamerClient.AddListener(storage.NewSubscriberListener(store)); err != nil {
+		streamerClient := streamer.NewStreamerClient(registry.Get())
+		l := storage.NewSubscriberListener(store)
+		if err = streamerClient.AddListener(l); err != nil {
 			log.Printf("Failed to start subscriber streaming: %s", err.Error())
+		} else {
+			go streamerClient.Stream(l)
 		}
 	}
 

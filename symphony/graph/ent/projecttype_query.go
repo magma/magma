@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -36,8 +35,9 @@ type ProjectTypeQuery struct {
 	withProjects   *ProjectQuery
 	withProperties *PropertyTypeQuery
 	withWorkOrders *WorkOrderDefinitionQuery
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -67,36 +67,54 @@ func (ptq *ProjectTypeQuery) Order(o ...Order) *ProjectTypeQuery {
 // QueryProjects chains the current query on the projects edge.
 func (ptq *ProjectTypeQuery) QueryProjects() *ProjectQuery {
 	query := &ProjectQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(projecttype.Table, projecttype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(project.Table, project.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, projecttype.ProjectsTable, projecttype.ProjectsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(projecttype.Table, projecttype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, projecttype.ProjectsTable, projecttype.ProjectsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (ptq *ProjectTypeQuery) QueryProperties() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(projecttype.Table, projecttype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(propertytype.Table, propertytype.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, projecttype.PropertiesTable, projecttype.PropertiesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(projecttype.Table, projecttype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(propertytype.Table, propertytype.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, projecttype.PropertiesTable, projecttype.PropertiesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (ptq *ProjectTypeQuery) QueryWorkOrders() *WorkOrderDefinitionQuery {
 	query := &WorkOrderDefinitionQuery{config: ptq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(projecttype.Table, projecttype.FieldID, ptq.sqlQuery()),
-		sqlgraph.To(workorderdefinition.Table, workorderdefinition.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, projecttype.WorkOrdersTable, projecttype.WorkOrdersColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(projecttype.Table, projecttype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(workorderdefinition.Table, workorderdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, projecttype.WorkOrdersTable, projecttype.WorkOrdersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -122,8 +140,8 @@ func (ptq *ProjectTypeQuery) FirstX(ctx context.Context) *ProjectType {
 }
 
 // FirstID returns the first ProjectType id in the query. Returns *NotFoundError when no id was found.
-func (ptq *ProjectTypeQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ptq *ProjectTypeQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ptq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -135,7 +153,7 @@ func (ptq *ProjectTypeQuery) FirstID(ctx context.Context) (id string, err error)
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (ptq *ProjectTypeQuery) FirstXID(ctx context.Context) string {
+func (ptq *ProjectTypeQuery) FirstXID(ctx context.Context) int {
 	id, err := ptq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -169,8 +187,8 @@ func (ptq *ProjectTypeQuery) OnlyX(ctx context.Context) *ProjectType {
 }
 
 // OnlyID returns the only ProjectType id in the query, returns an error if not exactly one id was returned.
-func (ptq *ProjectTypeQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ptq *ProjectTypeQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ptq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -186,7 +204,7 @@ func (ptq *ProjectTypeQuery) OnlyID(ctx context.Context) (id string, err error) 
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (ptq *ProjectTypeQuery) OnlyXID(ctx context.Context) string {
+func (ptq *ProjectTypeQuery) OnlyXID(ctx context.Context) int {
 	id, err := ptq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -196,6 +214,9 @@ func (ptq *ProjectTypeQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of ProjectTypes.
 func (ptq *ProjectTypeQuery) All(ctx context.Context) ([]*ProjectType, error) {
+	if err := ptq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return ptq.sqlAll(ctx)
 }
 
@@ -209,8 +230,8 @@ func (ptq *ProjectTypeQuery) AllX(ctx context.Context) []*ProjectType {
 }
 
 // IDs executes the query and returns a list of ProjectType ids.
-func (ptq *ProjectTypeQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (ptq *ProjectTypeQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := ptq.Select(projecttype.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -218,7 +239,7 @@ func (ptq *ProjectTypeQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ptq *ProjectTypeQuery) IDsX(ctx context.Context) []string {
+func (ptq *ProjectTypeQuery) IDsX(ctx context.Context) []int {
 	ids, err := ptq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -228,6 +249,9 @@ func (ptq *ProjectTypeQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (ptq *ProjectTypeQuery) Count(ctx context.Context) (int, error) {
+	if err := ptq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return ptq.sqlCount(ctx)
 }
 
@@ -242,6 +266,9 @@ func (ptq *ProjectTypeQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ptq *ProjectTypeQuery) Exist(ctx context.Context) (bool, error) {
+	if err := ptq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return ptq.sqlExist(ctx)
 }
 
@@ -265,7 +292,8 @@ func (ptq *ProjectTypeQuery) Clone() *ProjectTypeQuery {
 		unique:     append([]string{}, ptq.unique...),
 		predicates: append([]predicate.ProjectType{}, ptq.predicates...),
 		// clone intermediate query.
-		sql: ptq.sql.Clone(),
+		sql:  ptq.sql.Clone(),
+		path: ptq.path,
 	}
 }
 
@@ -320,7 +348,12 @@ func (ptq *ProjectTypeQuery) WithWorkOrders(opts ...func(*WorkOrderDefinitionQue
 func (ptq *ProjectTypeQuery) GroupBy(field string, fields ...string) *ProjectTypeGroupBy {
 	group := &ProjectTypeGroupBy{config: ptq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = ptq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return ptq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -339,8 +372,24 @@ func (ptq *ProjectTypeQuery) GroupBy(field string, fields ...string) *ProjectTyp
 func (ptq *ProjectTypeQuery) Select(field string, fields ...string) *ProjectTypeSelect {
 	selector := &ProjectTypeSelect{config: ptq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = ptq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return ptq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (ptq *ProjectTypeQuery) prepareQuery(ctx context.Context) error {
+	if ptq.path != nil {
+		prev, err := ptq.path(ctx)
+		if err != nil {
+			return err
+		}
+		ptq.sql = prev
+	}
+	return nil
 }
 
 func (ptq *ProjectTypeQuery) sqlAll(ctx context.Context) ([]*ProjectType, error) {
@@ -376,13 +425,9 @@ func (ptq *ProjectTypeQuery) sqlAll(ctx context.Context) ([]*ProjectType, error)
 
 	if query := ptq.withProjects; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*ProjectType)
+		nodeids := make(map[int]*ProjectType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -408,13 +453,9 @@ func (ptq *ProjectTypeQuery) sqlAll(ctx context.Context) ([]*ProjectType, error)
 
 	if query := ptq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*ProjectType)
+		nodeids := make(map[int]*ProjectType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -440,13 +481,9 @@ func (ptq *ProjectTypeQuery) sqlAll(ctx context.Context) ([]*ProjectType, error)
 
 	if query := ptq.withWorkOrders; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*ProjectType)
+		nodeids := make(map[int]*ProjectType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -492,7 +529,7 @@ func (ptq *ProjectTypeQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   projecttype.Table,
 			Columns: projecttype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: projecttype.FieldID,
 			},
 		},
@@ -552,8 +589,9 @@ type ProjectTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -564,6 +602,11 @@ func (ptgb *ProjectTypeGroupBy) Aggregate(fns ...Aggregate) *ProjectTypeGroupBy 
 
 // Scan applies the group-by query and scan the result into the given value.
 func (ptgb *ProjectTypeGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := ptgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	ptgb.sql = query
 	return ptgb.sqlScan(ctx, v)
 }
 
@@ -682,12 +725,18 @@ func (ptgb *ProjectTypeGroupBy) sqlQuery() *sql.Selector {
 type ProjectTypeSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (pts *ProjectTypeSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := pts.path(ctx)
+	if err != nil {
+		return err
+	}
+	pts.sql = query
 	return pts.sqlScan(ctx, v)
 }
 

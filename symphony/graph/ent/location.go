@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 type Location struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -39,8 +38,8 @@ type Location struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LocationQuery when eager-loading is set.
 	Edges             LocationEdges `json:"edges"`
-	location_type     *string
-	location_children *string
+	location_type     *int
+	location_children *int
 }
 
 // LocationEdges holds the relations/edges for other nodes in the graph.
@@ -224,7 +223,7 @@ func (l *Location) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	l.ID = strconv.FormatInt(value.Int64, 10)
+	l.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -266,14 +265,14 @@ func (l *Location) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field location_type", value)
 		} else if value.Valid {
-			l.location_type = new(string)
-			*l.location_type = strconv.FormatInt(value.Int64, 10)
+			l.location_type = new(int)
+			*l.location_type = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field location_children", value)
 		} else if value.Valid {
-			l.location_children = new(string)
-			*l.location_children = strconv.FormatInt(value.Int64, 10)
+			l.location_children = new(int)
+			*l.location_children = int(value.Int64)
 		}
 	}
 	return nil
@@ -281,69 +280,69 @@ func (l *Location) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the Location.
 func (l *Location) QueryType() *LocationTypeQuery {
-	return (&LocationClient{l.config}).QueryType(l)
+	return (&LocationClient{config: l.config}).QueryType(l)
 }
 
 // QueryParent queries the parent edge of the Location.
 func (l *Location) QueryParent() *LocationQuery {
-	return (&LocationClient{l.config}).QueryParent(l)
+	return (&LocationClient{config: l.config}).QueryParent(l)
 }
 
 // QueryChildren queries the children edge of the Location.
 func (l *Location) QueryChildren() *LocationQuery {
-	return (&LocationClient{l.config}).QueryChildren(l)
+	return (&LocationClient{config: l.config}).QueryChildren(l)
 }
 
 // QueryFiles queries the files edge of the Location.
 func (l *Location) QueryFiles() *FileQuery {
-	return (&LocationClient{l.config}).QueryFiles(l)
+	return (&LocationClient{config: l.config}).QueryFiles(l)
 }
 
 // QueryHyperlinks queries the hyperlinks edge of the Location.
 func (l *Location) QueryHyperlinks() *HyperlinkQuery {
-	return (&LocationClient{l.config}).QueryHyperlinks(l)
+	return (&LocationClient{config: l.config}).QueryHyperlinks(l)
 }
 
 // QueryEquipment queries the equipment edge of the Location.
 func (l *Location) QueryEquipment() *EquipmentQuery {
-	return (&LocationClient{l.config}).QueryEquipment(l)
+	return (&LocationClient{config: l.config}).QueryEquipment(l)
 }
 
 // QueryProperties queries the properties edge of the Location.
 func (l *Location) QueryProperties() *PropertyQuery {
-	return (&LocationClient{l.config}).QueryProperties(l)
+	return (&LocationClient{config: l.config}).QueryProperties(l)
 }
 
 // QuerySurvey queries the survey edge of the Location.
 func (l *Location) QuerySurvey() *SurveyQuery {
-	return (&LocationClient{l.config}).QuerySurvey(l)
+	return (&LocationClient{config: l.config}).QuerySurvey(l)
 }
 
 // QueryWifiScan queries the wifi_scan edge of the Location.
 func (l *Location) QueryWifiScan() *SurveyWiFiScanQuery {
-	return (&LocationClient{l.config}).QueryWifiScan(l)
+	return (&LocationClient{config: l.config}).QueryWifiScan(l)
 }
 
 // QueryCellScan queries the cell_scan edge of the Location.
 func (l *Location) QueryCellScan() *SurveyCellScanQuery {
-	return (&LocationClient{l.config}).QueryCellScan(l)
+	return (&LocationClient{config: l.config}).QueryCellScan(l)
 }
 
 // QueryWorkOrders queries the work_orders edge of the Location.
 func (l *Location) QueryWorkOrders() *WorkOrderQuery {
-	return (&LocationClient{l.config}).QueryWorkOrders(l)
+	return (&LocationClient{config: l.config}).QueryWorkOrders(l)
 }
 
 // QueryFloorPlans queries the floor_plans edge of the Location.
 func (l *Location) QueryFloorPlans() *FloorPlanQuery {
-	return (&LocationClient{l.config}).QueryFloorPlans(l)
+	return (&LocationClient{config: l.config}).QueryFloorPlans(l)
 }
 
 // Update returns a builder for updating this Location.
 // Note that, you need to call Location.Unwrap() before calling this method, if this Location
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (l *Location) Update() *LocationUpdateOne {
-	return (&LocationClient{l.config}).UpdateOne(l)
+	return (&LocationClient{config: l.config}).UpdateOne(l)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -378,12 +377,6 @@ func (l *Location) String() string {
 	builder.WriteString(fmt.Sprintf("%v", l.SiteSurveyNeeded))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (l *Location) id() int {
-	id, _ := strconv.Atoi(l.ID)
-	return id
 }
 
 // Locations is a parsable slice of Location.

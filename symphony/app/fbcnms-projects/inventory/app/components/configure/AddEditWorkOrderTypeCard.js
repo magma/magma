@@ -26,7 +26,6 @@ import type {WorkOrderType} from '../../common/WorkOrder';
 import AddWorkOrderTypeMutation from '../../mutations/AddWorkOrderTypeMutation';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import CheckListTable from '../checklist/CheckListTable';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import EditWorkOrderTypeMutation from '../../mutations/EditWorkOrderTypeMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
@@ -36,12 +35,14 @@ import PropertyTypeTable from '../form/PropertyTypeTable';
 import React from 'react';
 import RemoveWorkOrderTypeMutation from '../../mutations/RemoveWorkOrderTypeMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
 import {withSnackbar} from 'notistack';
@@ -107,7 +108,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       .slice()
       .sort(sortByIndex);
     return (
-      <FormValidationContextProvider>
+      <FormContextProvider>
         <div className={classes.root}>
           <div className={classes.header}>
             <Breadcrumbs
@@ -124,7 +125,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
                     }
                   : {
                       id: 'new_wo_type',
-                      name: 'New Work Order Template',
+                      name: `${fbt('New work order template', '')}`,
                     },
               ]}
               size="large"
@@ -159,8 +160,12 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
               <NameDescriptionSection
                 title="Title"
                 name={editingWorkOrderType.name ?? ''}
+                namePlaceholder={`${fbt('New work order template', '')}`}
                 description={editingWorkOrderType.description ?? ''}
-                descriptionPlaceholder="Describe the work order"
+                descriptionPlaceholder={`${fbt(
+                  'Write a description if you want it to appear whenever this template of work order is created',
+                  '',
+                )}`}
                 onNameChange={this.nameChanged}
                 onDescriptionChange={this.descriptionChanged}
               />
@@ -172,16 +177,9 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
                 onPropertiesChanged={this._propertyChangedHandler}
               />
             </ExpandingPanel>
-            <ExpandingPanel title="Checklist items">
-              <CheckListTable
-                list={editingWorkOrderType.checkListDefinitions}
-                onChecklistChanged={this._checklistChangedHandler}
-                onDesignMode={true}
-              />
-            </ExpandingPanel>
           </div>
         </div>
-      </FormValidationContextProvider>
+      </FormContextProvider>
     );
   }
 
@@ -225,7 +223,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
   };
 
   _onError = (error: Error) => {
-    this._showError(error.message);
+    this._showError(getGraphError(error));
     this.setState({isSaving: false});
   };
 
@@ -235,7 +233,6 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       name,
       description,
       propertyTypes,
-      checkListDefinitions,
     } = this.state.editingWorkOrderType;
     const variables: EditWorkOrderTypeMutationVariables = {
       input: {
@@ -244,9 +241,6 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
         description,
         properties: propertyTypes
           .filter(propType => !!propType.name)
-          .map(this.deleteTempId),
-        checkList: checkListDefinitions
-          .filter(checkListDefinition => !!checkListDefinition.title)
           .map(this.deleteTempId),
       },
     };
@@ -271,21 +265,13 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
   };
 
   addNewWorkOrderType = () => {
-    const {
-      name,
-      description,
-      propertyTypes,
-      checkListDefinitions,
-    } = this.state.editingWorkOrderType;
+    const {name, description, propertyTypes} = this.state.editingWorkOrderType;
     const variables: AddWorkOrderTypeMutationVariables = {
       input: {
         name,
         description,
         properties: propertyTypes
           .filter(propType => !!propType.name)
-          .map(this.deleteTempId),
-        checkList: checkListDefinitions
-          .filter(checkListDefinition => !!checkListDefinition.title)
           .map(this.deleteTempId),
       },
     };
@@ -302,7 +288,9 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       onError: this._onError,
     };
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const rootQuery = store.getRoot();
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addWorkOrderType');
       if (!newNode) {
         return;
@@ -312,11 +300,14 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
         'Configure_workOrderTypes',
       );
       const edge = ConnectionHandler.createEdge(
+        // $FlowFixMe (T62907961) Relay flow types
         store,
+        // $FlowFixMe (T62907961) Relay flow types
         types,
         newNode,
         'WorkOrderTypesEdge',
       );
+      // $FlowFixMe (T62907961) Relay flow types
       ConnectionHandler.insertEdgeBefore(types, edge);
     };
     AddWorkOrderTypeMutation(variables, callbacks, updater);
@@ -343,12 +334,15 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
           },
         },
         store => {
+          // $FlowFixMe (T62907961) Relay flow types
           const rootQuery = store.getRoot();
           const workOrderTypes = ConnectionHandler.getConnection(
             rootQuery,
             'Configure_workOrderTypes',
           );
+          // $FlowFixMe (T62907961) Relay flow types
           ConnectionHandler.deleteNode(workOrderTypes, editingWorkOrderType.id);
+          // $FlowFixMe (T62907961) Relay flow types
           store.delete(editingWorkOrderType.id);
         },
       );
@@ -377,16 +371,6 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
     });
   };
 
-  _checklistChangedHandler = updatedChecklist => {
-    this.setState(prevState => {
-      return {
-        editingWorkOrderType: update(prevState.editingWorkOrderType, {
-          checkListDefinitions: {$set: updatedChecklist},
-        }),
-      };
-    });
-  };
-
   getEditingWorkOrderType(): WorkOrderType {
     const editingWorkOrderType = this.props.editingWorkOrderType;
     const propertyTypes = (editingWorkOrderType?.propertyTypes ?? [])
@@ -407,19 +391,6 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
         isMandatory: p.isMandatory,
         isInstanceProperty: p.isInstanceProperty,
         isDeleted: p.isDeleted,
-      }));
-    // eslint-disable-next-line flowtype/no-weak-types
-    const checkListDefinitions: Array<any> = (
-      editingWorkOrderType?.checkListDefinitions ?? []
-    )
-      .filter(Boolean)
-      .map(p => ({
-        id: p.id,
-        title: p.title,
-        index: p.index || 0,
-        type: p.type,
-        enumValues: p.enumValues,
-        helpText: p.helpText,
       }));
 
     return {
@@ -448,7 +419,6 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
                 isDeleted: false,
               },
             ],
-      checkListDefinitions: checkListDefinitions,
     };
   }
 }
@@ -480,14 +450,6 @@ export default withStyles(styles)(
               isMandatory
               isInstanceProperty
               isDeleted
-            }
-            checkListDefinitions {
-              id
-              title
-              type
-              index
-              helpText
-              enumValues
             }
           }
         `,

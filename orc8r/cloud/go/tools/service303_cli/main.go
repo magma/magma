@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -35,6 +36,7 @@ var networkID string
 var gatewayID string
 
 func main() {
+	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 
 	services = registry.ListAllServices()

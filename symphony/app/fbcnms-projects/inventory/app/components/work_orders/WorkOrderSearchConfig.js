@@ -40,7 +40,7 @@ const WorkOrderSearchConfig: Array<EntityConfig> = [
       },
       {
         key: 'work_order_owner',
-        name: 'work_order_owner',
+        name: 'work_order_owned_by',
         entityType: 'work_order',
         label: 'Owner',
         component: PowerSearchWorkOrderOwnerFilter,
@@ -64,7 +64,7 @@ const WorkOrderSearchConfig: Array<EntityConfig> = [
       },
       {
         key: 'work_order_assignee',
-        name: 'work_order_assignee',
+        name: 'work_order_assigned_to',
         entityType: 'work_order',
         label: 'Assignee',
         component: PowerSearchWorkOrderAssigneeFilter,

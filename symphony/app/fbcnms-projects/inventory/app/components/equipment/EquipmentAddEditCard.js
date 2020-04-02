@@ -43,8 +43,9 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {fetchQuery, graphql} from 'relay-runtime';
+import {getGraphError} from '../../common/EntUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
   getNonInstancePropertyTypes,
@@ -219,7 +220,7 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
     );
     return (
       <Card>
-        <FormValidationContextProvider>
+        <FormContextProvider>
           <CardContent className={this.props.classes.root}>
             {this.state.error && (
               <FormLabel error>{this.state.error}</FormLabel>
@@ -254,7 +255,7 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
               onSave={this.onSave}
             />
           </CardFooter>
-        </FormValidationContextProvider>
+        </FormContextProvider>
       </Card>
     );
   }
@@ -311,7 +312,7 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
         this.setState({isSubmitting: false});
       },
       onError: (error: Error) => {
-        this.setState({error: error.message});
+        this.setState({error: getGraphError(error)});
       },
     };
     AddEquipmentMutation(variables, callbacks);
@@ -341,7 +342,7 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
         this.setState({isSubmitting: false});
       },
       onError: (error: Error) => {
-        this.setState({error: error.message});
+        this.setState({error: getGraphError(error)});
       },
     };
 

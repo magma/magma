@@ -3,12 +3,25 @@ query EquipmentPortsQuery($id: ID!) {
     ... on Equipment {
       ports {
         id
+        properties {
+          ...PropertyFragment
+        }
         definition {
           id
           name
+          portType {
+            id
+            name
+          }
         }
         link {
           id
+          properties {
+            ...PropertyFragment
+          }
+          services {
+            id
+          }
         }
       }
     }

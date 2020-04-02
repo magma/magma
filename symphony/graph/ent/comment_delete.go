@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // CommentDelete is the builder for deleting a Comment entity.
 type CommentDelete struct {
 	config
+	hooks      []Hook
+	mutation   *CommentMutation
 	predicates []predicate.Comment
 }
 
@@ -30,7 +33,30 @@ func (cd *CommentDelete) Where(ps ...predicate.Comment) *CommentDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (cd *CommentDelete) Exec(ctx context.Context) (int, error) {
-	return cd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(cd.hooks) == 0 {
+		affected, err = cd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*CommentMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			cd.mutation = mutation
+			affected, err = cd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(cd.hooks) - 1; i >= 0; i-- {
+			mut = cd.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, cd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -47,7 +73,7 @@ func (cd *CommentDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: comment.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: comment.FieldID,
 			},
 		},

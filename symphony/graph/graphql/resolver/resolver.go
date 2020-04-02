@@ -9,17 +9,17 @@ import (
 	"net/http"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/pkg/log"
-	"gocloud.dev/pubsub"
 )
 
 type (
 	// Config configures resolver.
 	Config struct {
-		Logger    log.Logger
-		Topic     *pubsub.Topic
-		Subscribe func(context.Context) (*pubsub.Subscription, error)
+		Logger     log.Logger
+		Emitter    event.Emitter
+		Subscriber event.Subscriber
 	}
 
 	// Option allows for managing resolver configuration using functional options.
@@ -27,9 +27,9 @@ type (
 
 	resolver struct {
 		logger log.Logger
-		events struct {
-			topic     *pubsub.Topic
-			subscribe func(context.Context) (*pubsub.Subscription, error)
+		event  struct {
+			event.Emitter
+			event.Subscriber
 		}
 		mutation struct{ transactional bool }
 		orc8r    struct{ client *http.Client }
@@ -39,8 +39,8 @@ type (
 // New creates a graphql resolver.
 func New(cfg Config, opts ...Option) generated.ResolverRoot {
 	r := &resolver{logger: cfg.Logger}
-	r.events.topic = cfg.Topic
-	r.events.subscribe = cfg.Subscribe
+	r.event.Emitter = cfg.Emitter
+	r.event.Subscriber = cfg.Subscriber
 	r.mutation.transactional = true
 	for _, opt := range opts {
 		opt(r)
@@ -61,6 +61,7 @@ func WithOrc8rClient(client *http.Client) Option {
 		r.orc8r.client = client
 	}
 }
+
 func (resolver) ClientFrom(ctx context.Context) *ent.Client {
 	client := ent.FromContext(ctx)
 	if client == nil {
@@ -97,6 +98,14 @@ func (resolver) File() generated.FileResolver {
 	return fileResolver{}
 }
 
+func (resolver) User() generated.UserResolver {
+	return userResolver{}
+}
+
+func (resolver) UsersGroup() generated.UsersGroupResolver {
+	return usersGroupResolver{}
+}
+
 func (resolver) Link() generated.LinkResolver {
 	return linkResolver{}
 }
@@ -113,10 +122,15 @@ func (resolver) FloorPlan() generated.FloorPlanResolver {
 	return floorPlanResolver{}
 }
 
-func (r resolver) Mutation() generated.MutationResolver {
-	mr := mutationResolver{r}
+func (r resolver) Mutation() (mr generated.MutationResolver) {
+	mr = mutationResolver{r}
 	if r.mutation.transactional {
-		return txResolver{mr}
+		mr = txResolver{mr}
+	}
+	mr = eventResolver{
+		MutationResolver: mr,
+		emitter:          r.event.Emitter,
+		logger:           r.logger,
 	}
 	return mr
 }
@@ -219,4 +233,16 @@ func (resolver) ActionsRuleFilter() generated.ActionsRuleFilterResolver {
 
 func (resolver) ActionsTrigger() generated.ActionsTriggerResolver {
 	return actionsTriggerResolver{}
+}
+
+func (resolver) Viewer() generated.ViewerResolver {
+	return viewerResolver{}
+}
+
+func (r resolver) ReportFilter() generated.ReportFilterResolver {
+	return reportFilterResolver{}
+}
+
+func (r resolver) Comment() generated.CommentResolver {
+	return commentResolver{}
 }

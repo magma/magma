@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -36,8 +35,9 @@ type LocationTypeQuery struct {
 	withLocations                *LocationQuery
 	withPropertyTypes            *PropertyTypeQuery
 	withSurveyTemplateCategories *SurveyTemplateCategoryQuery
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -67,36 +67,54 @@ func (ltq *LocationTypeQuery) Order(o ...Order) *LocationTypeQuery {
 // QueryLocations chains the current query on the locations edge.
 func (ltq *LocationTypeQuery) QueryLocations() *LocationQuery {
 	query := &LocationQuery{config: ltq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
-		sqlgraph.To(location.Table, location.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, locationtype.LocationsTable, locationtype.LocationsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ltq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, locationtype.LocationsTable, locationtype.LocationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (ltq *LocationTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: ltq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
-		sqlgraph.To(propertytype.Table, propertytype.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, locationtype.PropertyTypesTable, locationtype.PropertyTypesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ltq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
+			sqlgraph.To(propertytype.Table, propertytype.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, locationtype.PropertyTypesTable, locationtype.PropertyTypesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QuerySurveyTemplateCategories chains the current query on the survey_template_categories edge.
 func (ltq *LocationTypeQuery) QuerySurveyTemplateCategories() *SurveyTemplateCategoryQuery {
 	query := &SurveyTemplateCategoryQuery{config: ltq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
-		sqlgraph.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, locationtype.SurveyTemplateCategoriesTable, locationtype.SurveyTemplateCategoriesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ltq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
+			sqlgraph.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, locationtype.SurveyTemplateCategoriesTable, locationtype.SurveyTemplateCategoriesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -122,8 +140,8 @@ func (ltq *LocationTypeQuery) FirstX(ctx context.Context) *LocationType {
 }
 
 // FirstID returns the first LocationType id in the query. Returns *NotFoundError when no id was found.
-func (ltq *LocationTypeQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ltq *LocationTypeQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ltq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -135,7 +153,7 @@ func (ltq *LocationTypeQuery) FirstID(ctx context.Context) (id string, err error
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (ltq *LocationTypeQuery) FirstXID(ctx context.Context) string {
+func (ltq *LocationTypeQuery) FirstXID(ctx context.Context) int {
 	id, err := ltq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -169,8 +187,8 @@ func (ltq *LocationTypeQuery) OnlyX(ctx context.Context) *LocationType {
 }
 
 // OnlyID returns the only LocationType id in the query, returns an error if not exactly one id was returned.
-func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = ltq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -186,7 +204,7 @@ func (ltq *LocationTypeQuery) OnlyID(ctx context.Context) (id string, err error)
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (ltq *LocationTypeQuery) OnlyXID(ctx context.Context) string {
+func (ltq *LocationTypeQuery) OnlyXID(ctx context.Context) int {
 	id, err := ltq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -196,6 +214,9 @@ func (ltq *LocationTypeQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of LocationTypes.
 func (ltq *LocationTypeQuery) All(ctx context.Context) ([]*LocationType, error) {
+	if err := ltq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return ltq.sqlAll(ctx)
 }
 
@@ -209,8 +230,8 @@ func (ltq *LocationTypeQuery) AllX(ctx context.Context) []*LocationType {
 }
 
 // IDs executes the query and returns a list of LocationType ids.
-func (ltq *LocationTypeQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (ltq *LocationTypeQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := ltq.Select(locationtype.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -218,7 +239,7 @@ func (ltq *LocationTypeQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ltq *LocationTypeQuery) IDsX(ctx context.Context) []string {
+func (ltq *LocationTypeQuery) IDsX(ctx context.Context) []int {
 	ids, err := ltq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -228,6 +249,9 @@ func (ltq *LocationTypeQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (ltq *LocationTypeQuery) Count(ctx context.Context) (int, error) {
+	if err := ltq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return ltq.sqlCount(ctx)
 }
 
@@ -242,6 +266,9 @@ func (ltq *LocationTypeQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ltq *LocationTypeQuery) Exist(ctx context.Context) (bool, error) {
+	if err := ltq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return ltq.sqlExist(ctx)
 }
 
@@ -265,7 +292,8 @@ func (ltq *LocationTypeQuery) Clone() *LocationTypeQuery {
 		unique:     append([]string{}, ltq.unique...),
 		predicates: append([]predicate.LocationType{}, ltq.predicates...),
 		// clone intermediate query.
-		sql: ltq.sql.Clone(),
+		sql:  ltq.sql.Clone(),
+		path: ltq.path,
 	}
 }
 
@@ -320,7 +348,12 @@ func (ltq *LocationTypeQuery) WithSurveyTemplateCategories(opts ...func(*SurveyT
 func (ltq *LocationTypeQuery) GroupBy(field string, fields ...string) *LocationTypeGroupBy {
 	group := &LocationTypeGroupBy{config: ltq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = ltq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := ltq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return ltq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -339,8 +372,24 @@ func (ltq *LocationTypeQuery) GroupBy(field string, fields ...string) *LocationT
 func (ltq *LocationTypeQuery) Select(field string, fields ...string) *LocationTypeSelect {
 	selector := &LocationTypeSelect{config: ltq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = ltq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := ltq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return ltq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (ltq *LocationTypeQuery) prepareQuery(ctx context.Context) error {
+	if ltq.path != nil {
+		prev, err := ltq.path(ctx)
+		if err != nil {
+			return err
+		}
+		ltq.sql = prev
+	}
+	return nil
 }
 
 func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, error) {
@@ -376,13 +425,9 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 
 	if query := ltq.withLocations; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*LocationType)
+		nodeids := make(map[int]*LocationType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -408,13 +453,9 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 
 	if query := ltq.withPropertyTypes; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*LocationType)
+		nodeids := make(map[int]*LocationType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -440,13 +481,9 @@ func (ltq *LocationTypeQuery) sqlAll(ctx context.Context) ([]*LocationType, erro
 
 	if query := ltq.withSurveyTemplateCategories; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*LocationType)
+		nodeids := make(map[int]*LocationType)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -492,7 +529,7 @@ func (ltq *LocationTypeQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   locationtype.Table,
 			Columns: locationtype.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: locationtype.FieldID,
 			},
 		},
@@ -552,8 +589,9 @@ type LocationTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -564,6 +602,11 @@ func (ltgb *LocationTypeGroupBy) Aggregate(fns ...Aggregate) *LocationTypeGroupB
 
 // Scan applies the group-by query and scan the result into the given value.
 func (ltgb *LocationTypeGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := ltgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	ltgb.sql = query
 	return ltgb.sqlScan(ctx, v)
 }
 
@@ -682,12 +725,18 @@ func (ltgb *LocationTypeGroupBy) sqlQuery() *sql.Selector {
 type LocationTypeSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (lts *LocationTypeSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := lts.path(ctx)
+	if err != nil {
+		return err
+	}
+	lts.sql = query
 	return lts.sqlScan(ctx, v)
 }
 

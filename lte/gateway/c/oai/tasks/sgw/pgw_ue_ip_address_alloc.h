@@ -32,13 +32,13 @@
 #include <arpa/inet.h>
 #include <stdint.h>
 
-int allocate_ue_ipv4_address(const char *imsi,
-                             const char *apn,
-                             struct in_addr *addr);
+#include "spgw_state.h"
+#include "ip_forward_messages_types.h"
+
 int release_ue_ipv4_address(const char *imsi,
                             const char *apn,
                             struct in_addr *addr);
-void pgw_ip_address_pool_init(void);
+
 int get_ip_block(struct in_addr *netaddr, uint32_t *netmask);
 
 #endif /*PGW_UE_IP_ADDRESS_ALLOC_SEEN */

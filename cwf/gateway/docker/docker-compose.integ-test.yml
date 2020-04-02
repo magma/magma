@@ -77,7 +77,7 @@ services:
       - ocs
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
-    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=2
 
   hss:
     <<: *feggoservice
@@ -103,8 +103,35 @@ services:
       /bin/bash -c "/usr/bin/redis-server /var/opt/magma/redis.conf --daemonize no &&
              /usr/bin/redis-cli shutdown"
 
+  control_proxy:
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+    command: >
+      sh -c "/usr/local/bin/generate_nghttpx_config.py &&
+             /usr/bin/env nghttpx --insecure --conf /var/opt/magma/tmp/nghttpx.conf"
+
+  magmad:
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+
   uesim:
     <<: *service
     container_name: uesim
     image: ${DOCKER_REGISTRY}uesim:${IMAGE_VERSION}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/uesim -logtostderr=true -v=0
+
+  ingress:
+    <<: *service
+    container_name: ingress
+    image: ${DOCKER_REGISTRY}nginx:${IMAGE_VERSION}
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+      - session-proxy.magma.test:127.0.0.1
+      - sessiond.magma.test:127.0.0.1
+      - aaa-server.magma.test:127.0.0.1
+    volumes:
+      - ../integ_tests/nginx.conf:/etc/nginx/nginx.conf:ro
+    command: /usr/sbin/nginx -g "daemon off;"

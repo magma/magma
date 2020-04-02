@@ -14,7 +14,7 @@ import (
 
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/gateway_health/health_manager"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
 )
@@ -30,7 +30,7 @@ func main() {
 		glog.Fatalf("Error creating HEALTH service: %s", err)
 	}
 
-	cloudReg := registry.NewCloudRegistry()
+	cloudReg := registry.Get()
 	healthCfg := health_manager.GetHealthConfig()
 	healthManager := health_manager.NewHealthManager(cloudReg, healthCfg)
 	// Run Health Collection Loop

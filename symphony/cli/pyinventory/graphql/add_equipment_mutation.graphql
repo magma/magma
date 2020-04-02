@@ -1,6 +1,5 @@
 mutation AddEquipmentMutation($input: AddEquipmentInput!) {
   addEquipment(input: $input) {
-    id
-    name
+    ...EquipmentFragment
   }
 }

@@ -21,12 +21,42 @@ static constexpr const char* ymlExt = ".yml";
 static constexpr const char* yamlExt = ".yaml";
 static constexpr const char* mconfigExt = ".mconfig";
 
+static folly::dynamic parsePluginConfigFromYaml(
+    const std::string& deviceConfigurationFile) {
+  try {
+    YAML::Node devicesFile = YAML::LoadFile(deviceConfigurationFile);
+    const YAML::Node& pluginConfigYamlNode = devicesFile["pluginConfig"];
+    if (pluginConfigYamlNode.IsScalar()) {
+      const string& filename = pluginConfigYamlNode.as<std::string>();
+      LOG(INFO) << "Loading plugin config file: " << filename;
+      string pluginConfigContent = FileUtils::readContents(filename);
+      return folly::parseJson(pluginConfigContent);
+    } else {
+      LOG(INFO) << "Not loading plugin config file";
+    }
+  } catch (const YAML::Exception& e) {
+    LOG(ERROR) << "Bad devices file " << deviceConfigurationFile << " "
+               << e.what();
+  }
+  return folly::dynamic::object();
+}
+
+static folly::dynamic loadPluginConfig(
+    const std::experimental::filesystem::path deviceConfigurationFile,
+    ConfigFileMode mode) {
+  if (mode == ConfigFileMode::Yaml) {
+    return parsePluginConfigFromYaml(deviceConfigurationFile.native());
+  }
+  return folly::dynamic::object();
+}
+
 DevConf::DevConf(
     folly::EventBase& eventBase,
     const std::string& _deviceConfigurationFile)
     : watcher(eventBase),
       deviceConfigurationFile(_deviceConfigurationFile),
-      mode(getConfigFileMode(deviceConfigurationFile.native())) {}
+      mode(getConfigFileMode(deviceConfigurationFile.native())),
+      pluginConfig(loadPluginConfig(deviceConfigurationFile, mode)) {}
 
 void DevConf::enable() {
   // this could go out of scope so handle with a weak ptr.
@@ -258,6 +288,10 @@ cartography::DeviceConfigs DevConf::parseMconfigDeviceConfigs(
                << e.what();
   }
   return newDeviceConfigs;
+}
+
+folly::dynamic DevConf::getPluginConfig() {
+  return pluginConfig;
 }
 
 } // namespace magma

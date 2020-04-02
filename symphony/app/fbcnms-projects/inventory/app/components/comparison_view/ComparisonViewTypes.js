@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {FilterEntity} from './hooks/__generated__/filterBookmarksHookReportFiltersQuery.graphql';
 import type {PropertyType} from '../../common/PropertyType';
 
 export const EntityTypeMap = Object.freeze({
@@ -30,6 +31,7 @@ export const OperatorMap = Object.freeze({
   is: 'is',
   contains: 'contains',
   is_one_of: 'is_one_of',
+  is_not_one_of: 'is_not_one_of',
   date_greater_than: 'date_greater_than',
   date_less_than: 'date_less_than',
 });
@@ -49,6 +51,14 @@ export type FilterConfig = {
   component: Object,
   defaultOperator: Operator,
   extraData?: ?Object,
+};
+
+export type SavedSearchConfig = {
+  id: string,
+  label: string,
+  key: string,
+  entity: FilterEntity,
+  filters: Array<FilterValue>,
 };
 
 export type EntityConfig = {

@@ -32,29 +32,29 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.location_template.apply_location_template_to_location"><code class="name flex">
-<span>def <span class="ident">apply_location_template_to_location</span></span>(<span>client, template_location, location)</span>
+<span>def <span class="ident">apply_location_template_to_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, template_location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.location_template.copy_equipment_with_all_attachments"><code class="name flex">
-<span>def <span class="ident">copy_equipment_with_all_attachments</span></span>(<span>client, equipment, dest_location)</span>
+<span>def <span class="ident">copy_equipment_with_all_attachments</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> Dict[<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>, <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment">Equipment</a>]</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Copy the equipment to the new location with all its attachments</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code></dt>
+<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
 <dd>could be retrieved from the following apis:
 * getEquipment
 * getEquipmentInPosition
 * addEquipment
 * addEquipmentToPosition</dd>
-<dt><strong><code>dest_location</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dt><strong><code>dest_location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
 <dd>retrieved from getLocation or addLocation api.</dd>
 <dt><strong><code>Raises</code></strong> :&ensp;<code>FailedOperationException</code> <code>for</code> <code>internal</code> <code>inventory</code> <code>error</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>dict</code> of <code>source</code> <code>equipment</code> (<code>client.Equipment</code>) <code>to</code> <code>new</code> <code>equipment</code> (<code>client.Equipment</code>)</dt>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>dict</code> of <code>source</code> <code>equipment</code> (<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a>) <code>to</code> <code>new</code> <code>equipment</code> (<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a>)</dt>
 <dd>The dict includes the equipment given as parameter and also all the equipments
 attached to it</dd>
 </dl></section>

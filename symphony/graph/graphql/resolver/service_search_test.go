@@ -20,17 +20,17 @@ import (
 )
 
 type serviceSearchDataModels struct {
-	st1         string
-	st2         string
-	strType     string
-	intType     string
-	boolType    string
-	floatType   string
-	locRoom     string
-	locBuilding string
-	eqt         string
-	eqpd1       string
-	eqpd2       string
+	st1         int
+	st2         int
+	strType     int
+	intType     int
+	boolType    int
+	floatType   int
+	locRoom     int
+	locBuilding int
+	eqt         int
+	eqpd1       int
+	eqpd2       int
 }
 
 func preparePropertyTypes() []*models.PropertyTypeInput {
@@ -242,7 +242,7 @@ func TestSearchServicesByType(t *testing.T) {
 	f1 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeServiceType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.st1},
+		IDSet:      []int{data.st1},
 	}
 	res1, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f1}, &limit)
 	require.NoError(t, err)
@@ -252,7 +252,7 @@ func TestSearchServicesByType(t *testing.T) {
 	f2 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeServiceType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.st2},
+		IDSet:      []int{data.st2},
 	}
 	res2, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f2}, &limit)
 	require.NoError(t, err)
@@ -262,7 +262,7 @@ func TestSearchServicesByType(t *testing.T) {
 	f3 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeServiceType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.st1, data.st2},
+		IDSet:      []int{data.st1, data.st2},
 	}
 	res3, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f3}, &limit)
 	require.NoError(t, err)
@@ -518,7 +518,7 @@ func TestSearchServicesByLocations(t *testing.T) {
 	f1 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{loc1.ID},
+		IDSet:      []int{loc1.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f1}, &limit)
@@ -528,7 +528,7 @@ func TestSearchServicesByLocations(t *testing.T) {
 	f2 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{loc2.ID},
+		IDSet:      []int{loc2.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f2}, &limit)
@@ -538,7 +538,7 @@ func TestSearchServicesByLocations(t *testing.T) {
 	f3 := models.ServiceFilterInput{
 		FilterType: models.ServiceFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{loc2.ID, loc3.ID},
+		IDSet:      []int{loc2.ID, loc3.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res3, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f3}, &limit)

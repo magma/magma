@@ -14,15 +14,19 @@ import {Range} from './PromQL';
 
 import {
   AGGREGATION_OPERATORS,
-  BINARY_OPERATORS,
-  FUNCTION_NAMES,
+  AGGR_CLAUSE_TYPES,
+  BINARY_ARITHMETIC_OPS,
+  BINARY_COMPARATORS,
+  BINARY_SET_OPS,
+  GROUP_CLAUSE_TYPES,
   LABEL_OPERATORS,
+  MATCH_CLAUSE_TYPES,
   SyntaxError,
 } from './PromQLTypes';
 
 type LexerRules = {[string]: LexerRule | $ReadOnlyArray<LexerRule>};
 type LexerRule = string | RegExp | ComplexRule;
-type ComplexRule = {match: RegExp, value: string => string | number | Range};
+type ComplexRule = {match: RegExp, value?: string => string | number | Range};
 
 const lexerRules: LexerRules = {
   WS: /[ \t]+/,
@@ -33,6 +37,7 @@ const lexerRules: LexerRules = {
   lBracket: '[',
   rBracket: ']',
   comma: ',',
+  colon: ':',
   range: {
     match: /[0-9]+[smhdwy]/,
     value: s =>
@@ -66,11 +71,27 @@ const lexerRules: LexerRules = {
       value: s => Number.parseFloat(s),
     },
   ],
-  aggOp: AGGREGATION_OPERATORS,
-  functionName: FUNCTION_NAMES,
-  binOp: BINARY_OPERATORS,
+  // `!=` needs explicit token because it is ambiguous:
+  // can mean either vector comparator or label matcher.
+  // Must be declared above binComp and labelOp, because their definitions
+  // include `!=`, too.
+  neq: '!=',
+  binComp: BINARY_COMPARATORS,
+  arithmetic: BINARY_ARITHMETIC_OPS,
   labelOp: LABEL_OPERATORS,
-  identifier: /\w+/,
+  // Allows greedy-matching identifiers, e.g.
+  // `by` will be emitted as %clauseOp, but
+  // `byteCount` will be emitted as %identifier
+  identifier: {
+    match: /\w+/,
+    type: Moo.keywords({
+      aggOp: AGGREGATION_OPERATORS,
+      aggClause: AGGR_CLAUSE_TYPES,
+      groupClause: GROUP_CLAUSE_TYPES,
+      matchClause: MATCH_CLAUSE_TYPES,
+      setOp: BINARY_SET_OPS,
+    }),
+  },
   string: [
     {
       // double-quoted string with no escape sequences;
@@ -100,6 +121,9 @@ const lexerRules: LexerRules = {
       value: s => unescapeString(s.slice(1, -1), `'`),
     },
   ],
+  // Comments must be stripped by tokenzier,
+  // and therefore will not be present in the AST.
+  comment: /#[^\n]*/,
 };
 
 /**
@@ -214,10 +238,10 @@ export type Token = {
 type TokenType = $Keys<typeof lexerRules>;
 
 export const lexer = Moo.compile(lexerRules);
-// Ignore whitespace tokens
+// Ignore whitespace and comment tokens
 lexer.next = (next => () => {
   let tok;
-  while ((tok = next.call(lexer)) && tok.type === 'WS') {}
+  while ((tok = next.call(lexer)) && ['WS', 'comment'].includes(tok.type)) {}
   return tok;
 })(lexer.next);
 

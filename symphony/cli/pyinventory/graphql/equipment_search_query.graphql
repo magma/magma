@@ -1,8 +1,7 @@
 query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
   equipmentSearch(filters: $filters, limit: $limit) {
     equipment {
-      id
-      name
+      ...EquipmentFragment
     }
     count
   }

@@ -1,49 +1,59 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 from typing import Dict, List, Tuple
 
-from ..consts import Equipment, Location
+from ..client import SymphonyClient
+from ..consts import Entity, Equipment, Location
+from ..exceptions import EntityNotFoundError
 from ..graphql.equipment_positions_query import EquipmentPositionsQuery
 from ..graphql.location_equipments_query import LocationEquipmentsQuery
-from ..graphql_client import GraphqlClient
 from .equipment import copy_equipment, copy_equipment_in_position
 from .link import add_link, get_all_links_and_port_names_of_equipment
 
 
 def _get_one_level_attachments_of_equipment(
-    client: GraphqlClient, equipment: Equipment
+    client: SymphonyClient, equipment: Equipment
 ) -> List[Tuple[str, Equipment]]:
-    positions = EquipmentPositionsQuery.execute(
+    equipment_with_positions = EquipmentPositionsQuery.execute(
         client, id=equipment.id
-    ).equipment.positions
-    attachments = [
-        (
-            position.definition.name,
-            Equipment(position.attachedEquipment.name, position.attachedEquipment.id),
-        )
-        for position in positions
-        if position.attachedEquipment is not None
-    ]
+    ).equipment
+    if not equipment_with_positions:
+        raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
+    attachments = []
+    for position in equipment_with_positions.positions:
+        attached_equipment = position.attachedEquipment
+        if attached_equipment is not None:
+            attachments.append(
+                (
+                    position.definition.id,
+                    Equipment(
+                        id=attached_equipment.id,
+                        external_id=attached_equipment.externalId,
+                        name=attached_equipment.name,
+                        equipment_type_name=attached_equipment.equipmentType.name,
+                    ),
+                )
+            )
+
     return attachments
 
 
 def copy_equipment_with_all_attachments(
-    client: GraphqlClient, equipment: Equipment, dest_location: Location
+    client: SymphonyClient, equipment: Equipment, dest_location: Location
 ) -> Dict[Equipment, Equipment]:
     """Copy the equipment to the new location with all its attachments
 
         Args:
-            equipment (client.Equipment object): could be retrieved from the following apis:
+            equipment (pyinventory.consts.Equipment object): could be retrieved from the following apis:
                 * getEquipment
                 * getEquipmentInPosition
                 * addEquipment
                 * addEquipmentToPosition
-            dest_location (client.Location object): retrieved from getLocation or addLocation api.
+            dest_location (pyinventory.consts.Location object): retrieved from getLocation or addLocation api.
 
         Raises: FailedOperationException for internal inventory error
 
-        Returns: dict of source equipment (client.Equipment) to new equipment (client.Equipment)
+        Returns: dict of source equipment (pyinventory.consts.Equipment) to new equipment (pyinventory.consts.Equipment)
                 The dict includes the equipment given as parameter and also all the equipments
                 attached to it
     """
@@ -66,14 +76,24 @@ def copy_equipment_with_all_attachments(
 
 
 def apply_location_template_to_location(
-    client: GraphqlClient, template_location: Location, location: Location
+    client: SymphonyClient, template_location: Location, location: Location
 ) -> None:
 
-    equipments = LocationEquipmentsQuery.execute(
+    location_with_equipments = LocationEquipmentsQuery.execute(
         client, id=template_location.id
-    ).location.equipments
+    ).location
+    if not location_with_equipments:
+        raise EntityNotFoundError(
+            entity=Entity.Location, entity_id=template_location.id
+        )
     equipments = [
-        Equipment(id=equipment.id, name=equipment.name) for equipment in equipments
+        Equipment(
+            id=equipment.id,
+            external_id=equipment.externalId,
+            name=equipment.name,
+            equipment_type_name=equipment.equipmentType.name,
+        )
+        for equipment in location_with_equipments.equipments
     ]
     equipments_to_new_equipments = {}
     for equipment in equipments:

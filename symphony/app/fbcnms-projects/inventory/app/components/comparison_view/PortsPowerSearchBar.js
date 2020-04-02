@@ -16,6 +16,7 @@ import type {
 
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React from 'react';
+import useFilterBookmarks from './hooks/filterBookmarksHook';
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
@@ -36,6 +37,7 @@ const PortsPowerSearchBar = (props: Props) => {
   const portPropertiesFilterConfigs = buildPropertyFilterConfigs(
     possibleProperties,
   );
+  const filterBookmarksFilterConfig = useFilterBookmarks('PORT');
 
   const filterConfigs = PortCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
@@ -55,8 +57,10 @@ const PortsPowerSearchBar = (props: Props) => {
       placeholder="Filter..."
       searchConfig={PortCriteriaConfig}
       filterConfigs={filterConfigs}
+      savedSearches={filterBookmarksFilterConfig}
       footer={footer}
       exportPath={'/ports'}
+      entity="PORT"
     />
   );
 };

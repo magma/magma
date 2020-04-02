@@ -8,11 +8,15 @@
  * @format
  */
 
+import type {InventoryEntitiesTypeaheadQuery} from './__generated__/InventoryEntitiesTypeaheadQuery.graphql';
 import type {Suggestion} from '@fbcnms/ui/components/Typeahead';
 import type {Theme, WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
+import EquipmentBreadcrumbs from './equipment/EquipmentBreadcrumbs';
+import LocationBreadcrumbsTitle from './location/LocationBreadcrumbsTitle';
 import RelayEnvironment from '../common/RelayEnvironment.js';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import Typeahead from '@fbcnms/ui/components/Typeahead';
 import {debounce} from 'lodash';
 import {fetchQuery, graphql} from 'relay-runtime';
@@ -20,14 +24,34 @@ import {withStyles} from '@material-ui/core/styles';
 
 const inventoryEntitiesTypeaheadQuery = graphql`
   query InventoryEntitiesTypeaheadQuery($name: String!) {
-    searchForEntity(name: $name, first: 10) {
+    searchForNode(name: $name, first: 10) {
       edges {
         node {
-          entityId
-          entityType
-          name
-          type
-          externalId
+          __typename
+          ... on Location {
+            id
+            externalId
+            name
+            locationType {
+              name
+            }
+            locationHierarchy {
+              id
+              name
+              locationType {
+                name
+              }
+            }
+          }
+          ... on Equipment {
+            id
+            externalId
+            name
+            equipmentType {
+              name
+            }
+            ...EquipmentBreadcrumbs_equipment
+          }
         }
       }
     }
@@ -47,6 +71,16 @@ const styles = (theme: Theme) => ({
     lineHeight: '21px',
     marginLeft: theme.spacing(),
   },
+  breadcrumbsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: '600px',
+    overflow: 'hidden',
+  },
+  externalId: {
+    marginLeft: '6px',
+  },
 });
 
 type EntityType = 'location' | 'equipment';
@@ -63,7 +97,7 @@ const SEARCH_DEBOUNCE_TIMEOUT_MS = 200;
 
 class InventoryEntitiesTypeahead extends React.Component<Props, State> {
   _debounceFetchSuggestions = debounce(
-    searchTerm => this.fetchNewSuggestions(searchTerm),
+    (searchTerm: string) => this.fetchNewSuggestions(searchTerm),
     SEARCH_DEBOUNCE_TIMEOUT_MS,
     {
       trailing: true,
@@ -76,24 +110,69 @@ class InventoryEntitiesTypeahead extends React.Component<Props, State> {
   };
 
   fetchNewSuggestions(searchTerm: string) {
-    fetchQuery(RelayEnvironment, inventoryEntitiesTypeaheadQuery, {
-      name: searchTerm,
-    }).then(response => {
-      if (!response || !response.searchForEntity) {
+    const {classes} = this.props;
+    fetchQuery<InventoryEntitiesTypeaheadQuery>(
+      RelayEnvironment,
+      inventoryEntitiesTypeaheadQuery,
+      {
+        name: searchTerm,
+      },
+    ).then(response => {
+      if (!response || !response.searchForNode) {
         return;
       }
 
-      const suggestions = response.searchForEntity.edges
-        .filter(Boolean)
-        .map(edge => ({
-          ...edge.node,
-        }));
-      suggestions.forEach(node => {
-        if (!!node.externalId) {
-          node.type = `${node.type} - ${node.externalId}`;
+      const mapToSuggestion = (node): ?Suggestion => {
+        if (node.__typename === 'Equipment') {
+          return {
+            entityId: node.id,
+            entityType: 'equipment',
+            name: node.name,
+            type: node.equipmentType.name,
+            render: () => {
+              return (
+                <div className={classes.breadcrumbsContainer}>
+                  <EquipmentBreadcrumbs equipment={node} size="small" />
+                </div>
+              );
+            },
+          };
+        } else if (node.__typename === 'Location') {
+          return {
+            entityId: node.id,
+            entityType: 'location',
+            name: node.name,
+            type: node.locationType.name,
+            render: () => (
+              <div className={classes.breadcrumbsContainer}>
+                <LocationBreadcrumbsTitle
+                  locationDetails={node}
+                  size="small"
+                  hideTypes={true}
+                  navigateOnClick={false}
+                />
+                {node.externalId && (
+                  <Text
+                    variant="caption"
+                    color="gray"
+                    className={classes.externalId}>
+                    ({node.externalId})
+                  </Text>
+                )}
+              </div>
+            ),
+          };
         }
-      });
-
+        return (null: ?Suggestion);
+      };
+      const suggestions: Array<Suggestion> = (
+        response.searchForNode.edges?.map(edge => {
+          if (edge.node == null) {
+            return null;
+          }
+          return mapToSuggestion(edge.node);
+        }) ?? []
+      ).filter(Boolean);
       this.setState({suggestions});
     });
   }
@@ -110,7 +189,7 @@ class InventoryEntitiesTypeahead extends React.Component<Props, State> {
         <Typeahead
           required={false}
           suggestions={suggestions}
-          getSuggestionValue={suggestion => suggestion.name}
+          getSuggestionValue={(suggestion: Suggestion) => suggestion.name}
           onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
           onEntitySelected={suggestion => {
             const entityType =

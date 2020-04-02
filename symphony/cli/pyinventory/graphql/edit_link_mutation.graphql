@@ -1,0 +1,11 @@
+mutation EditLinkMutation($input: EditLinkInput!) {
+  editLink(input: $input) {
+    id
+    properties {
+      ...PropertyFragment
+    }
+    services {
+      id
+    }
+  }
+}

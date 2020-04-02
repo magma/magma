@@ -57,6 +57,12 @@ const styles = {
   boldWeight: {
     fontWeight: 600,
   },
+  truncate: {
+    display: 'block',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
 };
 export const typographyStyles = makeStyles<Props, typeof styles>(() => styles);
 
@@ -77,6 +83,7 @@ type Props = {
     | 'caption'
     | 'overline',
   className?: string,
+  useEllipsis?: ?boolean,
   weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold',
   color?: 'light' | 'regular' | 'primary' | 'error' | 'gray' | 'warning',
 };
@@ -88,6 +95,7 @@ const Text = (props: Props) => {
     className,
     color = 'regular',
     weight = 'inherit',
+    useEllipsis = false,
     ...rest
   } = props;
   const classes = typographyStyles();
@@ -98,6 +106,7 @@ const Text = (props: Props) => {
         classes[variant],
         classes[`${color ?? 'regular'}Color`],
         classes[`${weight ? weight : 'regular'}Weight`],
+        {[classes.truncate]: useEllipsis},
         className,
       )}>
       {children}

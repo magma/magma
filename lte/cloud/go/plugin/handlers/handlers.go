@@ -448,6 +448,8 @@ func addConnectedEnodeb(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+var subscriberStateTypes = []string{lte.ICMPStateType}
+
 func listSubscribers(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
@@ -459,9 +461,24 @@ func listSubscribers(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
+	allIMSIs := funk.Map(ents, func(e configurator.NetworkEntity) string { return e.Key }).([]string)
+	subStates, err := state.SearchStates(networkID, subscriberStateTypes, allIMSIs)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	statesByTypeBySid := map[string]map[string]state.State{}
+	for stateID, st := range subStates {
+		byType, ok := statesByTypeBySid[stateID.DeviceID]
+		if !ok {
+			byType = map[string]state.State{}
+		}
+		byType[stateID.Type] = st
+		statesByTypeBySid[stateID.DeviceID] = byType
+	}
+
 	ret := make(map[string]*ltemodels.Subscriber, len(ents))
 	for _, ent := range ents {
-		ret[ent.Key] = (&ltemodels.Subscriber{}).FromBackendModels(ent)
+		ret[ent.Key] = (&ltemodels.Subscriber{}).FromBackendModels(ent, statesByTypeBySid[ent.Key])
 	}
 	return c.JSON(http.StatusOK, ret)
 }
@@ -472,7 +489,7 @@ func createSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.Subscriber{}
+	payload := &ltemodels.MutableSubscriber{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -511,7 +528,16 @@ func getSubscriber(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := (&ltemodels.Subscriber{}).FromBackendModels(ent)
+	states, err := state.SearchStates(networkID, subscriberStateTypes, []string{subscriberID})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	statesByType := map[string]state.State{}
+	for stateID, st := range states {
+		statesByType[stateID.Type] = st
+	}
+
+	ret := (&ltemodels.Subscriber{}).FromBackendModels(ent, statesByType)
 	return c.JSON(http.StatusOK, ret)
 }
 
@@ -521,7 +547,7 @@ func updateSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.Subscriber{}
+	payload := &ltemodels.MutableSubscriber{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -801,18 +827,36 @@ func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
 		return err
 	}
 	iSubscriberConfig, exists := network.Configs[lte.NetworkSubscriberConfigType]
-	if !exists {
+	if !exists || iSubscriberConfig == nil {
 		network.Configs[lte.NetworkSubscriberConfigType] = &ltemodels.NetworkSubscriberConfig{}
 	}
-	subscriberConfig, ok := iSubscriberConfig.(*ltemodels.NetworkSubscriberConfig)
+	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*ltemodels.NetworkSubscriberConfig)
 	if !ok {
-		return fmt.Errorf("Unable to convert config")
+		return fmt.Errorf("Unable to convert config %v", subscriberConfig)
 	}
 	if len(ruleName) != 0 {
-		subscriberConfig.NetworkWideRuleNames = append(subscriberConfig.NetworkWideRuleNames, ruleName)
+		ruleAlreadyExists := false
+		for _, existing := range subscriberConfig.NetworkWideRuleNames {
+			if existing == ruleName {
+				ruleAlreadyExists = true
+				break
+			}
+		}
+		if !ruleAlreadyExists {
+			subscriberConfig.NetworkWideRuleNames = append(subscriberConfig.NetworkWideRuleNames, ruleName)
+		}
 	}
 	if len(baseName) != 0 {
-		subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, ltemodels.BaseName(baseName))
+		bnAlreadyExists := false
+		for _, existing := range subscriberConfig.NetworkWideBaseNames {
+			if existing == ltemodels.BaseName(baseName) {
+				bnAlreadyExists = true
+				break
+			}
+		}
+		if !bnAlreadyExists {
+			subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, ltemodels.BaseName(baseName))
+		}
 	}
 	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig)
 }
@@ -823,10 +867,10 @@ func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) err
 		return err
 	}
 	iSubscriberConfig, exists := network.Configs[lte.NetworkSubscriberConfigType]
-	if !exists {
+	if !exists || iSubscriberConfig == nil {
 		network.Configs[lte.NetworkSubscriberConfigType] = &ltemodels.NetworkSubscriberConfig{}
 	}
-	subscriberConfig, ok := iSubscriberConfig.(*ltemodels.NetworkSubscriberConfig)
+	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*ltemodels.NetworkSubscriberConfig)
 	if !ok {
 		return fmt.Errorf("Unable to convert config")
 	}

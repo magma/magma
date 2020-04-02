@@ -14,10 +14,8 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import FormContext, {FormContextProvider} from '../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormValidationContext, {
-  FormValidationContextProvider,
-} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Strings from '../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
@@ -61,10 +59,10 @@ const AddHyperlinkDialog = (props: Props) => {
   }, [onClose, props, url, displayName]);
 
   return (
-    <FormValidationContextProvider>
-      <FormValidationContext.Consumer>
-        {validationContext => {
-          const urlValidationError = validationContext.error.check({
+    <FormContextProvider>
+      <FormContext.Consumer>
+        {form => {
+          const urlValidationError = form.alerts.error.check({
             fieldId: 'url',
             fieldDisplayName: Strings.common.fields.url.label,
             value: url,
@@ -131,17 +129,15 @@ const AddHyperlinkDialog = (props: Props) => {
                 <Button onClick={onClose} skin="regular">
                   {Strings.common.cancelButton}
                 </Button>
-                <Button
-                  onClick={onSave}
-                  disabled={validationContext.error.detected}>
+                <Button onClick={onSave} disabled={form.alerts.error.detected}>
                   {Strings.documents.addLinkButton}
                 </Button>
               </DialogActions>
             </Dialog>
           );
         }}
-      </FormValidationContext.Consumer>
-    </FormValidationContextProvider>
+      </FormContext.Consumer>
+    </FormContextProvider>
   );
 };
 

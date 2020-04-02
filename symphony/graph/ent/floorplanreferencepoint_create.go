@@ -9,7 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,17 +20,13 @@ import (
 // FloorPlanReferencePointCreate is the builder for creating a FloorPlanReferencePoint entity.
 type FloorPlanReferencePointCreate struct {
 	config
-	create_time *time.Time
-	update_time *time.Time
-	x           *int
-	y           *int
-	latitude    *float64
-	longitude   *float64
+	mutation *FloorPlanReferencePointMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (fprpc *FloorPlanReferencePointCreate) SetCreateTime(t time.Time) *FloorPlanReferencePointCreate {
-	fprpc.create_time = &t
+	fprpc.mutation.SetCreateTime(t)
 	return fprpc
 }
 
@@ -44,7 +40,7 @@ func (fprpc *FloorPlanReferencePointCreate) SetNillableCreateTime(t *time.Time) 
 
 // SetUpdateTime sets the update_time field.
 func (fprpc *FloorPlanReferencePointCreate) SetUpdateTime(t time.Time) *FloorPlanReferencePointCreate {
-	fprpc.update_time = &t
+	fprpc.mutation.SetUpdateTime(t)
 	return fprpc
 }
 
@@ -58,51 +54,74 @@ func (fprpc *FloorPlanReferencePointCreate) SetNillableUpdateTime(t *time.Time) 
 
 // SetX sets the x field.
 func (fprpc *FloorPlanReferencePointCreate) SetX(i int) *FloorPlanReferencePointCreate {
-	fprpc.x = &i
+	fprpc.mutation.SetX(i)
 	return fprpc
 }
 
 // SetY sets the y field.
 func (fprpc *FloorPlanReferencePointCreate) SetY(i int) *FloorPlanReferencePointCreate {
-	fprpc.y = &i
+	fprpc.mutation.SetY(i)
 	return fprpc
 }
 
 // SetLatitude sets the latitude field.
 func (fprpc *FloorPlanReferencePointCreate) SetLatitude(f float64) *FloorPlanReferencePointCreate {
-	fprpc.latitude = &f
+	fprpc.mutation.SetLatitude(f)
 	return fprpc
 }
 
 // SetLongitude sets the longitude field.
 func (fprpc *FloorPlanReferencePointCreate) SetLongitude(f float64) *FloorPlanReferencePointCreate {
-	fprpc.longitude = &f
+	fprpc.mutation.SetLongitude(f)
 	return fprpc
 }
 
 // Save creates the FloorPlanReferencePoint in the database.
 func (fprpc *FloorPlanReferencePointCreate) Save(ctx context.Context) (*FloorPlanReferencePoint, error) {
-	if fprpc.create_time == nil {
+	if _, ok := fprpc.mutation.CreateTime(); !ok {
 		v := floorplanreferencepoint.DefaultCreateTime()
-		fprpc.create_time = &v
+		fprpc.mutation.SetCreateTime(v)
 	}
-	if fprpc.update_time == nil {
+	if _, ok := fprpc.mutation.UpdateTime(); !ok {
 		v := floorplanreferencepoint.DefaultUpdateTime()
-		fprpc.update_time = &v
+		fprpc.mutation.SetUpdateTime(v)
 	}
-	if fprpc.x == nil {
+	if _, ok := fprpc.mutation.X(); !ok {
 		return nil, errors.New("ent: missing required field \"x\"")
 	}
-	if fprpc.y == nil {
+	if _, ok := fprpc.mutation.Y(); !ok {
 		return nil, errors.New("ent: missing required field \"y\"")
 	}
-	if fprpc.latitude == nil {
+	if _, ok := fprpc.mutation.Latitude(); !ok {
 		return nil, errors.New("ent: missing required field \"latitude\"")
 	}
-	if fprpc.longitude == nil {
+	if _, ok := fprpc.mutation.Longitude(); !ok {
 		return nil, errors.New("ent: missing required field \"longitude\"")
 	}
-	return fprpc.sqlSave(ctx)
+	var (
+		err  error
+		node *FloorPlanReferencePoint
+	)
+	if len(fprpc.hooks) == 0 {
+		node, err = fprpc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*FloorPlanReferencePointMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			fprpc.mutation = mutation
+			node, err = fprpc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(fprpc.hooks) - 1; i >= 0; i-- {
+			mut = fprpc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, fprpc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -120,58 +139,58 @@ func (fprpc *FloorPlanReferencePointCreate) sqlSave(ctx context.Context) (*Floor
 		_spec = &sqlgraph.CreateSpec{
 			Table: floorplanreferencepoint.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanreferencepoint.FieldID,
 			},
 		}
 	)
-	if value := fprpc.create_time; value != nil {
+	if value, ok := fprpc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanreferencepoint.FieldCreateTime,
 		})
-		fprp.CreateTime = *value
+		fprp.CreateTime = value
 	}
-	if value := fprpc.update_time; value != nil {
+	if value, ok := fprpc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanreferencepoint.FieldUpdateTime,
 		})
-		fprp.UpdateTime = *value
+		fprp.UpdateTime = value
 	}
-	if value := fprpc.x; value != nil {
+	if value, ok := fprpc.mutation.X(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanreferencepoint.FieldX,
 		})
-		fprp.X = *value
+		fprp.X = value
 	}
-	if value := fprpc.y; value != nil {
+	if value, ok := fprpc.mutation.Y(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanreferencepoint.FieldY,
 		})
-		fprp.Y = *value
+		fprp.Y = value
 	}
-	if value := fprpc.latitude; value != nil {
+	if value, ok := fprpc.mutation.Latitude(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanreferencepoint.FieldLatitude,
 		})
-		fprp.Latitude = *value
+		fprp.Latitude = value
 	}
-	if value := fprpc.longitude; value != nil {
+	if value, ok := fprpc.mutation.Longitude(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanreferencepoint.FieldLongitude,
 		})
-		fprp.Longitude = *value
+		fprp.Longitude = value
 	}
 	if err := sqlgraph.CreateNode(ctx, fprpc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
@@ -180,6 +199,6 @@ func (fprpc *FloorPlanReferencePointCreate) sqlSave(ctx context.Context) (*Floor
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	fprp.ID = strconv.FormatInt(id, 10)
+	fprp.ID = int(id)
 	return fprp, nil
 }

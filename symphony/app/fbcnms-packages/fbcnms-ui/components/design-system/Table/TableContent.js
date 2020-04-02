@@ -8,38 +8,67 @@
  * @format
  */
 
+import type {TRefFor} from '@fbcnms/ui/components/design-system/types/TRefFor.flow.js';
 import type {TableColumnType, TableRowDataType} from './Table';
 
-import React from 'react';
+import * as React from 'react';
 import TableRowCheckbox from './TableRowCheckbox';
 import Text from '../Text';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useSelection} from './TableSelectionContext';
 import {useTable} from './TableContext';
 import {useTableCommonStyles} from './TableCommons';
 
 const useStyles = makeStyles(() => ({
   row: {
     backgroundColor: symphony.palette.white,
+    borderLeft: `2px solid transparent`,
     '&$bands:nth-child(odd)': {
       backgroundColor: symphony.palette.background,
     },
     '&$border': {
-      borderTop: '1px solid',
-      borderColor: symphony.palette.separatorLight,
+      borderBottom: `1px solid ${symphony.palette.separatorLight}`,
+    },
+    '&$hoverHighlighting:hover': {
+      cursor: 'pointer',
+      '&$border': {
+        backgroundColor: symphony.palette.D10,
+      },
+      '&$bands': {
+        '& #column0 $textualCell': {
+          color: symphony.palette.primary,
+        },
+      },
+      '& $checkBox': {
+        opacity: 1,
+      },
+    },
+  },
+  activeRow: {
+    borderLeft: `2px solid ${symphony.palette.primary}`,
+    '&:not($bands)': {
+      backgroundColor: symphony.palette.D10,
     },
   },
   bands: {},
   border: {},
   none: {},
+  hoverHighlighting: {},
   checkBox: {
-    width: '24px',
-    paddingLeft: '8px',
+    width: '28px',
+    paddingLeft: '12px',
   },
+  textualCell: {},
 }));
 
-export type RowsSeparationTypes = 'bands' | 'border' | 'none';
+export const ROW_SEPARATOR_TYPES = {
+  bands: 'bands',
+  border: 'border',
+  none: 'none',
+};
+export type RowsSeparationTypes = $Keys<typeof ROW_SEPARATOR_TYPES>;
 
 type Props<T> = {
   data: Array<TableRowDataType<T>>,
@@ -47,6 +76,7 @@ type Props<T> = {
   rowsSeparator?: RowsSeparationTypes,
   dataRowClassName?: string,
   cellClassName?: string,
+  fwdRef?: TRefFor<HTMLElement>,
 };
 
 const TableContent = <T>(props: Props<T>) => {
@@ -55,43 +85,62 @@ const TableContent = <T>(props: Props<T>) => {
     columns,
     dataRowClassName,
     cellClassName,
-    rowsSeparator = 'bands',
+    rowsSeparator = ROW_SEPARATOR_TYPES.bands,
+    fwdRef,
   } = props;
   const classes = useStyles();
   const commonClasses = useTableCommonStyles();
-  const {showSelection} = useTable();
+  const {showSelection, clickableRows} = useTable();
+  const {activeId, setActiveId} = useSelection();
 
   return (
-    <tbody>
-      {data.map((d, rowIndex) => (
-        <tr
-          key={`row_${rowIndex}`}
-          className={classNames(
-            classes.row,
-            dataRowClassName,
-            classes[rowsSeparator],
-          )}>
-          {showSelection && (
-            <td className={classes.checkBox}>
-              <TableRowCheckbox id={d.key ?? rowIndex} />
-            </td>
-          )}
-          {columns.map((col, colIndex) => {
-            const renderedCol = col.render(d);
-            return (
-              <td
-                key={`col_${colIndex}_${d.key ?? rowIndex}`}
-                className={classNames(commonClasses.cell, cellClassName)}>
-                {typeof renderedCol === 'string' ? (
-                  <Text variant="body2">{renderedCol}</Text>
-                ) : (
-                  renderedCol
-                )}
+    <tbody ref={fwdRef}>
+      {data.map((d, rowIndex) => {
+        const rowId = d.key ?? rowIndex;
+        return (
+          <tr
+            key={`row_${rowIndex}`}
+            onClick={() => {
+              if (setActiveId == null) {
+                return;
+              }
+              const newActiveId = rowId !== activeId ? rowId : null;
+              setActiveId(newActiveId);
+            }}
+            className={classNames(
+              classes.row,
+              dataRowClassName,
+              classes[rowsSeparator],
+              {
+                [classes.hoverHighlighting]: clickableRows,
+                [classes.activeRow]: rowId === activeId,
+              },
+            )}>
+            {showSelection && (
+              <td className={classes.checkBox}>
+                <TableRowCheckbox id={rowId} />
               </td>
-            );
-          })}
-        </tr>
-      ))}
+            )}
+            {columns.map((col, colIndex) => {
+              const renderedCol = col.render(d);
+              return (
+                <td
+                  key={`col_${colIndex}_${d.key ?? rowIndex}`}
+                  id={`column${colIndex}`}
+                  className={classNames(
+                    commonClasses.cell,
+                    col.className,
+                    cellClassName,
+                  )}>
+                  <Text className={classes.textualCell} variant="body2">
+                    {renderedCol}
+                  </Text>
+                </td>
+              );
+            })}
+          </tr>
+        );
+      })}
     </tbody>
   );
 };

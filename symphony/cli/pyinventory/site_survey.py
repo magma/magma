@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 import math
 from datetime import datetime
@@ -9,22 +8,21 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import pandas as pd
 from dacite import Config, from_dict
 from gql.gql.client import OperationException
+from gql.gql.reporter import FailedOperationException
 from xlsxwriter.format import Format
 from xlsxwriter.utility import xl_col_to_name
 from xlsxwriter.workbook import Workbook
 from xlsxwriter.worksheet import Worksheet
 
 from .api.file import add_site_survey_image, delete_site_survey_image
-from .consts import Location, SiteSurvey
-from .graphql.create_survey_mutation import (
-    CreateSurveyMutation,
-    SurveyCreateData,
-    SurveyQuestionType,
-)
+from .client import SymphonyClient
+from .consts import Entity, Location, SiteSurvey
+from .exceptions import EntityNotFoundError
+from .graphql.create_survey_mutation import CreateSurveyMutation
 from .graphql.location_surveys_query import LocationSurveysQuery
 from .graphql.remove_site_survey_mutation import RemoveSiteSurveyMutation
-from .graphql_client import GraphqlClient
-from .reporter import FailedOperationException
+from .graphql.survey_create_data_input import SurveyCreateData
+from .graphql.survey_question_type_enum import SurveyQuestionType
 from .site_survey_schema import retrieve_tamplates_and_set_them
 
 
@@ -563,6 +561,7 @@ def get_survey_response(
         "questionIndex": question_index,
         "wifiData": [],
         "cellData": [],
+        "imagesData": [],
     }
 
     if form_description:
@@ -699,7 +698,7 @@ def _get_survey_reponses(
 
 
 def upload_site_survey(
-    client: GraphqlClient,
+    client: SymphonyClient,
     location: Location,
     name: str,
     completion_date: datetime,
@@ -711,7 +710,7 @@ def upload_site_survey(
         excel is as needed for upload.
 
         Args:
-            location (client.Location object): could be retrieved from getLocation or addLocation api
+            location (pyinventory.consts.Location object): could be retrieved from getLocation or addLocation api
             name (str): name of the site survey
             completion_date (datetime.datetime object): the time the site survey was completed
             excel_file_path (str): the path for the excel with the site survey information
@@ -720,27 +719,29 @@ def upload_site_survey(
             json_file_path(str): the path for the json file of the schema of the site survey
                                the json file should comply to the schema found in survey_schema.json
                                Example of the format:
-                                {
-                                  "forms": [
-                                    {
-                                      "formTitle": "Site Management - General Information",
-                                      "questions": [
-                                        {
-                                          "questionName": "Exact address",
-                                          "questionType": "TEXT"
-                                        },
-                                        {
-                                          "questionName": "Reference for address",
-                                          "questionType": "TEXT"
-                                        },
-                                        {
-                                          "questionName": "Ubigeo",
-                                          "questionType": "TEXT"
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
+            ```
+            {
+                "forms": [
+                {
+                    "formTitle": "Site Management - General Information",
+                    "questions": [
+                    {
+                        "questionName": "Exact address",
+                        "questionType": "TEXT"
+                    },
+                    {
+                        "questionName": "Reference for address",
+                        "questionType": "TEXT"
+                    },
+                    {
+                        "questionName": "Ubigeo",
+                        "questionType": "TEXT"
+                    }
+                    ]
+                }
+                ]
+            }
+            ```
 
         Raises: AssertionException if input values in the excel are incorrect
                 FailedOperationException for internal inventory error
@@ -846,30 +847,39 @@ def build_site_survey_from_survey_response(
     )
 
 
-def get_site_surveys(client: GraphqlClient, location: Location) -> List[SiteSurvey]:
+def get_site_surveys(client: SymphonyClient, location: Location) -> List[SiteSurvey]:
     """Retrieve all site survey completed in the location.
 
         Args:
-            location (client.Location object): could be retrieved from getLocation or addLocation api
+            location (pyinventory.consts.Location object): could be retrieved from getLocation or addLocation api
 
-        Returns: client.SiteSurvey object (with name, id, completion time and the forms)
+        Returns: pyinventory.consts.SiteSurvey object (with name, id, completion time and the forms)
                  The forms are the results of the survey. It is a dict of dicts:
-                    {
-                        formA: {
-                            question1: value1
-                            question2: value2
-                        }
-                        formB: {
-                            question3: value3
-                            question4: value4
-                        }
-                    }
+        ```
+        {
+            formA: {
+                question1: value1
+                question2: value2
+            }
+            formB: {
+                question3: value3
+                question4: value4
+            }
+        }
+        ```
+
+        Raises: `pyinventory.exceptions.EntityNotFoundError`: location does not exist
     """
 
-    surveys = LocationSurveysQuery.execute(client, id=location.id).location.surveys
+    location_with_surveys = LocationSurveysQuery.execute(
+        client, id=location.id
+    ).location
+    if not location_with_surveys:
+        raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
+    surveys = location_with_surveys.surveys
     return [build_site_survey_from_survey_response(survey) for survey in surveys]
 
 
-def delete_site_survey(client: GraphqlClient, site_survey: SiteSurvey) -> None:
+def delete_site_survey(client: SymphonyClient, site_survey: SiteSurvey) -> None:
     delete_site_survey_image(client, site_survey)
     RemoveSiteSurveyMutation.execute(client, id=site_survey.id)

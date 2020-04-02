@@ -16,7 +16,7 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import ConfigureTitle from '@fbcnms/ui/components/ConfigureTitle';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import classNames from 'classnames';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../common/FormContext';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -60,7 +60,7 @@ const InventoryConfigureHeader = (props: Props) => {
 
   return (
     <div className={classNames(classes.headerRoot, className)}>
-      <FormValidationContextProvider>
+      <FormContextProvider>
         <ConfigureTitle
           className={classes.title}
           title={props.title}
@@ -87,7 +87,7 @@ const InventoryConfigureHeader = (props: Props) => {
             </FormAction>
           );
         })}
-      </FormValidationContextProvider>
+      </FormContextProvider>
     </div>
   );
 };

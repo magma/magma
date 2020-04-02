@@ -95,7 +95,7 @@ const EquipmentBreadcrumbs = (props: Props) => {
     onEquipmentClicked && onEquipmentClicked(id);
   };
   const breadcrumbs = [
-    ...equipment.locationHierarchy.map(l => ({
+    ...(equipment.locationHierarchy ?? []).map(l => ({
       id: l.id,
       name: l.name,
       subtext: size === 'small' ? null : l.locationType.name,
@@ -103,7 +103,7 @@ const EquipmentBreadcrumbs = (props: Props) => {
         onClick: () => onLocationClickedCallback(l.id),
       }),
     })),
-    ...equipment.positionHierarchy.map(pos => ({
+    ...(equipment.positionHierarchy ?? []).map(pos => ({
       id: pos.id,
       name: nullthrows(pos.parentEquipment).name,
       subtext: size === 'small' ? null : positionSubText(pos),

@@ -10,39 +10,61 @@ import (
 	"testing"
 	"time"
 
-	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/handler"
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/graphql/directive"
-	"github.com/facebookincubator/symphony/graph/graphql/generated"
-	"github.com/facebookincubator/symphony/pkg/log/logtest"
-
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
+	"github.com/99designs/gqlgen/client"
+	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-type equipmentSearchDataModels struct {
-	locType1 string
-	locType2 string
-	loc1     string
-	loc2     string
-	equType  string
-}
+const (
+	woCountQuery = `query($filters: [WorkOrderFilterInput!]!) {
+		workOrderSearch(filters:$filters) {
+			count
+		}
+	}`
 
-type woSearchDataModels struct {
-	loc1        string
-	woType1     string
-	assignee1   string
-	wo1         string
-	owner       string
-	installDate time.Time
-}
+	woAllQuery = `query($filters: [WorkOrderFilterInput!]!) {
+		workOrderSearch(filters:$filters) {
+			count
+			workOrders {
+				id
+			}
+		}
+	}`
+)
 
-const WOCountQuery = `query($filters: [WorkOrderFilterInput!]!) { workOrderSearch(filters:$filters) {count }}`
-const WOAllQuery = `query($filters: [WorkOrderFilterInput!]!) { workOrderSearch(filters:$filters) {count workOrders {id }}}`
+type (
+	equipmentSearchDataModels struct {
+		locType1  int
+		locType2  int
+		loc1      int
+		loc2      int
+		equType   int
+		equ2ExtID string
+	}
+
+	woSearchDataModels struct {
+		loc1        int
+		woType1     int
+		assignee1   int
+		wo1         int
+		owner       int
+		installDate time.Time
+	}
+
+	woSearchResult struct {
+		WorkOrderSearch struct {
+			Count      int
+			WorkOrders []struct {
+				ID string
+			}
+		}
+	}
+)
 
 func prepareEquipmentData(ctx context.Context, r *TestResolver, name string, props []*models.PropertyInput) equipmentSearchDataModels {
 	mr := r.Mutation()
@@ -78,11 +100,13 @@ func prepareEquipmentData(ctx context.Context, r *TestResolver, name string, pro
 		Location:   &loc1.ID,
 		Properties: props,
 	})
-	_, _ = mr.AddEquipment(ctx, models.AddEquipmentInput{
+	extID := name + "123"
+	equ2, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:       name + "eq_inst2",
 		Type:       equType.ID,
 		Location:   &loc2.ID,
 		Properties: props,
+		ExternalID: &extID,
 	})
 	return equipmentSearchDataModels{
 		locType1.ID,
@@ -90,6 +114,7 @@ func prepareEquipmentData(ctx context.Context, r *TestResolver, name string, pro
 		loc1.ID,
 		loc2.ID,
 		equType.ID,
+		equ2.ExternalID,
 	}
 }
 
@@ -113,8 +138,10 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 
 	woType1, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "wo_type_a"})
 	woType2, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "wo_type_b"})
-	assignee1 := "user1@fb.com"
-	assignee2 := "user2@fb.com"
+	assigneeName1 := "user1@fb.com"
+	assigneeName2 := "user2@fb.com"
+	assignee1 := viewertest.CreateUserEnt(ctx, r.client, assigneeName1)
+	assignee2 := viewertest.CreateUserEnt(ctx, r.client, assigneeName2)
 	desc := "random description"
 
 	wo1, _ := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -122,20 +149,20 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 		Description:     &desc,
 		WorkOrderTypeID: woType1.ID,
 		LocationID:      &loc1.ID,
-		Assignee:        &assignee1,
+		AssigneeID:      &assignee1.ID,
 	})
 	_, _ = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name + "wo_2",
 		Description:     &desc,
 		WorkOrderTypeID: woType1.ID,
-		Assignee:        &assignee1,
+		AssigneeID:      &assignee1.ID,
 	})
 	_, _ = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name + "wo_3",
 		Description:     &desc,
 		WorkOrderTypeID: woType2.ID,
 		LocationID:      &loc1.ID,
-		Assignee:        &assignee2,
+		AssigneeID:      &assignee2.ID,
 	})
 	_, _ = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name + "wo_4",
@@ -145,24 +172,25 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 	})
 
 	installDate := time.Now()
-	owner := "owner"
+	ownerName := "owner"
+	owner := viewertest.CreateUserEnt(ctx, r.client, ownerName)
 	_, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          wo1.ID,
 		Name:        wo1.Name,
-		OwnerName:   &owner,
+		OwnerID:     &owner.ID,
 		InstallDate: &installDate,
 		Status:      models.WorkOrderStatusDone,
 		Priority:    models.WorkOrderPriorityHigh,
 		LocationID:  &loc1.ID,
-		Assignee:    &assignee1,
+		AssigneeID:  &assignee1.ID,
 	})
 
 	return woSearchDataModels{
 		loc1.ID,
 		woType1.ID,
-		assignee1,
+		assignee1.ID,
 		wo1.ID,
-		owner,
+		owner.ID,
 		installDate,
 	}
 }
@@ -171,8 +199,9 @@ func TestSearchEquipmentByName(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
+	c := newGraphClient(t, r)
 
-	mr, qr := r.Mutation(), r.Query()
+	mr := r.Mutation()
 
 	locationType, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type",
@@ -186,42 +215,51 @@ func TestSearchEquipmentByName(t *testing.T) {
 		Name: "equipment_type",
 	})
 	require.NoError(t, err)
-	eq, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
+	e, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:     "EqUiPmEnT",
 		Type:     equipmentType.ID,
 		Location: &location.ID,
 	})
 
-	limit := 10
-	equipmentsResult, err := qr.SearchForEntity(ctx, "equip", nil, &limit, nil, nil)
+	var rsp struct {
+		SearchForNode struct {
+			Edges []struct {
+				Node struct {
+					Name string
+				}
+			}
+		}
+	}
+	c.MustPost(
+		`query($name: String!) { searchForNode(name: $name, first: 10) { edges { node { ... on Equipment { name } } } } }`,
+		&rsp,
+		client.Var("name", "equip"),
+	)
+	require.Len(t, rsp.SearchForNode.Edges, 1)
+	assert.Equal(t, e.Name, rsp.SearchForNode.Edges[0].Node.Name)
 	require.NoError(t, err)
 
-	equipmentResult := equipmentsResult.Edges[0].Node
-	assert.Equal(t, equipmentResult.EntityID, eq.ID)
-	assert.Equal(t, equipmentResult.EntityType, "equipment")
-	assert.Equal(t, equipmentResult.Name, eq.Name)
-	assert.Equal(t, equipmentResult.Type, equipmentType.Name)
-
-	require.NoError(t, err)
 	_, _ = mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:     "equipMENT",
 		Type:     equipmentType.ID,
 		Location: &location.ID,
 	})
 
-	equipmentsResult, err = qr.SearchForEntity(ctx, "ment", nil, &limit, nil, nil)
+	c.MustPost(
+		`query($name: String!) { searchForNode(name: $name, first: 10) { edges { node { ... on Equipment { name } } } } }`,
+		&rsp,
+		client.Var("name", "ment"),
+	)
+	require.Len(t, rsp.SearchForNode.Edges, 2)
+
+	c.MustPost(
+		`query($name: String!) { searchForNode(name: $name, first: 10) { edges { node { ... on Location { name } } } } }`,
+		&rsp,
+		client.Var("name", "cation"),
+	)
+	require.Len(t, rsp.SearchForNode.Edges, 1)
+	assert.Equal(t, location.Name, rsp.SearchForNode.Edges[0].Node.Name)
 	require.NoError(t, err)
-
-	assert.Len(t, equipmentsResult.Edges, 2)
-
-	locationsResult, err := qr.SearchForEntity(ctx, "cation", nil, &limit, nil, nil)
-	require.NoError(t, err)
-
-	locationResult := locationsResult.Edges[0].Node
-	assert.Equal(t, locationResult.EntityID, location.ID)
-	assert.Equal(t, locationResult.EntityType, "location")
-	assert.Equal(t, locationResult.Name, location.Name)
-	assert.Equal(t, locationResult.Type, locationType.Name)
 }
 
 func TestEquipmentSearch(t *testing.T) {
@@ -260,7 +298,7 @@ func TestEquipmentSearch(t *testing.T) {
 	f1 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{model1.loc1, model2.loc1},
+		IDSet:      []int{model1.loc1, model2.loc1},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f1}, &limit)
@@ -271,7 +309,7 @@ func TestEquipmentSearch(t *testing.T) {
 	f2 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeEquipmentType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{model1.equType},
+		IDSet:      []int{model1.equType},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f1, &f2}, &limit)
@@ -311,13 +349,24 @@ func TestEquipmentSearch(t *testing.T) {
 	f5 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{model2.loc1},
+		IDSet:      []int{model2.loc1},
 		MaxDepth:   &maxDepth,
 	}
 	res5, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f3, &f4, &f5}, &limit)
 	require.NoError(t, err)
-	require.Len(t, res5.Equipment, 0)
-	require.Equal(t, res5.Count, 0)
+	require.Empty(t, res5.Equipment)
+	require.Zero(t, res5.Count)
+
+	f6 := models.EquipmentFilterInput{
+		FilterType:  models.EquipmentFilterTypeEquipInstExternalID,
+		Operator:    models.FilterOperatorIs,
+		StringValue: &model1.equ2ExtID,
+		MaxDepth:    &maxDepth,
+	}
+	res6, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f6}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res6.Equipment, 1)
+	require.Equal(t, res6.Count, 1)
 }
 
 func TestUnsupportedEquipmentSearch(t *testing.T) {
@@ -424,7 +473,7 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 	f1 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{loc1.ID},
+		IDSet:      []int{loc1.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res1, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f1}, &limit)
@@ -434,7 +483,7 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 	f2 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{loc2.ID},
+		IDSet:      []int{loc2.ID},
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f2}, &limit)
@@ -521,23 +570,6 @@ func TestSearchEquipmentByDate(t *testing.T) {
 	require.Len(t, res3.Equipment, 0)
 }
 
-func newGraphClient(t *testing.T, r *TestResolver) *client.Client {
-	return client.New(handler.GraphQL(
-		generated.NewExecutableSchema(
-			generated.Config{
-				Resolvers:  r,
-				Directives: directive.New(logtest.NewTestLogger(t)),
-			},
-		),
-		handler.RequestMiddleware(
-			func(ctx context.Context, next func(context.Context) []byte) []byte {
-				ctx = ent.NewContext(ctx, r.client)
-				return next(ctx)
-			},
-		),
-	))
-}
-
 func TestSearchWO(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
@@ -555,16 +587,14 @@ func TestSearchWO(t *testing.T) {
 			Awo_4: loc2, no assignee
 	*/
 
-	var wo struct {
-		WorkOrderSearch models.WorkOrderSearchResult
-	}
+	var result woSearchResult
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 4)
-	require.Empty(t, wo.WorkOrderSearch.WorkOrders)
+	require.Equal(t, 4, result.WorkOrderSearch.Count)
+	require.Empty(t, result.WorkOrderSearch.WorkOrders)
 
 	name := "_1"
 	f1 := models.WorkOrderFilterInput{
@@ -573,12 +603,12 @@ func TestSearchWO(t *testing.T) {
 		StringValue: &name,
 	}
 	c.MustPost(
-		WOAllQuery,
-		&wo,
+		woAllQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f1}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 1)
-	require.Equal(t, data.wo1, wo.WorkOrderSearch.WorkOrders[0].ID)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
+	require.Equal(t, strconv.Itoa(data.wo1), result.WorkOrderSearch.WorkOrders[0].ID)
 
 	status := models.WorkOrderStatusPlanned.String()
 	f2 := models.WorkOrderFilterInput{
@@ -587,92 +617,94 @@ func TestSearchWO(t *testing.T) {
 		StringSet:  []string{status},
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f2}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 3)
+	require.Equal(t, 3, result.WorkOrderSearch.Count)
 
 	f3 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderType,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.woType1},
+		IDSet:      []int{data.woType1},
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f3}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 2)
+	require.Equal(t, 2, result.WorkOrderSearch.Count)
 
 	f4 := models.WorkOrderFilterInput{
-		FilterType: models.WorkOrderFilterTypeWorkOrderAssignee,
+		FilterType: models.WorkOrderFilterTypeWorkOrderAssignedTo,
 		Operator:   models.FilterOperatorIsOneOf,
-		StringSet:  []string{data.assignee1},
+		IDSet:      []int{data.assignee1},
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f4}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 2)
+	require.Equal(t, 2, result.WorkOrderSearch.Count)
 
 	f5 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc1},
+		IDSet:      []int{data.loc1},
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f5}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 2)
+	require.Equal(t, 2, result.WorkOrderSearch.Count)
 
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f4, f5}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 1)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
 
 	f7 := models.WorkOrderFilterInput{
-		FilterType: models.WorkOrderFilterTypeWorkOrderOwner,
+		FilterType: models.WorkOrderFilterTypeWorkOrderOwnedBy,
 		Operator:   models.FilterOperatorIsOneOf,
-		StringSet:  []string{data.owner},
+		IDSet:      []int{data.owner},
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f7}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 1)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
 
-	installTimeStr := strconv.FormatInt(data.installDate.Unix(), 10)
 	f8 := models.WorkOrderFilterInput{
-		FilterType:  models.WorkOrderFilterTypeWorkOrderInstallDate,
-		Operator:    models.FilterOperatorIs,
-		StringValue: &installTimeStr,
+		FilterType: models.WorkOrderFilterTypeWorkOrderInstallDate,
+		Operator:   models.FilterOperatorIs,
+		StringValue: pointer.ToString(
+			strconv.FormatInt(data.installDate.Unix(), 10),
+		),
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f8}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 1)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
 
-	now := strconv.FormatInt(time.Now().Unix(), 10)
 	f9 := models.WorkOrderFilterInput{
-		FilterType:  models.WorkOrderFilterTypeWorkOrderCreationDate,
-		Operator:    models.FilterOperatorIs,
-		StringValue: &now,
+		FilterType: models.WorkOrderFilterTypeWorkOrderCreationDate,
+		Operator:   models.FilterOperatorIs,
+		StringValue: pointer.ToString(
+			strconv.FormatInt(time.Now().Unix(), 10),
+		),
 	}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f9}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 4)
+	require.Equal(t, 4, result.WorkOrderSearch.Count)
 }
 
 func TestSearchWOByPriority(t *testing.T) {
@@ -681,41 +713,35 @@ func TestSearchWOByPriority(t *testing.T) {
 	ctx := ent.NewContext(viewertest.NewContext(r.client), r.client)
 	data := prepareWOData(ctx, r, "B")
 	c := newGraphClient(t, r)
-	var wo struct {
-		WorkOrderSearch models.WorkOrderSearchResult
-	}
 
+	var result woSearchResult
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 4)
+	require.Equal(t, 4, result.WorkOrderSearch.Count)
 
-	f1 := models.WorkOrderFilterInput{
+	f := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderPriority,
 		Operator:   models.FilterOperatorIsOneOf,
 		StringSet:  []string{models.WorkOrderPriorityHigh.String()},
 	}
 	c.MustPost(
-		WOAllQuery,
-		&wo,
-		client.Var("filters", []models.WorkOrderFilterInput{f1}),
+		woAllQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 1)
-	require.Equal(t, wo.WorkOrderSearch.WorkOrders[0].ID, data.wo1)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
+	require.Equal(t, strconv.Itoa(data.wo1), result.WorkOrderSearch.WorkOrders[0].ID)
 
-	f2 := models.WorkOrderFilterInput{
-		FilterType: models.WorkOrderFilterTypeWorkOrderPriority,
-		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{models.WorkOrderPriorityLow.String()},
-	}
+	f.StringSet = []string{models.WorkOrderPriorityLow.String()}
 	c.MustPost(
-		WOAllQuery,
-		&wo,
-		client.Var("filters", []models.WorkOrderFilterInput{f2}),
+		woAllQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 0)
+	require.Zero(t, result.WorkOrderSearch.Count)
 }
 
 func TestSearchWOByLocation(t *testing.T) {
@@ -734,42 +760,31 @@ func TestSearchWOByLocation(t *testing.T) {
 			Awo_3: loc1, assignee2
 			Awo_4: loc2, no assignee
 	*/
-	var wo struct {
-		WorkOrderSearch models.WorkOrderSearchResult
-	}
-
+	var result woSearchResult
 	c.MustPost(
-		WOCountQuery,
-		&wo,
+		woCountQuery,
+		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 4)
-	maxDepth := 2
-	f1 := models.WorkOrderFilterInput{
+	require.Equal(t, 4, result.WorkOrderSearch.Count)
+	f := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{data.loc1},
-		MaxDepth:   &maxDepth,
+		IDSet:      []int{data.loc1},
+		MaxDepth:   pointer.ToInt(2),
 	}
-
 	c.MustPost(
-		WOCountQuery,
-		&wo,
-		client.Var("filters", []models.WorkOrderFilterInput{f1}),
+		woCountQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 2)
+	require.Equal(t, 2, result.WorkOrderSearch.Count)
 
-	f2 := models.WorkOrderFilterInput{
-		FilterType: models.WorkOrderFilterTypeWorkOrderLocationInst,
-		Operator:   models.FilterOperatorIsOneOf,
-		IDSet:      []string{"no-id"},
-		MaxDepth:   &maxDepth,
-	}
-
+	f.IDSet = []int{-1}
 	c.MustPost(
-		WOCountQuery,
-		&wo,
-		client.Var("filters", []models.WorkOrderFilterInput{f2}),
+		woCountQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f}),
 	)
-	require.Equal(t, wo.WorkOrderSearch.Count, 0)
+	require.Zero(t, result.WorkOrderSearch.Count)
 }

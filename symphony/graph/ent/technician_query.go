@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -32,8 +31,9 @@ type TechnicianQuery struct {
 	predicates []predicate.Technician
 	// eager-loading edges.
 	withWorkOrders *WorkOrderQuery
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -63,12 +63,18 @@ func (tq *TechnicianQuery) Order(o ...Order) *TechnicianQuery {
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (tq *TechnicianQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: tq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(technician.Table, technician.FieldID, tq.sqlQuery()),
-		sqlgraph.To(workorder.Table, workorder.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(technician.Table, technician.FieldID, tq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -94,8 +100,8 @@ func (tq *TechnicianQuery) FirstX(ctx context.Context) *Technician {
 }
 
 // FirstID returns the first Technician id in the query. Returns *NotFoundError when no id was found.
-func (tq *TechnicianQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TechnicianQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -107,7 +113,7 @@ func (tq *TechnicianQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (tq *TechnicianQuery) FirstXID(ctx context.Context) string {
+func (tq *TechnicianQuery) FirstXID(ctx context.Context) int {
 	id, err := tq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -141,8 +147,8 @@ func (tq *TechnicianQuery) OnlyX(ctx context.Context) *Technician {
 }
 
 // OnlyID returns the only Technician id in the query, returns an error if not exactly one id was returned.
-func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = tq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -158,7 +164,7 @@ func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (tq *TechnicianQuery) OnlyXID(ctx context.Context) string {
+func (tq *TechnicianQuery) OnlyXID(ctx context.Context) int {
 	id, err := tq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -168,6 +174,9 @@ func (tq *TechnicianQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of Technicians.
 func (tq *TechnicianQuery) All(ctx context.Context) ([]*Technician, error) {
+	if err := tq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return tq.sqlAll(ctx)
 }
 
@@ -181,8 +190,8 @@ func (tq *TechnicianQuery) AllX(ctx context.Context) []*Technician {
 }
 
 // IDs executes the query and returns a list of Technician ids.
-func (tq *TechnicianQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (tq *TechnicianQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := tq.Select(technician.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -190,7 +199,7 @@ func (tq *TechnicianQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (tq *TechnicianQuery) IDsX(ctx context.Context) []string {
+func (tq *TechnicianQuery) IDsX(ctx context.Context) []int {
 	ids, err := tq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -200,6 +209,9 @@ func (tq *TechnicianQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (tq *TechnicianQuery) Count(ctx context.Context) (int, error) {
+	if err := tq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return tq.sqlCount(ctx)
 }
 
@@ -214,6 +226,9 @@ func (tq *TechnicianQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (tq *TechnicianQuery) Exist(ctx context.Context) (bool, error) {
+	if err := tq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return tq.sqlExist(ctx)
 }
 
@@ -237,7 +252,8 @@ func (tq *TechnicianQuery) Clone() *TechnicianQuery {
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Technician{}, tq.predicates...),
 		// clone intermediate query.
-		sql: tq.sql.Clone(),
+		sql:  tq.sql.Clone(),
+		path: tq.path,
 	}
 }
 
@@ -270,7 +286,12 @@ func (tq *TechnicianQuery) WithWorkOrders(opts ...func(*WorkOrderQuery)) *Techni
 func (tq *TechnicianQuery) GroupBy(field string, fields ...string) *TechnicianGroupBy {
 	group := &TechnicianGroupBy{config: tq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = tq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return tq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -289,8 +310,24 @@ func (tq *TechnicianQuery) GroupBy(field string, fields ...string) *TechnicianGr
 func (tq *TechnicianQuery) Select(field string, fields ...string) *TechnicianSelect {
 	selector := &TechnicianSelect{config: tq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = tq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return tq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (tq *TechnicianQuery) prepareQuery(ctx context.Context) error {
+	if tq.path != nil {
+		prev, err := tq.path(ctx)
+		if err != nil {
+			return err
+		}
+		tq.sql = prev
+	}
+	return nil
 }
 
 func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
@@ -324,13 +361,9 @@ func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
 
 	if query := tq.withWorkOrders; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Technician)
+		nodeids := make(map[int]*Technician)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -376,7 +409,7 @@ func (tq *TechnicianQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   technician.Table,
 			Columns: technician.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: technician.FieldID,
 			},
 		},
@@ -436,8 +469,9 @@ type TechnicianGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -448,6 +482,11 @@ func (tgb *TechnicianGroupBy) Aggregate(fns ...Aggregate) *TechnicianGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (tgb *TechnicianGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := tgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	tgb.sql = query
 	return tgb.sqlScan(ctx, v)
 }
 
@@ -566,12 +605,18 @@ func (tgb *TechnicianGroupBy) sqlQuery() *sql.Selector {
 type TechnicianSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ts *TechnicianSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ts.path(ctx)
+	if err != nil {
+		return err
+	}
+	ts.sql = query
 	return ts.sqlScan(ctx, v)
 }
 

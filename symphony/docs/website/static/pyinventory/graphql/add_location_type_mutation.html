@@ -29,282 +29,61 @@
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="pyinventory.graphql.add_location_type_mutation.enum_field"><code class="name flex">
-<span>def <span class="ident">enum_field</span></span>(<span>enum_type)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput"><code class="flex name class">
-<span>class <span class="ident">AddLocationTypeInput</span></span>
-<span>(</span><span>name, properties, surveyTemplateCategories, mapType=None, mapZoomLevel=None, isSite=None)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>AddLocationTypeInput(name: str, properties: List[pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.PropertyTypeInput], surveyTemplateCategories: List[pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.SurveyTemplateCategoryInput], mapType: Union[str, NoneType] = None, mapZoomLevel: Union[int, NoneType] = None, isSite: Union[bool, NoneType] = None)</p></section>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.PropertyTypeInput"><code class="name">var <span class="ident">PropertyTypeInput</span></code></dt>
-<dd>
-<section class="desc"><p>PropertyTypeInput(name: str, type: pyinventory.graphql.add_location_type_mutation.PropertyKind, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, category: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[numbers.Number, NoneType] = None, latitudeValue: Union[numbers.Number, NoneType] = None, longitudeValue: Union[numbers.Number, NoneType] = None, rangeFromValue: Union[numbers.Number, NoneType] = None, rangeToValue: Union[numbers.Number, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None, isMandatory: Union[bool, NoneType] = None, isDeleted: Union[bool, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.SurveyTemplateCategoryInput"><code class="name">var <span class="ident">SurveyTemplateCategoryInput</span></code></dt>
-<dd>
-<section class="desc"><p>SurveyTemplateCategoryInput(categoryTitle: str, categoryDescription: str, id: Union[str, NoneType] = None, surveyTemplateQuestions: Union[List[pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.SurveyTemplateCategoryInput.SurveyTemplateQuestionInput], NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.isSite"><code class="name">var <span class="ident">isSite</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.mapType"><code class="name">var <span class="ident">mapType</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.mapZoomLevel"><code class="name">var <span class="ident">mapZoomLevel</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-</dd>
 <dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation"><code class="flex name class">
 <span>class <span class="ident">AddLocationTypeMutation</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData">AddLocationTypeMutation.AddLocationTypeMutationData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>AddLocationTypeMutation(data: Union[pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
+<section class="desc"><p>AddLocationTypeMutation(data: pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
+id\n
+name\n
+type\n
+index\n
+category\n
+stringValue\n
+intValue\n
+booleanValue\n
+floatValue\n
+latitudeValue\n
+longitudeValue\n
+rangeFromValue\n
+rangeToValue\n
+isEditable\n
+isInstanceProperty\n
+isMandatory\n
+isDeleted\n}\n\n\n
+mutation AddLocationTypeMutation($input: AddLocationTypeInput!) {\n
+addLocationType(input: $input) {\n
+id\n
+name\n
+propertyTypes {\n
+&hellip;PropertyTypeFragment\n
+}\n
+}\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData"><code class="name">var <span class="ident">AddLocationTypeMutationData</span></code></dt>
 <dd>
-<section class="desc"><p>AddLocationTypeMutationData(addLocationType: Union[pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData.LocationType, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
+<section class="desc"><p>AddLocationTypeMutationData(addLocationType: pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData.LocationType)</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, input)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, input: <a title="pyinventory.graphql.add_location_type_input.AddLocationTypeInput" href="add_location_type_input.html#pyinventory.graphql.add_location_type_input.AddLocationTypeInput">AddLocationTypeInput</a>) -> <a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData">AddLocationTypeMutation.AddLocationTypeMutationData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind"><code class="flex name class">
-<span>class <span class="ident">PropertyKind</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.bool"><code class="name">var <span class="ident">bool</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.date"><code class="name">var <span class="ident">date</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.datetime_local"><code class="name">var <span class="ident">datetime_local</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.email"><code class="name">var <span class="ident">email</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.enum"><code class="name">var <span class="ident">enum</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.equipment"><code class="name">var <span class="ident">equipment</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.float"><code class="name">var <span class="ident">float</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.gps_location"><code class="name">var <span class="ident">gps_location</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.int"><code class="name">var <span class="ident">int</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.location"><code class="name">var <span class="ident">location</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.range"><code class="name">var <span class="ident">range</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.service"><code class="name">var <span class="ident">service</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.PropertyKind.string"><code class="name">var <span class="ident">string</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType"><code class="flex name class">
-<span>class <span class="ident">SurveyQuestionType</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.BOOL"><code class="name">var <span class="ident">BOOL</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.CELLULAR"><code class="name">var <span class="ident">CELLULAR</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.COORDS"><code class="name">var <span class="ident">COORDS</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.DATE"><code class="name">var <span class="ident">DATE</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.EMAIL"><code class="name">var <span class="ident">EMAIL</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.FLOAT"><code class="name">var <span class="ident">FLOAT</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.INTEGER"><code class="name">var <span class="ident">INTEGER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHONE"><code class="name">var <span class="ident">PHONE</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHOTO"><code class="name">var <span class="ident">PHOTO</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.TEXT"><code class="name">var <span class="ident">TEXT</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.TEXTAREA"><code class="name">var <span class="ident">TEXTAREA</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.WIFI"><code class="name">var <span class="ident">WIFI</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
 </dd>
 </dl>
 </dd>
@@ -322,77 +101,13 @@
 <li><code><a title="pyinventory.graphql" href="index.html">pyinventory.graphql</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.enum_field" href="#pyinventory.graphql.add_location_type_mutation.enum_field">enum_field</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
-<li>
-<h4><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput">AddLocationTypeInput</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.PropertyTypeInput" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.PropertyTypeInput">PropertyTypeInput</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.SurveyTemplateCategoryInput" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.SurveyTemplateCategoryInput">SurveyTemplateCategoryInput</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.from_dict" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.from_json" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.isSite" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.isSite">isSite</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.mapType" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.mapType">mapType</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.mapZoomLevel" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.mapZoomLevel">mapZoomLevel</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.schema" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.to_dict" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.to_json" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeInput.to_json">to_json</a></code></li>
-</ul>
-</li>
 <li>
 <h4><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation">AddLocationTypeMutation</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData">AddLocationTypeMutationData</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.data" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.errors" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.execute" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.from_dict" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.from_json" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.schema" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.to_dict" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.to_json" href="#pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.to_json">to_json</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind">PropertyKind</a></code></h4>
-<ul class="two-column">
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.MISSING_ENUM" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.MISSING_ENUM">MISSING_ENUM</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.bool" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.bool">bool</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.date" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.date">date</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.datetime_local" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.datetime_local">datetime_local</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.email" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.email">email</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.enum" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.enum">enum</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.equipment" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.equipment">equipment</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.float" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.float">float</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.gps_location" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.gps_location">gps_location</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.int" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.int">int</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.location" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.location">location</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.range" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.range">range</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.service" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.service">service</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.PropertyKind.string" href="#pyinventory.graphql.add_location_type_mutation.PropertyKind.string">string</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType">SurveyQuestionType</a></code></h4>
-<ul class="two-column">
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.BOOL" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.BOOL">BOOL</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.CELLULAR" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.CELLULAR">CELLULAR</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.COORDS" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.COORDS">COORDS</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.DATE" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.DATE">DATE</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.EMAIL" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.EMAIL">EMAIL</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.FLOAT" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.FLOAT">FLOAT</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.INTEGER" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.INTEGER">INTEGER</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.MISSING_ENUM" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.MISSING_ENUM">MISSING_ENUM</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHONE" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHONE">PHONE</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHOTO" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.PHOTO">PHOTO</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.TEXT" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.TEXT">TEXT</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.TEXTAREA" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.TEXTAREA">TEXTAREA</a></code></li>
-<li><code><a title="pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.WIFI" href="#pyinventory.graphql.add_location_type_mutation.SurveyQuestionType.WIFI">WIFI</a></code></li>
 </ul>
 </li>
 </ul>

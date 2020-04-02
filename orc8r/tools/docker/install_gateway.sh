@@ -108,8 +108,9 @@ fi
 
 cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose.yml .
 if [ "$GW_TYPE" == "$CWAG" ]; then
-cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose-dpi.override.yml .
+  cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose-dpi.override.yml .
 fi
+
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services.sh .
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services_cron .
 

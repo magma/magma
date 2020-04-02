@@ -12,12 +12,15 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
+	"github.com/99designs/gqlgen/client"
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -77,15 +80,25 @@ func createWorkOrder(ctx context.Context, t *testing.T, r TestResolver, name str
 }
 
 func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationResolver, workOrder ent.WorkOrder) (*models.WorkOrderExecutionResult, error) {
+	var ownerID *int
+	owner, _ := workOrder.QueryOwner().Only(ctx)
+	if owner != nil {
+		ownerID = &owner.ID
+	}
+	var assigneeID *int
+	assignee, _ := workOrder.QueryAssignee().Only(ctx)
+	if assignee != nil {
+		assigneeID = &assignee.ID
+	}
 	_, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   &workOrder.OwnerName,
+		OwnerID:     ownerID,
 		InstallDate: &workOrder.InstallDate,
 		Status:      models.WorkOrderStatusDone,
 		Priority:    models.WorkOrderPriorityNone,
-		Assignee:    &workOrder.Assignee,
+		AssigneeID:  assigneeID,
 	})
 	require.NoError(t, err)
 	return mr.ExecuteWorkOrder(ctx, workOrder.ID)
@@ -163,7 +176,8 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	name := longWorkOrderName
 	description := longWorkOrderDesc
 	location := createLocation(ctx, t, *r)
-	assignee := longWorkOrderAssignee
+	assigneeName := longWorkOrderAssignee
+	assignee := viewertest.CreateUserEnt(ctx, r.client, assigneeName)
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
 	require.NoError(t, err)
 	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -173,16 +187,22 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 		LocationID:      &location.ID,
 	})
 	require.NoError(t, err)
-	require.Empty(t, workOrder.Assignee)
+	require.False(t, workOrder.QueryAssignee().ExistX(ctx))
+
+	var ownerID *int
+	owner, _ := workOrder.QueryOwner().Only(ctx)
+	if owner != nil {
+		ownerID = &owner.ID
+	}
 
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   &workOrder.OwnerName,
+		OwnerID:     ownerID,
 		Status:      models.WorkOrderStatusPending,
 		Priority:    models.WorkOrderPriorityNone,
-		Assignee:    &assignee,
+		AssigneeID:  &assignee.ID,
 	})
 	require.NoError(t, err)
 
@@ -190,7 +210,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 	require.NoError(t, err)
 	fetchedWorkOrder, ok := node.(*ent.WorkOrder)
 	require.True(t, ok)
-	require.Equal(t, &workOrder.Assignee, &assignee)
+	require.Equal(t, workOrder.QueryAssignee().OnlyXID(ctx), assignee.ID)
 
 	fetchedWorkOrderType, err := wr.WorkOrderType(ctx, fetchedWorkOrder)
 	require.NoError(t, err)
@@ -208,7 +228,7 @@ func TestAddWorkOrderInvalidType(t *testing.T) {
 	_, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name,
 		Description:     &description,
-		WorkOrderTypeID: "123",
+		WorkOrderTypeID: 123,
 		LocationID:      nil,
 	})
 	require.Error(t, err)
@@ -219,7 +239,7 @@ func TestEditInvalidWorkOrder(t *testing.T) {
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	_, err := r.Mutation().EditWorkOrderType(ctx, models.EditWorkOrderTypeInput{
-		ID:   "234",
+		ID:   234,
 		Name: "foo",
 	})
 	require.Error(t, err)
@@ -268,14 +288,20 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 		Priority:        &pri,
 	})
 	require.NoError(t, err)
-	require.Equal(t, workOrder.Assignee, "")
+	require.False(t, workOrder.QueryAssignee().ExistX(ctx))
 	require.EqualValues(t, pri, workOrder.Priority)
+
+	var ownerID *int
+	owner, _ := workOrder.QueryOwner().Only(ctx)
+	if owner != nil {
+		ownerID = &owner.ID
+	}
 
 	input := models.EditWorkOrderInput{
 		ID:          workOrder.ID,
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
-		OwnerName:   &workOrder.OwnerName,
+		OwnerID:     ownerID,
 		Status:      models.WorkOrderStatusPending,
 		Priority:    models.WorkOrderPriorityHigh,
 		Index:       pointer.ToInt(42),
@@ -332,10 +358,17 @@ func TestAddWorkOrderWithProject(t *testing.T) {
 	woNum, err = pr.NumberOfWorkOrders(ctx, project)
 	require.NoError(t, err)
 	require.Equal(t, 1, woNum)
+
+	var ownerID *int
+	owner, _ := workOrder.QueryOwner().Only(ctx)
+	if owner != nil {
+		ownerID = &owner.ID
+	}
+
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
-		ID:        workOrder.ID,
-		Name:      workOrder.Name,
-		OwnerName: &workOrder.OwnerName,
+		ID:      workOrder.ID,
+		Name:    workOrder.Name,
+		OwnerID: ownerID,
 	})
 	require.NoError(t, err)
 	fetchProject, err := workOrder.QueryProject().Only(ctx)
@@ -1276,9 +1309,7 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(propInputs), len(fetchedProps))
 
-	failProp := models.PropertyInput{
-		PropertyTypeID: "someFakeTypeID",
-	}
+	failProp := models.PropertyInput{PropertyTypeID: -1}
 	failEditInput := models.EditWorkOrderInput{
 		ID:         wo.ID,
 		Name:       "test",
@@ -1310,7 +1341,20 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 		Name:       newWorkOrderName,
 		Properties: []*models.PropertyInput{&prop},
 	}
-	updatedP, err := mr.EditWorkOrder(ctx, editInput)
+	_, err = mr.EditWorkOrder(ctx, editInput)
+	require.NoError(t, err)
+
+	newStrFixedValue := "updated FixedFoo"
+	newStrFixedProp := models.PropertyInput{
+		PropertyTypeID: strFixedProp.PropertyTypeID,
+		StringValue:    &newStrFixedValue,
+	}
+	editFixedPropInput := models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       newWorkOrderName,
+		Properties: []*models.PropertyInput{&newStrFixedProp},
+	}
+	updatedP, err := mr.EditWorkOrder(ctx, editFixedPropInput)
 	require.NoError(t, err)
 
 	updatedNode, err := qr.Node(ctx, updatedP.ID)
@@ -1326,25 +1370,37 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	updatedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
 	require.Equal(t, updatedProp.StringVal, *prop.StringValue, "Comparing updated properties: string value")
 	require.Equal(t, updatedProp.QueryType().OnlyXID(ctx), prop.PropertyTypeID, "Comparing updated properties: PropertyType value")
+
+	notUpdatedFixedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
+	require.Equal(t, notUpdatedFixedProp.StringVal, *strFixedProp.StringValue, "Comparing not changed fixed property: string value")
+	require.Equal(t, notUpdatedFixedProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing updated properties: PropertyType value")
 }
 
 func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
-	t.Skip("skipping test until mandatory props are added - T57858029")
 	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
 	latlongPropType := models.PropertyTypeInput{
-		Name: "lat_long_prop",
-		Type: "gps_location",
+		Name:        "lat_long_prop",
+		Type:        "gps_location",
+		IsMandatory: pointer.ToBool(true),
 	}
 	propTypeInputs := []*models.PropertyTypeInput{&latlongPropType}
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type", Properties: propTypeInputs})
 	require.NoError(t, err)
 
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_fail",
+		WorkOrderTypeID: woType.ID,
+	})
+	require.Error(t, err, "Adding work order instance with missing mandatory properties")
+
 	latlongProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("lat_long_prop")).OnlyXID(ctx),
+		LatitudeValue:  pointer.ToFloat64(32.6),
+		LongitudeValue: pointer.ToFloat64(34.7),
 	}
 	propInputs := []*models.PropertyInput{&latlongProp}
 	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
@@ -1352,7 +1408,46 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 		WorkOrderTypeID: woType.ID,
 		Properties:      propInputs,
 	})
-	require.Error(t, err, "Adding work order instance with invalid lat-long prop")
+	require.NoError(t, err)
+
+	// mandatory is deleted - should be ok
+	latlongPropType.IsDeleted = pointer.ToBool(true)
+	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type2", Properties: propTypeInputs})
+	deletedPropType := woType.QueryPropertyTypes().OnlyX(ctx)
+	require.NoError(t, err)
+
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_not_fail",
+		WorkOrderTypeID: woType.ID,
+	})
+	require.NoError(t, err, "Adding work order instance of template with mandatory properties but deleted")
+
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_fail",
+		WorkOrderTypeID: woType.ID,
+		Properties: []*models.PropertyInput{{
+			PropertyTypeID: deletedPropType.ID,
+			StringValue:    pointer.ToString("new"),
+		}},
+	})
+	require.Errorf(t, err, "deleted property types")
+
+	// not mandatory props
+	notMandatoryProp := &models.PropertyTypeInput{
+		Name: "lat_long_prop",
+		Type: "gps_location",
+	}
+	props := []*models.PropertyTypeInput{notMandatoryProp}
+
+	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type3", Properties: props})
+	require.NoError(t, err)
+
+	wo, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "should_pass",
+		WorkOrderTypeID: woType.ID,
+	})
+	require.NoError(t, err, "Adding work order instance with missing mandatory properties")
+	require.Len(t, wo.QueryProperties().AllX(ctx), 1)
 }
 
 func TestAddWorkOrderWithCheckListCategory(t *testing.T) {
@@ -1514,7 +1609,25 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 		Type:  "simple",
 		Index: &indexValue,
 	}
-	clInputs = []*models.CheckListItemInput{&barCL}
+	enumValues := "val1,val2,val3"
+	selectionMode := models.CheckListItemEnumSelectionModeMultiple
+	selectedValues := "val2,val3"
+	multiCL := models.CheckListItemInput{
+		Title:              "Multi",
+		Type:               "enum",
+		Index:              pointer.ToInt(2),
+		EnumValues:         &enumValues,
+		EnumSelectionMode:  &selectionMode,
+		SelectedEnumValues: &selectedValues,
+	}
+	yesNoResponse := models.YesNoResponse("YES")
+	yesNoCL := models.CheckListItemInput{
+		Title:         "Yes/No",
+		Type:          "yes_no",
+		Index:         pointer.ToInt(3),
+		YesNoResponse: &yesNoResponse,
+	}
+	clInputs = []*models.CheckListItemInput{&barCL, &multiCL, &yesNoCL}
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:        workOrder.ID,
 		Name:      longWorkOrderName,
@@ -1522,14 +1635,112 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 	})
 	require.NoError(t, err)
 	cls := workOrder.QueryCheckListItems().AllX(ctx)
-	require.Len(t, cls, 1)
+	require.Len(t, cls, 3)
 
 	fooCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
 	require.Equal(t, "Bar", fooCLFetched.Title, "verifying check list name")
 
+	multiCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("enum")).OnlyX(ctx)
+	require.Equal(t, "Multi", multiCLFetched.Title)
+	require.Equal(t, selectionMode.String(), multiCLFetched.EnumSelectionMode)
+	require.Equal(t, enumValues, multiCLFetched.EnumValues)
+	require.Equal(t, selectedValues, multiCLFetched.SelectedEnumValues)
+
+	yesNoCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("yes_no")).OnlyX(ctx)
+	require.Equal(t, "YES", yesNoCLFetched.YesNoVal.String())
+
 	cl, err := wr.CheckList(ctx, workOrder)
 	require.NoError(t, err)
-	require.Len(t, cl, 1)
+	require.Len(t, cl, 3)
+}
+
+func TestEditCheckListItemFiles(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr := r.Mutation()
+	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name: "example_type",
+	})
+	require.NoError(t, err)
+	indexValue := 0
+
+	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            longWorkOrderName,
+		WorkOrderTypeID: woType.ID,
+		CheckListCategories: []*models.CheckListCategoryInput{{
+			Title: "Category1",
+			CheckList: []*models.CheckListItemInput{{
+				Title: "Files",
+				Type:  "files",
+				Index: &indexValue,
+				Files: []*models.FileInput{
+					{
+						FileName: "File1",
+						StoreKey: "File1StoreKey",
+					},
+					{
+						FileName: "File2",
+						StoreKey: "File2StoreKey",
+					},
+				},
+			}},
+		}},
+	})
+	require.NoError(t, err)
+
+	queriedFiles, err := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().All(ctx)
+	require.NoError(t, err)
+	require.Len(t, queriedFiles, 2)
+	file1, err := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().Where(file.Name("File1")).Only(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, file1)
+
+	checklistCategoryID, err := workOrder.QueryCheckListCategories().OnlyID(ctx)
+	require.NoError(t, err)
+	filesItemID, err := workOrder.QueryCheckListCategories().QueryCheckListItems().OnlyID(ctx)
+	require.NoError(t, err)
+	updatedWorkOrder, err := mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
+		ID:   workOrder.ID,
+		Name: longWorkOrderName,
+		CheckListCategories: []*models.CheckListCategoryInput{{
+			ID: &checklistCategoryID,
+			CheckList: []*models.CheckListItemInput{{
+				ID:    &filesItemID,
+				Title: "Files",
+				Type:  "files",
+				Index: &indexValue,
+				Files: []*models.FileInput{
+					{
+						ID:       &file1.ID,
+						FileName: "File1 Renamed",
+						StoreKey: "File1StoreKey",
+					},
+					{
+						FileName: "File3",
+						StoreKey: "File3StoreKey",
+					},
+				},
+			}},
+		}},
+	})
+	require.NoError(t, err)
+
+	queriedUpdatedFiles, err := updatedWorkOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().All(ctx)
+	require.NoError(t, err)
+	require.Len(t, queriedUpdatedFiles, 2)
+
+	file2Exists, err := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().Where(file.Name("File2")).Exist(ctx)
+	require.NoError(t, err)
+	require.False(t, file2Exists)
+
+	updatedFile1Exists, err := workOrder.QueryCheckListItems().QueryFiles().Where(file.Name("File1 Renamed")).Exist(ctx)
+	require.NoError(t, err)
+	require.False(t, updatedFile1Exists)
+
+	file3Exists, err := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().Where(file.Name("File3")).Exist(ctx)
+	require.NoError(t, err)
+	require.True(t, file3Exists)
 }
 
 func TestEditWorkOrderLocation(t *testing.T) {
@@ -1582,4 +1793,74 @@ func TestTechnicianCheckinToWorkOrder(t *testing.T) {
 	comments, err := w.QueryComments().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, comments, 1)
+}
+
+func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr := r.Mutation()
+	c := newGraphClient(t, r)
+
+	wo := createWorkOrder(ctx, t, *r, "Foo")
+	u, err := viewer.UserFromContext(ctx)
+	require.NoError(t, err)
+	wo, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
+		ID:         wo.ID,
+		Name:       longWorkOrderName,
+		AssigneeID: &u.ID,
+		CheckListCategories: []*models.CheckListCategoryInput{{
+			Title: "Bar",
+			CheckList: []*models.CheckListItemInput{{
+				Title:   "Foo",
+				Type:    "simple",
+				Index:   pointer.ToInt(0),
+				Checked: pointer.ToBool(false),
+			}},
+		}},
+	})
+	require.NoError(t, err)
+
+	fooID, err := wo.QueryCheckListCategories().QueryCheckListItems().OnlyID(ctx)
+	require.NoError(t, err)
+	techInput := models.TechnicianWorkOrderUploadInput{
+		WorkOrderID: wo.ID,
+		Checklist: []*models.TechnicianCheckListItemInput{
+			{
+				ID:      fooID,
+				Checked: pointer.ToBool(true),
+			},
+		},
+	}
+
+	var rsp struct {
+		TechnicianWorkOrderUploadData struct {
+			ID                  string
+			CheckListCategories []struct {
+				CheckList []struct {
+					ID      string
+					Checked *bool
+				}
+			}
+		}
+	}
+	c.MustPost(
+		`mutation($input: TechnicianWorkOrderUploadInput!) {
+			technicianWorkOrderUploadData(input: $input) {
+				id
+				checkListCategories {
+					checkList {
+						id
+						checked
+					}
+				}
+			}
+		}`,
+		&rsp,
+		client.Var("input", techInput),
+	)
+
+	require.Len(t, rsp.TechnicianWorkOrderUploadData.CheckListCategories, 1)
+	require.Len(t, rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList, 1)
+	require.True(t, *rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList[0].Checked)
 }

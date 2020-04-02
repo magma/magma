@@ -12,6 +12,7 @@
 
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/session_manager.grpc.pb.h>
 
 #include "CreditKey.h"
 
@@ -106,15 +107,8 @@ struct StoredUsageMonitoringCreditPool {
   std::unordered_map<std::string, StoredMonitor> monitor_map;
 };
 
-// Installed session rules
-struct StoredSessionRules {
-  std::vector<std::string> static_rule_ids;
-  std::vector<PolicyRule> dynamic_rules;
-};
-
 struct StoredSessionState {
   StoredSessionConfig config;
-  StoredSessionRules rules;
   StoredChargingCreditPool charging_pool;
   StoredUsageMonitoringCreditPool monitor_pool;
   std::string imsi;
@@ -122,28 +116,42 @@ struct StoredSessionState {
   std::string core_session_id;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;
+  std::vector<std::string> static_rule_ids;
+  std::vector<PolicyRule> dynamic_rules;
   uint32_t request_number;
 };
 
 // Update Criteria
 
 struct SessionCreditUpdateCriteria {
-  bool reporting;
   bool is_final;
+  bool reporting;
   ReAuthState reauth_state;
   ServiceState service_state;
   std::time_t  expiry_time;
+  // Do not mark REPORTING buckets, but do mark REPORTED
   std::unordered_map<Bucket, uint64_t> bucket_deltas;
+  uint64_t usage_reporting_limit;
 };
 
 struct SessionStateUpdateCriteria {
+  bool is_session_ended;
   std::vector<std::string> static_rules_to_install;
   std::vector<std::string> static_rules_to_uninstall;
   std::vector<PolicyRule> dynamic_rules_to_install;
   std::vector<std::string> dynamic_rules_to_uninstall;
   std::unordered_map<
+    CreditKey, StoredSessionCredit,
+    decltype(&ccHash), decltype(&ccEqual)> charging_credit_to_install;
+  std::unordered_map<
     CreditKey, SessionCreditUpdateCriteria,
     decltype(&ccHash), decltype(&ccEqual)> charging_credit_map;
+  std::unordered_map<std::string, StoredMonitor> monitor_credit_to_install;
   std::unordered_map<std::string, SessionCreditUpdateCriteria> monitor_credit_map;
+  TgppContext updated_tgpp_context;
+  magma::lte::SubscriberQuotaUpdate_Type updated_subscriber_quota_state;
 };
-}; // namespace magma
+
+SessionStateUpdateCriteria get_default_update_criteria();
+
+} // namespace magma

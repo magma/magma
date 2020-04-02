@@ -5,10 +5,10 @@
 package graphhttp
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/exporter"
 	"github.com/facebookincubator/symphony/graph/graphql"
 	"github.com/facebookincubator/symphony/graph/importer"
@@ -18,7 +18,6 @@ import (
 	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/gorilla/mux"
-	"gocloud.dev/pubsub"
 )
 
 type routerConfig struct {
@@ -28,8 +27,8 @@ type routerConfig struct {
 	}
 	logger log.Logger
 	events struct {
-		topic     *pubsub.Topic
-		subscribe func(context.Context) (*pubsub.Subscription, error)
+		emitter    event.Emitter
+		subscriber event.Subscriber
 	}
 	orc8r   struct{ client *http.Client }
 	actions struct{ registry *executor.Registry }
@@ -45,14 +44,17 @@ func newRouter(cfg routerConfig) (*mux.Router, func(), error) {
 			return viewer.TenancyHandler(h, cfg.viewer.tenancy)
 		},
 		func(h http.Handler) http.Handler {
+			return viewer.UserHandler{Handler: h, Logger: cfg.logger}
+		},
+		func(h http.Handler) http.Handler {
 			return actions.Handler(h, cfg.logger, cfg.actions.registry)
 		},
 	)
 	handler, err := importer.NewHandler(
 		importer.Config{
-			Logger:    cfg.logger,
-			Topic:     cfg.events.topic,
-			Subscribe: cfg.events.subscribe,
+			Logger:     cfg.logger,
+			Emitter:    cfg.events.emitter,
+			Subscriber: cfg.events.subscriber,
 		},
 	)
 	if err != nil {
@@ -72,8 +74,8 @@ func newRouter(cfg routerConfig) (*mux.Router, func(), error) {
 	handler, cleanup, err := graphql.NewHandler(
 		graphql.HandlerConfig{
 			Logger:      cfg.logger,
-			Topic:       cfg.events.topic,
-			Subscribe:   cfg.events.subscribe,
+			Emitter:     cfg.events.emitter,
+			Subscriber:  cfg.events.subscriber,
 			Orc8rClient: cfg.orc8r.client,
 		},
 	)

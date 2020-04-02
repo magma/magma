@@ -14,45 +14,6 @@ namespace cli {
 using namespace folly;
 using namespace std;
 
-bool DeviceType::operator==(const DeviceType& rhs) const {
-  return device == rhs.device && version == rhs.version;
-}
-
-bool DeviceType::operator!=(const DeviceType& rhs) const {
-  return !(rhs == *this);
-}
-
-bool DeviceType::operator<(const DeviceType& rhs) const {
-  if (device < rhs.device)
-    return true;
-  if (rhs.device < device)
-    return false;
-  return version < rhs.version;
-}
-
-bool DeviceType::operator>(const DeviceType& rhs) const {
-  return rhs < *this;
-}
-
-bool DeviceType::operator<=(const DeviceType& rhs) const {
-  return !(rhs < *this);
-}
-
-bool DeviceType::operator>=(const DeviceType& rhs) const {
-  return !(*this < rhs);
-}
-
-ostream& operator<<(ostream& os, const DeviceType& type) {
-  os << "{" << type.device << ": " << type.version << "}";
-  return os;
-}
-
-string DeviceType::str() const {
-  stringstream strStream = stringstream();
-  strStream << *this;
-  return strStream.str();
-}
-
 DeviceContext::DeviceContext(vector<shared_ptr<Plugin>> _plugins)
     : plugins(_plugins) {
   if (_plugins.empty()) {
@@ -71,9 +32,9 @@ void DeviceContext::provideReaders(ReaderRegistryBuilder& registry) const {
   }
 }
 
-void DeviceContext::provideWriters() const {
+void DeviceContext::provideWriters(WriterRegistryBuilder& registry) const {
   for (const auto& plugin : plugins) {
-    plugin->provideWriters();
+    plugin->provideWriters(registry);
   }
 }
 
@@ -118,6 +79,23 @@ ostream& operator<<(ostream& os, const PluginRegistry& reg) {
 
 bool PluginRegistry::containsDeviceType(const DeviceType& type) {
   return contexts.find(type) != contexts.end();
+}
+
+void PluginRegistry::registerFlavours(
+    map<DeviceType, shared_ptr<CliFlavourParameters>> newFlavours) {
+  for (auto entry : newFlavours) {
+    flavours.insert_or_assign(entry.first, CliFlavour::create(entry.second));
+  }
+}
+
+shared_ptr<CliFlavour> PluginRegistry::getCliFlavour(
+    const DeviceType& deviceType) {
+  auto result = flavours[deviceType];
+  if (not result) {
+    MLOG(MDEBUG) << "Flavour not found, using default for " << deviceType;
+    result = CliFlavour::getDefaultInstance();
+  }
+  return result;
 }
 
 } // namespace cli

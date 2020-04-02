@@ -16,6 +16,7 @@ import (
 	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
@@ -50,50 +51,33 @@ func (qos *QosRequestInfo) FromProtos(pQos *protos.QosInformationRequest) *QosRe
 }
 
 func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
-	monitoringKey := []byte{}
-	if len(rd.MonitoringKey) > 0 {
-		// no conversion needed - Monitoring-Key AVP is Octet String already
-		monitoringKey = rd.MonitoringKey
-	}
-	var ratingGroup uint32 = 0
-	if rd.RatingGroup != nil {
-		ratingGroup = *rd.RatingGroup
-	}
-	flowList := getFlowList(rd.FlowDescriptions, rd.FlowInformations)
-
-	var qos *protos.FlowQos
-	if rd.Qos != nil {
-		qos = &protos.FlowQos{}
-		if rd.Qos.MaxReqBwUL != nil {
-			qos.MaxReqBwUl = *rd.Qos.MaxReqBwUL
-		}
-		if rd.Qos.MaxReqBwDL != nil {
-			qos.MaxReqBwDl = *rd.Qos.MaxReqBwDL
-		}
-		if rd.Qos.GbrDL != nil {
-			qos.GbrDl = *rd.Qos.GbrDL
-		}
-		if rd.Qos.GbrUL != nil {
-			qos.GbrUl = *rd.Qos.GbrUL
-		}
-		if rd.Qos.Qci != nil {
-			qos.Qci = protos.FlowQos_Qci(*rd.Qos.Qci)
-		}
-	}
-
 	return &protos.PolicyRule{
 		Id:            rd.RuleName,
-		RatingGroup:   ratingGroup,
-		MonitoringKey: monitoringKey,
+		RatingGroup:   swag.Uint32Value(rd.RatingGroup),
+		MonitoringKey: rd.MonitoringKey,
 		Priority:      rd.Precedence,
-		Redirect:      rd.getRedirectInfo(),
-		FlowList:      flowList,
-		Qos:           qos,
-		TrackingType:  rd.getTrackingType(),
+		Redirect:      rd.RedirectInformation.ToProto(),
+		FlowList:      rd.GetFlowList(),
+		Qos:           rd.Qos.ToProto(),
+		TrackingType:  rd.GetTrackingType(),
 	}
 }
 
-func (rd *RuleDefinition) getTrackingType() protos.PolicyRule_TrackingType {
+func (q *QosInformation) ToProto() *protos.FlowQos {
+	var qos *protos.FlowQos
+	if q != nil {
+		qos = &protos.FlowQos{
+			MaxReqBwUl: swag.Uint32Value(q.MaxReqBwUL),
+			MaxReqBwDl: swag.Uint32Value(q.MaxReqBwDL),
+			GbrUl:      swag.Uint32Value(q.GbrUL),
+			GbrDl:      swag.Uint32Value(q.GbrDL),
+			Qci:        protos.FlowQos_Qci(swag.Uint32Value(q.Qci)),
+		}
+	}
+	return qos
+}
+
+func (rd *RuleDefinition) GetTrackingType() protos.PolicyRule_TrackingType {
 	monKeyPresent := len(rd.MonitoringKey) > 0
 	if monKeyPresent && rd.RatingGroup != nil {
 		return protos.PolicyRule_OCS_AND_PCRF
@@ -106,20 +90,20 @@ func (rd *RuleDefinition) getTrackingType() protos.PolicyRule_TrackingType {
 	}
 }
 
-func (rd *RuleDefinition) getRedirectInfo() *protos.RedirectInformation {
-	if rd.RedirectInformation == nil {
-		return nil
+func (r *RedirectInformation) ToProto() *protos.RedirectInformation {
+	if r == nil {
+		return &protos.RedirectInformation{}
 	}
 	return &protos.RedirectInformation{
-		Support:       protos.RedirectInformation_Support(rd.RedirectInformation.RedirectSupport),
-		AddressType:   protos.RedirectInformation_AddressType(rd.RedirectInformation.RedirectAddressType),
-		ServerAddress: rd.RedirectInformation.RedirectServerAddress,
+		Support:       protos.RedirectInformation_Support(r.RedirectSupport),
+		AddressType:   protos.RedirectInformation_AddressType(r.RedirectAddressType),
+		ServerAddress: r.RedirectServerAddress,
 	}
 }
 
-func getFlowList(flowStrings []string, flowInfos []*FlowInformation) []*protos.FlowDescription {
-	allFlowStrings := flowStrings[:]
-	for _, info := range flowInfos {
+func (rd *RuleDefinition) GetFlowList() []*protos.FlowDescription {
+	allFlowStrings := rd.FlowDescriptions[:]
+	for _, info := range rd.FlowInformations {
 		allFlowStrings = append(allFlowStrings, info.FlowDescription)
 	}
 	var flowList []*protos.FlowDescription
@@ -134,7 +118,7 @@ func getFlowList(flowStrings []string, flowInfos []*FlowInformation) []*protos.F
 	return flowList
 }
 
-func (rar *ReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.PolicyDBClient) *protos.PolicyReAuthRequest {
+func (rar *PolicyReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.PolicyDBClient) *protos.PolicyReAuthRequest {
 	var rulesToRemove, baseNamesToRemove []string
 
 	for _, ruleRemove := range rar.RulesToRemove {
@@ -167,7 +151,7 @@ func (rar *ReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.Poli
 	}
 }
 
-func (raa *ReAuthAnswer) FromProto(sessionID string, answer *protos.PolicyReAuthAnswer) *ReAuthAnswer {
+func (raa *PolicyReAuthAnswer) FromProto(sessionID string, answer *protos.PolicyReAuthAnswer) *PolicyReAuthAnswer {
 	raa.SessionID = sessionID
 	raa.ResultCode = diam.Success
 	raa.RuleReports = make([]*ChargingRuleReport, 0, len(answer.FailedRules))

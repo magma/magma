@@ -13,35 +13,37 @@ import ProjectsIcon from '@fbcnms/ui/icons/ProjectsIcon';
 import React from 'react';
 import WorkIcon from '@material-ui/icons/Work';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
 export const WorkOrdersNavListItems = () => {
-  const {relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
   return [
     <NavListItem
       key={1}
       label="Work Orders"
       path={relativeUrl('/search')}
       icon={<WorkIcon />}
-      onClick={() =>
-        ServerLogger.info(LogEvents.WORK_ORDERS_SEARCH_NAV_CLICKED)
-      }
+      onClick={() => {
+        ServerLogger.info(LogEvents.WORK_ORDERS_SEARCH_NAV_CLICKED);
+      }}
     />,
     <NavListItem
       key={2}
       label="Projects"
       path={relativeUrl('/projects/search')}
       icon={<ProjectsIcon />}
-      onClick={() => ServerLogger.info(LogEvents.PROJECTS_SEARCH_NAV_CLICKED)}
+      onClick={() => {
+        ServerLogger.info(LogEvents.PROJECTS_SEARCH_NAV_CLICKED);
+      }}
     />,
     <NavListItem
       key={3}
       label="Templates"
       path={relativeUrl('/configure')}
       icon={<AssignmentIcon />}
-      onClick={() =>
-        ServerLogger.info(LogEvents.WORK_ORDERS_CONFIGURE_NAV_CLICKED)
-      }
+      onClick={() => {
+        ServerLogger.info(LogEvents.WORK_ORDERS_CONFIGURE_NAV_CLICKED);
+      }}
     />,
   ];
 };

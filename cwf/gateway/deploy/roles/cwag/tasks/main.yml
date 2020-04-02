@@ -12,6 +12,14 @@
   become: true
   script: setup_default_uplink_bridge.sh
 
+- name: Create internal LI port on cwag_br0 and rules to forward RADIUS traffic to cwag_br0
+  become: true
+  script: setup_li_mirror_br.sh
+
+- name: Setup internal port and interface for DPI
+  become: true
+  script: setup_dpi_port.sh
+
 - name: Enable IP forwarding
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
 

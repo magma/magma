@@ -23,6 +23,8 @@ export default [
   /^\/([a-z_-]+\/)?static\/images/,
   /^\/([a-z_-]+\/)?user\/me$/,
   /^\/([a-z_-]+\/)?user\/login(\?.*)?$/,
+  /^\/([a-z_-]+\/)?user\/login\/oidc$/,
+  /^\/([a-z_-]+\/)?user\/login\/oidc\/callback/,
   /^\/([a-z_-]+\/)?user\/login\/saml$/,
   /^\/([a-z_-]+\/)?user\/login\/saml\/callback/,
   /^\/([a-z_-]+\/)?user\/logout$/,

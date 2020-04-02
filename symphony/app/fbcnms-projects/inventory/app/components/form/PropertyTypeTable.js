@@ -58,6 +58,7 @@ const styles = _theme => ({
   },
   addButton: {
     padding: '4px 18px',
+    height: '32px',
     borderRadius: '4px',
     border: '1px solid',
     borderColor: symphony.palette.primary,
@@ -142,10 +143,9 @@ class PropertyTypeTable extends React.Component<Props> {
             </TableRow>
           </TableHead>
           <DroppableTableBody onDragEnd={this._onDragEnd}>
-            {propertyTypes
-              .filter(property => !property.isDeleted)
-              .map((property, i) => (
-                <DraggableTableRow id={property.id} index={i} key={i}>
+            {propertyTypes.map((property, i) =>
+              property.isDeleted ? null : (
+                <DraggableTableRow id={property.id} index={i} key={property.id}>
                   <TableCell
                     className={classes.cell}
                     component="div"
@@ -236,7 +236,8 @@ class PropertyTypeTable extends React.Component<Props> {
                     </FormAction>
                   </TableCell>
                 </DraggableTableRow>
-              ))}
+              ),
+            )}
           </DroppableTableBody>
         </Table>
         <FormAction>

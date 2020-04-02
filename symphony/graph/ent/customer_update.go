@@ -9,8 +9,6 @@ package ent
 import (
 	"context"
 	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -23,14 +21,9 @@ import (
 // CustomerUpdate is the builder for updating Customer entities.
 type CustomerUpdate struct {
 	config
-
-	update_time      *time.Time
-	name             *string
-	external_id      *string
-	clearexternal_id bool
-	services         map[string]struct{}
-	removedServices  map[string]struct{}
-	predicates       []predicate.Customer
+	hooks      []Hook
+	mutation   *CustomerMutation
+	predicates []predicate.Customer
 }
 
 // Where adds a new predicate for the builder.
@@ -41,13 +34,13 @@ func (cu *CustomerUpdate) Where(ps ...predicate.Customer) *CustomerUpdate {
 
 // SetName sets the name field.
 func (cu *CustomerUpdate) SetName(s string) *CustomerUpdate {
-	cu.name = &s
+	cu.mutation.SetName(s)
 	return cu
 }
 
 // SetExternalID sets the external_id field.
 func (cu *CustomerUpdate) SetExternalID(s string) *CustomerUpdate {
-	cu.external_id = &s
+	cu.mutation.SetExternalID(s)
 	return cu
 }
 
@@ -61,25 +54,19 @@ func (cu *CustomerUpdate) SetNillableExternalID(s *string) *CustomerUpdate {
 
 // ClearExternalID clears the value of external_id.
 func (cu *CustomerUpdate) ClearExternalID() *CustomerUpdate {
-	cu.external_id = nil
-	cu.clearexternal_id = true
+	cu.mutation.ClearExternalID()
 	return cu
 }
 
 // AddServiceIDs adds the services edge to Service by ids.
-func (cu *CustomerUpdate) AddServiceIDs(ids ...string) *CustomerUpdate {
-	if cu.services == nil {
-		cu.services = make(map[string]struct{})
-	}
-	for i := range ids {
-		cu.services[ids[i]] = struct{}{}
-	}
+func (cu *CustomerUpdate) AddServiceIDs(ids ...int) *CustomerUpdate {
+	cu.mutation.AddServiceIDs(ids...)
 	return cu
 }
 
 // AddServices adds the services edges to Service.
 func (cu *CustomerUpdate) AddServices(s ...*Service) *CustomerUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -87,19 +74,14 @@ func (cu *CustomerUpdate) AddServices(s ...*Service) *CustomerUpdate {
 }
 
 // RemoveServiceIDs removes the services edge to Service by ids.
-func (cu *CustomerUpdate) RemoveServiceIDs(ids ...string) *CustomerUpdate {
-	if cu.removedServices == nil {
-		cu.removedServices = make(map[string]struct{})
-	}
-	for i := range ids {
-		cu.removedServices[ids[i]] = struct{}{}
-	}
+func (cu *CustomerUpdate) RemoveServiceIDs(ids ...int) *CustomerUpdate {
+	cu.mutation.RemoveServiceIDs(ids...)
 	return cu
 }
 
 // RemoveServices removes services edges to Service.
 func (cu *CustomerUpdate) RemoveServices(s ...*Service) *CustomerUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -108,21 +90,45 @@ func (cu *CustomerUpdate) RemoveServices(s ...*Service) *CustomerUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (cu *CustomerUpdate) Save(ctx context.Context) (int, error) {
-	if cu.update_time == nil {
+	if _, ok := cu.mutation.UpdateTime(); !ok {
 		v := customer.UpdateDefaultUpdateTime()
-		cu.update_time = &v
+		cu.mutation.SetUpdateTime(v)
 	}
-	if cu.name != nil {
-		if err := customer.NameValidator(*cu.name); err != nil {
+	if v, ok := cu.mutation.Name(); ok {
+		if err := customer.NameValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if cu.external_id != nil {
-		if err := customer.ExternalIDValidator(*cu.external_id); err != nil {
+	if v, ok := cu.mutation.ExternalID(); ok {
+		if err := customer.ExternalIDValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
 		}
 	}
-	return cu.sqlSave(ctx)
+
+	var (
+		err      error
+		affected int
+	)
+	if len(cu.hooks) == 0 {
+		affected, err = cu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*CustomerMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			cu.mutation = mutation
+			affected, err = cu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(cu.hooks) - 1; i >= 0; i-- {
+			mut = cu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, cu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -153,7 +159,7 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   customer.Table,
 			Columns: customer.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: customer.FieldID,
 			},
 		},
@@ -165,34 +171,34 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := cu.update_time; value != nil {
+	if value, ok := cu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: customer.FieldUpdateTime,
 		})
 	}
-	if value := cu.name; value != nil {
+	if value, ok := cu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: customer.FieldName,
 		})
 	}
-	if value := cu.external_id; value != nil {
+	if value, ok := cu.mutation.ExternalID(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: customer.FieldExternalID,
 		})
 	}
-	if cu.clearexternal_id {
+	if cu.mutation.ExternalIDCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: customer.FieldExternalID,
 		})
 	}
-	if nodes := cu.removedServices; len(nodes) > 0 {
+	if nodes := cu.mutation.RemovedServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -201,21 +207,17 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.services; len(nodes) > 0 {
+	if nodes := cu.mutation.ServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -224,16 +226,12 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -252,25 +250,19 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // CustomerUpdateOne is the builder for updating a single Customer entity.
 type CustomerUpdateOne struct {
 	config
-	id string
-
-	update_time      *time.Time
-	name             *string
-	external_id      *string
-	clearexternal_id bool
-	services         map[string]struct{}
-	removedServices  map[string]struct{}
+	hooks    []Hook
+	mutation *CustomerMutation
 }
 
 // SetName sets the name field.
 func (cuo *CustomerUpdateOne) SetName(s string) *CustomerUpdateOne {
-	cuo.name = &s
+	cuo.mutation.SetName(s)
 	return cuo
 }
 
 // SetExternalID sets the external_id field.
 func (cuo *CustomerUpdateOne) SetExternalID(s string) *CustomerUpdateOne {
-	cuo.external_id = &s
+	cuo.mutation.SetExternalID(s)
 	return cuo
 }
 
@@ -284,25 +276,19 @@ func (cuo *CustomerUpdateOne) SetNillableExternalID(s *string) *CustomerUpdateOn
 
 // ClearExternalID clears the value of external_id.
 func (cuo *CustomerUpdateOne) ClearExternalID() *CustomerUpdateOne {
-	cuo.external_id = nil
-	cuo.clearexternal_id = true
+	cuo.mutation.ClearExternalID()
 	return cuo
 }
 
 // AddServiceIDs adds the services edge to Service by ids.
-func (cuo *CustomerUpdateOne) AddServiceIDs(ids ...string) *CustomerUpdateOne {
-	if cuo.services == nil {
-		cuo.services = make(map[string]struct{})
-	}
-	for i := range ids {
-		cuo.services[ids[i]] = struct{}{}
-	}
+func (cuo *CustomerUpdateOne) AddServiceIDs(ids ...int) *CustomerUpdateOne {
+	cuo.mutation.AddServiceIDs(ids...)
 	return cuo
 }
 
 // AddServices adds the services edges to Service.
 func (cuo *CustomerUpdateOne) AddServices(s ...*Service) *CustomerUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -310,19 +296,14 @@ func (cuo *CustomerUpdateOne) AddServices(s ...*Service) *CustomerUpdateOne {
 }
 
 // RemoveServiceIDs removes the services edge to Service by ids.
-func (cuo *CustomerUpdateOne) RemoveServiceIDs(ids ...string) *CustomerUpdateOne {
-	if cuo.removedServices == nil {
-		cuo.removedServices = make(map[string]struct{})
-	}
-	for i := range ids {
-		cuo.removedServices[ids[i]] = struct{}{}
-	}
+func (cuo *CustomerUpdateOne) RemoveServiceIDs(ids ...int) *CustomerUpdateOne {
+	cuo.mutation.RemoveServiceIDs(ids...)
 	return cuo
 }
 
 // RemoveServices removes services edges to Service.
 func (cuo *CustomerUpdateOne) RemoveServices(s ...*Service) *CustomerUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -331,21 +312,45 @@ func (cuo *CustomerUpdateOne) RemoveServices(s ...*Service) *CustomerUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (cuo *CustomerUpdateOne) Save(ctx context.Context) (*Customer, error) {
-	if cuo.update_time == nil {
+	if _, ok := cuo.mutation.UpdateTime(); !ok {
 		v := customer.UpdateDefaultUpdateTime()
-		cuo.update_time = &v
+		cuo.mutation.SetUpdateTime(v)
 	}
-	if cuo.name != nil {
-		if err := customer.NameValidator(*cuo.name); err != nil {
+	if v, ok := cuo.mutation.Name(); ok {
+		if err := customer.NameValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if cuo.external_id != nil {
-		if err := customer.ExternalIDValidator(*cuo.external_id); err != nil {
+	if v, ok := cuo.mutation.ExternalID(); ok {
+		if err := customer.ExternalIDValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
 		}
 	}
-	return cuo.sqlSave(ctx)
+
+	var (
+		err  error
+		node *Customer
+	)
+	if len(cuo.hooks) == 0 {
+		node, err = cuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*CustomerMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			cuo.mutation = mutation
+			node, err = cuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(cuo.hooks) - 1; i >= 0; i-- {
+			mut = cuo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, cuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -376,40 +381,44 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 			Table:   customer.Table,
 			Columns: customer.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  cuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: customer.FieldID,
 			},
 		},
 	}
-	if value := cuo.update_time; value != nil {
+	id, ok := cuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Customer.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := cuo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: customer.FieldUpdateTime,
 		})
 	}
-	if value := cuo.name; value != nil {
+	if value, ok := cuo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: customer.FieldName,
 		})
 	}
-	if value := cuo.external_id; value != nil {
+	if value, ok := cuo.mutation.ExternalID(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: customer.FieldExternalID,
 		})
 	}
-	if cuo.clearexternal_id {
+	if cuo.mutation.ExternalIDCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: customer.FieldExternalID,
 		})
 	}
-	if nodes := cuo.removedServices; len(nodes) > 0 {
+	if nodes := cuo.mutation.RemovedServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -418,21 +427,17 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.services; len(nodes) > 0 {
+	if nodes := cuo.mutation.ServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -441,16 +446,12 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

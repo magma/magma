@@ -15,12 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const CalendarIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <g transform="translate(2,2)">
-      <path
-        d="M19 0a1 1 0 011 1l-.001 5H20v2h-.001L20 19a1 1 0 01-1 1H1a1 1 0 01-1-1V1a1 1 0 011-1h18zm-1 8H2v10h16V8zM7 14v2H5v-2h2zm4 0v2H9v-2h2zm4 0v2h-2v-2h2zm-8-4v2H5v-2h2zm4 0v2H9v-2h2zm4 0v2h-2v-2h2zm0-5h-2V2H7v3H5V2H2v4h16V2h-3v3z"
-        fillRule="evenodd"
-      />
-    </g>
+    <path d="M21 2a1 1 0 011 1l-.001 5H22v2h-.001L22 21a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1h18zm-1 8H4v10h16V10zM9 16v2H7v-2h2zm4 0v2h-2v-2h2zm4 0v2h-2v-2h2zm-8-4v2H7v-2h2zm4 0v2h-2v-2h2zm4 0v2h-2v-2h2zm0-5h-2V4H9v3H7V4H4v4h16V4h-3v3z" />
   </SvgIcon>
 );
 

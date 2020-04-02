@@ -23,7 +23,7 @@ it('Returns a health check', async () => {
 
 const ORGS = [
   {
-    id: '1',
+    id: 1,
     name: 'myorg',
     customDomains: [],
     networkIDs: [],

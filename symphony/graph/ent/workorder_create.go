@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -26,6 +25,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
@@ -33,34 +33,13 @@ import (
 // WorkOrderCreate is the builder for creating a WorkOrder entity.
 type WorkOrderCreate struct {
 	config
-	create_time           *time.Time
-	update_time           *time.Time
-	name                  *string
-	status                *string
-	priority              *string
-	description           *string
-	owner_name            *string
-	install_date          *time.Time
-	creation_date         *time.Time
-	assignee              *string
-	index                 *int
-	_type                 map[string]struct{}
-	equipment             map[string]struct{}
-	links                 map[string]struct{}
-	files                 map[string]struct{}
-	hyperlinks            map[string]struct{}
-	location              map[string]struct{}
-	comments              map[string]struct{}
-	properties            map[string]struct{}
-	check_list_categories map[string]struct{}
-	check_list_items      map[string]struct{}
-	technician            map[string]struct{}
-	project               map[string]struct{}
+	mutation *WorkOrderMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (woc *WorkOrderCreate) SetCreateTime(t time.Time) *WorkOrderCreate {
-	woc.create_time = &t
+	woc.mutation.SetCreateTime(t)
 	return woc
 }
 
@@ -74,7 +53,7 @@ func (woc *WorkOrderCreate) SetNillableCreateTime(t *time.Time) *WorkOrderCreate
 
 // SetUpdateTime sets the update_time field.
 func (woc *WorkOrderCreate) SetUpdateTime(t time.Time) *WorkOrderCreate {
-	woc.update_time = &t
+	woc.mutation.SetUpdateTime(t)
 	return woc
 }
 
@@ -88,13 +67,13 @@ func (woc *WorkOrderCreate) SetNillableUpdateTime(t *time.Time) *WorkOrderCreate
 
 // SetName sets the name field.
 func (woc *WorkOrderCreate) SetName(s string) *WorkOrderCreate {
-	woc.name = &s
+	woc.mutation.SetName(s)
 	return woc
 }
 
 // SetStatus sets the status field.
 func (woc *WorkOrderCreate) SetStatus(s string) *WorkOrderCreate {
-	woc.status = &s
+	woc.mutation.SetStatus(s)
 	return woc
 }
 
@@ -108,7 +87,7 @@ func (woc *WorkOrderCreate) SetNillableStatus(s *string) *WorkOrderCreate {
 
 // SetPriority sets the priority field.
 func (woc *WorkOrderCreate) SetPriority(s string) *WorkOrderCreate {
-	woc.priority = &s
+	woc.mutation.SetPriority(s)
 	return woc
 }
 
@@ -122,7 +101,7 @@ func (woc *WorkOrderCreate) SetNillablePriority(s *string) *WorkOrderCreate {
 
 // SetDescription sets the description field.
 func (woc *WorkOrderCreate) SetDescription(s string) *WorkOrderCreate {
-	woc.description = &s
+	woc.mutation.SetDescription(s)
 	return woc
 }
 
@@ -134,15 +113,9 @@ func (woc *WorkOrderCreate) SetNillableDescription(s *string) *WorkOrderCreate {
 	return woc
 }
 
-// SetOwnerName sets the owner_name field.
-func (woc *WorkOrderCreate) SetOwnerName(s string) *WorkOrderCreate {
-	woc.owner_name = &s
-	return woc
-}
-
 // SetInstallDate sets the install_date field.
 func (woc *WorkOrderCreate) SetInstallDate(t time.Time) *WorkOrderCreate {
-	woc.install_date = &t
+	woc.mutation.SetInstallDate(t)
 	return woc
 }
 
@@ -156,27 +129,13 @@ func (woc *WorkOrderCreate) SetNillableInstallDate(t *time.Time) *WorkOrderCreat
 
 // SetCreationDate sets the creation_date field.
 func (woc *WorkOrderCreate) SetCreationDate(t time.Time) *WorkOrderCreate {
-	woc.creation_date = &t
-	return woc
-}
-
-// SetAssignee sets the assignee field.
-func (woc *WorkOrderCreate) SetAssignee(s string) *WorkOrderCreate {
-	woc.assignee = &s
-	return woc
-}
-
-// SetNillableAssignee sets the assignee field if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillableAssignee(s *string) *WorkOrderCreate {
-	if s != nil {
-		woc.SetAssignee(*s)
-	}
+	woc.mutation.SetCreationDate(t)
 	return woc
 }
 
 // SetIndex sets the index field.
 func (woc *WorkOrderCreate) SetIndex(i int) *WorkOrderCreate {
-	woc.index = &i
+	woc.mutation.SetIndex(i)
 	return woc
 }
 
@@ -188,17 +147,28 @@ func (woc *WorkOrderCreate) SetNillableIndex(i *int) *WorkOrderCreate {
 	return woc
 }
 
-// SetTypeID sets the type edge to WorkOrderType by id.
-func (woc *WorkOrderCreate) SetTypeID(id string) *WorkOrderCreate {
-	if woc._type == nil {
-		woc._type = make(map[string]struct{})
+// SetCloseDate sets the close_date field.
+func (woc *WorkOrderCreate) SetCloseDate(t time.Time) *WorkOrderCreate {
+	woc.mutation.SetCloseDate(t)
+	return woc
+}
+
+// SetNillableCloseDate sets the close_date field if the given value is not nil.
+func (woc *WorkOrderCreate) SetNillableCloseDate(t *time.Time) *WorkOrderCreate {
+	if t != nil {
+		woc.SetCloseDate(*t)
 	}
-	woc._type[id] = struct{}{}
+	return woc
+}
+
+// SetTypeID sets the type edge to WorkOrderType by id.
+func (woc *WorkOrderCreate) SetTypeID(id int) *WorkOrderCreate {
+	woc.mutation.SetTypeID(id)
 	return woc
 }
 
 // SetNillableTypeID sets the type edge to WorkOrderType by id if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillableTypeID(id *string) *WorkOrderCreate {
+func (woc *WorkOrderCreate) SetNillableTypeID(id *int) *WorkOrderCreate {
 	if id != nil {
 		woc = woc.SetTypeID(*id)
 	}
@@ -211,19 +181,14 @@ func (woc *WorkOrderCreate) SetType(w *WorkOrderType) *WorkOrderCreate {
 }
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
-func (woc *WorkOrderCreate) AddEquipmentIDs(ids ...string) *WorkOrderCreate {
-	if woc.equipment == nil {
-		woc.equipment = make(map[string]struct{})
-	}
-	for i := range ids {
-		woc.equipment[ids[i]] = struct{}{}
-	}
+func (woc *WorkOrderCreate) AddEquipmentIDs(ids ...int) *WorkOrderCreate {
+	woc.mutation.AddEquipmentIDs(ids...)
 	return woc
 }
 
 // AddEquipment adds the equipment edges to Equipment.
 func (woc *WorkOrderCreate) AddEquipment(e ...*Equipment) *WorkOrderCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -231,19 +196,14 @@ func (woc *WorkOrderCreate) AddEquipment(e ...*Equipment) *WorkOrderCreate {
 }
 
 // AddLinkIDs adds the links edge to Link by ids.
-func (woc *WorkOrderCreate) AddLinkIDs(ids ...string) *WorkOrderCreate {
-	if woc.links == nil {
-		woc.links = make(map[string]struct{})
-	}
-	for i := range ids {
-		woc.links[ids[i]] = struct{}{}
-	}
+func (woc *WorkOrderCreate) AddLinkIDs(ids ...int) *WorkOrderCreate {
+	woc.mutation.AddLinkIDs(ids...)
 	return woc
 }
 
 // AddLinks adds the links edges to Link.
 func (woc *WorkOrderCreate) AddLinks(l ...*Link) *WorkOrderCreate {
-	ids := make([]string, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -251,19 +211,14 @@ func (woc *WorkOrderCreate) AddLinks(l ...*Link) *WorkOrderCreate {
 }
 
 // AddFileIDs adds the files edge to File by ids.
-func (woc *WorkOrderCreate) AddFileIDs(ids ...string) *WorkOrderCreate {
-	if woc.files == nil {
-		woc.files = make(map[string]struct{})
-	}
-	for i := range ids {
-		woc.files[ids[i]] = struct{}{}
-	}
+func (woc *WorkOrderCreate) AddFileIDs(ids ...int) *WorkOrderCreate {
+	woc.mutation.AddFileIDs(ids...)
 	return woc
 }
 
 // AddFiles adds the files edges to File.
 func (woc *WorkOrderCreate) AddFiles(f ...*File) *WorkOrderCreate {
-	ids := make([]string, len(f))
+	ids := make([]int, len(f))
 	for i := range f {
 		ids[i] = f[i].ID
 	}
@@ -271,19 +226,14 @@ func (woc *WorkOrderCreate) AddFiles(f ...*File) *WorkOrderCreate {
 }
 
 // AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
-func (woc *WorkOrderCreate) AddHyperlinkIDs(ids ...string) *WorkOrderCreate {
-	if woc.hyperlinks == nil {
-		woc.hyperlinks = make(map[string]struct{})
-	}
-	for i := range ids {
-		woc.hyperlinks[ids[i]] = struct{}{}
-	}
+func (woc *WorkOrderCreate) AddHyperlinkIDs(ids ...int) *WorkOrderCreate {
+	woc.mutation.AddHyperlinkIDs(ids...)
 	return woc
 }
 
 // AddHyperlinks adds the hyperlinks edges to Hyperlink.
 func (woc *WorkOrderCreate) AddHyperlinks(h ...*Hyperlink) *WorkOrderCreate {
-	ids := make([]string, len(h))
+	ids := make([]int, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
@@ -291,16 +241,13 @@ func (woc *WorkOrderCreate) AddHyperlinks(h ...*Hyperlink) *WorkOrderCreate {
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (woc *WorkOrderCreate) SetLocationID(id string) *WorkOrderCreate {
-	if woc.location == nil {
-		woc.location = make(map[string]struct{})
-	}
-	woc.location[id] = struct{}{}
+func (woc *WorkOrderCreate) SetLocationID(id int) *WorkOrderCreate {
+	woc.mutation.SetLocationID(id)
 	return woc
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillableLocationID(id *string) *WorkOrderCreate {
+func (woc *WorkOrderCreate) SetNillableLocationID(id *int) *WorkOrderCreate {
 	if id != nil {
 		woc = woc.SetLocationID(*id)
 	}
@@ -313,19 +260,14 @@ func (woc *WorkOrderCreate) SetLocation(l *Location) *WorkOrderCreate {
 }
 
 // AddCommentIDs adds the comments edge to Comment by ids.
-func (woc *WorkOrderCreate) AddCommentIDs(ids ...string) *WorkOrderCreate {
-	if woc.comments == nil {
-		woc.comments = make(map[string]struct{})
-	}
-	for i := range ids {
-		woc.comments[ids[i]] = struct{}{}
-	}
+func (woc *WorkOrderCreate) AddCommentIDs(ids ...int) *WorkOrderCreate {
+	woc.mutation.AddCommentIDs(ids...)
 	return woc
 }
 
 // AddComments adds the comments edges to Comment.
 func (woc *WorkOrderCreate) AddComments(c ...*Comment) *WorkOrderCreate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -333,19 +275,14 @@ func (woc *WorkOrderCreate) AddComments(c ...*Comment) *WorkOrderCreate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (woc *WorkOrderCreate) AddPropertyIDs(ids ...string) *WorkOrderCreate {
-	if woc.properties == nil {
-		woc.properties = make(map[string]struct{})
-	}
-	for i := range ids {
-		woc.properties[ids[i]] = struct{}{}
-	}
+func (woc *WorkOrderCreate) AddPropertyIDs(ids ...int) *WorkOrderCreate {
+	woc.mutation.AddPropertyIDs(ids...)
 	return woc
 }
 
 // AddProperties adds the properties edges to Property.
 func (woc *WorkOrderCreate) AddProperties(p ...*Property) *WorkOrderCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -353,19 +290,14 @@ func (woc *WorkOrderCreate) AddProperties(p ...*Property) *WorkOrderCreate {
 }
 
 // AddCheckListCategoryIDs adds the check_list_categories edge to CheckListCategory by ids.
-func (woc *WorkOrderCreate) AddCheckListCategoryIDs(ids ...string) *WorkOrderCreate {
-	if woc.check_list_categories == nil {
-		woc.check_list_categories = make(map[string]struct{})
-	}
-	for i := range ids {
-		woc.check_list_categories[ids[i]] = struct{}{}
-	}
+func (woc *WorkOrderCreate) AddCheckListCategoryIDs(ids ...int) *WorkOrderCreate {
+	woc.mutation.AddCheckListCategoryIDs(ids...)
 	return woc
 }
 
 // AddCheckListCategories adds the check_list_categories edges to CheckListCategory.
 func (woc *WorkOrderCreate) AddCheckListCategories(c ...*CheckListCategory) *WorkOrderCreate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -373,19 +305,14 @@ func (woc *WorkOrderCreate) AddCheckListCategories(c ...*CheckListCategory) *Wor
 }
 
 // AddCheckListItemIDs adds the check_list_items edge to CheckListItem by ids.
-func (woc *WorkOrderCreate) AddCheckListItemIDs(ids ...string) *WorkOrderCreate {
-	if woc.check_list_items == nil {
-		woc.check_list_items = make(map[string]struct{})
-	}
-	for i := range ids {
-		woc.check_list_items[ids[i]] = struct{}{}
-	}
+func (woc *WorkOrderCreate) AddCheckListItemIDs(ids ...int) *WorkOrderCreate {
+	woc.mutation.AddCheckListItemIDs(ids...)
 	return woc
 }
 
 // AddCheckListItems adds the check_list_items edges to CheckListItem.
 func (woc *WorkOrderCreate) AddCheckListItems(c ...*CheckListItem) *WorkOrderCreate {
-	ids := make([]string, len(c))
+	ids := make([]int, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -393,16 +320,13 @@ func (woc *WorkOrderCreate) AddCheckListItems(c ...*CheckListItem) *WorkOrderCre
 }
 
 // SetTechnicianID sets the technician edge to Technician by id.
-func (woc *WorkOrderCreate) SetTechnicianID(id string) *WorkOrderCreate {
-	if woc.technician == nil {
-		woc.technician = make(map[string]struct{})
-	}
-	woc.technician[id] = struct{}{}
+func (woc *WorkOrderCreate) SetTechnicianID(id int) *WorkOrderCreate {
+	woc.mutation.SetTechnicianID(id)
 	return woc
 }
 
 // SetNillableTechnicianID sets the technician edge to Technician by id if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillableTechnicianID(id *string) *WorkOrderCreate {
+func (woc *WorkOrderCreate) SetNillableTechnicianID(id *int) *WorkOrderCreate {
 	if id != nil {
 		woc = woc.SetTechnicianID(*id)
 	}
@@ -415,16 +339,13 @@ func (woc *WorkOrderCreate) SetTechnician(t *Technician) *WorkOrderCreate {
 }
 
 // SetProjectID sets the project edge to Project by id.
-func (woc *WorkOrderCreate) SetProjectID(id string) *WorkOrderCreate {
-	if woc.project == nil {
-		woc.project = make(map[string]struct{})
-	}
-	woc.project[id] = struct{}{}
+func (woc *WorkOrderCreate) SetProjectID(id int) *WorkOrderCreate {
+	woc.mutation.SetProjectID(id)
 	return woc
 }
 
 // SetNillableProjectID sets the project edge to Project by id if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillableProjectID(id *string) *WorkOrderCreate {
+func (woc *WorkOrderCreate) SetNillableProjectID(id *int) *WorkOrderCreate {
 	if id != nil {
 		woc = woc.SetProjectID(*id)
 	}
@@ -436,49 +357,92 @@ func (woc *WorkOrderCreate) SetProject(p *Project) *WorkOrderCreate {
 	return woc.SetProjectID(p.ID)
 }
 
+// SetOwnerID sets the owner edge to User by id.
+func (woc *WorkOrderCreate) SetOwnerID(id int) *WorkOrderCreate {
+	woc.mutation.SetOwnerID(id)
+	return woc
+}
+
+// SetOwner sets the owner edge to User.
+func (woc *WorkOrderCreate) SetOwner(u *User) *WorkOrderCreate {
+	return woc.SetOwnerID(u.ID)
+}
+
+// SetAssigneeID sets the assignee edge to User by id.
+func (woc *WorkOrderCreate) SetAssigneeID(id int) *WorkOrderCreate {
+	woc.mutation.SetAssigneeID(id)
+	return woc
+}
+
+// SetNillableAssigneeID sets the assignee edge to User by id if the given value is not nil.
+func (woc *WorkOrderCreate) SetNillableAssigneeID(id *int) *WorkOrderCreate {
+	if id != nil {
+		woc = woc.SetAssigneeID(*id)
+	}
+	return woc
+}
+
+// SetAssignee sets the assignee edge to User.
+func (woc *WorkOrderCreate) SetAssignee(u *User) *WorkOrderCreate {
+	return woc.SetAssigneeID(u.ID)
+}
+
 // Save creates the WorkOrder in the database.
 func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
-	if woc.create_time == nil {
+	if _, ok := woc.mutation.CreateTime(); !ok {
 		v := workorder.DefaultCreateTime()
-		woc.create_time = &v
+		woc.mutation.SetCreateTime(v)
 	}
-	if woc.update_time == nil {
+	if _, ok := woc.mutation.UpdateTime(); !ok {
 		v := workorder.DefaultUpdateTime()
-		woc.update_time = &v
+		woc.mutation.SetUpdateTime(v)
 	}
-	if woc.name == nil {
+	if _, ok := woc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if err := workorder.NameValidator(*woc.name); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+	if v, ok := woc.mutation.Name(); ok {
+		if err := workorder.NameValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
 	}
-	if woc.status == nil {
+	if _, ok := woc.mutation.Status(); !ok {
 		v := workorder.DefaultStatus
-		woc.status = &v
+		woc.mutation.SetStatus(v)
 	}
-	if woc.priority == nil {
+	if _, ok := woc.mutation.Priority(); !ok {
 		v := workorder.DefaultPriority
-		woc.priority = &v
+		woc.mutation.SetPriority(v)
 	}
-	if woc.owner_name == nil {
-		return nil, errors.New("ent: missing required field \"owner_name\"")
-	}
-	if woc.creation_date == nil {
+	if _, ok := woc.mutation.CreationDate(); !ok {
 		return nil, errors.New("ent: missing required field \"creation_date\"")
 	}
-	if len(woc._type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
+	if _, ok := woc.mutation.OwnerID(); !ok {
+		return nil, errors.New("ent: missing required edge \"owner\"")
 	}
-	if len(woc.location) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
+	var (
+		err  error
+		node *WorkOrder
+	)
+	if len(woc.hooks) == 0 {
+		node, err = woc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*WorkOrderMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			woc.mutation = mutation
+			node, err = woc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(woc.hooks) - 1; i >= 0; i-- {
+			mut = woc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, woc.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(woc.technician) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"technician\"")
-	}
-	if len(woc.project) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"project\"")
-	}
-	return woc.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -496,100 +460,92 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: workorder.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: workorder.FieldID,
 			},
 		}
 	)
-	if value := woc.create_time; value != nil {
+	if value, ok := woc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: workorder.FieldCreateTime,
 		})
-		wo.CreateTime = *value
+		wo.CreateTime = value
 	}
-	if value := woc.update_time; value != nil {
+	if value, ok := woc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: workorder.FieldUpdateTime,
 		})
-		wo.UpdateTime = *value
+		wo.UpdateTime = value
 	}
-	if value := woc.name; value != nil {
+	if value, ok := woc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: workorder.FieldName,
 		})
-		wo.Name = *value
+		wo.Name = value
 	}
-	if value := woc.status; value != nil {
+	if value, ok := woc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: workorder.FieldStatus,
 		})
-		wo.Status = *value
+		wo.Status = value
 	}
-	if value := woc.priority; value != nil {
+	if value, ok := woc.mutation.Priority(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: workorder.FieldPriority,
 		})
-		wo.Priority = *value
+		wo.Priority = value
 	}
-	if value := woc.description; value != nil {
+	if value, ok := woc.mutation.Description(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: workorder.FieldDescription,
 		})
-		wo.Description = *value
+		wo.Description = value
 	}
-	if value := woc.owner_name; value != nil {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  *value,
-			Column: workorder.FieldOwnerName,
-		})
-		wo.OwnerName = *value
-	}
-	if value := woc.install_date; value != nil {
+	if value, ok := woc.mutation.InstallDate(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: workorder.FieldInstallDate,
 		})
-		wo.InstallDate = *value
+		wo.InstallDate = value
 	}
-	if value := woc.creation_date; value != nil {
+	if value, ok := woc.mutation.CreationDate(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: workorder.FieldCreationDate,
 		})
-		wo.CreationDate = *value
+		wo.CreationDate = value
 	}
-	if value := woc.assignee; value != nil {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  *value,
-			Column: workorder.FieldAssignee,
-		})
-		wo.Assignee = *value
-	}
-	if value := woc.index; value != nil {
+	if value, ok := woc.mutation.Index(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: workorder.FieldIndex,
 		})
-		wo.Index = *value
+		wo.Index = value
 	}
-	if nodes := woc._type; len(nodes) > 0 {
+	if value, ok := woc.mutation.CloseDate(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: workorder.FieldCloseDate,
+		})
+		wo.CloseDate = value
+	}
+	if nodes := woc.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -598,21 +554,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.equipment; len(nodes) > 0 {
+	if nodes := woc.mutation.EquipmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -621,21 +573,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipment.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.links; len(nodes) > 0 {
+	if nodes := woc.mutation.LinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -644,21 +592,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: link.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.files; len(nodes) > 0 {
+	if nodes := woc.mutation.FilesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -667,21 +611,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.hyperlinks; len(nodes) > 0 {
+	if nodes := woc.mutation.HyperlinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -690,21 +630,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: hyperlink.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.location; len(nodes) > 0 {
+	if nodes := woc.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -713,21 +649,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.comments; len(nodes) > 0 {
+	if nodes := woc.mutation.CommentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -736,21 +668,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: comment.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.properties; len(nodes) > 0 {
+	if nodes := woc.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -759,21 +687,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.check_list_categories; len(nodes) > 0 {
+	if nodes := woc.mutation.CheckListCategoriesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -782,21 +706,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: checklistcategory.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.check_list_items; len(nodes) > 0 {
+	if nodes := woc.mutation.CheckListItemsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -805,21 +725,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: checklistitem.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.technician; len(nodes) > 0 {
+	if nodes := woc.mutation.TechnicianIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -828,21 +744,17 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: technician.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := woc.project; len(nodes) > 0 {
+	if nodes := woc.mutation.ProjectIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -851,16 +763,50 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: project.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := woc.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.OwnerTable,
+			Columns: []string{workorder.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := woc.mutation.AssigneeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.AssigneeTable,
+			Columns: []string{workorder.AssigneeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -872,6 +818,6 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	wo.ID = strconv.FormatInt(id, 10)
+	wo.ID = int(id)
 	return wo, nil
 }

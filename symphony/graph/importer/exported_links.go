@@ -47,20 +47,9 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "cannot parse form", http.StatusInternalServerError)
 		return
 	}
-	err := r.ParseForm()
+	skipLines, verifyBeforeCommit, err := m.parseImportArgs(r)
 	if err != nil {
-		errorReturn(w, "can't parse form", log, err)
-		return
-	}
-	skipLines, err := getLinesToSkip(r)
-	if err != nil {
-		errorReturn(w, "can't parse skipped lines", log, err)
-		return
-	}
-
-	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
-	if err != nil {
-		errorReturn(w, "can't parse verify_before_commit param", log, err)
+		errorReturn(w, "can't parse form or arguments", log, err)
 		return
 	}
 
@@ -69,15 +58,19 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 	} else {
 		commitRuns = []bool{true}
 	}
+	startSaving := false
 
 	for fileName := range r.MultipartForm.File {
 		first, _, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, ImportEntityLink)
 		if err != nil {
 			errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
 			return
 		}
-
+		importHeader, err := NewImportHeader(first, ImportEntityLink)
+		if err != nil {
+			errorReturn(w, "error on header", log, err)
+			return
+		}
 		if err = m.inputValidationsLinks(ctx, importHeader); err != nil {
 			errorReturn(w, "first line validation error", log, err)
 			return
@@ -87,6 +80,8 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
 			if commit && *verifyBeforeCommit && len(errs) != 0 {
 				break
+			} else if commit && len(errs) == 0 {
+				startSaving = true
 			}
 			if len(skipLines) > 0 {
 				nextLineToSkipIndex = 0
@@ -116,7 +111,11 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 				}
 
 				ln := m.trimLine(untrimmedLine)
-				importLine := NewImportRecord(ln, importHeader)
+				importLine, err := NewImportRecord(ln, importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				portARecord, portBRecord, err := m.getTwoPortRecords(importLine)
 
 				if err != nil {
@@ -124,7 +123,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					continue
 				}
 				id := importLine.ID()
-				if id == "" {
+				if id == 0 {
 					client := m.ClientFrom(ctx)
 					var linkPropertyInputs []*models.PropertyInput
 					linkInput := make(map[int]*models.LinkSide, 2)
@@ -170,7 +169,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 						log.Info(fmt.Sprintf("(row #%d) creating link", numRows))
 					}
 				} else {
-					//edit existing link - only properties
+					// edit existing link - only properties
 					l, err := m.validateLineForExistingLink(ctx, id, importLine)
 					if err != nil {
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("validating existing port: id %v", id)})
@@ -189,7 +188,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					}
 					if len(allPropInputs) == 0 {
 						modifiedCount++
-						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port types or link properties", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+						log.Info(fmt.Sprintf("(row #%d) [SKIPING]no port types or link properties", numRows), zap.String("name", importLine.Name()), zap.Int("id", importLine.ID()))
 						continue
 					}
 
@@ -204,14 +203,14 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 							continue
 						}
 						modifiedCount++
-						log.Info(fmt.Sprintf("(row #%d) editing link", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+						log.Info(fmt.Sprintf("(row #%d) editing link", numRows), zap.String("name", importLine.Name()), zap.Int("id", importLine.ID()))
 					}
 				}
 			}
 		}
 		log.Debug("Exported links - Done")
 		w.WriteHeader(http.StatusOK)
-		err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0)
+		err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0, startSaving)
 		if err != nil {
 			errorReturn(w, "cannot marshal message", log, err)
 			return
@@ -225,18 +224,25 @@ func (m *importer) getLinkPropertyInputs(ctx context.Context, importLine ImportR
 	if err != nil {
 		return nil, fmt.Sprintf("querying link ports: id %v", l.ID), err
 	}
-
+	var portTypes []interface{}
 	for _, port := range ports {
 		definition := port.QueryDefinition().OnlyX(ctx)
 		portType, _ := definition.QueryEquipmentPortType().Only(ctx)
 
 		if portType != nil && importLine.Len() > importHeader.PropertyStartIdx() {
+			portTypes = append(portTypes, portType)
 			portProps, err := m.validatePropertiesForPortType(ctx, importLine, portType, ImportEntityLink)
 			if err != nil {
 				return nil, fmt.Sprintf("validating property for type %v.", portType.Name), err
 			}
 			allPropInputs = append(allPropInputs, portProps...)
 		}
+	}
+	if len(portTypes) != 0 {
+		err = importLine.validatePropertiesMismatch(ctx, portTypes)
+	}
+	if err != nil {
+		return nil, "", err
 	}
 	return allPropInputs, "", nil
 }
@@ -255,7 +261,7 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 		return nil, fmt.Sprintf("getting port definition %v under equipment type %v", defName, etn), nil, err
 	}
 
-	parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, portRecord, commit)
+	parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, portRecord, commit, nil)
 
 	if err != nil {
 		return nil, "error while creating/verifying location hierarchy", nil, err
@@ -285,7 +291,7 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 		equipment, _, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
 
 	} else {
-		equipment, err = m.getEquipmentIfExist(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
+		equipment, err = m.getEquipmentIfExist(ctx, en, equipmentType, parentLoc, pos)
 		if equipment == nil && err == nil {
 			return nil, "", nil, nil
 		}
@@ -311,23 +317,37 @@ func (m *importer) getLinkSide(ctx context.Context, client *ent.Client, portReco
 
 func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *ImportRecord, error) {
 	header := importLine.Header()
-	headerSlices := header.LinkGetTwoPortsSlices()
+	headerSlices, err := header.LinkGetTwoPortsSlices()
+	if err != nil {
+		return nil, nil, err
+	}
 	ahead, bhead := headerSlices[0], headerSlices[1]
-	headerA := NewImportHeader(ahead, ImportEntityPortInLink)
-	headerB := NewImportHeader(bhead, ImportEntityPortInLink)
-
+	headerA, err := NewImportHeader(ahead, ImportEntityPortInLink)
+	if err != nil {
+		return nil, nil, err
+	}
+	headerB, err := NewImportHeader(bhead, ImportEntityPortInLink)
+	if err != nil {
+		return nil, nil, err
+	}
 	portsSlices := importLine.LinkGetTwoPortsSlices()
 	portASlice, portBSlice := portsSlices[0], portsSlices[1]
 	if equal(portASlice, portBSlice) {
 		return nil, nil, errors.New("ports are identical")
 	}
 
-	portA := NewImportRecord(portASlice, headerA)
-	portB := NewImportRecord(portBSlice, headerB)
+	portA, err := NewImportRecord(portASlice, headerA)
+	if err != nil {
+		return nil, nil, err
+	}
+	portB, err := NewImportRecord(portBSlice, headerB)
+	if err != nil {
+		return nil, nil, err
+	}
 	return &portA, &portB, nil
 }
 
-func (m *importer) validateLineForExistingLink(ctx context.Context, linkID string, importLine ImportRecord) (*ent.Link, error) {
+func (m *importer) validateLineForExistingLink(ctx context.Context, linkID int, importLine ImportRecord) (*ent.Link, error) {
 	link, err := m.ClientFrom(ctx).Link.Query().Where(link.ID(linkID)).Only(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching link")
@@ -400,18 +420,27 @@ func (m *importer) inputValidationsLinks(ctx context.Context, importHeader Impor
 	if firstLine[0] != "Link ID" {
 		return errors.Errorf("first cell should be 'Link ID' ")
 	}
-	portsSlices := importHeader.LinkGetTwoPortsSlices()
-	ha := NewImportHeader(portsSlices[0], ImportEntityPortInLink)
 
+	portsSlices, err := importHeader.LinkGetTwoPortsSlices()
+	if err != nil {
+		return err
+	}
+	ha, err := NewImportHeader(portsSlices[0], ImportEntityPortInLink)
+	if err != nil {
+		return err
+	}
 	locStart, _ := ha.LocationsRangeIdx()
 	if !equal(ha.line[:locStart], []string{"Port A Name", "Equipment A Name", "Equipment A Type"}) {
 		return errors.New("first line misses sequence; 'Port A Name', 'Equipment A Name' or 'Equipment A Type' ")
 	}
-	err := m.validateAllLocationTypeExist(ctx, locStart, ha.LocationTypesRangeArr(), false)
+	err = m.validateAllLocationTypeExist(ctx, locStart, ha.LocationTypesRangeArr(), false)
 	if err != nil {
 		return err
 	}
-	hb := NewImportHeader(portsSlices[1], ImportEntityPortInLink)
+	hb, err := NewImportHeader(portsSlices[1], ImportEntityPortInLink)
+	if err != nil {
+		return err
+	}
 	locStart, _ = hb.LocationsRangeIdx()
 	if !equal(hb.line[:locStart], []string{"Port B Name", "Equipment B Name", "Equipment B Type"}) {
 		return errors.New("first line misses sequence; 'Port B Name', 'Equipment B Name' or 'Equipment B Type' ")
@@ -432,9 +461,9 @@ func (m *importer) inputValidationsLinks(ctx context.Context, importHeader Impor
 	return nil
 }
 
-func (m *importer) validateServicesForLinks(ctx context.Context, line ImportRecord) ([]string, error) {
+func (m *importer) validateServicesForLinks(ctx context.Context, line ImportRecord) ([]int, error) {
 	serviceNamesMap := make(map[string]bool)
-	var serviceIds []string
+	var serviceIds []int
 	serviceNames := strings.Split(line.ServiceNames(), ";")
 	for _, serviceName := range serviceNames {
 		if serviceName != "" {

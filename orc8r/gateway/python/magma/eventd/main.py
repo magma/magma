@@ -10,14 +10,13 @@ of patent rights can be found in the PATENTS file in the same directory.
 from magma.common.service import MagmaService
 from .rpc_servicer import EventDRpcServicer
 
+
 def main():
     """ main() for eventd """
     service = MagmaService('eventd', None)
 
-    eventd_servicer = EventDRpcServicer(
-        service.config['fluent_bit_port'],
-        service.config['tcp_timeout'],
-    )
+    eventd_servicer = EventDRpcServicer(service.config)
+    eventd_servicer.load_specs_from_registry()
     eventd_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop

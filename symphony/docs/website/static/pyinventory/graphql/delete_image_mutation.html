@@ -29,114 +29,44 @@
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="pyinventory.graphql.delete_image_mutation.enum_field"><code class="name flex">
-<span>def <span class="ident">enum_field</span></span>(<span>enum_type)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
 <dt id="pyinventory.graphql.delete_image_mutation.DeleteImageMutation"><code class="flex name class">
 <span>class <span class="ident">DeleteImageMutation</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData">DeleteImageMutation.DeleteImageMutationData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>DeleteImageMutation(data: Union[pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
+<section class="desc"><p>DeleteImageMutation(data: pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData, <strong>QUERY</strong>: str = '\n
+mutation DeleteImageMutation(\n
+$entityType: ImageEntity!\n
+$entityId: ID!\n
+$id: ID!\n) {\n
+deleteImage(entityType: $entityType, entityId: $entityId, id: $id) {\n
+id\n
+fileName\n
+}\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData"><code class="name">var <span class="ident">DeleteImageMutationData</span></code></dt>
 <dd>
-<section class="desc"><p>DeleteImageMutationData(deleteImage: Union[pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData.File, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
+<section class="desc"><p>DeleteImageMutationData(deleteImage: pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData.File)</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, entityType, entityId, id)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, entityType: <a title="pyinventory.graphql.image_entity_enum.ImageEntity" href="image_entity_enum.html#pyinventory.graphql.image_entity_enum.ImageEntity">ImageEntity</a>, entityId: str, id: str) -> <a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData">DeleteImageMutation.DeleteImageMutationData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.ImageEntity"><code class="flex name class">
-<span>class <span class="ident">ImageEntity</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.delete_image_mutation.ImageEntity.EQUIPMENT"><code class="name">var <span class="ident">EQUIPMENT</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.ImageEntity.LOCATION"><code class="name">var <span class="ident">LOCATION</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.ImageEntity.MISSING_ENUM"><code class="name">var <span class="ident">MISSING_ENUM</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.ImageEntity.SITE_SURVEY"><code class="name">var <span class="ident">SITE_SURVEY</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.delete_image_mutation.ImageEntity.WORK_ORDER"><code class="name">var <span class="ident">WORK_ORDER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
 </dd>
 </dl>
 </dd>
@@ -154,35 +84,13 @@
 <li><code><a title="pyinventory.graphql" href="index.html">pyinventory.graphql</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="pyinventory.graphql.delete_image_mutation.enum_field" href="#pyinventory.graphql.delete_image_mutation.enum_field">enum_field</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
 <h4><code><a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation">DeleteImageMutation</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.DeleteImageMutationData">DeleteImageMutationData</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.data" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.errors" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.execute" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.from_dict" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.from_json" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.schema" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.to_dict" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.DeleteImageMutation.to_json" href="#pyinventory.graphql.delete_image_mutation.DeleteImageMutation.to_json">to_json</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.graphql.delete_image_mutation.ImageEntity" href="#pyinventory.graphql.delete_image_mutation.ImageEntity">ImageEntity</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.graphql.delete_image_mutation.ImageEntity.EQUIPMENT" href="#pyinventory.graphql.delete_image_mutation.ImageEntity.EQUIPMENT">EQUIPMENT</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.ImageEntity.LOCATION" href="#pyinventory.graphql.delete_image_mutation.ImageEntity.LOCATION">LOCATION</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.ImageEntity.MISSING_ENUM" href="#pyinventory.graphql.delete_image_mutation.ImageEntity.MISSING_ENUM">MISSING_ENUM</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.ImageEntity.SITE_SURVEY" href="#pyinventory.graphql.delete_image_mutation.ImageEntity.SITE_SURVEY">SITE_SURVEY</a></code></li>
-<li><code><a title="pyinventory.graphql.delete_image_mutation.ImageEntity.WORK_ORDER" href="#pyinventory.graphql.delete_image_mutation.ImageEntity.WORK_ORDER">WORK_ORDER</a></code></li>
 </ul>
 </li>
 </ul>

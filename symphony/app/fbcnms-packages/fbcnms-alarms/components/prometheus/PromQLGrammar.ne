@@ -1,79 +1,197 @@
 @{%
 const {lexer} = require('../PromQLTokenizer');
-const {AggregationOperation, BinaryOperation, Clause, Function, InstantSelector, Label, Labels, RangeSelector, Scalar, String, VectorMatchClause} = require('../PromQL');
+const {FUNCTION_NAMES, SyntaxError} = require('../PromQLTypes')
+const {
+        AggregationOperation,
+        BinaryComparator,
+        BinaryOperation,
+        Clause,
+        Function,
+        InstantSelector,
+        Label,
+        Labels,
+        RangeSelector,
+        Scalar,
+        String,
+        SubQuery,
+        VectorMatchClause
+} = require('../PromQL');
 %}
 
 @lexer lexer
 
-expression -> metric_selector  {% id %}
-            | function         {% id %}
-            | aggregation      {% id %}
-            | binary_operation {% id %}
-            | SCALAR           {% id %}
+expression ->
+        metric_selector {% id %}
+        | aggregation   {% id %}
+        | function      {% id %}
+        | binary_operation
+                        {% id %}
+        | subquery      {% id %}
+        | SCALAR        {% id %}
 
-metric_selector -> selector               {% id %}
-                 | selector offset_clause {% ([selector, offset]) => selector.setOffset(offset[1]) %}
+metric_selector ->
+        selector        {% id %}
+        | selector offset_clause
+                        {% ([selector, offset]) => selector.setOffset(offset) %}
 
-selector -> instant_selector {% id %}
-          | range_selector   {% id %}
+selector ->
+        instant_selector
+                        {% id %}
+        | range_selector
+                        {% id %}
 
-instant_selector -> IDENTIFIER label_selector {% ([id, labels]) => new InstantSelector(id, labels) %}
-                  | IDENTIFIER                {% ([id]) => new InstantSelector(id) %}
-                  | label_selector            {% ([labels]) => new InstantSelector("", labels) %}
+instant_selector ->
+        metric_identifier label_selector
+                        {% ([id, labels]) => new InstantSelector(id, labels) %}
+        | metric_identifier
+                        {% ([id]) => new InstantSelector(id) %}
+        | label_selector
+                        {% ([labels]) => new InstantSelector("", labels) %}
 
-range_selector -> instant_selector duration {% ([selector, duration]) => new RangeSelector(selector, duration)%}
+metric_identifier ->
+        metric_identifier %colon:+ IDENTIFIER:?
+                        {% matches => matches.join('') %}
+        | %colon metric_identifier
+                        {% matches => matches.join('') %}
+        | IDENTIFIER    {% id %}
 
-duration ->  %lBracket RANGE %rBracket {% ([_lBracket, range, _rBracket]) => range %}
+range_selector -> instant_selector duration
+                        {% ([selector, duration]) => new RangeSelector(selector, duration) %}
 
-binary_operation -> expression BIN_OP expression                     {% ([lh, op, rh]) => new BinaryOperation(lh, rh, op) %}
-                  | expression BIN_OP vector_match_clause expression {% ([lh, op, clause, rh]) => new BinaryOperation(lh, rh, op, clause) %}
+duration -> %lBracket RANGE %rBracket
+                        {% ([_lBracket, range, _rBracket]) => range %}
 
-vector_match_clause -> CLAUSE_OP labelList                    {% ([op, labels]) => new VectorMatchClause(new Clause(op, labels)) %}
-                     | CLAUSE_OP labelList GROUP_OP labelList {% ([matchOp, matchLabels, groupOp, groupLabels]) => new VectorMatchClause(new Clause(matchOp, matchLabels), new Clause(groupOp, groupLabels)) %}
+binary_operation ->
+        expression bin_op expression
+                        {% ([lh, op, rh]) => new BinaryOperation(lh, rh, op) %}
+        | expression bin_op vector_match_clause expression
+                        {% ([lh, op, clause, rh]) => new BinaryOperation(lh, rh, op, clause) %}
+
+vector_match_clause ->
+        MATCH_CLAUSE labelList
+                        {% ([op, labels]) => new VectorMatchClause(new Clause(op, labels)) %}
+        | MATCH_CLAUSE labelList GROUP_CLAUSE labelList
+                        {% ([matchOp, matchLabels, groupOp, groupLabels]) =>
+                                new VectorMatchClause(
+                                        new Clause(matchOp, matchLabels),
+                                        new Clause(groupOp, groupLabels))
+                        %}
+        | MATCH_CLAUSE labelList GROUP_CLAUSE
+                        {% ([matchOp, matchLabels, groupOp]) =>
+                                new VectorMatchClause(
+                                        new Clause(matchOp, matchLabels),
+                                        new Clause(groupOp))
+                        %}
+
+bin_op ->
+        BIN_COMP        {% ([op, _boolMode]) => new BinaryComparator(op) %}
+        | BIN_COMP "bool"
+                        {% ([op, _boolMode]) => new BinaryComparator(op).makeBoolean() %}
+        | SET_OP        {% id %}
+        | ARITHM_OP     {% id %}
 
 offset_clause -> "offset" RANGE
+                        {% ([_keyword, offset]) => offset %}
 
-function -> FUNC_NAME %lParen func_params %rParen {% ([funcName, _lParen, params, _rParen]) => new Function(funcName, params) %}
+aggregation ->
+        AGG_OP func_call_body
+                        {% ([aggOp, params]) => new AggregationOperation(aggOp, params) %}
+        | AGG_OP func_call_body dimensionClause
+                        {% ([aggOp, params, clause]) =>
+                                new AggregationOperation(aggOp, params, clause)
+                        %}
+        | AGG_OP dimensionClause func_call_body
+                        {% ([aggOp, clause, params,]) =>
+                                new AggregationOperation(aggOp, params, clause)
+                        %}
 
-func_params -> func_params %comma parameter {% ([existingParams, _comma, newParam]) => [...existingParams, newParam] %}
-             | parameter                    {% d => [d[0]] %}
+dimensionClause -> AGG_CLAUSE labelList
+                        {% ([op, labelList]) => new Clause(op, labelList) %}
 
-parameter -> SCALAR     {% id %}
-           | expression {% id %}
-           | STRING     {% d => new String(d[0]) %}
+labelList -> %lParen label_name_list %rParen
+                        {% ([_lParen, labels, _rParen]) => labels %}
 
-aggregation -> AGG_OP %lParen func_params %rParen                 {% ([aggOp, _lParen, params, _rParen]) => new AggregationOperation(aggOp, params) %}
-             | AGG_OP %lParen func_params %rParen dimensionClause {% ([aggOp, _lParen, params, _rParen, clause]) => new AggregationOperation(aggOp, params, clause) %}
-             | AGG_OP dimensionClause %lParen func_params %rParen {% ([aggOp, clause, _lParen, params, _rParen]) => new AggregationOperation(aggOp, params, clause) %}
+label_name_list ->
+        label_name_list %comma IDENTIFIER
+                        {% ([existingLabels, _, newLabel]) => [...existingLabels, newLabel] %}
+        | IDENTIFIER    {% d => [d[0]] %}
 
-dimensionClause -> CLAUSE_OP labelList {% ([op, labelList]) => new Clause(op, labelList) %}
+label_selector -> %lBrace label_match_list %rBrace
+                        {% ([_lBrace, labels, _rBrace]) => {
+                                const ret = new Labels();
+                                labels.forEach(l => ret.addLabel(l.name, l.value, l.operator));
+                                return ret
+                        }%}
+        | %lBrace %rBrace
+                        {% d => new Labels() %}
 
-labelList -> %lParen label_name_list %rParen {% ([_lParen, labels, _rParen]) => labels %}
+label_match_list ->
+        label_match_list %comma label_matcher
+                        {% ([existingLabels, _, newLabel]) => [...existingLabels, newLabel] %}
+        | label_matcher {% d => [d[0]] %}
 
-label_name_list -> label_name_list %comma IDENTIFIER {% ([existingLabels, _, newLabel]) => [...existingLabels, newLabel] %}
-                 | IDENTIFIER                        {% d => [d[0]] %}
+label_matcher -> label LABEL_OP STRING
+                        {% ([name, op, value]) => new Label(name, value, op) %}
 
-label_selector -> %lBrace label_match_list %rBrace {% ([_lBrace, labels, _rBrace]) => {const ret = new Labels(); labels.forEach(l => ret.addLabel(l.name, l.value, l.operator)); return ret} %}
-                | %lBrace %rBrace                  {% d => new Labels() %}
+label ->
+        IDENTIFIER      {% id %}
+        | SET_OP        {% id %}
+        | AGG_CLAUSE    {% id %}
+        | MATCH_CLAUSE  {% id %}
+        | GROUP_CLAUSE  {% id %}
 
-label_match_list -> label_match_list %comma label_matcher {% ([existingLabels, _, newLabel]) => [...existingLabels, newLabel] %}
-                  | label_matcher                         {% d => [d[0]] %}
+function -> IDENTIFIER func_call_body
+                        {% ([funcName, params]) => {
+                                if (FUNCTION_NAMES.includes(funcName)) {
+                                        return new Function(funcName, params)
+                                } else {
+                                        throw new SyntaxError(`Unknown function: ${funcName}`);
+                                }
+                        }%}
 
-label_matcher -> IDENTIFIER LABEL_OP STRING {% ([name, op, value]) => new Label(name, value, op) %}
+func_call_body -> %lParen func_params %rParen
+                        {% ([_lParen, params, _rParen]) => params %}
+
+func_params ->
+        func_params %comma parameter
+                        {% ([existingParams, _comma, newParam]) => [...existingParams, newParam] %}
+        | parameter     {% d => [d[0]] %}
+
+parameter ->
+        SCALAR          {% id %}
+        | expression    {% id %}
+        | STRING        {% d => new String(d[0]) %}
+
+subquery -> expression %lBracket RANGE %colon RANGE:? %rBracket offset_clause:?
+                        {% ([expr, _lBRacket, range, _colon, step, _rBracket, offset]) =>
+                                new SubQuery(
+                                        expr,
+                                        range,
+                                        step === null ? undefined : step,
+                                        offset === null ? undefined : offset)
+                        %}
 
 # Terminals
-SCALAR      ->  %scalar         {% d => new Scalar(d[0].value) %}
-STRING      ->  %string         {% d => d[0].value %}
-IDENTIFIER  ->  %identifier     {% ([id]) => id.text %}
-LABEL_OP    ->  %labelOp        {% d => d[0].value %}
-BIN_OP      ->  %binOp          {% d => d[0].value %}
-AGG_OP      ->  %aggOp          {% d => d[0].value %}
-FUNC_NAME   ->  %functionName   {% d => d[0].value %}
-RANGE       ->  %range          {% d => d[0].value %}
-CLAUSE_OP   ->  "by"            {% d => d[0].value %}
-            |   "on"            {% d => d[0].value %}
-            |   "unless"        {% d => d[0].value %}
-            |   "without"       {% d => d[0].value %}
-            |   "ignoring"      {% d => d[0].value %}
-GROUP_OP    ->  "group_left"    {% d => d[0].value %}
-            |   "group_right"   {% d => d[0].value %}
+SCALAR -> %scalar       {% d => new Scalar(d[0].value) %}
+STRING -> %string       {% d => d[0].value %}
+IDENTIFIER -> %identifier
+                        {% d => d[0].value %}
+LABEL_OP ->
+        %labelOp        {% d => d[0].value %}
+        | %neq          {% d => d[0].value %}
+BIN_COMP ->
+        %binComp        {% d => d[0].value %}
+        | %neq          {% d => d[0].value %}
+SET_OP -> %setOp        {% d => d[0].value %}
+ARITHM_OP -> %arithmetic
+                        {% d => d[0].value %}
+AGG_OP -> %aggOp        {% d => d[0].value %}
+AGG_CLAUSE -> %aggClause
+                        {% d => d[0].value %}
+FUNC_NAME -> %functionName
+                        {% d => d[0].value %}
+RANGE -> %range         {% d => d[0].value %}
+MATCH_CLAUSE -> %matchClause
+                        {% d => d[0].value %}
+GROUP_CLAUSE -> %groupClause
+                        {% d => d[0].value %}

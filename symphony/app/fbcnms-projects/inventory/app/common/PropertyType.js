@@ -9,13 +9,15 @@
  */
 
 import type {Property} from './Property';
+import type {PropertyFormField_property} from '../components/form/__generated__/PropertyFormField_property.graphql';
 import type {PropertyKind} from '../components/form/__generated__/PropertyTypeFormField_propertyType.graphql';
 
 export type PropertyType = {|
   id: string,
   type: PropertyKind,
   name: string,
-  index: number,
+  index?: ?number,
+  category?: ?string,
   // one or more of the following potential value fields will have actual data,
   // depending on the property type selected for this property.
   // e.g. for 'email' the stringValue field will be populated
@@ -85,7 +87,30 @@ export const getInitialPropertyFromType = (
     longitudeValue: propType.longitudeValue,
     rangeFromValue: propType.rangeFromValue,
     rangeToValue: propType.rangeToValue,
-    isInstanceProperty: propType.isInstanceProperty,
     equipmentValue: null,
   };
 };
+
+export const toMutablePropertyType = (
+  immutablePropertyType: $ReadOnly<
+    $ElementType<PropertyFormField_property, 'propertyType'>,
+  >,
+): PropertyType => ({
+  id: immutablePropertyType.id,
+  type: immutablePropertyType.type,
+  name: immutablePropertyType.name,
+  index: immutablePropertyType.index,
+  category: immutablePropertyType.category,
+  booleanValue: immutablePropertyType.booleanValue,
+  stringValue: immutablePropertyType.stringValue,
+  intValue: immutablePropertyType.intValue,
+  floatValue: immutablePropertyType.floatValue,
+  latitudeValue: immutablePropertyType.latitudeValue,
+  longitudeValue: immutablePropertyType.longitudeValue,
+  rangeFromValue: immutablePropertyType.rangeFromValue,
+  rangeToValue: immutablePropertyType.rangeToValue,
+  isEditable: immutablePropertyType.isEditable,
+  isInstanceProperty: immutablePropertyType.isInstanceProperty,
+  isMandatory: immutablePropertyType.isMandatory,
+  isDeleted: immutablePropertyType.isDeleted,
+});

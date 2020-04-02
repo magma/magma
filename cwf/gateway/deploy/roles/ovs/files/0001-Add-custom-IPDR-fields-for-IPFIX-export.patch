@@ -1,15 +1,15 @@
-From 4e20e949a61ab5e7148c0ec72e5c5fdcb4dca6fd Mon Sep 17 00:00:00 2001
+From 7ad21826dc40874b13465b3f542210cfdc81d70d Mon Sep 17 00:00:00 2001
 From: Mykola Yurchenko <urchennko@gmail.com>
 Date: Tue, 4 Feb 2020 23:59:30 +0000
-Subject: [PATCH] Add custom IPDR fields for IPFIX export
+Subject: [PATCH 1/3] Add custom IPDR fields for IPFIX export
 
 ---
- include/openvswitch/ofp-actions.h     |  3 +++
- lib/odp-util.h                        |  7 +++++-
- lib/ofp-actions.c                     | 38 +++++++++++++++++++++++++++---
- ofproto/ipfix-enterprise-entities.def |  7 ++++++
- ofproto/ofproto-dpif-ipfix.c          | 44 +++++++++++++++++++++++++++++++++++
- ofproto/ofproto-dpif-xlate.c          |  5 ++++
+ include/openvswitch/ofp-actions.h     |  3 ++
+ lib/odp-util.h                        |  7 ++++-
+ lib/ofp-actions.c                     | 38 +++++++++++++++++++++--
+ ofproto/ipfix-enterprise-entities.def |  7 +++++
+ ofproto/ofproto-dpif-ipfix.c          | 44 +++++++++++++++++++++++++++
+ ofproto/ofproto-dpif-xlate.c          |  5 +++
  6 files changed, 100 insertions(+), 4 deletions(-)
 
 diff --git a/include/openvswitch/ofp-actions.h b/include/openvswitch/ofp-actions.h
@@ -288,5 +288,5 @@ index 0dc43d17a..a73c3d419 100644
      compose_sample_action(ctx, probability, &cookie, tunnel_out_port, false);
  }
 -- 
-2.11.0
+2.17.1
 

@@ -8,7 +8,12 @@
  * @format
  */
 
-import type {SelectionCallbackType} from './Table';
+import type {
+  ActiveCallbackType,
+  NullableTableRowId,
+  SelectionCallbackType,
+  TableRowId,
+} from './Table';
 import type {SelectionType} from '../Checkbox/Checkbox';
 
 import * as React from 'react';
@@ -16,13 +21,21 @@ import emptyFunction from '../../../../fbcnms-util/emptyFunction';
 import {useContext, useMemo} from 'react';
 
 export type TableSelectionContextValue = {
-  selectedIds: Array<string | number>,
+  activeId: string | number | null,
+  setActiveId?: ?(id: NullableTableRowId) => void,
+  selectedIds: Array<TableRowId>,
   selectionMode: 'all' | 'none' | 'some',
-  changeRowSelection: (id: string | number, selection: SelectionType) => void,
+  changeRowSelection: (
+    id: TableRowId,
+    selection: SelectionType,
+    isExclusive?: boolean,
+  ) => void,
   changeHeaderSelectionMode: (selection: SelectionType) => void,
 };
 
 const TableSelectionContext = React.createContext<TableSelectionContextValue>({
+  activeId: null,
+  setActiveId: emptyFunction,
   selectedIds: [],
   selectionMode: 'none',
   changeRowSelection: emptyFunction,
@@ -31,16 +44,20 @@ const TableSelectionContext = React.createContext<TableSelectionContextValue>({
 
 type Props = {
   children: React.Node,
-  allIds: Array<string | number>,
-  selectedIds: Array<string | number>,
+  allIds: Array<TableRowId>,
+  activeId?: NullableTableRowId,
+  onActiveChanged?: ActiveCallbackType,
+  selectedIds: Array<TableRowId>,
   onSelectionChanged?: SelectionCallbackType,
 };
 
 export const TableSelectionContextProvider = ({
+  activeId = null,
   selectedIds,
   allIds,
   children,
   onSelectionChanged,
+  onActiveChanged,
 }: Props) => {
   const selectionMode = useMemo(() => {
     if (selectedIds.length === 0) {
@@ -52,16 +69,23 @@ export const TableSelectionContextProvider = ({
   return (
     <TableSelectionContext.Provider
       value={{
+        activeId: activeId,
+        setActiveId: onActiveChanged,
         selectedIds: selectedIds ?? [],
-        changeRowSelection: (id, selection) => {
-          onSelectionChanged &&
-            onSelectionChanged(
-              selection === 'unchecked'
-                ? selectedIds.filter(idItem => idItem !== id)
-                : [...selectedIds, id],
-              'single_item_toggled',
-              {id, change: selection},
-            );
+        changeRowSelection: (id, selection, isExclusive) => {
+          if (!onSelectionChanged) {
+            return;
+          }
+          const newTableSelection =
+            isExclusive === true
+              ? [id]
+              : selection === 'unchecked'
+              ? selectedIds.filter(idItem => idItem !== id)
+              : [...selectedIds, id];
+          onSelectionChanged(newTableSelection, 'single_item_toggled', {
+            id,
+            change: selection,
+          });
         },
         changeHeaderSelectionMode: selection => {
           onSelectionChanged &&

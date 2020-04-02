@@ -11,11 +11,20 @@ namespace devmand {
 namespace devices {
 namespace cli {
 
-DeviceAccess::DeviceAccess(shared_ptr<Cli> _cliChannel, string _deviceId)
-    : cliChannel(_cliChannel), deviceId(_deviceId) {}
+DeviceAccess::DeviceAccess(
+    shared_ptr<Cli> _cliChannel,
+    string _deviceId,
+    shared_ptr<Executor> _workerExecutor)
+    : cliChannel(_cliChannel),
+      deviceId(_deviceId),
+      workerExecutor(_workerExecutor) {}
 
 shared_ptr<Cli> DeviceAccess::cli() const {
   return cliChannel;
+}
+
+shared_ptr<Executor> DeviceAccess::executor() const {
+  return workerExecutor;
 }
 
 string DeviceAccess::id() const {

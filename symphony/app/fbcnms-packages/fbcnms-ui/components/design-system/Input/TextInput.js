@@ -44,11 +44,11 @@ const useStyles = makeStyles(() => ({
     '&$hasFocus': {
       borderColor: symphony.palette.D500,
     },
-    '&:hover:not($disabled):not($hasError)': {
+    '&:hover:not($disabled)': {
       borderColor: symphony.palette.D500,
     },
     '&$disabled': {
-      backgroundColor: symphony.palette.D50,
+      backgroundColor: symphony.palette.background,
     },
     '&$hasError': {
       borderColor: symphony.palette.R600,
@@ -64,7 +64,7 @@ const useStyles = makeStyles(() => ({
       '&::placeholder': {
         color: symphony.palette.disabled,
       },
-      color: symphony.palette.disabled,
+      color: symphony.palette.secondary,
     },
   },
   hasError: {},
@@ -209,6 +209,7 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
           {prefix && <div className={classes.prefix}>{prefix}</div>}
           {isMultiline ? (
             <textarea
+              {...rest}
               rows={rows}
               disabled={disabled}
               className={classNames(classes.input, classes.multilineInput)}

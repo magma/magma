@@ -14,12 +14,24 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-type CheckListCategoryTable_list$ref = any;
+export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type CheckListCategoryExpandingPanel_list$ref: FragmentReference;
 declare export opaque type CheckListCategoryExpandingPanel_list$fragmentType: CheckListCategoryExpandingPanel_list$ref;
 export type CheckListCategoryExpandingPanel_list = $ReadOnlyArray<{|
-  +$fragmentRefs: CheckListCategoryTable_list$ref,
+  +id: string,
+  +title: string,
+  +description: ?string,
+  +checkList: $ReadOnlyArray<{|
+    +id: string,
+    +index: ?number,
+    +type: CheckListItemType,
+    +title: string,
+    +helpText: ?string,
+    +checked: ?boolean,
+    +enumValues: ?string,
+    +stringValue: ?string,
+  |}>,
   +$refType: CheckListCategoryExpandingPanel_list$ref,
 |}>;
 export type CheckListCategoryExpandingPanel_list$data = CheckListCategoryExpandingPanel_list;
@@ -31,7 +43,22 @@ export type CheckListCategoryExpandingPanel_list$key = $ReadOnlyArray<{
 */
 
 
-const node/*: ReaderFragment*/ = {
+const node/*: ReaderFragment*/ = (function(){
+var v0 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "id",
+  "args": null,
+  "storageKey": null
+},
+v1 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "title",
+  "args": null,
+  "storageKey": null
+};
+return {
   "kind": "Fragment",
   "name": "CheckListCategoryExpandingPanel_list",
   "type": "CheckListCategory",
@@ -40,13 +67,73 @@ const node/*: ReaderFragment*/ = {
   },
   "argumentDefinitions": [],
   "selections": [
+    (v0/*: any*/),
+    (v1/*: any*/),
     {
-      "kind": "FragmentSpread",
-      "name": "CheckListCategoryTable_list",
-      "args": null
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "description",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "checkList",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "CheckListItem",
+      "plural": true,
+      "selections": [
+        (v0/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "index",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "type",
+          "args": null,
+          "storageKey": null
+        },
+        (v1/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "helpText",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "checked",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "enumValues",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "stringValue",
+          "args": null,
+          "storageKey": null
+        }
+      ]
     }
   ]
 };
+})();
 // prettier-ignore
-(node/*: any*/).hash = '3cd9ca1fd31f6f622c38b3209c1ad1e2';
+(node/*: any*/).hash = 'e332dc2f797c581eb5586dceda57c593';
 module.exports = node;

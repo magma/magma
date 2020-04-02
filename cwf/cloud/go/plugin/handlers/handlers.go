@@ -54,6 +54,7 @@ const (
 	ManageGatewayPath            = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
 	ManageGatewayNamePath        = ManageGatewayPath + obsidian.UrlSep + "name"
 	ManageGatewayDescriptionPath = ManageGatewayPath + obsidian.UrlSep + "description"
+	ManageGatewayLiImsisPath     = ManageGatewayPath + obsidian.UrlSep + "li_imsis"
 	ManageGatewayConfigPath      = ManageGatewayPath + obsidian.UrlSep + "magmad"
 	ManageGatewayDevicePath      = ManageGatewayPath + obsidian.UrlSep + "device"
 	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "status"
@@ -78,8 +79,8 @@ func GetHandlers() []obsidian.Handler {
 
 		{Path: ManageNetworkBaseNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberBaseName},
 		{Path: ManageNetworkRuleNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberRuleName},
-		{Path: ManageNetworkBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberRuleName},
-		{Path: ManageNetworkRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberBaseName},
+		{Path: ManageNetworkBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberBaseName},
+		{Path: ManageNetworkRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberRuleName},
 	}
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, cwf.CwfNetworkType, &cwfModels.CwfNetwork{})...)
@@ -96,6 +97,7 @@ func GetHandlers() []obsidian.Handler {
 
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayLiImsisPath, new(cwfModels.LiImsis))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rModels.MagmadGatewayConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rModels.TierID))...)
 	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)

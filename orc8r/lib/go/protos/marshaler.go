@@ -37,6 +37,12 @@ func MarshalIntern(msg proto.Message) ([]byte, error) {
 	return buff.Bytes(), err
 }
 
+func MarshalJSON(msg proto.Message) ([]byte, error) {
+	var buff bytes.Buffer
+	err := (&jsonpb.Marshaler{Indent: " "}).Marshal(&buff, msg)
+	return buff.Bytes(), err
+}
+
 func Unmarshal(bt []byte, msg proto.Message) error {
 	return (&jsonpb.Unmarshaler{AllowUnknownFields: true}).Unmarshal(
 		bytes.NewBuffer(bt),

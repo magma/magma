@@ -20,9 +20,6 @@ services:
   mobilityd:
     ip_address: 127.0.0.1
     port: 60051
-  metering:
-    ip_address: 127.0.0.1
-    port: 60052
   enodebd:
     ip_address: 127.0.0.1
     port: 60055
@@ -68,3 +65,6 @@ services:
   eventd:
     ip_address: 127.0.0.1
     port: 50075
+  monitord:
+    ip_address: 127.0.0.1
+    port: 50076

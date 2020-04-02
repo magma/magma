@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 type Link struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -31,7 +30,7 @@ type Link struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LinkQuery when eager-loading is set.
 	Edges           LinkEdges `json:"edges"`
-	link_work_order *string
+	link_work_order *int
 }
 
 // LinkEdges holds the relations/edges for other nodes in the graph.
@@ -117,7 +116,7 @@ func (l *Link) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	l.ID = strconv.FormatInt(value.Int64, 10)
+	l.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -139,8 +138,8 @@ func (l *Link) assignValues(values ...interface{}) error {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field link_work_order", value)
 		} else if value.Valid {
-			l.link_work_order = new(string)
-			*l.link_work_order = strconv.FormatInt(value.Int64, 10)
+			l.link_work_order = new(int)
+			*l.link_work_order = int(value.Int64)
 		}
 	}
 	return nil
@@ -148,29 +147,29 @@ func (l *Link) assignValues(values ...interface{}) error {
 
 // QueryPorts queries the ports edge of the Link.
 func (l *Link) QueryPorts() *EquipmentPortQuery {
-	return (&LinkClient{l.config}).QueryPorts(l)
+	return (&LinkClient{config: l.config}).QueryPorts(l)
 }
 
 // QueryWorkOrder queries the work_order edge of the Link.
 func (l *Link) QueryWorkOrder() *WorkOrderQuery {
-	return (&LinkClient{l.config}).QueryWorkOrder(l)
+	return (&LinkClient{config: l.config}).QueryWorkOrder(l)
 }
 
 // QueryProperties queries the properties edge of the Link.
 func (l *Link) QueryProperties() *PropertyQuery {
-	return (&LinkClient{l.config}).QueryProperties(l)
+	return (&LinkClient{config: l.config}).QueryProperties(l)
 }
 
 // QueryService queries the service edge of the Link.
 func (l *Link) QueryService() *ServiceQuery {
-	return (&LinkClient{l.config}).QueryService(l)
+	return (&LinkClient{config: l.config}).QueryService(l)
 }
 
 // Update returns a builder for updating this Link.
 // Note that, you need to call Link.Unwrap() before calling this method, if this Link
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (l *Link) Update() *LinkUpdateOne {
-	return (&LinkClient{l.config}).UpdateOne(l)
+	return (&LinkClient{config: l.config}).UpdateOne(l)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -197,12 +196,6 @@ func (l *Link) String() string {
 	builder.WriteString(l.FutureState)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (l *Link) id() int {
-	id, _ := strconv.Atoi(l.ID)
-	return id
 }
 
 // Links is a parsable slice of Link.

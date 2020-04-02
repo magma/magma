@@ -9,6 +9,7 @@ from graphql import (
     build_ast_schema,
 )
 from graphql.language.parser import parse
+from graphql_compiler.gql.utils_schema import compile_schema_library
 
 
 DEPRECATED_DOC = """---
@@ -27,41 +28,76 @@ title: Graphql API Breaking Changes
 ## Deprecated Fields
 {}
 
+## Deprecated Input Fields
+{}
+
+## Deprecated Enums
+{}
+
 """
 
 
-def document_all_deprecated_functions(schema_filepath: str, doc_filepath: str) -> None:
+def document_all_deprecated_functions(schema_library: str, doc_filepath: str) -> None:
     deprecated_queries = []
     deprecated_mutations = []
+    deprecated_inputs = []
     deprecated_fields = []
-    with open(schema_filepath) as f:
-        schema = build_ast_schema(parse(f.read()))
-        for query_name, query_field in schema.query_type.fields.items():
-            if query_field.is_deprecated:
-                deprecated_queries.append(
-                    " - ".join([f"`{query_name}`", query_field.deprecation_reason])
-                )
-        for mutation_name, mutation_field in schema.mutation_type.fields.items():
-            if query_field.is_deprecated:
-                deprecated_mutations.append(
-                    " - ".join(
-                        [f"`{mutation_name}`", mutation_field.deprecation_reason]
-                    )
-                )
-        for type_name, type_object in schema.type_map.items():
-            if isinstance(
-                type_object,
-                (GraphQLScalarType, GraphQLEnumType, GraphQLInputObjectType),
-            ) or type_name in ("Query", "Mutation"):
-                continue
+    deprecated_enums = []
+    schema = compile_schema_library(schema_library)
+
+    for query_name, query_field in schema.query_type.fields.items():
+        if query_field.is_deprecated:
+            deprecated_queries.append(
+                " - ".join([f"`{query_name}`", query_field.deprecation_reason])
+            )
+    for mutation_name, mutation_field in schema.mutation_type.fields.items():
+        if mutation_field.is_deprecated:
+            deprecated_mutations.append(
+                " - ".join([f"`{mutation_name}`", mutation_field.deprecation_reason])
+            )
+    for type_name, type_object in schema.type_map.items():
+        if isinstance(type_object, GraphQLScalarType) or type_name in (
+            "Query",
+            "Mutation",
+        ):
+            continue
+        if isinstance(type_object, GraphQLInputObjectType):
             for field_name, field_object in type_object.fields.items():
-                if field_object.is_deprecated:
-                    field_long_name = ".".join([type_name, field_name])
-                    deprecated_fields.append(
+                directives = field_object.ast_node.directives
+                for directive in directives:
+                    if directive.name.value == "deprecatedInput":
+                        field_long_name = ".".join([type_name, field_name])
+                        for argument in directive.arguments:
+                            if argument.name.value == "duplicateError":
+                                deprecation_reason = (
+                                    argument.value.value
+                                    if directive.arguments
+                                    else None
+                                )
+                                deprecated_inputs.append(
+                                    " - ".join(
+                                        [f"`{field_long_name}`", deprecation_reason]
+                                    )
+                                )
+            continue
+        if isinstance(type_object, GraphQLEnumType):
+            for value_name, value_object in type_object.values.items():
+                if value_object.is_deprecated:
+                    value_long_name = ".".join([type_name, value_name])
+                    deprecated_enums.append(
                         " - ".join(
-                            [f"`{field_long_name}`", field_object.deprecation_reason]
+                            [f"`{value_long_name}`", value_object.deprecation_reason]
                         )
                     )
+            continue
+        for field_name, field_object in type_object.fields.items():
+            if field_object.is_deprecated:
+                field_long_name = ".".join([type_name, field_name])
+                deprecated_fields.append(
+                    " - ".join(
+                        [f"`{field_long_name}`", field_object.deprecation_reason]
+                    )
+                )
     with open(doc_filepath, "w") as f:
         f.write(
             DEPRECATED_DOC.format(
@@ -71,6 +107,8 @@ def document_all_deprecated_functions(schema_filepath: str, doc_filepath: str) -
                 "\n".join(map(lambda s: "* " + s, deprecated_queries)),
                 "\n".join(map(lambda s: "* " + s, deprecated_mutations)),
                 "\n".join(map(lambda s: "* " + s, deprecated_fields)),
+                "\n".join(map(lambda s: "* " + s, deprecated_inputs)),
+                "\n".join(map(lambda s: "* " + s, deprecated_enums)),
             )
         )
 
@@ -78,10 +116,10 @@ def document_all_deprecated_functions(schema_filepath: str, doc_filepath: str) -
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "schema_filepath", help="the path of grahql schema file", type=str
+        "schema_library", help="the graphql schemas storage path", type=str
     )
     parser.add_argument(
         "doc_filepath", help="the path of grahql documentation file", type=str
     )
     args = parser.parse_args()
-    document_all_deprecated_functions(args.schema_filepath, args.doc_filepath)
+    document_all_deprecated_functions(args.schema_library, args.doc_filepath)

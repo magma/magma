@@ -1,8 +1,13 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+*/
 package main
 
 import (
-	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -10,8 +15,9 @@ import (
 	"os"
 	"time"
 
+	"magma/gateway/config"
+	"magma/gateway/services/bootstrapper/gateway_info"
 	"magma/gateway/services/bootstrapper/service"
-	"magma/orc8r/lib/go/security/key"
 )
 
 const usageExamples string = `
@@ -46,34 +52,26 @@ func main() {
 	flag.BoolVar(showGwInfo, "s", *showGwInfo, "Print out gateway information needed for GW registration (shortcut)")
 	flag.Parse()
 
-	b := service.NewBootstrapper()
-	if err := b.Initialize(); err != nil {
-		log.Fatalf("Init error: %v", err)
-	}
 	if *showGwInfo {
-		fmt.Printf("\nHardware ID:\n------------\n%s\n", b.HardwareId)
-		ck, err := key.ReadKey(b.ChallengeKeyFile)
+		info, err := gateway_info.GetFormatted()
 		if err != nil {
-			log.Printf("Failed to load Challenge Key from %s: %v", b.ChallengeKeyFile, err)
+			log.Print(err)
 			os.Exit(1)
-			return
 		}
-		marshaledPubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(ck))
-		if err != nil {
-			log.Printf("Failed to marshal Public Challenge Key from %s: %v", b.ChallengeKeyFile, err)
-			os.Exit(2)
-			return
-		}
-		fmt.Printf("\nChallenge Key:\n--------------\n%s\n", base64.StdEncoding.EncodeToString(marshaledPubKey))
+		fmt.Print(info)
 		os.Exit(0)
 	}
 
-	// Main bootstrapper loop
-	configJson, _ := json.Marshal(b)
+	b := service.NewBootstrapper(nil)
 	if err := b.Initialize(); err != nil {
-		log.Fatalf("Bootstrapper Initialize error: %v, with configs:\n\t%s", err, string(configJson))
+		controlProxyConfigJson, _ := json.MarshalIndent(config.GetControlProxyConfigs(), "", "  ")
+		magmadProxyConfigJson, _ := json.MarshalIndent(config.GetMagmadConfigs(), "", "  ")
+		log.Fatalf(
+			"gateway '%s' bootstrap initialization error: %v, for configuration:\ncontrol_proxy: %s\nmagmad: %s",
+			b.HardwareId, err, string(controlProxyConfigJson), string(magmadProxyConfigJson))
 	}
-	log.Printf("Starting Bootstrapper:\n\t%s\n", string(configJson))
+	// Main bootstrapper loop
+	log.Print("Starting Bootstrapper")
 	for {
 		err := b.Start() // Start will only return on error
 		if err != nil {

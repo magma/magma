@@ -120,9 +120,7 @@ const autoSuggestStyles = (theme: Theme, searchSource: SearchSource) => ({
     fontFamily: theme.typography.subtitle1.fontFamily,
     fontSize: theme.typography.subtitle1.fontSize,
     fontWeight: theme.typography.subtitle1.fontWeight,
-    position: 'absolute',
-    top: '42px',
-    width: '100%',
+    position: 'fixed',
     zIndex: '2',
     boxShadow: theme.shadows[2],
   },
@@ -153,6 +151,7 @@ type Props = {
   onBlur?: () => void,
   theme: Theme,
   disabled?: ?boolean,
+  className?: string,
 } & WithStyles<typeof styles>;
 
 type State = {
@@ -184,6 +183,7 @@ class Tokenizer extends React.Component<Props, State> {
       onBlur,
       placeholder,
       disabled,
+      className,
     } = this.props;
     const {searchTerm} = this.state;
     const entries =
@@ -195,12 +195,15 @@ class Tokenizer extends React.Component<Props, State> {
     );
     return (
       <div
-        className={classNames({
-          [classes.root]: true,
-          [classes.enumRoot]: searchSource === 'UserInput',
-          [classes.editable]: !disabled,
-          [classes.searchRoot]: searchSource === 'Options',
-        })}>
+        className={classNames(
+          classes.root,
+          {
+            [classes.enumRoot]: searchSource === 'UserInput',
+            [classes.editable]: !disabled,
+            [classes.searchRoot]: searchSource === 'Options',
+          },
+          className,
+        )}>
         {tokens.map(token => (
           <div
             key={token.id}

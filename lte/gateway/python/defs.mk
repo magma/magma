@@ -6,7 +6,7 @@
 #
 PYTHON_SRCS=$(MAGMA_ROOT)/lte/gateway/python $(MAGMA_ROOT)/orc8r/gateway/python
 PROTO_LIST:=orc8r_protos lte_protos feg_protos
-SWAGGER_LIST:=orc8r_swagger_specs
+SWAGGER_LIST:=lte_swagger_specs orc8r_swagger_specs
 
 # Path to the test files
 TESTS=magma/tests \
@@ -16,6 +16,7 @@ TESTS=magma/tests \
       magma/pipelined/openflow/tests \
       magma/pkt_tester/tests \
       magma/redirectd/tests \
-      magma/subscriberdb/tests
+      magma/subscriberdb/tests \
+      magma/monitord/tests
 
 SUDO_TESTS=magma/pipelined/tests

@@ -35,62 +35,38 @@
 <dl>
 <dt id="pyinventory.graphql.move_location_mutation.MoveLocationMutation"><code class="flex name class">
 <span>class <span class="ident">MoveLocationMutation</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData">MoveLocationMutation.MoveLocationMutationData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>MoveLocationMutation(data: Union[pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
+<section class="desc"><p>MoveLocationMutation(data: pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData, <strong>QUERY</strong>: str = '\n
+mutation MoveLocationMutation($locationID: ID!, $parentLocationID: ID) {\n
+moveLocation(locationID: $locationID, parentLocationID: $parentLocationID) {\n
+id\n
+name\n
+latitude\n
+longitude\n
+externalId\n
+locationType {\n
+name\n
+}\n
+}\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData"><code class="name">var <span class="ident">MoveLocationMutationData</span></code></dt>
 <dd>
-<section class="desc"><p>MoveLocationMutationData(moveLocation: Union[pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData.Location, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.move_location_mutation.MoveLocationMutation.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.move_location_mutation.MoveLocationMutation.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
+<section class="desc"><p>MoveLocationMutationData(moveLocation: pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData.Location)</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.move_location_mutation.MoveLocationMutation.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, locationID, parentLocationID=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.move_location_mutation.MoveLocationMutation.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.move_location_mutation.MoveLocationMutation.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.move_location_mutation.MoveLocationMutation.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.move_location_mutation.MoveLocationMutation.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.move_location_mutation.MoveLocationMutation.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, locationID: str, parentLocationID: Union[str, NoneType] = None) -> <a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData">MoveLocationMutation.MoveLocationMutationData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -117,14 +93,7 @@
 <h4><code><a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation">MoveLocationMutation</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData">MoveLocationMutationData</a></code></li>
-<li><code><a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.data" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.errors" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.execute" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.from_dict" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.from_json" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.schema" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.to_dict" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.move_location_mutation.MoveLocationMutation.to_json" href="#pyinventory.graphql.move_location_mutation.MoveLocationMutation.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

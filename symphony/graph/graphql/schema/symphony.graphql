@@ -11,13 +11,77 @@
 #    %> yarn relay
 #  Pyinventory API:
 #    %> cd ~/fbsource/fbcode/fbc/symphony/cli
-#    %> sudo python3 setup.py develop
+#    %> sudo python3 setup_pyinventory.py develop
 #    %> ./compile_graphql.sh
+
+directive @deprecatedInput(
+  name: String!
+  duplicateError: String!
+  newField: String
+) on INPUT_FIELD_DEFINITION
+
+enum UserStatus
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/user.Status"
+  ) {
+  ACTIVE
+  DEACTIVATED
+}
+
+enum UserRole
+  @goModel(model: "github.com/facebookincubator/symphony/graph/ent/user.Role") {
+  USER
+  ADMIN
+  OWNER
+}
+
+type User implements Node {
+  id: ID!
+  authID: String!
+  firstName: String!
+  lastName: String!
+  email: String!
+  status: UserStatus!
+  role: UserRole!
+  profilePhoto: File
+  groups: [UsersGroup]!
+}
+
+enum UsersGroupStatus
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/usersgroup.Status"
+  ) {
+  ACTIVE
+  DEACTIVATED
+}
+
+type UsersGroup implements Node {
+  id: ID!
+  name: String!
+  description: String
+  status: UsersGroupStatus!
+  members: [User!]!
+}
+
+type AdministrativePolicy {
+  canRead: Boolean!
+}
+
+type PermissionSettings {
+  canWrite: Boolean!
+  adminPolicy: AdministrativePolicy!
+}
 
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
-  email: String! @goField(name: "user")
+  email: String!
+    @goField(name: "user")
+    @deprecated(
+      reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
+    )
+  user: User!
+  permissions: PermissionSettings!
 }
 
 """
@@ -88,6 +152,38 @@ type Location implements Node {
   distanceKm(latitude: Float!, longitude: Float!): Float!
   floorPlans: [FloorPlan]!
   hyperlinks: [Hyperlink!]!
+}
+
+input EditUserInput {
+  id: ID!
+  firstName: String
+  lastName: String
+  status: UserStatus
+  role: UserRole
+}
+
+input UpdateUserGroupsInput {
+  id: ID!
+  addGroupIds: [ID!]!
+  removeGroupIds: [ID!]!
+}
+
+input AddUsersGroupInput {
+  name: String!
+  description: String
+}
+
+input EditUsersGroupInput {
+  id: ID!
+  name: String
+  description: String
+  status: UsersGroupStatus
+}
+
+input UpdateUsersGroupMembersInput {
+  id: ID!
+  addUserIds: [ID!]!
+  removeUserIds: [ID!]!
 }
 
 input AddLocationInput {
@@ -172,6 +268,7 @@ type File implements Node {
   modified: Time
   uploaded: Time
   fileType: FileType
+  mimeType: String
   storeKey: String
   category: String
 }
@@ -206,6 +303,10 @@ input AddImageInput {
 type Comment implements Node {
   id: ID!
   authorName: String!
+    @deprecated(
+      reason: "Use `Comment.author.email` instead. Will be removed on 2020-05-01"
+    )
+  author: User!
   text: String!
   createTime: Time!
 }
@@ -360,8 +461,20 @@ input AddWorkOrderInput {
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      name: "AddWorkOrderInput.ownerName"
+      duplicateError: "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together"
+    )
+  ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      name: "AddWorkOrderInput.assignee"
+      duplicateError: "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus
   priority: WorkOrderPriority
@@ -372,8 +485,20 @@ input EditWorkOrderInput {
   name: String!
   description: String
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      name: "EditWorkOrderInput.ownerName"
+      duplicateError: "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together"
+    )
+  ownerId: ID
   installDate: Time
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      name: "EditWorkOrderInput.assignee"
+      duplicateError: "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -382,6 +507,19 @@ input EditWorkOrderInput {
   checkList: [CheckListItemInput!]
   checkListCategories: [CheckListCategoryInput!]
   locationId: ID
+}
+
+input TechnicianCheckListItemInput {
+  id: ID!
+  selectedEnumValues: String
+  stringValue: String
+  checked: Boolean
+  yesNoResponse: YesNoResponse
+}
+
+input TechnicianWorkOrderUploadInput {
+  workOrderId: ID!
+  checklist: [TechnicianCheckListItemInput!]!
 }
 
 type EquipmentPortType implements Node {
@@ -470,6 +608,34 @@ type SearchEntryEdge {
   A cursor for use in pagination.
   """
   cursor: Cursor!
+}
+
+"""
+A search entry edge in a connection.
+"""
+type SearchNodeEdge {
+  """
+  The search entry at the end of the edge.
+  """
+  node: Node
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of search entries.
+"""
+type SearchNodesConnection {
+  """
+  A list of search entry edges.
+  """
+  edges: [SearchNodeEdge!]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
 """
@@ -804,6 +970,8 @@ enum ImageEntity {
   WORK_ORDER
   SITE_SURVEY
   EQUIPMENT
+  USER
+  CHECKLIST_ITEM
 }
 
 enum PropertyEntity {
@@ -812,6 +980,8 @@ enum PropertyEntity {
   LINK
   PORT
   LOCATION
+  WORK_ORDER
+  PROJECT
 }
 
 enum CommentEntity {
@@ -859,10 +1029,22 @@ input WorkOrderDefinitionInput {
   type: ID!
 }
 
+enum YesNoResponse {
+  YES
+  NO
+}
+
 enum CheckListItemType {
   simple
   string
   enum
+  files
+  yes_no
+}
+
+enum CheckListItemEnumSelectionMode {
+  single
+  multiple
 }
 
 type CheckListItemDefinition {
@@ -897,8 +1079,12 @@ type CheckListItem implements Node {
   index: Int
   helpText: String
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
+  selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  files: [File!]!
+  yesNoResponse: YesNoResponse
 }
 
 input CheckListCategoryInput {
@@ -915,8 +1101,61 @@ input CheckListItemInput {
   index: Int
   helpText: String
   enumValues: String
+  enumSelectionMode: CheckListItemEnumSelectionMode
+  selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  files: [FileInput!]
+  yesNoResponse: YesNoResponse
+}
+
+enum FilterEntity {
+  WORK_ORDER
+  PORT
+  EQUIPMENT
+  LINK
+  LOCATION
+  SERVICE
+}
+
+type GeneralFilter {
+  filterType: String!
+  key: String!
+  operator: FilterOperator!
+  stringValue: String
+  idSet: [ID!]
+  stringSet: [String!]
+  boolValue: Boolean
+  propertyValue: PropertyType
+}
+
+type ReportFilter implements Node {
+  id: ID!
+  name: String!
+  entity: FilterEntity!
+  filters: [GeneralFilter!]!
+}
+
+input GeneralFilterInput {
+  filterType: String!
+  key: String!
+  operator: FilterOperator!
+  stringValue: String
+  idSet: [ID!]
+  stringSet: [String!]
+  boolValue: Boolean
+  propertyValue: PropertyTypeInput
+}
+
+input EditReportFilterInput {
+  id: ID!
+  name: String!
+}
+
+input ReportFilterInput {
+  name: String!
+  entity: FilterEntity!
+  filters: [GeneralFilterInput]
 }
 
 """
@@ -941,9 +1180,17 @@ type WorkOrder implements Node {
   name: String!
   description: String
   ownerName: String!
+    @deprecated(
+      reason: "Use `WorkOrder.owner.email` instead. Will be removed on 2020-05-01"
+    )
+  owner: User!
   creationDate: Time!
   installDate: Time
   assignee: String
+    @deprecated(
+      reason: "Use `WorkOrder.assignedTo.email` instead. Will be removed on 2020-05-01"
+    )
+  assignedTo: User
   index: Int!
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -960,6 +1207,63 @@ type WorkOrder implements Node {
   checkList: [CheckListItem]!
   checkListCategories: [CheckListCategory!]!
   hyperlinks: [Hyperlink!]!
+  closeDate: Time
+}
+
+"""
+A connection to a list of users.
+"""
+type UserConnection {
+  """
+  A list of user type edges.
+  """
+  edges: [UserEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A connection to a list of users groups.
+"""
+type UsersGroupConnection {
+  """
+  A list of users group type edges.
+  """
+  edges: [UsersGroupEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A work order type edge in a connection.
+"""
+type UserEdge {
+  """
+  The user type at the end of the edge.
+  """
+  node: User
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A work order type edge in a connection.
+"""
+type UsersGroupEdge {
+  """
+  The user type at the end of the edge.
+  """
+  node: UsersGroup
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
 }
 
 """
@@ -1102,6 +1406,10 @@ type Project implements Node {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecated(
+      reason: "Use `Project.createdBy.email` instead. Will be removed on 2020-05-01"
+    )
+  createdBy: User
   type: ProjectType!
   location: Location
   workOrders: [WorkOrder!]!
@@ -1114,6 +1422,12 @@ input AddProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      name: "AddProjectInput.creator"
+      duplicateError: "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -1124,6 +1438,12 @@ input EditProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      name: "EditProjectInput.creator"
+      duplicateError: "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -1146,6 +1466,7 @@ what type of equipment we filter about
 """
 enum EquipmentFilterType {
   EQUIP_INST_NAME
+  EQUIP_INST_EXTERNAL_ID
   PROPERTY
   LOCATION_INST
   EQUIPMENT_TYPE
@@ -1178,6 +1499,11 @@ type LocationSearchResult {
 
 type ServiceSearchResult {
   services: [Service]!
+  count: Int!
+}
+
+type UserSearchResult {
+  users: [User]!
   count: Int!
 }
 
@@ -1234,6 +1560,13 @@ enum ServiceFilterType {
   EQUIPMENT_IN_SERVICE
 }
 
+"""
+what filters should we apply on users
+"""
+enum UserFilterType {
+  USER_NAME
+}
+
 input PortFilterInput {
   filterType: PortFilterType!
   operator: FilterOperator!
@@ -1276,6 +1609,16 @@ input ServiceFilterInput {
   maxDepth: Int = 5
 }
 
+input UserFilterInput {
+  filterType: UserFilterType!
+  operator: FilterOperator!
+  stringValue: String
+  propertyValue: PropertyTypeInput
+  idSet: [ID!]
+  stringSet: [String!]
+  maxDepth: Int = 5
+}
+
 """
 what type of work order we filter about
 """
@@ -1283,10 +1626,18 @@ enum WorkOrderFilterType {
   WORK_ORDER_NAME
   WORK_ORDER_STATUS
   WORK_ORDER_OWNER
+    @deprecated(
+      reason: "Use `WorkOrderFilterType.WORK_ORDER_OWNED_BY` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_OWNED_BY
   WORK_ORDER_TYPE
   WORK_ORDER_CREATION_DATE
   WORK_ORDER_INSTALL_DATE
   WORK_ORDER_ASSIGNEE
+    @deprecated(
+      reason: "Use `WorkOrderFilterType.WORK_ORDER_ASSIGNED_TO` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_ASSIGNED_TO
   WORK_ORDER_LOCATION_INST
   WORK_ORDER_PRIORITY
   LOCATION_INST
@@ -1506,12 +1857,13 @@ type FloorPlanReferencePoint {
 }
 
 input FileInput {
-  id: ID!
+  id: ID
   fileName: String!
   sizeInBytes: Int
   modificationTime: Int
   uploadTime: Int
   fileType: FileType
+  mimeType: String
   storeKey: String!
 }
 
@@ -1566,6 +1918,7 @@ input SurveyQuestionResponse {
   photoData: FileInput
   wifiData: [SurveyWiFiScanData!]
   cellData: [SurveyCellScanData!]
+  imagesData: [FileInput!]
 }
 
 type SurveyQuestion implements Node {
@@ -1590,6 +1943,7 @@ type SurveyQuestion implements Node {
   photoData: File
   wifiData: [SurveyWiFiScan]
   cellData: [SurveyCellScan]
+  images: [File!]
 }
 
 enum SurveyQuestionType {
@@ -1849,11 +2203,11 @@ type Query {
     """
     id: ID!
   ): Node
-
+  user(authID: String!): User
   location(id: ID!): Location
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   locationType(id: ID!): LocationType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   locationTypes(
     after: Cursor
     first: Int
@@ -1871,9 +2225,9 @@ type Query {
     last: Int
   ): LocationConnection
   equipment(id: ID!): Equipment
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -1893,9 +2247,9 @@ type Query {
     last: Int
   ): EquipmentTypeConnection!
   service(id: ID!): Service
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   serviceType(id: ID!): ServiceType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   serviceTypes(
     after: Cursor
     first: Int
@@ -1903,7 +2257,7 @@ type Query {
     last: Int
   ): ServiceTypeConnection
   workOrder(id: ID!): WorkOrder
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   workOrders(
     after: Cursor
     first: Int
@@ -1917,6 +2271,13 @@ type Query {
     before: Cursor
     last: Int
   ): WorkOrderTypeConnection
+  users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
+  usersGroups(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): UsersGroupConnection
   searchForEntity(
     name: String!
     after: Cursor
@@ -1924,6 +2285,16 @@ type Query {
     before: Cursor
     last: Int
   ): SearchEntriesConnection!
+    @deprecated(
+      reason: "Use `searchForNode` instead. Will be removed on 2020-05-01"
+    )
+  searchForNode(
+    name: String!
+    after: Cursor
+    first: Int = 10
+    before: Cursor
+    last: Int
+  ): SearchNodesConnection!
   equipmentSearch(
     filters: [EquipmentFilterInput!]!
     limit: Int = 500
@@ -1950,6 +2321,7 @@ type Query {
     filters: [ServiceFilterInput!]!
     limit: Int = 500
   ): ServiceSearchResult!
+  userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
@@ -1959,6 +2331,8 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
+  projectType(id: ID!): ProjectType
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   projectTypes(
     after: Cursor
     first: Int
@@ -1973,56 +2347,63 @@ type Query {
   ): CustomerConnection
   actionsRules: ActionsRulesSearchResult
   actionsTriggers: ActionsTriggersSearchResult
+  reportFilters(entity: FilterEntity!): [ReportFilter!]!
 }
 
 type Mutation {
-  createSurvey(data: SurveyCreateData!): ID
-  addLocation(input: AddLocationInput!): Location
-  editLocation(input: EditLocationInput!): Location
+  editUser(input: EditUserInput!): User!
+  addUsersGroup(input: AddUsersGroupInput!): UsersGroup!
+  editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
+  updateUserGroups(input: UpdateUserGroupsInput!): User!
+  updateUsersGroupMembers(input: UpdateUsersGroupMembersInput!): UsersGroup!
+  deleteUsersGroup(id: ID!): Boolean!
+  createSurvey(data: SurveyCreateData!): ID!
+  addLocation(input: AddLocationInput!): Location!
+  editLocation(input: EditLocationInput!): Location!
   removeLocation(id: ID!): ID!
-  addLocationType(input: AddLocationTypeInput!): LocationType
-  editLocationType(input: EditLocationTypeInput!): LocationType
+  addLocationType(input: AddLocationTypeInput!): LocationType!
+  editLocationType(input: EditLocationTypeInput!): LocationType!
   removeLocationType(id: ID!): ID!
-  addEquipment(input: AddEquipmentInput!): Equipment
-  editEquipment(input: EditEquipmentInput!): Equipment
+  addEquipment(input: AddEquipmentInput!): Equipment!
+  editEquipment(input: EditEquipmentInput!): Equipment!
   removeEquipment(id: ID!, workOrderId: ID): ID!
-  addEquipmentType(input: AddEquipmentTypeInput!): EquipmentType
-  editEquipmentType(input: EditEquipmentTypeInput!): EquipmentType
+  addEquipmentType(input: AddEquipmentTypeInput!): EquipmentType!
+  editEquipmentType(input: EditEquipmentTypeInput!): EquipmentType!
   removeEquipmentType(id: ID!): ID!
-  addEquipmentPortType(input: AddEquipmentPortTypeInput!): EquipmentPortType
-  editEquipmentPortType(input: EditEquipmentPortTypeInput!): EquipmentPortType
+  addEquipmentPortType(input: AddEquipmentPortTypeInput!): EquipmentPortType!
+  editEquipmentPortType(input: EditEquipmentPortTypeInput!): EquipmentPortType!
   removeEquipmentPortType(id: ID!): ID!
-  addLink(input: AddLinkInput!): Link
-  editLink(input: EditLinkInput!): Link
-  removeLink(id: ID!, workOrderId: ID): Link
+  addLink(input: AddLinkInput!): Link!
+  editLink(input: EditLinkInput!): Link!
+  removeLink(id: ID!, workOrderId: ID): Link!
   addService(
     """
     data to create service
     """
     data: ServiceCreateData!
-  ): Service
+  ): Service!
   editService(
     """
     data to edit service
     """
     data: ServiceEditData!
-  ): Service
-  addServiceLink(id: ID!, linkId: ID!): Service
-  removeServiceLink(id: ID!, linkId: ID!): Service
-  addServiceEndpoint(input: AddServiceEndpointInput!): Service
-  removeServiceEndpoint(serviceEndpointId: ID!): Service
+  ): Service!
+  addServiceLink(id: ID!, linkId: ID!): Service!
+  removeServiceLink(id: ID!, linkId: ID!): Service!
+  addServiceEndpoint(input: AddServiceEndpointInput!): Service!
+  removeServiceEndpoint(serviceEndpointId: ID!): Service!
   addServiceType(
     """
     data to edit service type
     """
     data: ServiceTypeCreateData!
-  ): ServiceType
+  ): ServiceType!
   editServiceType(
     """
     data to edit service type
     """
     data: ServiceTypeEditData!
-  ): ServiceType
+  ): ServiceType!
   removeEquipmentFromPosition(
     positionId: ID!
 
@@ -2030,7 +2411,7 @@ type Mutation {
     id of the work order to remove this equipment
     """
     workOrderId: ID
-  ): EquipmentPosition
+  ): EquipmentPosition!
   moveEquipmentToPosition(
     """
     id of the equipment of the position definition to attach to
@@ -2046,9 +2427,9 @@ type Mutation {
     id of the equipment to that will be attached as a child to the position
     """
     equipmentId: ID!
-  ): EquipmentPosition
+  ): EquipmentPosition!
   addComment(input: CommentInput!): Comment!
-  addImage(input: AddImageInput!): File
+  addImage(input: AddImageInput!): File!
   addHyperlink(input: AddHyperlinkInput!): Hyperlink!
   deleteHyperlink(id: ID!): Hyperlink!
   deleteImage(
@@ -2066,9 +2447,9 @@ type Mutation {
     id of the image file
     """
     id: ID!
-  ): File
+  ): File!
   removeWorkOrder(id: ID!): ID!
-  executeWorkOrder(id: ID!): WorkOrderExecutionResult
+  executeWorkOrder(id: ID!): WorkOrderExecutionResult!
   removeWorkOrderType(id: ID!): ID!
   markSiteSurveyNeeded(locationId: ID!, needed: Boolean!): Location!
   removeService(id: ID!): ID!
@@ -2084,8 +2465,8 @@ type Mutation {
     """
     surveyTemplateCategories: [SurveyTemplateCategoryInput!]!
   ): [SurveyTemplateCategory!]
-  editEquipmentPort(input: EditEquipmentPortInput!): EquipmentPort
-  markLocationPropertyAsExternalID(propertyName: String!): String
+  editEquipmentPort(input: EditEquipmentPortInput!): EquipmentPort!
+  markLocationPropertyAsExternalID(propertyName: String!): String!
   removeSiteSurvey(id: ID!): ID!
   addWiFiScans(
     """
@@ -2118,34 +2499,41 @@ type Mutation {
     ID of the location to be the new parent
     """
     parentLocationID: ID
-  ): Location
+  ): Location!
   editLocationTypesIndex(
     """
     edit the location index to the location
     """
     locationTypesIndex: [LocationTypeIndex]!
   ): [LocationType]
-  addTechnician(input: TechnicianInput!): Technician
-  addWorkOrder(input: AddWorkOrderInput!): WorkOrder
-  editWorkOrder(input: EditWorkOrderInput!): WorkOrder
-  addWorkOrderType(input: AddWorkOrderTypeInput!): WorkOrderType
-  editWorkOrderType(input: EditWorkOrderTypeInput!): WorkOrderType
-  createProjectType(input: AddProjectTypeInput!): ProjectType
-  editProjectType(input: EditProjectTypeInput!): ProjectType
+  addTechnician(input: TechnicianInput!): Technician!
+  addWorkOrder(input: AddWorkOrderInput!): WorkOrder!
+  editWorkOrder(input: EditWorkOrderInput!): WorkOrder!
+  addWorkOrderType(input: AddWorkOrderTypeInput!): WorkOrderType!
+  editWorkOrderType(input: EditWorkOrderTypeInput!): WorkOrderType!
+  createProjectType(input: AddProjectTypeInput!): ProjectType!
+  editProjectType(input: EditProjectTypeInput!): ProjectType!
   deleteProjectType(id: ID!): Boolean!
-  createProject(input: AddProjectInput!): Project
-  editProject(input: EditProjectInput!): Project
+  createProject(input: AddProjectInput!): Project!
+  editProject(input: EditProjectInput!): Project!
   deleteProject(id: ID!): Boolean!
-  addCustomer(input: AddCustomerInput!): Customer
+  addCustomer(input: AddCustomerInput!): Customer!
   removeCustomer(id: ID!): ID!
-  addFloorPlan(input: AddFloorPlanInput!): FloorPlan
+  addFloorPlan(input: AddFloorPlanInput!): FloorPlan!
   deleteFloorPlan(id: ID!): Boolean!
-  addActionsRule(input: AddActionsRuleInput!): ActionsRule
-  editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
+  addActionsRule(input: AddActionsRuleInput!): ActionsRule!
+  editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
-  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder
+  technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
+  technicianWorkOrderUploadData(
+    input: TechnicianWorkOrderUploadInput!
+  ): WorkOrder!
+  addReportFilter(input: ReportFilterInput!): ReportFilter!
+  editReportFilter(input: EditReportFilterInput!): ReportFilter!
+  deleteReportFilter(id: ID!): Boolean!
 }
 
 type Subscription {
   workOrderAdded: WorkOrder
+  workOrderDone: WorkOrder
 }

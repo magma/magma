@@ -18,8 +18,8 @@ import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import type {
+  // $FlowFixMe (T62907961) Relay flow types
   CheckListCategoryTable_list,
-  ChecklistViewer_checkListItems,
   WorkOrderDetails_workOrder,
 } from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 import type {Property} from '../../common/Property';
@@ -53,7 +53,6 @@ type Props = {
   workOrderName: string,
   workOrder: WorkOrderDetails_workOrder,
   properties: Array<Property>,
-  checklist: ChecklistViewer_checkListItems,
   checkListCategories: CheckListCategoryTable_list,
   locationId: ?string,
   onWorkOrderRemoved: () => void,
@@ -67,7 +66,6 @@ const WorkOrderHeader = (props: Props) => {
     workOrderName,
     workOrder,
     properties,
-    checklist,
     checkListCategories,
     locationId,
     onWorkOrderRemoved,
@@ -104,7 +102,7 @@ const WorkOrderHeader = (props: Props) => {
       <div className={classes.actionButtons}>
         <WorkOrderDeleteButton
           className={classes.deleteButton}
-          workOrder={workOrder}
+          workOrderId={workOrder.id}
           onWorkOrderRemoved={onWorkOrderRemoved}
         />
         <Button
@@ -116,7 +114,6 @@ const WorkOrderHeader = (props: Props) => {
         <WorkOrderSaveButton
           workOrder={workOrder}
           properties={properties}
-          checklist={checklist}
           checkListCategories={checkListCategories}
           locationId={locationId}
         />

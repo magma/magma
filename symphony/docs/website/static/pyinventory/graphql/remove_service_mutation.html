@@ -35,62 +35,29 @@
 <dl>
 <dt id="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation"><code class="flex name class">
 <span>class <span class="ident">RemoveServiceMutation</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.RemoveServiceMutationData" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.RemoveServiceMutationData">RemoveServiceMutation.RemoveServiceMutationData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>RemoveServiceMutation(data: Union[pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.RemoveServiceMutationData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
+<section class="desc"><p>RemoveServiceMutation(data: pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.RemoveServiceMutationData, <strong>QUERY</strong>: str = '\n
+mutation RemoveServiceMutation($id: ID!) {\n
+removeService(id: $id)\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.RemoveServiceMutationData"><code class="name">var <span class="ident">RemoveServiceMutationData</span></code></dt>
 <dd>
 <section class="desc"><p>RemoveServiceMutationData(removeService: str)</p></section>
 </dd>
-<dt id="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, id)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, id: str) -> <a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.RemoveServiceMutationData" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.RemoveServiceMutationData">RemoveServiceMutation.RemoveServiceMutationData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -117,14 +84,7 @@
 <h4><code><a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation">RemoveServiceMutation</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.RemoveServiceMutationData" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.RemoveServiceMutationData">RemoveServiceMutationData</a></code></li>
-<li><code><a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.data" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.errors" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.execute" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.from_dict" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.from_json" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.schema" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.to_dict" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.to_json" href="#pyinventory.graphql.remove_service_mutation.RemoveServiceMutation.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

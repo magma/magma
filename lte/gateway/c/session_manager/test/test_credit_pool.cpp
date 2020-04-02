@@ -111,14 +111,17 @@ class CreditPoolTest : public ::testing::Test {
 TEST_F(CreditPoolTest, test_marshal_unmarshal_charging)
 {
   auto pool = new ChargingCreditPool("imsi1");
+  auto uc = get_default_update_criteria();
 
   // Receive credit
   auto credit_update = get_credit_update();
   CreditUpdateResponse& credit_update_ref = *credit_update;
-  pool->receive_credit(credit_update_ref);
+  pool->receive_credit(credit_update_ref, uc);
 
   // Add some used credit
-  pool->add_used_credit(CreditKey(credit_update), uint64_t(123), uint64_t(456));
+  EXPECT_EQ(uc.charging_credit_map.size(), 0);
+  pool->add_used_credit(CreditKey(credit_update), uint64_t(123), uint64_t(456), uc);
+  EXPECT_EQ(uc.charging_credit_map.size(), 1);
   EXPECT_EQ(pool->get_credit(CreditKey(credit_update), USED_TX), 123);
   EXPECT_EQ(pool->get_credit(CreditKey(credit_update), USED_RX), 456);
 
@@ -133,23 +136,28 @@ TEST_F(CreditPoolTest, test_marshal_unmarshal_charging)
 TEST_F(CreditPoolTest, test_marshal_unmarshal_monitoring)
 {
   auto pool = new UsageMonitoringCreditPool("imsi1");
+  auto uc = get_default_update_criteria();
 
   // Receive credit
   auto credit_update = get_monitoring_update();
   UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
-  pool->receive_credit(credit_update_ref);
+  pool->receive_credit(credit_update_ref, uc);
 
   // Add some used credit
-  pool->add_used_credit("mk1", uint64_t(123), uint64_t(456));
+  EXPECT_EQ(uc.monitor_credit_map.size(), 0);
+  pool->add_used_credit("mk1", uint64_t(123), uint64_t(456), uc);
+  EXPECT_EQ(uc.monitor_credit_map.size(), 1);
   EXPECT_EQ(pool->get_credit("mk1", USED_TX), 123);
   EXPECT_EQ(pool->get_credit("mk1", USED_RX), 456);
+  EXPECT_EQ(uc.monitor_credit_map["mk1"].bucket_deltas[USED_TX], 123);
+  EXPECT_EQ(uc.monitor_credit_map["mk1"].bucket_deltas[USED_RX], 456);
 
   // Check that after marshaling/unmarshaling that the fields are still the
   // same.
   auto marshaled = pool->marshal();
   auto pool_2 = UsageMonitoringCreditPool::unmarshal(marshaled);
-  //EXPECT_EQ(pool_2->get_credit("mk1", USED_TX), 123);
-  //EXPECT_EQ(pool_2->get_credit("mk1", USED_RX), 456);
+  EXPECT_EQ(pool_2->get_credit("mk1", USED_TX), 123);
+  EXPECT_EQ(pool_2->get_credit("mk1", USED_RX), 456);
 }
 
 int main(int argc, char** argv)

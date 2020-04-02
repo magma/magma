@@ -20,6 +20,12 @@ type GatewayCwfConfigs struct {
 	// allowed gre peers
 	// Required: true
 	AllowedGrePeers AllowedGrePeers `json:"allowed_gre_peers"`
+
+	// ipdr export dst
+	IPDRExportDst *IPDRExportDst `json:"ipdr_export_dst,omitempty"`
+
+	// li imsis
+	LiImsis LiImsis `json:"li_imsis,omitempty"`
 }
 
 // Validate validates this gateway cwf configs
@@ -27,6 +33,14 @@ func (m *GatewayCwfConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateAllowedGrePeers(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateIPDRExportDst(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateLiImsis(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -45,6 +59,40 @@ func (m *GatewayCwfConfigs) validateAllowedGrePeers(formats strfmt.Registry) err
 	if err := m.AllowedGrePeers.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("allowed_gre_peers")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayCwfConfigs) validateIPDRExportDst(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPDRExportDst) { // not required
+		return nil
+	}
+
+	if m.IPDRExportDst != nil {
+		if err := m.IPDRExportDst.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("ipdr_export_dst")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayCwfConfigs) validateLiImsis(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.LiImsis) { // not required
+		return nil
+	}
+
+	if err := m.LiImsis.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("li_imsis")
 		}
 		return err
 	}

@@ -9,8 +9,6 @@ package ent
 import (
 	"context"
 	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -23,13 +21,9 @@ import (
 // TechnicianUpdate is the builder for updating Technician entities.
 type TechnicianUpdate struct {
 	config
-
-	update_time       *time.Time
-	name              *string
-	email             *string
-	work_orders       map[string]struct{}
-	removedWorkOrders map[string]struct{}
-	predicates        []predicate.Technician
+	hooks      []Hook
+	mutation   *TechnicianMutation
+	predicates []predicate.Technician
 }
 
 // Where adds a new predicate for the builder.
@@ -40,30 +34,25 @@ func (tu *TechnicianUpdate) Where(ps ...predicate.Technician) *TechnicianUpdate 
 
 // SetName sets the name field.
 func (tu *TechnicianUpdate) SetName(s string) *TechnicianUpdate {
-	tu.name = &s
+	tu.mutation.SetName(s)
 	return tu
 }
 
 // SetEmail sets the email field.
 func (tu *TechnicianUpdate) SetEmail(s string) *TechnicianUpdate {
-	tu.email = &s
+	tu.mutation.SetEmail(s)
 	return tu
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (tu *TechnicianUpdate) AddWorkOrderIDs(ids ...string) *TechnicianUpdate {
-	if tu.work_orders == nil {
-		tu.work_orders = make(map[string]struct{})
-	}
-	for i := range ids {
-		tu.work_orders[ids[i]] = struct{}{}
-	}
+func (tu *TechnicianUpdate) AddWorkOrderIDs(ids ...int) *TechnicianUpdate {
+	tu.mutation.AddWorkOrderIDs(ids...)
 	return tu
 }
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (tu *TechnicianUpdate) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -71,19 +60,14 @@ func (tu *TechnicianUpdate) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdate {
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
-func (tu *TechnicianUpdate) RemoveWorkOrderIDs(ids ...string) *TechnicianUpdate {
-	if tu.removedWorkOrders == nil {
-		tu.removedWorkOrders = make(map[string]struct{})
-	}
-	for i := range ids {
-		tu.removedWorkOrders[ids[i]] = struct{}{}
-	}
+func (tu *TechnicianUpdate) RemoveWorkOrderIDs(ids ...int) *TechnicianUpdate {
+	tu.mutation.RemoveWorkOrderIDs(ids...)
 	return tu
 }
 
 // RemoveWorkOrders removes work_orders edges to WorkOrder.
 func (tu *TechnicianUpdate) RemoveWorkOrders(w ...*WorkOrder) *TechnicianUpdate {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -92,21 +76,45 @@ func (tu *TechnicianUpdate) RemoveWorkOrders(w ...*WorkOrder) *TechnicianUpdate 
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (tu *TechnicianUpdate) Save(ctx context.Context) (int, error) {
-	if tu.update_time == nil {
+	if _, ok := tu.mutation.UpdateTime(); !ok {
 		v := technician.UpdateDefaultUpdateTime()
-		tu.update_time = &v
+		tu.mutation.SetUpdateTime(v)
 	}
-	if tu.name != nil {
-		if err := technician.NameValidator(*tu.name); err != nil {
+	if v, ok := tu.mutation.Name(); ok {
+		if err := technician.NameValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if tu.email != nil {
-		if err := technician.EmailValidator(*tu.email); err != nil {
+	if v, ok := tu.mutation.Email(); ok {
+		if err := technician.EmailValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
-	return tu.sqlSave(ctx)
+
+	var (
+		err      error
+		affected int
+	)
+	if len(tu.hooks) == 0 {
+		affected, err = tu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*TechnicianMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			tu.mutation = mutation
+			affected, err = tu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(tu.hooks) - 1; i >= 0; i-- {
+			mut = tu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, tu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -137,7 +145,7 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   technician.Table,
 			Columns: technician.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: technician.FieldID,
 			},
 		},
@@ -149,28 +157,28 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := tu.update_time; value != nil {
+	if value, ok := tu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: technician.FieldUpdateTime,
 		})
 	}
-	if value := tu.name; value != nil {
+	if value, ok := tu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: technician.FieldName,
 		})
 	}
-	if value := tu.email; value != nil {
+	if value, ok := tu.mutation.Email(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: technician.FieldEmail,
 		})
 	}
-	if nodes := tu.removedWorkOrders; len(nodes) > 0 {
+	if nodes := tu.mutation.RemovedWorkOrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -179,21 +187,17 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.work_orders; len(nodes) > 0 {
+	if nodes := tu.mutation.WorkOrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -202,16 +206,12 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -230,41 +230,31 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // TechnicianUpdateOne is the builder for updating a single Technician entity.
 type TechnicianUpdateOne struct {
 	config
-	id string
-
-	update_time       *time.Time
-	name              *string
-	email             *string
-	work_orders       map[string]struct{}
-	removedWorkOrders map[string]struct{}
+	hooks    []Hook
+	mutation *TechnicianMutation
 }
 
 // SetName sets the name field.
 func (tuo *TechnicianUpdateOne) SetName(s string) *TechnicianUpdateOne {
-	tuo.name = &s
+	tuo.mutation.SetName(s)
 	return tuo
 }
 
 // SetEmail sets the email field.
 func (tuo *TechnicianUpdateOne) SetEmail(s string) *TechnicianUpdateOne {
-	tuo.email = &s
+	tuo.mutation.SetEmail(s)
 	return tuo
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (tuo *TechnicianUpdateOne) AddWorkOrderIDs(ids ...string) *TechnicianUpdateOne {
-	if tuo.work_orders == nil {
-		tuo.work_orders = make(map[string]struct{})
-	}
-	for i := range ids {
-		tuo.work_orders[ids[i]] = struct{}{}
-	}
+func (tuo *TechnicianUpdateOne) AddWorkOrderIDs(ids ...int) *TechnicianUpdateOne {
+	tuo.mutation.AddWorkOrderIDs(ids...)
 	return tuo
 }
 
 // AddWorkOrders adds the work_orders edges to WorkOrder.
 func (tuo *TechnicianUpdateOne) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdateOne {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -272,19 +262,14 @@ func (tuo *TechnicianUpdateOne) AddWorkOrders(w ...*WorkOrder) *TechnicianUpdate
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
-func (tuo *TechnicianUpdateOne) RemoveWorkOrderIDs(ids ...string) *TechnicianUpdateOne {
-	if tuo.removedWorkOrders == nil {
-		tuo.removedWorkOrders = make(map[string]struct{})
-	}
-	for i := range ids {
-		tuo.removedWorkOrders[ids[i]] = struct{}{}
-	}
+func (tuo *TechnicianUpdateOne) RemoveWorkOrderIDs(ids ...int) *TechnicianUpdateOne {
+	tuo.mutation.RemoveWorkOrderIDs(ids...)
 	return tuo
 }
 
 // RemoveWorkOrders removes work_orders edges to WorkOrder.
 func (tuo *TechnicianUpdateOne) RemoveWorkOrders(w ...*WorkOrder) *TechnicianUpdateOne {
-	ids := make([]string, len(w))
+	ids := make([]int, len(w))
 	for i := range w {
 		ids[i] = w[i].ID
 	}
@@ -293,21 +278,45 @@ func (tuo *TechnicianUpdateOne) RemoveWorkOrders(w ...*WorkOrder) *TechnicianUpd
 
 // Save executes the query and returns the updated entity.
 func (tuo *TechnicianUpdateOne) Save(ctx context.Context) (*Technician, error) {
-	if tuo.update_time == nil {
+	if _, ok := tuo.mutation.UpdateTime(); !ok {
 		v := technician.UpdateDefaultUpdateTime()
-		tuo.update_time = &v
+		tuo.mutation.SetUpdateTime(v)
 	}
-	if tuo.name != nil {
-		if err := technician.NameValidator(*tuo.name); err != nil {
+	if v, ok := tuo.mutation.Name(); ok {
+		if err := technician.NameValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if tuo.email != nil {
-		if err := technician.EmailValidator(*tuo.email); err != nil {
+	if v, ok := tuo.mutation.Email(); ok {
+		if err := technician.EmailValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
-	return tuo.sqlSave(ctx)
+
+	var (
+		err  error
+		node *Technician
+	)
+	if len(tuo.hooks) == 0 {
+		node, err = tuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*TechnicianMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			tuo.mutation = mutation
+			node, err = tuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(tuo.hooks) - 1; i >= 0; i-- {
+			mut = tuo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, tuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -338,34 +347,38 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 			Table:   technician.Table,
 			Columns: technician.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  tuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: technician.FieldID,
 			},
 		},
 	}
-	if value := tuo.update_time; value != nil {
+	id, ok := tuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Technician.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := tuo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: technician.FieldUpdateTime,
 		})
 	}
-	if value := tuo.name; value != nil {
+	if value, ok := tuo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: technician.FieldName,
 		})
 	}
-	if value := tuo.email; value != nil {
+	if value, ok := tuo.mutation.Email(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: technician.FieldEmail,
 		})
 	}
-	if nodes := tuo.removedWorkOrders; len(nodes) > 0 {
+	if nodes := tuo.mutation.RemovedWorkOrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -374,21 +387,17 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.work_orders; len(nodes) > 0 {
+	if nodes := tuo.mutation.WorkOrdersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -397,16 +406,12 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

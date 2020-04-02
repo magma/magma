@@ -7,12 +7,10 @@ package importer
 import (
 	"context"
 	"fmt"
-
 	"io"
 	"net/http"
 
 	"github.com/AlekSi/pointer"
-
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -45,21 +43,9 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = r.ParseForm()
+	skipLines, verifyBeforeCommit, err := m.parseImportArgs(r)
 	if err != nil {
-		errorReturn(w, "can't parse form", log, err)
-		return
-	}
-
-	skipLines, err := getLinesToSkip(r)
-	if err != nil {
-		errorReturn(w, "can't parse skipped lines", log, err)
-		return
-	}
-
-	verifyBeforeCommit, err := getVerifyBeforeCommitParam(r)
-	if err != nil {
-		errorReturn(w, "can't parse verify_before_commit param", log, err)
+		errorReturn(w, "can't parse form or arguments", log, err)
 		return
 	}
 
@@ -68,13 +54,18 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	} else {
 		commitRuns = []bool{true}
 	}
+	startSaving := false
 
 	for fileName := range r.MultipartForm.File {
 		first, _, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, ImportEntityService)
 		if err != nil {
 			log.Warn("creating csv reader", zap.Error(err), zap.String("filename", fileName))
 			http.Error(w, fmt.Sprintf("cannot handle file: %q. file name: %q", err, fileName), http.StatusInternalServerError)
+			return
+		}
+		importHeader, err := NewImportHeader(first, ImportEntityService)
+		if err != nil {
+			errorReturn(w, "error on header", log, err)
 			return
 		}
 
@@ -85,15 +76,12 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 			http.Error(w, fmt.Sprintf("first line validation error: %q", err), http.StatusBadRequest)
 			return
 		}
-		if err != nil {
-			log.Warn("data fetching error", zap.Error(err))
-			http.Error(w, fmt.Sprintf("data fetching error: %s", err.Error()), http.StatusInternalServerError)
-			return
-		}
 		for _, commit := range commitRuns {
 			// if we encounter errors on the "verifyBefore" flow - don't run the commit=true phase
 			if commit && pointer.GetBool(verifyBeforeCommit) && len(errs) != 0 {
 				break
+			} else if commit && len(errs) == 0 {
+				startSaving = true
 			}
 			if len(skipLines) > 0 {
 				nextLineToSkipIndex = 0
@@ -119,7 +107,11 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 					nextLineToSkipIndex++
 					continue
 				}
-				importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				importLine, err := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
+				if err != nil {
+					errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: "validating line"})
+					continue
+				}
 				name := importLine.Name()
 				serviceTypName := importLine.TypeName()
 				serviceType, err := client.ServiceType.Query().Where(servicetype.Name(serviceTypName)).Only(ctx)
@@ -128,7 +120,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 					continue
 				}
 
-				var customerID *string = nil
+				var customerID *int
 				customerName := importLine.CustomerName()
 				if customerName != "" {
 					var customer *ent.Customer
@@ -163,7 +155,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 						continue
 					}
 				}
-				if id == "" {
+				if id == 0 {
 					var (
 						created bool
 						service *ent.Service
@@ -181,7 +173,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 							}
 						}
 					} else {
-						service, err = m.getServiceIfExist(ctx, m.r.Mutation(), name, serviceType, propInputs, customerID, externalID, *status)
+						service, err = m.getServiceIfExist(ctx, name, serviceType)
 						if service != nil {
 							err = errors.Errorf("service %v already exists", name)
 						}
@@ -238,7 +230,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	}
 	log.Debug("Exported Service - Done")
 	w.WriteHeader(http.StatusOK)
-	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0)
+	err = writeSuccessMessage(w, modifiedCount, numRows, errs, !*verifyBeforeCommit || len(errs) == 0, startSaving)
 
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
@@ -246,7 +238,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (m *importer) validateLineForExistingService(ctx context.Context, serviceID string, importLine ImportRecord) (*ent.Service, error) {
+func (m *importer) validateLineForExistingService(ctx context.Context, serviceID int, importLine ImportRecord) (*ent.Service, error) {
 	service, err := m.r.Query().Service(ctx, serviceID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching service")
@@ -272,6 +264,11 @@ func (m *importer) getValidatedStatus(importLine ImportRecord) (*models.ServiceS
 }
 
 func (m *importer) validatePropertiesForServiceType(ctx context.Context, line ImportRecord, serviceType *ent.ServiceType) ([]*models.PropertyInput, error) {
+	err := line.validatePropertiesMismatch(ctx, []interface{}{serviceType})
+	if err != nil {
+		return nil, err
+	}
+
 	var pInputs []*models.PropertyInput
 	propTypes, err := serviceType.QueryPropertyTypes().All(ctx)
 	if ent.MaskNotFound(err) != nil {
@@ -283,7 +280,9 @@ func (m *importer) validatePropertiesForServiceType(ctx context.Context, line Im
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, pInput)
+		if pInput != nil {
+			pInputs = append(pInputs, pInput)
+		}
 	}
 	return pInputs, nil
 }

@@ -32,20 +32,24 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.location.add_location"><code class="name flex">
-<span>def <span class="ident">add_location</span></span>(<span>client, location_hirerchy, properties_dict, lat=None, long=None, externalID=None)</span>
+<span>def <span class="ident">add_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_hirerchy: List[Tuple[str, str]], properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], lat: Union[float, NoneType] = None, long: Union[float, NoneType] = None, externalID: Union[str, NoneType] = None) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>Create a new location of a specific type with a specific name.
-It will also get the requested location specifiers for hirerchy leading to it and will create all
-the hirerchy.
+It will also get the requested location specifiers for hirerchy
+leading to it and will create all the hirerchy.
 However the lat,long and propertiesDict would only apply for the last location in the chain.
-If a location with his name in this place already exists the existing location is returned</p>
+If a location with its name in this place already exists the existing location is returned</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt>location_hirerchy (List[Tuple[str, str]]):</dt>
-<dt>An hirerchy of locations.</dt>
-<dt>the first str is location type name</dt>
-<dt>the second str is location name</dt>
+<dt><strong><code>location_hirerchy</code></strong> :&ensp;<code>List</code>[<code>Tuple</code>[<code>str</code>, <code>str</code>]]</dt>
+<dd>An hirerchy of locations.</dd>
+</dl>
+<ul>
+<li>str - location type name</li>
+<li>str - location name</li>
+</ul>
+<dl>
 <dt><strong><code>properties_dict</code></strong></dt>
 <dd>dict of property name to property value. the property value should match
 the property type. Otherwise exception is raised</dd>
@@ -53,64 +57,129 @@ the property type. Otherwise exception is raised</dd>
 <dd>latitude</dd>
 <dt><strong><code>long</code></strong> :&ensp;<code>float</code></dt>
 <dd>longitude</dd>
-<dt>external id (str): ID from external system</dt>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>Raises</code></strong> :&ensp;<code>LocationIsNotUniqueException</code> <code>if</code> <code>there</code> <code>is</code> <code>two</code> <code>possible</code> <code>locations</code></dt>
-<dd>inside the chain and it is not clear where to create or
-what to return
-FailedOperationException for internal inventory error</dd>
+<dt><strong><code>externalID</code></strong> :&ensp;<code>str</code></dt>
+<dd>ID from external system</dd>
 </dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>LocationIsNotUniqueException</code></strong></dt>
+<dd>if there is two possible locations
+inside the chain and it is not clear where to create or what to return</dd>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>for internal inventory error</dd>
+</dl>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: parent location in the chain does not exist</p>
 <h2 id="example">Example</h2>
-<p>location = client.add_location(
-[
-('Country', 'England'),
-('City', 'Milton Keynes'),
-('Site', 'Bletchley Park')
-],
-{
-'Date Property ': date.today(),
-'Lat/Lng Property: ': (-1.23,9.232),
-'E-mail Property ': "user@fb.com",
-'Number Property ': 11,
-'String Property ': "aa",
-'Float Property': 1.23
-},
--11.32,
-98.32,
-None)</p></section>
+<pre><code>location = client.add_location(
+    [
+        ('Country', 'England'),
+        ('City', 'Milton Keynes'),
+        ('Site', 'Bletchley Park')
+    ],
+    {
+        'Date Property ': date.today(),
+        'Lat/Lng Property: ': (-1.23,9.232),
+        'E-mail Property ': &quot;user@fb.com&quot;,
+        'Number Property ': 11,
+        'String Property ': &quot;aa&quot;,
+        'Float Property': 1.23
+    },
+    -11.32,
+    98.32,
+    None)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.location.delete_location"><code class="name flex">
-<span>def <span class="ident">delete_location</span></span>(<span>client, location)</span>
+<span>def <span class="ident">delete_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.location.edit_location"><code class="name flex">
-<span>def <span class="ident">edit_location</span></span>(<span>client, location, new_name=None, new_lat=None, new_long=None, new_external_id=None, new_properties=None)</span>
+<span>def <span class="ident">edit_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>, new_name: Union[str, NoneType] = None, new_lat: Union[float, NoneType] = None, new_long: Union[float, NoneType] = None, new_external_id: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function returns edited location.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a></dt>
+<dd>location object</dd>
+<dt><strong><code>new_name</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
+<dd>location new name</dd>
+<dt><strong><code>new_lat</code></strong> :&ensp;<code>Optional</code>[<code>float</code>]</dt>
+<dd>location new latitude</dd>
+<dt><strong><code>new_long</code></strong> :&ensp;<code>Optional</code>[<code>float</code>]</dt>
+<dd>location new longitude</dd>
+<dt><strong><code>new_external_id</code></strong> :&ensp;<code>Optional</code>[<code>float</code>]</dt>
+<dd>location new external ID</dd>
+<dt><strong><code>new_properties</code></strong> :&ensp;<code>Optional</code>[<code>Dict</code>[<code>str</code>, <code>PropertyValue</code>]]</dt>
+<dd>dict of property name to property value</dd>
+</dl>
+<ul>
+<li>str - property name</li>
+<li>PropertyValue - new value of the same type for this property</li>
+</ul>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>for internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code># this call will fail if there is Bletchley Park in two cities
+location = client.get_location([('Site', 'Bletchley Park')])
+edited_location = client.edit_location(
+    location=location,
+    new_name=&quot;New Bletchley Park&quot;,
+    new_lat=10,
+    new_long=20,
+    new_external_id=None,
+    new_properties={&quot;Contact&quot;: &quot;new_contact@info.com&quot;},
+)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.location.get_location"><code class="name flex">
-<span>def <span class="ident">get_location</span></span>(<span>client, location_hirerchy)</span>
+<span>def <span class="ident">get_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_hirerchy: List[Tuple[str, str]]) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>This function returns a location of a specific type with a specific name.
 It can get only the requested location specifiers or the hirerchy leading to it</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt>location_hirerchy (list of tuple(str, str)):</dt>
-<dt>the first str is location type name</dt>
-<dt>the second str is location name</dt>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dt><strong><code>location_hirerchy</code></strong> :&ensp;<code>List</code>[<code>Tuple</code>[<code>str</code>, <code>str</code>]]</dt>
+<dd>An hirerchy of locations.</dd>
+</dl>
+<ul>
+<li>str - location type name</li>
+<li>str - location name</li>
+</ul>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>Raises</code></strong> :&ensp;<code>LocationIsNotUniqueException</code> <code>if</code> <code>there</code> <code>is</code> <code>more</code> <code>than</code> <code>one</code> <code>correct</code></dt>
-<dd>location to return
-or LocationNotFoundException if no location was found</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>LocationIsNotUniqueException</code></strong></dt>
+<dd>if there is more than one correct
+location to return</dd>
+<dt><strong><code>LocationNotFoundException</code></strong></dt>
+<dd>if no location was found</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: location in the chain does not exist</dt>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>for internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>location = client.getLocation([
+<pre><code>location = client.get_location([
     ('Country', 'England'),
     ('City', 'Milton Keynes'),
     ('Site', 'Bletchley Park')
@@ -118,45 +187,135 @@ or LocationNotFoundException if no location was found</dd>
 </code></pre>
 <dl>
 <dt><strong><code>or</code></strong></dt>
-<dd>location = client.getLocation([('Site', 'Bletchley Park')])
-this call will fail if there is Bletchley Park in two cities in london</dd>
-</dl></section>
+<dd>&nbsp;</dd>
+</dl>
+<pre><code># this call will fail if there is Bletchley Park in two cities
+location = client.get_location([('Site', 'Bletchley Park')])
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.location.get_location_by_external_id"><code class="name flex">
-<span>def <span class="ident">get_location_by_external_id</span></span>(<span>client, external_id)</span>
+<span>def <span class="ident">get_location_by_external_id</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, external_id: str) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.api.location.get_location_children"><code class="name flex">
-<span>def <span class="ident">get_location_children</span></span>(<span>client, location_id)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>This function returns all locations that are children of the given location</p>
+<section class="desc"><p>This function returns location by external ID.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt>location_id (str):</dt>
-<dt>id of the parent location</dt>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>List</code> of <code>client.Location</code> <code>objects</code></dt>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>location external ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>LocationNotFoundException</code></strong></dt>
+<dd>location with this external ID does not exists</dd>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>for internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>location = client.get_location_by_external_id(external_id=&quot;12345&quot;)
+</code></pre></section>
+</dd>
+<dt id="pyinventory.api.location.get_location_children"><code class="name flex">
+<span>def <span class="ident">get_location_children</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str) -> List[<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>]</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function returns all children locations of the given location</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>location_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>parent location ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List</code>[ <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> ]</dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>&lt;a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"&gt;</code>EntityNotFoundError<code>&lt;/a&gt;</code>: <code>location</code> <code>does</code> <code>not</code> <code>exist</code></dt>
 <dd>&nbsp;</dd>
 </dl>
 <h2 id="example">Example</h2>
-<p>client.addLocation([('Country', 'England'), ('City', 'Milton Keynes')], {})
-client.addLocation([('Country', 'England'), ('City', 'London')], {})
-locations = client.get_location_children([('Country', 'England')])</p>
-<h1 id="this-call-will-return-a-list-with-2-locations-milton-keynes-and-london">This call will return a list with 2 locations: 'Milton Keynes' and 'London'</h1></section>
+<pre><code>client.add_location([('Country', 'England'), ('City', 'Milton Keynes')], {})
+client.add_location([('Country', 'England'), ('City', 'London')], {})
+parent_location = client.get_location([('Country', 'England')])
+children_locations = client.get_location_children(parent_location.id)
+# This call will return a list with 2 locations: 'Milton Keynes' and 'London'
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.location.get_location_documents"><code class="name flex">
-<span>def <span class="ident">get_location_documents</span></span>(<span>client, location)</span>
+<span>def <span class="ident">get_location_documents</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>) -> List[<a title="pyinventory.consts.Document" href="../consts.html#pyinventory.consts.Document">Document</a>]</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function returns locations documents.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a></dt>
+<dd>location object</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List</code>[ <a title="pyinventory.consts.Document" href="../consts.html#pyinventory.consts.Document"><code>Document</code></a> ]</dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>LocationNotFoundException</code></strong></dt>
+<dd>location with this external ID does not exists</dd>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>for internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code># this call will fail if there is Bletchley Park in two cities
+location = client.get_location([('Site', 'Bletchley Park')])
+location = client.get_location_documents(location=location)
+</code></pre></section>
+</dd>
+<dt id="pyinventory.api.location.get_locations"><code class="name flex">
+<span>def <span class="ident">get_locations</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>]</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function returns all existing locations</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List</code>[ <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> ]</dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>all_locations = client.get_locations()
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.location.move_location"><code class="name flex">
-<span>def <span class="ident">move_location</span></span>(<span>client, location_id, new_parent_id)</span>
+<span>def <span class="ident">move_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str, new_parent_id: Union[str, NoneType]) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function moves existing location to another existing parent location.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>location_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing location ID to be moved</dd>
+<dt><strong><code>new_parent_id</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
+<dd>new existing parent location ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>for internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code># this call will fail if there is Bletchley Park in two cities
+location = client.get_location([('Site', 'Bletchley Park')])
+moved_location = client.move_locatoin(
+    location_id=location.id, 
+    new_parent_id=&quot;12345&quot;
+)
+</code></pre></section>
 </dd>
 </dl>
 </section>
@@ -183,6 +342,7 @@ locations = client.get_location_children([('Country', 'England')])</p>
 <li><code><a title="pyinventory.api.location.get_location_by_external_id" href="#pyinventory.api.location.get_location_by_external_id">get_location_by_external_id</a></code></li>
 <li><code><a title="pyinventory.api.location.get_location_children" href="#pyinventory.api.location.get_location_children">get_location_children</a></code></li>
 <li><code><a title="pyinventory.api.location.get_location_documents" href="#pyinventory.api.location.get_location_documents">get_location_documents</a></code></li>
+<li><code><a title="pyinventory.api.location.get_locations" href="#pyinventory.api.location.get_locations">get_locations</a></code></li>
 <li><code><a title="pyinventory.api.location.move_location" href="#pyinventory.api.location.move_location">move_location</a></code></li>
 </ul>
 </li>

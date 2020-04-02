@@ -35,6 +35,7 @@ const (
 )
 
 var (
+	pcrf           *mock_pcrf.PCRFDiamServer
 	imsi1Rules     = []string{"rule1", "rule2"}
 	imsi1BaseRules = []string{"rule1", "rule2"}
 	imsi2Rules     = []string{"rule1", "rule3"}
@@ -51,6 +52,7 @@ func TestGxClient(t *testing.T) {
 	serverConfig1 := serverConfig
 	serverConfig2 := serverConfig
 	clientConfig := getClientConfig()
+	globalConfig := getGxGlobalConfig("")
 	startServer(clientConfig, &serverConfig1)
 
 	gxClient := gx.NewGxClient(
@@ -58,6 +60,7 @@ func TestGxClient(t *testing.T) {
 		&serverConfig2,
 		getMockReAuthHandler(),
 		nil,
+		globalConfig,
 	)
 
 	// send init
@@ -76,6 +79,9 @@ func TestGxClient(t *testing.T) {
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, 5, len(answer.RuleInstallAVP))
+	calledStationID, err := mock_pcrf.GetAVP(pcrf.LastMessageReceived, "Called-Station-Id")
+	assert.NoError(t, err)
+	assert.Equal(t, "", calledStationID)
 
 	var ruleNames []string
 	var ruleBaseNames []string
@@ -179,6 +185,48 @@ func TestGxClient(t *testing.T) {
 
 }
 
+// TestGxClient tests CCR init and terminate messages using a fake PCRF and a specific GxGlobalConfig
+func TestGxClientWithGyGlobalConf(t *testing.T) {
+	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+		Addr:     "127.0.0.1:4000",
+		Protocol: "tcp"},
+	}
+	serverConfig1 := serverConfig
+	serverConfig2 := serverConfig
+	clientConfig := getClientConfig()
+	overWriteApn := "gx.Apn.magma.com"
+	globalConfig := getGxGlobalConfig(overWriteApn)
+	startServer(clientConfig, &serverConfig1)
+
+	gxClient := gx.NewGxClient(
+		clientConfig,
+		&serverConfig2,
+		getMockReAuthHandler(),
+		nil,
+		globalConfig,
+	)
+
+	// send init
+	ccrInit := &gx.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI1,
+		RequestNumber: 0,
+		IPAddr:        "192.168.1.1",
+		SpgwIPV4:      "10.10.10.10",
+	}
+	done := make(chan interface{}, 1000)
+
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	answer := gx.GetAnswer(done)
+	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
+	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
+	assert.Equal(t, 5, len(answer.RuleInstallAVP))
+	calledStationID, err := mock_pcrf.GetAVP(pcrf.LastMessageReceived, "Called-Station-Id")
+	assert.NoError(t, err)
+	assert.Equal(t, overWriteApn, calledStationID)
+}
+
 func TestGxClientUsageMonitoring(t *testing.T) {
 	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 		Addr:     "127.0.0.1:3899",
@@ -187,12 +235,14 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 	serverConfig1 := serverConfig
 	serverConfig2 := serverConfig
 	clientConfig := getClientConfig()
+	globalConfig := getGxGlobalConfig("")
 	startServer(clientConfig, &serverConfig1)
 	gxClient := gx.NewGxClient(
 		clientConfig,
 		&serverConfig2,
 		getMockReAuthHandler(),
 		nil,
+		globalConfig,
 	)
 	done := make(chan interface{}, 1000)
 
@@ -264,12 +314,67 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 	}
 }
 
+func TestGxReAuthRemoveRules(t *testing.T) {
+	log.Printf("Start TestGxReAuth")
+	if t != nil {
+		return
+	}
+	serverConfig := diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+		Addr:     "127.0.0.1:3905",
+		Protocol: "tcp"},
+	}
+	clientConfig := getClientConfig()
+	globalConfig := getGxGlobalConfig("")
+	startServer(clientConfig, &serverConfig)
+
+	gxClient := gx.NewGxClient(
+		clientConfig,
+		&serverConfig,
+		getMockReAuthHandler(),
+		nil,
+		globalConfig,
+	)
+
+	// send one init to set user context in OCS
+	ccrInit := &gx.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI4,
+		RequestNumber: 0,
+		IPAddr:        "192.168.1.1",
+		SpgwIPV4:      "10.10.10.10",
+	}
+	done := make(chan interface{}, 1000)
+	log.Printf("Sending CCR-Init")
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	answer := gx.GetAnswer(done)
+	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
+	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
+
+	// send a RAR request to request a rule removal
+	rulesToRemove := &fegprotos.RuleRemovals{RuleNames: []string{"dynrule4"}, RuleBaseNames: []string{""}}
+	raa, err := pcrf.ReAuth(
+		context.Background(),
+		&fegprotos.PolicyReAuthTarget{Imsi: testIMSI4, RulesToRemove: rulesToRemove},
+	)
+	// success reauth
+	assert.NoError(t, err)
+	assert.Equal(t, "1", raa.SessionId)
+	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+}
+
 func getClientConfig() *diameter.DiameterClientConfig {
 	return &diameter.DiameterClientConfig{
 		Host:        "test.test.com",
 		Realm:       "test.com",
 		ProductName: "gx_test",
 		AppID:       diam.GX_CHARGING_CONTROL_APP_ID,
+	}
+}
+
+func getGxGlobalConfig(pcrfOverwriteApn string) *gx.GxGlobalConfig {
+	return &gx.GxGlobalConfig{
+		PCFROverwriteApn: pcrfOverwriteApn,
 	}
 }
 
@@ -280,7 +385,7 @@ func startServer(
 	serverStarted := make(chan struct{})
 	go func() {
 		log.Printf("Starting server")
-		pcrf := mock_pcrf.NewPCRFDiamServer(
+		pcrf = mock_pcrf.NewPCRFDiamServer(
 			client,
 			&mock_pcrf.PCRFConfig{ServerConfig: server},
 		)
@@ -318,10 +423,10 @@ func startServer(
 		pcrf.SetRules(
 			ctx,
 			&fegprotos.AccountRules{
-				Imsi:          testIMSI1,
-				RuleNames:     imsi1Rules,
-				RuleBaseNames: imsi1BaseRules,
-				RuleDefinitions: []*fegprotos.RuleDefinition{
+				Imsi:                testIMSI1,
+				StaticRuleNames:     imsi1Rules,
+				StaticRuleBaseNames: imsi1BaseRules,
+				DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
 					{
 						RuleName:       "dynrule1",
 						RatingGroup:    rg1,
@@ -335,17 +440,17 @@ func startServer(
 		pcrf.SetRules(
 			ctx,
 			&fegprotos.AccountRules{
-				Imsi:      testIMSI2,
-				RuleNames: imsi2Rules,
+				Imsi:            testIMSI2,
+				StaticRuleNames: imsi2Rules,
 			},
 		)
 		pcrf.SetRules(
 			ctx,
 			&fegprotos.AccountRules{
-				Imsi:          testIMSI3,
-				RuleNames:     imsi3Rules,
-				RuleBaseNames: imsi3BaseRules,
-				RuleDefinitions: []*fegprotos.RuleDefinition{
+				Imsi:                testIMSI3,
+				StaticRuleNames:     imsi3Rules,
+				StaticRuleBaseNames: imsi3BaseRules,
+				DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
 					{
 						RuleName:            "dynrule3",
 						RatingGroup:         rg3,
@@ -360,7 +465,7 @@ func startServer(
 			ctx,
 			&fegprotos.AccountRules{
 				Imsi: testIMSI4,
-				RuleDefinitions: []*fegprotos.RuleDefinition{
+				DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
 					{
 						RuleName:      "dynrule4",
 						Precedence:    300,
@@ -376,20 +481,24 @@ func startServer(
 		)
 		pcrf.SetUsageMonitors(
 			ctx,
-			&fegprotos.UsageMonitorInfo{
+			&fegprotos.UsageMonitorConfiguration{
 				Imsi: testIMSI4,
-				UsageMonitorCredits: []*fegprotos.UsageMonitorCredit{
+				UsageMonitorCredits: []*fegprotos.UsageMonitor{
 					{
-						MonitoringKey:   monitoringKey,
-						Volume:          4096,
-						ReturnBytes:     1024,
-						MonitoringLevel: fegprotos.UsageMonitorCredit_RuleLevel,
+						MonitorInfoPerRequest: &fegprotos.UsageMonitoringInformation{
+							MonitoringKey:   []byte(monitoringKey),
+							MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
+							Octets:          &fegprotos.Octets{TotalOctets: 1024},
+						},
+						TotalQuota: &fegprotos.Octets{TotalOctets: 4096},
 					},
 					{
-						MonitoringKey:   monitoringKey3,
-						Volume:          4096,
-						ReturnBytes:     2048,
-						MonitoringLevel: fegprotos.UsageMonitorCredit_SessionLevel,
+						MonitorInfoPerRequest: &fegprotos.UsageMonitoringInformation{
+							MonitoringKey:   []byte(monitoringKey3),
+							MonitoringLevel: fegprotos.MonitoringLevel_SessionLevel,
+							Octets:          &fegprotos.Octets{TotalOctets: 2048},
+						},
+						TotalQuota: &fegprotos.Octets{TotalOctets: 4096},
 					},
 				},
 			},
@@ -410,9 +519,9 @@ func startServer(
 	time.Sleep(time.Millisecond)
 }
 
-func getMockReAuthHandler() gx.ReAuthHandler {
-	return func(request *gx.ReAuthRequest) *gx.ReAuthAnswer {
-		return &gx.ReAuthAnswer{
+func getMockReAuthHandler() gx.PolicyReAuthHandler {
+	return func(request *gx.PolicyReAuthRequest) *gx.PolicyReAuthAnswer {
+		return &gx.PolicyReAuthAnswer{
 			SessionID:  request.SessionID,
 			ResultCode: diam.Success,
 		}

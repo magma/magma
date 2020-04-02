@@ -92,7 +92,7 @@ def create_account_in_OCS(imsi):
 def send_policy_rar(client, args):
     sessiond_chan = ServiceRegistry.get_rpc_channel("sessiond", ServiceRegistry.LOCAL)
     sessiond_client = SessionProxyResponderStub(sessiond_chan)
-    flow_list_str = args.flow_rules.split("/")
+    flow_list_str = args.flow_rules.split(";")
     flow_match_list = []
     for i, flow_str in enumerate(flow_list_str):
         print("%d: %s" % (i, flow_str))
@@ -234,17 +234,22 @@ def create_parser():
     )
     create_session_parser.add_argument("policy_id", help="e.g., ims-voice")
     create_session_parser.add_argument(
-        "priority", help="e.g., precedence value in the range [1-255]"
+        "priority", help="e.g., precedence value in the range [0-255]"
     )
     create_session_parser.add_argument(
         "qci", help="e.g., 9 for default, 1 for VoIP data, 5 for IMS signaling"
     )
     create_session_parser.add_argument(
-        "flow_rules", help="e.g., direction,protocol,remote_ip,remote_port/...]"
+        "flow_rules",
+        help="List of 6-tuples: "
+        "[direction,protocol,src_ip,src_port,dst_ip,dst_port] "
+        "separated by ';',e.g., "
+        "UL,6,192.168.50.1,0,192.168.40.2,12345;DL,1,8.8.8.8,0,192.168.50.1,0",
     )
     create_session_parser.add_argument(
         "qos",
-        help="e.g., max_req_bw_ul,max_req_bw_dl,gbr_ul,gbr_dl,arp_prio,pre_cap,pre_vul]",
+        help="QoS-tuple: [max_req_bw_ul,max_req_bw_dl,gbr_ul,gbr_dl,arp_prio,"
+        "pre_cap,pre_vul] e.g., 10000000,10000000,0,0,15,1,0",
     )
     create_session_parser.set_defaults(func=send_policy_rar)
 

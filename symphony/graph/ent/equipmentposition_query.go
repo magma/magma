@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -36,8 +35,9 @@ type EquipmentPositionQuery struct {
 	withParent     *EquipmentQuery
 	withAttachment *EquipmentQuery
 	withFKs        bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -67,36 +67,54 @@ func (epq *EquipmentPositionQuery) Order(o ...Order) *EquipmentPositionQuery {
 // QueryDefinition chains the current query on the definition edge.
 func (epq *EquipmentPositionQuery) QueryDefinition() *EquipmentPositionDefinitionQuery {
 	query := &EquipmentPositionDefinitionQuery{config: epq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
-		sqlgraph.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, equipmentposition.DefinitionTable, equipmentposition.DefinitionColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := epq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
+			sqlgraph.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, equipmentposition.DefinitionTable, equipmentposition.DefinitionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryParent chains the current query on the parent edge.
 func (epq *EquipmentPositionQuery) QueryParent() *EquipmentQuery {
 	query := &EquipmentQuery{config: epq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
-		sqlgraph.To(equipment.Table, equipment.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, equipmentposition.ParentTable, equipmentposition.ParentColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := epq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, equipmentposition.ParentTable, equipmentposition.ParentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryAttachment chains the current query on the attachment edge.
 func (epq *EquipmentPositionQuery) QueryAttachment() *EquipmentQuery {
 	query := &EquipmentQuery{config: epq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
-		sqlgraph.To(equipment.Table, equipment.FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, equipmentposition.AttachmentTable, equipmentposition.AttachmentColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := epq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, equipmentposition.AttachmentTable, equipmentposition.AttachmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -122,8 +140,8 @@ func (epq *EquipmentPositionQuery) FirstX(ctx context.Context) *EquipmentPositio
 }
 
 // FirstID returns the first EquipmentPosition id in the query. Returns *NotFoundError when no id was found.
-func (epq *EquipmentPositionQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (epq *EquipmentPositionQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = epq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -135,7 +153,7 @@ func (epq *EquipmentPositionQuery) FirstID(ctx context.Context) (id string, err 
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (epq *EquipmentPositionQuery) FirstXID(ctx context.Context) string {
+func (epq *EquipmentPositionQuery) FirstXID(ctx context.Context) int {
 	id, err := epq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -169,8 +187,8 @@ func (epq *EquipmentPositionQuery) OnlyX(ctx context.Context) *EquipmentPosition
 }
 
 // OnlyID returns the only EquipmentPosition id in the query, returns an error if not exactly one id was returned.
-func (epq *EquipmentPositionQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (epq *EquipmentPositionQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = epq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -186,7 +204,7 @@ func (epq *EquipmentPositionQuery) OnlyID(ctx context.Context) (id string, err e
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (epq *EquipmentPositionQuery) OnlyXID(ctx context.Context) string {
+func (epq *EquipmentPositionQuery) OnlyXID(ctx context.Context) int {
 	id, err := epq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -196,6 +214,9 @@ func (epq *EquipmentPositionQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of EquipmentPositions.
 func (epq *EquipmentPositionQuery) All(ctx context.Context) ([]*EquipmentPosition, error) {
+	if err := epq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return epq.sqlAll(ctx)
 }
 
@@ -209,8 +230,8 @@ func (epq *EquipmentPositionQuery) AllX(ctx context.Context) []*EquipmentPositio
 }
 
 // IDs executes the query and returns a list of EquipmentPosition ids.
-func (epq *EquipmentPositionQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (epq *EquipmentPositionQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := epq.Select(equipmentposition.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -218,7 +239,7 @@ func (epq *EquipmentPositionQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (epq *EquipmentPositionQuery) IDsX(ctx context.Context) []string {
+func (epq *EquipmentPositionQuery) IDsX(ctx context.Context) []int {
 	ids, err := epq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -228,6 +249,9 @@ func (epq *EquipmentPositionQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (epq *EquipmentPositionQuery) Count(ctx context.Context) (int, error) {
+	if err := epq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return epq.sqlCount(ctx)
 }
 
@@ -242,6 +266,9 @@ func (epq *EquipmentPositionQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (epq *EquipmentPositionQuery) Exist(ctx context.Context) (bool, error) {
+	if err := epq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return epq.sqlExist(ctx)
 }
 
@@ -265,7 +292,8 @@ func (epq *EquipmentPositionQuery) Clone() *EquipmentPositionQuery {
 		unique:     append([]string{}, epq.unique...),
 		predicates: append([]predicate.EquipmentPosition{}, epq.predicates...),
 		// clone intermediate query.
-		sql: epq.sql.Clone(),
+		sql:  epq.sql.Clone(),
+		path: epq.path,
 	}
 }
 
@@ -320,7 +348,12 @@ func (epq *EquipmentPositionQuery) WithAttachment(opts ...func(*EquipmentQuery))
 func (epq *EquipmentPositionQuery) GroupBy(field string, fields ...string) *EquipmentPositionGroupBy {
 	group := &EquipmentPositionGroupBy{config: epq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = epq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := epq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return epq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -339,8 +372,24 @@ func (epq *EquipmentPositionQuery) GroupBy(field string, fields ...string) *Equi
 func (epq *EquipmentPositionQuery) Select(field string, fields ...string) *EquipmentPositionSelect {
 	selector := &EquipmentPositionSelect{config: epq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = epq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := epq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return epq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (epq *EquipmentPositionQuery) prepareQuery(ctx context.Context) error {
+	if epq.path != nil {
+		prev, err := epq.path(ctx)
+		if err != nil {
+			return err
+		}
+		epq.sql = prev
+	}
+	return nil
 }
 
 func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosition, error) {
@@ -385,8 +434,8 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 	}
 
 	if query := epq.withDefinition; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*EquipmentPosition)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*EquipmentPosition)
 		for i := range nodes {
 			if fk := nodes[i].equipment_position_definition; fk != nil {
 				ids = append(ids, *fk)
@@ -410,8 +459,8 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 	}
 
 	if query := epq.withParent; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*EquipmentPosition)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*EquipmentPosition)
 		for i := range nodes {
 			if fk := nodes[i].equipment_positions; fk != nil {
 				ids = append(ids, *fk)
@@ -436,13 +485,9 @@ func (epq *EquipmentPositionQuery) sqlAll(ctx context.Context) ([]*EquipmentPosi
 
 	if query := epq.withAttachment; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*EquipmentPosition)
+		nodeids := make(map[int]*EquipmentPosition)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -488,7 +533,7 @@ func (epq *EquipmentPositionQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   equipmentposition.Table,
 			Columns: equipmentposition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentposition.FieldID,
 			},
 		},
@@ -548,8 +593,9 @@ type EquipmentPositionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -560,6 +606,11 @@ func (epgb *EquipmentPositionGroupBy) Aggregate(fns ...Aggregate) *EquipmentPosi
 
 // Scan applies the group-by query and scan the result into the given value.
 func (epgb *EquipmentPositionGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := epgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	epgb.sql = query
 	return epgb.sqlScan(ctx, v)
 }
 
@@ -678,12 +729,18 @@ func (epgb *EquipmentPositionGroupBy) sqlQuery() *sql.Selector {
 type EquipmentPositionSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (eps *EquipmentPositionSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := eps.path(ctx)
+	if err != nil {
+		return err
+	}
+	eps.sql = query
 	return eps.sqlScan(ctx, v)
 }
 

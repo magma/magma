@@ -36,7 +36,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 	currentTime := time.Now()
 	protoTimestamp, err := ptypes.TimestampProto(currentTime)
 	assert.NoError(t, err)
-	in := &gx.ReAuthRequest{
+	in := &gx.PolicyReAuthRequest{
 		SessionID: "IMSI001010000000001-1234",
 		RulesToRemove: []*gx.RuleRemoveAVP{
 			{RuleNames: []string{"remove1", "remove2"}, RuleBaseNames: []string{"baseRemove1"}},
@@ -118,6 +118,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 					MonitoringKey: []byte(monitoringKey),
 					Priority:      100,
 					TrackingType:  protos.PolicyRule_OCS_AND_PCRF,
+					Redirect:      &protos.RedirectInformation{},
 				},
 			},
 		},
@@ -160,7 +161,7 @@ func TestReAuthAnswer_FromProto(t *testing.T) {
 			"baz": protos.PolicyReAuthAnswer_AN_GW_FAILED,
 		},
 	}
-	actual := (&gx.ReAuthAnswer{}).FromProto("sesh", in)
+	actual := (&gx.PolicyReAuthAnswer{}).FromProto("sesh", in)
 
 	// sort the rules so we get a deterministic test
 	sortFun := func(i, j int) bool {
@@ -173,7 +174,7 @@ func TestReAuthAnswer_FromProto(t *testing.T) {
 	}
 	sort.Slice(actual.RuleReports, sortFun)
 
-	expected := &gx.ReAuthAnswer{
+	expected := &gx.PolicyReAuthAnswer{
 		SessionID:  "sesh",
 		ResultCode: diam.Success,
 		RuleReports: []*gx.ChargingRuleReport{
@@ -195,7 +196,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: nil,
 		RatingGroup:   &ratingGroup,
 	}).ToProto()
-	assert.Equal(t, []byte{}, ruleOut.MonitoringKey)
+	assert.Equal(t, []byte(nil), ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(10), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_ONLY_OCS, ruleOut.TrackingType)
 
@@ -222,7 +223,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: nil,
 		RatingGroup:   nil,
 	}).ToProto()
-	assert.Equal(t, []byte{}, ruleOut.MonitoringKey)
+	assert.Equal(t, []byte(nil), ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(0), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_NO_TRACKING, ruleOut.TrackingType)
 }

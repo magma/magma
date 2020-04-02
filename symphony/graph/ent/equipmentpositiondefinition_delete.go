@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // EquipmentPositionDefinitionDelete is the builder for deleting a EquipmentPositionDefinition entity.
 type EquipmentPositionDefinitionDelete struct {
 	config
+	hooks      []Hook
+	mutation   *EquipmentPositionDefinitionMutation
 	predicates []predicate.EquipmentPositionDefinition
 }
 
@@ -30,7 +33,30 @@ func (epdd *EquipmentPositionDefinitionDelete) Where(ps ...predicate.EquipmentPo
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (epdd *EquipmentPositionDefinitionDelete) Exec(ctx context.Context) (int, error) {
-	return epdd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(epdd.hooks) == 0 {
+		affected, err = epdd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentPositionDefinitionMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			epdd.mutation = mutation
+			affected, err = epdd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(epdd.hooks) - 1; i >= 0; i-- {
+			mut = epdd.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, epdd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -47,7 +73,7 @@ func (epdd *EquipmentPositionDefinitionDelete) sqlExec(ctx context.Context) (int
 		Node: &sqlgraph.NodeSpec{
 			Table: equipmentpositiondefinition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentpositiondefinition.FieldID,
 			},
 		},

@@ -82,6 +82,7 @@ class ProjectTypesList extends React.Component<Props, State> {
   };
 
   componentDidMount() {
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, projectTypesQuery).then(response => {
       this.setState({
         projectTypes: response.projectTypes.edges.map(x => x.node),

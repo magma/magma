@@ -20,7 +20,6 @@
  */
 
 extern "C" {
-#include "assertions.h"
 #include "bytes_to_ie.h"
 #include "dynamic_memory_check.h"
 #include "ie_to_bytes.h"
@@ -78,12 +77,12 @@ void MmeNasStateConverter::proto_to_hashtable_ts(
   const google::protobuf::Map<unsigned long, UeContext>& proto_map,
   hash_table_ts_t* state_htbl)
 {
-  OAILOG_INFO(LOG_MME_APP, "Converting proto to hashtable_ts");
+  OAILOG_DEBUG(LOG_MME_APP, "Converting proto to hashtable_ts");
   mme_ue_s1ap_id_t mme_ue_id;
 
   for (auto const& kv : proto_map) {
     mme_ue_id = (mme_ue_s1ap_id_t) kv.first;
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_MME_APP, "Reading ue_context for " MME_UE_S1AP_ID_FMT, mme_ue_id);
     ue_mm_context_t* ue_context_p = mme_create_new_ue_context();
     if (!ue_context_p) {
@@ -102,7 +101,7 @@ void MmeNasStateConverter::proto_to_hashtable_ts(
         state_htbl->name->data,
         hashtable_rc_code2string(ht_rc));
     }
-    OAILOG_INFO(LOG_MME_APP, "Written one key into hashtable_ts");
+    OAILOG_DEBUG(LOG_MME_APP, "Written one key into hashtable_ts");
   }
 }
 
@@ -246,7 +245,6 @@ void MmeNasStateConverter::bearer_context_to_proto(
     bearer_context_proto->mutable_p_gw_fteid_s5_s8_up());
   bearer_context_proto->set_qci(state_bearer_context.qci);
   bearer_context_proto->set_pdn_cx_id(state_bearer_context.pdn_cx_id);
-  bearer_context_proto->set_bearer_state(state_bearer_context.bearer_state);
   NasStateConverter::esm_ebr_context_to_proto(
     state_bearer_context.esm_ebr_context,
     bearer_context_proto->mutable_esm_ebr_context());
@@ -287,7 +285,6 @@ void MmeNasStateConverter::proto_to_bearer_context(
     &state_bearer_context->p_gw_fteid_s5_s8_up);
   state_bearer_context->qci = bearer_context_proto.qci();
   state_bearer_context->pdn_cx_id = bearer_context_proto.pdn_cx_id();
-  state_bearer_context->bearer_state = bearer_context_proto.bearer_state();
   NasStateConverter::proto_to_esm_ebr_context(
     bearer_context_proto.esm_ebr_context(),
     &state_bearer_context->esm_ebr_context);
@@ -318,7 +315,7 @@ void MmeNasStateConverter::bearer_context_list_to_proto(
   for (int i = 0; i < BEARERS_PER_UE; i++) {
     BearerContext* bearer_ctxt_proto = ue_context_proto->add_bearer_contexts();
     if (state_ue_context.bearer_contexts[i]) {
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_MME_APP,
         "writing bearer context at index %d with ebi %d",
         i,
@@ -339,7 +336,7 @@ void MmeNasStateConverter::proto_to_bearer_context_list(
   for (int i = 0; i < BEARERS_PER_UE; i++) {
     if (
       ue_context_proto.bearer_contexts(i).validity() == BearerContext::VALID) {
-      OAILOG_INFO(LOG_MME_APP, "reading bearer context at index %d", i);
+      OAILOG_DEBUG(LOG_MME_APP, "reading bearer context at index %d", i);
       auto* eps_bearer_ctxt =
         (bearer_context_t*) calloc(1, sizeof(bearer_context_t));
       proto_to_bearer_context(
@@ -393,10 +390,9 @@ void MmeNasStateConverter::pdn_context_to_proto(
     state_pdn_context.apn_oi_replacement,
     pdn_context_proto->mutable_apn_oi_replacement());
   bdestroy(bstr_buffer);
-  bstr_buffer =
-    ip_address_to_bstring(&state_pdn_context.p_gw_address_s5_s8_cp);
-  BSTRING_TO_STRING(bstr_buffer,
-    pdn_context_proto->mutable_p_gw_address_s5_s8_cp());
+  bstr_buffer = ip_address_to_bstring(&state_pdn_context.p_gw_address_s5_s8_cp);
+  BSTRING_TO_STRING(
+    bstr_buffer, pdn_context_proto->mutable_p_gw_address_s5_s8_cp());
   bdestroy(bstr_buffer);
   pdn_context_proto->set_p_gw_teid_s5_s8_cp(
     state_pdn_context.p_gw_teid_s5_s8_cp);
@@ -415,11 +411,9 @@ void MmeNasStateConverter::pdn_context_to_proto(
       state_pdn_context.bearer_contexts[i]);
   }
 
-  bstr_buffer =
-    ip_address_to_bstring(&state_pdn_context.s_gw_address_s11_s4);
+  bstr_buffer = ip_address_to_bstring(&state_pdn_context.s_gw_address_s11_s4);
   BSTRING_TO_STRING(
-    bstr_buffer,
-    pdn_context_proto->mutable_s_gw_address_s11_s4());
+    bstr_buffer, pdn_context_proto->mutable_s_gw_address_s11_s4());
   bdestroy_wrapper(&bstr_buffer);
   pdn_context_proto->set_s_gw_teid_s11_s4(state_pdn_context.s_gw_teid_s11_s4);
   esm_pdn_to_proto(
@@ -450,8 +444,7 @@ void MmeNasStateConverter::proto_to_pdn_context(
     pdn_context_proto.apn_oi_replacement(),
     state_pdn_context->apn_oi_replacement);
   STRING_TO_BSTRING(pdn_context_proto.p_gw_address_s5_s8_cp(), bstr_buffer);
-  bstring_to_ip_address(
-    bstr_buffer, &state_pdn_context->p_gw_address_s5_s8_cp);
+  bstring_to_ip_address(bstr_buffer, &state_pdn_context->p_gw_address_s5_s8_cp);
   bdestroy(bstr_buffer);
   state_pdn_context->p_gw_teid_s5_s8_cp =
     pdn_context_proto.p_gw_teid_s5_s8_cp();
@@ -488,7 +481,7 @@ void MmeNasStateConverter::pdn_context_list_to_proto(
   num_active_contexts = 1; // TODO: fix acounting of nb_active_pdn_contexts
   for (int i = 0; i < num_active_contexts; i++) {
     if (state_ue_context.pdn_contexts[i] != nullptr) {
-      OAILOG_INFO(LOG_MME_APP, "Writing PDN context at index %d", i);
+      OAILOG_DEBUG(LOG_MME_APP, "Writing PDN context at index %d", i);
       PdnContext* pdn_ctxt_proto = ue_context_proto->add_pdn_contexts();
       pdn_context_to_proto(*state_ue_context.pdn_contexts[i], pdn_ctxt_proto);
     }
@@ -500,7 +493,7 @@ void MmeNasStateConverter::proto_to_pdn_context_list(
   ue_mm_context_t* state_ue_context)
 {
   for (int i = 0; i < ue_context_proto.pdn_contexts_size(); i++) {
-    OAILOG_INFO(LOG_MME_APP, "Reading PDN context at index %d", i);
+    OAILOG_DEBUG(LOG_MME_APP, "Reading PDN context at index %d", i);
     auto* pdn_context_p = (pdn_context_t*) calloc(1, sizeof(pdn_context_t));
     proto_to_pdn_context(ue_context_proto.pdn_contexts(i), pdn_context_p);
     state_ue_context->pdn_contexts[i] = pdn_context_p;
@@ -508,7 +501,7 @@ void MmeNasStateConverter::proto_to_pdn_context_list(
 }
 
 void MmeNasStateConverter::ue_context_to_proto(
-  ue_mm_context_t* state_ue_context,
+  const ue_mm_context_t* state_ue_context,
   UeContext* ue_context_proto)
 {
   ue_context_proto->Clear();
@@ -705,35 +698,34 @@ void MmeNasStateConverter::state_to_proto(
   const mme_app_desc_t* mme_nas_state_p,
   MmeNasState* state_proto)
 {
+  OAILOG_FUNC_IN(LOG_MME_APP);
   state_proto->set_nb_enb_connected(mme_nas_state_p->nb_enb_connected);
   state_proto->set_nb_ue_attached(mme_nas_state_p->nb_ue_attached);
   state_proto->set_nb_ue_connected(mme_nas_state_p->nb_ue_connected);
   state_proto->set_nb_default_eps_bearers(
     mme_nas_state_p->nb_default_eps_bearers);
   state_proto->set_nb_s1u_bearers(mme_nas_state_p->nb_s1u_bearers);
+  state_proto->set_nb_ue_managed(mme_nas_state_p->nb_ue_managed);
+  state_proto->set_nb_ue_idle(mme_nas_state_p->nb_ue_idle);
+  state_proto->set_nb_bearers_managed(mme_nas_state_p->nb_bearers_managed);
+  state_proto->set_nb_ue_since_last_stat(
+    mme_nas_state_p->nb_ue_since_last_stat);
+  state_proto->set_nb_bearers_since_last_stat(
+    mme_nas_state_p->nb_bearers_since_last_stat);
+  state_proto->set_mme_app_ue_s1ap_id_generator(
+      mme_nas_state_p->mme_app_ue_s1ap_id_generator);
 
   // copy mme_ue_contexts
   auto mme_ue_ctxts_proto = state_proto->mutable_mme_ue_contexts();
-  mme_ue_ctxts_proto->set_nb_ue_managed(
-    mme_nas_state_p->mme_ue_contexts.nb_ue_managed);
-  mme_ue_ctxts_proto->set_nb_ue_idle(
-    mme_nas_state_p->mme_ue_contexts.nb_ue_idle);
-  mme_ue_ctxts_proto->set_nb_bearers_managed(
-    mme_nas_state_p->mme_ue_contexts.nb_bearers_managed);
-  mme_ue_ctxts_proto->set_nb_ue_since_last_stat(
-    mme_nas_state_p->mme_ue_contexts.nb_ue_since_last_stat);
-  mme_ue_ctxts_proto->set_nb_bearers_since_last_stat(
-    mme_nas_state_p->mme_ue_contexts.nb_bearers_since_last_stat);
 
+  OAILOG_DEBUG(LOG_MME_APP, "IMSI table to proto");
   hashtable_uint64_ts_to_proto(
-    mme_nas_state_p->mme_ue_contexts.imsi_ue_context_htbl,
+    mme_nas_state_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
     mme_ue_ctxts_proto->mutable_imsi_ue_id_htbl());
+  OAILOG_DEBUG(LOG_MME_APP, "Tunnel table to proto");
   hashtable_uint64_ts_to_proto(
     mme_nas_state_p->mme_ue_contexts.tun11_ue_context_htbl,
     mme_ue_ctxts_proto->mutable_tun11_ue_id_htbl());
-  hashtable_ts_to_proto(
-    mme_nas_state_p->mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl,
-    mme_ue_ctxts_proto->mutable_mme_ue_id_ue_ctxt_htbl());
   hashtable_uint64_ts_to_proto(
     mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
     mme_ue_ctxts_proto->mutable_enb_ue_id_ue_id_htbl());
@@ -741,49 +733,47 @@ void MmeNasStateConverter::state_to_proto(
     guti_table_to_proto(
     mme_nas_state_p->mme_ue_contexts.guti_ue_context_htbl,
     mme_ue_ctxts_proto->mutable_guti_ue_id_htbl());*/
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 void MmeNasStateConverter::proto_to_state(
   const MmeNasState& state_proto,
   mme_app_desc_t* mme_nas_state_p)
 {
-  OAILOG_INFO(LOG_MME_APP, "Converting proto to state");
+  OAILOG_FUNC_IN(LOG_MME_APP);
   mme_nas_state_p->nb_enb_connected = state_proto.nb_enb_connected();
   mme_nas_state_p->nb_ue_attached = state_proto.nb_ue_attached();
   mme_nas_state_p->nb_ue_connected = state_proto.nb_ue_connected();
   mme_nas_state_p->nb_default_eps_bearers =
     state_proto.nb_default_eps_bearers();
   mme_nas_state_p->nb_s1u_bearers = state_proto.nb_s1u_bearers();
+  mme_nas_state_p->nb_ue_managed = state_proto.nb_ue_managed();
+  mme_nas_state_p->nb_ue_idle = state_proto.nb_ue_idle();
+  mme_nas_state_p->nb_bearers_managed = state_proto.nb_bearers_managed();
+  mme_nas_state_p->nb_ue_since_last_stat = state_proto.nb_ue_since_last_stat();
+  mme_nas_state_p->nb_bearers_since_last_stat =
+    state_proto.nb_bearers_since_last_stat();
+  mme_nas_state_p->mme_app_ue_s1ap_id_generator =
+      state_proto.mme_app_ue_s1ap_id_generator();
+  if (mme_nas_state_p->mme_app_ue_s1ap_id_generator == 0) { // uninitialized
+    mme_nas_state_p->mme_app_ue_s1ap_id_generator = 1;
+  }
   OAILOG_INFO(LOG_MME_APP, "Read MME statistics from data store");
 
   // copy mme_ue_contexts
   MmeUeContext mme_ue_ctxts_proto = state_proto.mme_ue_contexts();
-  mme_nas_state_p->mme_ue_contexts.nb_ue_managed =
-    mme_ue_ctxts_proto.nb_ue_managed();
-  mme_nas_state_p->mme_ue_contexts.nb_ue_idle = mme_ue_ctxts_proto.nb_ue_idle();
-  mme_nas_state_p->mme_ue_contexts.nb_bearers_managed =
-    mme_ue_ctxts_proto.nb_bearers_managed();
-  mme_nas_state_p->mme_ue_contexts.nb_ue_since_last_stat =
-    mme_ue_ctxts_proto.nb_ue_since_last_stat();
-  mme_nas_state_p->mme_ue_contexts.nb_bearers_since_last_stat =
-    mme_ue_ctxts_proto.nb_bearers_since_last_stat();
-  OAILOG_INFO(LOG_MME_APP, "Read MME UE context statistics from data store");
 
   mme_ue_context_t* mme_ue_ctxt_state = &mme_nas_state_p->mme_ue_contexts;
   // copy maps to hashtables
-  OAILOG_INFO(LOG_MME_APP, "Hashtable 0");
-  proto_to_hashtable_ts(
-    mme_ue_ctxts_proto.mme_ue_id_ue_ctxt_htbl(),
-    mme_ue_ctxt_state->mme_ue_s1ap_id_ue_context_htbl);
-  OAILOG_INFO(LOG_MME_APP, "Hashtable 1");
+  OAILOG_INFO(LOG_MME_APP, "Hashtable MME UE ID => IMSI");
   proto_to_hashtable_uint64_ts(
     mme_ue_ctxts_proto.imsi_ue_id_htbl(),
-    mme_ue_ctxt_state->imsi_ue_context_htbl);
-  OAILOG_INFO(LOG_MME_APP, "Hashtable 2");
+    mme_ue_ctxt_state->imsi_mme_ue_id_htbl);
+  OAILOG_INFO(LOG_MME_APP, "Hashtable TEID 11 => MME UE ID");
   proto_to_hashtable_uint64_ts(
     mme_ue_ctxts_proto.tun11_ue_id_htbl(),
     mme_ue_ctxt_state->tun11_ue_context_htbl);
-  OAILOG_INFO(LOG_MME_APP, "Hashtable 3");
+  OAILOG_INFO(LOG_MME_APP, "Hashtable ENB UE S1AP ID => MME UE ID");
   proto_to_hashtable_uint64_ts(
     mme_ue_ctxts_proto.enb_ue_id_ue_id_htbl(),
     mme_ue_ctxt_state->enb_ue_s1ap_id_ue_context_htbl);
@@ -791,6 +781,21 @@ void MmeNasStateConverter::proto_to_state(
     proto_to_guti_table(
     mme_ue_ctxts_proto.guti_ue_id_htbl(),
     mme_ue_ctxt_state->guti_ue_context_htbl);*/
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void MmeNasStateConverter::ue_to_proto(
+  const ue_mm_context_t* ue_ctxt,
+  UeContext* ue_ctxt_proto)
+{
+  ue_context_to_proto(ue_ctxt, ue_ctxt_proto);
+}
+
+void MmeNasStateConverter::proto_to_ue(
+  const UeContext& ue_ctxt_proto,
+  ue_mm_context_t* ue_ctxt)
+{
+  proto_to_ue_mm_context(ue_ctxt_proto, ue_ctxt);
 }
 } // namespace lte
 } // namespace magma

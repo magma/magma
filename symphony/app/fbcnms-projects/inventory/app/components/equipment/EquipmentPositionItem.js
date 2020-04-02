@@ -22,6 +22,7 @@ import type {WithStyles} from '@material-ui/core';
 import ActionButton from '@fbcnms/ui/components/ActionButton';
 import AddToEquipmentDialog from './AddToEquipmentDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import CommonStrings from '../../common/CommonStrings';
 import React from 'react';
 import RemoveEquipmentFromPositionMutation from '../../mutations/RemoveEquipmentFromPositionMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
@@ -108,7 +109,7 @@ class EquipmentPositionItem extends React.Component<Props, State> {
 
   render() {
     const {classes, position} = this.props;
-    const positionOcuppied = position.attachedEquipment !== null;
+    const positionOccupied = position.attachedEquipment != null;
     return (
       <div
         className={classNames({
@@ -117,36 +118,40 @@ class EquipmentPositionItem extends React.Component<Props, State> {
         })}>
         <div className={classes.positionBody}>{this.renderEquipment()}</div>
         <ActionButton
-          action={positionOcuppied ? 'remove' : 'add'}
+          action={positionOccupied ? 'remove' : 'add'}
           onClick={() => {
-            if (!positionOcuppied) {
+            if (position.attachedEquipment == null) {
               this.setState({isNewEquipmentDialogOpen: true});
               return;
             }
-
-            const deleteMsg = (
-              <span>
-                {fbt(
-                  'Are you sure you want to detach this equipment from its position?',
-                  'Text to be displayed to the user after it pressed to detach an equipment from its position',
-                )}
-                {position.attachedEquipment &&
-                  position.attachedEquipment.services.length > 0 && (
-                    <span>
-                      <br />
-                      {fbt(
-                        `This attached equipment is used by some services and
-                      deleting it can potentially break them`,
-                        'Text to be displayed to the user after it pressed to detach ' +
-                          'an equipment from its position but the attached equipment has links that are part of service',
-                      )}
-                    </span>
-                  )}
-              </span>
-            );
-
             this.props
-              .confirm(deleteMsg)
+              .confirm({
+                title: <fbt desc="">Delete Equipment?</fbt>,
+                message: (
+                  <div>
+                    <fbt desc="">
+                      By removing{' '}
+                      <fbt:param name="equipment name">
+                        {position.attachedEquipment.name}
+                      </fbt:param>{' '}
+                      from this position, all information related to this
+                      equipment, like links and sub-positions, will be deleted.
+                    </fbt>
+                    {position.attachedEquipment.services.length > 0 && (
+                      <p>
+                        <fbt desc="">
+                          This attached equipment is used by some services and
+                          deleting it can potentially break them.
+                        </fbt>
+                      </p>
+                    )}
+                  </div>
+                ),
+                checkboxLabel: <fbt desc="">I understand</fbt>,
+                cancelLabel: CommonStrings.common.cancelButton,
+                confirmLabel: CommonStrings.common.deleteButton,
+                skin: 'red',
+              })
               .then(
                 confirmed => confirmed && this.onDetachEquipmentFromPosition(),
               );

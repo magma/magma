@@ -28,8 +28,9 @@ type FileQuery struct {
 	unique     []string
 	predicates []predicate.File
 	withFKs    bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -78,8 +79,8 @@ func (fq *FileQuery) FirstX(ctx context.Context) *File {
 }
 
 // FirstID returns the first File id in the query. Returns *NotFoundError when no id was found.
-func (fq *FileQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fq *FileQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -91,7 +92,7 @@ func (fq *FileQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (fq *FileQuery) FirstXID(ctx context.Context) string {
+func (fq *FileQuery) FirstXID(ctx context.Context) int {
 	id, err := fq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -125,8 +126,8 @@ func (fq *FileQuery) OnlyX(ctx context.Context) *File {
 }
 
 // OnlyID returns the only File id in the query, returns an error if not exactly one id was returned.
-func (fq *FileQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fq *FileQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -142,7 +143,7 @@ func (fq *FileQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (fq *FileQuery) OnlyXID(ctx context.Context) string {
+func (fq *FileQuery) OnlyXID(ctx context.Context) int {
 	id, err := fq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -152,6 +153,9 @@ func (fq *FileQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of Files.
 func (fq *FileQuery) All(ctx context.Context) ([]*File, error) {
+	if err := fq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return fq.sqlAll(ctx)
 }
 
@@ -165,8 +169,8 @@ func (fq *FileQuery) AllX(ctx context.Context) []*File {
 }
 
 // IDs executes the query and returns a list of File ids.
-func (fq *FileQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (fq *FileQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := fq.Select(file.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -174,7 +178,7 @@ func (fq *FileQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (fq *FileQuery) IDsX(ctx context.Context) []string {
+func (fq *FileQuery) IDsX(ctx context.Context) []int {
 	ids, err := fq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -184,6 +188,9 @@ func (fq *FileQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (fq *FileQuery) Count(ctx context.Context) (int, error) {
+	if err := fq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return fq.sqlCount(ctx)
 }
 
@@ -198,6 +205,9 @@ func (fq *FileQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (fq *FileQuery) Exist(ctx context.Context) (bool, error) {
+	if err := fq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return fq.sqlExist(ctx)
 }
 
@@ -221,7 +231,8 @@ func (fq *FileQuery) Clone() *FileQuery {
 		unique:     append([]string{}, fq.unique...),
 		predicates: append([]predicate.File{}, fq.predicates...),
 		// clone intermediate query.
-		sql: fq.sql.Clone(),
+		sql:  fq.sql.Clone(),
+		path: fq.path,
 	}
 }
 
@@ -243,7 +254,12 @@ func (fq *FileQuery) Clone() *FileQuery {
 func (fq *FileQuery) GroupBy(field string, fields ...string) *FileGroupBy {
 	group := &FileGroupBy{config: fq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = fq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return fq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -262,8 +278,24 @@ func (fq *FileQuery) GroupBy(field string, fields ...string) *FileGroupBy {
 func (fq *FileQuery) Select(field string, fields ...string) *FileSelect {
 	selector := &FileSelect{config: fq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = fq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return fq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (fq *FileQuery) prepareQuery(ctx context.Context) error {
+	if fq.path != nil {
+		prev, err := fq.path(ctx)
+		if err != nil {
+			return err
+		}
+		fq.sql = prev
+	}
+	return nil
 }
 
 func (fq *FileQuery) sqlAll(ctx context.Context) ([]*File, error) {
@@ -319,7 +351,7 @@ func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   file.Table,
 			Columns: file.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: file.FieldID,
 			},
 		},
@@ -379,8 +411,9 @@ type FileGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -391,6 +424,11 @@ func (fgb *FileGroupBy) Aggregate(fns ...Aggregate) *FileGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (fgb *FileGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := fgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	fgb.sql = query
 	return fgb.sqlScan(ctx, v)
 }
 
@@ -509,12 +547,18 @@ func (fgb *FileGroupBy) sqlQuery() *sql.Selector {
 type FileSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (fs *FileSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := fs.path(ctx)
+	if err != nil {
+		return err
+	}
+	fs.sql = query
 	return fs.sqlScan(ctx, v)
 }
 

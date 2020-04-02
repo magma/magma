@@ -32,22 +32,56 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.customer.add_customer"><code class="name flex">
-<span>def <span class="ident">add_customer</span></span>(<span>client, name, external_id)</span>
+<span>def <span class="ident">add_customer</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, external_id: Union[str, NoneType]) -> <a title="pyinventory.consts.Customer" href="../consts.html#pyinventory.consts.Customer">Customer</a></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function adds Customer.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name for the Customer</dd>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
+<dd>external ID for the Customer</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="pyinventory.consts.Customer" href="../consts.html#pyinventory.consts.Customer"><code>Customer</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>new_customers = client.add_customer(name=&quot;new_customer&quot;) 
+</code></pre>
+<dl>
+<dt><strong><code>or</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<pre><code>new_customers = client.add_customer(name=&quot;new_customer&quot;, external_id=&quot;12345678&quot;) 
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.customer.delete_customer"><code class="name flex">
-<span>def <span class="ident">delete_customer</span></span>(<span>client, customer)</span>
+<span>def <span class="ident">delete_customer</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, customer: <a title="pyinventory.consts.Customer" href="../consts.html#pyinventory.consts.Customer">Customer</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function delete Customer.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>customer</code></strong> :&ensp;<a title="pyinventory.consts.Customer" href="../consts.html#pyinventory.consts.Customer"><code>Customer</code></a> <code>object</code></dt>
+<dd>customer object</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>client.delete_customer(customer) 
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.customer.get_all_customers"><code class="name flex">
-<span>def <span class="ident">get_all_customers</span></span>(<span>client)</span>
+<span>def <span class="ident">get_all_customers</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.consts.Customer" href="../consts.html#pyinventory.consts.Customer">Customer</a>]</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function returns all Customers.</p>
+<h2 id="returns">Returns</h2>
+<p>List[ <a title="pyinventory.consts.Customer" href="../consts.html#pyinventory.consts.Customer"><code>Customer</code></a> ]</p>
+<h2 id="example">Example</h2>
+<pre><code>customers = client.get_all_customers() 
+</code></pre></section>
 </dd>
 </dl>
 </section>

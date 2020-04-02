@@ -9,7 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,17 +22,13 @@ import (
 // ServiceTypeCreate is the builder for creating a ServiceType entity.
 type ServiceTypeCreate struct {
 	config
-	create_time    *time.Time
-	update_time    *time.Time
-	name           *string
-	has_customer   *bool
-	services       map[string]struct{}
-	property_types map[string]struct{}
+	mutation *ServiceTypeMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (stc *ServiceTypeCreate) SetCreateTime(t time.Time) *ServiceTypeCreate {
-	stc.create_time = &t
+	stc.mutation.SetCreateTime(t)
 	return stc
 }
 
@@ -46,7 +42,7 @@ func (stc *ServiceTypeCreate) SetNillableCreateTime(t *time.Time) *ServiceTypeCr
 
 // SetUpdateTime sets the update_time field.
 func (stc *ServiceTypeCreate) SetUpdateTime(t time.Time) *ServiceTypeCreate {
-	stc.update_time = &t
+	stc.mutation.SetUpdateTime(t)
 	return stc
 }
 
@@ -60,13 +56,13 @@ func (stc *ServiceTypeCreate) SetNillableUpdateTime(t *time.Time) *ServiceTypeCr
 
 // SetName sets the name field.
 func (stc *ServiceTypeCreate) SetName(s string) *ServiceTypeCreate {
-	stc.name = &s
+	stc.mutation.SetName(s)
 	return stc
 }
 
 // SetHasCustomer sets the has_customer field.
 func (stc *ServiceTypeCreate) SetHasCustomer(b bool) *ServiceTypeCreate {
-	stc.has_customer = &b
+	stc.mutation.SetHasCustomer(b)
 	return stc
 }
 
@@ -79,19 +75,14 @@ func (stc *ServiceTypeCreate) SetNillableHasCustomer(b *bool) *ServiceTypeCreate
 }
 
 // AddServiceIDs adds the services edge to Service by ids.
-func (stc *ServiceTypeCreate) AddServiceIDs(ids ...string) *ServiceTypeCreate {
-	if stc.services == nil {
-		stc.services = make(map[string]struct{})
-	}
-	for i := range ids {
-		stc.services[ids[i]] = struct{}{}
-	}
+func (stc *ServiceTypeCreate) AddServiceIDs(ids ...int) *ServiceTypeCreate {
+	stc.mutation.AddServiceIDs(ids...)
 	return stc
 }
 
 // AddServices adds the services edges to Service.
 func (stc *ServiceTypeCreate) AddServices(s ...*Service) *ServiceTypeCreate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -99,19 +90,14 @@ func (stc *ServiceTypeCreate) AddServices(s ...*Service) *ServiceTypeCreate {
 }
 
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
-func (stc *ServiceTypeCreate) AddPropertyTypeIDs(ids ...string) *ServiceTypeCreate {
-	if stc.property_types == nil {
-		stc.property_types = make(map[string]struct{})
-	}
-	for i := range ids {
-		stc.property_types[ids[i]] = struct{}{}
-	}
+func (stc *ServiceTypeCreate) AddPropertyTypeIDs(ids ...int) *ServiceTypeCreate {
+	stc.mutation.AddPropertyTypeIDs(ids...)
 	return stc
 }
 
 // AddPropertyTypes adds the property_types edges to PropertyType.
 func (stc *ServiceTypeCreate) AddPropertyTypes(p ...*PropertyType) *ServiceTypeCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -120,22 +106,45 @@ func (stc *ServiceTypeCreate) AddPropertyTypes(p ...*PropertyType) *ServiceTypeC
 
 // Save creates the ServiceType in the database.
 func (stc *ServiceTypeCreate) Save(ctx context.Context) (*ServiceType, error) {
-	if stc.create_time == nil {
+	if _, ok := stc.mutation.CreateTime(); !ok {
 		v := servicetype.DefaultCreateTime()
-		stc.create_time = &v
+		stc.mutation.SetCreateTime(v)
 	}
-	if stc.update_time == nil {
+	if _, ok := stc.mutation.UpdateTime(); !ok {
 		v := servicetype.DefaultUpdateTime()
-		stc.update_time = &v
+		stc.mutation.SetUpdateTime(v)
 	}
-	if stc.name == nil {
+	if _, ok := stc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if stc.has_customer == nil {
+	if _, ok := stc.mutation.HasCustomer(); !ok {
 		v := servicetype.DefaultHasCustomer
-		stc.has_customer = &v
+		stc.mutation.SetHasCustomer(v)
 	}
-	return stc.sqlSave(ctx)
+	var (
+		err  error
+		node *ServiceType
+	)
+	if len(stc.hooks) == 0 {
+		node, err = stc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ServiceTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			stc.mutation = mutation
+			node, err = stc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(stc.hooks) - 1; i >= 0; i-- {
+			mut = stc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, stc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -153,44 +162,44 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 		_spec = &sqlgraph.CreateSpec{
 			Table: servicetype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: servicetype.FieldID,
 			},
 		}
 	)
-	if value := stc.create_time; value != nil {
+	if value, ok := stc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: servicetype.FieldCreateTime,
 		})
-		st.CreateTime = *value
+		st.CreateTime = value
 	}
-	if value := stc.update_time; value != nil {
+	if value, ok := stc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: servicetype.FieldUpdateTime,
 		})
-		st.UpdateTime = *value
+		st.UpdateTime = value
 	}
-	if value := stc.name; value != nil {
+	if value, ok := stc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: servicetype.FieldName,
 		})
-		st.Name = *value
+		st.Name = value
 	}
-	if value := stc.has_customer; value != nil {
+	if value, ok := stc.mutation.HasCustomer(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: servicetype.FieldHasCustomer,
 		})
-		st.HasCustomer = *value
+		st.HasCustomer = value
 	}
-	if nodes := stc.services; len(nodes) > 0 {
+	if nodes := stc.mutation.ServicesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -199,21 +208,17 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := stc.property_types; len(nodes) > 0 {
+	if nodes := stc.mutation.PropertyTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -222,16 +227,12 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
@@ -243,6 +244,6 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	st.ID = strconv.FormatInt(id, 10)
+	st.ID = int(id)
 	return st, nil
 }

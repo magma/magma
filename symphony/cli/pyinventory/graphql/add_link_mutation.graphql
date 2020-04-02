@@ -1,5 +1,11 @@
 mutation AddLinkMutation($input: AddLinkInput!) {
   addLink(input: $input) {
     id
+    properties {
+      ...PropertyFragment
+    }
+    services {
+      id
+    }
   }
 }

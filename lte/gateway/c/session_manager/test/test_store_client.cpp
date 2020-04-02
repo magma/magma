@@ -66,13 +66,16 @@ TEST_F(StoreClientTest, test_read_and_write)
   auto store_client = new MemoryStoreClient(rule_store);
 
   // Emulate CreateSession, which needs to create a new session for a subscriber
-  std::vector<std::string> requested_ids{imsi, imsi2};
+  std::set<std::string> requested_ids{imsi, imsi2};
   auto session_map = store_client->read_sessions(requested_ids);
 
   auto session = std::make_unique<SessionState>(imsi, sid, core_session_id, cfg, *rule_store, tgpp_context);
   auto session2 = std::make_unique<SessionState>(imsi2, sid2, core_session_id, cfg, *rule_store, tgpp_context);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session2->get_session_id(), sid2);
+
+  session->activate_static_rule("rule1");
+  EXPECT_EQ(session->is_static_rule_installed("rule1"), true);
 
   EXPECT_EQ(session_map.size(), 2);
   EXPECT_EQ(session_map[imsi].size(), 0);
@@ -94,6 +97,7 @@ TEST_F(StoreClientTest, test_read_and_write)
   EXPECT_EQ(session_map_2.size(), 2);
   EXPECT_EQ(session_map_2[imsi].size(), 1);
   EXPECT_EQ(session_map_2[imsi].front()->get_session_id(), sid);
+  EXPECT_EQ(session_map_2[imsi].front()->is_static_rule_installed("rule1"), true);
 }
 
 int main(int argc, char **argv)

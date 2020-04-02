@@ -32,8 +32,8 @@ def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False)
     __ensure_in_vagrant_dir()
 
     # Ensure that VM is running
-    isUp = local('vagrant status %s' % machine, capture=True)\
-        .find('running') < 0
+    isUp = local('vagrant status %s' % machine, capture=True) \
+               .find('running') < 0
     if isUp:
         # The machine isn't running. Most likely it's just not up. Let's
         # first try the simple thing of bringing it up, and if that doesn't
@@ -41,7 +41,7 @@ def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False)
         print("VM %s is not running... Attempting to bring it up."
               % machine)
         local('vagrant up %s' % machine)
-        isUp = local('vagrant status %s' % machine, capture=True)\
+        isUp = local('vagrant status %s' % machine, capture=True) \
             .find('running')
 
         if isUp < 0:
@@ -68,10 +68,14 @@ def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False)
         env.host_string = host_string
         env.hosts = [env.host_string]
         env.key_filename = identity_file
+        env.disable_known_hosts = True
     else:
-        return {"hosts": [host_string],
-                "host_string": host_string,
-                "key_filename": identity_file}
+        return {
+            "hosts": [host_string],
+            "host_string": host_string,
+            "key_filename": identity_file,
+            "disable_known_hosts": True,
+        }
 
 
 def teardown_vagrant(machine):
@@ -82,8 +86,8 @@ def teardown_vagrant(machine):
     __ensure_in_vagrant_dir()
 
     # Destroy if vm if it exists
-    created = local('vagrant status %s' % machine, capture=True)\
-        .find('not created') < 0
+    created = local('vagrant status %s' % machine, capture=True) \
+                  .find('not created') < 0
 
     if created:
         local('vagrant destroy -f %s' % machine)

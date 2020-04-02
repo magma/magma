@@ -12,6 +12,8 @@ import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {ContextRouter} from 'react-router-dom';
 import type {Equipment} from '../../common/Equipment';
 import type {PowerSearchEquipmentResultsTable_equipment} from './__generated__/PowerSearchEquipmentResultsTable_equipment.graphql';
+import type {TableIndex, TableSize} from './FilterUtils';
+import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -33,7 +35,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import 'react-virtualized/styles.css';
 
-const styles = theme => ({
+const styles = (theme: Theme) => ({
   root: {
     width: '100%',
     marginTop: theme.spacing(3),
@@ -151,13 +153,13 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
           onParentLocationClicked={
             onRowSelected
               ? null
-              : locationId =>
+              : (locationId: string) =>
                   history.push(InventoryAPIUrls.location(locationId))
           }
           onEquipmentClicked={
             onRowSelected
               ? null
-              : equipmentId =>
+              : (equipmentId: string) =>
                   history.push(InventoryAPIUrls.equipment(equipmentId))
           }
           size="small"
@@ -186,7 +188,7 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
 
     return equipment.length > 0 ? (
       <AutoSizer>
-        {({height, width}) => (
+        {({height, width}: TableSize) => (
           <Table
             className={classes.table}
             height={height}
@@ -194,9 +196,9 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
             headerHeight={50}
             rowHeight={50}
             rowCount={equipment.length}
-            rowGetter={({index}) => equipment[index]}
+            rowGetter={({index}: TableIndex) => equipment[index]}
             gridClassName={classes.table}
-            rowClassName={({index}) =>
+            rowClassName={({index}: TableIndex) =>
               classNames({
                 [classes.header]: index === -1,
                 [classes.row]: index !== -1,

@@ -27,6 +27,7 @@ include_directories(${MAGMA_LIB_DIR}/async_grpc)
 include_directories(${MAGMA_LIB_DIR}/config)
 include_directories(${MAGMA_LIB_DIR}/datastore)
 include_directories(${MAGMA_LIB_DIR}/policydb)
+include_directories(${MAGMA_LIB_DIR}/eventd)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
@@ -71,6 +72,7 @@ link_directories(
   ${MAGMA_LIB_DIR}/service303
   ${MAGMA_LIB_DIR}/datastore
   ${MAGMA_LIB_DIR}/policydb
+  ${MAGMA_LIB_DIR}/eventd
   ${MAGMA_LIB_DIR}/service_registry)
 
 add_library(SESSION_MANAGER
@@ -101,19 +103,19 @@ add_library(SESSION_MANAGER
     PipelinedClient.h
     DirectorydClient.cpp
     DirectorydClient.h
+    SessionEvents.cpp
+    SessionEvents.h
     DiameterCodes.cpp
     DiameterCodes.h
-    SessionRules.cpp
-    SessionRules.h
     CreditKey.h
     CreditPool.cpp
     CreditPool.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
+    StoredState.cpp
     StoredState.h
+    SessionStore.cpp
     SessionStore.h
-    MemorySessionStore.cpp
-    MemorySessionStore.h
     MemoryStoreClient.cpp
     MemoryStoreClient.h
     StoreClient.h
@@ -122,7 +124,7 @@ add_library(SESSION_MANAGER
     )
 
 target_link_libraries(SESSION_MANAGER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
   DATASTORE
   glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie

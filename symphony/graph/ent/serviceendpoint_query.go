@@ -33,8 +33,9 @@ type ServiceEndpointQuery struct {
 	withPort    *EquipmentPortQuery
 	withService *ServiceQuery
 	withFKs     bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -64,24 +65,36 @@ func (seq *ServiceEndpointQuery) Order(o ...Order) *ServiceEndpointQuery {
 // QueryPort chains the current query on the port edge.
 func (seq *ServiceEndpointQuery) QueryPort() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: seq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, seq.sqlQuery()),
-		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.PortTable, serviceendpoint.PortColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(seq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := seq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, seq.sqlQuery()),
+			sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.PortTable, serviceendpoint.PortColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(seq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryService chains the current query on the service edge.
 func (seq *ServiceEndpointQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: seq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, seq.sqlQuery()),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, serviceendpoint.ServiceTable, serviceendpoint.ServiceColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(seq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := seq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, seq.sqlQuery()),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceendpoint.ServiceTable, serviceendpoint.ServiceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(seq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -107,8 +120,8 @@ func (seq *ServiceEndpointQuery) FirstX(ctx context.Context) *ServiceEndpoint {
 }
 
 // FirstID returns the first ServiceEndpoint id in the query. Returns *NotFoundError when no id was found.
-func (seq *ServiceEndpointQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (seq *ServiceEndpointQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = seq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -120,7 +133,7 @@ func (seq *ServiceEndpointQuery) FirstID(ctx context.Context) (id string, err er
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (seq *ServiceEndpointQuery) FirstXID(ctx context.Context) string {
+func (seq *ServiceEndpointQuery) FirstXID(ctx context.Context) int {
 	id, err := seq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -154,8 +167,8 @@ func (seq *ServiceEndpointQuery) OnlyX(ctx context.Context) *ServiceEndpoint {
 }
 
 // OnlyID returns the only ServiceEndpoint id in the query, returns an error if not exactly one id was returned.
-func (seq *ServiceEndpointQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (seq *ServiceEndpointQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = seq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -171,7 +184,7 @@ func (seq *ServiceEndpointQuery) OnlyID(ctx context.Context) (id string, err err
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (seq *ServiceEndpointQuery) OnlyXID(ctx context.Context) string {
+func (seq *ServiceEndpointQuery) OnlyXID(ctx context.Context) int {
 	id, err := seq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -181,6 +194,9 @@ func (seq *ServiceEndpointQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of ServiceEndpoints.
 func (seq *ServiceEndpointQuery) All(ctx context.Context) ([]*ServiceEndpoint, error) {
+	if err := seq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return seq.sqlAll(ctx)
 }
 
@@ -194,8 +210,8 @@ func (seq *ServiceEndpointQuery) AllX(ctx context.Context) []*ServiceEndpoint {
 }
 
 // IDs executes the query and returns a list of ServiceEndpoint ids.
-func (seq *ServiceEndpointQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (seq *ServiceEndpointQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := seq.Select(serviceendpoint.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -203,7 +219,7 @@ func (seq *ServiceEndpointQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (seq *ServiceEndpointQuery) IDsX(ctx context.Context) []string {
+func (seq *ServiceEndpointQuery) IDsX(ctx context.Context) []int {
 	ids, err := seq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -213,6 +229,9 @@ func (seq *ServiceEndpointQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (seq *ServiceEndpointQuery) Count(ctx context.Context) (int, error) {
+	if err := seq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return seq.sqlCount(ctx)
 }
 
@@ -227,6 +246,9 @@ func (seq *ServiceEndpointQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (seq *ServiceEndpointQuery) Exist(ctx context.Context) (bool, error) {
+	if err := seq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return seq.sqlExist(ctx)
 }
 
@@ -250,7 +272,8 @@ func (seq *ServiceEndpointQuery) Clone() *ServiceEndpointQuery {
 		unique:     append([]string{}, seq.unique...),
 		predicates: append([]predicate.ServiceEndpoint{}, seq.predicates...),
 		// clone intermediate query.
-		sql: seq.sql.Clone(),
+		sql:  seq.sql.Clone(),
+		path: seq.path,
 	}
 }
 
@@ -294,7 +317,12 @@ func (seq *ServiceEndpointQuery) WithService(opts ...func(*ServiceQuery)) *Servi
 func (seq *ServiceEndpointQuery) GroupBy(field string, fields ...string) *ServiceEndpointGroupBy {
 	group := &ServiceEndpointGroupBy{config: seq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = seq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := seq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return seq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -313,8 +341,24 @@ func (seq *ServiceEndpointQuery) GroupBy(field string, fields ...string) *Servic
 func (seq *ServiceEndpointQuery) Select(field string, fields ...string) *ServiceEndpointSelect {
 	selector := &ServiceEndpointSelect{config: seq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = seq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := seq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return seq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (seq *ServiceEndpointQuery) prepareQuery(ctx context.Context) error {
+	if seq.path != nil {
+		prev, err := seq.path(ctx)
+		if err != nil {
+			return err
+		}
+		seq.sql = prev
+	}
+	return nil
 }
 
 func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint, error) {
@@ -358,8 +402,8 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 	}
 
 	if query := seq.withPort; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*ServiceEndpoint)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*ServiceEndpoint)
 		for i := range nodes {
 			if fk := nodes[i].service_endpoint_port; fk != nil {
 				ids = append(ids, *fk)
@@ -383,8 +427,8 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 	}
 
 	if query := seq.withService; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*ServiceEndpoint)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*ServiceEndpoint)
 		for i := range nodes {
 			if fk := nodes[i].service_endpoints; fk != nil {
 				ids = append(ids, *fk)
@@ -429,7 +473,7 @@ func (seq *ServiceEndpointQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   serviceendpoint.Table,
 			Columns: serviceendpoint.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: serviceendpoint.FieldID,
 			},
 		},
@@ -489,8 +533,9 @@ type ServiceEndpointGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -501,6 +546,11 @@ func (segb *ServiceEndpointGroupBy) Aggregate(fns ...Aggregate) *ServiceEndpoint
 
 // Scan applies the group-by query and scan the result into the given value.
 func (segb *ServiceEndpointGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := segb.path(ctx)
+	if err != nil {
+		return err
+	}
+	segb.sql = query
 	return segb.sqlScan(ctx, v)
 }
 
@@ -619,12 +669,18 @@ func (segb *ServiceEndpointGroupBy) sqlQuery() *sql.Selector {
 type ServiceEndpointSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ses *ServiceEndpointSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ses.path(ctx)
+	if err != nil {
+		return err
+	}
+	ses.sql = query
 	return ses.sqlScan(ctx, v)
 }
 

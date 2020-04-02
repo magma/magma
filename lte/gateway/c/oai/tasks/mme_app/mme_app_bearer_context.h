@@ -44,7 +44,6 @@
 #include "common_types.h"
 #include "mme_app_ue_context.h"
 
-bstring bearer_state2string(const mme_app_bearer_state_t bearer_state);
 bearer_context_t *mme_app_create_bearer_context(
   ue_mm_context_t *const ue_mm_context,
   const pdn_cid_t pdn_cid,
@@ -54,10 +53,6 @@ void mme_app_free_bearer_context(bearer_context_t **const bearer_context);
 bearer_context_t *mme_app_get_bearer_context(
   ue_mm_context_t *const ue_context,
   const ebi_t ebi);
-bearer_context_t *mme_app_get_bearer_context_by_state(
-  ue_mm_context_t *const ue_context,
-  const pdn_cid_t cid,
-  const mme_app_bearer_state_t state);
 void mme_app_add_bearer_context(
   ue_mm_context_t *const ue_context,
   bearer_context_t *const bc,

@@ -40,9 +40,10 @@ import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
 import {withSnackbar} from 'notistack';
@@ -144,7 +145,7 @@ class ProjectDetails extends React.Component<Props, State> {
     );
   }
 
-  _setProjectDetail = (key: 'name' | 'description' | 'creator', value) => {
+  _setProjectDetail = (key: 'name' | 'description' | 'createdBy', value) => {
     this.setState(prevState => {
       return {
         // $FlowFixMe Set state for each field
@@ -165,13 +166,13 @@ class ProjectDetails extends React.Component<Props, State> {
     this.setState({locationId});
 
   saveProject = () => {
-    const {id, name, description, creator, type} = this.state.editedProject;
+    const {id, name, description, createdBy, type} = this.state.editedProject;
     const variables: EditProjectMutationVariables = {
       input: {
         id,
         name,
         description,
-        creator,
+        creatorId: createdBy?.id,
         type: type.id,
         properties: toPropertyInput(this.state.properties),
         location: this.state.locationId,
@@ -191,8 +192,8 @@ class ProjectDetails extends React.Component<Props, State> {
           this.props.history.push(this.props.match.url);
         }
       },
-      onError: () => {
-        const msg = 'error saving project';
+      onError: (error: Error) => {
+        const msg = getGraphError(error);
         this.props.enqueueSnackbar(msg, {
           children: key => (
             <SnackbarItem id={key} message={msg} variant="error" />
@@ -213,7 +214,7 @@ class ProjectDetails extends React.Component<Props, State> {
     const {properties} = this.state;
     return (
       <div className={classes.root}>
-        <FormValidationContextProvider>
+        <FormContextProvider>
           <div className={classes.nameHeader}>
             <div className={classes.breadcrumbs}>
               <Breadcrumbs
@@ -350,10 +351,10 @@ class ProjectDetails extends React.Component<Props, State> {
                   <FormField>
                     <UserTypeahead
                       className={classes.input}
-                      selectedUser={project.creator}
+                      selectedUser={project.createdBy}
                       headline="Owner"
                       onUserSelection={user =>
-                        this._setProjectDetail('creator', user)
+                        this._setProjectDetail('createdBy', user)
                       }
                     />
                   </FormField>
@@ -373,7 +374,7 @@ class ProjectDetails extends React.Component<Props, State> {
               </Grid>
             </Grid>
           </div>
-        </FormValidationContextProvider>
+        </FormContextProvider>
       </div>
     );
   }
@@ -407,7 +408,10 @@ export default withRouter(
               id
               name
               description
-              creator
+              createdBy {
+                id
+                email
+              }
               type {
                 name
                 id

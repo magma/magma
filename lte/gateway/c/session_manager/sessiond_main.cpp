@@ -21,6 +21,7 @@
 #include "MConfigLoader.h"
 #include "magma_logging.h"
 #include "SessionCredit.h"
+#include "SessionStore.h"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -30,6 +31,7 @@
 #define MAX_USAGE_REPORTING_THRESHOLD 1.1
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
 #define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000 // 30sec
+#define DEFAULT_EXTRA_QUOTA_MARGIN 1024
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -54,26 +56,11 @@ static magma::mconfig::SessionD load_mconfig()
   return mconfig;
 }
 
-static const std::shared_ptr<grpc::Channel> get_local_controller(
-  const YAML::Node &config)
-{
- auto port = config["local_session_proxy_port"].as<std::string>();
- auto addr = "127.0.0.1:" + port;
- MLOG(MINFO) << "Using local address " << addr << " for controller";
- return grpc::CreateCustomChannel(
-   addr, grpc::InsecureChannelCredentials(), grpc::ChannelArguments {});
-}
-
 static const std::shared_ptr<grpc::Channel> get_controller_channel(
   const YAML::Node &config, const bool relay_enabled)
 {
   if (relay_enabled) {
     MLOG(MINFO) << "Using proxied sessiond controller";
-    if (config["use_local_session_proxy"].IsDefined() &&
-      config["use_local_session_proxy"].as<bool>()) {
-      // Use a locally running SessionProxy. (Used for testing)
-      return get_local_controller(config);
-    }
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
   } else {
@@ -146,6 +133,12 @@ int main(int argc, char *argv[])
     directoryd_client->rpc_response_loop();
   });
 
+  auto eventd_client = std::make_shared<magma::AsyncEventdClient>();
+  std::thread eventd_thread([&]() {
+    MLOG(MINFO) << "Started eventd response thread";
+    eventd_client->rpc_response_loop();
+  });
+
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
 
@@ -178,8 +171,25 @@ int main(int argc, char *argv[])
     reporting_threshold = DEFAULT_USAGE_REPORTING_THRESHOLD;
   }
   magma::SessionCredit::USAGE_REPORTING_THRESHOLD = reporting_threshold;
-  magma::SessionCredit::EXTRA_QUOTA_MARGIN =
-    config["extra_quota_margin"].as<uint64_t>();
+
+  uint64_t margin = DEFAULT_EXTRA_QUOTA_MARGIN;
+  if (config["extra_quota_margin"].IsDefined()) {
+    auto margin_from_config = config["extra_quota_margin"].as<uint64_t>();
+    // This value specifies the amount the usage can exceed the quota before
+    // terminating the session entirely. This is for the case where pipelined
+    // reports usage faster than sessiond can report it. This value should be
+    // reasonably big, as the usage will be eventually reported properly.
+    // So use the default value if it seems small.
+    if (margin_from_config > DEFAULT_EXTRA_QUOTA_MARGIN) {
+      margin = margin_from_config;
+    } else {
+      MLOG(MWARNING) << "The extra_quota_margin from the config "
+                     << margin_from_config << " is smaller than the default "
+                     << DEFAULT_EXTRA_QUOTA_MARGIN
+                     << ", using the default value instead.";
+    }
+  }
+  magma::SessionCredit::EXTRA_QUOTA_MARGIN = margin;
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
    config["terminate_service_when_quota_exhausted"].as<bool>();
 
@@ -202,11 +212,14 @@ int main(int argc, char *argv[])
       DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS;
   }
 
+  magma::SessionMap session_map{};
+  auto session_store = new magma::SessionStore(rule_store);
   auto monitor = std::make_shared<magma::LocalEnforcer>(
     reporter,
     rule_store,
     pipelined_client,
     directoryd_client,
+    eventd_client,
     spgw_client,
     aaa_client,
     config["session_force_termination_timeout_ms"].as<long>(),
@@ -214,12 +227,12 @@ int main(int argc, char *argv[])
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-    monitor, reporter.get(), directoryd_client);
-  auto proxy_handler =
-    std::make_unique<magma::SessionProxyResponderHandlerImpl>(monitor);
+    monitor, reporter.get(), directoryd_client, session_map, *session_store);
+  auto proxy_handler =std::make_unique<magma::SessionProxyResponderHandlerImpl>(
+    monitor, session_map, *session_store);
 
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
-    directoryd_client, monitor, reporter.get());
+    directoryd_client, monitor, reporter.get(), session_map);
   std::thread restart_handler_thread([&]() {
     MLOG(MINFO) << "Started sessiond restart handler thread";
     restart_handler->cleanup_previous_sessions();

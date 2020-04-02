@@ -33,6 +33,7 @@ message SgwEpsBearerContextInfo {
     string msisdn = 3;
     Ecgi last_known_cell_id = 4;
     bytes trxn = 5;
+    uint64 imsi64 = 6;
 
     uint32 mme_teid_s11 = 10; // teid_t
     bytes mme_ip_address_s11 = 11;
@@ -182,12 +183,6 @@ message S11BearerContext {
     PgwEpsBearerContextInfo pgw_eps_bearer_context = 2;
 }
 
-// mme_sgw_tunnel
-message MmeSgwTunnel {
-    uint32 local_teid = 1;
-    uint32 remote_teid = 2;
-}
-
 // gtvpv1u_data
 message GTPV1uData {
     string ip_address = 1;
@@ -215,31 +210,14 @@ message PccRule {
     SdfTemplate sdf_template = 10;
 }
 
-// sgw_state
-message SgwState {
-    map<uint32, MmeSgwTunnel> s11teid_mme = 1;
-    map<uint32, S11BearerContext> s11_bearer_context_info = 2;
-    uint64 sgw_ip_address_s1u_s12_s4_up = 3;
-    GTPV1uData gtpv1u_data = 4;
-    uint32 last_tunnel_id = 5;
-    uint32 gtpv1u_teid = 6;
-}
-
-// pgw_state
-message PgwState {
-    map<uint32, PccRule> deactivated_predefined_pcc_rules = 1;
-    map<uint32, PccRule> predefined_pcc_rules = 2;
-    repeated uint64 ipv4_list_free = 3;
-    repeated uint64 ipv4_list_allocated = 4;
-}
-
 message SpgwState {
-    SgwState sgw_state = 1;
-    PgwState pgw_state = 2;
+    uint32 last_tunnel_id = 1;
+    uint32 gtpv1u_teid = 2;
+    map<uint32, PccRule> deactivated_predefined_pcc_rules = 3;
+    map<uint32, PccRule> predefined_pcc_rules = 4;
+    repeated uint64 ipv4_list_free = 5;
+    repeated uint64 ipv4_list_allocated = 6;
+    uint64 sgw_ip_address_s1u_s12_s4_up = 7;
+    GTPV1uData gtpv1u_data = 8;
 }
 
-// spgw_imsi_map_t
-// Used for quick retrieval of teid using imsi on itti messages
-message SpgwImsiMap {
-    map<uint64, uint64> imsi_teid5_map = 1;
-}

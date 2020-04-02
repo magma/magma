@@ -137,8 +137,6 @@ func TestBuilder_Build(t *testing.T) {
 			NatEnabled:    true,
 			DefaultRuleId: "",
 			Services: []mconfig.PipelineD_NetworkServices{
-				mconfig.PipelineD_METERING,
-				mconfig.PipelineD_DPI,
 				mconfig.PipelineD_ENFORCEMENT,
 			},
 		},
@@ -159,7 +157,29 @@ func TestBuilder_Build(t *testing.T) {
 			RelayEnabled: false,
 		},
 	}
+
+	// Happy path
 	err := builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// Do break with non-allowed network service
+	setEPCNetworkServices([]string{"0xdeadbeef"}, &nw)
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.EqualError(t, err, "unknown network service name 0xdeadbeef")
+
+	// Don't break with deprecated network services
+	setEPCNetworkServices([]string{"metering"}, &nw)
+	expected["pipelined"] = &mconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     "192.168.128.0/24",
+		NatEnabled:    true,
+		DefaultRuleId: "",
+		Services: []mconfig.PipelineD_NetworkServices{
+			mconfig.PipelineD_METERING,
+		},
+	}
+	err = builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -235,8 +255,6 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			NatEnabled:    true,
 			DefaultRuleId: "",
 			Services: []mconfig.PipelineD_NetworkServices{
-				mconfig.PipelineD_METERING,
-				mconfig.PipelineD_DPI,
 				mconfig.PipelineD_ENFORCEMENT,
 			},
 		},
@@ -362,8 +380,6 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			NatEnabled:    true,
 			DefaultRuleId: "",
 			Services: []mconfig.PipelineD_NetworkServices{
-				mconfig.PipelineD_METERING,
-				mconfig.PipelineD_DPI,
 				mconfig.PipelineD_ENFORCEMENT,
 			},
 		},
@@ -422,4 +438,12 @@ func newDefaultEnodebConfig() *models2.EnodebConfiguration {
 		TransmitEnabled:        swag.Bool(true),
 		DeviceClass:            "Baicells ID TDD/FDD",
 	}
+}
+
+func setEPCNetworkServices(services []string, nw *configurator.Network) {
+	inwConfig := nw.Configs[lte.CellularNetworkType]
+	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
+	cellularNwConfig.Epc.NetworkServices = services
+
+	nw.Configs[lte.CellularNetworkType] = cellularNwConfig
 }

@@ -298,6 +298,10 @@ class SubscriberUtil(object):
         self._subscriber_client.wait_for_changes()
         return subscribers
 
+    def config_apn_data(self, imsi, apn_list):
+        """ Add APN details """
+        self._subscriber_client.config_apn_details(imsi, apn_list)
+
     def cleanup(self):
         """ Cleanup added subscriber from subscriberdb """
         self._subscriber_client.clean_up()
@@ -395,7 +399,7 @@ class SpgwUtil(object):
         """
         self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
 
-    def create_bearer(self, imsi, lbi):
+    def create_bearer(self, imsi, lbi, qci_val=1):
         """
         Sends a CreateBearer Request to SPGW service
         """
@@ -406,7 +410,7 @@ class SpgwUtil(object):
             policy_rules=[
                 PolicyRule(
                     qos=FlowQos(
-                        qci=1,
+                        qci=qci_val,
                         gbr_ul=10000000,
                         gbr_dl=10000000,
                         max_req_bw_ul=10000000,
@@ -418,7 +422,7 @@ class SpgwUtil(object):
                     flow_list=[
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42",
+                                ipv4_dst="0.0.0.0/0",
                                 tcp_dst=5001,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -427,7 +431,7 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42",
+                                ipv4_dst="192.168.129.42/24",
                                 tcp_dst=5002,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -472,7 +476,7 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42",
+                                ipv4_src="",
                                 tcp_src=5002,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -481,7 +485,7 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42",
+                                ipv4_src="192.168.129.64/26",
                                 tcp_src=5003,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -490,7 +494,7 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42",
+                                ipv4_src="192.168.129.42/16",
                                 tcp_src=5004,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,

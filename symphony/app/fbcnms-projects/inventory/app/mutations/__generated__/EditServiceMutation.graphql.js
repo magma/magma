@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash bd52913753d434b32a5a8e623d097c61
+ * @relayHash 22cd1daaf7fe24ffd66e157f1189c96a
  */
 
 /* eslint-disable */
@@ -47,7 +47,7 @@ export type EditServiceMutationVariables = {|
   data: ServiceEditData
 |};
 export type EditServiceMutationResponse = {|
-  +editService: ?{|
+  +editService: {|
     +$fragmentRefs: ServiceCard_service$ref
   |}
 |};

@@ -32,7 +32,7 @@ class StoreClient {
    * @param subscriber_ids typically in IMSI
    * @return All sessions for the subscribers
    */
-  virtual SessionMap read_sessions(std::vector<std::string> subscriber_ids) = 0;
+  virtual SessionMap read_sessions(std::set<std::string> subscriber_ids) = 0;
 
   /**
    * Directly write the subscriber sessions into storage, overwriting previous

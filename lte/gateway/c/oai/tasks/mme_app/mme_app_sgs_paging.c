@@ -136,9 +136,7 @@ static int _sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t *evt)
   imsi64_t imsi64 = INVALID_IMSI64;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, evt->ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(evt->ue_id);
   if (!ue_context_p) {
     OAILOG_WARNING(
       LOG_MME_APP,
@@ -207,9 +205,7 @@ static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t* evt)
   imsi64_t imsi64 = INVALID_IMSI64;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, evt->ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(evt->ue_id);
   if (!ue_context_p) {
     OAILOG_WARNING(
       LOG_MME_APP,
@@ -733,9 +729,7 @@ int sgs_handle_null_paging_request(const sgs_fsm_t *evt)
     LOG_MME_APP,
     "Handle paging request in Null state for ue-id :%u \n",
     evt->ue_id);
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, evt->ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(evt->ue_id);
   if (!ue_context_p) {
     OAILOG_WARNING(
       LOG_MME_APP,

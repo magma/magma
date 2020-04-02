@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
@@ -24,7 +24,7 @@ import (
 type WorkOrder struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -37,23 +37,23 @@ type WorkOrder struct {
 	Priority string `json:"priority,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// OwnerName holds the value of the "owner_name" field.
-	OwnerName string `json:"owner_name,omitempty"`
 	// InstallDate holds the value of the "install_date" field.
 	InstallDate time.Time `json:"install_date,omitempty"`
 	// CreationDate holds the value of the "creation_date" field.
 	CreationDate time.Time `json:"creation_date,omitempty"`
-	// Assignee holds the value of the "assignee" field.
-	Assignee string `json:"assignee,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
+	// CloseDate holds the value of the "close_date" field.
+	CloseDate time.Time `json:"close_date,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkOrderQuery when eager-loading is set.
 	Edges                 WorkOrderEdges `json:"edges"`
-	project_work_orders   *string
-	work_order_type       *string
-	work_order_location   *string
-	work_order_technician *string
+	project_work_orders   *int
+	work_order_type       *int
+	work_order_location   *int
+	work_order_technician *int
+	work_order_owner      *int
+	work_order_assignee   *int
 }
 
 // WorkOrderEdges holds the relations/edges for other nodes in the graph.
@@ -82,9 +82,13 @@ type WorkOrderEdges struct {
 	Technician *Technician
 	// Project holds the value of the project edge.
 	Project *Project
+	// Owner holds the value of the owner edge.
+	Owner *User
+	// Assignee holds the value of the assignee edge.
+	Assignee *User
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [14]bool
 }
 
 // TypeOrErr returns the Type value or an error if the edge
@@ -215,6 +219,34 @@ func (e WorkOrderEdges) ProjectOrErr() (*Project, error) {
 	return nil, &NotLoadedError{edge: "project"}
 }
 
+// OwnerOrErr returns the Owner value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) OwnerOrErr() (*User, error) {
+	if e.loadedTypes[12] {
+		if e.Owner == nil {
+			// The edge owner was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.Owner, nil
+	}
+	return nil, &NotLoadedError{edge: "owner"}
+}
+
+// AssigneeOrErr returns the Assignee value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkOrderEdges) AssigneeOrErr() (*User, error) {
+	if e.loadedTypes[13] {
+		if e.Assignee == nil {
+			// The edge assignee was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.Assignee, nil
+	}
+	return nil, &NotLoadedError{edge: "assignee"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*WorkOrder) scanValues() []interface{} {
 	return []interface{}{
@@ -225,11 +257,10 @@ func (*WorkOrder) scanValues() []interface{} {
 		&sql.NullString{}, // status
 		&sql.NullString{}, // priority
 		&sql.NullString{}, // description
-		&sql.NullString{}, // owner_name
 		&sql.NullTime{},   // install_date
 		&sql.NullTime{},   // creation_date
-		&sql.NullString{}, // assignee
 		&sql.NullInt64{},  // index
+		&sql.NullTime{},   // close_date
 	}
 }
 
@@ -240,6 +271,8 @@ func (*WorkOrder) fkValues() []interface{} {
 		&sql.NullInt64{}, // work_order_type
 		&sql.NullInt64{}, // work_order_location
 		&sql.NullInt64{}, // work_order_technician
+		&sql.NullInt64{}, // work_order_owner
+		&sql.NullInt64{}, // work_order_assignee
 	}
 }
 
@@ -253,7 +286,7 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	wo.ID = strconv.FormatInt(value.Int64, 10)
+	wo.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -285,56 +318,63 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		wo.Description = value.String
 	}
-	if value, ok := values[6].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field owner_name", values[6])
-	} else if value.Valid {
-		wo.OwnerName = value.String
-	}
-	if value, ok := values[7].(*sql.NullTime); !ok {
-		return fmt.Errorf("unexpected type %T for field install_date", values[7])
+	if value, ok := values[6].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field install_date", values[6])
 	} else if value.Valid {
 		wo.InstallDate = value.Time
 	}
-	if value, ok := values[8].(*sql.NullTime); !ok {
-		return fmt.Errorf("unexpected type %T for field creation_date", values[8])
+	if value, ok := values[7].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field creation_date", values[7])
 	} else if value.Valid {
 		wo.CreationDate = value.Time
 	}
-	if value, ok := values[9].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field assignee", values[9])
-	} else if value.Valid {
-		wo.Assignee = value.String
-	}
-	if value, ok := values[10].(*sql.NullInt64); !ok {
-		return fmt.Errorf("unexpected type %T for field index", values[10])
+	if value, ok := values[8].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[8])
 	} else if value.Valid {
 		wo.Index = int(value.Int64)
 	}
-	values = values[11:]
+	if value, ok := values[9].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field close_date", values[9])
+	} else if value.Valid {
+		wo.CloseDate = value.Time
+	}
+	values = values[10:]
 	if len(values) == len(workorder.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_work_orders", value)
 		} else if value.Valid {
-			wo.project_work_orders = new(string)
-			*wo.project_work_orders = strconv.FormatInt(value.Int64, 10)
+			wo.project_work_orders = new(int)
+			*wo.project_work_orders = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_type", value)
 		} else if value.Valid {
-			wo.work_order_type = new(string)
-			*wo.work_order_type = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_type = new(int)
+			*wo.work_order_type = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_location", value)
 		} else if value.Valid {
-			wo.work_order_location = new(string)
-			*wo.work_order_location = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_location = new(int)
+			*wo.work_order_location = int(value.Int64)
 		}
 		if value, ok := values[3].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_technician", value)
 		} else if value.Valid {
-			wo.work_order_technician = new(string)
-			*wo.work_order_technician = strconv.FormatInt(value.Int64, 10)
+			wo.work_order_technician = new(int)
+			*wo.work_order_technician = int(value.Int64)
+		}
+		if value, ok := values[4].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_owner", value)
+		} else if value.Valid {
+			wo.work_order_owner = new(int)
+			*wo.work_order_owner = int(value.Int64)
+		}
+		if value, ok := values[5].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_assignee", value)
+		} else if value.Valid {
+			wo.work_order_assignee = new(int)
+			*wo.work_order_assignee = int(value.Int64)
 		}
 	}
 	return nil
@@ -342,69 +382,79 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the WorkOrder.
 func (wo *WorkOrder) QueryType() *WorkOrderTypeQuery {
-	return (&WorkOrderClient{wo.config}).QueryType(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryType(wo)
 }
 
 // QueryEquipment queries the equipment edge of the WorkOrder.
 func (wo *WorkOrder) QueryEquipment() *EquipmentQuery {
-	return (&WorkOrderClient{wo.config}).QueryEquipment(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryEquipment(wo)
 }
 
 // QueryLinks queries the links edge of the WorkOrder.
 func (wo *WorkOrder) QueryLinks() *LinkQuery {
-	return (&WorkOrderClient{wo.config}).QueryLinks(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryLinks(wo)
 }
 
 // QueryFiles queries the files edge of the WorkOrder.
 func (wo *WorkOrder) QueryFiles() *FileQuery {
-	return (&WorkOrderClient{wo.config}).QueryFiles(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryFiles(wo)
 }
 
 // QueryHyperlinks queries the hyperlinks edge of the WorkOrder.
 func (wo *WorkOrder) QueryHyperlinks() *HyperlinkQuery {
-	return (&WorkOrderClient{wo.config}).QueryHyperlinks(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryHyperlinks(wo)
 }
 
 // QueryLocation queries the location edge of the WorkOrder.
 func (wo *WorkOrder) QueryLocation() *LocationQuery {
-	return (&WorkOrderClient{wo.config}).QueryLocation(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryLocation(wo)
 }
 
 // QueryComments queries the comments edge of the WorkOrder.
 func (wo *WorkOrder) QueryComments() *CommentQuery {
-	return (&WorkOrderClient{wo.config}).QueryComments(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryComments(wo)
 }
 
 // QueryProperties queries the properties edge of the WorkOrder.
 func (wo *WorkOrder) QueryProperties() *PropertyQuery {
-	return (&WorkOrderClient{wo.config}).QueryProperties(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryProperties(wo)
 }
 
 // QueryCheckListCategories queries the check_list_categories edge of the WorkOrder.
 func (wo *WorkOrder) QueryCheckListCategories() *CheckListCategoryQuery {
-	return (&WorkOrderClient{wo.config}).QueryCheckListCategories(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryCheckListCategories(wo)
 }
 
 // QueryCheckListItems queries the check_list_items edge of the WorkOrder.
 func (wo *WorkOrder) QueryCheckListItems() *CheckListItemQuery {
-	return (&WorkOrderClient{wo.config}).QueryCheckListItems(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryCheckListItems(wo)
 }
 
 // QueryTechnician queries the technician edge of the WorkOrder.
 func (wo *WorkOrder) QueryTechnician() *TechnicianQuery {
-	return (&WorkOrderClient{wo.config}).QueryTechnician(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryTechnician(wo)
 }
 
 // QueryProject queries the project edge of the WorkOrder.
 func (wo *WorkOrder) QueryProject() *ProjectQuery {
-	return (&WorkOrderClient{wo.config}).QueryProject(wo)
+	return (&WorkOrderClient{config: wo.config}).QueryProject(wo)
+}
+
+// QueryOwner queries the owner edge of the WorkOrder.
+func (wo *WorkOrder) QueryOwner() *UserQuery {
+	return (&WorkOrderClient{config: wo.config}).QueryOwner(wo)
+}
+
+// QueryAssignee queries the assignee edge of the WorkOrder.
+func (wo *WorkOrder) QueryAssignee() *UserQuery {
+	return (&WorkOrderClient{config: wo.config}).QueryAssignee(wo)
 }
 
 // Update returns a builder for updating this WorkOrder.
 // Note that, you need to call WorkOrder.Unwrap() before calling this method, if this WorkOrder
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (wo *WorkOrder) Update() *WorkOrderUpdateOne {
-	return (&WorkOrderClient{wo.config}).UpdateOne(wo)
+	return (&WorkOrderClient{config: wo.config}).UpdateOne(wo)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -435,24 +485,16 @@ func (wo *WorkOrder) String() string {
 	builder.WriteString(wo.Priority)
 	builder.WriteString(", description=")
 	builder.WriteString(wo.Description)
-	builder.WriteString(", owner_name=")
-	builder.WriteString(wo.OwnerName)
 	builder.WriteString(", install_date=")
 	builder.WriteString(wo.InstallDate.Format(time.ANSIC))
 	builder.WriteString(", creation_date=")
 	builder.WriteString(wo.CreationDate.Format(time.ANSIC))
-	builder.WriteString(", assignee=")
-	builder.WriteString(wo.Assignee)
 	builder.WriteString(", index=")
 	builder.WriteString(fmt.Sprintf("%v", wo.Index))
+	builder.WriteString(", close_date=")
+	builder.WriteString(wo.CloseDate.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (wo *WorkOrder) id() int {
-	id, _ := strconv.Atoi(wo.ID)
-	return id
 }
 
 // WorkOrders is a parsable slice of WorkOrder.

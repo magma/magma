@@ -92,6 +92,7 @@ const PowerSearchLocationFilter = (props: FilterProps) => {
         <Tokenizer
           searchSource="Options"
           tokens={selectedLocations}
+          // $FlowFixMe (T62907961) Relay flow types
           onEntriesRequested={searchTerm => fetchLocations(searchTerm)}
           searchEntries={searchEntries}
           onBlur={onInputBlurred}

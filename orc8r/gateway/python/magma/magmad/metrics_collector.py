@@ -88,6 +88,8 @@ class MetricsCollector(object):
             self._retry_queue = samples[-self.queue_length:]
             logging.error("Metrics upload error! [%s] %s",
                           err.code(), err.details())
+        else:
+            logging.debug("Metrics upload success")
 
     def collect(self, service_name):
         """

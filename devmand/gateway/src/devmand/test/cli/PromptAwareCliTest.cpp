@@ -102,7 +102,7 @@ static shared_ptr<PromptAwareCli> getCli(
   return PromptAwareCli::make(
       "test",
       session,
-      CliFlavour::create(""),
+      CliFlavour::getDefaultInstance(),
       std::make_shared<folly::CPUThreadPoolExecutor>(1),
       timekeeper);
 }

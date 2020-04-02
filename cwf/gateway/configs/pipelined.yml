@@ -76,9 +76,10 @@ subscriber:
   poll_interval: 5
 
 dpi:
-  enabled: false
+  enabled: true
   mon_port: mon1
   mon_port_number: 32769
+  idle_timeout: 5
 
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: cwag_br0
@@ -92,12 +93,16 @@ allow_unknown_arps: False
 # Configuration for IPFIX sampling
 ipfix:
   enabled: true
-  collector_ip: '10.22.20.116'
-  collector_port: 4740
   probability: 30000
   collector_set_id: 1
+  cache_timeout: 60
   obs_domain_id: 1
   obs_point_id: 1
+
+# Configuration for LI mirroring
+li_local_iface: li_port
+li_mirror_all: true
+li_dst_iface: eth4
 
 # Interface to NAT traffic to
 nat_iface: eth2

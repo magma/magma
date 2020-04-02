@@ -347,8 +347,7 @@ message EsmProcData {
   uint32 pdn_type = 5; // esm_proc_pdn_type_t
   string pdn_addr= 6;
   BearerQos bearer_qos= 7;
-  gateway.spgw.TrafficFlowTemplate tft= 8;
-  ProtocolConfigurationOptions pco= 9;
+  ProtocolConfigurationOptions pco= 8;
 }
 
 // esm_context_t

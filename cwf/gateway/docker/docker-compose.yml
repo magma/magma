@@ -46,6 +46,8 @@ services:
   aaa_server:
     <<: *feggoservice
     container_name: aaa_server
+    environment:
+      USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/aaa_server -logtostderr=true -v=0
 
   control_proxy:
@@ -104,6 +106,7 @@ services:
       sh -c "set bridge cwag_br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
+        /usr/bin/ovs-vsctl set bridge cwag_br0 other-config:disable-in-band=true &&
         python3 -m magma.pipelined.main"
 
   policydb:

@@ -5,11 +5,12 @@ from enum import Enum
 
 class EquipmentFilterType(Enum):
     EQUIP_INST_NAME = "EQUIP_INST_NAME"
+    EQUIP_INST_EXTERNAL_ID = "EQUIP_INST_EXTERNAL_ID"
     PROPERTY = "PROPERTY"
     LOCATION_INST = "LOCATION_INST"
     EQUIPMENT_TYPE = "EQUIPMENT_TYPE"
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, value: str) -> "EquipmentFilterType":
         return cls.MISSING_ENUM

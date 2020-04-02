@@ -34,6 +34,8 @@ export type PropertyTypeFormField_propertyType = {|
   +isEditable: ?boolean,
   +isInstanceProperty: ?boolean,
   +isMandatory: ?boolean,
+  +category: ?string,
+  +isDeleted: ?boolean,
   +$refType: PropertyTypeFormField_propertyType$ref,
 |};
 export type PropertyTypeFormField_propertyType$data = PropertyTypeFormField_propertyType;
@@ -156,9 +158,23 @@ const node/*: ReaderFragment*/ = {
       "name": "isMandatory",
       "args": null,
       "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "category",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "isDeleted",
+      "args": null,
+      "storageKey": null
     }
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = 'b66003143942e3236ad4f9fd59a625cf';
+(node/*: any*/).hash = 'abc21c936b145d984043f004119c1d14';
 module.exports = node;

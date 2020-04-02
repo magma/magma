@@ -14,6 +14,7 @@
 #include <devmand/channels/cli/PromptAwareCli.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
 #include <devmand/channels/cli/SshSessionAsync.h>
+#include <devmand/channels/cli/TreeCache.h>
 #include <devmand/channels/cli/engine/Engine.h>
 #include <folly/Executor.h>
 
@@ -82,12 +83,15 @@ class IoConfigurationBuilder {
 
   IoConfigurationBuilder(
       const DeviceConfig& deviceConfig,
-      channels::cli::Engine& engine);
+      channels::cli::Engine& engine,
+      shared_ptr<CliFlavour> cliFlavour);
   IoConfigurationBuilder(shared_ptr<ConnectionParameters> _connectionParams);
 
   ~IoConfigurationBuilder();
 
-  shared_ptr<Cli> createAll(shared_ptr<CliCache> commandCache);
+  shared_ptr<Cli> createAll(
+      shared_ptr<CliCache> commandCache,
+      shared_ptr<TreeCache> treeCache);
 
   static Future<shared_ptr<Cli>> createPromptAwareCli(
       shared_ptr<ConnectionParameters> params);
@@ -97,7 +101,7 @@ class IoConfigurationBuilder {
       string hostname,
       string username,
       string password,
-      string flavour,
+      shared_ptr<CliFlavour> cliFlavour,
       int port,
       chrono::seconds kaTimeout,
       chrono::seconds cmdTimeout,
@@ -105,10 +109,14 @@ class IoConfigurationBuilder {
       long sshConnectionTimeout,
       channels::cli::Engine& engine);
 
+  shared_ptr<ConnectionParameters> getConnectionParameters();
+
  private:
   shared_ptr<ConnectionParameters> connectionParameters;
 
-  shared_ptr<Cli> createAllUsingFactory(shared_ptr<CliCache> commandCache);
+  shared_ptr<Cli> createAllUsingFactory(
+      shared_ptr<CliCache> commandCache,
+      shared_ptr<TreeCache> treeCache);
 
   static chrono::seconds toSeconds(const string& value);
 

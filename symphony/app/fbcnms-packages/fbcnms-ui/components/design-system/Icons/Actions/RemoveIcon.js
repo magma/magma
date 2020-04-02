@@ -21,7 +21,7 @@ const RemoveIcon = (props: SvgIconStyleProps) => (
         id="removeIcon"
       />
     </defs>
-    <use xlinkHref="#removeIcon" fillRule="evenodd" />
+    <use xlinkHref="#removeIcon" />
   </SvgIcon>
 );
 

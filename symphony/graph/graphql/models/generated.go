@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
@@ -51,7 +53,7 @@ type ActionsRulesSearchResult struct {
 }
 
 type ActionsTrigger struct {
-	ID               string           `json:"id"`
+	ID               int              `json:"id"`
 	TriggerID        core.TriggerID   `json:"triggerID"`
 	Description      string           `json:"description"`
 	SupportedActions []*ActionsAction `json:"supportedActions"`
@@ -77,12 +79,12 @@ type AddCustomerInput struct {
 
 type AddEquipmentInput struct {
 	Name               string           `json:"name"`
-	Type               string           `json:"type"`
-	Location           *string          `json:"location"`
-	Parent             *string          `json:"parent"`
-	PositionDefinition *string          `json:"positionDefinition"`
+	Type               int              `json:"type"`
+	Location           *int             `json:"location"`
+	Parent             *int             `json:"parent"`
+	PositionDefinition *int             `json:"positionDefinition"`
 	Properties         []*PropertyInput `json:"properties"`
-	WorkOrder          *string          `json:"workOrder"`
+	WorkOrder          *int             `json:"workOrder"`
 	ExternalID         *string          `json:"externalId"`
 }
 
@@ -102,7 +104,7 @@ type AddEquipmentTypeInput struct {
 
 type AddFloorPlanInput struct {
 	Name             string         `json:"name"`
-	LocationID       string         `json:"locationID"`
+	LocationID       int            `json:"locationID"`
 	Image            *AddImageInput `json:"image"`
 	ReferenceX       int            `json:"referenceX"`
 	ReferenceY       int            `json:"referenceY"`
@@ -117,7 +119,7 @@ type AddFloorPlanInput struct {
 
 type AddHyperlinkInput struct {
 	EntityType  ImageEntity `json:"entityType"`
-	EntityID    string      `json:"entityId"`
+	EntityID    int         `json:"entityId"`
 	URL         string      `json:"url"`
 	DisplayName *string     `json:"displayName"`
 	Category    *string     `json:"category"`
@@ -125,7 +127,7 @@ type AddHyperlinkInput struct {
 
 type AddImageInput struct {
 	EntityType  ImageEntity `json:"entityType"`
-	EntityID    string      `json:"entityId"`
+	EntityID    int         `json:"entityId"`
 	ImgKey      string      `json:"imgKey"`
 	FileName    string      `json:"fileName"`
 	FileSize    int         `json:"fileSize"`
@@ -136,15 +138,15 @@ type AddImageInput struct {
 
 type AddLinkInput struct {
 	Sides      []*LinkSide      `json:"sides"`
-	WorkOrder  *string          `json:"workOrder"`
+	WorkOrder  *int             `json:"workOrder"`
 	Properties []*PropertyInput `json:"properties"`
-	ServiceIds []string         `json:"serviceIds"`
+	ServiceIds []int            `json:"serviceIds"`
 }
 
 type AddLocationInput struct {
 	Name       string           `json:"name"`
-	Type       string           `json:"type"`
-	Parent     *string          `json:"parent"`
+	Type       int              `json:"type"`
+	Parent     *int             `json:"parent"`
 	Latitude   *float64         `json:"latitude"`
 	Longitude  *float64         `json:"longitude"`
 	Properties []*PropertyInput `json:"properties"`
@@ -164,8 +166,9 @@ type AddProjectInput struct {
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
 	Creator     *string          `json:"creator"`
-	Type        string           `json:"type"`
-	Location    *string          `json:"location"`
+	CreatorID   *int             `json:"creatorId"`
+	Type        int              `json:"type"`
+	Location    *int             `json:"location"`
 	Properties  []*PropertyInput `json:"properties"`
 }
 
@@ -177,22 +180,29 @@ type AddProjectTypeInput struct {
 }
 
 type AddServiceEndpointInput struct {
-	ID     string              `json:"id"`
-	PortID string              `json:"portId"`
+	ID     int                 `json:"id"`
+	PortID int                 `json:"portId"`
 	Role   ServiceEndpointRole `json:"role"`
+}
+
+type AddUsersGroupInput struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
 }
 
 type AddWorkOrderInput struct {
 	Name                string                    `json:"name"`
 	Description         *string                   `json:"description"`
-	WorkOrderTypeID     string                    `json:"workOrderTypeId"`
-	LocationID          *string                   `json:"locationId"`
-	ProjectID           *string                   `json:"projectId"`
+	WorkOrderTypeID     int                       `json:"workOrderTypeId"`
+	LocationID          *int                      `json:"locationId"`
+	ProjectID           *int                      `json:"projectId"`
 	Properties          []*PropertyInput          `json:"properties"`
 	CheckList           []*CheckListItemInput     `json:"checkList"`
 	OwnerName           *string                   `json:"ownerName"`
+	OwnerID             *int                      `json:"ownerId"`
 	CheckListCategories []*CheckListCategoryInput `json:"checkListCategories"`
 	Assignee            *string                   `json:"assignee"`
+	AssigneeID          *int                      `json:"assigneeId"`
 	Index               *int                      `json:"index"`
 	Status              *WorkOrderStatus          `json:"status"`
 	Priority            *WorkOrderPriority        `json:"priority"`
@@ -206,15 +216,19 @@ type AddWorkOrderTypeInput struct {
 	CheckListCategories []*CheckListCategoryInput   `json:"checkListCategories"`
 }
 
+type AdministrativePolicy struct {
+	CanRead bool `json:"canRead"`
+}
+
 type CheckListCategoryInput struct {
-	ID          *string               `json:"id"`
+	ID          *int                  `json:"id"`
 	Title       string                `json:"title"`
 	Description *string               `json:"description"`
 	CheckList   []*CheckListItemInput `json:"checkList"`
 }
 
 type CheckListDefinitionInput struct {
-	ID         *string           `json:"id"`
+	ID         *int              `json:"id"`
 	Title      string            `json:"title"`
 	Type       CheckListItemType `json:"type"`
 	Index      *int              `json:"index"`
@@ -223,19 +237,23 @@ type CheckListDefinitionInput struct {
 }
 
 type CheckListItemInput struct {
-	ID          *string           `json:"id"`
-	Title       string            `json:"title"`
-	Type        CheckListItemType `json:"type"`
-	Index       *int              `json:"index"`
-	HelpText    *string           `json:"helpText"`
-	EnumValues  *string           `json:"enumValues"`
-	StringValue *string           `json:"stringValue"`
-	Checked     *bool             `json:"checked"`
+	ID                 *int                            `json:"id"`
+	Title              string                          `json:"title"`
+	Type               CheckListItemType               `json:"type"`
+	Index              *int                            `json:"index"`
+	HelpText           *string                         `json:"helpText"`
+	EnumValues         *string                         `json:"enumValues"`
+	EnumSelectionMode  *CheckListItemEnumSelectionMode `json:"enumSelectionMode"`
+	SelectedEnumValues *string                         `json:"selectedEnumValues"`
+	StringValue        *string                         `json:"stringValue"`
+	Checked            *bool                           `json:"checked"`
+	Files              []*FileInput                    `json:"files"`
+	YesNoResponse      *YesNoResponse                  `json:"yesNoResponse"`
 }
 
 type CommentInput struct {
 	EntityType CommentEntity `json:"entityType"`
-	ID         string        `json:"id"`
+	ID         int           `json:"id"`
 	Text       string        `json:"text"`
 }
 
@@ -246,7 +264,7 @@ type Device struct {
 }
 
 type EditEquipmentInput struct {
-	ID         string           `json:"id"`
+	ID         int              `json:"id"`
 	Name       string           `json:"name"`
 	Properties []*PropertyInput `json:"properties"`
 	DeviceID   *string          `json:"deviceID"`
@@ -259,14 +277,14 @@ type EditEquipmentPortInput struct {
 }
 
 type EditEquipmentPortTypeInput struct {
-	ID             string               `json:"id"`
+	ID             int                  `json:"id"`
 	Name           string               `json:"name"`
 	Properties     []*PropertyTypeInput `json:"properties"`
 	LinkProperties []*PropertyTypeInput `json:"linkProperties"`
 }
 
 type EditEquipmentTypeInput struct {
-	ID         string                    `json:"id"`
+	ID         int                       `json:"id"`
 	Name       string                    `json:"name"`
 	Category   *string                   `json:"category"`
 	Positions  []*EquipmentPositionInput `json:"positions"`
@@ -275,13 +293,13 @@ type EditEquipmentTypeInput struct {
 }
 
 type EditLinkInput struct {
-	ID         string           `json:"id"`
+	ID         int              `json:"id"`
 	Properties []*PropertyInput `json:"properties"`
-	ServiceIds []string         `json:"serviceIds"`
+	ServiceIds []int            `json:"serviceIds"`
 }
 
 type EditLocationInput struct {
-	ID         string           `json:"id"`
+	ID         int              `json:"id"`
 	Name       string           `json:"name"`
 	Latitude   float64          `json:"latitude"`
 	Longitude  float64          `json:"longitude"`
@@ -290,7 +308,7 @@ type EditLocationInput struct {
 }
 
 type EditLocationTypeInput struct {
-	ID           string               `json:"id"`
+	ID           int                  `json:"id"`
 	Name         string               `json:"name"`
 	MapType      *string              `json:"mapType"`
 	MapZoomLevel *int                 `json:"mapZoomLevel"`
@@ -299,42 +317,65 @@ type EditLocationTypeInput struct {
 }
 
 type EditProjectInput struct {
-	ID          string           `json:"id"`
+	ID          int              `json:"id"`
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
 	Creator     *string          `json:"creator"`
-	Type        string           `json:"type"`
-	Location    *string          `json:"location"`
+	CreatorID   *int             `json:"creatorId"`
+	Type        int              `json:"type"`
+	Location    *int             `json:"location"`
 	Properties  []*PropertyInput `json:"properties"`
 }
 
 type EditProjectTypeInput struct {
-	ID          string                      `json:"id"`
+	ID          int                         `json:"id"`
 	Name        string                      `json:"name"`
 	Description *string                     `json:"description"`
 	Properties  []*PropertyTypeInput        `json:"properties"`
 	WorkOrders  []*WorkOrderDefinitionInput `json:"workOrders"`
 }
 
+type EditReportFilterInput struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type EditUserInput struct {
+	ID        int          `json:"id"`
+	FirstName *string      `json:"firstName"`
+	LastName  *string      `json:"lastName"`
+	Status    *user.Status `json:"status"`
+	Role      *user.Role   `json:"role"`
+}
+
+type EditUsersGroupInput struct {
+	ID          int                `json:"id"`
+	Name        *string            `json:"name"`
+	Description *string            `json:"description"`
+	Status      *usersgroup.Status `json:"status"`
+}
+
 type EditWorkOrderInput struct {
-	ID                  string                    `json:"id"`
+	ID                  int                       `json:"id"`
 	Name                string                    `json:"name"`
 	Description         *string                   `json:"description"`
 	OwnerName           *string                   `json:"ownerName"`
+	OwnerID             *int                      `json:"ownerId"`
 	InstallDate         *time.Time                `json:"installDate"`
 	Assignee            *string                   `json:"assignee"`
+	AssigneeID          *int                      `json:"assigneeId"`
 	Index               *int                      `json:"index"`
 	Status              WorkOrderStatus           `json:"status"`
 	Priority            WorkOrderPriority         `json:"priority"`
-	ProjectID           *string                   `json:"projectId"`
+	ProjectID           *int                      `json:"projectId"`
 	Properties          []*PropertyInput          `json:"properties"`
 	CheckList           []*CheckListItemInput     `json:"checkList"`
 	CheckListCategories []*CheckListCategoryInput `json:"checkListCategories"`
-	LocationID          *string                   `json:"locationId"`
+	LocationID          *int                      `json:"locationId"`
 }
 
 type EditWorkOrderTypeInput struct {
-	ID                  string                      `json:"id"`
+	ID                  int                         `json:"id"`
 	Name                string                      `json:"name"`
 	Description         *string                     `json:"description"`
 	Properties          []*PropertyTypeInput        `json:"properties"`
@@ -347,22 +388,22 @@ type EquipmentFilterInput struct {
 	Operator      FilterOperator      `json:"operator"`
 	StringValue   *string             `json:"stringValue"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
-	IDSet         []string            `json:"idSet"`
+	IDSet         []int               `json:"idSet"`
 	StringSet     []string            `json:"stringSet"`
 	MaxDepth      *int                `json:"maxDepth"`
 }
 
 type EquipmentPortInput struct {
-	ID           *string `json:"id"`
+	ID           *int    `json:"id"`
 	Name         string  `json:"name"`
 	Index        *int    `json:"index"`
 	VisibleLabel *string `json:"visibleLabel"`
-	PortTypeID   *string `json:"portTypeID"`
+	PortTypeID   *int    `json:"portTypeID"`
 	Bandwidth    *string `json:"bandwidth"`
 }
 
 type EquipmentPositionInput struct {
-	ID           *string `json:"id"`
+	ID           *int    `json:"id"`
 	Name         string  `json:"name"`
 	Index        *int    `json:"index"`
 	VisibleLabel *string `json:"visibleLabel"`
@@ -374,13 +415,36 @@ type EquipmentSearchResult struct {
 }
 
 type FileInput struct {
-	ID               string    `json:"id"`
+	ID               *int      `json:"id"`
 	FileName         string    `json:"fileName"`
 	SizeInBytes      *int      `json:"sizeInBytes"`
 	ModificationTime *int      `json:"modificationTime"`
 	UploadTime       *int      `json:"uploadTime"`
 	FileType         *FileType `json:"fileType"`
+	MimeType         *string   `json:"mimeType"`
 	StoreKey         string    `json:"storeKey"`
+}
+
+type GeneralFilter struct {
+	FilterType    string            `json:"filterType"`
+	Key           string            `json:"key"`
+	Operator      FilterOperator    `json:"operator"`
+	StringValue   *string           `json:"stringValue"`
+	IDSet         []int             `json:"idSet"`
+	StringSet     []string          `json:"stringSet"`
+	BoolValue     *bool             `json:"boolValue"`
+	PropertyValue *ent.PropertyType `json:"propertyValue"`
+}
+
+type GeneralFilterInput struct {
+	FilterType    string             `json:"filterType"`
+	Key           string             `json:"key"`
+	Operator      FilterOperator     `json:"operator"`
+	StringValue   *string            `json:"stringValue"`
+	IDSet         []int              `json:"idSet"`
+	StringSet     []string           `json:"stringSet"`
+	BoolValue     *bool              `json:"boolValue"`
+	PropertyValue *PropertyTypeInput `json:"propertyValue"`
 }
 
 type LatestPythonPackageResult struct {
@@ -393,7 +457,7 @@ type LinkFilterInput struct {
 	Operator      FilterOperator     `json:"operator"`
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
-	IDSet         []string           `json:"idSet"`
+	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
@@ -404,8 +468,8 @@ type LinkSearchResult struct {
 }
 
 type LinkSide struct {
-	Equipment string `json:"equipment"`
-	Port      string `json:"port"`
+	Equipment int `json:"equipment"`
+	Port      int `json:"port"`
 }
 
 type LocationFilterInput struct {
@@ -414,7 +478,7 @@ type LocationFilterInput struct {
 	BoolValue     *bool              `json:"boolValue"`
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
-	IDSet         []string           `json:"idSet"`
+	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
@@ -425,13 +489,18 @@ type LocationSearchResult struct {
 }
 
 type LocationTypeIndex struct {
-	LocationTypeID string `json:"locationTypeID"`
-	Index          int    `json:"index"`
+	LocationTypeID int `json:"locationTypeID"`
+	Index          int `json:"index"`
 }
 
 type NetworkTopology struct {
 	Nodes []ent.Noder     `json:"nodes"`
 	Links []*TopologyLink `json:"links"`
+}
+
+type PermissionSettings struct {
+	CanWrite    bool                  `json:"canWrite"`
+	AdminPolicy *AdministrativePolicy `json:"adminPolicy"`
 }
 
 type PortFilterInput struct {
@@ -440,7 +509,7 @@ type PortFilterInput struct {
 	BoolValue     *bool              `json:"boolValue"`
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
-	IDSet         []string           `json:"idSet"`
+	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
@@ -457,8 +526,8 @@ type ProjectFilterInput struct {
 }
 
 type PropertyInput struct {
-	ID                 *string  `json:"id"`
-	PropertyTypeID     string   `json:"propertyTypeID"`
+	ID                 *int     `json:"id"`
+	PropertyTypeID     int      `json:"propertyTypeID"`
 	StringValue        *string  `json:"stringValue"`
 	IntValue           *int     `json:"intValue"`
 	BooleanValue       *bool    `json:"booleanValue"`
@@ -467,15 +536,15 @@ type PropertyInput struct {
 	LongitudeValue     *float64 `json:"longitudeValue"`
 	RangeFromValue     *float64 `json:"rangeFromValue"`
 	RangeToValue       *float64 `json:"rangeToValue"`
-	EquipmentIDValue   *string  `json:"equipmentIDValue"`
-	LocationIDValue    *string  `json:"locationIDValue"`
-	ServiceIDValue     *string  `json:"serviceIDValue"`
+	EquipmentIDValue   *int     `json:"equipmentIDValue"`
+	LocationIDValue    *int     `json:"locationIDValue"`
+	ServiceIDValue     *int     `json:"serviceIDValue"`
 	IsEditable         *bool    `json:"isEditable"`
 	IsInstanceProperty *bool    `json:"isInstanceProperty"`
 }
 
 type PropertyTypeInput struct {
-	ID                 *string      `json:"id"`
+	ID                 *int         `json:"id"`
 	Name               string       `json:"name"`
 	Type               PropertyKind `json:"type"`
 	Index              *int         `json:"index"`
@@ -501,6 +570,12 @@ type PythonPackage struct {
 	HasBreakingChange bool      `json:"hasBreakingChange"`
 }
 
+type ReportFilterInput struct {
+	Name    string                `json:"name"`
+	Entity  FilterEntity          `json:"entity"`
+	Filters []*GeneralFilterInput `json:"filters"`
+}
+
 // A connection to a list of search entries.
 type SearchEntriesConnection struct {
 	// A list of search entry edges.
@@ -510,7 +585,7 @@ type SearchEntriesConnection struct {
 }
 
 type SearchEntry struct {
-	EntityID   string  `json:"entityId"`
+	EntityID   int     `json:"entityId"`
 	EntityType string  `json:"entityType"`
 	Name       string  `json:"name"`
 	Type       string  `json:"type"`
@@ -525,23 +600,39 @@ type SearchEntryEdge struct {
 	Cursor ent.Cursor `json:"cursor"`
 }
 
+// A search entry edge in a connection.
+type SearchNodeEdge struct {
+	// The search entry at the end of the edge.
+	Node ent.Noder `json:"node"`
+	// A cursor for use in pagination.
+	Cursor ent.Cursor `json:"cursor"`
+}
+
+// A connection to a list of search entries.
+type SearchNodesConnection struct {
+	// A list of search entry edges.
+	Edges []*SearchNodeEdge `json:"edges"`
+	// Information to aid in pagination.
+	PageInfo *ent.PageInfo `json:"pageInfo"`
+}
+
 type ServiceCreateData struct {
 	Name               string           `json:"name"`
 	ExternalID         *string          `json:"externalId"`
 	Status             *ServiceStatus   `json:"status"`
-	ServiceTypeID      string           `json:"serviceTypeId"`
-	CustomerID         *string          `json:"customerId"`
-	UpstreamServiceIds []string         `json:"upstreamServiceIds"`
+	ServiceTypeID      int              `json:"serviceTypeId"`
+	CustomerID         *int             `json:"customerId"`
+	UpstreamServiceIds []int            `json:"upstreamServiceIds"`
 	Properties         []*PropertyInput `json:"properties"`
 }
 
 type ServiceEditData struct {
-	ID                 string           `json:"id"`
+	ID                 int              `json:"id"`
 	Name               *string          `json:"name"`
 	ExternalID         *string          `json:"externalId"`
 	Status             *ServiceStatus   `json:"status"`
-	CustomerID         *string          `json:"customerId"`
-	UpstreamServiceIds []string         `json:"upstreamServiceIds"`
+	CustomerID         *int             `json:"customerId"`
+	UpstreamServiceIds []int            `json:"upstreamServiceIds"`
 	Properties         []*PropertyInput `json:"properties"`
 }
 
@@ -550,7 +641,7 @@ type ServiceFilterInput struct {
 	Operator      FilterOperator     `json:"operator"`
 	StringValue   *string            `json:"stringValue"`
 	PropertyValue *PropertyTypeInput `json:"propertyValue"`
-	IDSet         []string           `json:"idSet"`
+	IDSet         []int              `json:"idSet"`
 	StringSet     []string           `json:"stringSet"`
 	MaxDepth      *int               `json:"maxDepth"`
 }
@@ -567,7 +658,7 @@ type ServiceTypeCreateData struct {
 }
 
 type ServiceTypeEditData struct {
-	ID          string               `json:"id"`
+	ID          int                  `json:"id"`
 	Name        string               `json:"name"`
 	HasCustomer bool                 `json:"hasCustomer"`
 	Properties  []*PropertyTypeInput `json:"properties"`
@@ -602,7 +693,7 @@ type SurveyCreateData struct {
 	CreationTimestamp   *int                      `json:"creationTimestamp"`
 	CompletionTimestamp int                       `json:"completionTimestamp"`
 	Status              *SurveyStatus             `json:"status"`
-	LocationID          string                    `json:"locationID"`
+	LocationID          int                       `json:"locationID"`
 	SurveyResponses     []*SurveyQuestionResponse `json:"surveyResponses"`
 }
 
@@ -627,17 +718,18 @@ type SurveyQuestionResponse struct {
 	PhotoData        *FileInput            `json:"photoData"`
 	WifiData         []*SurveyWiFiScanData `json:"wifiData"`
 	CellData         []*SurveyCellScanData `json:"cellData"`
+	ImagesData       []*FileInput          `json:"imagesData"`
 }
 
 type SurveyTemplateCategoryInput struct {
-	ID                      *string                        `json:"id"`
+	ID                      *int                           `json:"id"`
 	CategoryTitle           string                         `json:"categoryTitle"`
 	CategoryDescription     string                         `json:"categoryDescription"`
 	SurveyTemplateQuestions []*SurveyTemplateQuestionInput `json:"surveyTemplateQuestions"`
 }
 
 type SurveyTemplateQuestionInput struct {
-	ID                  *string            `json:"id"`
+	ID                  *int               `json:"id"`
 	QuestionTitle       string             `json:"questionTitle"`
 	QuestionDescription string             `json:"questionDescription"`
 	QuestionType        SurveyQuestionType `json:"questionType"`
@@ -658,9 +750,22 @@ type SurveyWiFiScanData struct {
 	Longitude    *float64 `json:"longitude"`
 }
 
+type TechnicianCheckListItemInput struct {
+	ID                 int            `json:"id"`
+	SelectedEnumValues *string        `json:"selectedEnumValues"`
+	StringValue        *string        `json:"stringValue"`
+	Checked            *bool          `json:"checked"`
+	YesNoResponse      *YesNoResponse `json:"yesNoResponse"`
+}
+
 type TechnicianInput struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
+}
+
+type TechnicianWorkOrderUploadInput struct {
+	WorkOrderID int                             `json:"workOrderId"`
+	Checklist   []*TechnicianCheckListItemInput `json:"checklist"`
 }
 
 type TopologyLink struct {
@@ -669,26 +774,53 @@ type TopologyLink struct {
 	Target ent.Noder        `json:"target"`
 }
 
+type UpdateUserGroupsInput struct {
+	ID             int   `json:"id"`
+	AddGroupIds    []int `json:"addGroupIds"`
+	RemoveGroupIds []int `json:"removeGroupIds"`
+}
+
+type UpdateUsersGroupMembersInput struct {
+	ID            int   `json:"id"`
+	AddUserIds    []int `json:"addUserIds"`
+	RemoveUserIds []int `json:"removeUserIds"`
+}
+
+type UserFilterInput struct {
+	FilterType    UserFilterType     `json:"filterType"`
+	Operator      FilterOperator     `json:"operator"`
+	StringValue   *string            `json:"stringValue"`
+	PropertyValue *PropertyTypeInput `json:"propertyValue"`
+	IDSet         []int              `json:"idSet"`
+	StringSet     []string           `json:"stringSet"`
+	MaxDepth      *int               `json:"maxDepth"`
+}
+
+type UserSearchResult struct {
+	Users []*ent.User `json:"users"`
+	Count int         `json:"count"`
+}
+
 type WorkOrderDefinitionInput struct {
-	ID    *string `json:"id"`
-	Index *int    `json:"index"`
-	Type  string  `json:"type"`
+	ID    *int `json:"id"`
+	Index *int `json:"index"`
+	Type  int  `json:"type"`
 }
 
 type WorkOrderExecutionResult struct {
-	ID               string           `json:"id"`
+	ID               int              `json:"id"`
 	Name             string           `json:"name"`
 	EquipmentAdded   []*ent.Equipment `json:"equipmentAdded"`
-	EquipmentRemoved []string         `json:"equipmentRemoved"`
+	EquipmentRemoved []int            `json:"equipmentRemoved"`
 	LinkAdded        []*ent.Link      `json:"linkAdded"`
-	LinkRemoved      []string         `json:"linkRemoved"`
+	LinkRemoved      []int            `json:"linkRemoved"`
 }
 
 type WorkOrderFilterInput struct {
 	FilterType    WorkOrderFilterType `json:"filterType"`
 	Operator      FilterOperator      `json:"operator"`
 	StringValue   *string             `json:"stringValue"`
-	IDSet         []string            `json:"idSet"`
+	IDSet         []int               `json:"idSet"`
 	StringSet     []string            `json:"stringSet"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
 	MaxDepth      *int                `json:"maxDepth"`
@@ -744,23 +876,68 @@ func (e CellularNetworkType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type CheckListItemEnumSelectionMode string
+
+const (
+	CheckListItemEnumSelectionModeSingle   CheckListItemEnumSelectionMode = "single"
+	CheckListItemEnumSelectionModeMultiple CheckListItemEnumSelectionMode = "multiple"
+)
+
+var AllCheckListItemEnumSelectionMode = []CheckListItemEnumSelectionMode{
+	CheckListItemEnumSelectionModeSingle,
+	CheckListItemEnumSelectionModeMultiple,
+}
+
+func (e CheckListItemEnumSelectionMode) IsValid() bool {
+	switch e {
+	case CheckListItemEnumSelectionModeSingle, CheckListItemEnumSelectionModeMultiple:
+		return true
+	}
+	return false
+}
+
+func (e CheckListItemEnumSelectionMode) String() string {
+	return string(e)
+}
+
+func (e *CheckListItemEnumSelectionMode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CheckListItemEnumSelectionMode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CheckListItemEnumSelectionMode", str)
+	}
+	return nil
+}
+
+func (e CheckListItemEnumSelectionMode) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type CheckListItemType string
 
 const (
 	CheckListItemTypeSimple CheckListItemType = "simple"
 	CheckListItemTypeString CheckListItemType = "string"
 	CheckListItemTypeEnum   CheckListItemType = "enum"
+	CheckListItemTypeFiles  CheckListItemType = "files"
+	CheckListItemTypeYesNo  CheckListItemType = "yes_no"
 )
 
 var AllCheckListItemType = []CheckListItemType{
 	CheckListItemTypeSimple,
 	CheckListItemTypeString,
 	CheckListItemTypeEnum,
+	CheckListItemTypeFiles,
+	CheckListItemTypeYesNo,
 }
 
 func (e CheckListItemType) IsValid() bool {
 	switch e {
-	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum:
+	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum, CheckListItemTypeFiles, CheckListItemTypeYesNo:
 		return true
 	}
 	return false
@@ -832,14 +1009,16 @@ func (e CommentEntity) MarshalGQL(w io.Writer) {
 type EquipmentFilterType string
 
 const (
-	EquipmentFilterTypeEquipInstName EquipmentFilterType = "EQUIP_INST_NAME"
-	EquipmentFilterTypeProperty      EquipmentFilterType = "PROPERTY"
-	EquipmentFilterTypeLocationInst  EquipmentFilterType = "LOCATION_INST"
-	EquipmentFilterTypeEquipmentType EquipmentFilterType = "EQUIPMENT_TYPE"
+	EquipmentFilterTypeEquipInstName       EquipmentFilterType = "EQUIP_INST_NAME"
+	EquipmentFilterTypeEquipInstExternalID EquipmentFilterType = "EQUIP_INST_EXTERNAL_ID"
+	EquipmentFilterTypeProperty            EquipmentFilterType = "PROPERTY"
+	EquipmentFilterTypeLocationInst        EquipmentFilterType = "LOCATION_INST"
+	EquipmentFilterTypeEquipmentType       EquipmentFilterType = "EQUIPMENT_TYPE"
 )
 
 var AllEquipmentFilterType = []EquipmentFilterType{
 	EquipmentFilterTypeEquipInstName,
+	EquipmentFilterTypeEquipInstExternalID,
 	EquipmentFilterTypeProperty,
 	EquipmentFilterTypeLocationInst,
 	EquipmentFilterTypeEquipmentType,
@@ -847,7 +1026,7 @@ var AllEquipmentFilterType = []EquipmentFilterType{
 
 func (e EquipmentFilterType) IsValid() bool {
 	switch e {
-	case EquipmentFilterTypeEquipInstName, EquipmentFilterTypeProperty, EquipmentFilterTypeLocationInst, EquipmentFilterTypeEquipmentType:
+	case EquipmentFilterTypeEquipInstName, EquipmentFilterTypeEquipInstExternalID, EquipmentFilterTypeProperty, EquipmentFilterTypeLocationInst, EquipmentFilterTypeEquipmentType:
 		return true
 	}
 	return false
@@ -912,6 +1091,55 @@ func (e *FileType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e FileType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type FilterEntity string
+
+const (
+	FilterEntityWorkOrder FilterEntity = "WORK_ORDER"
+	FilterEntityPort      FilterEntity = "PORT"
+	FilterEntityEquipment FilterEntity = "EQUIPMENT"
+	FilterEntityLink      FilterEntity = "LINK"
+	FilterEntityLocation  FilterEntity = "LOCATION"
+	FilterEntityService   FilterEntity = "SERVICE"
+)
+
+var AllFilterEntity = []FilterEntity{
+	FilterEntityWorkOrder,
+	FilterEntityPort,
+	FilterEntityEquipment,
+	FilterEntityLink,
+	FilterEntityLocation,
+	FilterEntityService,
+}
+
+func (e FilterEntity) IsValid() bool {
+	switch e {
+	case FilterEntityWorkOrder, FilterEntityPort, FilterEntityEquipment, FilterEntityLink, FilterEntityLocation, FilterEntityService:
+		return true
+	}
+	return false
+}
+
+func (e FilterEntity) String() string {
+	return string(e)
+}
+
+func (e *FilterEntity) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = FilterEntity(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid FilterEntity", str)
+	}
+	return nil
+}
+
+func (e FilterEntity) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1010,10 +1238,12 @@ func (e FutureState) MarshalGQL(w io.Writer) {
 type ImageEntity string
 
 const (
-	ImageEntityLocation   ImageEntity = "LOCATION"
-	ImageEntityWorkOrder  ImageEntity = "WORK_ORDER"
-	ImageEntitySiteSurvey ImageEntity = "SITE_SURVEY"
-	ImageEntityEquipment  ImageEntity = "EQUIPMENT"
+	ImageEntityLocation      ImageEntity = "LOCATION"
+	ImageEntityWorkOrder     ImageEntity = "WORK_ORDER"
+	ImageEntitySiteSurvey    ImageEntity = "SITE_SURVEY"
+	ImageEntityEquipment     ImageEntity = "EQUIPMENT"
+	ImageEntityUser          ImageEntity = "USER"
+	ImageEntityChecklistItem ImageEntity = "CHECKLIST_ITEM"
 )
 
 var AllImageEntity = []ImageEntity{
@@ -1021,11 +1251,13 @@ var AllImageEntity = []ImageEntity{
 	ImageEntityWorkOrder,
 	ImageEntitySiteSurvey,
 	ImageEntityEquipment,
+	ImageEntityUser,
+	ImageEntityChecklistItem,
 }
 
 func (e ImageEntity) IsValid() bool {
 	switch e {
-	case ImageEntityLocation, ImageEntityWorkOrder, ImageEntitySiteSurvey, ImageEntityEquipment:
+	case ImageEntityLocation, ImageEntityWorkOrder, ImageEntitySiteSurvey, ImageEntityEquipment, ImageEntityUser, ImageEntityChecklistItem:
 		return true
 	}
 	return false
@@ -1240,12 +1472,13 @@ func (e ProjectFilterType) MarshalGQL(w io.Writer) {
 type PropertyEntity string
 
 const (
-	PropertyEntityEquipment  PropertyEntity = "EQUIPMENT"
-	PropertyEntityService    PropertyEntity = "SERVICE"
-	PropertyEntityLink       PropertyEntity = "LINK"
-	PropertyEntityPort       PropertyEntity = "PORT"
-	PropertyEntityLocation   PropertyEntity = "LOCATION"
-	PropertyEntityWorkOrders PropertyEntity = "WORK_ORDERS"
+	PropertyEntityEquipment PropertyEntity = "EQUIPMENT"
+	PropertyEntityService   PropertyEntity = "SERVICE"
+	PropertyEntityLink      PropertyEntity = "LINK"
+	PropertyEntityPort      PropertyEntity = "PORT"
+	PropertyEntityLocation  PropertyEntity = "LOCATION"
+	PropertyEntityWorkOrder PropertyEntity = "WORK_ORDER"
+	PropertyEntityProject   PropertyEntity = "PROJECT"
 )
 
 var AllPropertyEntity = []PropertyEntity{
@@ -1254,12 +1487,13 @@ var AllPropertyEntity = []PropertyEntity{
 	PropertyEntityLink,
 	PropertyEntityPort,
 	PropertyEntityLocation,
-	PropertyEntityWorkOrders,
+	PropertyEntityWorkOrder,
+	PropertyEntityProject,
 }
 
 func (e PropertyEntity) IsValid() bool {
 	switch e {
-	case PropertyEntityEquipment, PropertyEntityService, PropertyEntityLink, PropertyEntityPort, PropertyEntityLocation:
+	case PropertyEntityEquipment, PropertyEntityService, PropertyEntityLink, PropertyEntityPort, PropertyEntityLocation, PropertyEntityWorkOrder, PropertyEntityProject:
 		return true
 	}
 	return false
@@ -1632,6 +1866,46 @@ func (e TopologyLinkType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+// what filters should we apply on users
+type UserFilterType string
+
+const (
+	UserFilterTypeUserName UserFilterType = "USER_NAME"
+)
+
+var AllUserFilterType = []UserFilterType{
+	UserFilterTypeUserName,
+}
+
+func (e UserFilterType) IsValid() bool {
+	switch e {
+	case UserFilterTypeUserName:
+		return true
+	}
+	return false
+}
+
+func (e UserFilterType) String() string {
+	return string(e)
+}
+
+func (e *UserFilterType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = UserFilterType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid UserFilterType", str)
+	}
+	return nil
+}
+
+func (e UserFilterType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 // what type of work order we filter about
 type WorkOrderFilterType string
 
@@ -1639,10 +1913,12 @@ const (
 	WorkOrderFilterTypeWorkOrderName         WorkOrderFilterType = "WORK_ORDER_NAME"
 	WorkOrderFilterTypeWorkOrderStatus       WorkOrderFilterType = "WORK_ORDER_STATUS"
 	WorkOrderFilterTypeWorkOrderOwner        WorkOrderFilterType = "WORK_ORDER_OWNER"
+	WorkOrderFilterTypeWorkOrderOwnedBy      WorkOrderFilterType = "WORK_ORDER_OWNED_BY"
 	WorkOrderFilterTypeWorkOrderType         WorkOrderFilterType = "WORK_ORDER_TYPE"
 	WorkOrderFilterTypeWorkOrderCreationDate WorkOrderFilterType = "WORK_ORDER_CREATION_DATE"
 	WorkOrderFilterTypeWorkOrderInstallDate  WorkOrderFilterType = "WORK_ORDER_INSTALL_DATE"
 	WorkOrderFilterTypeWorkOrderAssignee     WorkOrderFilterType = "WORK_ORDER_ASSIGNEE"
+	WorkOrderFilterTypeWorkOrderAssignedTo   WorkOrderFilterType = "WORK_ORDER_ASSIGNED_TO"
 	WorkOrderFilterTypeWorkOrderLocationInst WorkOrderFilterType = "WORK_ORDER_LOCATION_INST"
 	WorkOrderFilterTypeWorkOrderPriority     WorkOrderFilterType = "WORK_ORDER_PRIORITY"
 	WorkOrderFilterTypeLocationInst          WorkOrderFilterType = "LOCATION_INST"
@@ -1652,10 +1928,12 @@ var AllWorkOrderFilterType = []WorkOrderFilterType{
 	WorkOrderFilterTypeWorkOrderName,
 	WorkOrderFilterTypeWorkOrderStatus,
 	WorkOrderFilterTypeWorkOrderOwner,
+	WorkOrderFilterTypeWorkOrderOwnedBy,
 	WorkOrderFilterTypeWorkOrderType,
 	WorkOrderFilterTypeWorkOrderCreationDate,
 	WorkOrderFilterTypeWorkOrderInstallDate,
 	WorkOrderFilterTypeWorkOrderAssignee,
+	WorkOrderFilterTypeWorkOrderAssignedTo,
 	WorkOrderFilterTypeWorkOrderLocationInst,
 	WorkOrderFilterTypeWorkOrderPriority,
 	WorkOrderFilterTypeLocationInst,
@@ -1663,7 +1941,7 @@ var AllWorkOrderFilterType = []WorkOrderFilterType{
 
 func (e WorkOrderFilterType) IsValid() bool {
 	switch e {
-	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwner, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderInstallDate, WorkOrderFilterTypeWorkOrderAssignee, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst:
+	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwner, WorkOrderFilterTypeWorkOrderOwnedBy, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderInstallDate, WorkOrderFilterTypeWorkOrderAssignee, WorkOrderFilterTypeWorkOrderAssignedTo, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst:
 		return true
 	}
 	return false
@@ -1779,5 +2057,46 @@ func (e *WorkOrderStatus) UnmarshalGQL(v interface{}) error {
 }
 
 func (e WorkOrderStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type YesNoResponse string
+
+const (
+	YesNoResponseYes YesNoResponse = "YES"
+	YesNoResponseNo  YesNoResponse = "NO"
+)
+
+var AllYesNoResponse = []YesNoResponse{
+	YesNoResponseYes,
+	YesNoResponseNo,
+}
+
+func (e YesNoResponse) IsValid() bool {
+	switch e {
+	case YesNoResponseYes, YesNoResponseNo:
+		return true
+	}
+	return false
+}
+
+func (e YesNoResponse) String() string {
+	return string(e)
+}
+
+func (e *YesNoResponse) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = YesNoResponse(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid YesNoResponse", str)
+	}
+	return nil
+}
+
+func (e YesNoResponse) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

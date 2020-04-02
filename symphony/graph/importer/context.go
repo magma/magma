@@ -12,21 +12,21 @@ type ctxKey struct{}
 
 type importContext struct {
 	lowestHierarchyIndex        int
-	indexToLocationTypeID       map[int]string
-	equipmentTypeNameToID       map[string]string
-	equipmentTypeIDToProperties map[string][]string
+	indexToLocationTypeID       map[int]int
+	equipmentTypeNameToID       map[string]int
+	equipmentTypeIDToProperties map[int][]string
 	propNameToIndex             map[string]int
-	typeIDsToProperties         map[string][]string
+	typeIDsToProperties         map[int][]string
 }
 
 func newImportContext(parent context.Context) context.Context {
 	return context.WithValue(parent, ctxKey{}, &importContext{
 		lowestHierarchyIndex:        -1,
-		indexToLocationTypeID:       make(map[int]string),
-		equipmentTypeNameToID:       make(map[string]string),
-		equipmentTypeIDToProperties: make(map[string][]string),
+		indexToLocationTypeID:       make(map[int]int),
+		equipmentTypeNameToID:       make(map[string]int),
+		equipmentTypeIDToProperties: make(map[int][]string),
 		propNameToIndex:             make(map[string]int),
-		typeIDsToProperties:         make(map[string][]string),
+		typeIDsToProperties:         make(map[int][]string),
 	})
 }
 

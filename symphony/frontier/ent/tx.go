@@ -8,9 +8,9 @@ package ent
 
 import (
 	"context"
+	"sync"
 
 	"github.com/facebookincubator/ent/dialect"
-	"github.com/facebookincubator/symphony/frontier/ent/migrate"
 )
 
 // Tx is a transactional client that is created by calling Client.Tx().
@@ -24,28 +24,61 @@ type Tx struct {
 	Token *TokenClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+
+	// completion callbacks.
+	mu         sync.Mutex
+	onCommit   []func(error)
+	onRollback []func(error)
 }
 
 // Commit commits the transaction.
 func (tx *Tx) Commit() error {
-	return tx.config.driver.(*txDriver).tx.Commit()
+	err := tx.config.driver.(*txDriver).tx.Commit()
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	for _, f := range tx.onCommit {
+		f(err)
+	}
+	return err
+}
+
+// OnCommit adds a function to call on commit.
+func (tx *Tx) OnCommit(f func(error)) {
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	tx.onCommit = append(tx.onCommit, f)
 }
 
 // Rollback rollbacks the transaction.
 func (tx *Tx) Rollback() error {
-	return tx.config.driver.(*txDriver).tx.Rollback()
+	err := tx.config.driver.(*txDriver).tx.Rollback()
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	for _, f := range tx.onRollback {
+		f(err)
+	}
+	return err
+}
+
+// OnRollback adds a function to call on rollback.
+func (tx *Tx) OnRollback(f func(error)) {
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	tx.onRollback = append(tx.onRollback, f)
 }
 
 // Client returns a Client that binds to current transaction.
 func (tx *Tx) Client() *Client {
-	return &Client{
-		config:   tx.config,
-		Schema:   migrate.NewSchema(tx.driver),
-		AuditLog: NewAuditLogClient(tx.config),
-		Tenant:   NewTenantClient(tx.config),
-		Token:    NewTokenClient(tx.config),
-		User:     NewUserClient(tx.config),
-	}
+	client := &Client{config: tx.config}
+	client.init()
+	return client
+}
+
+func (tx *Tx) init() {
+	tx.AuditLog = NewAuditLogClient(tx.config)
+	tx.Tenant = NewTenantClient(tx.config)
+	tx.Token = NewTokenClient(tx.config)
+	tx.User = NewUserClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

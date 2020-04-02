@@ -8,8 +8,7 @@ package ent
 
 import (
 	"context"
-	"errors"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -24,36 +23,9 @@ import (
 // SurveyWiFiScanUpdate is the builder for updating SurveyWiFiScan entities.
 type SurveyWiFiScanUpdate struct {
 	config
-
-	update_time           *time.Time
-	ssid                  *string
-	clearssid             bool
-	bssid                 *string
-	timestamp             *time.Time
-	frequency             *int
-	addfrequency          *int
-	channel               *int
-	addchannel            *int
-	band                  *string
-	clearband             bool
-	channel_width         *int
-	addchannel_width      *int
-	clearchannel_width    bool
-	capabilities          *string
-	clearcapabilities     bool
-	strength              *int
-	addstrength           *int
-	latitude              *float64
-	addlatitude           *float64
-	clearlatitude         bool
-	longitude             *float64
-	addlongitude          *float64
-	clearlongitude        bool
-	survey_question       map[string]struct{}
-	location              map[string]struct{}
-	clearedSurveyQuestion bool
-	clearedLocation       bool
-	predicates            []predicate.SurveyWiFiScan
+	hooks      []Hook
+	mutation   *SurveyWiFiScanMutation
+	predicates []predicate.SurveyWiFiScan
 }
 
 // Where adds a new predicate for the builder.
@@ -64,7 +36,7 @@ func (swfsu *SurveyWiFiScanUpdate) Where(ps ...predicate.SurveyWiFiScan) *Survey
 
 // SetSsid sets the ssid field.
 func (swfsu *SurveyWiFiScanUpdate) SetSsid(s string) *SurveyWiFiScanUpdate {
-	swfsu.ssid = &s
+	swfsu.mutation.SetSsid(s)
 	return swfsu
 }
 
@@ -78,60 +50,51 @@ func (swfsu *SurveyWiFiScanUpdate) SetNillableSsid(s *string) *SurveyWiFiScanUpd
 
 // ClearSsid clears the value of ssid.
 func (swfsu *SurveyWiFiScanUpdate) ClearSsid() *SurveyWiFiScanUpdate {
-	swfsu.ssid = nil
-	swfsu.clearssid = true
+	swfsu.mutation.ClearSsid()
 	return swfsu
 }
 
 // SetBssid sets the bssid field.
 func (swfsu *SurveyWiFiScanUpdate) SetBssid(s string) *SurveyWiFiScanUpdate {
-	swfsu.bssid = &s
+	swfsu.mutation.SetBssid(s)
 	return swfsu
 }
 
 // SetTimestamp sets the timestamp field.
 func (swfsu *SurveyWiFiScanUpdate) SetTimestamp(t time.Time) *SurveyWiFiScanUpdate {
-	swfsu.timestamp = &t
+	swfsu.mutation.SetTimestamp(t)
 	return swfsu
 }
 
 // SetFrequency sets the frequency field.
 func (swfsu *SurveyWiFiScanUpdate) SetFrequency(i int) *SurveyWiFiScanUpdate {
-	swfsu.frequency = &i
-	swfsu.addfrequency = nil
+	swfsu.mutation.ResetFrequency()
+	swfsu.mutation.SetFrequency(i)
 	return swfsu
 }
 
 // AddFrequency adds i to frequency.
 func (swfsu *SurveyWiFiScanUpdate) AddFrequency(i int) *SurveyWiFiScanUpdate {
-	if swfsu.addfrequency == nil {
-		swfsu.addfrequency = &i
-	} else {
-		*swfsu.addfrequency += i
-	}
+	swfsu.mutation.AddFrequency(i)
 	return swfsu
 }
 
 // SetChannel sets the channel field.
 func (swfsu *SurveyWiFiScanUpdate) SetChannel(i int) *SurveyWiFiScanUpdate {
-	swfsu.channel = &i
-	swfsu.addchannel = nil
+	swfsu.mutation.ResetChannel()
+	swfsu.mutation.SetChannel(i)
 	return swfsu
 }
 
 // AddChannel adds i to channel.
 func (swfsu *SurveyWiFiScanUpdate) AddChannel(i int) *SurveyWiFiScanUpdate {
-	if swfsu.addchannel == nil {
-		swfsu.addchannel = &i
-	} else {
-		*swfsu.addchannel += i
-	}
+	swfsu.mutation.AddChannel(i)
 	return swfsu
 }
 
 // SetBand sets the band field.
 func (swfsu *SurveyWiFiScanUpdate) SetBand(s string) *SurveyWiFiScanUpdate {
-	swfsu.band = &s
+	swfsu.mutation.SetBand(s)
 	return swfsu
 }
 
@@ -145,15 +108,14 @@ func (swfsu *SurveyWiFiScanUpdate) SetNillableBand(s *string) *SurveyWiFiScanUpd
 
 // ClearBand clears the value of band.
 func (swfsu *SurveyWiFiScanUpdate) ClearBand() *SurveyWiFiScanUpdate {
-	swfsu.band = nil
-	swfsu.clearband = true
+	swfsu.mutation.ClearBand()
 	return swfsu
 }
 
 // SetChannelWidth sets the channel_width field.
 func (swfsu *SurveyWiFiScanUpdate) SetChannelWidth(i int) *SurveyWiFiScanUpdate {
-	swfsu.channel_width = &i
-	swfsu.addchannel_width = nil
+	swfsu.mutation.ResetChannelWidth()
+	swfsu.mutation.SetChannelWidth(i)
 	return swfsu
 }
 
@@ -167,24 +129,19 @@ func (swfsu *SurveyWiFiScanUpdate) SetNillableChannelWidth(i *int) *SurveyWiFiSc
 
 // AddChannelWidth adds i to channel_width.
 func (swfsu *SurveyWiFiScanUpdate) AddChannelWidth(i int) *SurveyWiFiScanUpdate {
-	if swfsu.addchannel_width == nil {
-		swfsu.addchannel_width = &i
-	} else {
-		*swfsu.addchannel_width += i
-	}
+	swfsu.mutation.AddChannelWidth(i)
 	return swfsu
 }
 
 // ClearChannelWidth clears the value of channel_width.
 func (swfsu *SurveyWiFiScanUpdate) ClearChannelWidth() *SurveyWiFiScanUpdate {
-	swfsu.channel_width = nil
-	swfsu.clearchannel_width = true
+	swfsu.mutation.ClearChannelWidth()
 	return swfsu
 }
 
 // SetCapabilities sets the capabilities field.
 func (swfsu *SurveyWiFiScanUpdate) SetCapabilities(s string) *SurveyWiFiScanUpdate {
-	swfsu.capabilities = &s
+	swfsu.mutation.SetCapabilities(s)
 	return swfsu
 }
 
@@ -198,32 +155,27 @@ func (swfsu *SurveyWiFiScanUpdate) SetNillableCapabilities(s *string) *SurveyWiF
 
 // ClearCapabilities clears the value of capabilities.
 func (swfsu *SurveyWiFiScanUpdate) ClearCapabilities() *SurveyWiFiScanUpdate {
-	swfsu.capabilities = nil
-	swfsu.clearcapabilities = true
+	swfsu.mutation.ClearCapabilities()
 	return swfsu
 }
 
 // SetStrength sets the strength field.
 func (swfsu *SurveyWiFiScanUpdate) SetStrength(i int) *SurveyWiFiScanUpdate {
-	swfsu.strength = &i
-	swfsu.addstrength = nil
+	swfsu.mutation.ResetStrength()
+	swfsu.mutation.SetStrength(i)
 	return swfsu
 }
 
 // AddStrength adds i to strength.
 func (swfsu *SurveyWiFiScanUpdate) AddStrength(i int) *SurveyWiFiScanUpdate {
-	if swfsu.addstrength == nil {
-		swfsu.addstrength = &i
-	} else {
-		*swfsu.addstrength += i
-	}
+	swfsu.mutation.AddStrength(i)
 	return swfsu
 }
 
 // SetLatitude sets the latitude field.
 func (swfsu *SurveyWiFiScanUpdate) SetLatitude(f float64) *SurveyWiFiScanUpdate {
-	swfsu.latitude = &f
-	swfsu.addlatitude = nil
+	swfsu.mutation.ResetLatitude()
+	swfsu.mutation.SetLatitude(f)
 	return swfsu
 }
 
@@ -237,25 +189,20 @@ func (swfsu *SurveyWiFiScanUpdate) SetNillableLatitude(f *float64) *SurveyWiFiSc
 
 // AddLatitude adds f to latitude.
 func (swfsu *SurveyWiFiScanUpdate) AddLatitude(f float64) *SurveyWiFiScanUpdate {
-	if swfsu.addlatitude == nil {
-		swfsu.addlatitude = &f
-	} else {
-		*swfsu.addlatitude += f
-	}
+	swfsu.mutation.AddLatitude(f)
 	return swfsu
 }
 
 // ClearLatitude clears the value of latitude.
 func (swfsu *SurveyWiFiScanUpdate) ClearLatitude() *SurveyWiFiScanUpdate {
-	swfsu.latitude = nil
-	swfsu.clearlatitude = true
+	swfsu.mutation.ClearLatitude()
 	return swfsu
 }
 
 // SetLongitude sets the longitude field.
 func (swfsu *SurveyWiFiScanUpdate) SetLongitude(f float64) *SurveyWiFiScanUpdate {
-	swfsu.longitude = &f
-	swfsu.addlongitude = nil
+	swfsu.mutation.ResetLongitude()
+	swfsu.mutation.SetLongitude(f)
 	return swfsu
 }
 
@@ -269,32 +216,24 @@ func (swfsu *SurveyWiFiScanUpdate) SetNillableLongitude(f *float64) *SurveyWiFiS
 
 // AddLongitude adds f to longitude.
 func (swfsu *SurveyWiFiScanUpdate) AddLongitude(f float64) *SurveyWiFiScanUpdate {
-	if swfsu.addlongitude == nil {
-		swfsu.addlongitude = &f
-	} else {
-		*swfsu.addlongitude += f
-	}
+	swfsu.mutation.AddLongitude(f)
 	return swfsu
 }
 
 // ClearLongitude clears the value of longitude.
 func (swfsu *SurveyWiFiScanUpdate) ClearLongitude() *SurveyWiFiScanUpdate {
-	swfsu.longitude = nil
-	swfsu.clearlongitude = true
+	swfsu.mutation.ClearLongitude()
 	return swfsu
 }
 
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
-func (swfsu *SurveyWiFiScanUpdate) SetSurveyQuestionID(id string) *SurveyWiFiScanUpdate {
-	if swfsu.survey_question == nil {
-		swfsu.survey_question = make(map[string]struct{})
-	}
-	swfsu.survey_question[id] = struct{}{}
+func (swfsu *SurveyWiFiScanUpdate) SetSurveyQuestionID(id int) *SurveyWiFiScanUpdate {
+	swfsu.mutation.SetSurveyQuestionID(id)
 	return swfsu
 }
 
 // SetNillableSurveyQuestionID sets the survey_question edge to SurveyQuestion by id if the given value is not nil.
-func (swfsu *SurveyWiFiScanUpdate) SetNillableSurveyQuestionID(id *string) *SurveyWiFiScanUpdate {
+func (swfsu *SurveyWiFiScanUpdate) SetNillableSurveyQuestionID(id *int) *SurveyWiFiScanUpdate {
 	if id != nil {
 		swfsu = swfsu.SetSurveyQuestionID(*id)
 	}
@@ -307,16 +246,13 @@ func (swfsu *SurveyWiFiScanUpdate) SetSurveyQuestion(s *SurveyQuestion) *SurveyW
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (swfsu *SurveyWiFiScanUpdate) SetLocationID(id string) *SurveyWiFiScanUpdate {
-	if swfsu.location == nil {
-		swfsu.location = make(map[string]struct{})
-	}
-	swfsu.location[id] = struct{}{}
+func (swfsu *SurveyWiFiScanUpdate) SetLocationID(id int) *SurveyWiFiScanUpdate {
+	swfsu.mutation.SetLocationID(id)
 	return swfsu
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (swfsu *SurveyWiFiScanUpdate) SetNillableLocationID(id *string) *SurveyWiFiScanUpdate {
+func (swfsu *SurveyWiFiScanUpdate) SetNillableLocationID(id *int) *SurveyWiFiScanUpdate {
 	if id != nil {
 		swfsu = swfsu.SetLocationID(*id)
 	}
@@ -330,29 +266,47 @@ func (swfsu *SurveyWiFiScanUpdate) SetLocation(l *Location) *SurveyWiFiScanUpdat
 
 // ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
 func (swfsu *SurveyWiFiScanUpdate) ClearSurveyQuestion() *SurveyWiFiScanUpdate {
-	swfsu.clearedSurveyQuestion = true
+	swfsu.mutation.ClearSurveyQuestion()
 	return swfsu
 }
 
 // ClearLocation clears the location edge to Location.
 func (swfsu *SurveyWiFiScanUpdate) ClearLocation() *SurveyWiFiScanUpdate {
-	swfsu.clearedLocation = true
+	swfsu.mutation.ClearLocation()
 	return swfsu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (swfsu *SurveyWiFiScanUpdate) Save(ctx context.Context) (int, error) {
-	if swfsu.update_time == nil {
+	if _, ok := swfsu.mutation.UpdateTime(); !ok {
 		v := surveywifiscan.UpdateDefaultUpdateTime()
-		swfsu.update_time = &v
+		swfsu.mutation.SetUpdateTime(v)
 	}
-	if len(swfsu.survey_question) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"survey_question\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(swfsu.hooks) == 0 {
+		affected, err = swfsu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyWiFiScanMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			swfsu.mutation = mutation
+			affected, err = swfsu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(swfsu.hooks) - 1; i >= 0; i-- {
+			mut = swfsu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, swfsu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	if len(swfsu.location) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"location\"")
-	}
-	return swfsu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -383,7 +337,7 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Table:   surveywifiscan.Table,
 			Columns: surveywifiscan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveywifiscan.FieldID,
 			},
 		},
@@ -395,169 +349,169 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 			}
 		}
 	}
-	if value := swfsu.update_time; value != nil {
+	if value, ok := swfsu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldUpdateTime,
 		})
 	}
-	if value := swfsu.ssid; value != nil {
+	if value, ok := swfsu.mutation.Ssid(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldSsid,
 		})
 	}
-	if swfsu.clearssid {
+	if swfsu.mutation.SsidCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveywifiscan.FieldSsid,
 		})
 	}
-	if value := swfsu.bssid; value != nil {
+	if value, ok := swfsu.mutation.Bssid(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldBssid,
 		})
 	}
-	if value := swfsu.timestamp; value != nil {
+	if value, ok := swfsu.mutation.Timestamp(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldTimestamp,
 		})
 	}
-	if value := swfsu.frequency; value != nil {
+	if value, ok := swfsu.mutation.Frequency(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldFrequency,
 		})
 	}
-	if value := swfsu.addfrequency; value != nil {
+	if value, ok := swfsu.mutation.AddedFrequency(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldFrequency,
 		})
 	}
-	if value := swfsu.channel; value != nil {
+	if value, ok := swfsu.mutation.Channel(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldChannel,
 		})
 	}
-	if value := swfsu.addchannel; value != nil {
+	if value, ok := swfsu.mutation.AddedChannel(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldChannel,
 		})
 	}
-	if value := swfsu.band; value != nil {
+	if value, ok := swfsu.mutation.Band(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldBand,
 		})
 	}
-	if swfsu.clearband {
+	if swfsu.mutation.BandCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveywifiscan.FieldBand,
 		})
 	}
-	if value := swfsu.channel_width; value != nil {
+	if value, ok := swfsu.mutation.ChannelWidth(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldChannelWidth,
 		})
 	}
-	if value := swfsu.addchannel_width; value != nil {
+	if value, ok := swfsu.mutation.AddedChannelWidth(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldChannelWidth,
 		})
 	}
-	if swfsu.clearchannel_width {
+	if swfsu.mutation.ChannelWidthCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveywifiscan.FieldChannelWidth,
 		})
 	}
-	if value := swfsu.capabilities; value != nil {
+	if value, ok := swfsu.mutation.Capabilities(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldCapabilities,
 		})
 	}
-	if swfsu.clearcapabilities {
+	if swfsu.mutation.CapabilitiesCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveywifiscan.FieldCapabilities,
 		})
 	}
-	if value := swfsu.strength; value != nil {
+	if value, ok := swfsu.mutation.Strength(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldStrength,
 		})
 	}
-	if value := swfsu.addstrength; value != nil {
+	if value, ok := swfsu.mutation.AddedStrength(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldStrength,
 		})
 	}
-	if value := swfsu.latitude; value != nil {
+	if value, ok := swfsu.mutation.Latitude(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldLatitude,
 		})
 	}
-	if value := swfsu.addlatitude; value != nil {
+	if value, ok := swfsu.mutation.AddedLatitude(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldLatitude,
 		})
 	}
-	if swfsu.clearlatitude {
+	if swfsu.mutation.LatitudeCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveywifiscan.FieldLatitude,
 		})
 	}
-	if value := swfsu.longitude; value != nil {
+	if value, ok := swfsu.mutation.Longitude(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldLongitude,
 		})
 	}
-	if value := swfsu.addlongitude; value != nil {
+	if value, ok := swfsu.mutation.AddedLongitude(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldLongitude,
 		})
 	}
-	if swfsu.clearlongitude {
+	if swfsu.mutation.LongitudeCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveywifiscan.FieldLongitude,
 		})
 	}
-	if swfsu.clearedSurveyQuestion {
+	if swfsu.mutation.SurveyQuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -566,14 +520,14 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := swfsu.survey_question; len(nodes) > 0 {
+	if nodes := swfsu.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -582,21 +536,17 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if swfsu.clearedLocation {
+	if swfsu.mutation.LocationCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -605,14 +555,14 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := swfsu.location; len(nodes) > 0 {
+	if nodes := swfsu.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -621,16 +571,12 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -649,41 +595,13 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 // SurveyWiFiScanUpdateOne is the builder for updating a single SurveyWiFiScan entity.
 type SurveyWiFiScanUpdateOne struct {
 	config
-	id string
-
-	update_time           *time.Time
-	ssid                  *string
-	clearssid             bool
-	bssid                 *string
-	timestamp             *time.Time
-	frequency             *int
-	addfrequency          *int
-	channel               *int
-	addchannel            *int
-	band                  *string
-	clearband             bool
-	channel_width         *int
-	addchannel_width      *int
-	clearchannel_width    bool
-	capabilities          *string
-	clearcapabilities     bool
-	strength              *int
-	addstrength           *int
-	latitude              *float64
-	addlatitude           *float64
-	clearlatitude         bool
-	longitude             *float64
-	addlongitude          *float64
-	clearlongitude        bool
-	survey_question       map[string]struct{}
-	location              map[string]struct{}
-	clearedSurveyQuestion bool
-	clearedLocation       bool
+	hooks    []Hook
+	mutation *SurveyWiFiScanMutation
 }
 
 // SetSsid sets the ssid field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetSsid(s string) *SurveyWiFiScanUpdateOne {
-	swfsuo.ssid = &s
+	swfsuo.mutation.SetSsid(s)
 	return swfsuo
 }
 
@@ -697,60 +615,51 @@ func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableSsid(s *string) *SurveyWiFiSca
 
 // ClearSsid clears the value of ssid.
 func (swfsuo *SurveyWiFiScanUpdateOne) ClearSsid() *SurveyWiFiScanUpdateOne {
-	swfsuo.ssid = nil
-	swfsuo.clearssid = true
+	swfsuo.mutation.ClearSsid()
 	return swfsuo
 }
 
 // SetBssid sets the bssid field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetBssid(s string) *SurveyWiFiScanUpdateOne {
-	swfsuo.bssid = &s
+	swfsuo.mutation.SetBssid(s)
 	return swfsuo
 }
 
 // SetTimestamp sets the timestamp field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetTimestamp(t time.Time) *SurveyWiFiScanUpdateOne {
-	swfsuo.timestamp = &t
+	swfsuo.mutation.SetTimestamp(t)
 	return swfsuo
 }
 
 // SetFrequency sets the frequency field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetFrequency(i int) *SurveyWiFiScanUpdateOne {
-	swfsuo.frequency = &i
-	swfsuo.addfrequency = nil
+	swfsuo.mutation.ResetFrequency()
+	swfsuo.mutation.SetFrequency(i)
 	return swfsuo
 }
 
 // AddFrequency adds i to frequency.
 func (swfsuo *SurveyWiFiScanUpdateOne) AddFrequency(i int) *SurveyWiFiScanUpdateOne {
-	if swfsuo.addfrequency == nil {
-		swfsuo.addfrequency = &i
-	} else {
-		*swfsuo.addfrequency += i
-	}
+	swfsuo.mutation.AddFrequency(i)
 	return swfsuo
 }
 
 // SetChannel sets the channel field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetChannel(i int) *SurveyWiFiScanUpdateOne {
-	swfsuo.channel = &i
-	swfsuo.addchannel = nil
+	swfsuo.mutation.ResetChannel()
+	swfsuo.mutation.SetChannel(i)
 	return swfsuo
 }
 
 // AddChannel adds i to channel.
 func (swfsuo *SurveyWiFiScanUpdateOne) AddChannel(i int) *SurveyWiFiScanUpdateOne {
-	if swfsuo.addchannel == nil {
-		swfsuo.addchannel = &i
-	} else {
-		*swfsuo.addchannel += i
-	}
+	swfsuo.mutation.AddChannel(i)
 	return swfsuo
 }
 
 // SetBand sets the band field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetBand(s string) *SurveyWiFiScanUpdateOne {
-	swfsuo.band = &s
+	swfsuo.mutation.SetBand(s)
 	return swfsuo
 }
 
@@ -764,15 +673,14 @@ func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableBand(s *string) *SurveyWiFiSca
 
 // ClearBand clears the value of band.
 func (swfsuo *SurveyWiFiScanUpdateOne) ClearBand() *SurveyWiFiScanUpdateOne {
-	swfsuo.band = nil
-	swfsuo.clearband = true
+	swfsuo.mutation.ClearBand()
 	return swfsuo
 }
 
 // SetChannelWidth sets the channel_width field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetChannelWidth(i int) *SurveyWiFiScanUpdateOne {
-	swfsuo.channel_width = &i
-	swfsuo.addchannel_width = nil
+	swfsuo.mutation.ResetChannelWidth()
+	swfsuo.mutation.SetChannelWidth(i)
 	return swfsuo
 }
 
@@ -786,24 +694,19 @@ func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableChannelWidth(i *int) *SurveyWi
 
 // AddChannelWidth adds i to channel_width.
 func (swfsuo *SurveyWiFiScanUpdateOne) AddChannelWidth(i int) *SurveyWiFiScanUpdateOne {
-	if swfsuo.addchannel_width == nil {
-		swfsuo.addchannel_width = &i
-	} else {
-		*swfsuo.addchannel_width += i
-	}
+	swfsuo.mutation.AddChannelWidth(i)
 	return swfsuo
 }
 
 // ClearChannelWidth clears the value of channel_width.
 func (swfsuo *SurveyWiFiScanUpdateOne) ClearChannelWidth() *SurveyWiFiScanUpdateOne {
-	swfsuo.channel_width = nil
-	swfsuo.clearchannel_width = true
+	swfsuo.mutation.ClearChannelWidth()
 	return swfsuo
 }
 
 // SetCapabilities sets the capabilities field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetCapabilities(s string) *SurveyWiFiScanUpdateOne {
-	swfsuo.capabilities = &s
+	swfsuo.mutation.SetCapabilities(s)
 	return swfsuo
 }
 
@@ -817,32 +720,27 @@ func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableCapabilities(s *string) *Surve
 
 // ClearCapabilities clears the value of capabilities.
 func (swfsuo *SurveyWiFiScanUpdateOne) ClearCapabilities() *SurveyWiFiScanUpdateOne {
-	swfsuo.capabilities = nil
-	swfsuo.clearcapabilities = true
+	swfsuo.mutation.ClearCapabilities()
 	return swfsuo
 }
 
 // SetStrength sets the strength field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetStrength(i int) *SurveyWiFiScanUpdateOne {
-	swfsuo.strength = &i
-	swfsuo.addstrength = nil
+	swfsuo.mutation.ResetStrength()
+	swfsuo.mutation.SetStrength(i)
 	return swfsuo
 }
 
 // AddStrength adds i to strength.
 func (swfsuo *SurveyWiFiScanUpdateOne) AddStrength(i int) *SurveyWiFiScanUpdateOne {
-	if swfsuo.addstrength == nil {
-		swfsuo.addstrength = &i
-	} else {
-		*swfsuo.addstrength += i
-	}
+	swfsuo.mutation.AddStrength(i)
 	return swfsuo
 }
 
 // SetLatitude sets the latitude field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetLatitude(f float64) *SurveyWiFiScanUpdateOne {
-	swfsuo.latitude = &f
-	swfsuo.addlatitude = nil
+	swfsuo.mutation.ResetLatitude()
+	swfsuo.mutation.SetLatitude(f)
 	return swfsuo
 }
 
@@ -856,25 +754,20 @@ func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableLatitude(f *float64) *SurveyWi
 
 // AddLatitude adds f to latitude.
 func (swfsuo *SurveyWiFiScanUpdateOne) AddLatitude(f float64) *SurveyWiFiScanUpdateOne {
-	if swfsuo.addlatitude == nil {
-		swfsuo.addlatitude = &f
-	} else {
-		*swfsuo.addlatitude += f
-	}
+	swfsuo.mutation.AddLatitude(f)
 	return swfsuo
 }
 
 // ClearLatitude clears the value of latitude.
 func (swfsuo *SurveyWiFiScanUpdateOne) ClearLatitude() *SurveyWiFiScanUpdateOne {
-	swfsuo.latitude = nil
-	swfsuo.clearlatitude = true
+	swfsuo.mutation.ClearLatitude()
 	return swfsuo
 }
 
 // SetLongitude sets the longitude field.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetLongitude(f float64) *SurveyWiFiScanUpdateOne {
-	swfsuo.longitude = &f
-	swfsuo.addlongitude = nil
+	swfsuo.mutation.ResetLongitude()
+	swfsuo.mutation.SetLongitude(f)
 	return swfsuo
 }
 
@@ -888,32 +781,24 @@ func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableLongitude(f *float64) *SurveyW
 
 // AddLongitude adds f to longitude.
 func (swfsuo *SurveyWiFiScanUpdateOne) AddLongitude(f float64) *SurveyWiFiScanUpdateOne {
-	if swfsuo.addlongitude == nil {
-		swfsuo.addlongitude = &f
-	} else {
-		*swfsuo.addlongitude += f
-	}
+	swfsuo.mutation.AddLongitude(f)
 	return swfsuo
 }
 
 // ClearLongitude clears the value of longitude.
 func (swfsuo *SurveyWiFiScanUpdateOne) ClearLongitude() *SurveyWiFiScanUpdateOne {
-	swfsuo.longitude = nil
-	swfsuo.clearlongitude = true
+	swfsuo.mutation.ClearLongitude()
 	return swfsuo
 }
 
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
-func (swfsuo *SurveyWiFiScanUpdateOne) SetSurveyQuestionID(id string) *SurveyWiFiScanUpdateOne {
-	if swfsuo.survey_question == nil {
-		swfsuo.survey_question = make(map[string]struct{})
-	}
-	swfsuo.survey_question[id] = struct{}{}
+func (swfsuo *SurveyWiFiScanUpdateOne) SetSurveyQuestionID(id int) *SurveyWiFiScanUpdateOne {
+	swfsuo.mutation.SetSurveyQuestionID(id)
 	return swfsuo
 }
 
 // SetNillableSurveyQuestionID sets the survey_question edge to SurveyQuestion by id if the given value is not nil.
-func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableSurveyQuestionID(id *string) *SurveyWiFiScanUpdateOne {
+func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableSurveyQuestionID(id *int) *SurveyWiFiScanUpdateOne {
 	if id != nil {
 		swfsuo = swfsuo.SetSurveyQuestionID(*id)
 	}
@@ -926,16 +811,13 @@ func (swfsuo *SurveyWiFiScanUpdateOne) SetSurveyQuestion(s *SurveyQuestion) *Sur
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (swfsuo *SurveyWiFiScanUpdateOne) SetLocationID(id string) *SurveyWiFiScanUpdateOne {
-	if swfsuo.location == nil {
-		swfsuo.location = make(map[string]struct{})
-	}
-	swfsuo.location[id] = struct{}{}
+func (swfsuo *SurveyWiFiScanUpdateOne) SetLocationID(id int) *SurveyWiFiScanUpdateOne {
+	swfsuo.mutation.SetLocationID(id)
 	return swfsuo
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableLocationID(id *string) *SurveyWiFiScanUpdateOne {
+func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableLocationID(id *int) *SurveyWiFiScanUpdateOne {
 	if id != nil {
 		swfsuo = swfsuo.SetLocationID(*id)
 	}
@@ -949,29 +831,47 @@ func (swfsuo *SurveyWiFiScanUpdateOne) SetLocation(l *Location) *SurveyWiFiScanU
 
 // ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
 func (swfsuo *SurveyWiFiScanUpdateOne) ClearSurveyQuestion() *SurveyWiFiScanUpdateOne {
-	swfsuo.clearedSurveyQuestion = true
+	swfsuo.mutation.ClearSurveyQuestion()
 	return swfsuo
 }
 
 // ClearLocation clears the location edge to Location.
 func (swfsuo *SurveyWiFiScanUpdateOne) ClearLocation() *SurveyWiFiScanUpdateOne {
-	swfsuo.clearedLocation = true
+	swfsuo.mutation.ClearLocation()
 	return swfsuo
 }
 
 // Save executes the query and returns the updated entity.
 func (swfsuo *SurveyWiFiScanUpdateOne) Save(ctx context.Context) (*SurveyWiFiScan, error) {
-	if swfsuo.update_time == nil {
+	if _, ok := swfsuo.mutation.UpdateTime(); !ok {
 		v := surveywifiscan.UpdateDefaultUpdateTime()
-		swfsuo.update_time = &v
+		swfsuo.mutation.SetUpdateTime(v)
 	}
-	if len(swfsuo.survey_question) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"survey_question\"")
+
+	var (
+		err  error
+		node *SurveyWiFiScan
+	)
+	if len(swfsuo.hooks) == 0 {
+		node, err = swfsuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyWiFiScanMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			swfsuo.mutation = mutation
+			node, err = swfsuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(swfsuo.hooks) - 1; i >= 0; i-- {
+			mut = swfsuo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, swfsuo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(swfsuo.location) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
-	}
-	return swfsuo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1002,175 +902,179 @@ func (swfsuo *SurveyWiFiScanUpdateOne) sqlSave(ctx context.Context) (swfs *Surve
 			Table:   surveywifiscan.Table,
 			Columns: surveywifiscan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  swfsuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveywifiscan.FieldID,
 			},
 		},
 	}
-	if value := swfsuo.update_time; value != nil {
+	id, ok := swfsuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing SurveyWiFiScan.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := swfsuo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldUpdateTime,
 		})
 	}
-	if value := swfsuo.ssid; value != nil {
+	if value, ok := swfsuo.mutation.Ssid(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldSsid,
 		})
 	}
-	if swfsuo.clearssid {
+	if swfsuo.mutation.SsidCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveywifiscan.FieldSsid,
 		})
 	}
-	if value := swfsuo.bssid; value != nil {
+	if value, ok := swfsuo.mutation.Bssid(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldBssid,
 		})
 	}
-	if value := swfsuo.timestamp; value != nil {
+	if value, ok := swfsuo.mutation.Timestamp(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldTimestamp,
 		})
 	}
-	if value := swfsuo.frequency; value != nil {
+	if value, ok := swfsuo.mutation.Frequency(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldFrequency,
 		})
 	}
-	if value := swfsuo.addfrequency; value != nil {
+	if value, ok := swfsuo.mutation.AddedFrequency(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldFrequency,
 		})
 	}
-	if value := swfsuo.channel; value != nil {
+	if value, ok := swfsuo.mutation.Channel(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldChannel,
 		})
 	}
-	if value := swfsuo.addchannel; value != nil {
+	if value, ok := swfsuo.mutation.AddedChannel(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldChannel,
 		})
 	}
-	if value := swfsuo.band; value != nil {
+	if value, ok := swfsuo.mutation.Band(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldBand,
 		})
 	}
-	if swfsuo.clearband {
+	if swfsuo.mutation.BandCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveywifiscan.FieldBand,
 		})
 	}
-	if value := swfsuo.channel_width; value != nil {
+	if value, ok := swfsuo.mutation.ChannelWidth(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldChannelWidth,
 		})
 	}
-	if value := swfsuo.addchannel_width; value != nil {
+	if value, ok := swfsuo.mutation.AddedChannelWidth(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldChannelWidth,
 		})
 	}
-	if swfsuo.clearchannel_width {
+	if swfsuo.mutation.ChannelWidthCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveywifiscan.FieldChannelWidth,
 		})
 	}
-	if value := swfsuo.capabilities; value != nil {
+	if value, ok := swfsuo.mutation.Capabilities(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldCapabilities,
 		})
 	}
-	if swfsuo.clearcapabilities {
+	if swfsuo.mutation.CapabilitiesCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveywifiscan.FieldCapabilities,
 		})
 	}
-	if value := swfsuo.strength; value != nil {
+	if value, ok := swfsuo.mutation.Strength(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldStrength,
 		})
 	}
-	if value := swfsuo.addstrength; value != nil {
+	if value, ok := swfsuo.mutation.AddedStrength(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldStrength,
 		})
 	}
-	if value := swfsuo.latitude; value != nil {
+	if value, ok := swfsuo.mutation.Latitude(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldLatitude,
 		})
 	}
-	if value := swfsuo.addlatitude; value != nil {
+	if value, ok := swfsuo.mutation.AddedLatitude(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldLatitude,
 		})
 	}
-	if swfsuo.clearlatitude {
+	if swfsuo.mutation.LatitudeCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveywifiscan.FieldLatitude,
 		})
 	}
-	if value := swfsuo.longitude; value != nil {
+	if value, ok := swfsuo.mutation.Longitude(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldLongitude,
 		})
 	}
-	if value := swfsuo.addlongitude; value != nil {
+	if value, ok := swfsuo.mutation.AddedLongitude(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveywifiscan.FieldLongitude,
 		})
 	}
-	if swfsuo.clearlongitude {
+	if swfsuo.mutation.LongitudeCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveywifiscan.FieldLongitude,
 		})
 	}
-	if swfsuo.clearedSurveyQuestion {
+	if swfsuo.mutation.SurveyQuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1179,14 +1083,14 @@ func (swfsuo *SurveyWiFiScanUpdateOne) sqlSave(ctx context.Context) (swfs *Surve
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := swfsuo.survey_question; len(nodes) > 0 {
+	if nodes := swfsuo.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1195,21 +1099,17 @@ func (swfsuo *SurveyWiFiScanUpdateOne) sqlSave(ctx context.Context) (swfs *Surve
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if swfsuo.clearedLocation {
+	if swfsuo.mutation.LocationCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1218,14 +1118,14 @@ func (swfsuo *SurveyWiFiScanUpdateOne) sqlSave(ctx context.Context) (swfs *Surve
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := swfsuo.location; len(nodes) > 0 {
+	if nodes := swfsuo.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1234,16 +1134,12 @@ func (swfsuo *SurveyWiFiScanUpdateOne) sqlSave(ctx context.Context) (swfs *Surve
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

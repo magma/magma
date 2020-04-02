@@ -1,14 +1,17 @@
 {
   "wiki": {
+    "General": [
+      "team-processes",
+      "release-notes"
+    ],
     "Inventory": [
       "inventory-intro",
       "csv-upload",
-
-      "equipment-export",
+      "export",
       "service-export"
     ],
-    "NMS": [
-      "nms-overview"
+    "Workforce": [
+      "workforce-intro"
     ],
     "Mobile App": [
       "mobile-app-intro",

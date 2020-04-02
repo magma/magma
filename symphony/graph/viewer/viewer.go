@@ -8,8 +8,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/gorilla/websocket"
@@ -52,6 +54,11 @@ type Viewer struct {
 	Role   string `json:"role"`
 }
 
+type UserHandler struct {
+	Handler http.Handler
+	Logger  log.Logger
+}
+
 // MarshalLogObject implements zapcore.ObjectMarshaler interface.
 func (v *Viewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("tenant", v.Tenant)
@@ -69,11 +76,15 @@ func (v *Viewer) traceAttrs() []trace.Attribute {
 }
 
 func (v *Viewer) tags(r *http.Request) []tag.Mutator {
+	var userAgent string
+	if parts := strings.SplitN(r.UserAgent(), " ", 2); len(parts) > 0 {
+		userAgent = parts[0]
+	}
 	return []tag.Mutator{
 		tag.Upsert(KeyTenant, v.Tenant),
 		tag.Upsert(KeyUser, v.User),
 		tag.Upsert(KeyRole, v.Role),
-		tag.Upsert(KeyUserAgent, r.UserAgent()),
+		tag.Upsert(KeyUserAgent, userAgent),
 	}
 }
 
@@ -86,16 +97,19 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 			},
 		},
 	}
-	authenticate := func(r *http.Request) *http.Request {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !websocket.IsWebSocketUpgrade(r) || r.Header.Get(TenantHeader) != "" {
-			return r
+			h.ServeHTTP(w, r)
+			return
 		}
 		req, err := http.NewRequestWithContext(
 			r.Context(), http.MethodGet, authurl, nil,
 		)
 		if err != nil {
-			return r
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+		req.Header.Set("X-Forwarded-Host", r.Host)
 		if username, password, ok := r.BasicAuth(); ok {
 			req.SetBasicAuth(username, password)
 		}
@@ -105,24 +119,24 @@ func WebSocketUpgradeHandler(h http.Handler, authurl string) http.Handler {
 
 		rsp, err := client.Do(req)
 		if err != nil {
-			return r
+			http.Error(w, err.Error(), http.StatusServiceUnavailable)
+			return
 		}
 		defer rsp.Body.Close()
 		if rsp.StatusCode != http.StatusOK {
-			return r
+			http.Error(w, "", http.StatusUnauthorized)
+			return
 		}
 
 		var v Viewer
-		if err := json.NewDecoder(rsp.Body).Decode(&v); err == nil {
-			r.Header.Set(TenantHeader, v.Tenant)
-			r.Header.Set(UserHeader, v.User)
-			r.Header.Set(RoleHeader, v.Role)
+		if err := json.NewDecoder(rsp.Body).Decode(&v); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		return r
-	}
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(w, authenticate(r))
+		r.Header.Set(TenantHeader, v.Tenant)
+		r.Header.Set(UserHeader, v.User)
+		r.Header.Set(RoleHeader, v.Role)
+		h.ServeHTTP(w, r)
 	})
 }
 
@@ -159,6 +173,48 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 		}
 		h.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (h UserHandler) getOrCreateUser(ctx context.Context) (*ent.User, error) {
+	ctx, span := trace.StartSpan(ctx, "viewer.getOrCreateUser")
+	defer span.End()
+	v := FromContext(ctx)
+	client := ent.FromContext(ctx)
+
+	u, err := client.User.Query().Where(user.AuthID(v.User)).Only(ctx)
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			return nil, err
+		}
+		role := user.RoleUSER
+		if v.Role == "superuser" {
+			role = user.RoleOWNER
+		}
+		u, err = client.User.Create().SetAuthID(v.User).SetEmail(v.User).SetRole(role).Save(ctx)
+		if err != nil {
+			if !ent.IsConstraintError(err) {
+				return nil, err
+			}
+			return client.User.Query().Where(user.AuthID(v.User)).Only(ctx)
+		}
+		h.Logger.For(ctx).Info("New user created", zap.String("AuthID", v.User))
+	}
+	return u, nil
+}
+
+// UserHandler adds users if request is from user that is not found.
+func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	u, err := h.getOrCreateUser(ctx)
+	if err != nil {
+		http.Error(w, "get user ent", http.StatusServiceUnavailable)
+		return
+	}
+	if u.Status == user.StatusDEACTIVATED {
+		http.Error(w, "user is deactivated", http.StatusForbidden)
+		return
+	}
+	h.Handler.ServeHTTP(w, r)
 }
 
 type contextKey struct{}

@@ -36,7 +36,7 @@ extern "C" {
 #include "state_converter.h"
 #include "lte/gateway/c/oai/protos/3gpp_types.pb.h"
 #include "lte/gateway/c/oai/protos/spgw_state.pb.h"
-#include "sgw_types.h"
+#include "spgw_types.h"
 #include "pgw_types.h"
 #include "pgw_procedures.h"
 #include "spgw_state.h"
@@ -69,100 +69,17 @@ class SpgwStateConverter : StateConverter {
     const gateway::spgw::SpgwState& proto,
     spgw_state_t* spgw_state);
 
-  /**
-   * @param spgw_imsi_map spgw_imsi_map_t struct
-   * @param spgw_imsi_proto SpgwImsiMap protobuf
-   */
-  static void spgw_imsi_map_to_proto(
-    const spgw_imsi_map_t* spgw_imsi_map,
-    gateway::spgw::SpgwImsiMap* spgw_imsi_proto);
+  static void ue_to_proto(
+    const s_plus_p_gw_eps_bearer_context_information_t* ue_state,
+    gateway::spgw::S11BearerContext* ue_proto);
 
-  /**
-   * @param spgw_imsi_proto SpgwImsiMap protobuf
-   * @param spgw_imsi_map spgw_imsi_map_t struct
-   */
-  static void proto_to_spgw_imsi_map(
-    const gateway::spgw::SpgwImsiMap& spgw_imsi_proto,
-    spgw_imsi_map_t* spgw_imsi_map);
+  static void proto_to_ue(
+    const gateway::spgw::S11BearerContext& spgw_bearer_proto,
+    s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state);
 
  private:
   SpgwStateConverter();
   ~SpgwStateConverter();
-
-  /**
-   * Converts SGW state to proto, memory is owned by the caller
-   * @param sgw_state sgw state struct
-   * @param proto object to write to
-   */
-  static void sgw_state_to_proto(
-    const sgw_state_t* sgw_state,
-    gateway::spgw::SgwState* proto);
-
-  /**
-   * Converts SGW proto to stater
-   * @param proto object to read from
-   * @param sgw_state sgw state struct to write to
-   */
-  static void sgw_proto_to_state(
-    const gateway::spgw::SgwState& proto,
-    sgw_state_t* sgw_state);
-
-  /**
-   * Converts PGW state to proto, memory is owned by the caller
-   * @param pgw_state pgw state struct
-   * @param proto object to write to
-   */
-  static void pgw_state_to_proto(
-    const pgw_state_t* pgw_state,
-    gateway::spgw::PgwState* proto);
-
-  /**
-   * Converts PGW proto to state
-   * @param proto object to read from
-   * @param pgw_state pgw state struct
-   */
-  static void pgw_proto_to_state(
-    const gateway::spgw::PgwState& proto,
-    pgw_state_t* pgw_state);
-
-  /**
-   * Converts s11teid_mme hashtable object to proto, memory owned by the caller
-   * @param state_map
-   * @param proto_map Map protobuf object to write to
-   */
-  static void s11teid_mme_ht_to_proto(
-    hash_table_ts_t* state_map,
-    google::protobuf::Map<unsigned int, gateway::spgw::MmeSgwTunnel>*
-      proto_map);
-
-  /**
-   * Converts s11bearer_context hashtable object to proto,
-   * memory owned by the caller
-   * @param state_map
-   * @param proto_map Map protobuf object to write to
-   */
-  static void s11bearer_context_ht_to_proto(
-    hash_table_ts_t* state_map,
-    google::protobuf::Map<unsigned int, gateway::spgw::S11BearerContext>*
-      proto_map);
-
-  /**
-   * Converts mme sgw tunnel struct to proto, memory is owned by the caller
-   * @param tunnel
-   * @param proto
-   */
-  static void mme_sgw_tunnel_to_proto(
-    const mme_sgw_tunnel_t* tunnel,
-    gateway::spgw::MmeSgwTunnel* proto);
-
-  /**
-   * Converts mme proto to sgw tunnel struct
-   * @param proto
-   * @param tunnel
-   */
-  static void proto_to_mme_sgw_tunnel(
-    const gateway::spgw::MmeSgwTunnel& proto,
-    mme_sgw_tunnel_t* tunnel);
 
   /**
    * Converts spgw bearer context struct to proto, memory is owned by the caller

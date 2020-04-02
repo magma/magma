@@ -9,7 +9,7 @@ package ent
 import (
 	"context"
 	"errors"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -20,18 +20,13 @@ import (
 // FloorPlanScaleCreate is the builder for creating a FloorPlanScale entity.
 type FloorPlanScaleCreate struct {
 	config
-	create_time        *time.Time
-	update_time        *time.Time
-	reference_point1_x *int
-	reference_point1_y *int
-	reference_point2_x *int
-	reference_point2_y *int
-	scale_in_meters    *float64
+	mutation *FloorPlanScaleMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (fpsc *FloorPlanScaleCreate) SetCreateTime(t time.Time) *FloorPlanScaleCreate {
-	fpsc.create_time = &t
+	fpsc.mutation.SetCreateTime(t)
 	return fpsc
 }
 
@@ -45,7 +40,7 @@ func (fpsc *FloorPlanScaleCreate) SetNillableCreateTime(t *time.Time) *FloorPlan
 
 // SetUpdateTime sets the update_time field.
 func (fpsc *FloorPlanScaleCreate) SetUpdateTime(t time.Time) *FloorPlanScaleCreate {
-	fpsc.update_time = &t
+	fpsc.mutation.SetUpdateTime(t)
 	return fpsc
 }
 
@@ -59,60 +54,83 @@ func (fpsc *FloorPlanScaleCreate) SetNillableUpdateTime(t *time.Time) *FloorPlan
 
 // SetReferencePoint1X sets the reference_point1_x field.
 func (fpsc *FloorPlanScaleCreate) SetReferencePoint1X(i int) *FloorPlanScaleCreate {
-	fpsc.reference_point1_x = &i
+	fpsc.mutation.SetReferencePoint1X(i)
 	return fpsc
 }
 
 // SetReferencePoint1Y sets the reference_point1_y field.
 func (fpsc *FloorPlanScaleCreate) SetReferencePoint1Y(i int) *FloorPlanScaleCreate {
-	fpsc.reference_point1_y = &i
+	fpsc.mutation.SetReferencePoint1Y(i)
 	return fpsc
 }
 
 // SetReferencePoint2X sets the reference_point2_x field.
 func (fpsc *FloorPlanScaleCreate) SetReferencePoint2X(i int) *FloorPlanScaleCreate {
-	fpsc.reference_point2_x = &i
+	fpsc.mutation.SetReferencePoint2X(i)
 	return fpsc
 }
 
 // SetReferencePoint2Y sets the reference_point2_y field.
 func (fpsc *FloorPlanScaleCreate) SetReferencePoint2Y(i int) *FloorPlanScaleCreate {
-	fpsc.reference_point2_y = &i
+	fpsc.mutation.SetReferencePoint2Y(i)
 	return fpsc
 }
 
 // SetScaleInMeters sets the scale_in_meters field.
 func (fpsc *FloorPlanScaleCreate) SetScaleInMeters(f float64) *FloorPlanScaleCreate {
-	fpsc.scale_in_meters = &f
+	fpsc.mutation.SetScaleInMeters(f)
 	return fpsc
 }
 
 // Save creates the FloorPlanScale in the database.
 func (fpsc *FloorPlanScaleCreate) Save(ctx context.Context) (*FloorPlanScale, error) {
-	if fpsc.create_time == nil {
+	if _, ok := fpsc.mutation.CreateTime(); !ok {
 		v := floorplanscale.DefaultCreateTime()
-		fpsc.create_time = &v
+		fpsc.mutation.SetCreateTime(v)
 	}
-	if fpsc.update_time == nil {
+	if _, ok := fpsc.mutation.UpdateTime(); !ok {
 		v := floorplanscale.DefaultUpdateTime()
-		fpsc.update_time = &v
+		fpsc.mutation.SetUpdateTime(v)
 	}
-	if fpsc.reference_point1_x == nil {
+	if _, ok := fpsc.mutation.ReferencePoint1X(); !ok {
 		return nil, errors.New("ent: missing required field \"reference_point1_x\"")
 	}
-	if fpsc.reference_point1_y == nil {
+	if _, ok := fpsc.mutation.ReferencePoint1Y(); !ok {
 		return nil, errors.New("ent: missing required field \"reference_point1_y\"")
 	}
-	if fpsc.reference_point2_x == nil {
+	if _, ok := fpsc.mutation.ReferencePoint2X(); !ok {
 		return nil, errors.New("ent: missing required field \"reference_point2_x\"")
 	}
-	if fpsc.reference_point2_y == nil {
+	if _, ok := fpsc.mutation.ReferencePoint2Y(); !ok {
 		return nil, errors.New("ent: missing required field \"reference_point2_y\"")
 	}
-	if fpsc.scale_in_meters == nil {
+	if _, ok := fpsc.mutation.ScaleInMeters(); !ok {
 		return nil, errors.New("ent: missing required field \"scale_in_meters\"")
 	}
-	return fpsc.sqlSave(ctx)
+	var (
+		err  error
+		node *FloorPlanScale
+	)
+	if len(fpsc.hooks) == 0 {
+		node, err = fpsc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*FloorPlanScaleMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			fpsc.mutation = mutation
+			node, err = fpsc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(fpsc.hooks) - 1; i >= 0; i-- {
+			mut = fpsc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, fpsc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -130,66 +148,66 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		_spec = &sqlgraph.CreateSpec{
 			Table: floorplanscale.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanscale.FieldID,
 			},
 		}
 	)
-	if value := fpsc.create_time; value != nil {
+	if value, ok := fpsc.mutation.CreateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanscale.FieldCreateTime,
 		})
-		fps.CreateTime = *value
+		fps.CreateTime = value
 	}
-	if value := fpsc.update_time; value != nil {
+	if value, ok := fpsc.mutation.UpdateTime(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanscale.FieldUpdateTime,
 		})
-		fps.UpdateTime = *value
+		fps.UpdateTime = value
 	}
-	if value := fpsc.reference_point1_x; value != nil {
+	if value, ok := fpsc.mutation.ReferencePoint1X(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanscale.FieldReferencePoint1X,
 		})
-		fps.ReferencePoint1X = *value
+		fps.ReferencePoint1X = value
 	}
-	if value := fpsc.reference_point1_y; value != nil {
+	if value, ok := fpsc.mutation.ReferencePoint1Y(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanscale.FieldReferencePoint1Y,
 		})
-		fps.ReferencePoint1Y = *value
+		fps.ReferencePoint1Y = value
 	}
-	if value := fpsc.reference_point2_x; value != nil {
+	if value, ok := fpsc.mutation.ReferencePoint2X(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanscale.FieldReferencePoint2X,
 		})
-		fps.ReferencePoint2X = *value
+		fps.ReferencePoint2X = value
 	}
-	if value := fpsc.reference_point2_y; value != nil {
+	if value, ok := fpsc.mutation.ReferencePoint2Y(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanscale.FieldReferencePoint2Y,
 		})
-		fps.ReferencePoint2Y = *value
+		fps.ReferencePoint2Y = value
 	}
-	if value := fpsc.scale_in_meters; value != nil {
+	if value, ok := fpsc.mutation.ScaleInMeters(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: floorplanscale.FieldScaleInMeters,
 		})
-		fps.ScaleInMeters = *value
+		fps.ScaleInMeters = value
 	}
 	if err := sqlgraph.CreateNode(ctx, fpsc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
@@ -198,6 +216,6 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		return nil, err
 	}
 	id := _spec.ID.Value.(int64)
-	fps.ID = strconv.FormatInt(id, 10)
+	fps.ID = int(id)
 	return fps, nil
 }

@@ -391,7 +391,7 @@ func (r equipmentResolver) Services(ctx context.Context, e *ent.Equipment) ([]*e
 	if err != nil {
 		return nil, fmt.Errorf("querying services where equipment port is an endpoint: %w", err)
 	}
-	ids := make([]string, len(services))
+	ids := make([]int, len(services))
 	for i, svc := range services {
 		ids[i] = svc.ID
 	}

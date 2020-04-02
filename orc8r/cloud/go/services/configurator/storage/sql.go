@@ -19,7 +19,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -67,25 +66,15 @@ const (
 	aclVerCol      = "version"
 )
 
-type IDGenerator interface {
-	New() string
-}
-
-type DefaultIDGenerator struct{}
-
-func (*DefaultIDGenerator) New() string {
-	return uuid.New().String()
-}
-
 // NewSQLConfiguratorStorageFactory returns a ConfiguratorStorageFactory
 // implementation backed by a SQL database.
-func NewSQLConfiguratorStorageFactory(db *sql.DB, generator IDGenerator, sqlBuilder sqorc.StatementBuilder) ConfiguratorStorageFactory {
+func NewSQLConfiguratorStorageFactory(db *sql.DB, generator storage.IDGenerator, sqlBuilder sqorc.StatementBuilder) ConfiguratorStorageFactory {
 	return &sqlConfiguratorStorageFactory{db: db, idGenerator: generator, builder: sqlBuilder}
 }
 
 type sqlConfiguratorStorageFactory struct {
 	db          *sql.DB
-	idGenerator IDGenerator
+	idGenerator storage.IDGenerator
 	builder     sqorc.StatementBuilder
 }
 
@@ -273,7 +262,7 @@ func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
 
 type sqlConfiguratorStorage struct {
 	tx          *sql.Tx
-	idGenerator IDGenerator
+	idGenerator storage.IDGenerator
 	builder     sqorc.StatementBuilder
 }
 

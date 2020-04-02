@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -20,7 +19,7 @@ import (
 type CheckListItem struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Type holds the value of the "type" field.
@@ -33,28 +32,45 @@ type CheckListItem struct {
 	StringVal string `json:"string_val,omitempty" gqlgen:"stringValue"`
 	// EnumValues holds the value of the "enum_values" field.
 	EnumValues string `json:"enum_values,omitempty" gqlgen:"enumValues"`
+	// EnumSelectionMode holds the value of the "enum_selection_mode" field.
+	EnumSelectionMode string `json:"enum_selection_mode,omitempty" gqlgen:"enumSelectionMode"`
+	// SelectedEnumValues holds the value of the "selected_enum_values" field.
+	SelectedEnumValues string `json:"selected_enum_values,omitempty" gqlgen:"selectedEnumValues"`
+	// YesNoVal holds the value of the "yes_no_val" field.
+	YesNoVal checklistitem.YesNoVal `json:"yes_no_val,omitempty"`
 	// HelpText holds the value of the "help_text" field.
 	HelpText *string `json:"help_text,omitempty" gqlgen:"helpText"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CheckListItemQuery when eager-loading is set.
 	Edges                                CheckListItemEdges `json:"edges"`
-	check_list_category_check_list_items *string
-	work_order_check_list_items          *string
+	check_list_category_check_list_items *int
+	work_order_check_list_items          *int
 }
 
 // CheckListItemEdges holds the relations/edges for other nodes in the graph.
 type CheckListItemEdges struct {
+	// Files holds the value of the files edge.
+	Files []*File
 	// WorkOrder holds the value of the work_order edge.
 	WorkOrder *WorkOrder
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
+}
+
+// FilesOrErr returns the Files value or an error if the edge
+// was not loaded in eager-loading.
+func (e CheckListItemEdges) FilesOrErr() ([]*File, error) {
+	if e.loadedTypes[0] {
+		return e.Files, nil
+	}
+	return nil, &NotLoadedError{edge: "files"}
 }
 
 // WorkOrderOrErr returns the WorkOrder value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e CheckListItemEdges) WorkOrderOrErr() (*WorkOrder, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		if e.WorkOrder == nil {
 			// The edge work_order was loaded in eager-loading,
 			// but was not found.
@@ -75,6 +91,9 @@ func (*CheckListItem) scanValues() []interface{} {
 		&sql.NullBool{},   // checked
 		&sql.NullString{}, // string_val
 		&sql.NullString{}, // enum_values
+		&sql.NullString{}, // enum_selection_mode
+		&sql.NullString{}, // selected_enum_values
+		&sql.NullString{}, // yes_no_val
 		&sql.NullString{}, // help_text
 	}
 }
@@ -97,7 +116,7 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	cli.ID = strconv.FormatInt(value.Int64, 10)
+	cli.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field title", values[0])
@@ -130,39 +149,59 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 		cli.EnumValues = value.String
 	}
 	if value, ok := values[6].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field help_text", values[6])
+		return fmt.Errorf("unexpected type %T for field enum_selection_mode", values[6])
+	} else if value.Valid {
+		cli.EnumSelectionMode = value.String
+	}
+	if value, ok := values[7].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field selected_enum_values", values[7])
+	} else if value.Valid {
+		cli.SelectedEnumValues = value.String
+	}
+	if value, ok := values[8].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field yes_no_val", values[8])
+	} else if value.Valid {
+		cli.YesNoVal = checklistitem.YesNoVal(value.String)
+	}
+	if value, ok := values[9].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field help_text", values[9])
 	} else if value.Valid {
 		cli.HelpText = new(string)
 		*cli.HelpText = value.String
 	}
-	values = values[7:]
+	values = values[10:]
 	if len(values) == len(checklistitem.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field check_list_category_check_list_items", value)
 		} else if value.Valid {
-			cli.check_list_category_check_list_items = new(string)
-			*cli.check_list_category_check_list_items = strconv.FormatInt(value.Int64, 10)
+			cli.check_list_category_check_list_items = new(int)
+			*cli.check_list_category_check_list_items = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_check_list_items", value)
 		} else if value.Valid {
-			cli.work_order_check_list_items = new(string)
-			*cli.work_order_check_list_items = strconv.FormatInt(value.Int64, 10)
+			cli.work_order_check_list_items = new(int)
+			*cli.work_order_check_list_items = int(value.Int64)
 		}
 	}
 	return nil
 }
 
+// QueryFiles queries the files edge of the CheckListItem.
+func (cli *CheckListItem) QueryFiles() *FileQuery {
+	return (&CheckListItemClient{config: cli.config}).QueryFiles(cli)
+}
+
 // QueryWorkOrder queries the work_order edge of the CheckListItem.
 func (cli *CheckListItem) QueryWorkOrder() *WorkOrderQuery {
-	return (&CheckListItemClient{cli.config}).QueryWorkOrder(cli)
+	return (&CheckListItemClient{config: cli.config}).QueryWorkOrder(cli)
 }
 
 // Update returns a builder for updating this CheckListItem.
 // Note that, you need to call CheckListItem.Unwrap() before calling this method, if this CheckListItem
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (cli *CheckListItem) Update() *CheckListItemUpdateOne {
-	return (&CheckListItemClient{cli.config}).UpdateOne(cli)
+	return (&CheckListItemClient{config: cli.config}).UpdateOne(cli)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -193,18 +232,18 @@ func (cli *CheckListItem) String() string {
 	builder.WriteString(cli.StringVal)
 	builder.WriteString(", enum_values=")
 	builder.WriteString(cli.EnumValues)
+	builder.WriteString(", enum_selection_mode=")
+	builder.WriteString(cli.EnumSelectionMode)
+	builder.WriteString(", selected_enum_values=")
+	builder.WriteString(cli.SelectedEnumValues)
+	builder.WriteString(", yes_no_val=")
+	builder.WriteString(fmt.Sprintf("%v", cli.YesNoVal))
 	if v := cli.HelpText; v != nil {
 		builder.WriteString(", help_text=")
 		builder.WriteString(*v)
 	}
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (cli *CheckListItem) id() int {
-	id, _ := strconv.Atoi(cli.ID)
-	return id
 }
 
 // CheckListItems is a parsable slice of CheckListItem.

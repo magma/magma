@@ -15,12 +15,7 @@ import SvgIcon from '../SvgIcon';
 
 const WorkOrdersIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <g transform="translate(2,2)">
-      <path
-        d="M12 4V2H8v2h4zM2 6v12h16V6H2zm16-2c1.11 0 2 .89 2 2v12c0 1.11-.89 2-2 2H2c-1.11 0-2-.89-2-2L.01 6C.01 4.89.89 4 2 4h4V2c0-1.11.89-2 2-2h4c1.11 0 2 .89 2 2v2h4z"
-        fillRule="evenodd"
-      />
-    </g>
+    <path d="M14 6V4h-4v2h4zM4 8v12h16V8H4zm16-2c1.11 0 2 .89 2 2v12c0 1.11-.89 2-2 2H4c-1.11 0-2-.89-2-2l.01-12c0-1.11.88-2 1.99-2h4V4c0-1.11.89-2 2-2h4c1.11 0 2 .89 2 2v2h4z" />
   </SvgIcon>
 );
 

@@ -8,9 +8,7 @@ package ent
 
 import (
 	"context"
-	"errors"
-	"strconv"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -26,19 +24,9 @@ import (
 // LinkUpdate is the builder for updating Link entities.
 type LinkUpdate struct {
 	config
-
-	update_time       *time.Time
-	future_state      *string
-	clearfuture_state bool
-	ports             map[string]struct{}
-	work_order        map[string]struct{}
-	properties        map[string]struct{}
-	service           map[string]struct{}
-	removedPorts      map[string]struct{}
-	clearedWorkOrder  bool
-	removedProperties map[string]struct{}
-	removedService    map[string]struct{}
-	predicates        []predicate.Link
+	hooks      []Hook
+	mutation   *LinkMutation
+	predicates []predicate.Link
 }
 
 // Where adds a new predicate for the builder.
@@ -49,7 +37,7 @@ func (lu *LinkUpdate) Where(ps ...predicate.Link) *LinkUpdate {
 
 // SetFutureState sets the future_state field.
 func (lu *LinkUpdate) SetFutureState(s string) *LinkUpdate {
-	lu.future_state = &s
+	lu.mutation.SetFutureState(s)
 	return lu
 }
 
@@ -63,25 +51,19 @@ func (lu *LinkUpdate) SetNillableFutureState(s *string) *LinkUpdate {
 
 // ClearFutureState clears the value of future_state.
 func (lu *LinkUpdate) ClearFutureState() *LinkUpdate {
-	lu.future_state = nil
-	lu.clearfuture_state = true
+	lu.mutation.ClearFutureState()
 	return lu
 }
 
 // AddPortIDs adds the ports edge to EquipmentPort by ids.
-func (lu *LinkUpdate) AddPortIDs(ids ...string) *LinkUpdate {
-	if lu.ports == nil {
-		lu.ports = make(map[string]struct{})
-	}
-	for i := range ids {
-		lu.ports[ids[i]] = struct{}{}
-	}
+func (lu *LinkUpdate) AddPortIDs(ids ...int) *LinkUpdate {
+	lu.mutation.AddPortIDs(ids...)
 	return lu
 }
 
 // AddPorts adds the ports edges to EquipmentPort.
 func (lu *LinkUpdate) AddPorts(e ...*EquipmentPort) *LinkUpdate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -89,16 +71,13 @@ func (lu *LinkUpdate) AddPorts(e ...*EquipmentPort) *LinkUpdate {
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
-func (lu *LinkUpdate) SetWorkOrderID(id string) *LinkUpdate {
-	if lu.work_order == nil {
-		lu.work_order = make(map[string]struct{})
-	}
-	lu.work_order[id] = struct{}{}
+func (lu *LinkUpdate) SetWorkOrderID(id int) *LinkUpdate {
+	lu.mutation.SetWorkOrderID(id)
 	return lu
 }
 
 // SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
-func (lu *LinkUpdate) SetNillableWorkOrderID(id *string) *LinkUpdate {
+func (lu *LinkUpdate) SetNillableWorkOrderID(id *int) *LinkUpdate {
 	if id != nil {
 		lu = lu.SetWorkOrderID(*id)
 	}
@@ -111,19 +90,14 @@ func (lu *LinkUpdate) SetWorkOrder(w *WorkOrder) *LinkUpdate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (lu *LinkUpdate) AddPropertyIDs(ids ...string) *LinkUpdate {
-	if lu.properties == nil {
-		lu.properties = make(map[string]struct{})
-	}
-	for i := range ids {
-		lu.properties[ids[i]] = struct{}{}
-	}
+func (lu *LinkUpdate) AddPropertyIDs(ids ...int) *LinkUpdate {
+	lu.mutation.AddPropertyIDs(ids...)
 	return lu
 }
 
 // AddProperties adds the properties edges to Property.
 func (lu *LinkUpdate) AddProperties(p ...*Property) *LinkUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -131,19 +105,14 @@ func (lu *LinkUpdate) AddProperties(p ...*Property) *LinkUpdate {
 }
 
 // AddServiceIDs adds the service edge to Service by ids.
-func (lu *LinkUpdate) AddServiceIDs(ids ...string) *LinkUpdate {
-	if lu.service == nil {
-		lu.service = make(map[string]struct{})
-	}
-	for i := range ids {
-		lu.service[ids[i]] = struct{}{}
-	}
+func (lu *LinkUpdate) AddServiceIDs(ids ...int) *LinkUpdate {
+	lu.mutation.AddServiceIDs(ids...)
 	return lu
 }
 
 // AddService adds the service edges to Service.
 func (lu *LinkUpdate) AddService(s ...*Service) *LinkUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -151,19 +120,14 @@ func (lu *LinkUpdate) AddService(s ...*Service) *LinkUpdate {
 }
 
 // RemovePortIDs removes the ports edge to EquipmentPort by ids.
-func (lu *LinkUpdate) RemovePortIDs(ids ...string) *LinkUpdate {
-	if lu.removedPorts == nil {
-		lu.removedPorts = make(map[string]struct{})
-	}
-	for i := range ids {
-		lu.removedPorts[ids[i]] = struct{}{}
-	}
+func (lu *LinkUpdate) RemovePortIDs(ids ...int) *LinkUpdate {
+	lu.mutation.RemovePortIDs(ids...)
 	return lu
 }
 
 // RemovePorts removes ports edges to EquipmentPort.
 func (lu *LinkUpdate) RemovePorts(e ...*EquipmentPort) *LinkUpdate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -172,24 +136,19 @@ func (lu *LinkUpdate) RemovePorts(e ...*EquipmentPort) *LinkUpdate {
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
 func (lu *LinkUpdate) ClearWorkOrder() *LinkUpdate {
-	lu.clearedWorkOrder = true
+	lu.mutation.ClearWorkOrder()
 	return lu
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
-func (lu *LinkUpdate) RemovePropertyIDs(ids ...string) *LinkUpdate {
-	if lu.removedProperties == nil {
-		lu.removedProperties = make(map[string]struct{})
-	}
-	for i := range ids {
-		lu.removedProperties[ids[i]] = struct{}{}
-	}
+func (lu *LinkUpdate) RemovePropertyIDs(ids ...int) *LinkUpdate {
+	lu.mutation.RemovePropertyIDs(ids...)
 	return lu
 }
 
 // RemoveProperties removes properties edges to Property.
 func (lu *LinkUpdate) RemoveProperties(p ...*Property) *LinkUpdate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -197,19 +156,14 @@ func (lu *LinkUpdate) RemoveProperties(p ...*Property) *LinkUpdate {
 }
 
 // RemoveServiceIDs removes the service edge to Service by ids.
-func (lu *LinkUpdate) RemoveServiceIDs(ids ...string) *LinkUpdate {
-	if lu.removedService == nil {
-		lu.removedService = make(map[string]struct{})
-	}
-	for i := range ids {
-		lu.removedService[ids[i]] = struct{}{}
-	}
+func (lu *LinkUpdate) RemoveServiceIDs(ids ...int) *LinkUpdate {
+	lu.mutation.RemoveServiceIDs(ids...)
 	return lu
 }
 
 // RemoveService removes service edges to Service.
 func (lu *LinkUpdate) RemoveService(s ...*Service) *LinkUpdate {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -218,14 +172,35 @@ func (lu *LinkUpdate) RemoveService(s ...*Service) *LinkUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (lu *LinkUpdate) Save(ctx context.Context) (int, error) {
-	if lu.update_time == nil {
+	if _, ok := lu.mutation.UpdateTime(); !ok {
 		v := link.UpdateDefaultUpdateTime()
-		lu.update_time = &v
+		lu.mutation.SetUpdateTime(v)
 	}
-	if len(lu.work_order) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"work_order\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(lu.hooks) == 0 {
+		affected, err = lu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*LinkMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			lu.mutation = mutation
+			affected, err = lu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(lu.hooks) - 1; i >= 0; i-- {
+			mut = lu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, lu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	return lu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -256,7 +231,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   link.Table,
 			Columns: link.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: link.FieldID,
 			},
 		},
@@ -268,27 +243,27 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := lu.update_time; value != nil {
+	if value, ok := lu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: link.FieldUpdateTime,
 		})
 	}
-	if value := lu.future_state; value != nil {
+	if value, ok := lu.mutation.FutureState(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: link.FieldFutureState,
 		})
 	}
-	if lu.clearfuture_state {
+	if lu.mutation.FutureStateCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: link.FieldFutureState,
 		})
 	}
-	if nodes := lu.removedPorts; len(nodes) > 0 {
+	if nodes := lu.mutation.RemovedPortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -297,21 +272,17 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.ports; len(nodes) > 0 {
+	if nodes := lu.mutation.PortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -320,21 +291,17 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if lu.clearedWorkOrder {
+	if lu.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -343,14 +310,14 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.work_order; len(nodes) > 0 {
+	if nodes := lu.mutation.WorkOrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -359,21 +326,17 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.removedProperties; len(nodes) > 0 {
+	if nodes := lu.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -382,21 +345,17 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.properties; len(nodes) > 0 {
+	if nodes := lu.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -405,21 +364,17 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := lu.removedService; len(nodes) > 0 {
+	if nodes := lu.mutation.RemovedServiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -428,21 +383,17 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := lu.service; len(nodes) > 0 {
+	if nodes := lu.mutation.ServiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -451,16 +402,12 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -479,24 +426,13 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // LinkUpdateOne is the builder for updating a single Link entity.
 type LinkUpdateOne struct {
 	config
-	id string
-
-	update_time       *time.Time
-	future_state      *string
-	clearfuture_state bool
-	ports             map[string]struct{}
-	work_order        map[string]struct{}
-	properties        map[string]struct{}
-	service           map[string]struct{}
-	removedPorts      map[string]struct{}
-	clearedWorkOrder  bool
-	removedProperties map[string]struct{}
-	removedService    map[string]struct{}
+	hooks    []Hook
+	mutation *LinkMutation
 }
 
 // SetFutureState sets the future_state field.
 func (luo *LinkUpdateOne) SetFutureState(s string) *LinkUpdateOne {
-	luo.future_state = &s
+	luo.mutation.SetFutureState(s)
 	return luo
 }
 
@@ -510,25 +446,19 @@ func (luo *LinkUpdateOne) SetNillableFutureState(s *string) *LinkUpdateOne {
 
 // ClearFutureState clears the value of future_state.
 func (luo *LinkUpdateOne) ClearFutureState() *LinkUpdateOne {
-	luo.future_state = nil
-	luo.clearfuture_state = true
+	luo.mutation.ClearFutureState()
 	return luo
 }
 
 // AddPortIDs adds the ports edge to EquipmentPort by ids.
-func (luo *LinkUpdateOne) AddPortIDs(ids ...string) *LinkUpdateOne {
-	if luo.ports == nil {
-		luo.ports = make(map[string]struct{})
-	}
-	for i := range ids {
-		luo.ports[ids[i]] = struct{}{}
-	}
+func (luo *LinkUpdateOne) AddPortIDs(ids ...int) *LinkUpdateOne {
+	luo.mutation.AddPortIDs(ids...)
 	return luo
 }
 
 // AddPorts adds the ports edges to EquipmentPort.
 func (luo *LinkUpdateOne) AddPorts(e ...*EquipmentPort) *LinkUpdateOne {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -536,16 +466,13 @@ func (luo *LinkUpdateOne) AddPorts(e ...*EquipmentPort) *LinkUpdateOne {
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
-func (luo *LinkUpdateOne) SetWorkOrderID(id string) *LinkUpdateOne {
-	if luo.work_order == nil {
-		luo.work_order = make(map[string]struct{})
-	}
-	luo.work_order[id] = struct{}{}
+func (luo *LinkUpdateOne) SetWorkOrderID(id int) *LinkUpdateOne {
+	luo.mutation.SetWorkOrderID(id)
 	return luo
 }
 
 // SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
-func (luo *LinkUpdateOne) SetNillableWorkOrderID(id *string) *LinkUpdateOne {
+func (luo *LinkUpdateOne) SetNillableWorkOrderID(id *int) *LinkUpdateOne {
 	if id != nil {
 		luo = luo.SetWorkOrderID(*id)
 	}
@@ -558,19 +485,14 @@ func (luo *LinkUpdateOne) SetWorkOrder(w *WorkOrder) *LinkUpdateOne {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (luo *LinkUpdateOne) AddPropertyIDs(ids ...string) *LinkUpdateOne {
-	if luo.properties == nil {
-		luo.properties = make(map[string]struct{})
-	}
-	for i := range ids {
-		luo.properties[ids[i]] = struct{}{}
-	}
+func (luo *LinkUpdateOne) AddPropertyIDs(ids ...int) *LinkUpdateOne {
+	luo.mutation.AddPropertyIDs(ids...)
 	return luo
 }
 
 // AddProperties adds the properties edges to Property.
 func (luo *LinkUpdateOne) AddProperties(p ...*Property) *LinkUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -578,19 +500,14 @@ func (luo *LinkUpdateOne) AddProperties(p ...*Property) *LinkUpdateOne {
 }
 
 // AddServiceIDs adds the service edge to Service by ids.
-func (luo *LinkUpdateOne) AddServiceIDs(ids ...string) *LinkUpdateOne {
-	if luo.service == nil {
-		luo.service = make(map[string]struct{})
-	}
-	for i := range ids {
-		luo.service[ids[i]] = struct{}{}
-	}
+func (luo *LinkUpdateOne) AddServiceIDs(ids ...int) *LinkUpdateOne {
+	luo.mutation.AddServiceIDs(ids...)
 	return luo
 }
 
 // AddService adds the service edges to Service.
 func (luo *LinkUpdateOne) AddService(s ...*Service) *LinkUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -598,19 +515,14 @@ func (luo *LinkUpdateOne) AddService(s ...*Service) *LinkUpdateOne {
 }
 
 // RemovePortIDs removes the ports edge to EquipmentPort by ids.
-func (luo *LinkUpdateOne) RemovePortIDs(ids ...string) *LinkUpdateOne {
-	if luo.removedPorts == nil {
-		luo.removedPorts = make(map[string]struct{})
-	}
-	for i := range ids {
-		luo.removedPorts[ids[i]] = struct{}{}
-	}
+func (luo *LinkUpdateOne) RemovePortIDs(ids ...int) *LinkUpdateOne {
+	luo.mutation.RemovePortIDs(ids...)
 	return luo
 }
 
 // RemovePorts removes ports edges to EquipmentPort.
 func (luo *LinkUpdateOne) RemovePorts(e ...*EquipmentPort) *LinkUpdateOne {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -619,24 +531,19 @@ func (luo *LinkUpdateOne) RemovePorts(e ...*EquipmentPort) *LinkUpdateOne {
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
 func (luo *LinkUpdateOne) ClearWorkOrder() *LinkUpdateOne {
-	luo.clearedWorkOrder = true
+	luo.mutation.ClearWorkOrder()
 	return luo
 }
 
 // RemovePropertyIDs removes the properties edge to Property by ids.
-func (luo *LinkUpdateOne) RemovePropertyIDs(ids ...string) *LinkUpdateOne {
-	if luo.removedProperties == nil {
-		luo.removedProperties = make(map[string]struct{})
-	}
-	for i := range ids {
-		luo.removedProperties[ids[i]] = struct{}{}
-	}
+func (luo *LinkUpdateOne) RemovePropertyIDs(ids ...int) *LinkUpdateOne {
+	luo.mutation.RemovePropertyIDs(ids...)
 	return luo
 }
 
 // RemoveProperties removes properties edges to Property.
 func (luo *LinkUpdateOne) RemoveProperties(p ...*Property) *LinkUpdateOne {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -644,19 +551,14 @@ func (luo *LinkUpdateOne) RemoveProperties(p ...*Property) *LinkUpdateOne {
 }
 
 // RemoveServiceIDs removes the service edge to Service by ids.
-func (luo *LinkUpdateOne) RemoveServiceIDs(ids ...string) *LinkUpdateOne {
-	if luo.removedService == nil {
-		luo.removedService = make(map[string]struct{})
-	}
-	for i := range ids {
-		luo.removedService[ids[i]] = struct{}{}
-	}
+func (luo *LinkUpdateOne) RemoveServiceIDs(ids ...int) *LinkUpdateOne {
+	luo.mutation.RemoveServiceIDs(ids...)
 	return luo
 }
 
 // RemoveService removes service edges to Service.
 func (luo *LinkUpdateOne) RemoveService(s ...*Service) *LinkUpdateOne {
-	ids := make([]string, len(s))
+	ids := make([]int, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -665,14 +567,35 @@ func (luo *LinkUpdateOne) RemoveService(s ...*Service) *LinkUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (luo *LinkUpdateOne) Save(ctx context.Context) (*Link, error) {
-	if luo.update_time == nil {
+	if _, ok := luo.mutation.UpdateTime(); !ok {
 		v := link.UpdateDefaultUpdateTime()
-		luo.update_time = &v
+		luo.mutation.SetUpdateTime(v)
 	}
-	if len(luo.work_order) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"work_order\"")
+
+	var (
+		err  error
+		node *Link
+	)
+	if len(luo.hooks) == 0 {
+		node, err = luo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*LinkMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			luo.mutation = mutation
+			node, err = luo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(luo.hooks) - 1; i >= 0; i-- {
+			mut = luo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, luo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return luo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -703,33 +626,37 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			Table:   link.Table,
 			Columns: link.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  luo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: link.FieldID,
 			},
 		},
 	}
-	if value := luo.update_time; value != nil {
+	id, ok := luo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Link.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := luo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: link.FieldUpdateTime,
 		})
 	}
-	if value := luo.future_state; value != nil {
+	if value, ok := luo.mutation.FutureState(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: link.FieldFutureState,
 		})
 	}
-	if luo.clearfuture_state {
+	if luo.mutation.FutureStateCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: link.FieldFutureState,
 		})
 	}
-	if nodes := luo.removedPorts; len(nodes) > 0 {
+	if nodes := luo.mutation.RemovedPortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -738,21 +665,17 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.ports; len(nodes) > 0 {
+	if nodes := luo.mutation.PortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -761,21 +684,17 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if luo.clearedWorkOrder {
+	if luo.mutation.WorkOrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -784,14 +703,14 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.work_order; len(nodes) > 0 {
+	if nodes := luo.mutation.WorkOrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -800,21 +719,17 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.removedProperties; len(nodes) > 0 {
+	if nodes := luo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -823,21 +738,17 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.properties; len(nodes) > 0 {
+	if nodes := luo.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -846,21 +757,17 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := luo.removedService; len(nodes) > 0 {
+	if nodes := luo.mutation.RemovedServiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -869,21 +776,17 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := luo.service; len(nodes) > 0 {
+	if nodes := luo.mutation.ServiceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -892,16 +795,12 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: service.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 76fcefff47553327741e46d6471bfad5
+ * @relayHash 01f9cffef93e20bbe61a914c83378b96
  */
 
 /* eslint-disable */
@@ -44,7 +44,7 @@ export type AddServiceTypeMutationVariables = {|
   data: ServiceTypeCreateData
 |};
 export type AddServiceTypeMutationResponse = {|
-  +addServiceType: ?{|
+  +addServiceType: {|
     +id: string,
     +name: string,
     +propertyTypes: $ReadOnlyArray<?{|
@@ -63,6 +63,8 @@ export type AddServiceTypeMutationResponse = {|
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
     |}>,
     +numberOfServices: number,
   |}
@@ -97,6 +99,8 @@ mutation AddServiceTypeMutation(
       isEditable
       isInstanceProperty
       isMandatory
+      category
+      isDeleted
     }
     numberOfServices
   }
@@ -245,6 +249,20 @@ v3 = [
             "name": "isMandatory",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "category",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isDeleted",
+            "args": null,
+            "storageKey": null
           }
         ]
       },
@@ -278,7 +296,7 @@ return {
     "operationKind": "mutation",
     "name": "AddServiceTypeMutation",
     "id": null,
-    "text": "mutation AddServiceTypeMutation(\n  $data: ServiceTypeCreateData!\n) {\n  addServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n    numberOfServices\n  }\n}\n",
+    "text": "mutation AddServiceTypeMutation(\n  $data: ServiceTypeCreateData!\n) {\n  addServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n      category\n      isDeleted\n    }\n    numberOfServices\n  }\n}\n",
     "metadata": {}
   }
 };

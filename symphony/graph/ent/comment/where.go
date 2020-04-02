@@ -7,39 +7,36 @@
 package comment
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
 
 // ID filters vertices based on their identifier.
-func ID(id string) predicate.Comment {
+func ID(id int) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id string) predicate.Comment {
+func IDEQ(id int) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id string) predicate.Comment {
+func IDNEQ(id int) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.NEQ(s.C(FieldID), id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...string) predicate.Comment {
+func IDIn(ids ...int) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
@@ -49,14 +46,14 @@ func IDIn(ids ...string) predicate.Comment {
 		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
-			v[i], _ = strconv.Atoi(ids[i])
+			v[i] = ids[i]
 		}
 		s.Where(sql.In(s.C(FieldID), v...))
 	})
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...string) predicate.Comment {
+func IDNotIn(ids ...int) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
@@ -66,40 +63,36 @@ func IDNotIn(ids ...string) predicate.Comment {
 		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
-			v[i], _ = strconv.Atoi(ids[i])
+			v[i] = ids[i]
 		}
 		s.Where(sql.NotIn(s.C(FieldID), v...))
 	})
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id string) predicate.Comment {
+func IDGT(id int) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.GT(s.C(FieldID), id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id string) predicate.Comment {
+func IDGTE(id int) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.GTE(s.C(FieldID), id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id string) predicate.Comment {
+func IDLT(id int) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.LT(s.C(FieldID), id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id string) predicate.Comment {
+func IDLTE(id int) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.LTE(s.C(FieldID), id))
 	})
 }
@@ -115,13 +108,6 @@ func CreateTime(v time.Time) predicate.Comment {
 func UpdateTime(v time.Time) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldUpdateTime), v))
-	})
-}
-
-// AuthorName applies equality check predicate on the "author_name" field. It's identical to AuthorNameEQ.
-func AuthorName(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldAuthorName), v))
 	})
 }
 
@@ -284,117 +270,6 @@ func UpdateTimeLTE(v time.Time) predicate.Comment {
 	})
 }
 
-// AuthorNameEQ applies the EQ predicate on the "author_name" field.
-func AuthorNameEQ(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldAuthorName), v))
-	})
-}
-
-// AuthorNameNEQ applies the NEQ predicate on the "author_name" field.
-func AuthorNameNEQ(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldAuthorName), v))
-	})
-}
-
-// AuthorNameIn applies the In predicate on the "author_name" field.
-func AuthorNameIn(vs ...string) predicate.Comment {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Comment(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldAuthorName), v...))
-	})
-}
-
-// AuthorNameNotIn applies the NotIn predicate on the "author_name" field.
-func AuthorNameNotIn(vs ...string) predicate.Comment {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Comment(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldAuthorName), v...))
-	})
-}
-
-// AuthorNameGT applies the GT predicate on the "author_name" field.
-func AuthorNameGT(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldAuthorName), v))
-	})
-}
-
-// AuthorNameGTE applies the GTE predicate on the "author_name" field.
-func AuthorNameGTE(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldAuthorName), v))
-	})
-}
-
-// AuthorNameLT applies the LT predicate on the "author_name" field.
-func AuthorNameLT(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldAuthorName), v))
-	})
-}
-
-// AuthorNameLTE applies the LTE predicate on the "author_name" field.
-func AuthorNameLTE(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldAuthorName), v))
-	})
-}
-
-// AuthorNameContains applies the Contains predicate on the "author_name" field.
-func AuthorNameContains(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldAuthorName), v))
-	})
-}
-
-// AuthorNameHasPrefix applies the HasPrefix predicate on the "author_name" field.
-func AuthorNameHasPrefix(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldAuthorName), v))
-	})
-}
-
-// AuthorNameHasSuffix applies the HasSuffix predicate on the "author_name" field.
-func AuthorNameHasSuffix(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldAuthorName), v))
-	})
-}
-
-// AuthorNameEqualFold applies the EqualFold predicate on the "author_name" field.
-func AuthorNameEqualFold(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldAuthorName), v))
-	})
-}
-
-// AuthorNameContainsFold applies the ContainsFold predicate on the "author_name" field.
-func AuthorNameContainsFold(v string) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldAuthorName), v))
-	})
-}
-
 // TextEQ applies the EQ predicate on the "text" field.
 func TextEQ(v string) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
@@ -503,6 +378,34 @@ func TextEqualFold(v string) predicate.Comment {
 func TextContainsFold(v string) predicate.Comment {
 	return predicate.Comment(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldText), v))
+	})
+}
+
+// HasAuthor applies the HasEdge predicate on the "author" edge.
+func HasAuthor() predicate.Comment {
+	return predicate.Comment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AuthorTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, AuthorTable, AuthorColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAuthorWith applies the HasEdge predicate on the "author" edge with a given conditions (other predicates).
+func HasAuthorWith(preds ...predicate.User) predicate.Comment {
+	return predicate.Comment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AuthorInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, AuthorTable, AuthorColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

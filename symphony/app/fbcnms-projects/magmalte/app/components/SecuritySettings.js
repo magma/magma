@@ -8,23 +8,18 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithStyles} from '@material-ui/core';
-
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormGroup from '@material-ui/core/FormGroup';
-import FormLabel from '@material-ui/core/FormLabel';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useState} from 'react';
 
-const styles = theme => ({
+const useStyles = makeStyles(theme => ({
   input: {},
   formContainer: {
     margin: theme.spacing(2),
@@ -36,112 +31,81 @@ const styles = theme => ({
   formGroup: {
     marginBottom: theme.spacing(2),
   },
-});
+}));
 
-type Props = WithAlert & ContextRouter & WithStyles<typeof styles> & {};
+export default function SecuritySettings() {
+  const classes = useStyles();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-type State = {
-  error: string,
-  currentPassword: string,
-  newPassword: string,
-  confirmPassword: string,
-};
-
-class SecuritySettings extends React.Component<Props, State> {
-  state = {
-    error: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  };
-
-  render() {
-    const {classes} = this.props;
-
-    return (
-      <div className={classes.formContainer}>
-        <Text data-testid="change-password-title" variant="h5">
-          Change Password
-        </Text>
-        {this.state.error ? (
-          <FormLabel error>{this.state.error}</FormLabel>
-        ) : null}
-        <FormGroup row className={classes.formGroup}>
-          <TextField
-            required
-            label="Current Password"
-            type="password"
-            value={this.state.currentPassword}
-            onChange={this.onCurrentPasswordChange}
-            className={classes.input}
-          />
-        </FormGroup>
-        <FormGroup row className={classes.formGroup}>
-          <TextField
-            required
-            label="New Password"
-            type="password"
-            value={this.state.newPassword}
-            onChange={this.onNewPasswordChange}
-            className={classes.input}
-          />
-        </FormGroup>
-        <FormGroup row className={classes.formGroup}>
-          <TextField
-            required
-            label="Confirm Password"
-            type="password"
-            value={this.state.confirmPassword}
-            onChange={this.onConfirmPasswordChange}
-            className={classes.input}
-          />
-        </FormGroup>
-        <FormGroup row className={classes.formGroup}>
-          <Button onClick={this.onSave}>Save</Button>
-        </FormGroup>
-      </div>
-    );
-  }
-
-  onCurrentPasswordChange = ({target}) =>
-    this.setState({currentPassword: target.value});
-  onNewPasswordChange = ({target}) =>
-    this.setState({newPassword: target.value});
-  onConfirmPasswordChange = ({target}) =>
-    this.setState({confirmPassword: target.value});
-
-  onSave = async () => {
-    if (
-      !this.state.currentPassword ||
-      !this.state.newPassword ||
-      !this.state.confirmPassword
-    ) {
-      this.setState({error: 'Please complete all fields'});
+  const onSave = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      enqueueSnackbar('Please complete all fields', {variant: 'error'});
       return;
     }
 
-    if (this.state.newPassword !== this.state.confirmPassword) {
-      this.setState({error: 'Passwords do not match'});
+    if (newPassword !== confirmPassword) {
+      enqueueSnackbar('Passwords do not match', {variant: 'error'});
       return;
     }
 
     try {
       await axios.post('/user/change_password', {
-        currentPassword: this.state.currentPassword,
-        newPassword: this.state.newPassword,
+        currentPassword: currentPassword,
+        newPassword: newPassword,
       });
 
-      this.props.alert('Success');
-      this.setState({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-        error: '',
-      });
+      enqueueSnackbar('Success', {variant: 'success'});
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
     } catch (error) {
-      this.setState({error: error.response.data.error});
+      enqueueSnackbar(error.response.data.error, {variant: 'error'});
     }
   };
-}
 
-export default withStyles(styles)(withRouter(withAlert(SecuritySettings)));
+  return (
+    <div className={classes.formContainer}>
+      <Text data-testid="change-password-title" variant="h5">
+        Change Password
+      </Text>
+      <FormGroup row className={classes.formGroup}>
+        <TextField
+          required
+          label="Current Password"
+          type="password"
+          value={currentPassword}
+          onChange={({target}) => setCurrentPassword(target.value)}
+          className={classes.input}
+        />
+      </FormGroup>
+      <FormGroup row className={classes.formGroup}>
+        <TextField
+          required
+          autoComplete="off"
+          label="New Password"
+          type="password"
+          value={newPassword}
+          onChange={({target}) => setNewPassword(target.value)}
+          className={classes.input}
+        />
+      </FormGroup>
+      <FormGroup row className={classes.formGroup}>
+        <TextField
+          required
+          autoComplete="off"
+          label="Confirm Password"
+          type="password"
+          value={confirmPassword}
+          onChange={({target}) => setConfirmPassword(target.value)}
+          className={classes.input}
+        />
+      </FormGroup>
+      <FormGroup row className={classes.formGroup}>
+        <Button onClick={onSave}>Save</Button>
+      </FormGroup>
+    </div>
+  );
+}

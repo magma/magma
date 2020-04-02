@@ -18,10 +18,9 @@ from magma.redirectd.redirect_server import HTTP_NOT_FOUND, HTTP_REDIRECT, \
 class RedirectdTest(unittest.TestCase):
     def setUp(self):
         """
-        Sets up a test version of the redirect server, mocks scribe/url_dict
+        Sets up a test version of the redirect server, mocks url_dict
         """
-        self._scribe_client = MagicMock()
-        app = setup_flask_server(self._scribe_client)
+        app = setup_flask_server()
         app.config['TESTING'] = True
 
         test_dict = {
@@ -48,29 +47,15 @@ class RedirectdTest(unittest.TestCase):
     def test_302_homepage(self):
         """
         Assert 302 http response, proper reponse headers with new dest url
-
-        Correct scribe logging
         """
         resp = self.client.get('/', environ_base={'REMOTE_ADDR': '192.5.82.1'})
 
         self.assertEqual(resp.status_code, HTTP_REDIRECT)
         self.assertEqual(resp.headers['Location'], 'http://www.example.com/')
 
-        self._scribe_client.log_to_scribe.assert_called_with(
-            RedirectInfo(
-                subscriber_ip='192.5.82.1',
-                server_response=ServerResponse(
-                    redirect_address='http://www.example.com/',
-                    http_code=HTTP_REDIRECT
-                )
-            )
-        )
-
     def test_302_with_path(self):
         """
         Assert 302 http response, proper reponse headers with new dest url
-
-        Correct scribe logging
         """
         resp = self.client.get('/generate_204',
                                environ_base={'REMOTE_ADDR': '192.5.82.1'})
@@ -78,31 +63,10 @@ class RedirectdTest(unittest.TestCase):
         self.assertEqual(resp.status_code, HTTP_REDIRECT)
         self.assertEqual(resp.headers['Location'], 'http://www.example.com/')
 
-        self._scribe_client.log_to_scribe.assert_called_with(
-            RedirectInfo(
-                subscriber_ip='192.5.82.1',
-                server_response=ServerResponse(
-                    redirect_address='http://www.example.com/',
-                    http_code=HTTP_REDIRECT
-                )
-            )
-        )
-
     def test_404(self):
         """
         Assert 404 http response
-
-        Correct scribe logging
         """
         resp = self.client.get('/', environ_base={'REMOTE_ADDR': '127.0.0.1'})
 
         self.assertEqual(resp.status_code, HTTP_NOT_FOUND)
-
-        self._scribe_client.log_to_scribe.assert_called_with(
-            RedirectInfo(
-                subscriber_ip='127.0.0.1',
-                server_response=ServerResponse(
-                    redirect_address='404.html', http_code=404
-                )
-            )
-        )

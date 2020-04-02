@@ -35,7 +35,7 @@ const DEFAULT_CELLULAR_CONFIG: network_cellular_configs = {
     lte_auth_op: 'EREREREREREREREREREREQ==',
     mcc: '001',
     mnc: '01',
-    network_services: ['metering', 'dpi', 'policy_enforcement'],
+    network_services: ['policy_enforcement'],
     relay_enabled: false,
     sub_profiles: {},
     tac: 1,
@@ -117,7 +117,7 @@ router.post(
               },
               default_rule_id: '',
               eap_aka: {},
-              network_services: ['policy_enforcement'],
+              network_services: ['policy_enforcement', 'dpi'],
             },
           },
         });
@@ -128,6 +128,7 @@ router.post(
             dns: DEFAULT_DNS_CONFIG,
             federation: {
               aaa_server: {},
+              csfb: {},
               eap_aka: {},
               gx: {},
               gy: {},

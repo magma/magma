@@ -1,11 +1,21 @@
 #!/usr/bin/env python3
 
-from .base_test import BaseTest
-from deepdiff import DeepDiff
 from dataclasses import asdict
-from fbc.symphony.cli.graphql_compiler.gql.query_parser import QueryParser, ParsedQuery, \
-    ParsedOperation, ParsedObject, ParsedEnum, ParsedField, \
-    ParsedVariableDefinition, AnonymousQueryError, InvalidQueryError
+
+from deepdiff import DeepDiff
+from graphql_compiler.gql.query_parser import (
+    AnonymousQueryError,
+    InvalidQueryError,
+    ParsedEnum,
+    ParsedField,
+    ParsedObject,
+    ParsedOperation,
+    ParsedQuery,
+    ParsedVariableDefinition,
+    QueryParser,
+)
+
+from .base_test import BaseTest
 
 
 class TestQueryParser(BaseTest):
@@ -63,40 +73,44 @@ class TestQueryParser(BaseTest):
         parser = QueryParser(self.swapi_schema)
         parsed = parser.parse(query)
 
-        expected = asdict(ParsedQuery(
-            query=query,
-            objects=[
-                ParsedOperation(
-                    name='GetFilm',
-                    type='query',
-                    children=[
-                        ParsedObject(
-                            name='GetFilmData',
-                            fields=[
-                                ParsedField(
-                                    name='returnOfTheJedi',
-                                    type='Film',
-                                    nullable=True)
-                            ],
-                            children=[
-                                ParsedObject(
-                                    name='Film',
-                                    fields=[
-                                        ParsedField(
-                                            name='title',
-                                            type='str',
-                                            nullable=False),
-                                        ParsedField(name='director',
-                                            type='str',
-                                            nullable=False),
-                                    ]
-                                )
-                            ]
-                        )
-                    ]
-                )
-            ]
-        ))
+        expected = asdict(
+            ParsedQuery(
+                query=query,
+                objects=[
+                    ParsedOperation(
+                        name="GetFilm",
+                        type="query",
+                        children=[
+                            ParsedObject(
+                                name="GetFilmData",
+                                fields=[
+                                    ParsedField(
+                                        name="returnOfTheJedi",
+                                        type="Film",
+                                        nullable=True,
+                                    )
+                                ],
+                                children=[
+                                    ParsedObject(
+                                        name="Film",
+                                        fields=[
+                                            ParsedField(
+                                                name="title", type="str", nullable=False
+                                            ),
+                                            ParsedField(
+                                                name="director",
+                                                type="str",
+                                                nullable=False,
+                                            ),
+                                        ],
+                                    )
+                                ],
+                            )
+                        ],
+                    )
+                ],
+            )
+        )
 
         parsed_dict = asdict(parsed)
 
@@ -118,41 +132,44 @@ class TestQueryParser(BaseTest):
         parser = QueryParser(self.swapi_schema)
         parsed = parser.parse(query)
 
-        expected = asdict(ParsedQuery(
-            query=query,
-            objects=[
-                ParsedOperation(
-                    name='GetFilm',
-                    type='query',
-                    children=[
-                        ParsedObject(
-                            name='GetFilmData',
-                            fields=[
-                                ParsedField(
-                                    name='returnOfTheJedi',
-                                    type='Film',
-                                    nullable=True)
-                            ],
-                            children=[
-                                ParsedObject(
-                                    name='Film',
-                                    fields=[
-                                        ParsedField(
-                                            name='title',
-                                            type='str',
-                                            nullable=False),
-                                        ParsedField(
-                                            name='director',
-                                            type='str',
-                                            nullable=False),
-                                    ]
-                                )
-                            ],
-                        )
-                    ]
-                )
-            ]
-        ))
+        expected = asdict(
+            ParsedQuery(
+                query=query,
+                objects=[
+                    ParsedOperation(
+                        name="GetFilm",
+                        type="query",
+                        children=[
+                            ParsedObject(
+                                name="GetFilmData",
+                                fields=[
+                                    ParsedField(
+                                        name="returnOfTheJedi",
+                                        type="Film",
+                                        nullable=True,
+                                    )
+                                ],
+                                children=[
+                                    ParsedObject(
+                                        name="Film",
+                                        fields=[
+                                            ParsedField(
+                                                name="title", type="str", nullable=False
+                                            ),
+                                            ParsedField(
+                                                name="director",
+                                                type="str",
+                                                nullable=False,
+                                            ),
+                                        ],
+                                    )
+                                ],
+                            )
+                        ],
+                    )
+                ],
+            )
+        )
 
         parsed_dict = asdict(parsed)
 
@@ -177,45 +194,50 @@ class TestQueryParser(BaseTest):
         parser = QueryParser(self.swapi_schema)
         parsed = parser.parse(query)
 
-        expected = asdict(ParsedQuery(
-            query=query,
-            objects=[
-                ParsedOperation(
-                    name='GetFilm',
-                    type='query',
-                    children=[
-                        ParsedObject(
-                            name='GetFilmData',
-                            fields=[
-                                ParsedField(
-                                    name='returnOfTheJedi',
-                                    type='Film',
-                                    nullable=True)
-                            ],
-                            children=[
-                                ParsedObject(
-                                    name='Film',
-                                    parents=['FilmFields'],
-                                    fields=[
-                                        ParsedField(
-                                            name='id',
-                                            type='str',
-                                            nullable=False),
-                                    ]
-                                )
-                            ],
-                        ),
-                    ]
-                ),
-                ParsedObject(
-                    name='FilmFields',
-                    fields=[
-                        ParsedField(name='title', type='str', nullable=False),
-                        ParsedField(name='director', type='str', nullable=False),
-                    ],
-                )
-            ]
-        ))
+        expected = asdict(
+            ParsedQuery(
+                query=query,
+                objects=[
+                    ParsedOperation(
+                        name="GetFilm",
+                        type="query",
+                        children=[
+                            ParsedObject(
+                                name="GetFilmData",
+                                fields=[
+                                    ParsedField(
+                                        name="returnOfTheJedi",
+                                        type="Film",
+                                        nullable=True,
+                                    )
+                                ],
+                                children=[
+                                    ParsedObject(
+                                        name="Film",
+                                        parents=["FilmFields"],
+                                        fields=[
+                                            ParsedField(
+                                                name="id", type="str", nullable=False
+                                            )
+                                        ],
+                                    )
+                                ],
+                            )
+                        ],
+                    )
+                ],
+                fragment_objects=[
+                    ParsedObject(
+                        name="FilmFields",
+                        fields=[
+                            ParsedField(name="title", type="str", nullable=False),
+                            ParsedField(name="director", type="str", nullable=False),
+                        ],
+                    )
+                ],
+                used_fragments=["FilmFields"],
+            )
+        )
 
         parsed_dict = asdict(parsed)
 
@@ -242,45 +264,52 @@ class TestQueryParser(BaseTest):
         parser = QueryParser(self.swapi_schema)
         parsed = parser.parse(query)
 
-        expected = asdict(ParsedQuery(
-            query=query,
-            objects=[
-                ParsedOperation(
-                    name='GetPerson',
-                    type='query',
-                    children=[
-                        ParsedObject(
-                            name='GetPersonData',
-                            fields=[
-                                ParsedField(name='luke', type='Person', nullable=True)
-                            ],
-                            children=[
-                                ParsedObject(
-                                    name='Person',
-                                    parents=['CharacterFields'],
-                                    fields=[]
-                                )
-                            ],
-                        ),
-                    ]
-                ),
-                ParsedObject(
-                    name='CharacterFields',
-                    fields=[
-                        ParsedField(name='name', type='str', nullable=False),
-                        ParsedField(name='home', type='Planet', nullable=False),
-                    ],
-                    children=[
-                        ParsedObject(
-                            name='Planet',
-                            fields=[
-                                ParsedField(name='name', type='str', nullable=False),
-                            ]
-                        )
-                    ]
-                )
-            ]
-        ))
+        expected = asdict(
+            ParsedQuery(
+                query=query,
+                objects=[
+                    ParsedOperation(
+                        name="GetPerson",
+                        type="query",
+                        children=[
+                            ParsedObject(
+                                name="GetPersonData",
+                                fields=[
+                                    ParsedField(
+                                        name="luke", type="Person", nullable=True
+                                    )
+                                ],
+                                children=[
+                                    ParsedObject(
+                                        name="Person",
+                                        parents=["CharacterFields"],
+                                        fields=[],
+                                    )
+                                ],
+                            )
+                        ],
+                    )
+                ],
+                fragment_objects=[
+                    ParsedObject(
+                        name="CharacterFields",
+                        fields=[
+                            ParsedField(name="name", type="str", nullable=False),
+                            ParsedField(name="home", type="Planet", nullable=False),
+                        ],
+                        children=[
+                            ParsedObject(
+                                name="Planet",
+                                fields=[
+                                    ParsedField(name="name", type="str", nullable=False)
+                                ],
+                            )
+                        ],
+                    )
+                ],
+                used_fragments=["CharacterFields"],
+            )
+        )
 
         parsed_dict = asdict(parsed)
 
@@ -300,47 +329,52 @@ class TestQueryParser(BaseTest):
         parser = QueryParser(self.swapi_schema)
         parsed = parser.parse(query)
 
-        expected = asdict(ParsedQuery(
-            query=query,
-            objects=[
-                ParsedOperation(
-                    name='GetFilm',
-                    type='query',
-                    variables=[
-                        ParsedVariableDefinition(
-                            name='theFilmID',
-                            type='str',
-                            nullable=False,
-                            is_list=False)
-                    ],
-                    children=[
-                        ParsedObject(
-                            name='GetFilmData',
-                            fields=[
-                                ParsedField(
-                                    name='returnOfTheJedi',
-                                    type='Film',
-                                    nullable=True)
-                            ],
-                            children=[
-                                ParsedObject(
-                                    name='Film',
-                                    fields=[
-                                        ParsedField(
-                                            name='title',
-                                            type='str',
-                                            nullable=False),
-                                        ParsedField(name='director',
-                                            type='str',
-                                            nullable=False),
-                                    ]
-                                )
-                            ]
-                        )
-                    ]
-                )
-            ]
-        ))
+        expected = asdict(
+            ParsedQuery(
+                query=query,
+                objects=[
+                    ParsedOperation(
+                        name="GetFilm",
+                        type="query",
+                        variables=[
+                            ParsedVariableDefinition(
+                                name="theFilmID",
+                                type="str",
+                                nullable=False,
+                                is_list=False,
+                            )
+                        ],
+                        children=[
+                            ParsedObject(
+                                name="GetFilmData",
+                                fields=[
+                                    ParsedField(
+                                        name="returnOfTheJedi",
+                                        type="Film",
+                                        nullable=True,
+                                    )
+                                ],
+                                children=[
+                                    ParsedObject(
+                                        name="Film",
+                                        fields=[
+                                            ParsedField(
+                                                name="title", type="str", nullable=False
+                                            ),
+                                            ParsedField(
+                                                name="director",
+                                                type="str",
+                                                nullable=False,
+                                            ),
+                                        ],
+                                    )
+                                ],
+                            )
+                        ],
+                    )
+                ],
+            )
+        )
 
         parsed_dict = asdict(parsed)
 
@@ -379,111 +413,122 @@ class TestQueryParser(BaseTest):
         parser = QueryParser(self.swapi_schema)
         parsed = parser.parse(query)
 
-        expected = asdict(ParsedQuery(
-            query=query,
-            objects=[
-                ParsedOperation(
-                    name='GetAllFilms',
-                    type='query',
-                    children=[
-                        ParsedObject(
-                            name='GetAllFilmsData',
-                            fields=[
-                                ParsedField(
-                                    name='allFilms',
-                                    type='FilmConnection',
-                                    nullable=True),
-                                ParsedField(
-                                    name='allHeroes',
-                                    type='HeroConnection',
-                                    nullable=True)
-                            ],
-                            children=[
-                                ParsedObject(
-                                    name='FilmConnection',
-                                    fields=[
-                                        ParsedField(
-                                            name='count',
-                                            type='int',
-                                            nullable=True),
-                                        ParsedField(
-                                            name='edges',
-                                            type='List[FilmEdge]',
-                                            nullable=True),
-                                    ],
-                                    children=[
-                                        ParsedObject(
-                                            name='FilmEdge',
-                                            fields=[
-                                                ParsedField(
-                                                    name='node',
-                                                    type='Film',
-                                                    nullable=True)
-                                            ],
-                                            children=[
-                                                ParsedObject(
-                                                    name='Film',
-                                                    fields=[
-                                                        ParsedField(
-                                                            name='id',
-                                                            type='str',
-                                                            nullable=False),
-                                                        ParsedField(
-                                                            name='title',
-                                                            type='str',
-                                                            nullable=False),
-                                                        ParsedField(
-                                                            name='director',
-                                                            type='str',
-                                                            nullable=False)
-                                                    ]
-                                                )
-                                            ]
-                                        )
-
-                                    ]
-                                ),
-                                ParsedObject(
-                                    name='HeroConnection',
-                                    fields=[
-                                        ParsedField(
-                                            name='edges',
-                                            type='List[HeroEdge]',
-                                            nullable=True),
-                                    ],
-                                    children=[
-                                        ParsedObject(
-                                            name='HeroEdge',
-                                            fields=[
-                                                ParsedField(
-                                                    name='node',
-                                                    type='Hero',
-                                                    nullable=True)
-                                            ],
-                                            children=[
-                                                ParsedObject(
-                                                    name='Hero',
-                                                    parents=['HeroFields'],
-                                                    fields=[]
-                                                )
-                                            ]
-                                        )
-
-                                    ]
-                                ),
-                            ],
-                        ),
-                    ]
-                ),
-                ParsedObject(
-                    name='HeroFields',
-                    fields=[
-                        ParsedField(name='id', type='str', nullable=False),
-                        ParsedField(name='name', type='str', nullable=False),
-                    ],
-                )
-            ]
-        ))
+        expected = asdict(
+            ParsedQuery(
+                query=query,
+                objects=[
+                    ParsedOperation(
+                        name="GetAllFilms",
+                        type="query",
+                        children=[
+                            ParsedObject(
+                                name="GetAllFilmsData",
+                                fields=[
+                                    ParsedField(
+                                        name="allFilms",
+                                        type="FilmConnection",
+                                        nullable=True,
+                                    ),
+                                    ParsedField(
+                                        name="allHeroes",
+                                        type="HeroConnection",
+                                        nullable=True,
+                                    ),
+                                ],
+                                children=[
+                                    ParsedObject(
+                                        name="FilmConnection",
+                                        fields=[
+                                            ParsedField(
+                                                name="count", type="int", nullable=True
+                                            ),
+                                            ParsedField(
+                                                name="edges",
+                                                type="List[FilmEdge]",
+                                                nullable=True,
+                                            ),
+                                        ],
+                                        children=[
+                                            ParsedObject(
+                                                name="FilmEdge",
+                                                fields=[
+                                                    ParsedField(
+                                                        name="node",
+                                                        type="Film",
+                                                        nullable=True,
+                                                    )
+                                                ],
+                                                children=[
+                                                    ParsedObject(
+                                                        name="Film",
+                                                        fields=[
+                                                            ParsedField(
+                                                                name="id",
+                                                                type="str",
+                                                                nullable=False,
+                                                            ),
+                                                            ParsedField(
+                                                                name="title",
+                                                                type="str",
+                                                                nullable=False,
+                                                            ),
+                                                            ParsedField(
+                                                                name="director",
+                                                                type="str",
+                                                                nullable=False,
+                                                            ),
+                                                        ],
+                                                    )
+                                                ],
+                                            )
+                                        ],
+                                    ),
+                                    ParsedObject(
+                                        name="HeroConnection",
+                                        fields=[
+                                            ParsedField(
+                                                name="edges",
+                                                type="List[HeroEdge]",
+                                                nullable=True,
+                                            )
+                                        ],
+                                        children=[
+                                            ParsedObject(
+                                                name="HeroEdge",
+                                                fields=[
+                                                    ParsedField(
+                                                        name="node",
+                                                        type="Hero",
+                                                        nullable=True,
+                                                    )
+                                                ],
+                                                children=[
+                                                    ParsedObject(
+                                                        name="Hero",
+                                                        parents=["HeroFields"],
+                                                        fields=[],
+                                                    )
+                                                ],
+                                            )
+                                        ],
+                                    ),
+                                ],
+                            )
+                        ],
+                    )
+                ],
+                fragment_objects=[
+                    ParsedObject(
+                        name="HeroFields",
+                        fields=[
+                            ParsedField(name="id", type="str", nullable=False),
+                            ParsedField(name="name", type="str", nullable=False),
+                        ],
+                    )
+                ],
+                used_fragments=["HeroFields"],
+            )
+        )
 
         parsed_dict = asdict(parsed)
 
@@ -508,92 +553,79 @@ class TestQueryParser(BaseTest):
         parsed = self.github_parser.parse(query)
 
         issue_child = ParsedObject(
-            name='Issue',
+            name="Issue",
             fields=[
+                ParsedField(name="author", type="Actor", nullable=True),
                 ParsedField(
-                    name='author',
-                    type='Actor',
-                    nullable=True),
-                ParsedField(
-                    name='authorAssociation',
-                    type='CommentAuthorAssociation',
-                    nullable=False)
+                    name="authorAssociation",
+                    type="CommentAuthorAssociation",
+                    nullable=False,
+                ),
             ],
             children=[
                 ParsedObject(
-                    name='Actor',
-                    fields=[
-                        ParsedField(
-                            name='login',
-                            type='str',
-                            nullable=False)
-                    ]
+                    name="Actor",
+                    fields=[ParsedField(name="login", type="str", nullable=False)],
                 )
-            ]
+            ],
         )
         child = ParsedObject(
-            name='MyIssuesData',
-            fields=[
-                ParsedField(name='viewer', type='User', nullable=False)
-            ],
+            name="MyIssuesData",
+            fields=[ParsedField(name="viewer", type="User", nullable=False)],
             children=[
                 ParsedObject(
-                    name='User',
+                    name="User",
                     fields=[
                         ParsedField(
-                            name='issues',
-                            type='IssueConnection',
-                            nullable=False)
+                            name="issues", type="IssueConnection", nullable=False
+                        )
                     ],
                     children=[
                         ParsedObject(
-                            name='IssueConnection',
+                            name="IssueConnection",
                             fields=[
                                 ParsedField(
-                                    name='edges',
-                                    type='List[IssueEdge]',
-                                    nullable=True)],
+                                    name="edges", type="List[IssueEdge]", nullable=True
+                                )
+                            ],
                             children=[
                                 ParsedObject(
-                                    name='IssueEdge',
+                                    name="IssueEdge",
                                     fields=[
-                                        ParsedField(name='node',
-                                        type='Issue',
-                                        nullable=True)],
-                                    children=[
-                                        issue_child,
-                                    ]
+                                        ParsedField(
+                                            name="node", type="Issue", nullable=True
+                                        )
+                                    ],
+                                    children=[issue_child],
                                 )
-                            ]
+                            ],
                         )
-                    ]
+                    ],
                 )
-            ]
-        )
-        expected = asdict(ParsedQuery(
-            query=query,
-            enums=[
-                ParsedEnum(
-                    name='CommentAuthorAssociation',
-                    values={
-                        'MEMBER': 'MEMBER',
-                        'OWNER': 'OWNER',
-                        'COLLABORATOR': 'COLLABORATOR',
-                        'CONTRIBUTOR': 'CONTRIBUTOR',
-                        'FIRST_TIME_CONTRIBUTOR': 'FIRST_TIME_CONTRIBUTOR',
-                        'FIRST_TIMER': 'FIRST_TIMER',
-                        'NONE': 'NONE'})
             ],
-            objects=[
-                ParsedOperation(
-                    name='MyIssues',
-                    type='query',
-                    children=[
-                        child,
-                    ]
-                )
-            ]
-        ))
+        )
+        expected = asdict(
+            ParsedQuery(
+                query=query,
+                enums=[
+                    ParsedEnum(
+                        name="CommentAuthorAssociation",
+                        values={
+                            "MEMBER": "MEMBER",
+                            "OWNER": "OWNER",
+                            "COLLABORATOR": "COLLABORATOR",
+                            "CONTRIBUTOR": "CONTRIBUTOR",
+                            "FIRST_TIME_CONTRIBUTOR": "FIRST_TIME_CONTRIBUTOR",
+                            "FIRST_TIMER": "FIRST_TIMER",
+                            "NONE": "NONE",
+                        },
+                    )
+                ],
+                objects=[
+                    ParsedOperation(name="MyIssues", type="query", children=[child])
+                ],
+            )
+        )
 
         parsed_dict = asdict(parsed)
 
@@ -615,52 +647,54 @@ class TestQueryParser(BaseTest):
         parser = QueryParser(self.swapi_schema)
         parsed = parser.parse(query)
 
-        expected = asdict(ParsedQuery(
-            query=query,
-            objects=[
-                ParsedOperation(
-                    name='CreateHero',
-                    type='mutation',
-                    children=[
-                        ParsedObject(
-                            name='CreateHeroData',
-                            fields=[
-                                ParsedField(
-                                    name='createHero',
-                                    type='CreateHeroPayload',
-                                    nullable=True)
-                            ],
-                            children=[
-                                ParsedObject(
-                                    name='CreateHeroPayload',
-                                    fields=[
-                                        ParsedField(
-                                            name='hero',
-                                            type='Hero',
-                                            nullable=True),
-                                        ParsedField(
-                                            name='ok',
-                                            type='bool',
-                                            nullable=True)
-                                    ],
-                                    children=[
-                                        ParsedObject(
-                                            name='Hero',
-                                            fields=[
-                                                ParsedField(
-                                                    name='name',
-                                                    type='str',
-                                                    nullable=False)
-                                            ]
-                                        )
-                                    ]
-                                )
-                            ]
-                        )
-                    ]
-                )
-            ]
-        ))
+        expected = asdict(
+            ParsedQuery(
+                query=query,
+                objects=[
+                    ParsedOperation(
+                        name="CreateHero",
+                        type="mutation",
+                        children=[
+                            ParsedObject(
+                                name="CreateHeroData",
+                                fields=[
+                                    ParsedField(
+                                        name="createHero",
+                                        type="CreateHeroPayload",
+                                        nullable=True,
+                                    )
+                                ],
+                                children=[
+                                    ParsedObject(
+                                        name="CreateHeroPayload",
+                                        fields=[
+                                            ParsedField(
+                                                name="hero", type="Hero", nullable=True
+                                            ),
+                                            ParsedField(
+                                                name="ok", type="bool", nullable=True
+                                            ),
+                                        ],
+                                        children=[
+                                            ParsedObject(
+                                                name="Hero",
+                                                fields=[
+                                                    ParsedField(
+                                                        name="name",
+                                                        type="str",
+                                                        nullable=False,
+                                                    )
+                                                ],
+                                            )
+                                        ],
+                                    )
+                                ],
+                            )
+                        ],
+                    )
+                ],
+            )
+        )
 
         parsed_dict = asdict(parsed)
 

@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 type EquipmentPositionDefinition struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -35,7 +34,7 @@ type EquipmentPositionDefinition struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EquipmentPositionDefinitionQuery when eager-loading is set.
 	Edges                               EquipmentPositionDefinitionEdges `json:"edges"`
-	equipment_type_position_definitions *string
+	equipment_type_position_definitions *int
 }
 
 // EquipmentPositionDefinitionEdges holds the relations/edges for other nodes in the graph.
@@ -101,7 +100,7 @@ func (epd *EquipmentPositionDefinition) assignValues(values ...interface{}) erro
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	epd.ID = strconv.FormatInt(value.Int64, 10)
+	epd.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -133,8 +132,8 @@ func (epd *EquipmentPositionDefinition) assignValues(values ...interface{}) erro
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_type_position_definitions", value)
 		} else if value.Valid {
-			epd.equipment_type_position_definitions = new(string)
-			*epd.equipment_type_position_definitions = strconv.FormatInt(value.Int64, 10)
+			epd.equipment_type_position_definitions = new(int)
+			*epd.equipment_type_position_definitions = int(value.Int64)
 		}
 	}
 	return nil
@@ -142,19 +141,19 @@ func (epd *EquipmentPositionDefinition) assignValues(values ...interface{}) erro
 
 // QueryPositions queries the positions edge of the EquipmentPositionDefinition.
 func (epd *EquipmentPositionDefinition) QueryPositions() *EquipmentPositionQuery {
-	return (&EquipmentPositionDefinitionClient{epd.config}).QueryPositions(epd)
+	return (&EquipmentPositionDefinitionClient{config: epd.config}).QueryPositions(epd)
 }
 
 // QueryEquipmentType queries the equipment_type edge of the EquipmentPositionDefinition.
 func (epd *EquipmentPositionDefinition) QueryEquipmentType() *EquipmentTypeQuery {
-	return (&EquipmentPositionDefinitionClient{epd.config}).QueryEquipmentType(epd)
+	return (&EquipmentPositionDefinitionClient{config: epd.config}).QueryEquipmentType(epd)
 }
 
 // Update returns a builder for updating this EquipmentPositionDefinition.
 // Note that, you need to call EquipmentPositionDefinition.Unwrap() before calling this method, if this EquipmentPositionDefinition
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (epd *EquipmentPositionDefinition) Update() *EquipmentPositionDefinitionUpdateOne {
-	return (&EquipmentPositionDefinitionClient{epd.config}).UpdateOne(epd)
+	return (&EquipmentPositionDefinitionClient{config: epd.config}).UpdateOne(epd)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -185,12 +184,6 @@ func (epd *EquipmentPositionDefinition) String() string {
 	builder.WriteString(epd.VisibilityLabel)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (epd *EquipmentPositionDefinition) id() int {
-	id, _ := strconv.Atoi(epd.ID)
-	return id
 }
 
 // EquipmentPositionDefinitions is a parsable slice of EquipmentPositionDefinition.

@@ -49,7 +49,6 @@
 #include "bstrlib.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
-#include "pgw_defs.h"
 #include "service303.h"
 #include "sgw_defs.h"
 #include "shared_ts_log.h"
@@ -103,7 +102,6 @@ int main(int argc, char *argv[])
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(sgw_init(&spgw_config, mme_config.use_stateless));
-  CHECK_INIT_RETURN(pgw_init(&spgw_config));
 #else
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
 #endif

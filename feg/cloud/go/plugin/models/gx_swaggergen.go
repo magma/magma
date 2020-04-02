@@ -16,6 +16,9 @@ import (
 // swagger:model gx
 type Gx struct {
 
+	// overwrite apn
+	OverwriteApn string `json:"overwrite_apn,omitempty"`
+
 	// server
 	Server *DiameterClientConfigs `json:"server,omitempty"`
 }

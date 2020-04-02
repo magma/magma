@@ -163,6 +163,12 @@ func (c *PropertyTypeClient) Instantiate(pt *PropertyType) *PropertyType {
 }
 
 // Instantiate entity configuration.
+func (c *ReportFilterClient) Instantiate(rf *ReportFilter) *ReportFilter {
+	rf.config = c.config
+	return rf
+}
+
+// Instantiate entity configuration.
 func (c *ServiceClient) Instantiate(s *Service) *Service {
 	s.config = c.config
 	return s
@@ -220,6 +226,18 @@ func (c *SurveyWiFiScanClient) Instantiate(swfs *SurveyWiFiScan) *SurveyWiFiScan
 func (c *TechnicianClient) Instantiate(t *Technician) *Technician {
 	t.config = c.config
 	return t
+}
+
+// Instantiate entity configuration.
+func (c *UserClient) Instantiate(u *User) *User {
+	u.config = c.config
+	return u
+}
+
+// Instantiate entity configuration.
+func (c *UsersGroupClient) Instantiate(ug *UsersGroup) *UsersGroup {
+	ug.config = c.config
+	return ug
 }
 
 // Instantiate entity configuration.

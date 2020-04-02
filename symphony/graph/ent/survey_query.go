@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -37,8 +36,9 @@ type SurveyQuery struct {
 	withSourceFile *FileQuery
 	withQuestions  *SurveyQuestionQuery
 	withFKs        bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -68,36 +68,54 @@ func (sq *SurveyQuery) Order(o ...Order) *SurveyQuery {
 // QueryLocation chains the current query on the location edge.
 func (sq *SurveyQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
-		sqlgraph.To(location.Table, location.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, survey.LocationTable, survey.LocationColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, survey.LocationTable, survey.LocationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QuerySourceFile chains the current query on the source_file edge.
 func (sq *SurveyQuery) QuerySourceFile() *FileQuery {
 	query := &FileQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
-		sqlgraph.To(file.Table, file.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, survey.SourceFileTable, survey.SourceFileColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, survey.SourceFileTable, survey.SourceFileColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryQuestions chains the current query on the questions edge.
 func (sq *SurveyQuery) QueryQuestions() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
-		sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, survey.QuestionsTable, survey.QuestionsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, survey.QuestionsTable, survey.QuestionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -123,8 +141,8 @@ func (sq *SurveyQuery) FirstX(ctx context.Context) *Survey {
 }
 
 // FirstID returns the first Survey id in the query. Returns *NotFoundError when no id was found.
-func (sq *SurveyQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sq *SurveyQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -136,7 +154,7 @@ func (sq *SurveyQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (sq *SurveyQuery) FirstXID(ctx context.Context) string {
+func (sq *SurveyQuery) FirstXID(ctx context.Context) int {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -170,8 +188,8 @@ func (sq *SurveyQuery) OnlyX(ctx context.Context) *Survey {
 }
 
 // OnlyID returns the only Survey id in the query, returns an error if not exactly one id was returned.
-func (sq *SurveyQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sq *SurveyQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -187,7 +205,7 @@ func (sq *SurveyQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (sq *SurveyQuery) OnlyXID(ctx context.Context) string {
+func (sq *SurveyQuery) OnlyXID(ctx context.Context) int {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -197,6 +215,9 @@ func (sq *SurveyQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of Surveys.
 func (sq *SurveyQuery) All(ctx context.Context) ([]*Survey, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return sq.sqlAll(ctx)
 }
 
@@ -210,8 +231,8 @@ func (sq *SurveyQuery) AllX(ctx context.Context) []*Survey {
 }
 
 // IDs executes the query and returns a list of Survey ids.
-func (sq *SurveyQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (sq *SurveyQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := sq.Select(survey.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -219,7 +240,7 @@ func (sq *SurveyQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *SurveyQuery) IDsX(ctx context.Context) []string {
+func (sq *SurveyQuery) IDsX(ctx context.Context) []int {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -229,6 +250,9 @@ func (sq *SurveyQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (sq *SurveyQuery) Count(ctx context.Context) (int, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return sq.sqlCount(ctx)
 }
 
@@ -243,6 +267,9 @@ func (sq *SurveyQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (sq *SurveyQuery) Exist(ctx context.Context) (bool, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return sq.sqlExist(ctx)
 }
 
@@ -266,7 +293,8 @@ func (sq *SurveyQuery) Clone() *SurveyQuery {
 		unique:     append([]string{}, sq.unique...),
 		predicates: append([]predicate.Survey{}, sq.predicates...),
 		// clone intermediate query.
-		sql: sq.sql.Clone(),
+		sql:  sq.sql.Clone(),
+		path: sq.path,
 	}
 }
 
@@ -321,7 +349,12 @@ func (sq *SurveyQuery) WithQuestions(opts ...func(*SurveyQuestionQuery)) *Survey
 func (sq *SurveyQuery) GroupBy(field string, fields ...string) *SurveyGroupBy {
 	group := &SurveyGroupBy{config: sq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = sq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return sq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -340,8 +373,24 @@ func (sq *SurveyQuery) GroupBy(field string, fields ...string) *SurveyGroupBy {
 func (sq *SurveyQuery) Select(field string, fields ...string) *SurveySelect {
 	selector := &SurveySelect{config: sq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = sq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return sq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (sq *SurveyQuery) prepareQuery(ctx context.Context) error {
+	if sq.path != nil {
+		prev, err := sq.path(ctx)
+		if err != nil {
+			return err
+		}
+		sq.sql = prev
+	}
+	return nil
 }
 
 func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
@@ -386,8 +435,8 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	}
 
 	if query := sq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Survey)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Survey)
 		for i := range nodes {
 			if fk := nodes[i].survey_location; fk != nil {
 				ids = append(ids, *fk)
@@ -411,8 +460,8 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	}
 
 	if query := sq.withSourceFile; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Survey)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Survey)
 		for i := range nodes {
 			if fk := nodes[i].survey_source_file; fk != nil {
 				ids = append(ids, *fk)
@@ -437,13 +486,9 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 
 	if query := sq.withQuestions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Survey)
+		nodeids := make(map[int]*Survey)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -489,7 +534,7 @@ func (sq *SurveyQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   survey.Table,
 			Columns: survey.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: survey.FieldID,
 			},
 		},
@@ -549,8 +594,9 @@ type SurveyGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -561,6 +607,11 @@ func (sgb *SurveyGroupBy) Aggregate(fns ...Aggregate) *SurveyGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (sgb *SurveyGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := sgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	sgb.sql = query
 	return sgb.sqlScan(ctx, v)
 }
 
@@ -679,12 +730,18 @@ func (sgb *SurveyGroupBy) sqlQuery() *sql.Selector {
 type SurveySelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ss *SurveySelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ss.path(ctx)
+	if err != nil {
+		return err
+	}
+	ss.sql = query
 	return ss.sqlScan(ctx, v)
 }
 

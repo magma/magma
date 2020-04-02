@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -48,8 +47,9 @@ type EquipmentQuery struct {
 	withFiles          *FileQuery
 	withHyperlinks     *HyperlinkQuery
 	withFKs            bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -79,108 +79,162 @@ func (eq *EquipmentQuery) Order(o ...Order) *EquipmentQuery {
 // QueryType chains the current query on the type edge.
 func (eq *EquipmentQuery) QueryType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: eq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, equipment.TypeTable, equipment.TypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+			sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, equipment.TypeTable, equipment.TypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (eq *EquipmentQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: eq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sqlgraph.To(location.Table, location.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, equipment.LocationTable, equipment.LocationColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, equipment.LocationTable, equipment.LocationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryParentPosition chains the current query on the parent_position edge.
 func (eq *EquipmentQuery) QueryParentPosition() *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: eq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, true, equipment.ParentPositionTable, equipment.ParentPositionColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+			sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, equipment.ParentPositionTable, equipment.ParentPositionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryPositions chains the current query on the positions edge.
 func (eq *EquipmentQuery) QueryPositions() *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: eq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, equipment.PositionsTable, equipment.PositionsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+			sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, equipment.PositionsTable, equipment.PositionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryPorts chains the current query on the ports edge.
 func (eq *EquipmentQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: eq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, equipment.PortsTable, equipment.PortsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+			sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, equipment.PortsTable, equipment.PortsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
 func (eq *EquipmentQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: eq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sqlgraph.To(workorder.Table, workorder.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, equipment.WorkOrderTable, equipment.WorkOrderColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, equipment.WorkOrderTable, equipment.WorkOrderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (eq *EquipmentQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: eq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sqlgraph.To(property.Table, property.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, equipment.PropertiesTable, equipment.PropertiesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+			sqlgraph.To(property.Table, property.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, equipment.PropertiesTable, equipment.PropertiesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryFiles chains the current query on the files edge.
 func (eq *EquipmentQuery) QueryFiles() *FileQuery {
 	query := &FileQuery{config: eq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sqlgraph.To(file.Table, file.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, equipment.FilesTable, equipment.FilesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, equipment.FilesTable, equipment.FilesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryHyperlinks chains the current query on the hyperlinks edge.
 func (eq *EquipmentQuery) QueryHyperlinks() *HyperlinkQuery {
 	query := &HyperlinkQuery{config: eq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, equipment.HyperlinksTable, equipment.HyperlinksColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+			sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, equipment.HyperlinksTable, equipment.HyperlinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -206,8 +260,8 @@ func (eq *EquipmentQuery) FirstX(ctx context.Context) *Equipment {
 }
 
 // FirstID returns the first Equipment id in the query. Returns *NotFoundError when no id was found.
-func (eq *EquipmentQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (eq *EquipmentQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = eq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -219,7 +273,7 @@ func (eq *EquipmentQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (eq *EquipmentQuery) FirstXID(ctx context.Context) string {
+func (eq *EquipmentQuery) FirstXID(ctx context.Context) int {
 	id, err := eq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -253,8 +307,8 @@ func (eq *EquipmentQuery) OnlyX(ctx context.Context) *Equipment {
 }
 
 // OnlyID returns the only Equipment id in the query, returns an error if not exactly one id was returned.
-func (eq *EquipmentQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (eq *EquipmentQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = eq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -270,7 +324,7 @@ func (eq *EquipmentQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (eq *EquipmentQuery) OnlyXID(ctx context.Context) string {
+func (eq *EquipmentQuery) OnlyXID(ctx context.Context) int {
 	id, err := eq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -280,6 +334,9 @@ func (eq *EquipmentQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of EquipmentSlice.
 func (eq *EquipmentQuery) All(ctx context.Context) ([]*Equipment, error) {
+	if err := eq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return eq.sqlAll(ctx)
 }
 
@@ -293,8 +350,8 @@ func (eq *EquipmentQuery) AllX(ctx context.Context) []*Equipment {
 }
 
 // IDs executes the query and returns a list of Equipment ids.
-func (eq *EquipmentQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (eq *EquipmentQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := eq.Select(equipment.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -302,7 +359,7 @@ func (eq *EquipmentQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (eq *EquipmentQuery) IDsX(ctx context.Context) []string {
+func (eq *EquipmentQuery) IDsX(ctx context.Context) []int {
 	ids, err := eq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -312,6 +369,9 @@ func (eq *EquipmentQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (eq *EquipmentQuery) Count(ctx context.Context) (int, error) {
+	if err := eq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return eq.sqlCount(ctx)
 }
 
@@ -326,6 +386,9 @@ func (eq *EquipmentQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (eq *EquipmentQuery) Exist(ctx context.Context) (bool, error) {
+	if err := eq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return eq.sqlExist(ctx)
 }
 
@@ -349,7 +412,8 @@ func (eq *EquipmentQuery) Clone() *EquipmentQuery {
 		unique:     append([]string{}, eq.unique...),
 		predicates: append([]predicate.Equipment{}, eq.predicates...),
 		// clone intermediate query.
-		sql: eq.sql.Clone(),
+		sql:  eq.sql.Clone(),
+		path: eq.path,
 	}
 }
 
@@ -470,7 +534,12 @@ func (eq *EquipmentQuery) WithHyperlinks(opts ...func(*HyperlinkQuery)) *Equipme
 func (eq *EquipmentQuery) GroupBy(field string, fields ...string) *EquipmentGroupBy {
 	group := &EquipmentGroupBy{config: eq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = eq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return eq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -489,8 +558,24 @@ func (eq *EquipmentQuery) GroupBy(field string, fields ...string) *EquipmentGrou
 func (eq *EquipmentQuery) Select(field string, fields ...string) *EquipmentSelect {
 	selector := &EquipmentSelect{config: eq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = eq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return eq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (eq *EquipmentQuery) prepareQuery(ctx context.Context) error {
+	if eq.path != nil {
+		prev, err := eq.path(ctx)
+		if err != nil {
+			return err
+		}
+		eq.sql = prev
+	}
+	return nil
 }
 
 func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
@@ -541,8 +626,8 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 	}
 
 	if query := eq.withType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Equipment)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Equipment)
 		for i := range nodes {
 			if fk := nodes[i].equipment_type; fk != nil {
 				ids = append(ids, *fk)
@@ -566,8 +651,8 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 	}
 
 	if query := eq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Equipment)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Equipment)
 		for i := range nodes {
 			if fk := nodes[i].location_equipment; fk != nil {
 				ids = append(ids, *fk)
@@ -591,8 +676,8 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 	}
 
 	if query := eq.withParentPosition; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Equipment)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Equipment)
 		for i := range nodes {
 			if fk := nodes[i].equipment_position_attachment; fk != nil {
 				ids = append(ids, *fk)
@@ -617,13 +702,9 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 
 	if query := eq.withPositions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Equipment)
+		nodeids := make(map[int]*Equipment)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -649,13 +730,9 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 
 	if query := eq.withPorts; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Equipment)
+		nodeids := make(map[int]*Equipment)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -680,8 +757,8 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 	}
 
 	if query := eq.withWorkOrder; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Equipment)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Equipment)
 		for i := range nodes {
 			if fk := nodes[i].equipment_work_order; fk != nil {
 				ids = append(ids, *fk)
@@ -706,13 +783,9 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 
 	if query := eq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Equipment)
+		nodeids := make(map[int]*Equipment)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -738,13 +811,9 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 
 	if query := eq.withFiles; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Equipment)
+		nodeids := make(map[int]*Equipment)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -770,13 +839,9 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 
 	if query := eq.withHyperlinks; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Equipment)
+		nodeids := make(map[int]*Equipment)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -822,7 +887,7 @@ func (eq *EquipmentQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   equipment.Table,
 			Columns: equipment.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipment.FieldID,
 			},
 		},
@@ -882,8 +947,9 @@ type EquipmentGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -894,6 +960,11 @@ func (egb *EquipmentGroupBy) Aggregate(fns ...Aggregate) *EquipmentGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (egb *EquipmentGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := egb.path(ctx)
+	if err != nil {
+		return err
+	}
+	egb.sql = query
 	return egb.sqlScan(ctx, v)
 }
 
@@ -1012,12 +1083,18 @@ func (egb *EquipmentGroupBy) sqlQuery() *sql.Selector {
 type EquipmentSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (es *EquipmentSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := es.path(ctx)
+	if err != nil {
+		return err
+	}
+	es.sql = query
 	return es.sqlScan(ctx, v)
 }
 

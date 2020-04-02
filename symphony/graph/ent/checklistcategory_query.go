@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -33,8 +32,9 @@ type CheckListCategoryQuery struct {
 	// eager-loading edges.
 	withCheckListItems *CheckListItemQuery
 	withFKs            bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -64,12 +64,18 @@ func (clcq *CheckListCategoryQuery) Order(o ...Order) *CheckListCategoryQuery {
 // QueryCheckListItems chains the current query on the check_list_items edge.
 func (clcq *CheckListCategoryQuery) QueryCheckListItems() *CheckListItemQuery {
 	query := &CheckListItemQuery{config: clcq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(checklistcategory.Table, checklistcategory.FieldID, clcq.sqlQuery()),
-		sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, checklistcategory.CheckListItemsTable, checklistcategory.CheckListItemsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(clcq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := clcq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistcategory.Table, checklistcategory.FieldID, clcq.sqlQuery()),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, checklistcategory.CheckListItemsTable, checklistcategory.CheckListItemsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(clcq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -95,8 +101,8 @@ func (clcq *CheckListCategoryQuery) FirstX(ctx context.Context) *CheckListCatego
 }
 
 // FirstID returns the first CheckListCategory id in the query. Returns *NotFoundError when no id was found.
-func (clcq *CheckListCategoryQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (clcq *CheckListCategoryQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = clcq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -108,7 +114,7 @@ func (clcq *CheckListCategoryQuery) FirstID(ctx context.Context) (id string, err
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (clcq *CheckListCategoryQuery) FirstXID(ctx context.Context) string {
+func (clcq *CheckListCategoryQuery) FirstXID(ctx context.Context) int {
 	id, err := clcq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -142,8 +148,8 @@ func (clcq *CheckListCategoryQuery) OnlyX(ctx context.Context) *CheckListCategor
 }
 
 // OnlyID returns the only CheckListCategory id in the query, returns an error if not exactly one id was returned.
-func (clcq *CheckListCategoryQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (clcq *CheckListCategoryQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = clcq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -159,7 +165,7 @@ func (clcq *CheckListCategoryQuery) OnlyID(ctx context.Context) (id string, err 
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (clcq *CheckListCategoryQuery) OnlyXID(ctx context.Context) string {
+func (clcq *CheckListCategoryQuery) OnlyXID(ctx context.Context) int {
 	id, err := clcq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -169,6 +175,9 @@ func (clcq *CheckListCategoryQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of CheckListCategories.
 func (clcq *CheckListCategoryQuery) All(ctx context.Context) ([]*CheckListCategory, error) {
+	if err := clcq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return clcq.sqlAll(ctx)
 }
 
@@ -182,8 +191,8 @@ func (clcq *CheckListCategoryQuery) AllX(ctx context.Context) []*CheckListCatego
 }
 
 // IDs executes the query and returns a list of CheckListCategory ids.
-func (clcq *CheckListCategoryQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (clcq *CheckListCategoryQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := clcq.Select(checklistcategory.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -191,7 +200,7 @@ func (clcq *CheckListCategoryQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (clcq *CheckListCategoryQuery) IDsX(ctx context.Context) []string {
+func (clcq *CheckListCategoryQuery) IDsX(ctx context.Context) []int {
 	ids, err := clcq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -201,6 +210,9 @@ func (clcq *CheckListCategoryQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (clcq *CheckListCategoryQuery) Count(ctx context.Context) (int, error) {
+	if err := clcq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return clcq.sqlCount(ctx)
 }
 
@@ -215,6 +227,9 @@ func (clcq *CheckListCategoryQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (clcq *CheckListCategoryQuery) Exist(ctx context.Context) (bool, error) {
+	if err := clcq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return clcq.sqlExist(ctx)
 }
 
@@ -238,7 +253,8 @@ func (clcq *CheckListCategoryQuery) Clone() *CheckListCategoryQuery {
 		unique:     append([]string{}, clcq.unique...),
 		predicates: append([]predicate.CheckListCategory{}, clcq.predicates...),
 		// clone intermediate query.
-		sql: clcq.sql.Clone(),
+		sql:  clcq.sql.Clone(),
+		path: clcq.path,
 	}
 }
 
@@ -271,7 +287,12 @@ func (clcq *CheckListCategoryQuery) WithCheckListItems(opts ...func(*CheckListIt
 func (clcq *CheckListCategoryQuery) GroupBy(field string, fields ...string) *CheckListCategoryGroupBy {
 	group := &CheckListCategoryGroupBy{config: clcq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = clcq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := clcq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return clcq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -290,8 +311,24 @@ func (clcq *CheckListCategoryQuery) GroupBy(field string, fields ...string) *Che
 func (clcq *CheckListCategoryQuery) Select(field string, fields ...string) *CheckListCategorySelect {
 	selector := &CheckListCategorySelect{config: clcq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = clcq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := clcq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return clcq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (clcq *CheckListCategoryQuery) prepareQuery(ctx context.Context) error {
+	if clcq.path != nil {
+		prev, err := clcq.path(ctx)
+		if err != nil {
+			return err
+		}
+		clcq.sql = prev
+	}
+	return nil
 }
 
 func (clcq *CheckListCategoryQuery) sqlAll(ctx context.Context) ([]*CheckListCategory, error) {
@@ -332,13 +369,9 @@ func (clcq *CheckListCategoryQuery) sqlAll(ctx context.Context) ([]*CheckListCat
 
 	if query := clcq.withCheckListItems; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*CheckListCategory)
+		nodeids := make(map[int]*CheckListCategory)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -384,7 +417,7 @@ func (clcq *CheckListCategoryQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   checklistcategory.Table,
 			Columns: checklistcategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistcategory.FieldID,
 			},
 		},
@@ -444,8 +477,9 @@ type CheckListCategoryGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -456,6 +490,11 @@ func (clcgb *CheckListCategoryGroupBy) Aggregate(fns ...Aggregate) *CheckListCat
 
 // Scan applies the group-by query and scan the result into the given value.
 func (clcgb *CheckListCategoryGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := clcgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	clcgb.sql = query
 	return clcgb.sqlScan(ctx, v)
 }
 
@@ -574,12 +613,18 @@ func (clcgb *CheckListCategoryGroupBy) sqlQuery() *sql.Selector {
 type CheckListCategorySelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (clcs *CheckListCategorySelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := clcs.path(ctx)
+	if err != nil {
+		return err
+	}
+	clcs.sql = query
 	return clcs.sqlScan(ctx, v)
 }
 

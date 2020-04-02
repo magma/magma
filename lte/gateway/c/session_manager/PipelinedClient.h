@@ -35,7 +35,22 @@ class PipelinedClient {
    * @param infos - list of SessionInfos to setup flows for
    * @return true if the operation was successful
    */
-  virtual bool setup(
+  virtual bool setup_cwf(
+    const std::vector<SessionState::SessionInfo>& infos,
+    const std::vector<SubscriberQuotaUpdate>& quota_updates,
+    const std::vector<std::string> ue_mac_addrs,
+    const std::vector<std::string> msisdns,
+    const std::vector<std::string> apn_mac_addrs,
+    const std::vector<std::string> apn_names,
+    const std::uint64_t& epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback) = 0;
+
+  /**
+   * Activates all rules for provided SessionInfos
+   * @param infos - list of SessionInfos to setup flows for
+   * @return true if the operation was successful
+   */
+  virtual bool setup_lte(
     const std::vector<SessionState::SessionInfo>& infos,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) = 0;
@@ -79,6 +94,16 @@ class PipelinedClient {
     const std::string &ap_name) = 0;
 
   /**
+   * Update the IPFIX export rule in pipeliend
+   */
+  virtual bool update_ipfix_flow(
+    const SubscriberID &sid,
+    const std::string &ue_mac_addr,
+    const std::string &msisdn,
+    const std::string &ap_mac_addr,
+    const std::string &ap_name) = 0;
+
+  /**
    * Send the MAC address of UE and the subscriberID
    * for pipelined to delete a flow for the subscriber by matching the MAC
    */
@@ -108,7 +133,22 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * @param infos - list of SessionInfos to setup flows for
    * @return true if the operation was successful
    */
-  bool setup(
+  bool setup_cwf(
+    const std::vector<SessionState::SessionInfo>& infos,
+    const std::vector<SubscriberQuotaUpdate>& quota_updates,
+    const std::vector<std::string> ue_mac_addrs,
+    const std::vector<std::string> msisdns,
+    const std::vector<std::string> apn_mac_addrs,
+    const std::vector<std::string> apn_names,
+    const std::uint64_t& epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback);
+
+  /**
+   * Activates all rules for provided SessionInfos
+   * @param infos - list of SessionInfos to setup flows for
+   * @return true if the operation was successful
+   */
+  bool setup_lte(
     const std::vector<SessionState::SessionInfo>& infos,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback);
@@ -152,6 +192,16 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string& ap_name);
 
   /**
+   * Update the IPFIX export rule in pipeliend
+   */
+  bool update_ipfix_flow(
+    const SubscriberID& sid,
+    const std::string& ue_mac_addr,
+    const std::string& msisdn,
+    const std::string& ap_mac_addr,
+    const std::string& ap_name);
+
+  /**
    * Propagate whether a subscriber has quota / no quota / or terminated
    */
   bool update_subscriber_quota_state(
@@ -166,9 +216,13 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   std::unique_ptr<Pipelined::Stub> stub_;
 
  private:
-  void setup_flows_rpc(
-    const SetupFlowsRequest& request,
+  void setup_policy_rpc(
+    const SetupPolicyRequest& request,
     std::function<void(Status, SetupFlowsResult)> callback);
+
+ void setup_ue_mac_rpc(
+   const SetupUEMacRequest& request,
+   std::function<void(Status, SetupFlowsResult)> callback);
 
   void deactivate_flows_rpc(
     const DeactivateFlowsRequest& request,
@@ -179,6 +233,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     std::function<void(Status, ActivateFlowsResult)> callback);
 
   void add_ue_mac_flow_rpc(
+    const UEMacFlowRequest& request,
+    std::function<void(Status, FlowResponse)> callback);
+
+  void update_ipfix_flow_rpc(
     const UEMacFlowRequest& request,
     std::function<void(Status, FlowResponse)> callback);
 

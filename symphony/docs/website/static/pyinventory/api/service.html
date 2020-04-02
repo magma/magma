@@ -32,31 +32,31 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.service.add_service"><code class="name flex">
-<span>def <span class="ident">add_service</span></span>(<span>client, name, external_id, service_type, customer, properties_dict, links)</span>
+<span>def <span class="ident">add_service</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, external_id: Union[str, NoneType], service_type: str, customer: Union[<a title="pyinventory.consts.Customer" href="../consts.html#pyinventory.consts.Customer">Customer</a>, NoneType], properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], links: List[<a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link">Link</a>]) -> <a title="pyinventory.consts.Service" href="../consts.html#pyinventory.consts.Service">Service</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.service.add_service_endpoint"><code class="name flex">
-<span>def <span class="ident">add_service_endpoint</span></span>(<span>client, service, port, role)</span>
+<span>def <span class="ident">add_service_endpoint</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, service: <a title="pyinventory.consts.Service" href="../consts.html#pyinventory.consts.Service">Service</a>, port: <a title="pyinventory.consts.EquipmentPort" href="../consts.html#pyinventory.consts.EquipmentPort">EquipmentPort</a>, role: <a title="pyinventory.graphql.service_endpoint_role_enum.ServiceEndpointRole" href="../graphql/service_endpoint_role_enum.html#pyinventory.graphql.service_endpoint_role_enum.ServiceEndpointRole">ServiceEndpointRole</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.service.add_service_type"><code class="name flex">
-<span>def <span class="ident">add_service_type</span></span>(<span>client, name, hasCustomer, properties)</span>
+<span>def <span class="ident">add_service_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, hasCustomer: bool, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]]) -> <a title="pyinventory.consts.ServiceType" href="../consts.html#pyinventory.consts.ServiceType">ServiceType</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.service.delete_service_type_with_services"><code class="name flex">
-<span>def <span class="ident">delete_service_type_with_services</span></span>(<span>client, service_type)</span>
+<span>def <span class="ident">delete_service_type_with_services</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, service_type: <a title="pyinventory.consts.ServiceType" href="../consts.html#pyinventory.consts.ServiceType">ServiceType</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.api.service.get_service"><code class="name flex">
-<span>def <span class="ident">get_service</span></span>(<span>client, id)</span>
+<span>def <span class="ident">get_service</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, id: str) -> <a title="pyinventory.consts.Service" href="../consts.html#pyinventory.consts.Service">Service</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>

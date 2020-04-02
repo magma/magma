@@ -27,6 +27,16 @@ const importStatement = String.raw`^(?:var|let|const|import type|import)\s+` +
 const maxLenIgnorePattern =
   '(?:' + importStatement + '|\\})' +
   String.raw`\s*(?:=\s*require\(|from)[a-zA-Z_+./"'\s\d\-]+\)?[^;\n]*[;\n]`;
+const path = require('path');
+const {buildSchema, printSchema} = require('graphql');
+const fs = require('fs');
+
+const schemaPath = path.resolve(
+  __dirname,
+  '../../../../fbcode/fbc/symphony/graph/graphql/schema/symphony.graphql',
+);
+const schemaFile = fs.readFileSync(schemaPath, {encoding: 'utf8'});
+const schemaObject = buildSchema(schemaFile);
 
 const restrictedImportsRule = ['error',{
   'paths':[{
@@ -73,6 +83,7 @@ module.exports = Object.assign({}, fbStrict, {
     'react-hooks',
     'relay',
     'sort-imports-es6-autofix',
+    'graphql',
   ],
   rules: {
     'comma-dangle': ['warn', 'always-multiline'],
@@ -168,6 +179,14 @@ module.exports = Object.assign({}, fbStrict, {
       'ignoreMemberSort': false,
       'memberSyntaxSortOrder': ['none', 'all', 'single', 'multiple'],
     }],
+    'graphql/no-deprecated-fields': [
+      'error',
+      {
+        env: 'relay',
+        schemaString: printSchema(schemaObject),
+        tagName: 'graphql',
+      },
+    ],
 
     // Jest Plugin
     // The following rules are made available via `eslint-plugin-jest`.

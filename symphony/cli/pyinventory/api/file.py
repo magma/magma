@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyre-strict
 
 
 import glob
@@ -9,47 +8,16 @@ from typing import Generator, Optional
 
 import filetype
 
+from ..client import SymphonyClient
 from ..consts import Document, Location, SiteSurvey
-from ..graphql.add_image_mutation import AddImageInput, AddImageMutation
+from ..graphql.add_image_input import AddImageInput
+from ..graphql.add_image_mutation import AddImageMutation
 from ..graphql.delete_image_mutation import DeleteImageMutation
 from ..graphql.image_entity_enum import ImageEntity
-from ..graphql_client import GraphqlClient
-
-
-def store_file(
-    client: GraphqlClient, file_path: str, file_type: str, is_global: bool
-) -> str:
-    sign_response = client.session.get(
-        client.put_endpoint,
-        params={"contentType": file_type},
-        headers={"Is-Global": str(is_global)},
-    )
-    sign_response = sign_response.json()
-    signed_url = sign_response["URL"]
-    with open(file_path, "rb") as f:
-        file_data = f.read()
-    response = client.session.put(
-        signed_url, data=file_data, headers={"Content-Type": file_type}
-    )
-    response.raise_for_status()
-    return sign_response["key"]
-
-
-def delete_file(client: GraphqlClient, key: str, is_global: bool) -> None:
-    sign_response = client.session.delete(
-        client.delete_endpoint.format(key),
-        headers={"Is-Global": str(is_global)},
-        allow_redirects=False,
-    )
-    sign_response.raise_for_status()
-    assert sign_response.status_code == 307
-    signed_url = sign_response.headers["location"]
-    response = client.session.delete(signed_url)
-    response.raise_for_status()
 
 
 def _add_image(
-    client: GraphqlClient,
+    client: SymphonyClient,
     local_file_path: str,
     entity_type: ImageEntity,
     entity_id: str,
@@ -57,7 +25,7 @@ def _add_image(
 ) -> None:
     file_type = filetype.guess(local_file_path)
     file_type = file_type.MIME if file_type is not None else ""
-    img_key = store_file(client, local_file_path, file_type, False)
+    img_key = client.store_file(local_file_path, file_type, False)
     file_size = os.path.getsize(local_file_path)
 
     AddImageMutation.execute(
@@ -83,7 +51,7 @@ def list_dir(directory_path: str) -> Generator[str, None, None]:
 
 
 def add_file(
-    client: GraphqlClient,
+    client: SymphonyClient,
     local_file_path: str,
     entity_type: str,
     entity_id: str,
@@ -92,19 +60,24 @@ def add_file(
     """This function adds file to an entity of a given type.
 
         Args:
-            client (object):
-                Client object
-            local_file_path (str):
-                local system path to the file
-            entity_type (str):
-                one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
-            entity_id (string):
-                valid entity ID
+            local_file_path (str): local system path to the file
+            entity_type (str): one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
+            entity_id (string): valid entity ID
+            category (Optional[string]): file category name 
 
-        Returns: None
+        Raises:
+            FailedOperationException: on operation failure 
 
         Example:
-            client.add_file(client, './document.pdf', 'LOCATION', location.id)
+            ```
+            location = client.get_location({("Country", "LS_IND_Prod_Copy")})
+            client.add_file(
+                local_file_path='./document.pdf', 
+                entity_type='LOCATION', 
+                entity_id=location.id, 
+                category='category_name'
+            )
+            ```
     """
     entity = {
         "LOCATION": ImageEntity.LOCATION,
@@ -116,7 +89,7 @@ def add_file(
 
 
 def add_files(
-    client: GraphqlClient,
+    client: SymphonyClient,
     local_directory_path: str,
     entity_type: str,
     entity_id: str,
@@ -125,50 +98,114 @@ def add_files(
     """This function adds all files located in folder to an entity of a given type.
 
         Args:
-            client (object):
-                Client object
-            local_file_path (str):
-                local system path to the file
-            entity_type (str):
-                one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
-            entity_id (string):
-                valid entity ID
-
-        Returns: None
+            local_file_path (str): local system path to the file
+            entity_type (str): one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
+            entity_id (string): valid entity ID
+            category (Optional[string]): file category name
 
         Example:
-            client.add_files(client, './documents_folder/', 'LOCATION', location.id)
+            ```
+            location = client.get_location({("Country", "LS_IND_Prod_Copy")})
+            client.add_files(
+                local_directory_path='./documents_folder/', 
+                entity_type='LOCATION', 
+                entity_id=location.id, 
+                category='category_name')
+            ```
     """
     for file in list_dir(local_directory_path):
         add_file(client, file, entity_type, entity_id, category)
 
 
 def add_location_image(
-    client: GraphqlClient, local_file_path: str, location: Location
+    client: SymphonyClient, local_file_path: str, location: Location
 ) -> None:
+    """This function adds image to existing location.
+
+        Args:
+            local_file_path (str): existing port name
+            location (pyinventory.consts.Location): existing location object
+
+        Raises:
+            FailedOperationException: on operation failure 
+
+        Example:
+            ```
+            location = client.get_location({("Country", "LS_IND_Prod_Copy")})
+            client.add_location_image(
+                local_file_path='./document.pdf',
+                location=location
+            )
+            ```
+    """
     _add_image(client, local_file_path, ImageEntity.LOCATION, location.id)
 
 
-def add_site_survey_image(client: GraphqlClient, local_file_path: str, id: str) -> None:
+def add_site_survey_image(
+    client: SymphonyClient, local_file_path: str, id: str
+) -> None:
+    """This function adds image to existing site survey.
+
+        Args:
+            local_file_path (str): existing port name
+            id (str): site survey ID
+
+        Raises:
+            FailedOperationException: on operation failure 
+
+        Example:
+            ```
+            client.add_site_survey_image(
+                local_file_path='./document.pdf',
+                id="123456"
+            )
+            ```
+    """
     _add_image(client, local_file_path, ImageEntity.SITE_SURVEY, id)
 
 
 def _delete_image(
-    client: GraphqlClient, entity_type: ImageEntity, entity_id: str, image_id: str
+    client: SymphonyClient, entity_type: ImageEntity, entity_id: str, image_id: str
 ) -> None:
     DeleteImageMutation.execute(
         client, entityType=entity_type, entityId=entity_id, id=image_id
     )
 
 
-def delete_site_survey_image(client: GraphqlClient, survey: SiteSurvey) -> None:
+def delete_site_survey_image(client: SymphonyClient, survey: SiteSurvey) -> None:
+    """This function deletes image from existing site survey.
+
+        Args:
+            survey (pyinventory.consts.SiteSurvey): site survey object
+
+        Raises:
+            FailedOperationException: on operation failure 
+
+        Example:
+            ```
+            client.delete_site_survey_image(survey=survey)
+            ```
+    """
     source_file_key = survey.sourceFileKey
     source_file_id = survey.sourceFileId
     if source_file_key is not None:
-        delete_file(client, source_file_key, False)
+        client.delete_file(source_file_key, False)
     if source_file_id is not None:
         _delete_image(client, ImageEntity.SITE_SURVEY, survey.id, source_file_id)
 
 
-def delete_document(client: GraphqlClient, document: Document) -> None:
+def delete_document(client: SymphonyClient, document: Document) -> None:
+    """This function deletes existing document.
+
+        Args:
+            document (pyinventory.consts.Document): document object
+
+        Raises:
+            FailedOperationException: on operation failure 
+
+        Example:
+            ```
+            client.delete_document(document=document)
+            ```
+    """
     _delete_image(client, document.parentEntity, document.parentId, document.id)

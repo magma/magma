@@ -14,20 +14,21 @@ import (
 	"testing"
 	"time"
 
-	"magma/feg/gateway/policydb"
-	fegstreamer "magma/feg/gateway/streamer"
-	"magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/streamer"
-	"magma/orc8r/cloud/go/services/streamer/providers"
-	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
-	orcprotos "magma/orc8r/lib/go/protos"
-	platform_registry "magma/orc8r/lib/go/registry"
-	"magma/orc8r/lib/go/service/config"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+
+	"magma/feg/gateway/policydb"
+	fegstreamer "magma/gateway/streamer"
+	"magma/lte/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/streamer"
+	"magma/orc8r/cloud/go/services/streamer/providers"
+	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
+	"magma/orc8r/lib/go/definitions"
+	orcprotos "magma/orc8r/lib/go/protos"
+	platform_registry "magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 )
 
 // Mock Cloud Streamer
@@ -84,11 +85,17 @@ func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([
 	return updates, nil
 }
 
+func (m *mockStreamProvider) GetExtraArgs() *any.Any {
+	return nil
+}
+
 // Mock GW Cloud Service registry
-type mockCloudRegistry struct{}
+type mockCloudRegistry struct {
+	*platform_registry.ServiceRegistry
+}
 
 func (cr mockCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
-	if service != fegstreamer.StreamerServiceName {
+	if service != definitions.StreamerServiceName {
 		return nil, fmt.Errorf("Not Implemented")
 	}
 	return platform_registry.GetConnection(streamer.ServiceName)
@@ -143,7 +150,9 @@ func TestPolicyDBBaseNamesWithGRPC(t *testing.T) {
 		BaseNameMap:    &mockObjectStore{},
 		StreamerClient: fegstreamer.NewStreamerClient(mockCloudRegistry{}),
 	}
-	dbClient.StreamerClient.AddListener(policydb.NewBaseNameStreamListener(dbClient.BaseNameMap))
+	l := policydb.NewBaseNameStreamListener(dbClient.BaseNameMap)
+	assert.NoError(t, dbClient.StreamerClient.AddListener(l))
+	go dbClient.StreamerClient.Stream(l)
 
 	select {
 	case <-firstUpdateChan:
@@ -163,7 +172,7 @@ func TestPolicyDBRulesWithGRPC(t *testing.T) {
 		BaseNameMap:    &mockObjectStore{},
 		StreamerClient: fegstreamer.NewStreamerClient(mockCloudRegistry{}),
 	}
-	dbClient.StreamerClient.AddListener(policydb.NewPolicyDBStreamListener(dbClient.PolicyMap))
+	go dbClient.StreamerClient.Stream(policydb.NewPolicyDBStreamListener(dbClient.PolicyMap))
 
 	select {
 	case <-firstUpdateChan:
@@ -196,7 +205,7 @@ func TestPolicyDBBaseNamesWithMockUpdates(t *testing.T) {
 		StreamerClient: fegstreamer.NewStreamerClient(mockCloudRegistry{}),
 	}
 	listener := policydb.NewBaseNameStreamListener(dbClient.BaseNameMap)
-	dbClient.StreamerClient.AddListener(listener)
+	go dbClient.StreamerClient.Stream(listener)
 
 	rs1, _ := proto.Marshal(&protos.ChargingRuleNameSet{RuleNames: []string{"rule11", "rule12"}})
 	rs2, _ := proto.Marshal(&protos.ChargingRuleNameSet{RuleNames: []string{"rule21", "rule22"}})
@@ -232,7 +241,7 @@ func TestPolicyDBRulesWithMockUpdates(t *testing.T) {
 		StreamerClient: fegstreamer.NewStreamerClient(mockCloudRegistry{}),
 	}
 	listener := policydb.NewPolicyDBStreamListener(dbClient.PolicyMap)
-	dbClient.StreamerClient.AddListener(listener)
+	go dbClient.StreamerClient.Stream(listener)
 
 	// PolicyRules for the test
 	prObject1 := &protos.PolicyRule{
@@ -317,8 +326,8 @@ func TestOmnipresentRulesWithMockUpdates(t *testing.T) {
 	baseNameListener := policydb.NewBaseNameStreamListener(dbClient.BaseNameMap)
 	omnipresentRulesListener := policydb.NewOmnipresentRulesListener(dbClient.OmnipresentRules)
 
-	dbClient.StreamerClient.AddListener(baseNameListener)
-	dbClient.StreamerClient.AddListener(omnipresentRulesListener)
+	go dbClient.StreamerClient.Stream(baseNameListener)
+	go dbClient.StreamerClient.Stream(omnipresentRulesListener)
 
 	// base case
 	ruleIDs, baseNames := dbClient.GetOmnipresentRules()

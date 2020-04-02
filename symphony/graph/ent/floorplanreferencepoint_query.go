@@ -27,8 +27,9 @@ type FloorPlanReferencePointQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.FloorPlanReferencePoint
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -77,8 +78,8 @@ func (fprpq *FloorPlanReferencePointQuery) FirstX(ctx context.Context) *FloorPla
 }
 
 // FirstID returns the first FloorPlanReferencePoint id in the query. Returns *NotFoundError when no id was found.
-func (fprpq *FloorPlanReferencePointQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fprpq *FloorPlanReferencePointQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fprpq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -90,7 +91,7 @@ func (fprpq *FloorPlanReferencePointQuery) FirstID(ctx context.Context) (id stri
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (fprpq *FloorPlanReferencePointQuery) FirstXID(ctx context.Context) string {
+func (fprpq *FloorPlanReferencePointQuery) FirstXID(ctx context.Context) int {
 	id, err := fprpq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -124,8 +125,8 @@ func (fprpq *FloorPlanReferencePointQuery) OnlyX(ctx context.Context) *FloorPlan
 }
 
 // OnlyID returns the only FloorPlanReferencePoint id in the query, returns an error if not exactly one id was returned.
-func (fprpq *FloorPlanReferencePointQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fprpq *FloorPlanReferencePointQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fprpq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -141,7 +142,7 @@ func (fprpq *FloorPlanReferencePointQuery) OnlyID(ctx context.Context) (id strin
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (fprpq *FloorPlanReferencePointQuery) OnlyXID(ctx context.Context) string {
+func (fprpq *FloorPlanReferencePointQuery) OnlyXID(ctx context.Context) int {
 	id, err := fprpq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -151,6 +152,9 @@ func (fprpq *FloorPlanReferencePointQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of FloorPlanReferencePoints.
 func (fprpq *FloorPlanReferencePointQuery) All(ctx context.Context) ([]*FloorPlanReferencePoint, error) {
+	if err := fprpq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return fprpq.sqlAll(ctx)
 }
 
@@ -164,8 +168,8 @@ func (fprpq *FloorPlanReferencePointQuery) AllX(ctx context.Context) []*FloorPla
 }
 
 // IDs executes the query and returns a list of FloorPlanReferencePoint ids.
-func (fprpq *FloorPlanReferencePointQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (fprpq *FloorPlanReferencePointQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := fprpq.Select(floorplanreferencepoint.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -173,7 +177,7 @@ func (fprpq *FloorPlanReferencePointQuery) IDs(ctx context.Context) ([]string, e
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (fprpq *FloorPlanReferencePointQuery) IDsX(ctx context.Context) []string {
+func (fprpq *FloorPlanReferencePointQuery) IDsX(ctx context.Context) []int {
 	ids, err := fprpq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -183,6 +187,9 @@ func (fprpq *FloorPlanReferencePointQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (fprpq *FloorPlanReferencePointQuery) Count(ctx context.Context) (int, error) {
+	if err := fprpq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return fprpq.sqlCount(ctx)
 }
 
@@ -197,6 +204,9 @@ func (fprpq *FloorPlanReferencePointQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (fprpq *FloorPlanReferencePointQuery) Exist(ctx context.Context) (bool, error) {
+	if err := fprpq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return fprpq.sqlExist(ctx)
 }
 
@@ -220,7 +230,8 @@ func (fprpq *FloorPlanReferencePointQuery) Clone() *FloorPlanReferencePointQuery
 		unique:     append([]string{}, fprpq.unique...),
 		predicates: append([]predicate.FloorPlanReferencePoint{}, fprpq.predicates...),
 		// clone intermediate query.
-		sql: fprpq.sql.Clone(),
+		sql:  fprpq.sql.Clone(),
+		path: fprpq.path,
 	}
 }
 
@@ -242,7 +253,12 @@ func (fprpq *FloorPlanReferencePointQuery) Clone() *FloorPlanReferencePointQuery
 func (fprpq *FloorPlanReferencePointQuery) GroupBy(field string, fields ...string) *FloorPlanReferencePointGroupBy {
 	group := &FloorPlanReferencePointGroupBy{config: fprpq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = fprpq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := fprpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return fprpq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -261,8 +277,24 @@ func (fprpq *FloorPlanReferencePointQuery) GroupBy(field string, fields ...strin
 func (fprpq *FloorPlanReferencePointQuery) Select(field string, fields ...string) *FloorPlanReferencePointSelect {
 	selector := &FloorPlanReferencePointSelect{config: fprpq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = fprpq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := fprpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return fprpq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (fprpq *FloorPlanReferencePointQuery) prepareQuery(ctx context.Context) error {
+	if fprpq.path != nil {
+		prev, err := fprpq.path(ctx)
+		if err != nil {
+			return err
+		}
+		fprpq.sql = prev
+	}
+	return nil
 }
 
 func (fprpq *FloorPlanReferencePointQuery) sqlAll(ctx context.Context) ([]*FloorPlanReferencePoint, error) {
@@ -311,7 +343,7 @@ func (fprpq *FloorPlanReferencePointQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   floorplanreferencepoint.Table,
 			Columns: floorplanreferencepoint.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanreferencepoint.FieldID,
 			},
 		},
@@ -371,8 +403,9 @@ type FloorPlanReferencePointGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -383,6 +416,11 @@ func (fprpgb *FloorPlanReferencePointGroupBy) Aggregate(fns ...Aggregate) *Floor
 
 // Scan applies the group-by query and scan the result into the given value.
 func (fprpgb *FloorPlanReferencePointGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := fprpgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	fprpgb.sql = query
 	return fprpgb.sqlScan(ctx, v)
 }
 
@@ -501,12 +539,18 @@ func (fprpgb *FloorPlanReferencePointGroupBy) sqlQuery() *sql.Selector {
 type FloorPlanReferencePointSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (fprps *FloorPlanReferencePointSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := fprps.path(ctx)
+	if err != nil {
+		return err
+	}
+	fprps.sql = query
 	return fprps.sqlScan(ctx, v)
 }
 

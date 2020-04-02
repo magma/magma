@@ -24,8 +24,6 @@ using namespace devmand::devices::cli;
 using namespace devmand::test::utils::json;
 using namespace folly;
 
-static const DeviceAccess mockDevice{nullptr, "rest"};
-
 class ReaderRegistryTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -35,6 +33,7 @@ class ReaderRegistryTest : public ::testing::Test {
 
 TEST_F(ReaderRegistryTest, api) {
   auto executor = make_shared<CPUThreadPoolExecutor>(2);
+  DeviceAccess mockDevice{nullptr, "rest", executor};
 
   ReaderRegistryBuilder reg;
   typedef class : public Reader {
@@ -93,22 +92,19 @@ TEST_F(ReaderRegistryTest, api) {
                "  \"openconfig-interfaces:interfaces\": {\n"
                "    \"interface\": [\n"
                "      {\n"
-               "        \"state\": {},\n"
                "        \"config\": {\n"
                "          \"enabled\": \"true\"\n"
                "        },\n"
                "        \"id\": \"0\"\n"
                "      },\n"
                "      {\n"
-               "        \"state\": {},\n"
                "        \"config\": {\n"
                "          \"enabled\": \"true\"\n"
                "        },\n"
                "        \"id\": \"1\"\n"
                "      }\n"
                "    ]\n"
-               "  },\n"
-               "  \"openconfig-vlans:vlans\": {}\n"
+               "  }\n"
                "}"),
       sortJson(toPrettyJson(r->readConfiguration("/", mockDevice).get())));
   ASSERT_EQ(
@@ -116,14 +112,12 @@ TEST_F(ReaderRegistryTest, api) {
                "  \"openconfig-interfaces:interfaces\": {\n"
                "    \"interface\": [\n"
                "      {\n"
-               "        \"state\": {},\n"
                "        \"config\": {\n"
                "          \"enabled\": \"true\"\n"
                "        },\n"
                "        \"id\": \"0\"\n"
                "      },\n"
                "      {\n"
-               "        \"state\": {},\n"
                "        \"config\": {\n"
                "          \"enabled\": \"true\"\n"
                "        },\n"
@@ -139,14 +133,12 @@ TEST_F(ReaderRegistryTest, api) {
       sortJson("{\n"
                "  \"interface\": [\n"
                "    {\n"
-               "      \"state\": {},\n"
                "      \"config\": {\n"
                "        \"enabled\": \"true\"\n"
                "      },\n"
                "      \"id\": \"0\"\n"
                "    },\n"
                "    {\n"
-               "      \"state\": {},\n"
                "      \"config\": {\n"
                "        \"enabled\": \"true\"\n"
                "      },\n"
@@ -162,7 +154,6 @@ TEST_F(ReaderRegistryTest, api) {
       sortJson("{\n"
                "  \"interface\": [\n"
                "    {\n"
-               "      \"state\": {},\n"
                "      \"config\": {\n"
                "        \"enabled\": \"true\"\n"
                "      },\n"
@@ -186,6 +177,8 @@ TEST_F(ReaderRegistryTest, api) {
 }
 
 TEST_F(ReaderRegistryTest, readerError) {
+  auto executor = make_shared<CPUThreadPoolExecutor>(2);
+  DeviceAccess mockDevice{nullptr, "rest", executor};
   ReaderRegistryBuilder reg;
 
   reg.addList(
@@ -222,11 +215,17 @@ TEST_F(ReaderRegistryTest, readerError) {
                     "/openconfig-interfaces:interfaces/interface[id='1']/state",
                     mockDevice)
                    .hasException());
+
+  // Let the executor finish
+  via(executor.get(), []() {}).get();
+  executor->join();
 }
 
 TEST_F(ReaderRegistryTest, withSchemaContext) {
   ModelRegistry models;
-  ReaderRegistryBuilder reg{models.getSchemaContext(Model::OPENCONFIG_0_1_6)};
+  auto executor = make_shared<CPUThreadPoolExecutor>(2);
+  DeviceAccess mockDevice{nullptr, "rest", executor};
+  ReaderRegistryBuilder reg{models.getSchemaContext(Model::OPENCONFIG_2_4_3)};
 
   reg.addList(
       "/openconfig-interfaces:interfaces/interface",
@@ -289,11 +288,17 @@ TEST_F(ReaderRegistryTest, withSchemaContext) {
                "/openconfig-interfaces:interfaces/interface[name='0']",
                mockDevice)
               .get())));
+
+  // Let the executor finish
+  via(executor.get(), []() {}).get();
+  executor->join();
 }
 
 TEST_F(ReaderRegistryTest, withSchemaContextBadPath) {
   ModelRegistry models;
-  ReaderRegistryBuilder reg{models.getSchemaContext(Model::OPENCONFIG_0_1_6)};
+  auto executor = make_shared<CPUThreadPoolExecutor>(2);
+  DeviceAccess mockDevice{nullptr, "rest", executor};
+  ReaderRegistryBuilder reg{models.getSchemaContext(Model::OPENCONFIG_2_4_3)};
 
   // Nonexisting path
   EXPECT_THROW(
@@ -316,6 +321,10 @@ TEST_F(ReaderRegistryTest, withSchemaContextBadPath) {
             return Future<vector<dynamic>>(vector<dynamic>());
           }),
       ReaderRegistryException);
+
+  // Let the executor finish
+  via(executor.get(), []() {}).get();
+  executor->join();
 }
 
 } // namespace cli

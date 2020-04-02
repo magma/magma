@@ -101,10 +101,16 @@ const ProjectsPopoverQuery = graphql`
           id
           name
           description
-          ownerName
+          owner {
+            id
+            email
+          }
           status
           priority
-          assignee
+          assignedTo {
+            id
+            email
+          }
           installDate
           location {
             id

@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // FloorPlanReferencePointDelete is the builder for deleting a FloorPlanReferencePoint entity.
 type FloorPlanReferencePointDelete struct {
 	config
+	hooks      []Hook
+	mutation   *FloorPlanReferencePointMutation
 	predicates []predicate.FloorPlanReferencePoint
 }
 
@@ -30,7 +33,30 @@ func (fprpd *FloorPlanReferencePointDelete) Where(ps ...predicate.FloorPlanRefer
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (fprpd *FloorPlanReferencePointDelete) Exec(ctx context.Context) (int, error) {
-	return fprpd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(fprpd.hooks) == 0 {
+		affected, err = fprpd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*FloorPlanReferencePointMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			fprpd.mutation = mutation
+			affected, err = fprpd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(fprpd.hooks) - 1; i >= 0; i-- {
+			mut = fprpd.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, fprpd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -47,7 +73,7 @@ func (fprpd *FloorPlanReferencePointDelete) sqlExec(ctx context.Context) (int, e
 		Node: &sqlgraph.NodeSpec{
 			Table: floorplanreferencepoint.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanreferencepoint.FieldID,
 			},
 		},

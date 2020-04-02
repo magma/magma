@@ -9,6 +9,7 @@
  */
 
 import type {
+  csfb,
   diameter_client_configs,
   federation_gateway,
   gateway_federation_configs,
@@ -62,6 +63,28 @@ type Props = {|
   editingGateway?: federation_gateway,
 |};
 
+type SCTPValues = {
+  server_address: string,
+  local_address: string,
+};
+
+type overWriteAPN = {
+  apn: string,
+};
+
+function getSCTPConfigs(cfg: SCTPValues): csfb {
+  return {
+    client: {...cfg},
+  };
+}
+
+function getInitialSCTPConfigs(cfg: ?csfb): SCTPValues {
+  return {
+    server_address: cfg?.client?.server_address || '',
+    local_address: cfg?.client?.local_address || '',
+  };
+}
+
 type DiameterValues = {
   address: string,
   dest_host: string,
@@ -80,17 +103,25 @@ function getDiameterConfigs(cfg: DiameterValues): gx {
   };
 }
 
-function getInitialDiameterConfigs(cfg: ?gx): DiameterValues {
+function getDiameterServerConfig(
+  server: ?diameter_client_configs,
+): DiameterValues {
   return {
-    address: cfg?.server?.address || '',
-    dest_host: cfg?.server?.dest_host || '',
-    dest_realm: cfg?.server?.dest_realm || '',
-    host: cfg?.server?.host || '',
-    realm: cfg?.server?.realm || '',
-    local_address: cfg?.server?.local_address || '',
-    product_name: cfg?.server?.product_name || '',
-    protocol: cfg?.server?.protocol || 'tcp',
-    disable_dest_host: cfg?.server?.disable_dest_host || false,
+    address: server?.address || '',
+    dest_host: server?.dest_host || '',
+    dest_realm: server?.dest_realm || '',
+    host: server?.host || '',
+    realm: server?.realm || '',
+    local_address: server?.local_address || '',
+    product_name: server?.product_name || '',
+    protocol: server?.protocol || 'tcp',
+    disable_dest_host: server?.disable_dest_host || false,
+  };
+}
+
+function getOverwriteAPN(overwrite_apn: ?string): overWriteAPN {
+  return {
+    apn: overwrite_apn || '',
   };
 }
 
@@ -103,16 +134,28 @@ export default function FEGGatewayDialog(props: Props) {
   const [tab, setTab] = useState(editingGateway ? 'gx' : 'general');
   const [generalFields, setGeneralFields] = useState(EMPTY_GATEWAY_FIELDS);
   const [gx, setGx] = useState<DiameterValues>(
-    getInitialDiameterConfigs(editingGateway?.federation?.gx),
+    getDiameterServerConfig(editingGateway?.federation?.gx?.server),
   );
   const [gy, setGy] = useState<DiameterValues>(
-    getInitialDiameterConfigs(editingGateway?.federation?.gy),
+    getDiameterServerConfig(editingGateway?.federation?.gy?.server),
   );
   const [swx, setSWx] = useState<DiameterValues>(
-    getInitialDiameterConfigs(editingGateway?.federation?.swx),
+    getDiameterServerConfig(editingGateway?.federation?.swx?.server),
   );
   const [s6a, setS6A] = useState<DiameterValues>(
-    getInitialDiameterConfigs(editingGateway?.federation?.s6a),
+    getDiameterServerConfig(editingGateway?.federation?.s6a?.server),
+  );
+
+  const [csfb, setCSFB] = useState<SCTPValues>(
+    getInitialSCTPConfigs(editingGateway?.federation?.csfb),
+  );
+
+  const [gxOverwriteAPN, setGxOverwriteAPN] = useState<overWriteAPN>(
+    getOverwriteAPN(editingGateway?.federation?.gx?.overwrite_apn),
+  );
+
+  const [gyOverwriteAPN, setGyOverwriteAPN] = useState<overWriteAPN>(
+    getOverwriteAPN(editingGateway?.federation?.gy?.overwrite_apn),
   );
 
   const networkID = nullthrows(match.params.networkId);
@@ -127,14 +170,23 @@ export default function FEGGatewayDialog(props: Props) {
 
   const getFederationConfigs = (): gateway_federation_configs => ({
     aaa_server: {},
+    csfb: {},
     eap_aka: {},
-    gx: getDiameterConfigs(gx),
-    gy: {server: getDiameterConfigs(gy).server, init_method: 2},
+    gx: {
+      server: getDiameterConfigs(gx).server,
+      overwrite_apn: gxOverwriteAPN.apn,
+    },
+    gy: {
+      server: getDiameterConfigs(gy).server,
+      init_method: 2,
+      overwrite_apn: gyOverwriteAPN.apn,
+    },
     health: {},
     hss: {},
     s6a: getDiameterConfigs(s6a),
     served_network_ids: [],
     swx: {...getDiameterConfigs(swx)},
+    csfb: {...getSCTPConfigs(csfb)},
   });
 
   const onSave = async () => {
@@ -179,6 +231,7 @@ export default function FEGGatewayDialog(props: Props) {
   };
 
   let content;
+  let contentOverwriteAPN;
   switch (tab) {
     case 'general':
       content = (
@@ -197,6 +250,12 @@ export default function FEGGatewayDialog(props: Props) {
           supportedProtocols={['tcp']}
         />
       );
+      contentOverwriteAPN = (
+        <OverwriteAPN_Field
+          onChange={setGxOverwriteAPN}
+          values={gxOverwriteAPN}
+        />
+      );
       break;
     case 'gy':
       content = (
@@ -204,6 +263,12 @@ export default function FEGGatewayDialog(props: Props) {
           onChange={setGy}
           values={gy}
           supportedProtocols={['tcp']}
+        />
+      );
+      contentOverwriteAPN = (
+        <OverwriteAPN_Field
+          onChange={setGyOverwriteAPN}
+          values={gyOverwriteAPN}
         />
       );
       break;
@@ -225,6 +290,9 @@ export default function FEGGatewayDialog(props: Props) {
         />
       );
       break;
+    case 'csfb':
+      content = <SCTPFields onChange={setCSFB} values={csfb} />;
+      break;
   }
 
   return (
@@ -240,9 +308,13 @@ export default function FEGGatewayDialog(props: Props) {
           <Tab label="Gy" value="gy" />
           <Tab label="SWx" value="swx" />
           <Tab label="S6A" value="s6a" />
+          <Tab label="CSFB" value="csfb" />
         </Tabs>
       </AppBar>
-      <DialogContent>{content}</DialogContent>
+      <DialogContent>
+        {content}
+        {contentOverwriteAPN}
+      </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose} color="primary">
           Cancel
@@ -252,6 +324,54 @@ export default function FEGGatewayDialog(props: Props) {
         </Button>
       </DialogActions>
     </Dialog>
+  );
+}
+
+function SCTPFields(props: {values: SCTPValues, onChange: SCTPValues => void}) {
+  const classes = useStyles();
+  const {values} = props;
+  const onChange = field => event =>
+    // $FlowFixMe Set state for each field
+    props.onChange({...values, [field]: event.target.value});
+
+  return (
+    <>
+      <TextField
+        label="Server Address"
+        className={classes.input}
+        value={values.server_address}
+        onChange={onChange('server_address')}
+        placeholder="example.magma.com:5555"
+      />
+      <TextField
+        label="Local Address"
+        className={classes.input}
+        value={values.local_address}
+        onChange={onChange('local_address')}
+        placeholder="example.magma.com:5555"
+      />
+    </>
+  );
+}
+
+function OverwriteAPN_Field(props: {
+  values: overWriteAPN,
+  onChange: overWriteAPN => void,
+}) {
+  const classes = useStyles();
+  const {values} = props;
+  const onChange = field => event =>
+    props.onChange({...values, [field]: event.target.value});
+  return (
+    <>
+      <TextField
+        label="Overwrite APN"
+        className={classes.input}
+        value={values.apn}
+        onChange={onChange('apn')}
+        placeholder=""
+      />
+    </>
   );
 }
 

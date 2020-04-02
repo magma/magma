@@ -7,7 +7,9 @@ package exporter
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -76,7 +78,7 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 		return nil
 	})
 	cg.Go(func(ctx context.Context) (err error) {
-		equipIDs := make([]string, len(equipList))
+		equipIDs := make([]int, len(equipList))
 		for i, e := range equips.Equipment {
 			equipIDs[i] = e.ID
 		}
@@ -121,18 +123,21 @@ func paramToFilterInput(params string) ([]*models.EquipmentFilterInput, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	returnType := make([]*models.EquipmentFilterInput, 0, len(inputs))
 	for _, f := range inputs {
 		upperName := strings.ToUpper(f.Name.String())
 		upperOp := strings.ToUpper(f.Operator.String())
 		propertyValue := f.PropertyValue
+		intIDSet, err := toIntSlice(f.IDSet)
+		if err != nil {
+			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+		}
 		inp := models.EquipmentFilterInput{
 			FilterType:    models.EquipmentFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
 			StringValue:   pointer.ToString(f.StringValue),
 			PropertyValue: &propertyValue,
-			IDSet:         f.IDSet,
+			IDSet:         intIDSet,
 			StringSet:     f.StringSet,
 			MaxDepth:      pointer.ToInt(5),
 		}
@@ -169,7 +174,7 @@ func equipToSlice(ctx context.Context, equipment *ent.Equipment, orderedLocTypes
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
-	row := []string{equipment.ID, equipment.Name, equipment.QueryType().OnlyX(ctx).Name, equipment.ExternalID}
+	row := []string{strconv.Itoa(equipment.ID), equipment.Name, equipment.QueryType().OnlyX(ctx).Name, equipment.ExternalID}
 	row = append(row, lParents...)
 	row = append(row, eParents...)
 	row = append(row, properties...)

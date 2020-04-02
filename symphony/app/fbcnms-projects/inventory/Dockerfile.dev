@@ -10,6 +10,7 @@ WORKDIR /app
 COPY package.json yarn.lock babel.config.js ./
 COPY fbcnms-projects/inventory/package.json fbcnms-projects/inventory/
 COPY fbcnms-projects/magmalte/package.json fbcnms-projects/magmalte/
+COPY fbcnms-projects/hub/package.json fbcnms-projects/hub/
 
 # Install shared dependencies
 COPY fbcnms-packages fbcnms-packages
@@ -19,6 +20,7 @@ RUN yarn install --frozen-lockfile && yarn cache clean
 WORKDIR /app/fbcnms-projects/inventory
 COPY fbcnms-projects/inventory .
 COPY fbcnms-projects/magmalte /app/fbcnms-projects/magmalte
+COPY fbcnms-projects/hub /app/fbcnms-projects/hub
 
 # Start app
 CMD yarn dev

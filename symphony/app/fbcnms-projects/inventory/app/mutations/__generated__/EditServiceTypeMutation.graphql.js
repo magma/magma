@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 43cbe89a2c0232070e90f0f815943de4
+ * @relayHash b4c58f9ae2cc0095264377ad3e7a29ba
  */
 
 /* eslint-disable */
@@ -45,7 +45,7 @@ export type EditServiceTypeMutationVariables = {|
   data: ServiceTypeEditData
 |};
 export type EditServiceTypeMutationResponse = {|
-  +editServiceType: ?{|
+  +editServiceType: {|
     +id: string,
     +name: string,
     +propertyTypes: $ReadOnlyArray<?{|
@@ -64,6 +64,8 @@ export type EditServiceTypeMutationResponse = {|
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
     |}>,
   |}
 |};
@@ -97,6 +99,8 @@ mutation EditServiceTypeMutation(
       isEditable
       isInstanceProperty
       isMandatory
+      category
+      isDeleted
     }
   }
 }
@@ -244,6 +248,20 @@ v3 = [
             "name": "isMandatory",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "category",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isDeleted",
+            "args": null,
+            "storageKey": null
           }
         ]
       }
@@ -270,7 +288,7 @@ return {
     "operationKind": "mutation",
     "name": "EditServiceTypeMutation",
     "id": null,
-    "text": "mutation EditServiceTypeMutation(\n  $data: ServiceTypeEditData!\n) {\n  editServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n  }\n}\n",
+    "text": "mutation EditServiceTypeMutation(\n  $data: ServiceTypeEditData!\n) {\n  editServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n      category\n      isDeleted\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

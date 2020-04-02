@@ -15,7 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
@@ -26,6 +25,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
+	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"

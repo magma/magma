@@ -33,7 +33,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "assertions.h"
 #include "conversions.h"
 #include "common_types.h"
 #include "intertask_interface.h"
@@ -131,7 +130,10 @@ int mme_app_send_s11_release_access_bearers_req(
     NULL;
   int rc = RETURNok;
 
-  DevAssert(ue_mm_context);
+  if (ue_mm_context == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE MM context received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   message_p =
     itti_alloc_new_message(TASK_MME_APP, S11_RELEASE_ACCESS_BEARERS_REQUEST);
   if (message_p == NULL) {
@@ -184,10 +186,8 @@ int mme_app_send_s11_create_session_req(
   MessageDef* message_p = NULL;
   itti_s11_create_session_request_t* session_request_p = NULL;
 
-  if (!ue_mm_context) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "UE context is NULL \n");
+  if (ue_mm_context == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Invalid UE MM context received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   OAILOG_DEBUG(
@@ -260,8 +260,6 @@ int mme_app_send_s11_create_session_req(
   // default bearer already created by NAS
   bearer_context_t* bc = mme_app_get_bearer_context(
     ue_mm_context, ue_mm_context->pdn_contexts[pdn_cid]->default_ebi);
-
-  bc->bearer_state |= BEARER_STATE_MME_CREATED;
 
   // Zero because default bearer (see 29.274)
   session_request_p->bearer_contexts_to_be_created.bearer_contexts[0]

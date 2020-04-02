@@ -8,8 +8,10 @@ class ImageEntity(Enum):
     WORK_ORDER = "WORK_ORDER"
     SITE_SURVEY = "SITE_SURVEY"
     EQUIPMENT = "EQUIPMENT"
+    USER = "USER"
+    CHECKLIST_ITEM = "CHECKLIST_ITEM"
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, value: str) -> "ImageEntity":
         return cls.MISSING_ENUM

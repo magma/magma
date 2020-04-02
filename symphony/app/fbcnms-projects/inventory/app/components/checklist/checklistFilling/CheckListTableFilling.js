@@ -8,25 +8,23 @@
  * @format
  */
 
-import CheckCircle from '@material-ui/icons/CheckCircle';
-import CheckListItem from '../CheckListItem';
-import RadioButtonUnchecked from '@material-ui/icons/RadioButtonUnchecked';
-import React, {useMemo} from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
+import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
+
+import CheckListItemFilling from './CheckListItemFilling';
+import ChecklistItemsDialogMutateDispatchContext from '../checkListCategory/ChecklistItemsDialogMutateDispatchContext';
+import React, {useContext} from 'react';
+import Table from '@fbcnms/ui/components/design-system/Table/Table';
+import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {createFragmentContainer, graphql} from 'react-relay';
+import {CheckListItemConfigs} from '../checkListCategory/CheckListItemConsts';
+import {isChecklistItemDone} from '../ChecklistUtils';
 import {makeStyles} from '@material-ui/styles';
-import type {CheckListItem_item} from '../__generated__/CheckListItem_item.graphql';
-import type {CheckListTableFilling_list} from './__generated__/CheckListTableFilling_list.graphql';
 
 type Props = {
-  list: CheckListTableFilling_list,
-  onChecklistChanged?: (updatedList: CheckListTableFilling_list) => void,
+  items: Array<CheckListItem>,
 };
 
 const useStyles = makeStyles(() => ({
@@ -38,111 +36,87 @@ const useStyles = makeStyles(() => ({
     marginBottom: '12px',
     maxWidth: '100%',
   },
-  cell: {
-    paddingLeft: '0px',
-    width: 'unset',
+  titleContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  checkIcon: {
+  itemTitle: {
+    marginLeft: '12px',
+  },
+  icon: {
+    height: '24px',
+    width: '24px',
     fill: symphony.palette.D300,
-    marginTop: '5px',
   },
-  iconCell: {
-    width: '20px',
+  doneIcon: {
+    fill: symphony.palette.G600,
   },
 }));
 
-const CheckListTableFilling = (props: Props) => {
-  const {list, onChecklistChanged} = props;
+const CheckListTableFilling = ({items}: Props) => {
+  const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
   const classes = useStyles();
 
-  const _updateList = (updatedList: CheckListTableFilling_list) => {
-    if (!onChecklistChanged) {
-      return;
-    }
-
-    onChecklistChanged(updatedList);
-  };
-
-  const _editItem = itemIndex => (updatedChecklistItem: CheckListItem_item) => {
-    if (itemIndex < 0 || itemIndex >= list.length) {
-      return;
-    }
-
-    const newItem: CheckListItem_item = {
-      ...updatedChecklistItem,
-      stringValue: updatedChecklistItem.stringValue || '',
-      checked: updatedChecklistItem.checked || false,
-    };
-
-    const newList: CheckListTableFilling_list = [
-      ...Array.prototype.slice.call(list, 0, itemIndex),
-      newItem,
-      ...Array.prototype.slice.call(list, itemIndex + 1),
-    ];
-
-    _updateList(newList);
-  };
-
-  const checklistItemsCount = list.length;
-  const fullfilledItemsCount = list.reduce((fufilledSoFar, currentItem) => {
-    if (currentItem.checked) {
-      return fufilledSoFar + 1;
-    }
-    return fufilledSoFar;
-  }, 0);
-
-  // Could not use the FBT formation for plural here
-  const tableHeader = useMemo(
-    () => (
-      <TableRow component="div">
-        <TableCell padding="none" component="div" />
-        <TableCell component="div">
-          {checklistItemsCount > 0
-            ? `${fbt(
-                'Items',
-                'Checklist items table header',
-              )} (${fullfilledItemsCount}/${checklistItemsCount})`
-            : fbt(
-                'No Items',
-                'Checklist items table header when there are no items in list',
-              )}
-        </TableCell>
-      </TableRow>
-    ),
-    [checklistItemsCount, fullfilledItemsCount],
+  const tableData: Array<TableRowDataType<{|item: CheckListItem|}>> = items.map(
+    item => ({item, key: item.id}),
   );
-
-  const checklistItems = list.map((checkListItem, i) => (
-    <TableRow id={checkListItem.id} index={i} key={checkListItem.id}>
-      <TableCell className={classes.iconCell} size="small" component="div">
-        {checkListItem.checked ? (
-          <CheckCircle className={classes.checkIcon} />
-        ) : (
-          <RadioButtonUnchecked className={classes.checkIcon} />
-        )}
-      </TableCell>
-      <TableCell component="div">
-        <CheckListItem item={checkListItem || null} onChange={_editItem(i)} />
-      </TableCell>
-    </TableRow>
-  ));
-
   return (
     <div className={classes.container}>
-      <Table component="div" className={classes.root}>
-        <TableHead component="div">{tableHeader}</TableHead>
-        <TableBody>{checklistItems}</TableBody>
-      </Table>
+      <Table
+        variant="embedded"
+        dataRowsSeparator="border"
+        data={tableData}
+        columns={[
+          {
+            key: 'item',
+            title: <fbt desc="">Item</fbt>,
+            render: row => {
+              const itemConfig = CheckListItemConfigs[row.item.type];
+              if (itemConfig == null) {
+                return null;
+              }
+              const Icon = itemConfig.icon;
+              return (
+                <div className={classes.titleContainer}>
+                  <Icon
+                    className={classNames(classes.icon, {
+                      [classes.doneIcon]: isChecklistItemDone(row.item),
+                    })}
+                  />
+                  <Text
+                    weight="medium"
+                    variant="body2"
+                    className={classes.itemTitle}>
+                    {row.item.title.trim() !== '' ? (
+                      row.item.title
+                    ) : (
+                      <fbt desc="">Item</fbt>
+                    )}
+                  </Text>
+                </div>
+              );
+            },
+          },
+          {
+            key: 'response',
+            title: <fbt desc="">Response</fbt>,
+            render: row => (
+              <CheckListItemFilling
+                item={row.item}
+                onChange={updatedItem =>
+                  dispatch({
+                    type: 'EDIT_ITEM',
+                    value: updatedItem,
+                  })
+                }
+              />
+            ),
+          },
+        ]}
+      />
     </div>
   );
 };
 
-export default createFragmentContainer(CheckListTableFilling, {
-  list: graphql`
-    fragment CheckListTableFilling_list on CheckListItem @relay(plural: true) {
-      id
-      checked
-      ...CheckListItem_item
-    }
-  `,
-});
+export default CheckListTableFilling;

@@ -23,13 +23,14 @@ import ServiceEquipmentTopology from './ServiceEquipmentTopology';
 import ServiceHeader from './ServiceHeader';
 import ServicePanel from './ServicePanel';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
+  // $FlowFixMe (T62907961) Relay flow types
   service: ServiceCard_service,
 } & WithStyles<typeof styles> &
   ContextRouter;
@@ -90,7 +91,7 @@ const ServiceCard = (props: Props) => {
     history.push(match.url);
   };
   return (
-    <FormValidationContextProvider>
+    <FormContextProvider>
       <Grid container className={classes.root}>
         <Grid item xs={6} sm={8} lg={8} xl={9}>
           <div className={classes.topologyPanel}>
@@ -122,7 +123,7 @@ const ServiceCard = (props: Props) => {
           />
         </Grid>
       </Grid>
-    </FormValidationContextProvider>
+    </FormContextProvider>
   );
 };
 

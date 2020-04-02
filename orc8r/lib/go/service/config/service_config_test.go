@@ -112,22 +112,25 @@ func TestGetConfigWithOverride(t *testing.T) {
 	_, err = f.WriteString(TestOverrideYML)
 	f.Close()
 
-	configMap, err := getServiceConfigImpl("", "test_service", TestConfigDir, "", TestConfigOverrideDir)
-	assert.NoError(t, err)
-	foo, err := configMap.GetIntParam("foo")
-	assert.NoError(t, err)
-	assert.Equal(t, 1234, foo)
+	// ensure case insensitivity
+	for _, serviceName := range []string{"test_service", "TEST_SERVICE", "TesT_sERviCE"} {
+		configMap, err := getServiceConfigImpl("", serviceName, TestConfigDir, "", TestConfigOverrideDir)
+		assert.NoError(t, err)
+		foo, err := configMap.GetIntParam("foo")
+		assert.NoError(t, err)
+		assert.Equal(t, 1234, foo)
 
-	bar, err := configMap.GetStringParam("bar")
-	assert.NoError(t, err)
-	assert.Equal(t, "something", bar)
+		bar, err := configMap.GetStringParam("bar")
+		assert.NoError(t, err)
+		assert.Equal(t, "something", bar)
 
-	la, err := configMap.GetStringParam("la")
-	assert.NoError(t, err)
-	assert.Equal(t, "override", la)
+		la, err := configMap.GetStringParam("la")
+		assert.NoError(t, err)
+		assert.Equal(t, "override", la)
+	}
 
 	var testStruct ConfigTestStruct
-	err = GetStructuredServiceConfigExt(
+	_, _, err = GetStructuredServiceConfigExt(
 		"", "test_service", TestConfigDir, "", TestConfigOverrideDir, &testStruct)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(testStruct.Baz))
@@ -143,7 +146,7 @@ func TestGetConfigWithOverride(t *testing.T) {
 	var testIndirectStruct ConfigTestStruct
 	testIndirectStruct.Fooint = 54321
 	var testInterface interface{} = &testIndirectStruct
-	err = GetStructuredServiceConfigExt(
+	_, _, err = GetStructuredServiceConfigExt(
 		"", "test_service", TestConfigDir, "", TestConfigOverrideDir, testInterface)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(testIndirectStruct.Baz))

@@ -54,13 +54,9 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
       name: 'property',
       operator: editedOperator,
       propertyValue: {
-        id: 'tmp@propertyType',
-        name: newValue.propertyType
-          ? newValue.propertyType.name
-          : newValue.name,
-        type: newValue.propertyType
-          ? newValue.propertyType.type
-          : newValue.type,
+        id: String(Math.floor(Math.random() * 10 ** 5)),
+        name: newValue.name,
+        type: newValue.type,
         index: 0,
         booleanValue: newValue.booleanValue,
         stringValue: newValue.stringValue,
@@ -93,7 +89,7 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
             inputType="Property"
             property={propertyValue}
             onBlur={e => {
-              if (e.relatedTarget.id === POWER_SEARCH_OPERATOR_ID) {
+              if (e.relatedTarget?.id === POWER_SEARCH_OPERATOR_ID) {
                 return;
               }
               onInputBlurred();

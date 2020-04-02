@@ -8,6 +8,7 @@ module magma/feg/cloud/go
 
 replace (
 	magma/feg/cloud/go/protos => ../../../feg/cloud/go/protos
+	magma/gateway => ../../../orc8r/gateway/go
 	magma/lte/cloud/go => ../../../lte/cloud/go
 	magma/orc8r/cloud/go => ../../../orc8r/cloud/go
 	magma/orc8r/lib/go => ../../../orc8r/lib/go
@@ -16,8 +17,8 @@ replace (
 
 require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
-	github.com/go-openapi/errors v0.18.0
-	github.com/go-openapi/strfmt v0.18.0
+	github.com/go-openapi/errors v0.19.2
+	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-openapi/swag v0.18.0
 	github.com/go-openapi/validate v0.18.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b

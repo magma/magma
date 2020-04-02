@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -53,8 +52,9 @@ type LocationQuery struct {
 	withWorkOrders *WorkOrderQuery
 	withFloorPlans *FloorPlanQuery
 	withFKs        bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -84,144 +84,216 @@ func (lq *LocationQuery) Order(o ...Order) *LocationQuery {
 // QueryType chains the current query on the type edge.
 func (lq *LocationQuery) QueryType() *LocationTypeQuery {
 	query := &LocationTypeQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(locationtype.Table, locationtype.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, location.TypeTable, location.TypeColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(locationtype.Table, locationtype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, location.TypeTable, location.TypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryParent chains the current query on the parent edge.
 func (lq *LocationQuery) QueryParent() *LocationQuery {
 	query := &LocationQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(location.Table, location.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, location.ParentTable, location.ParentColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, location.ParentTable, location.ParentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryChildren chains the current query on the children edge.
 func (lq *LocationQuery) QueryChildren() *LocationQuery {
 	query := &LocationQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(location.Table, location.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, location.ChildrenTable, location.ChildrenColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.ChildrenTable, location.ChildrenColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryFiles chains the current query on the files edge.
 func (lq *LocationQuery) QueryFiles() *FileQuery {
 	query := &FileQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(file.Table, file.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, location.FilesTable, location.FilesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.FilesTable, location.FilesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryHyperlinks chains the current query on the hyperlinks edge.
 func (lq *LocationQuery) QueryHyperlinks() *HyperlinkQuery {
 	query := &HyperlinkQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, location.HyperlinksTable, location.HyperlinksColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.HyperlinksTable, location.HyperlinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryEquipment chains the current query on the equipment edge.
 func (lq *LocationQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(equipment.Table, equipment.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, location.EquipmentTable, location.EquipmentColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.EquipmentTable, location.EquipmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (lq *LocationQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(property.Table, property.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, location.PropertiesTable, location.PropertiesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(property.Table, property.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.PropertiesTable, location.PropertiesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QuerySurvey chains the current query on the survey edge.
 func (lq *LocationQuery) QuerySurvey() *SurveyQuery {
 	query := &SurveyQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(survey.Table, survey.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, location.SurveyTable, location.SurveyColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, location.SurveyTable, location.SurveyColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryWifiScan chains the current query on the wifi_scan edge.
 func (lq *LocationQuery) QueryWifiScan() *SurveyWiFiScanQuery {
 	query := &SurveyWiFiScanQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, location.WifiScanTable, location.WifiScanColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, location.WifiScanTable, location.WifiScanColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryCellScan chains the current query on the cell_scan edge.
 func (lq *LocationQuery) QueryCellScan() *SurveyCellScanQuery {
 	query := &SurveyCellScanQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, location.CellScanTable, location.CellScanColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, location.CellScanTable, location.CellScanColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (lq *LocationQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(workorder.Table, workorder.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, location.WorkOrdersTable, location.WorkOrdersColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, location.WorkOrdersTable, location.WorkOrdersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryFloorPlans chains the current query on the floor_plans edge.
 func (lq *LocationQuery) QueryFloorPlans() *FloorPlanQuery {
 	query := &FloorPlanQuery{config: lq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sqlgraph.To(floorplan.Table, floorplan.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, location.FloorPlansTable, location.FloorPlansColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+			sqlgraph.To(floorplan.Table, floorplan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, location.FloorPlansTable, location.FloorPlansColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -247,8 +319,8 @@ func (lq *LocationQuery) FirstX(ctx context.Context) *Location {
 }
 
 // FirstID returns the first Location id in the query. Returns *NotFoundError when no id was found.
-func (lq *LocationQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (lq *LocationQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -260,7 +332,7 @@ func (lq *LocationQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (lq *LocationQuery) FirstXID(ctx context.Context) string {
+func (lq *LocationQuery) FirstXID(ctx context.Context) int {
 	id, err := lq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -294,8 +366,8 @@ func (lq *LocationQuery) OnlyX(ctx context.Context) *Location {
 }
 
 // OnlyID returns the only Location id in the query, returns an error if not exactly one id was returned.
-func (lq *LocationQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (lq *LocationQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -311,7 +383,7 @@ func (lq *LocationQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (lq *LocationQuery) OnlyXID(ctx context.Context) string {
+func (lq *LocationQuery) OnlyXID(ctx context.Context) int {
 	id, err := lq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -321,6 +393,9 @@ func (lq *LocationQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of Locations.
 func (lq *LocationQuery) All(ctx context.Context) ([]*Location, error) {
+	if err := lq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return lq.sqlAll(ctx)
 }
 
@@ -334,8 +409,8 @@ func (lq *LocationQuery) AllX(ctx context.Context) []*Location {
 }
 
 // IDs executes the query and returns a list of Location ids.
-func (lq *LocationQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (lq *LocationQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := lq.Select(location.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -343,7 +418,7 @@ func (lq *LocationQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (lq *LocationQuery) IDsX(ctx context.Context) []string {
+func (lq *LocationQuery) IDsX(ctx context.Context) []int {
 	ids, err := lq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -353,6 +428,9 @@ func (lq *LocationQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (lq *LocationQuery) Count(ctx context.Context) (int, error) {
+	if err := lq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return lq.sqlCount(ctx)
 }
 
@@ -367,6 +445,9 @@ func (lq *LocationQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (lq *LocationQuery) Exist(ctx context.Context) (bool, error) {
+	if err := lq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return lq.sqlExist(ctx)
 }
 
@@ -390,7 +471,8 @@ func (lq *LocationQuery) Clone() *LocationQuery {
 		unique:     append([]string{}, lq.unique...),
 		predicates: append([]predicate.Location{}, lq.predicates...),
 		// clone intermediate query.
-		sql: lq.sql.Clone(),
+		sql:  lq.sql.Clone(),
+		path: lq.path,
 	}
 }
 
@@ -544,7 +626,12 @@ func (lq *LocationQuery) WithFloorPlans(opts ...func(*FloorPlanQuery)) *Location
 func (lq *LocationQuery) GroupBy(field string, fields ...string) *LocationGroupBy {
 	group := &LocationGroupBy{config: lq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = lq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return lq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -563,8 +650,24 @@ func (lq *LocationQuery) GroupBy(field string, fields ...string) *LocationGroupB
 func (lq *LocationQuery) Select(field string, fields ...string) *LocationSelect {
 	selector := &LocationSelect{config: lq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = lq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := lq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return lq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (lq *LocationQuery) prepareQuery(ctx context.Context) error {
+	if lq.path != nil {
+		prev, err := lq.path(ctx)
+		if err != nil {
+			return err
+		}
+		lq.sql = prev
+	}
+	return nil
 }
 
 func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
@@ -618,8 +721,8 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 	}
 
 	if query := lq.withType; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Location)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Location)
 		for i := range nodes {
 			if fk := nodes[i].location_type; fk != nil {
 				ids = append(ids, *fk)
@@ -643,8 +746,8 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 	}
 
 	if query := lq.withParent; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*Location)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Location)
 		for i := range nodes {
 			if fk := nodes[i].location_children; fk != nil {
 				ids = append(ids, *fk)
@@ -669,13 +772,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withChildren; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -701,13 +800,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withFiles; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -733,13 +828,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withHyperlinks; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -765,13 +856,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withEquipment; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -797,13 +884,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withProperties; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -829,13 +912,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withSurvey; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -861,13 +940,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withWifiScan; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -893,13 +968,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withCellScan; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -925,13 +996,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withWorkOrders; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -957,13 +1024,9 @@ func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
 
 	if query := lq.withFloorPlans; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[string]*Location)
+		nodeids := make(map[int]*Location)
 		for i := range nodes {
-			id, err := strconv.Atoi(nodes[i].ID)
-			if err != nil {
-				return nil, err
-			}
-			fks = append(fks, id)
+			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
@@ -1009,7 +1072,7 @@ func (lq *LocationQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   location.Table,
 			Columns: location.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: location.FieldID,
 			},
 		},
@@ -1069,8 +1132,9 @@ type LocationGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -1081,6 +1145,11 @@ func (lgb *LocationGroupBy) Aggregate(fns ...Aggregate) *LocationGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (lgb *LocationGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := lgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	lgb.sql = query
 	return lgb.sqlScan(ctx, v)
 }
 
@@ -1199,12 +1268,18 @@ func (lgb *LocationGroupBy) sqlQuery() *sql.Selector {
 type LocationSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ls *LocationSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ls.path(ctx)
+	if err != nil {
+		return err
+	}
+	ls.sql = query
 	return ls.sqlScan(ctx, v)
 }
 

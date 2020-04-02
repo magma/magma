@@ -9,8 +9,6 @@
  */
 
 import type {ComponentType} from 'react';
-import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core';
 
 import AppBar from '@material-ui/core/AppBar';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
@@ -19,27 +17,23 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-import {Route, Switch, withRouter} from 'react-router-dom';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {findIndex} from 'lodash';
+import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
-import {withStyles} from '@material-ui/core/styles';
-
-const styles = theme => ({
+const useStyles = makeStyles(theme => ({
   paper: {
     margin: theme.spacing(3),
   },
   tabs: {
     flex: 1,
   },
-});
+}));
 
-type Props = WithStyles<typeof styles> &
-  ContextRouter & {
-    tabRoutes: TabRoute[],
-  };
-
-type State = {
-  currentTab: number,
+type Props = {
+  tabRoutes: TabRoute[],
 };
 
 type TabRoute = {
@@ -48,64 +42,50 @@ type TabRoute = {
   path: string,
 };
 
-class Configure extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    const {tabRoutes} = props;
+export default function Configure(props: Props) {
+  const classes = useStyles();
+  const {match, location, relativeUrl} = useRouter();
+  const {tabRoutes} = props;
 
-    // Default to first page
-    if (props.location.pathname.endsWith('/configure')) {
-      props.history.push(`${props.match.url}/${tabRoutes[0].path}`);
-    }
+  const initialTab = findIndex(tabRoutes, route =>
+    location.pathname.startsWith(match.url + '/' + route.path),
+  );
+  const [currentTab, setCurrentTab] = useState(
+    initialTab !== -1 ? initialTab : 0,
+  );
 
-    const {pathname: currentPath} = props.location;
-    const currentTab = findIndex(tabRoutes, route =>
-      currentPath.startsWith(props.match.url + '/' + route.path),
-    );
-
-    this.state = {
-      currentTab: currentTab !== -1 ? currentTab : 0,
-    };
+  if (location.pathname.endsWith('/configure')) {
+    return <Redirect to={relativeUrl(`/${tabRoutes[0].path}`)} />;
   }
 
-  onTabChange = (event, currentTab: number) => {
-    this.setState({currentTab});
-  };
-
-  render() {
-    const {classes, match, tabRoutes} = this.props;
-    const {currentTab} = this.state;
-    return (
-      <Paper className={this.props.classes.paper} elevation={2}>
-        <AppBar position="static" color="default">
-          <Tabs
-            value={currentTab}
-            indicatorColor="primary"
-            textColor="primary"
-            onChange={this.onTabChange}
-            className={classes.tabs}>
-            {tabRoutes.map((route, i) => (
-              <Tab
-                key={i}
-                component={NestedRouteLink}
-                label={route.label}
-                to={route.path}
-              />
-            ))}
-          </Tabs>
-        </AppBar>
-        <Switch>
+  return (
+    <Paper className={classes.paper} elevation={2}>
+      <AppBar position="static" color="default">
+        <Tabs
+          value={currentTab}
+          indicatorColor="primary"
+          textColor="primary"
+          onChange={(_, tab) => setCurrentTab(tab)}
+          className={classes.tabs}>
           {tabRoutes.map((route, i) => (
-            <Route
+            <Tab
               key={i}
-              path={`${match.path}/${route.path}`}
-              component={route.component}
+              component={NestedRouteLink}
+              label={route.label}
+              to={route.path}
             />
           ))}
-        </Switch>
-      </Paper>
-    );
-  }
+        </Tabs>
+      </AppBar>
+      <Switch>
+        {tabRoutes.map((route, i) => (
+          <Route
+            key={i}
+            path={`${match.path}/${route.path}`}
+            component={route.component}
+          />
+        ))}
+      </Switch>
+    </Paper>
+  );
 }
-
-export default withStyles(styles)(withRouter(Configure));

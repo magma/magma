@@ -8,9 +8,7 @@ package ent
 
 import (
 	"context"
-	"errors"
-	"strconv"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -25,23 +23,9 @@ import (
 // EquipmentPortDefinitionUpdate is the builder for updating EquipmentPortDefinition entities.
 type EquipmentPortDefinitionUpdate struct {
 	config
-
-	update_time              *time.Time
-	name                     *string
-	index                    *int
-	addindex                 *int
-	clearindex               bool
-	bandwidth                *string
-	clearbandwidth           bool
-	visibility_label         *string
-	clearvisibility_label    bool
-	equipment_port_type      map[string]struct{}
-	ports                    map[string]struct{}
-	equipment_type           map[string]struct{}
-	clearedEquipmentPortType bool
-	removedPorts             map[string]struct{}
-	clearedEquipmentType     bool
-	predicates               []predicate.EquipmentPortDefinition
+	hooks      []Hook
+	mutation   *EquipmentPortDefinitionMutation
+	predicates []predicate.EquipmentPortDefinition
 }
 
 // Where adds a new predicate for the builder.
@@ -52,14 +36,14 @@ func (epdu *EquipmentPortDefinitionUpdate) Where(ps ...predicate.EquipmentPortDe
 
 // SetName sets the name field.
 func (epdu *EquipmentPortDefinitionUpdate) SetName(s string) *EquipmentPortDefinitionUpdate {
-	epdu.name = &s
+	epdu.mutation.SetName(s)
 	return epdu
 }
 
 // SetIndex sets the index field.
 func (epdu *EquipmentPortDefinitionUpdate) SetIndex(i int) *EquipmentPortDefinitionUpdate {
-	epdu.index = &i
-	epdu.addindex = nil
+	epdu.mutation.ResetIndex()
+	epdu.mutation.SetIndex(i)
 	return epdu
 }
 
@@ -73,24 +57,19 @@ func (epdu *EquipmentPortDefinitionUpdate) SetNillableIndex(i *int) *EquipmentPo
 
 // AddIndex adds i to index.
 func (epdu *EquipmentPortDefinitionUpdate) AddIndex(i int) *EquipmentPortDefinitionUpdate {
-	if epdu.addindex == nil {
-		epdu.addindex = &i
-	} else {
-		*epdu.addindex += i
-	}
+	epdu.mutation.AddIndex(i)
 	return epdu
 }
 
 // ClearIndex clears the value of index.
 func (epdu *EquipmentPortDefinitionUpdate) ClearIndex() *EquipmentPortDefinitionUpdate {
-	epdu.index = nil
-	epdu.clearindex = true
+	epdu.mutation.ClearIndex()
 	return epdu
 }
 
 // SetBandwidth sets the bandwidth field.
 func (epdu *EquipmentPortDefinitionUpdate) SetBandwidth(s string) *EquipmentPortDefinitionUpdate {
-	epdu.bandwidth = &s
+	epdu.mutation.SetBandwidth(s)
 	return epdu
 }
 
@@ -104,14 +83,13 @@ func (epdu *EquipmentPortDefinitionUpdate) SetNillableBandwidth(s *string) *Equi
 
 // ClearBandwidth clears the value of bandwidth.
 func (epdu *EquipmentPortDefinitionUpdate) ClearBandwidth() *EquipmentPortDefinitionUpdate {
-	epdu.bandwidth = nil
-	epdu.clearbandwidth = true
+	epdu.mutation.ClearBandwidth()
 	return epdu
 }
 
 // SetVisibilityLabel sets the visibility_label field.
 func (epdu *EquipmentPortDefinitionUpdate) SetVisibilityLabel(s string) *EquipmentPortDefinitionUpdate {
-	epdu.visibility_label = &s
+	epdu.mutation.SetVisibilityLabel(s)
 	return epdu
 }
 
@@ -125,22 +103,18 @@ func (epdu *EquipmentPortDefinitionUpdate) SetNillableVisibilityLabel(s *string)
 
 // ClearVisibilityLabel clears the value of visibility_label.
 func (epdu *EquipmentPortDefinitionUpdate) ClearVisibilityLabel() *EquipmentPortDefinitionUpdate {
-	epdu.visibility_label = nil
-	epdu.clearvisibility_label = true
+	epdu.mutation.ClearVisibilityLabel()
 	return epdu
 }
 
 // SetEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id.
-func (epdu *EquipmentPortDefinitionUpdate) SetEquipmentPortTypeID(id string) *EquipmentPortDefinitionUpdate {
-	if epdu.equipment_port_type == nil {
-		epdu.equipment_port_type = make(map[string]struct{})
-	}
-	epdu.equipment_port_type[id] = struct{}{}
+func (epdu *EquipmentPortDefinitionUpdate) SetEquipmentPortTypeID(id int) *EquipmentPortDefinitionUpdate {
+	epdu.mutation.SetEquipmentPortTypeID(id)
 	return epdu
 }
 
 // SetNillableEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id if the given value is not nil.
-func (epdu *EquipmentPortDefinitionUpdate) SetNillableEquipmentPortTypeID(id *string) *EquipmentPortDefinitionUpdate {
+func (epdu *EquipmentPortDefinitionUpdate) SetNillableEquipmentPortTypeID(id *int) *EquipmentPortDefinitionUpdate {
 	if id != nil {
 		epdu = epdu.SetEquipmentPortTypeID(*id)
 	}
@@ -153,19 +127,14 @@ func (epdu *EquipmentPortDefinitionUpdate) SetEquipmentPortType(e *EquipmentPort
 }
 
 // AddPortIDs adds the ports edge to EquipmentPort by ids.
-func (epdu *EquipmentPortDefinitionUpdate) AddPortIDs(ids ...string) *EquipmentPortDefinitionUpdate {
-	if epdu.ports == nil {
-		epdu.ports = make(map[string]struct{})
-	}
-	for i := range ids {
-		epdu.ports[ids[i]] = struct{}{}
-	}
+func (epdu *EquipmentPortDefinitionUpdate) AddPortIDs(ids ...int) *EquipmentPortDefinitionUpdate {
+	epdu.mutation.AddPortIDs(ids...)
 	return epdu
 }
 
 // AddPorts adds the ports edges to EquipmentPort.
 func (epdu *EquipmentPortDefinitionUpdate) AddPorts(e ...*EquipmentPort) *EquipmentPortDefinitionUpdate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -173,16 +142,13 @@ func (epdu *EquipmentPortDefinitionUpdate) AddPorts(e ...*EquipmentPort) *Equipm
 }
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
-func (epdu *EquipmentPortDefinitionUpdate) SetEquipmentTypeID(id string) *EquipmentPortDefinitionUpdate {
-	if epdu.equipment_type == nil {
-		epdu.equipment_type = make(map[string]struct{})
-	}
-	epdu.equipment_type[id] = struct{}{}
+func (epdu *EquipmentPortDefinitionUpdate) SetEquipmentTypeID(id int) *EquipmentPortDefinitionUpdate {
+	epdu.mutation.SetEquipmentTypeID(id)
 	return epdu
 }
 
 // SetNillableEquipmentTypeID sets the equipment_type edge to EquipmentType by id if the given value is not nil.
-func (epdu *EquipmentPortDefinitionUpdate) SetNillableEquipmentTypeID(id *string) *EquipmentPortDefinitionUpdate {
+func (epdu *EquipmentPortDefinitionUpdate) SetNillableEquipmentTypeID(id *int) *EquipmentPortDefinitionUpdate {
 	if id != nil {
 		epdu = epdu.SetEquipmentTypeID(*id)
 	}
@@ -196,24 +162,19 @@ func (epdu *EquipmentPortDefinitionUpdate) SetEquipmentType(e *EquipmentType) *E
 
 // ClearEquipmentPortType clears the equipment_port_type edge to EquipmentPortType.
 func (epdu *EquipmentPortDefinitionUpdate) ClearEquipmentPortType() *EquipmentPortDefinitionUpdate {
-	epdu.clearedEquipmentPortType = true
+	epdu.mutation.ClearEquipmentPortType()
 	return epdu
 }
 
 // RemovePortIDs removes the ports edge to EquipmentPort by ids.
-func (epdu *EquipmentPortDefinitionUpdate) RemovePortIDs(ids ...string) *EquipmentPortDefinitionUpdate {
-	if epdu.removedPorts == nil {
-		epdu.removedPorts = make(map[string]struct{})
-	}
-	for i := range ids {
-		epdu.removedPorts[ids[i]] = struct{}{}
-	}
+func (epdu *EquipmentPortDefinitionUpdate) RemovePortIDs(ids ...int) *EquipmentPortDefinitionUpdate {
+	epdu.mutation.RemovePortIDs(ids...)
 	return epdu
 }
 
 // RemovePorts removes ports edges to EquipmentPort.
 func (epdu *EquipmentPortDefinitionUpdate) RemovePorts(e ...*EquipmentPort) *EquipmentPortDefinitionUpdate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -222,23 +183,41 @@ func (epdu *EquipmentPortDefinitionUpdate) RemovePorts(e ...*EquipmentPort) *Equ
 
 // ClearEquipmentType clears the equipment_type edge to EquipmentType.
 func (epdu *EquipmentPortDefinitionUpdate) ClearEquipmentType() *EquipmentPortDefinitionUpdate {
-	epdu.clearedEquipmentType = true
+	epdu.mutation.ClearEquipmentType()
 	return epdu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (epdu *EquipmentPortDefinitionUpdate) Save(ctx context.Context) (int, error) {
-	if epdu.update_time == nil {
+	if _, ok := epdu.mutation.UpdateTime(); !ok {
 		v := equipmentportdefinition.UpdateDefaultUpdateTime()
-		epdu.update_time = &v
+		epdu.mutation.SetUpdateTime(v)
 	}
-	if len(epdu.equipment_port_type) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"equipment_port_type\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(epdu.hooks) == 0 {
+		affected, err = epdu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentPortDefinitionMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			epdu.mutation = mutation
+			affected, err = epdu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(epdu.hooks) - 1; i >= 0; i-- {
+			mut = epdu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, epdu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	if len(epdu.equipment_type) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"equipment_type\"")
-	}
-	return epdu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -269,7 +248,7 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 			Table:   equipmentportdefinition.Table,
 			Columns: equipmentportdefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentportdefinition.FieldID,
 			},
 		},
@@ -281,67 +260,67 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 			}
 		}
 	}
-	if value := epdu.update_time; value != nil {
+	if value, ok := epdu.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldUpdateTime,
 		})
 	}
-	if value := epdu.name; value != nil {
+	if value, ok := epdu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldName,
 		})
 	}
-	if value := epdu.index; value != nil {
+	if value, ok := epdu.mutation.Index(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldIndex,
 		})
 	}
-	if value := epdu.addindex; value != nil {
+	if value, ok := epdu.mutation.AddedIndex(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldIndex,
 		})
 	}
-	if epdu.clearindex {
+	if epdu.mutation.IndexCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: equipmentportdefinition.FieldIndex,
 		})
 	}
-	if value := epdu.bandwidth; value != nil {
+	if value, ok := epdu.mutation.Bandwidth(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldBandwidth,
 		})
 	}
-	if epdu.clearbandwidth {
+	if epdu.mutation.BandwidthCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipmentportdefinition.FieldBandwidth,
 		})
 	}
-	if value := epdu.visibility_label; value != nil {
+	if value, ok := epdu.mutation.VisibilityLabel(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldVisibilityLabel,
 		})
 	}
-	if epdu.clearvisibility_label {
+	if epdu.mutation.VisibilityLabelCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipmentportdefinition.FieldVisibilityLabel,
 		})
 	}
-	if epdu.clearedEquipmentPortType {
+	if epdu.mutation.EquipmentPortTypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -350,14 +329,14 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epdu.equipment_port_type; len(nodes) > 0 {
+	if nodes := epdu.mutation.EquipmentPortTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -366,21 +345,17 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := epdu.removedPorts; len(nodes) > 0 {
+	if nodes := epdu.mutation.RemovedPortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -389,21 +364,17 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epdu.ports; len(nodes) > 0 {
+	if nodes := epdu.mutation.PortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -412,21 +383,17 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epdu.clearedEquipmentType {
+	if epdu.mutation.EquipmentTypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -435,14 +402,14 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epdu.equipment_type; len(nodes) > 0 {
+	if nodes := epdu.mutation.EquipmentTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -451,16 +418,12 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -479,35 +442,20 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 // EquipmentPortDefinitionUpdateOne is the builder for updating a single EquipmentPortDefinition entity.
 type EquipmentPortDefinitionUpdateOne struct {
 	config
-	id string
-
-	update_time              *time.Time
-	name                     *string
-	index                    *int
-	addindex                 *int
-	clearindex               bool
-	bandwidth                *string
-	clearbandwidth           bool
-	visibility_label         *string
-	clearvisibility_label    bool
-	equipment_port_type      map[string]struct{}
-	ports                    map[string]struct{}
-	equipment_type           map[string]struct{}
-	clearedEquipmentPortType bool
-	removedPorts             map[string]struct{}
-	clearedEquipmentType     bool
+	hooks    []Hook
+	mutation *EquipmentPortDefinitionMutation
 }
 
 // SetName sets the name field.
 func (epduo *EquipmentPortDefinitionUpdateOne) SetName(s string) *EquipmentPortDefinitionUpdateOne {
-	epduo.name = &s
+	epduo.mutation.SetName(s)
 	return epduo
 }
 
 // SetIndex sets the index field.
 func (epduo *EquipmentPortDefinitionUpdateOne) SetIndex(i int) *EquipmentPortDefinitionUpdateOne {
-	epduo.index = &i
-	epduo.addindex = nil
+	epduo.mutation.ResetIndex()
+	epduo.mutation.SetIndex(i)
 	return epduo
 }
 
@@ -521,24 +469,19 @@ func (epduo *EquipmentPortDefinitionUpdateOne) SetNillableIndex(i *int) *Equipme
 
 // AddIndex adds i to index.
 func (epduo *EquipmentPortDefinitionUpdateOne) AddIndex(i int) *EquipmentPortDefinitionUpdateOne {
-	if epduo.addindex == nil {
-		epduo.addindex = &i
-	} else {
-		*epduo.addindex += i
-	}
+	epduo.mutation.AddIndex(i)
 	return epduo
 }
 
 // ClearIndex clears the value of index.
 func (epduo *EquipmentPortDefinitionUpdateOne) ClearIndex() *EquipmentPortDefinitionUpdateOne {
-	epduo.index = nil
-	epduo.clearindex = true
+	epduo.mutation.ClearIndex()
 	return epduo
 }
 
 // SetBandwidth sets the bandwidth field.
 func (epduo *EquipmentPortDefinitionUpdateOne) SetBandwidth(s string) *EquipmentPortDefinitionUpdateOne {
-	epduo.bandwidth = &s
+	epduo.mutation.SetBandwidth(s)
 	return epduo
 }
 
@@ -552,14 +495,13 @@ func (epduo *EquipmentPortDefinitionUpdateOne) SetNillableBandwidth(s *string) *
 
 // ClearBandwidth clears the value of bandwidth.
 func (epduo *EquipmentPortDefinitionUpdateOne) ClearBandwidth() *EquipmentPortDefinitionUpdateOne {
-	epduo.bandwidth = nil
-	epduo.clearbandwidth = true
+	epduo.mutation.ClearBandwidth()
 	return epduo
 }
 
 // SetVisibilityLabel sets the visibility_label field.
 func (epduo *EquipmentPortDefinitionUpdateOne) SetVisibilityLabel(s string) *EquipmentPortDefinitionUpdateOne {
-	epduo.visibility_label = &s
+	epduo.mutation.SetVisibilityLabel(s)
 	return epduo
 }
 
@@ -573,22 +515,18 @@ func (epduo *EquipmentPortDefinitionUpdateOne) SetNillableVisibilityLabel(s *str
 
 // ClearVisibilityLabel clears the value of visibility_label.
 func (epduo *EquipmentPortDefinitionUpdateOne) ClearVisibilityLabel() *EquipmentPortDefinitionUpdateOne {
-	epduo.visibility_label = nil
-	epduo.clearvisibility_label = true
+	epduo.mutation.ClearVisibilityLabel()
 	return epduo
 }
 
 // SetEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id.
-func (epduo *EquipmentPortDefinitionUpdateOne) SetEquipmentPortTypeID(id string) *EquipmentPortDefinitionUpdateOne {
-	if epduo.equipment_port_type == nil {
-		epduo.equipment_port_type = make(map[string]struct{})
-	}
-	epduo.equipment_port_type[id] = struct{}{}
+func (epduo *EquipmentPortDefinitionUpdateOne) SetEquipmentPortTypeID(id int) *EquipmentPortDefinitionUpdateOne {
+	epduo.mutation.SetEquipmentPortTypeID(id)
 	return epduo
 }
 
 // SetNillableEquipmentPortTypeID sets the equipment_port_type edge to EquipmentPortType by id if the given value is not nil.
-func (epduo *EquipmentPortDefinitionUpdateOne) SetNillableEquipmentPortTypeID(id *string) *EquipmentPortDefinitionUpdateOne {
+func (epduo *EquipmentPortDefinitionUpdateOne) SetNillableEquipmentPortTypeID(id *int) *EquipmentPortDefinitionUpdateOne {
 	if id != nil {
 		epduo = epduo.SetEquipmentPortTypeID(*id)
 	}
@@ -601,19 +539,14 @@ func (epduo *EquipmentPortDefinitionUpdateOne) SetEquipmentPortType(e *Equipment
 }
 
 // AddPortIDs adds the ports edge to EquipmentPort by ids.
-func (epduo *EquipmentPortDefinitionUpdateOne) AddPortIDs(ids ...string) *EquipmentPortDefinitionUpdateOne {
-	if epduo.ports == nil {
-		epduo.ports = make(map[string]struct{})
-	}
-	for i := range ids {
-		epduo.ports[ids[i]] = struct{}{}
-	}
+func (epduo *EquipmentPortDefinitionUpdateOne) AddPortIDs(ids ...int) *EquipmentPortDefinitionUpdateOne {
+	epduo.mutation.AddPortIDs(ids...)
 	return epduo
 }
 
 // AddPorts adds the ports edges to EquipmentPort.
 func (epduo *EquipmentPortDefinitionUpdateOne) AddPorts(e ...*EquipmentPort) *EquipmentPortDefinitionUpdateOne {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -621,16 +554,13 @@ func (epduo *EquipmentPortDefinitionUpdateOne) AddPorts(e ...*EquipmentPort) *Eq
 }
 
 // SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
-func (epduo *EquipmentPortDefinitionUpdateOne) SetEquipmentTypeID(id string) *EquipmentPortDefinitionUpdateOne {
-	if epduo.equipment_type == nil {
-		epduo.equipment_type = make(map[string]struct{})
-	}
-	epduo.equipment_type[id] = struct{}{}
+func (epduo *EquipmentPortDefinitionUpdateOne) SetEquipmentTypeID(id int) *EquipmentPortDefinitionUpdateOne {
+	epduo.mutation.SetEquipmentTypeID(id)
 	return epduo
 }
 
 // SetNillableEquipmentTypeID sets the equipment_type edge to EquipmentType by id if the given value is not nil.
-func (epduo *EquipmentPortDefinitionUpdateOne) SetNillableEquipmentTypeID(id *string) *EquipmentPortDefinitionUpdateOne {
+func (epduo *EquipmentPortDefinitionUpdateOne) SetNillableEquipmentTypeID(id *int) *EquipmentPortDefinitionUpdateOne {
 	if id != nil {
 		epduo = epduo.SetEquipmentTypeID(*id)
 	}
@@ -644,24 +574,19 @@ func (epduo *EquipmentPortDefinitionUpdateOne) SetEquipmentType(e *EquipmentType
 
 // ClearEquipmentPortType clears the equipment_port_type edge to EquipmentPortType.
 func (epduo *EquipmentPortDefinitionUpdateOne) ClearEquipmentPortType() *EquipmentPortDefinitionUpdateOne {
-	epduo.clearedEquipmentPortType = true
+	epduo.mutation.ClearEquipmentPortType()
 	return epduo
 }
 
 // RemovePortIDs removes the ports edge to EquipmentPort by ids.
-func (epduo *EquipmentPortDefinitionUpdateOne) RemovePortIDs(ids ...string) *EquipmentPortDefinitionUpdateOne {
-	if epduo.removedPorts == nil {
-		epduo.removedPorts = make(map[string]struct{})
-	}
-	for i := range ids {
-		epduo.removedPorts[ids[i]] = struct{}{}
-	}
+func (epduo *EquipmentPortDefinitionUpdateOne) RemovePortIDs(ids ...int) *EquipmentPortDefinitionUpdateOne {
+	epduo.mutation.RemovePortIDs(ids...)
 	return epduo
 }
 
 // RemovePorts removes ports edges to EquipmentPort.
 func (epduo *EquipmentPortDefinitionUpdateOne) RemovePorts(e ...*EquipmentPort) *EquipmentPortDefinitionUpdateOne {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -670,23 +595,41 @@ func (epduo *EquipmentPortDefinitionUpdateOne) RemovePorts(e ...*EquipmentPort) 
 
 // ClearEquipmentType clears the equipment_type edge to EquipmentType.
 func (epduo *EquipmentPortDefinitionUpdateOne) ClearEquipmentType() *EquipmentPortDefinitionUpdateOne {
-	epduo.clearedEquipmentType = true
+	epduo.mutation.ClearEquipmentType()
 	return epduo
 }
 
 // Save executes the query and returns the updated entity.
 func (epduo *EquipmentPortDefinitionUpdateOne) Save(ctx context.Context) (*EquipmentPortDefinition, error) {
-	if epduo.update_time == nil {
+	if _, ok := epduo.mutation.UpdateTime(); !ok {
 		v := equipmentportdefinition.UpdateDefaultUpdateTime()
-		epduo.update_time = &v
+		epduo.mutation.SetUpdateTime(v)
 	}
-	if len(epduo.equipment_port_type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_port_type\"")
+
+	var (
+		err  error
+		node *EquipmentPortDefinition
+	)
+	if len(epduo.hooks) == 0 {
+		node, err = epduo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentPortDefinitionMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			epduo.mutation = mutation
+			node, err = epduo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(epduo.hooks) - 1; i >= 0; i-- {
+			mut = epduo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, epduo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(epduo.equipment_type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_type\"")
-	}
-	return epduo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -717,73 +660,77 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 			Table:   equipmentportdefinition.Table,
 			Columns: equipmentportdefinition.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  epduo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentportdefinition.FieldID,
 			},
 		},
 	}
-	if value := epduo.update_time; value != nil {
+	id, ok := epduo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing EquipmentPortDefinition.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := epduo.mutation.UpdateTime(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldUpdateTime,
 		})
 	}
-	if value := epduo.name; value != nil {
+	if value, ok := epduo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldName,
 		})
 	}
-	if value := epduo.index; value != nil {
+	if value, ok := epduo.mutation.Index(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldIndex,
 		})
 	}
-	if value := epduo.addindex; value != nil {
+	if value, ok := epduo.mutation.AddedIndex(); ok {
 		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldIndex,
 		})
 	}
-	if epduo.clearindex {
+	if epduo.mutation.IndexCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: equipmentportdefinition.FieldIndex,
 		})
 	}
-	if value := epduo.bandwidth; value != nil {
+	if value, ok := epduo.mutation.Bandwidth(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldBandwidth,
 		})
 	}
-	if epduo.clearbandwidth {
+	if epduo.mutation.BandwidthCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipmentportdefinition.FieldBandwidth,
 		})
 	}
-	if value := epduo.visibility_label; value != nil {
+	if value, ok := epduo.mutation.VisibilityLabel(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentportdefinition.FieldVisibilityLabel,
 		})
 	}
-	if epduo.clearvisibility_label {
+	if epduo.mutation.VisibilityLabelCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: equipmentportdefinition.FieldVisibilityLabel,
 		})
 	}
-	if epduo.clearedEquipmentPortType {
+	if epduo.mutation.EquipmentPortTypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -792,14 +739,14 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epduo.equipment_port_type; len(nodes) > 0 {
+	if nodes := epduo.mutation.EquipmentPortTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -808,21 +755,17 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentporttype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := epduo.removedPorts; len(nodes) > 0 {
+	if nodes := epduo.mutation.RemovedPortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -831,21 +774,17 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epduo.ports; len(nodes) > 0 {
+	if nodes := epduo.mutation.PortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -854,21 +793,17 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if epduo.clearedEquipmentType {
+	if epduo.mutation.EquipmentTypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -877,14 +812,14 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := epduo.equipment_type; len(nodes) > 0 {
+	if nodes := epduo.mutation.EquipmentTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -893,16 +828,12 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

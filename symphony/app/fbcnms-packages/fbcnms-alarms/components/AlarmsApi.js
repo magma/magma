@@ -10,6 +10,7 @@
 
 import type {
   AlertConfig,
+  AlertManagerGlobalConfig,
   AlertReceiver,
   AlertRoutingTree,
   AlertSuppression,
@@ -66,4 +67,10 @@ export type ApiUtil = {|
 
   // metric series
   getMetricSeries: (req: ApiRequest) => Promise<Array<PrometheusLabelset>>,
+
+  //alertmanager global config
+  getGlobalConfig: (req: ApiRequest) => Promise<AlertManagerGlobalConfig>,
+  editGlobalConfig: (
+    req: ApiRequest & {config: AlertManagerGlobalConfig},
+  ) => Promise<void>,
 |};

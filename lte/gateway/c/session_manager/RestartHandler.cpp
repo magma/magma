@@ -21,10 +21,12 @@ const uint RestartHandler::rpc_retry_interval_s_ = 5;
 RestartHandler::RestartHandler(
   std::shared_ptr<AsyncDirectorydClient> directoryd_client,
   std::shared_ptr<LocalEnforcer> enforcer,
-  SessionReporter* reporter):
+  SessionReporter* reporter,
+  SessionMap& session_map):
   directoryd_client_(directoryd_client),
   enforcer_(enforcer),
-  reporter_(reporter)
+  reporter_(reporter),
+  session_map_(session_map)
 {
 }
 
@@ -112,7 +114,7 @@ void RestartHandler::terminate_previous_session(
           return;
         }
         // Don't delete subscriber from directoryD if IMSI is known
-        if (enforcer_->is_imsi_duplicate(response.sid())) {
+        if (enforcer_->session_with_imsi_exists(session_map_, response.sid())) {
           MLOG(MINFO) << "Not cleaning up previous session after restart "
                       << "for subscriber " << response.sid()
                       << ", session id: " << response.session_id()

@@ -6,6 +6,11 @@ query LocationDocumentsQuery($id: ID!) {
         fileName
         category
       }
+      images {
+        id
+        fileName
+        category
+      }
     }
   }
 }

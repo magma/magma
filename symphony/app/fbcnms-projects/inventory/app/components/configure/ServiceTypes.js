@@ -20,7 +20,7 @@ import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
 import ServiceTypeItem from './ServiceTypeItem';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
@@ -126,7 +126,7 @@ class ServiceTypes extends React.Component<Props, State> {
           }
 
           return (
-            <FormValidationContextProvider>
+            <FormContextProvider>
               <div className={classes.typesList}>
                 <div className={classes.firstRow}>
                   <ConfigueTitle
@@ -168,7 +168,7 @@ class ServiceTypes extends React.Component<Props, State> {
                     ))}
                 </div>
               </div>
-            </FormValidationContextProvider>
+            </FormContextProvider>
           );
         }}
       />

@@ -33,8 +33,9 @@ type SurveyCellScanQuery struct {
 	withSurveyQuestion *SurveyQuestionQuery
 	withLocation       *LocationQuery
 	withFKs            bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -64,24 +65,36 @@ func (scsq *SurveyCellScanQuery) Order(o ...Order) *SurveyCellScanQuery {
 // QuerySurveyQuestion chains the current query on the survey_question edge.
 func (scsq *SurveyCellScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: scsq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
-		sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.SurveyQuestionTable, surveycellscan.SurveyQuestionColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(scsq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := scsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.SurveyQuestionTable, surveycellscan.SurveyQuestionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(scsq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (scsq *SurveyCellScanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: scsq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
-		sqlgraph.To(location.Table, location.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.LocationTable, surveycellscan.LocationColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(scsq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := scsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.LocationTable, surveycellscan.LocationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(scsq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -107,8 +120,8 @@ func (scsq *SurveyCellScanQuery) FirstX(ctx context.Context) *SurveyCellScan {
 }
 
 // FirstID returns the first SurveyCellScan id in the query. Returns *NotFoundError when no id was found.
-func (scsq *SurveyCellScanQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (scsq *SurveyCellScanQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = scsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -120,7 +133,7 @@ func (scsq *SurveyCellScanQuery) FirstID(ctx context.Context) (id string, err er
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (scsq *SurveyCellScanQuery) FirstXID(ctx context.Context) string {
+func (scsq *SurveyCellScanQuery) FirstXID(ctx context.Context) int {
 	id, err := scsq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -154,8 +167,8 @@ func (scsq *SurveyCellScanQuery) OnlyX(ctx context.Context) *SurveyCellScan {
 }
 
 // OnlyID returns the only SurveyCellScan id in the query, returns an error if not exactly one id was returned.
-func (scsq *SurveyCellScanQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (scsq *SurveyCellScanQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = scsq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -171,7 +184,7 @@ func (scsq *SurveyCellScanQuery) OnlyID(ctx context.Context) (id string, err err
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (scsq *SurveyCellScanQuery) OnlyXID(ctx context.Context) string {
+func (scsq *SurveyCellScanQuery) OnlyXID(ctx context.Context) int {
 	id, err := scsq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -181,6 +194,9 @@ func (scsq *SurveyCellScanQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of SurveyCellScans.
 func (scsq *SurveyCellScanQuery) All(ctx context.Context) ([]*SurveyCellScan, error) {
+	if err := scsq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return scsq.sqlAll(ctx)
 }
 
@@ -194,8 +210,8 @@ func (scsq *SurveyCellScanQuery) AllX(ctx context.Context) []*SurveyCellScan {
 }
 
 // IDs executes the query and returns a list of SurveyCellScan ids.
-func (scsq *SurveyCellScanQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (scsq *SurveyCellScanQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := scsq.Select(surveycellscan.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -203,7 +219,7 @@ func (scsq *SurveyCellScanQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (scsq *SurveyCellScanQuery) IDsX(ctx context.Context) []string {
+func (scsq *SurveyCellScanQuery) IDsX(ctx context.Context) []int {
 	ids, err := scsq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -213,6 +229,9 @@ func (scsq *SurveyCellScanQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (scsq *SurveyCellScanQuery) Count(ctx context.Context) (int, error) {
+	if err := scsq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return scsq.sqlCount(ctx)
 }
 
@@ -227,6 +246,9 @@ func (scsq *SurveyCellScanQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (scsq *SurveyCellScanQuery) Exist(ctx context.Context) (bool, error) {
+	if err := scsq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return scsq.sqlExist(ctx)
 }
 
@@ -250,7 +272,8 @@ func (scsq *SurveyCellScanQuery) Clone() *SurveyCellScanQuery {
 		unique:     append([]string{}, scsq.unique...),
 		predicates: append([]predicate.SurveyCellScan{}, scsq.predicates...),
 		// clone intermediate query.
-		sql: scsq.sql.Clone(),
+		sql:  scsq.sql.Clone(),
+		path: scsq.path,
 	}
 }
 
@@ -294,7 +317,12 @@ func (scsq *SurveyCellScanQuery) WithLocation(opts ...func(*LocationQuery)) *Sur
 func (scsq *SurveyCellScanQuery) GroupBy(field string, fields ...string) *SurveyCellScanGroupBy {
 	group := &SurveyCellScanGroupBy{config: scsq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = scsq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := scsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return scsq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -313,8 +341,24 @@ func (scsq *SurveyCellScanQuery) GroupBy(field string, fields ...string) *Survey
 func (scsq *SurveyCellScanQuery) Select(field string, fields ...string) *SurveyCellScanSelect {
 	selector := &SurveyCellScanSelect{config: scsq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = scsq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := scsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return scsq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (scsq *SurveyCellScanQuery) prepareQuery(ctx context.Context) error {
+	if scsq.path != nil {
+		prev, err := scsq.path(ctx)
+		if err != nil {
+			return err
+		}
+		scsq.sql = prev
+	}
+	return nil
 }
 
 func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan, error) {
@@ -358,8 +402,8 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 	}
 
 	if query := scsq.withSurveyQuestion; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*SurveyCellScan)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyCellScan)
 		for i := range nodes {
 			if fk := nodes[i].survey_cell_scan_survey_question; fk != nil {
 				ids = append(ids, *fk)
@@ -383,8 +427,8 @@ func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan,
 	}
 
 	if query := scsq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*SurveyCellScan)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyCellScan)
 		for i := range nodes {
 			if fk := nodes[i].survey_cell_scan_location; fk != nil {
 				ids = append(ids, *fk)
@@ -429,7 +473,7 @@ func (scsq *SurveyCellScanQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   surveycellscan.Table,
 			Columns: surveycellscan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveycellscan.FieldID,
 			},
 		},
@@ -489,8 +533,9 @@ type SurveyCellScanGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -501,6 +546,11 @@ func (scsgb *SurveyCellScanGroupBy) Aggregate(fns ...Aggregate) *SurveyCellScanG
 
 // Scan applies the group-by query and scan the result into the given value.
 func (scsgb *SurveyCellScanGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := scsgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	scsgb.sql = query
 	return scsgb.sqlScan(ctx, v)
 }
 
@@ -619,12 +669,18 @@ func (scsgb *SurveyCellScanGroupBy) sqlQuery() *sql.Selector {
 type SurveyCellScanSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (scss *SurveyCellScanSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := scss.path(ctx)
+	if err != nil {
+		return err
+	}
+	scss.sql = query
 	return scss.sqlScan(ctx, v)
 }
 

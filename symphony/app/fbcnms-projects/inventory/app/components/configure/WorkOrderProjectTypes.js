@@ -15,6 +15,7 @@ import InventoryConfigureHeader from '../InventoryConfigureHeader';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import ProjectTypeCard from './ProjectTypeCard';
 import React, {useState} from 'react';
+import fbt from 'fbt';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
@@ -118,7 +119,7 @@ const WorkOrderProjectTypes = () => {
               subtitle="Create and manage reusable project workflows."
               actionButtons={[
                 {
-                  title: 'Add Project Template',
+                  title: `${fbt('Create Project Template', '')}`,
                   action: () => {
                     ServerLogger.info(
                       LogEvents.ADD_PROJECT_TEMPLATE_BUTTON_CLICKED,

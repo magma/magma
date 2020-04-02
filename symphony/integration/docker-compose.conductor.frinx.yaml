@@ -1,0 +1,71 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+version: "3.7"
+
+services:
+  dynomite:
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "3"
+        max-size: "10m"
+    image: frinx/fm-dynomite:latest
+    container_name: dynomite
+#    volumes:
+#      - redis_data:/var/lib/redis
+    networks:
+      - private
+
+  elasticsearch:
+    image: frinx/fm-elasticsearch:latest
+    container_name: elasticsearch
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "3"
+        max-size: "10m"
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx1024m"
+#    volumes:
+#      - elastic_data:/usr/share/elasticsearch/data
+    networks:
+      - private
+    healthcheck:
+      test: ["CMD", "curl", "-IGET", "http://localhost:9200"]
+      interval: 2s
+      timeout: 6s
+      retries: 1
+
+  conductor-server:
+    environment:
+      - CONFIG_PROP=config.properties
+    image: frinx/fm-conductor-server:latest
+    container_name: conductor-server
+    links:
+      - elasticsearch:es
+      - dynomite:dyno1
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "3"
+        max-size: "10m"
+    ports:
+      - 8080:8080
+      - 8000:8000
+    depends_on:
+      - dynomite
+    networks:
+      - public
+      - private
+    command: ["/app/wait_for.sh", "-t", "120",  "elasticsearch:9300", "--", "/app/startup.sh"]
+
+networks:
+  public:
+  private:
+    internal: true

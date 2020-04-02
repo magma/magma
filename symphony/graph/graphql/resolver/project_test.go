@@ -11,6 +11,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/AlekSi/pointer"
@@ -217,7 +218,7 @@ func TestProjectMutation(t *testing.T) {
 		assert.Error(t, err, "project name must be unique under type")
 		_, err = mutation.CreateProject(ctx, models.AddProjectInput{Type: input.Type})
 		assert.Error(t, err, "project name cannot be empty")
-		_, err = mutation.CreateProject(ctx, models.AddProjectInput{Name: "another", Type: "42424242"})
+		_, err = mutation.CreateProject(ctx, models.AddProjectInput{Name: "another", Type: 42424242})
 		assert.Error(t, err, "project type id must be valid")
 	}
 
@@ -254,18 +255,20 @@ func TestEditProject(t *testing.T) {
 
 	var project *ent.Project
 	{
+		u, err := viewer.UserFromContext(ctx)
+		require.NoError(t, err)
 		input := models.AddProjectInput{
 			Name:        "test",
 			Description: pointer.ToString("desc"),
 			Type:        typ.ID,
 			Location:    &loc.ID,
-			Creator:     pointer.ToString("fbuser@fb.com"),
+			CreatorID:   &u.ID,
 		}
 		project, err = mutation.CreateProject(ctx, input)
 		require.NoError(t, err)
 		assert.Equal(t, input.Name, project.Name)
 		assert.Equal(t, *input.Location, project.QueryLocation().OnlyX(ctx).ID)
-		assert.Equal(t, input.Creator, project.Creator)
+		assert.Equal(t, *input.CreatorID, project.QueryCreator().OnlyXID(ctx))
 
 		updateInput := models.EditProjectInput{
 			ID:          project.ID,
@@ -277,7 +280,7 @@ func TestEditProject(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, updateInput.Name, project.Name)
 		assert.Equal(t, *updateInput.Description, *project.Description)
-		assert.Nil(t, project.Creator)
+		assert.False(t, project.QueryCreator().ExistX(ctx))
 	}
 }
 
@@ -360,11 +363,13 @@ func TestAddProjectWithProperties(t *testing.T) {
 		RangeToValue:   &fl2,
 	}
 	propInputs := []*models.PropertyInput{&strProp, &strFixedProp, &intProp, &rngProp}
+	u, err := viewer.UserFromContext(ctx)
+	require.NoError(t, err)
 	input := models.AddProjectInput{
 		Name:        "test",
 		Description: pointer.ToString("desc"),
 		Type:        typ.ID,
-		Creator:     pointer.ToString("fbuser@fb.com"),
+		CreatorID:   &u.ID,
 		Properties:  propInputs,
 	}
 	p, err := mutation.CreateProject(ctx, input)
@@ -396,9 +401,7 @@ func TestAddProjectWithProperties(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, len(propInputs), len(fetchedProps))
 
-	failProp := models.PropertyInput{
-		PropertyTypeID: "someFakeTypeID",
-	}
+	failProp := models.PropertyInput{PropertyTypeID: -1}
 	failEditInput := models.EditProjectInput{
 		ID:         p.ID,
 		Name:       "test",
@@ -481,4 +484,53 @@ func TestEditProjectType(t *testing.T) {
 	typ, ok := node.(*ent.ProjectType)
 	require.True(t, ok)
 	assert.Equal(t, "example_type_name_edited", typ.Name)
+}
+
+func TestProjectWithWorkOrdersAndProperties(t *testing.T) {
+	resolver := newTestResolver(t)
+	defer resolver.drv.Close()
+	ctx := viewertest.NewContext(resolver.client)
+	mutation := resolver.Mutation()
+
+	strPropType := models.PropertyTypeInput{
+		Name: "str_prop",
+		Type: "string",
+	}
+	intPropType := models.PropertyTypeInput{
+		Name:        "int_prop",
+		Type:        "int",
+		IsMandatory: pointer.ToBool(true),
+	}
+	woType, err := mutation.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name:       "example_type_a",
+		Properties: []*models.PropertyTypeInput{&strPropType, &intPropType},
+	})
+	require.NoError(t, err)
+	woDef := models.WorkOrderDefinitionInput{Type: woType.ID, Index: pointer.ToInt(1)}
+
+	typ, err := resolver.Mutation().CreateProjectType(
+		ctx, models.AddProjectTypeInput{
+			Name:        "test",
+			Description: pointer.ToString("foobar"),
+			WorkOrders:  []*models.WorkOrderDefinitionInput{&woDef},
+		},
+	)
+	require.NoError(t, err)
+	node, err := resolver.Query().Node(ctx, typ.ID)
+	require.NoError(t, err)
+	rtyp, ok := node.(*ent.ProjectType)
+	require.True(t, ok)
+	woDefs, err := rtyp.QueryWorkOrders().All(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(woDefs))
+
+	location := createLocation(ctx, t, *resolver)
+	input := models.AddProjectInput{Name: "test", Type: typ.ID, Location: &location.ID}
+	proj, err := mutation.CreateProject(ctx, input)
+	require.NoError(t, err)
+	wos, err := proj.QueryWorkOrders().All(ctx)
+	require.NoError(t, err)
+	assert.Len(t, wos, 1)
+	props := wos[0].QueryProperties().AllX(ctx)
+	require.Len(t, props, 2)
 }

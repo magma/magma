@@ -59,6 +59,9 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'column',
     marginTop: '16px',
   },
+  rightContentContainer: {
+    display: 'inline-flex',
+  },
 }));
 
 type Props = {
@@ -118,7 +121,11 @@ const ExpandingPanel = ({
         }}
         expandIcon={allowExpandCollapse && <ExpandMoreIcon />}>
         <Text className={classes.panelTitle}>{title}</Text>
-        <div onClick={e => e.stopPropagation()}>{rightContent}</div>
+        <div
+          className={classes.rightContentContainer}
+          onClick={e => e.stopPropagation()}>
+          {rightContent}
+        </div>
       </ExpansionPanelSummary>
       <ExpansionPanelDetails
         className={classNames(classes.panelDetails, detailsPaneClass)}>

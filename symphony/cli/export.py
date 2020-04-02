@@ -3,23 +3,24 @@
 import argparse
 import json
 import os
-import pdoc
 import re
 import sys
 import time
 from datetime import datetime
 from distutils.version import LooseVersion
-from utils import archive_zip, extract_zip
 
+from export_doc import export_doc
 from pyinventory import InventoryClient
-from pyinventory.api.file import delete_file, store_file
+from schema_versioning_utils import add_current_schema_with_version
 
-GRAPHQL_PYINVENORY_CONTENT = \
+
+GRAPHQL_PYINVENORY_CONTENT = (
     """// Copyright (c) 2004-present Facebook All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Code generated (@""" + """generated) by pyinventory, DO NOT EDIT.
+// Code generated (@"""
+    + """generated) by pyinventory, DO NOT EDIT.
 
 package resolver
 
@@ -28,33 +29,9 @@ const PyinventoryConsts = `
 {}
 `
 """
+)
 
 GRAPHQL_PYINVENORY_PATH = "../graph/graphql/resolver/pyinventory.go"
-
-
-def module_path(m: pdoc.Module, output_dir: str, ext: str):
-    return os.path.join(output_dir, *re.sub(r'\.html$', ext, m.url()).split('/'))
-
-
-def write_files(m: pdoc.Module, output_dir: str, **kwargs):
-    f = module_path(m, output_dir, ".html")
-
-    dirpath = os.path.dirname(f)
-    if not os.access(dirpath, os.R_OK):
-        os.makedirs(dirpath)
-
-    try:
-        with open(f, 'w+', encoding='utf-8') as w:
-            w.write('<!--\n@' + 'generated\n-->\n' + m.html(**kwargs))
-    except Exception:
-        try:
-            os.unlink(f)
-        except Exception:
-            pass
-        raise
-
-    for submodule in m.submodules():
-        write_files(submodule, output_dir, **kwargs)
 
 
 def export(email, password, useLocally, replaceLatestVersion, hasBreakingChange):
@@ -79,7 +56,7 @@ def export(email, password, useLocally, replaceLatestVersion, hasBreakingChange)
                 print("Replace version {} with new version".format(version))
                 latestPackage = packages.pop(0)
                 try:
-                    delete_file(client, latestPackage["whlFileKey"], True)
+                    client.delete_file(latestPackage["whlFileKey"], True)
                 except Exception:
                     print(
                         f'whlFileKey {latestPackage["whlFileKey"]} cannot ' "be deleted"
@@ -94,16 +71,16 @@ def export(email, password, useLocally, replaceLatestVersion, hasBreakingChange)
             )
             return
 
-    whlFileKey = store_file(
-        client, os.path.join("./dist", whlFiles[0]), "application/zip", True
+    whlFileKey = client.store_file(
+        os.path.join("./dist", whlFiles[0]), "application/zip", True
     )
 
     newPackage = {
         "version": version,
         "whlFileKey": whlFileKey,
-        "uploadTime": datetime.isoformat(
-            datetime.fromtimestamp(int(time.time()))) + "+00:00",
-        "hasBreakingChange": hasBreakingChange
+        "uploadTime": datetime.isoformat(datetime.fromtimestamp(int(time.time())))
+        + "+00:00",
+        "hasBreakingChange": hasBreakingChange,
     }
     packages.insert(0, newPackage)
 
@@ -112,12 +89,10 @@ def export(email, password, useLocally, replaceLatestVersion, hasBreakingChange)
         GRAPHQL_PYINVENORY_CONTENT.format(newContent)
     )
 
-    pyinventory_module = pdoc.Module("pyinventory")
-    write_files(pyinventory_module, '../docs/website/static', show_source_code=False)
-
-    schemas = extract_zip('graphql_schema_versions/old_schemas.zip')
-    schemas[version] = open('../graph/graphql/schema/symphony.graphql').read()
-    archive_zip('graphql_schema_versions/old_schemas.zip', schemas)
+    export_doc()
+    add_current_schema_with_version(
+        "graphql_schema_versions", "../graph/graphql/schema/symphony.graphql", version
+    )
 
 
 if __name__ == "__main__":
@@ -150,5 +125,6 @@ if __name__ == "__main__":
         args.password,
         args.use_locally,
         args.replace_latest_version,
-        args.has_breaking_change)
+        args.has_breaking_change,
+    )
     sys.exit(0)

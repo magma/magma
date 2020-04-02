@@ -21,13 +21,11 @@ import (
 const strVal = "defVal"
 
 func TestLocationHierarchy(t *testing.T) {
-	r, err := newExporterTestResolver(t)
-	require.NoError(t, err)
+	r := newExporterTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
-
 	locTypeL, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_type_large"})
 	require.NoError(t, err)
 	locTypeM, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_type_medium"})
@@ -96,13 +94,11 @@ func TestLocationHierarchy(t *testing.T) {
 }
 
 func TestParentHierarchy(t *testing.T) {
-	r, err := newExporterTestResolver(t)
-	require.NoError(t, err)
+	r := newExporterTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 
 	mr := r.Mutation()
-
 	mapType := "map"
 	mapZoomLvl := 7
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -169,14 +165,12 @@ func TestParentHierarchy(t *testing.T) {
 }
 
 func TestPropertiesForCSV(t *testing.T) {
-	r, err := newExporterTestResolver(t)
-	require.NoError(t, err)
+	r := newExporterTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	client := ent.FromContext(ctx)
 
 	mr := r.Mutation()
-
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_loc_type"})
 	require.NoError(t, err)
 
@@ -318,7 +312,7 @@ func TestPropertiesForCSV(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	propertyTypes, err := propertyTypesSlice(ctx, []string{equipment.ID}, client, models.PropertyEntityEquipment)
+	propertyTypes, err := propertyTypesSlice(ctx, []int{equipment.ID}, client, models.PropertyEntityEquipment)
 	require.NoError(t, err)
 
 	props, err := propertiesSlice(ctx, equipment, propertyTypes, models.PropertyEntityEquipment)
@@ -331,14 +325,12 @@ func TestPropertiesForCSV(t *testing.T) {
 }
 
 func TestPropertyTypesForCSV(t *testing.T) {
-	r, err := newExporterTestResolver(t)
-	require.NoError(t, err)
+	r := newExporterTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	client := ent.FromContext(ctx)
 
 	mr := r.Mutation()
-
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "example_loc_type"})
 	require.NoError(t, err)
 
@@ -402,7 +394,7 @@ func TestPropertyTypesForCSV(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	propertyTypes, err := propertyTypesSlice(ctx, []string{equipment.ID}, client, models.PropertyEntityEquipment)
+	propertyTypes, err := propertyTypesSlice(ctx, []int{equipment.ID}, client, models.PropertyEntityEquipment)
 	require.NoError(t, err)
 
 	props, err := propertiesSlice(ctx, equipment, propertyTypes, models.PropertyEntityEquipment)
@@ -415,8 +407,7 @@ func TestPropertyTypesForCSV(t *testing.T) {
 }
 
 func TestSamePropertyTypesForCSV(t *testing.T) {
-	r, err := newExporterTestResolver(t)
-	require.NoError(t, err)
+	r := newExporterTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	client := ent.FromContext(ctx)
@@ -463,8 +454,7 @@ func TestSamePropertyTypesForCSV(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	propertyTypes, err := propertyTypesSlice(ctx, []string{equ.ID}, client, models.PropertyEntityEquipment)
-
+	propertyTypes, err := propertyTypesSlice(ctx, []int{equ.ID}, client, models.PropertyEntityEquipment)
 	require.Len(t, propertyTypes, 1)
 	require.Contains(t, propertyTypes, pa.Name)
 	require.NoError(t, err)

@@ -33,8 +33,9 @@ type SurveyWiFiScanQuery struct {
 	withSurveyQuestion *SurveyQuestionQuery
 	withLocation       *LocationQuery
 	withFKs            bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -64,24 +65,36 @@ func (swfsq *SurveyWiFiScanQuery) Order(o ...Order) *SurveyWiFiScanQuery {
 // QuerySurveyQuestion chains the current query on the survey_question edge.
 func (swfsq *SurveyWiFiScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: swfsq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
-		sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.SurveyQuestionTable, surveywifiscan.SurveyQuestionColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(swfsq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := swfsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
+			sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.SurveyQuestionTable, surveywifiscan.SurveyQuestionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(swfsq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (swfsq *SurveyWiFiScanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: swfsq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
-		sqlgraph.To(location.Table, location.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.LocationTable, surveywifiscan.LocationColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(swfsq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := swfsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.LocationTable, surveywifiscan.LocationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(swfsq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -107,8 +120,8 @@ func (swfsq *SurveyWiFiScanQuery) FirstX(ctx context.Context) *SurveyWiFiScan {
 }
 
 // FirstID returns the first SurveyWiFiScan id in the query. Returns *NotFoundError when no id was found.
-func (swfsq *SurveyWiFiScanQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (swfsq *SurveyWiFiScanQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = swfsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -120,7 +133,7 @@ func (swfsq *SurveyWiFiScanQuery) FirstID(ctx context.Context) (id string, err e
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (swfsq *SurveyWiFiScanQuery) FirstXID(ctx context.Context) string {
+func (swfsq *SurveyWiFiScanQuery) FirstXID(ctx context.Context) int {
 	id, err := swfsq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -154,8 +167,8 @@ func (swfsq *SurveyWiFiScanQuery) OnlyX(ctx context.Context) *SurveyWiFiScan {
 }
 
 // OnlyID returns the only SurveyWiFiScan id in the query, returns an error if not exactly one id was returned.
-func (swfsq *SurveyWiFiScanQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (swfsq *SurveyWiFiScanQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = swfsq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -171,7 +184,7 @@ func (swfsq *SurveyWiFiScanQuery) OnlyID(ctx context.Context) (id string, err er
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (swfsq *SurveyWiFiScanQuery) OnlyXID(ctx context.Context) string {
+func (swfsq *SurveyWiFiScanQuery) OnlyXID(ctx context.Context) int {
 	id, err := swfsq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -181,6 +194,9 @@ func (swfsq *SurveyWiFiScanQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of SurveyWiFiScans.
 func (swfsq *SurveyWiFiScanQuery) All(ctx context.Context) ([]*SurveyWiFiScan, error) {
+	if err := swfsq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return swfsq.sqlAll(ctx)
 }
 
@@ -194,8 +210,8 @@ func (swfsq *SurveyWiFiScanQuery) AllX(ctx context.Context) []*SurveyWiFiScan {
 }
 
 // IDs executes the query and returns a list of SurveyWiFiScan ids.
-func (swfsq *SurveyWiFiScanQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (swfsq *SurveyWiFiScanQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := swfsq.Select(surveywifiscan.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -203,7 +219,7 @@ func (swfsq *SurveyWiFiScanQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (swfsq *SurveyWiFiScanQuery) IDsX(ctx context.Context) []string {
+func (swfsq *SurveyWiFiScanQuery) IDsX(ctx context.Context) []int {
 	ids, err := swfsq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -213,6 +229,9 @@ func (swfsq *SurveyWiFiScanQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (swfsq *SurveyWiFiScanQuery) Count(ctx context.Context) (int, error) {
+	if err := swfsq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return swfsq.sqlCount(ctx)
 }
 
@@ -227,6 +246,9 @@ func (swfsq *SurveyWiFiScanQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (swfsq *SurveyWiFiScanQuery) Exist(ctx context.Context) (bool, error) {
+	if err := swfsq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return swfsq.sqlExist(ctx)
 }
 
@@ -250,7 +272,8 @@ func (swfsq *SurveyWiFiScanQuery) Clone() *SurveyWiFiScanQuery {
 		unique:     append([]string{}, swfsq.unique...),
 		predicates: append([]predicate.SurveyWiFiScan{}, swfsq.predicates...),
 		// clone intermediate query.
-		sql: swfsq.sql.Clone(),
+		sql:  swfsq.sql.Clone(),
+		path: swfsq.path,
 	}
 }
 
@@ -294,7 +317,12 @@ func (swfsq *SurveyWiFiScanQuery) WithLocation(opts ...func(*LocationQuery)) *Su
 func (swfsq *SurveyWiFiScanQuery) GroupBy(field string, fields ...string) *SurveyWiFiScanGroupBy {
 	group := &SurveyWiFiScanGroupBy{config: swfsq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = swfsq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := swfsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return swfsq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -313,8 +341,24 @@ func (swfsq *SurveyWiFiScanQuery) GroupBy(field string, fields ...string) *Surve
 func (swfsq *SurveyWiFiScanQuery) Select(field string, fields ...string) *SurveyWiFiScanSelect {
 	selector := &SurveyWiFiScanSelect{config: swfsq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = swfsq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := swfsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return swfsq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (swfsq *SurveyWiFiScanQuery) prepareQuery(ctx context.Context) error {
+	if swfsq.path != nil {
+		prev, err := swfsq.path(ctx)
+		if err != nil {
+			return err
+		}
+		swfsq.sql = prev
+	}
+	return nil
 }
 
 func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan, error) {
@@ -358,8 +402,8 @@ func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan
 	}
 
 	if query := swfsq.withSurveyQuestion; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*SurveyWiFiScan)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyWiFiScan)
 		for i := range nodes {
 			if fk := nodes[i].survey_wi_fi_scan_survey_question; fk != nil {
 				ids = append(ids, *fk)
@@ -383,8 +427,8 @@ func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan
 	}
 
 	if query := swfsq.withLocation; query != nil {
-		ids := make([]string, 0, len(nodes))
-		nodeids := make(map[string][]*SurveyWiFiScan)
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyWiFiScan)
 		for i := range nodes {
 			if fk := nodes[i].survey_wi_fi_scan_location; fk != nil {
 				ids = append(ids, *fk)
@@ -429,7 +473,7 @@ func (swfsq *SurveyWiFiScanQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   surveywifiscan.Table,
 			Columns: surveywifiscan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveywifiscan.FieldID,
 			},
 		},
@@ -489,8 +533,9 @@ type SurveyWiFiScanGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -501,6 +546,11 @@ func (swfsgb *SurveyWiFiScanGroupBy) Aggregate(fns ...Aggregate) *SurveyWiFiScan
 
 // Scan applies the group-by query and scan the result into the given value.
 func (swfsgb *SurveyWiFiScanGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := swfsgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	swfsgb.sql = query
 	return swfsgb.sqlScan(ctx, v)
 }
 
@@ -619,12 +669,18 @@ func (swfsgb *SurveyWiFiScanGroupBy) sqlQuery() *sql.Selector {
 type SurveyWiFiScanSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (swfss *SurveyWiFiScanSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := swfss.path(ctx)
+	if err != nil {
+		return err
+	}
+	swfss.sql = query
 	return swfss.sqlScan(ctx, v)
 }
 

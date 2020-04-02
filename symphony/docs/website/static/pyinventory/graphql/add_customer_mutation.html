@@ -33,114 +33,35 @@
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerInput"><code class="flex name class">
-<span>class <span class="ident">AddCustomerInput</span></span>
-<span>(</span><span>name, externalId=None)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>AddCustomerInput(name: str, externalId: Union[str, NoneType] = None)</p></section>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerInput.externalId"><code class="name">var <span class="ident">externalId</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerInput.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerInput.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerInput.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerInput.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerInput.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-</dd>
 <dt id="pyinventory.graphql.add_customer_mutation.AddCustomerMutation"><code class="flex name class">
 <span>class <span class="ident">AddCustomerMutation</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData">AddCustomerMutation.AddCustomerMutationData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>AddCustomerMutation(data: Union[pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData, NoneType] = None, errors: Union[Any, NoneType] = None)</p></section>
+<section class="desc"><p>AddCustomerMutation(data: pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData, <strong>QUERY</strong>: str = '\n
+mutation AddCustomerMutation($input: AddCustomerInput!) {\n
+addCustomer(input: $input) {\n
+id\n
+name\n
+externalId\n
+}\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData"><code class="name">var <span class="ident">AddCustomerMutationData</span></code></dt>
 <dd>
-<section class="desc"><p>AddCustomerMutationData(addCustomer: Union[pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData.Customer, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
+<section class="desc"><p>AddCustomerMutationData(addCustomer: pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData.Customer)</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, input)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, input: <a title="pyinventory.graphql.add_customer_input.AddCustomerInput" href="add_customer_input.html#pyinventory.graphql.add_customer_input.AddCustomerInput">AddCustomerInput</a>) -> <a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData">AddCustomerMutation.AddCustomerMutationData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -164,28 +85,10 @@
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerInput" href="#pyinventory.graphql.add_customer_mutation.AddCustomerInput">AddCustomerInput</a></code></h4>
-<ul class="two-column">
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerInput.externalId" href="#pyinventory.graphql.add_customer_mutation.AddCustomerInput.externalId">externalId</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerInput.from_dict" href="#pyinventory.graphql.add_customer_mutation.AddCustomerInput.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerInput.from_json" href="#pyinventory.graphql.add_customer_mutation.AddCustomerInput.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerInput.schema" href="#pyinventory.graphql.add_customer_mutation.AddCustomerInput.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerInput.to_dict" href="#pyinventory.graphql.add_customer_mutation.AddCustomerInput.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerInput.to_json" href="#pyinventory.graphql.add_customer_mutation.AddCustomerInput.to_json">to_json</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation">AddCustomerMutation</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData">AddCustomerMutationData</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.data" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.errors" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.execute" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.from_dict" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.from_json" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.schema" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.to_dict" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_customer_mutation.AddCustomerMutation.to_json" href="#pyinventory.graphql.add_customer_mutation.AddCustomerMutation.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

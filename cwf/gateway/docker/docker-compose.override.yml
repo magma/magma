@@ -24,7 +24,7 @@ services:
   pipelined:
     build:
       context: ${BUILD_CONTEXT}
-      dockerfile: lte/gateway/docker/python/Dockerfile
+      dockerfile: cwf/gateway/docker/python/Dockerfile
 
   radius:
     build:
@@ -34,7 +34,7 @@ services:
   sessiond:
     build:
       context: ${BUILD_CONTEXT}
-      dockerfile: lte/gateway/docker/c/Dockerfile
+      dockerfile: cwf/gateway/docker/c/Dockerfile
 
   uesim:
     build:

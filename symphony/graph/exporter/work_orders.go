@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,7 +28,7 @@ type woFilterInput struct {
 	Name          models.EquipmentFilterType `json:"name"`
 	Operator      models.FilterOperator      `jsons:"operator"`
 	StringValue   string                     `json:"stringValue"`
-	IDSet         []string                   `json:"idSet"`
+	IDSet         []int                      `json:"idSet"`
 	StringSet     []string                   `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput   `json:"propertyValue"`
 	BoolValue     bool                       `json:"boolValue"`
@@ -64,11 +65,11 @@ func (er woRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
 	wosList := searchResult.WorkOrders
 	allrows := make([][]string, len(wosList)+1)
 
-	woIDs := make([]string, len(wosList))
+	woIDs := make([]int, len(wosList))
 	for i, w := range wosList {
 		woIDs[i] = w.ID
 	}
-	propertyTypes, err := propertyTypesSlice(ctx, woIDs, client, models.PropertyEntityWorkOrders)
+	propertyTypes, err := propertyTypesSlice(ctx, woIDs, client, models.PropertyEntityWorkOrder)
 	if err != nil {
 		logger.Error("cannot query property types", zap.Error(err))
 		return nil, errors.Wrap(err, "cannot query property types")
@@ -98,7 +99,7 @@ func (er woRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
 }
 
 func woToSlice(ctx context.Context, wo *ent.WorkOrder, propertyTypes []string) ([]string, error) {
-	properties, err := propertiesSlice(ctx, wo, propertyTypes, models.PropertyEntityWorkOrders)
+	properties, err := propertiesSlice(ctx, wo, propertyTypes, models.PropertyEntityWorkOrder)
 	if err != nil {
 		return nil, err
 	}
@@ -124,8 +125,29 @@ func woToSlice(ctx context.Context, wo *ent.WorkOrder, propertyTypes []string) (
 		}
 	}
 
-	row := []string{wo.ID, wo.Name, projName, wo.Status, wo.Assignee, wo.OwnerName, wo.Priority, getStringDate(wo.CreationDate), getStringDate(wo.InstallDate), locName}
+	assigneeName := ""
+	assignee, err := wo.QueryAssignee().Only(ctx)
+	if ent.MaskNotFound(err) != nil {
+		return nil, err
+	}
+	if assignee != nil {
+		assigneeName = assignee.Email
+	}
 
+	ownerName := ""
+	owner, err := wo.QueryOwner().Only(ctx)
+	if ent.MaskNotFound(err) != nil {
+		return nil, err
+	}
+	if owner != nil {
+		ownerName = owner.Email
+	}
+
+	row := []string{
+		strconv.Itoa(wo.ID), wo.Name, projName, wo.Status, assigneeName,
+		ownerName, wo.Priority, getStringDate(wo.CreationDate),
+		getStringDate(wo.InstallDate), locName,
+	}
 	row = append(row, properties...)
 
 	return row, nil

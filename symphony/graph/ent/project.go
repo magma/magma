@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -16,13 +15,14 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 )
 
 // Project is the model entity for the Project schema.
 type Project struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -31,13 +31,12 @@ type Project struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description *string `json:"description,omitempty"`
-	// Creator holds the value of the "creator" field.
-	Creator *string `json:"creator,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProjectQuery when eager-loading is set.
 	Edges                 ProjectEdges `json:"edges"`
-	project_location      *string
-	project_type_projects *string
+	project_location      *int
+	project_creator       *int
+	project_type_projects *int
 }
 
 // ProjectEdges holds the relations/edges for other nodes in the graph.
@@ -52,9 +51,11 @@ type ProjectEdges struct {
 	WorkOrders []*WorkOrder
 	// Properties holds the value of the properties edge.
 	Properties []*Property
+	// Creator holds the value of the creator edge.
+	Creator *User
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // TypeOrErr returns the Type value or an error if the edge
@@ -112,6 +113,20 @@ func (e ProjectEdges) PropertiesOrErr() ([]*Property, error) {
 	return nil, &NotLoadedError{edge: "properties"}
 }
 
+// CreatorOrErr returns the Creator value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProjectEdges) CreatorOrErr() (*User, error) {
+	if e.loadedTypes[5] {
+		if e.Creator == nil {
+			// The edge creator was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.Creator, nil
+	}
+	return nil, &NotLoadedError{edge: "creator"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Project) scanValues() []interface{} {
 	return []interface{}{
@@ -120,7 +135,6 @@ func (*Project) scanValues() []interface{} {
 		&sql.NullTime{},   // update_time
 		&sql.NullString{}, // name
 		&sql.NullString{}, // description
-		&sql.NullString{}, // creator
 	}
 }
 
@@ -128,6 +142,7 @@ func (*Project) scanValues() []interface{} {
 func (*Project) fkValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{}, // project_location
+		&sql.NullInt64{}, // project_creator
 		&sql.NullInt64{}, // project_type_projects
 	}
 }
@@ -142,7 +157,7 @@ func (pr *Project) assignValues(values ...interface{}) error {
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	pr.ID = strconv.FormatInt(value.Int64, 10)
+	pr.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -165,25 +180,25 @@ func (pr *Project) assignValues(values ...interface{}) error {
 		pr.Description = new(string)
 		*pr.Description = value.String
 	}
-	if value, ok := values[4].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field creator", values[4])
-	} else if value.Valid {
-		pr.Creator = new(string)
-		*pr.Creator = value.String
-	}
-	values = values[5:]
+	values = values[4:]
 	if len(values) == len(project.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_location", value)
 		} else if value.Valid {
-			pr.project_location = new(string)
-			*pr.project_location = strconv.FormatInt(value.Int64, 10)
+			pr.project_location = new(int)
+			*pr.project_location = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field project_creator", value)
+		} else if value.Valid {
+			pr.project_creator = new(int)
+			*pr.project_creator = int(value.Int64)
+		}
+		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field project_type_projects", value)
 		} else if value.Valid {
-			pr.project_type_projects = new(string)
-			*pr.project_type_projects = strconv.FormatInt(value.Int64, 10)
+			pr.project_type_projects = new(int)
+			*pr.project_type_projects = int(value.Int64)
 		}
 	}
 	return nil
@@ -191,34 +206,39 @@ func (pr *Project) assignValues(values ...interface{}) error {
 
 // QueryType queries the type edge of the Project.
 func (pr *Project) QueryType() *ProjectTypeQuery {
-	return (&ProjectClient{pr.config}).QueryType(pr)
+	return (&ProjectClient{config: pr.config}).QueryType(pr)
 }
 
 // QueryLocation queries the location edge of the Project.
 func (pr *Project) QueryLocation() *LocationQuery {
-	return (&ProjectClient{pr.config}).QueryLocation(pr)
+	return (&ProjectClient{config: pr.config}).QueryLocation(pr)
 }
 
 // QueryComments queries the comments edge of the Project.
 func (pr *Project) QueryComments() *CommentQuery {
-	return (&ProjectClient{pr.config}).QueryComments(pr)
+	return (&ProjectClient{config: pr.config}).QueryComments(pr)
 }
 
 // QueryWorkOrders queries the work_orders edge of the Project.
 func (pr *Project) QueryWorkOrders() *WorkOrderQuery {
-	return (&ProjectClient{pr.config}).QueryWorkOrders(pr)
+	return (&ProjectClient{config: pr.config}).QueryWorkOrders(pr)
 }
 
 // QueryProperties queries the properties edge of the Project.
 func (pr *Project) QueryProperties() *PropertyQuery {
-	return (&ProjectClient{pr.config}).QueryProperties(pr)
+	return (&ProjectClient{config: pr.config}).QueryProperties(pr)
+}
+
+// QueryCreator queries the creator edge of the Project.
+func (pr *Project) QueryCreator() *UserQuery {
+	return (&ProjectClient{config: pr.config}).QueryCreator(pr)
 }
 
 // Update returns a builder for updating this Project.
 // Note that, you need to call Project.Unwrap() before calling this method, if this Project
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pr *Project) Update() *ProjectUpdateOne {
-	return (&ProjectClient{pr.config}).UpdateOne(pr)
+	return (&ProjectClient{config: pr.config}).UpdateOne(pr)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -247,18 +267,8 @@ func (pr *Project) String() string {
 		builder.WriteString(", description=")
 		builder.WriteString(*v)
 	}
-	if v := pr.Creator; v != nil {
-		builder.WriteString(", creator=")
-		builder.WriteString(*v)
-	}
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (pr *Project) id() int {
-	id, _ := strconv.Atoi(pr.ID)
-	return id
 }
 
 // Projects is a parsable slice of Project.

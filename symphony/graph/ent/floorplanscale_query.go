@@ -27,8 +27,9 @@ type FloorPlanScaleQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.FloorPlanScale
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -77,8 +78,8 @@ func (fpsq *FloorPlanScaleQuery) FirstX(ctx context.Context) *FloorPlanScale {
 }
 
 // FirstID returns the first FloorPlanScale id in the query. Returns *NotFoundError when no id was found.
-func (fpsq *FloorPlanScaleQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fpsq *FloorPlanScaleQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fpsq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -90,7 +91,7 @@ func (fpsq *FloorPlanScaleQuery) FirstID(ctx context.Context) (id string, err er
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (fpsq *FloorPlanScaleQuery) FirstXID(ctx context.Context) string {
+func (fpsq *FloorPlanScaleQuery) FirstXID(ctx context.Context) int {
 	id, err := fpsq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -124,8 +125,8 @@ func (fpsq *FloorPlanScaleQuery) OnlyX(ctx context.Context) *FloorPlanScale {
 }
 
 // OnlyID returns the only FloorPlanScale id in the query, returns an error if not exactly one id was returned.
-func (fpsq *FloorPlanScaleQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (fpsq *FloorPlanScaleQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = fpsq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -141,7 +142,7 @@ func (fpsq *FloorPlanScaleQuery) OnlyID(ctx context.Context) (id string, err err
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (fpsq *FloorPlanScaleQuery) OnlyXID(ctx context.Context) string {
+func (fpsq *FloorPlanScaleQuery) OnlyXID(ctx context.Context) int {
 	id, err := fpsq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -151,6 +152,9 @@ func (fpsq *FloorPlanScaleQuery) OnlyXID(ctx context.Context) string {
 
 // All executes the query and returns a list of FloorPlanScales.
 func (fpsq *FloorPlanScaleQuery) All(ctx context.Context) ([]*FloorPlanScale, error) {
+	if err := fpsq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return fpsq.sqlAll(ctx)
 }
 
@@ -164,8 +168,8 @@ func (fpsq *FloorPlanScaleQuery) AllX(ctx context.Context) []*FloorPlanScale {
 }
 
 // IDs executes the query and returns a list of FloorPlanScale ids.
-func (fpsq *FloorPlanScaleQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (fpsq *FloorPlanScaleQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := fpsq.Select(floorplanscale.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -173,7 +177,7 @@ func (fpsq *FloorPlanScaleQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (fpsq *FloorPlanScaleQuery) IDsX(ctx context.Context) []string {
+func (fpsq *FloorPlanScaleQuery) IDsX(ctx context.Context) []int {
 	ids, err := fpsq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -183,6 +187,9 @@ func (fpsq *FloorPlanScaleQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (fpsq *FloorPlanScaleQuery) Count(ctx context.Context) (int, error) {
+	if err := fpsq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return fpsq.sqlCount(ctx)
 }
 
@@ -197,6 +204,9 @@ func (fpsq *FloorPlanScaleQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (fpsq *FloorPlanScaleQuery) Exist(ctx context.Context) (bool, error) {
+	if err := fpsq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return fpsq.sqlExist(ctx)
 }
 
@@ -220,7 +230,8 @@ func (fpsq *FloorPlanScaleQuery) Clone() *FloorPlanScaleQuery {
 		unique:     append([]string{}, fpsq.unique...),
 		predicates: append([]predicate.FloorPlanScale{}, fpsq.predicates...),
 		// clone intermediate query.
-		sql: fpsq.sql.Clone(),
+		sql:  fpsq.sql.Clone(),
+		path: fpsq.path,
 	}
 }
 
@@ -242,7 +253,12 @@ func (fpsq *FloorPlanScaleQuery) Clone() *FloorPlanScaleQuery {
 func (fpsq *FloorPlanScaleQuery) GroupBy(field string, fields ...string) *FloorPlanScaleGroupBy {
 	group := &FloorPlanScaleGroupBy{config: fpsq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = fpsq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := fpsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return fpsq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -261,8 +277,24 @@ func (fpsq *FloorPlanScaleQuery) GroupBy(field string, fields ...string) *FloorP
 func (fpsq *FloorPlanScaleQuery) Select(field string, fields ...string) *FloorPlanScaleSelect {
 	selector := &FloorPlanScaleSelect{config: fpsq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = fpsq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := fpsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return fpsq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (fpsq *FloorPlanScaleQuery) prepareQuery(ctx context.Context) error {
+	if fpsq.path != nil {
+		prev, err := fpsq.path(ctx)
+		if err != nil {
+			return err
+		}
+		fpsq.sql = prev
+	}
+	return nil
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlAll(ctx context.Context) ([]*FloorPlanScale, error) {
@@ -311,7 +343,7 @@ func (fpsq *FloorPlanScaleQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   floorplanscale.Table,
 			Columns: floorplanscale.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: floorplanscale.FieldID,
 			},
 		},
@@ -371,8 +403,9 @@ type FloorPlanScaleGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -383,6 +416,11 @@ func (fpsgb *FloorPlanScaleGroupBy) Aggregate(fns ...Aggregate) *FloorPlanScaleG
 
 // Scan applies the group-by query and scan the result into the given value.
 func (fpsgb *FloorPlanScaleGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := fpsgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	fpsgb.sql = query
 	return fpsgb.sqlScan(ctx, v)
 }
 
@@ -501,12 +539,18 @@ func (fpsgb *FloorPlanScaleGroupBy) sqlQuery() *sql.Selector {
 type FloorPlanScaleSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (fpss *FloorPlanScaleSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := fpss.path(ctx)
+	if err != nil {
+		return err
+	}
+	fpss.sql = query
 	return fpss.sqlScan(ctx, v)
 }
 

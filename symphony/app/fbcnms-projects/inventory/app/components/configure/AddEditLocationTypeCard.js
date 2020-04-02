@@ -34,10 +34,12 @@ import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import SurveyTemplateCategories from '../form/SurveyTemplateCategories';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import fbt from 'fbt';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
 import {withSnackbar} from 'notistack';
@@ -133,7 +135,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
               {error}
               <Grid container spacing={2}>
                 <Grid item xs={6}>
-                  <FormField label="Name" required>
+                  <FormField label={`${fbt('Location Name', '')}`} required>
                     <TextInput
                       name="name"
                       variant="outlined"
@@ -307,7 +309,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
 
   editLocationType = () => {
     const onError = (error: Error) =>
-      this.setState({error: error.message, isSaving: false});
+      this.setState({error: getGraphError(error), isSaving: false});
 
     const handleErrors = errors => {
       if (errors && errors[0]) {
@@ -376,7 +378,9 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
       },
     };
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const rootQuery = store.getRoot();
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addLocationType');
       if (!newNode) {
         return;
@@ -386,11 +390,14 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
         'Catalog_locationTypes',
       );
       const edge = ConnectionHandler.createEdge(
+        // $FlowFixMe (T62907961) Relay flow types
         store,
+        // $FlowFixMe (T62907961) Relay flow types
         types,
         newNode,
         'LocationTypesEdge',
       );
+      // $FlowFixMe - Surfaced when Relay flow types were added. Help fix.
       ConnectionHandler.insertEdgeBefore(types, edge);
     };
     AddLocationTypeMutation(variables, callbacks, updater);

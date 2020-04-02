@@ -6,6 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 """
 import threading
+from typing import List
 
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
@@ -13,11 +14,13 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ether_types, dhcp
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
+from lte.protos.pipelined_pb2 import SetupFlowsResult, UEMacFlowRequest
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.directoryd_client import update_record
 from magma.pipelined.imsi import encode_imsi, decode_imsi
 from magma.pipelined.openflow import flows
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, load_passthrough
@@ -44,6 +47,10 @@ class UEMacAddressController(MagmaController):
         self._datapath = None
         self._dhcp_learn_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
+        self._li_port = None
+        if 'li_local_iface' in kwargs['config']:
+            self._li_port = \
+                BridgeTools.get_ofport(kwargs['config']['li_local_iface'])
 
     def initialize_on_connect(self, datapath):
         self.delete_all_flows(datapath)
@@ -52,6 +59,26 @@ class UEMacAddressController(MagmaController):
 
     def cleanup_on_disconnect(self, datapath):
         self.delete_all_flows(datapath)
+
+    def handle_restart(self, ue_requests: List[UEMacFlowRequest]
+                       ) -> SetupFlowsResult:
+        """
+        Setup current check quota flows.
+        """
+        # TODO Potentially we can run a diff logic but I don't think there is
+        # benefit(we don't need stats here)
+        self.delete_all_flows(self._datapath)
+        self._install_default_flows()
+
+        for ue_req in ue_requests:
+            self.add_ue_mac_flow(ue_req.sid.id, ue_req.mac_addr)
+
+        if self.arp_contoller or self.arpd_controller_fut.done():
+            if not self.arp_contoller:
+                self.arp_contoller = self.arpd_controller_fut.result()
+            self.arp_contoller.handle_restart(ue_requests)
+
+        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
@@ -288,6 +315,12 @@ class UEMacAddressController(MagmaController):
         """
         # Allows arp packets from uplink(no eth dst set) to go to the arp table
         self._add_uplink_arp_allow_flow()
+
+        if self._li_port:
+            match = MagmaMatch(in_port=self._li_port)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                match, actions=[], priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table)
 
         # TODO We might want a default drop all rule with min priority, but
         # adding it breakes all unit tests for this controller(needs work)

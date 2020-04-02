@@ -68,6 +68,7 @@ type Props<TRuleUnion> = {
   apiUtil: ApiUtil,
   ruleMap?: ?RuleInterfaceMap<TRuleUnion>,
   thresholdEditorEnabled?: boolean,
+  alertManagerGlobalConfigEnabled?: boolean,
   filterLabels?: (labels: Labels) => Labels,
   getAlertType?: (alert: FiringAlarm) => string,
 };
@@ -79,6 +80,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
     makeTabLink,
     disabledTabs,
     thresholdEditorEnabled,
+    alertManagerGlobalConfigEnabled,
     ruleMap,
     getAlertType,
   } = props;
@@ -99,6 +101,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
       value={{
         apiUtil,
         thresholdEditorEnabled,
+        alertManagerGlobalConfigEnabled,
         filterLabels,
         ruleMap: mergedRuleMap,
         getAlertType: getAlertType,

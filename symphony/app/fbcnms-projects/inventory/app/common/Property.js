@@ -8,9 +8,12 @@
  * @format
  */
 
+import type {FragmentReference} from 'relay-runtime';
+import type {PropertyFormField_property} from '../components/form/__generated__/PropertyFormField_property.graphql';
 import type {PropertyType} from './PropertyType';
 
 import DateTimeFormat from './DateTimeFormat.js';
+import {toMutablePropertyType} from './PropertyType';
 
 export type Property = {|
   id?: ?string,
@@ -30,7 +33,6 @@ export type Property = {|
   equipmentValue?: ?{id: string, name: string},
   locationValue?: ?{id: string, name: string},
   serviceValue?: ?{id: string, name: string},
-  isInstanceProperty?: ?boolean,
 |};
 
 export const sortPropertiesByIndex = (a: Property, b: Property) =>
@@ -106,7 +108,7 @@ export const toPropertyInput = (properties: Array<Property>): Array<any> => {
       return newPropInput;
     })
     .map(property => {
-      if (property.id && property.id.includes('@tmp')) {
+      if ((property.id && property.id.includes('@tmp')) || property.id == '0') {
         const {id: _, ...newProp} = property;
         return newProp;
       }
@@ -122,3 +124,41 @@ export const toPropertyInput = (properties: Array<Property>): Array<any> => {
       serviceIDValue: property.serviceValue?.id ?? null,
     }));
 };
+
+export const toMutableProperty = (
+  immutableProperty: $ReadOnly<
+    $Diff<PropertyFormField_property, {$refType: FragmentReference, ...}>,
+  >,
+): Property => ({
+  id: immutableProperty.id,
+  propertyType: toMutablePropertyType(immutableProperty.propertyType),
+  booleanValue: immutableProperty.booleanValue,
+  stringValue: immutableProperty.stringValue,
+  intValue: immutableProperty.intValue,
+  floatValue: immutableProperty.floatValue,
+  latitudeValue: immutableProperty.latitudeValue,
+  longitudeValue: immutableProperty.longitudeValue,
+  rangeFromValue: immutableProperty.rangeFromValue,
+  rangeToValue: immutableProperty.rangeToValue,
+  equipmentValue:
+    immutableProperty.equipmentValue != null
+      ? {
+          id: immutableProperty.equipmentValue.id,
+          name: immutableProperty.equipmentValue.name,
+        }
+      : null,
+  locationValue:
+    immutableProperty.locationValue != null
+      ? {
+          id: immutableProperty.locationValue.id,
+          name: immutableProperty.locationValue.name,
+        }
+      : null,
+  serviceValue:
+    immutableProperty.serviceValue != null
+      ? {
+          id: immutableProperty.serviceValue.id,
+          name: immutableProperty.serviceValue.name,
+        }
+      : null,
+});

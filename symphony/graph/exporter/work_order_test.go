@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 
@@ -35,6 +36,7 @@ type woTestType struct {
 
 func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) woTestType {
 	prepareData(ctx, t, r)
+	u2 := viewertest.CreateUserEnt(ctx, r.client, "tester2@example.com")
 
 	// Add templates
 	typInput1 := models.AddWorkOrderTypeInput{
@@ -80,11 +82,14 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 	}
 	projTyp, _ := r.Mutation().CreateProjectType(ctx, projTypeInput)
 
+	u, err := viewer.UserFromContext(ctx)
+	require.NoError(t, err)
+
 	// Add instances
 	projInput := models.AddProjectInput{
-		Name:    "Project 1",
-		Creator: pointer.ToString("tester@example.com"),
-		Type:    projTyp.ID,
+		Name:      "Project 1",
+		CreatorID: &u.ID,
+		Type:      projTyp.ID,
 	}
 	proj, _ := r.Mutation().CreateProject(ctx, projInput)
 
@@ -94,8 +99,8 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 		Name:            "WO1",
 		Description:     pointer.ToString("WO1 - description"),
 		WorkOrderTypeID: typ1.ID,
-		LocationID:      pointer.ToString(r.client.Location.Query().Where(location.Name(parentLocation)).OnlyX(ctx).ID),
-		ProjectID:       pointer.ToString(proj.ID),
+		LocationID:      pointer.ToInt(r.client.Location.Query().Where(location.Name(parentLocation)).OnlyX(ctx).ID),
+		ProjectID:       pointer.ToInt(proj.ID),
 		Properties: []*models.PropertyInput{
 			{
 				PropertyTypeID: propStrEnt.ID,
@@ -106,9 +111,9 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 				StringValue:    pointer.ToString("string2"),
 			},
 		},
-		Assignee: pointer.ToString("tester@example.com"),
-		Status:   &st,
-		Priority: &prio,
+		AssigneeID: &u.ID,
+		Status:     &st,
+		Priority:   &prio,
 	}
 	wo1, _ := r.Mutation().AddWorkOrder(ctx, woInput1)
 
@@ -118,7 +123,7 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 		Name:            "WO2",
 		Description:     pointer.ToString("WO2 - description"),
 		WorkOrderTypeID: typ2.ID,
-		LocationID:      pointer.ToString(r.client.Location.Query().Where(location.Name(childLocation)).OnlyX(ctx).ID),
+		LocationID:      pointer.ToInt(r.client.Location.Query().Where(location.Name(childLocation)).OnlyX(ctx).ID),
 		Properties: []*models.PropertyInput{
 			{
 				PropertyTypeID: propIntEnt.ID,
@@ -129,9 +134,9 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 				BooleanValue:   pointer.ToBool(true),
 			},
 		},
-		Assignee: pointer.ToString("tester2@example.com"),
-		Status:   &st,
-		Priority: &prio,
+		AssigneeID: &u2.ID,
+		Status:     &st,
+		Priority:   &prio,
 	}
 	wo2, _ := r.Mutation().AddWorkOrder(ctx, woInput2)
 	/*
@@ -146,9 +151,8 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 }
 
 func TestEmptyDataExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, woRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -175,16 +179,16 @@ func TestEmptyDataExport(t *testing.T) {
 }
 
 func TestWOExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, woRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
+	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
 	ctx := viewertest.NewContext(r.client)
@@ -205,14 +209,14 @@ func TestWOExport(t *testing.T) {
 		switch {
 		case ln[1] == "Work Order Name":
 			require.EqualValues(t, append(woDataHeader, []string{propNameBool, propNameInt, propStr, propStr2}...), ln)
-		case ln[0] == data.wo1.ID:
+		case ln[0] == strconv.Itoa(data.wo1.ID):
 			wo = data.wo1
 			require.EqualValues(t, ln[1:], []string{
 				"WO1",
 				wo.QueryProject().OnlyX(ctx).Name,
 				models.WorkOrderStatusDone.String(),
 				"tester@example.com",
-				"",
+				viewertest.DefaultViewer.User,
 				models.WorkOrderPriorityHigh.String(),
 				getStringDate(time.Now()),
 				"",
@@ -222,14 +226,14 @@ func TestWOExport(t *testing.T) {
 				"string1",
 				"string2",
 			})
-		case ln[0] == data.wo2.ID:
+		case ln[0] == strconv.Itoa(data.wo2.ID):
 			wo = data.wo2
 			require.EqualValues(t, ln[1:], []string{
 				"WO2",
 				"",
 				models.WorkOrderStatusPlanned.String(),
 				"tester2@example.com",
-				"",
+				viewertest.DefaultViewer.User,
 				models.WorkOrderPriorityMedium.String(),
 				getStringDate(time.Now()),
 				"",
@@ -246,9 +250,8 @@ func TestWOExport(t *testing.T) {
 }
 
 func TestExportWOWithFilters(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 	ctx := viewertest.NewContext(r.client)
 	e := &exporter{log, woRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -257,7 +260,7 @@ func TestExportWOWithFilters(t *testing.T) {
 
 	data := prepareWOData(ctx, t, *r)
 
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
@@ -291,14 +294,14 @@ func TestExportWOWithFilters(t *testing.T) {
 		}
 		linesCount++
 		require.NoError(t, err, "error reading row")
-		if ln[0] == data.wo1.ID {
+		if ln[0] == strconv.Itoa(data.wo1.ID) {
 			wo := data.wo1
 			require.EqualValues(t, ln[1:], []string{
 				"WO1",
 				wo.QueryProject().OnlyX(ctx).Name,
 				models.WorkOrderStatusDone.String(),
 				"tester@example.com",
-				"",
+				viewertest.DefaultViewer.User,
 				models.WorkOrderPriorityHigh.String(),
 				getStringDate(time.Now()),
 				"",

@@ -4,19 +4,43 @@ mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
     name
     externalId
     customer {
-      id
-      name
-      externalId
+      ...CustomerFragment
     }
     endpoints {
       id
       port {
         id
+        properties {
+          ...PropertyFragment
+        }
+        definition {
+          id
+          name
+          portType {
+            id
+            name
+          }
+        }
+        link {
+          id
+          properties {
+            ...PropertyFragment
+          }
+          services {
+            id
+          }
+        }
       }
       role
     }
     links {
       id
+      properties {
+        ...PropertyFragment
+      }
+      services {
+        id
+      }
     }
   }
 }

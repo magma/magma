@@ -29,8 +29,8 @@ type Token struct {
 	Value string `json:"-"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TokenQuery when eager-loading is set.
-	Edges   TokenEdges `json:"edges"`
-	user_id *int
+	Edges       TokenEdges `json:"edges"`
+	user_tokens *int
 }
 
 // TokenEdges holds the relations/edges for other nodes in the graph.
@@ -69,7 +69,7 @@ func (*Token) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Token) fkValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // user_id
+		&sql.NullInt64{}, // user_tokens
 	}
 }
 
@@ -103,10 +103,10 @@ func (t *Token) assignValues(values ...interface{}) error {
 	values = values[3:]
 	if len(values) == len(token.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field user_id", value)
+			return fmt.Errorf("unexpected type %T for edge-field user_tokens", value)
 		} else if value.Valid {
-			t.user_id = new(int)
-			*t.user_id = int(value.Int64)
+			t.user_tokens = new(int)
+			*t.user_tokens = int(value.Int64)
 		}
 	}
 	return nil
@@ -114,14 +114,14 @@ func (t *Token) assignValues(values ...interface{}) error {
 
 // QueryUser queries the user edge of the Token.
 func (t *Token) QueryUser() *UserQuery {
-	return (&TokenClient{t.config}).QueryUser(t)
+	return (&TokenClient{config: t.config}).QueryUser(t)
 }
 
 // Update returns a builder for updating this Token.
 // Note that, you need to call Token.Unwrap() before calling this method, if this Token
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Token) Update() *TokenUpdateOne {
-	return (&TokenClient{t.config}).UpdateOne(t)
+	return (&TokenClient{config: t.config}).UpdateOne(t)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

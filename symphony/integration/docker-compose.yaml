@@ -13,7 +13,7 @@ services:
       INVENTORY_TARGET: http://inventory:8080
       PROXY_TARGET: http://platform-server
       KEY_PAIRS: HWmHsJtI8wrSkVuXkMxP5HDW32t2AUqz
-    env_file: &env_files
+    env_file:
       - conf/log.env
       - conf/census.env
     networks:
@@ -39,6 +39,8 @@ services:
       MYSQL_USER: root
       MYSQL_PASS: root
       FB_TEST_USER: fbuser@fb.com
+      USER_GRAFANA_HOSTNAME: user-grafana
+      USER_GRAFANA_PORT: 3000
     networks:
       - public
       - private
@@ -67,13 +69,13 @@ services:
       dockerfile: graph/Dockerfile
     image: integration_graph
     environment:
-      GQL_DEBUG: 1
-      MYSQL_DSN: root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true&interpolateParams=true
-      AUTH_URL: http://platform-server/user/me
       ORC8R_HOST: ${ORC8R_API_HOSTNAME:-api-staging.magma.etagecom.io}
       ORC8R_CERT: /magma_certs/${ORC8R_API_CERT:-}api_cert
       ORC8R_PKEY: /magma_certs/${ORC8R_API_PRIVATE_KEY:-}api_key
-    env_file: *env_files
+    env_file:
+      - conf/graph.env
+      - conf/log.env
+      - conf/census.env
     networks:
       - private
       - public
@@ -82,6 +84,7 @@ services:
     depends_on:
       - migrate
       - mysql
+      - nats
     healthcheck:
       test: curl -If localhost/healthz/liveness
     restart: on-failure
@@ -89,7 +92,7 @@ services:
   migrate:
     image: integration_graph
     entrypoint: /bin/migrate
-    command: "-db-dsn=root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true"
+    command: "--db-dsn=root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true"
     networks:
       - private
     depends_on:
@@ -106,7 +109,9 @@ services:
       S3_REGION: us-east-1
       AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
       AWS_SECRET_ACCESS_KEY: /wJalrXUtnFEMIK7MDENG/bPxRfiCYEXAMPLEKEY
-    env_file: *env_files
+    env_file:
+      - conf/log.env
+      - conf/census.env
     networks:
       - private
     healthcheck:
@@ -184,6 +189,12 @@ services:
       - 16686:16686
     networks:
       - public
+      - private
+    restart: on-failure
+
+  nats:
+    image: nats
+    networks:
       - private
     restart: on-failure
 

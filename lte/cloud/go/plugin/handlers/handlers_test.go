@@ -739,8 +739,8 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getSubscriberConfig,
-		ExpectedStatus: 404,
-		ExpectedError:  "Not found",
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(&lteModels.NetworkSubscriberConfig{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -937,6 +937,30 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// posting twice shouldn't affect anything
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/rule_names/%s", testURLRoot, "n1", "rule4"),
+		Payload:        tests.JSONMarshaler(newSubscriberConfig),
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "rule4"},
+		Handler:        postRuleName,
+		ExpectedStatus: 201,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/%s", testURLRoot, "n1", "base4"),
+		Payload:        tests.JSONMarshaler(newSubscriberConfig),
+		ParamNames:     []string{"network_id", "base_name"},
+		ParamValues:    []string{"n1", "base4"},
+		Handler:        postBaseName,
+		ExpectedStatus: 201,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/%s", testURLRoot, "n1", "base4"),
@@ -1187,7 +1211,7 @@ func TestListAndGetGateways(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 
 	test_init.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1383,7 +1407,7 @@ func TestUpdateGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -1527,7 +1551,7 @@ func TestDeleteGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -2474,7 +2498,7 @@ func TestGetEnodebState(t *testing.T) {
 
 	// report state
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 
 	// encode the appropriate certificate into context
 	ctx := test_utils.GetContextWithCertificate(t, "hwid1")
@@ -2650,6 +2674,7 @@ func TestListSubscribers(t *testing.T) {
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -2741,6 +2766,60 @@ func TestListSubscribers(t *testing.T) {
 		}),
 	}
 	tests.RunUnitTest(t, e, tc)
+
+	// Now create ICMP state for 1234567890
+	// First we need to register a gateway which can report state
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
+	)
+	assert.NoError(t, err)
+	frozenClock := int64(1000000)
+	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
+	defer clock.UnfreezeClock(t)
+	icmpStatus := &lteModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.Subscriber{
+			"IMSI1234567890": {
+				ID: "IMSI1234567890",
+				Lte: &lteModels.LteSubscription{
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:      "ACTIVE",
+					SubProfile: "default",
+				},
+				ActiveApns: lteModels.ApnList{apn2, apn1},
+				Monitoring: &lteModels.SubscriberStatus{
+					Icmp: &lteModels.IcmpStatus{
+						LastReportedTime: frozenClock,
+						LatencyMs:        f32Ptr(12.34),
+					},
+				},
+			},
+			"IMSI0987654321": {
+				ID: "IMSI0987654321",
+				Lte: &lteModels.LteSubscription{
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					State:      "ACTIVE",
+					SubProfile: "foo",
+				},
+				ActiveApns: lteModels.ApnList{apn1},
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func TestGetSubscriber(t *testing.T) {
@@ -2749,6 +2828,7 @@ func TestGetSubscriber(t *testing.T) {
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -2812,6 +2892,47 @@ func TestGetSubscriber(t *testing.T) {
 				SubProfile: "default",
 			},
 			ActiveApns: lteModels.ApnList{apn2, apn1},
+		},
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Now create ICMP state
+	// First we need to register a gateway which can report state
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
+	)
+	assert.NoError(t, err)
+	frozenClock := int64(1000000)
+	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
+	defer clock.UnfreezeClock(t)
+	icmpStatus := &lteModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 200,
+		ExpectedResult: &lteModels.Subscriber{
+			ID: "IMSI1234567890",
+			Lte: &lteModels.LteSubscription{
+				AuthAlgo:   "MILENAGE",
+				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:      "ACTIVE",
+				SubProfile: "default",
+			},
+			ActiveApns: lteModels.ApnList{apn2, apn1},
+			Monitoring: &lteModels.SubscriberStatus{
+				Icmp: &lteModels.IcmpStatus{
+					LastReportedTime: frozenClock,
+					LatencyMs:        f32Ptr(12.34),
+				},
+			},
 		},
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -3698,4 +3819,8 @@ func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
 			NonEpsServiceControl: swag.Uint32(0),
 		},
 	}
+}
+
+func f32Ptr(f float32) *float32 {
+	return &f
 }

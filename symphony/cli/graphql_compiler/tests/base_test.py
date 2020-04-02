@@ -5,12 +5,10 @@ import sys
 import unittest
 from types import ModuleType
 
-import fbc.symphony.cli.graphql_compiler.tests.testmodule as testmodule
-from fbc.symphony.cli.graphql_compiler.gql.query_parser import QueryParser
-from fbc.symphony.cli.graphql_compiler.gql.renderer_dataclasses import (
-    DataclassesRenderer,
-)
-from fbc.symphony.cli.graphql_compiler.gql.utils_schema import load_schema
+import graphql_compiler.tests.testmodule as testmodule
+from graphql_compiler.gql.query_parser import QueryParser
+from graphql_compiler.gql.renderer_dataclasses import DataclassesRenderer
+from graphql_compiler.gql.utils_schema import load_schema
 
 
 class BaseTest(unittest.TestCase):

@@ -10,6 +10,8 @@
 'use strict';
 
 import type {FeatureID} from '@fbcnms/types/features';
+import type {SSOSelectedType} from '@fbcnms/types/auth';
+import type {Tab} from '@fbcnms/types/tabs';
 
 import * as React from 'react';
 import emptyFunction from '@fbcnms/util/emptyFunction';
@@ -20,8 +22,6 @@ export type User = {
   isSuperUser: boolean,
   isReadOnlyUser: boolean,
 };
-
-export type Tab = 'automation' | 'admin' | 'inventory' | 'nms' | 'workorders';
 
 export type AppContextType = {
   csrfToken: ?string,
@@ -34,9 +34,20 @@ export type AppContextType = {
   isFeatureEnabled: FeatureID => boolean,
   isTabEnabled: Tab => boolean,
   ssoEnabled: boolean,
+  ssoSelectedType: SSOSelectedType,
 };
 
-const AppContext = React.createContext<AppContextType>({
+export type AppContextAppData = {|
+  csrfToken: string,
+  tabs: $ReadOnlyArray<Tab>,
+  user: User,
+  enabledFeatures: FeatureID[],
+  ssoEnabled: boolean,
+  ssoSelectedType: SSOSelectedType,
+  csvCharset: ?string,
+|};
+
+const appContextDefaults = {
   csrfToken: null,
   version: null,
   networkIds: [],
@@ -47,7 +58,10 @@ const AppContext = React.createContext<AppContextType>({
   isFeatureEnabled: () => false,
   isTabEnabled: () => false,
   ssoEnabled: false,
-});
+  ssoSelectedType: 'none',
+};
+
+const AppContext = React.createContext<AppContextType>(appContextDefaults);
 
 type Props = {|
   children: React.Node,
@@ -55,12 +69,14 @@ type Props = {|
 |};
 
 export function AppContextProvider(props: Props) {
-  const {appData} = window.CONFIG;
+  const config: {appData: AppContextAppData} = window.CONFIG;
+  const {appData} = config;
   const value = {
+    ...appContextDefaults,
     ...appData,
     networkIds: props.networkIDs || [],
     isTabEnabled: (tab: Tab): boolean => {
-      return appData.tabs.indexOf(tab) !== -1;
+      return appData.tabs?.indexOf(tab) !== -1;
     },
     isFeatureEnabled: (featureID: FeatureID): boolean => {
       return appData.enabledFeatures.indexOf(featureID) !== -1;

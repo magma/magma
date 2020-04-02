@@ -33,74 +33,51 @@
 #include "gtpv1_u_messages_types.h"
 #include "ip_forward_messages_types.h"
 #include "s11_messages_types.h"
-#include "s5_messages_types.h"
 #include "spgw_state.h"
 
 int sgw_handle_s11_create_session_request(
   spgw_state_t* state,
   const itti_s11_create_session_request_t* const session_req_p,
   imsi64_t imsi64);
-int sgw_handle_sgi_endpoint_created(
-  spgw_state_t *state,
-  itti_sgi_create_end_point_response_t *const resp_p,
-  imsi64_t imsi64);
 int sgw_handle_sgi_endpoint_updated(
-  spgw_state_t *state,
   const itti_sgi_update_end_point_response_t *const resp_p,
   imsi64_t imsi64);
 int sgw_handle_gtpv1uCreateTunnelResp(
-  spgw_state_t *state,
+  spgw_state_t* state,
   const Gtpv1uCreateTunnelResp *const endpoint_created_p, imsi64_t imsi64);
 int sgw_handle_gtpv1uUpdateTunnelResp(
-  spgw_state_t *state,
   const Gtpv1uUpdateTunnelResp *const endpoint_updated_p, imsi64_t imsi64);
 int sgw_handle_gtpv1uDeleteTunnelResp(
   const Gtpv1uDeleteTunnelResp *const endpoint_deleted_p);
 int sgw_handle_modify_bearer_request(
-  spgw_state_t *state,
+  spgw_state_t* state,
   const itti_s11_modify_bearer_request_t *const modify_bearer_p,
   imsi64_t imsi64);
 int sgw_handle_delete_session_request(
-  spgw_state_t *state,
   const itti_s11_delete_session_request_t *const delete_session_p,
   imsi64_t imsi64);
 int sgw_handle_release_access_bearers_request(
-  spgw_state_t *state,
   const itti_s11_release_access_bearers_request_t
     *const release_access_bearers_req_pP,
     imsi64_t imsi64);
 int sgw_handle_suspend_notification(
-  spgw_state_t *state,
   const itti_s11_suspend_notification_t *const suspend_notification_pP,
   imsi64_t imsi64);
-int sgw_no_pcef_create_dedicated_bearer(spgw_state_t *state, s11_teid_t teid,
+int sgw_no_pcef_create_dedicated_bearer(
+  spgw_state_t* state,
+  s_plus_p_gw_eps_bearer_context_information_t*
+    s_plus_p_gw_eps_bearer_ctxt_info_p,
+  s11_teid_t teid,
   imsi64_t imsi64);
 int sgw_handle_create_bearer_response(
-  spgw_state_t *state,
   const itti_s11_create_bearer_response_t *const create_bearer_response_pP);
-int sgw_handle_nw_initiated_actv_bearer_req(
-  spgw_state_t *state,
-  const itti_s5_nw_init_actv_bearer_request_t *const itti_s5_actv_bearer_req,
-  imsi64_t imsi64);
 int sgw_handle_nw_initiated_actv_bearer_rsp(
-  spgw_state_t *state,
-  const itti_s11_nw_init_actv_bearer_rsp_t *const s11_actv_bearer_rsp,
+  const itti_s11_nw_init_actv_bearer_rsp_t* const s11_actv_bearer_rsp,
   imsi64_t imsi64);
-uint32_t sgw_handle_nw_initiated_deactv_bearer_req(
-  const itti_s5_nw_init_deactv_bearer_request_t
-    *const itti_s5_deactiv_ded_bearer_req, imsi64_t imsi64);
 int sgw_handle_nw_initiated_deactv_bearer_rsp(
-  spgw_state_t *state,
   const itti_s11_nw_init_deactv_bearer_rsp_t
     *const s11_pcrf_ded_bearer_deactv_rsp,
     imsi64_t imsi64);
 bool is_enb_ip_address_same(const fteid_t *fte_p, ip_address_t *ip_p);
-int send_activate_dedicated_bearer_rsp_to_pgw(
-  spgw_state_t* state,
-  gtpv2c_cause_value_t cause,
-  teid_t s_gw_teid_S11_S4,
-  ebi_t ebi,
-  teid_t enb_u_teid,
-  teid_t sgw_u_teid,
-  imsi64_t imsi64);
+uint32_t sgw_get_new_s1u_teid(spgw_state_t* state);
 #endif /* FILE_SGW_HANDLERS_SEEN */

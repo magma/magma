@@ -5,15 +5,13 @@
 package importer
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/resolverutil"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
-
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-
+	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
 )
@@ -31,12 +29,17 @@ func TestLinkTitleInputValidation(t *testing.T) {
 	ctx := newImportContext(viewertest.NewContext(r.client))
 	prepareBasicData(ctx, t, *r)
 
-	err := importer.inputValidationsLinks(ctx, NewImportHeader([]string{"aa"}, ImportEntityLink))
+	header, _ := NewImportHeader([]string{"aa"}, ImportEntityLink)
+	err := importer.inputValidationsLinks(ctx, header)
 	require.Error(t, err)
-	err = importer.inputValidationsLinks(ctx, NewImportHeader(fixedFirstPortLink, ImportEntityLink))
+
+	header, _ = NewImportHeader(fixedFirstPortLink, ImportEntityLink)
+	err = importer.inputValidationsLinks(ctx, header)
 	require.Error(t, err)
 	minimalRow := append(append(append(append(fixedFirstPortLink, parentsAHeader...), fixedSecondPortLink...), parentsBHeader...), "Service Names")
-	err = importer.inputValidationsLinks(ctx, NewImportHeader(minimalRow, ImportEntityLink))
+
+	header, _ = NewImportHeader(minimalRow, ImportEntityLink)
+	err = importer.inputValidationsLinks(ctx, header)
 	require.NoError(t, err)
 }
 
@@ -57,18 +60,18 @@ func TestGeneralLinksEditImport(t *testing.T) {
 	childEquip := r.client.Equipment.GetX(ctx, ids.equipChildID)
 	etyp2 := childEquip.QueryType().OnlyX(ctx)
 	var (
-		row1 = []string{ids.linkID, def1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", def2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", "", "", parentEquip, posName, strings.Join([]string{svcName, svc2Name}, ";"), "44", "2019-01-01", "FALSE"}
+		row1 = []string{strconv.Itoa(ids.linkID), def1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", def2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", "", "", parentEquip, posName, strings.Join([]string{svcName, svc2Name}, ";"), "44", "2019-01-01", "FALSE"}
 	)
 	firstPortHeader := append(append(fixedFirstPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsAHeader...)
 	secondPortHeader := append(append(fixedSecondPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsBHeader...)
 
 	header := append(append(firstPortHeader, secondPortHeader...), "Service Names", propNameInt, propNameDate, propNameBool)
 
-	fl := NewImportHeader(header, ImportEntityLink)
+	fl, _ := NewImportHeader(header, ImportEntityLink)
 	err := importer.inputValidationsLinks(ctx, fl)
 	require.NoError(t, err)
 
-	r1 := NewImportRecord(row1, fl)
+	r1, _ := NewImportRecord(row1, fl)
 
 	link, err := importer.validateLineForExistingLink(ctx, ids.linkID, r1)
 	require.NoError(t, err)
@@ -131,16 +134,16 @@ func TestGeneralLinksAddImport(t *testing.T) {
 
 	header := append(append(firstPortHeader, secondPortHeader...), "Service Names", propNameInt, propNameDate, propNameBool)
 
-	fl := NewImportHeader(header, ImportEntityLink)
+	fl, _ := NewImportHeader(header, ImportEntityLink)
 	err := importer.inputValidationsLinks(ctx, fl)
 	require.NoError(t, err)
-	r1 := NewImportRecord(row1, fl)
+	r1, _ := NewImportRecord(row1, fl)
 
 	pr1, pr2, err := importer.getTwoPortRecords(r1)
 	require.NoError(t, err)
 	// port1 test
 	require.Equal(t, row1[1:13], pr1.line)
-	parentLoc, err := importer.verifyOrCreateLocationHierarchy(ctx, *pr1, true)
+	parentLoc, err := importer.verifyOrCreateLocationHierarchy(ctx, *pr1, true, nil)
 	require.NoError(t, err)
 	require.Equal(t, locationS, parentLoc.Name)
 	eqID, defID, err := importer.getPositionDetailsIfExists(ctx, parentLoc, *pr1, false)
@@ -160,7 +163,7 @@ func TestGeneralLinksAddImport(t *testing.T) {
 	require.Equal(t, *propertyInputs[0].IntValue, 44)
 	// port2 test
 	require.Equal(t, row1[13:25], pr2.line)
-	parentLoc, err = importer.verifyOrCreateLocationHierarchy(ctx, *pr2, true)
+	parentLoc, err = importer.verifyOrCreateLocationHierarchy(ctx, *pr2, true, nil)
 	require.NoError(t, err)
 	require.Equal(t, locationS, parentLoc.Name)
 	eqID, defID, err = importer.getPositionDetailsIfExists(ctx, parentLoc, *pr2, false)

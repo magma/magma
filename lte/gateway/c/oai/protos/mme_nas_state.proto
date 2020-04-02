@@ -24,7 +24,6 @@ message BearerContext {
   uint32 qci = 5; // qci_t
 
   uint32 pdn_cx_id = 6; // pdn_cid_t
-  uint32 bearer_state = 7; // mme_app_bearer_state_t
   EsmEbrContext esm_ebr_context = 8;
   Fteid enb_fteid_s1u = 9;
 
@@ -135,18 +134,10 @@ message UeContext {
 
 // mme_ue_context_t
 message MmeUeContext {
-  uint32 nb_ue_managed = 1;
-  uint32 nb_ue_idle = 2;
-  uint32 nb_bearers_managed = 3;
-
   map<uint64, uint64> imsi_ue_id_htbl = 4;  // imsi -> mme_ue_id
   map<uint64, uint64> tun11_ue_id_htbl = 5; // tun_id -> mme_ue_id
-  map<uint64, UeContext> mme_ue_id_ue_ctxt_htbl = 6; // mme_ue_id -> ue_context
   map<uint64, uint64> enb_ue_id_ue_id_htbl = 7; // enb_ue_id -> mme_ue_id
   map<string, uint64> guti_ue_id_htbl = 8; // guti -> mme_ue_id
-
-  uint32 nb_ue_since_last_stat = 9; //TODO: remove
-  uint32 nb_bearers_since_last_stat = 10; //TODO: remove
 }
 
 // mme_app_desc_t
@@ -158,4 +149,10 @@ message MmeNasState {
   uint32 nb_default_eps_bearers = 5;
   uint32 nb_s1u_bearers = 6;
   uint64 statistic_timer_id = 7;
+  uint32 nb_ue_managed = 8;
+  uint32 nb_ue_idle = 9;
+  uint32 nb_bearers_managed = 10;
+  uint32 nb_ue_since_last_stat = 11; //TODO: remove
+  uint32 nb_bearers_since_last_stat = 12; //TODO: remove
+  uint32 mme_app_ue_s1ap_id_generator = 20;
 }
