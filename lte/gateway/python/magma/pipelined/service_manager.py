@@ -52,6 +52,7 @@ from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL, \
     InOutController
 from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.app.xwf_passthru import XWFPassthruController
 from magma.pipelined.app.startup_flows import StartupFlows
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
@@ -218,7 +219,7 @@ class _TableManager:
         resp = OrderedDict(sorted(self._tables_by_app.items(),
                                   key=lambda kv: (kv[1].main_table, kv[0])))
         # Include table 0 when it is managed by the EPC, for completeness.
-        if 'ue_mac' not in self._tables_by_app:
+        if not any(table in ['ue_mac', 'xwf_passthru'] for table in self._tables_by_app):
             resp['mme'] = Tables(main_table=0, type=None)
             resp.move_to_end('mme', last=False)
         return resp
@@ -249,6 +250,7 @@ class ServiceManager:
     STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
     CHECK_QUOTA_SERVICE_NAME = 'check_quota'
     LI_MIRROR_SERVICE_NAME = 'li_mirror'
+    XWF_PASSTHRU_NAME = 'xwf_passthru'
 
     # Mapping between services defined in mconfig and the names and modules of
     # the corresponding Ryu apps in PipelineD. The module is used for the Ryu
@@ -334,6 +336,12 @@ class ServiceManager:
                 type=LIMirrorController.APP_TYPE,
                 order_priority=900),
         ],
+        XWF_PASSTHRU_NAME: [
+            App(name=XWFPassthruController.APP_NAME,
+                module=XWFPassthruController.__module__,
+                type=XWFPassthruController.APP_TYPE,
+                order_priority=0),
+        ],
     }
 
     # Some apps do not use a table, so they need to be excluded from table
@@ -366,7 +374,7 @@ class ServiceManager:
             if app.name in self.STATIC_APP_WITH_NO_TABLE:
                 continue
             # UE MAC service must be registered with Table 0
-            if app.name == self.UE_MAC_ADDRESS_SERVICE_NAME:
+            if app.name in [self.UE_MAC_ADDRESS_SERVICE_NAME, self.XWF_PASSTHRU_NAME]:
                 self._table_manager.register_apps_for_table0_service([app])
                 continue
             self._table_manager.register_apps_for_service([app])
