@@ -121,7 +121,8 @@ def _get_context():
     Create the context which has the interface IP and the OAI log level to use.
     """
     context = {}
-    context["s11_ip"] = _get_iface_ip("spgw", "s11_iface_name")
+    context["s11_ip"] = _get_iface_ip("mme", "s11_iface_name")
+    context["s11_sgw_ip"] = _get_iface_ip("mme", "s11_sgw_iface_name")
     context["s1ap_ip"] = _get_iface_ip("mme", "s1ap_iface_name")
     context["s1u_ip"] = _get_iface_ip("spgw", "s1u_iface_name")
     context["oai_log_level"] = _get_oai_log_level()

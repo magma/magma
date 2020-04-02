@@ -11,8 +11,8 @@ S-GW :
     NETWORK_INTERFACES :
     {
         # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
-        SGW_INTERFACE_NAME_FOR_S11              = "lo:sgwmme";
-        SGW_IPV4_ADDRESS_FOR_S11                = "127.0.100.1/8";
+        SGW_INTERFACE_NAME_FOR_S11              = "{{ s11_iface_name }}";
+        SGW_IPV4_ADDRESS_FOR_S11                = "{{ s11_ip }}";
 
         # S-GW binded interface for S1-U communication (GTPV1-U) can be ethernet interface, virtual ethernet interface, we don't advise wireless interfaces
         SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP    = "{{ s1u_iface_name }}";

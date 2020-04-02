@@ -86,9 +86,12 @@ void mme_app_select_sgw(
 
   struct in_addr *entry = mme_app_edns_get_sgw_entry(application_unique_string);
 
+//mme_app_edns_get_sgw_entry(application_unique_string, service_ip_addr);
+
   if (entry) {
     sgw_in_addr->s_addr = entry->s_addr;
-  }
+  
+}
   OAILOG_DEBUG(
     LOG_MME_APP,
     "SGW lookup %s returned %s\n",
@@ -104,3 +107,42 @@ lookup_error:
   bdestroy_wrapper(&application_unique_string);
   return;
 }
+
+
+
+ //if ((*service_ip_addr)->sa_family == AF_INET)
+
+/*
+{
+      OAILOG_DEBUG(
+          LOG_MME_APP, "Service lookup %s returned %s\n",
+          application_unique_string->data,
+          inet_ntoa(((struct sockaddr_in*)*service_ip_addr)->sin_addr));
+
+
+//OAILOG_DEBUG(    LOG_MME_APP,"SGW lookup %s returned %s\n",    application_unique_string->data,    inet_ntoa(*sgw_in_addr));
+
+
+    } else {
+      char ipv6[INET6_ADDRSTRLEN];
+      inet_ntop(AF_INET6, (void*)*service_ip_addr, ipv6, INET6_ADDRSTRLEN);
+      OAILOG_DEBUG(LOG_MME_APP, "Service lookup %s returned %s\n",
+                   application_unique_string->data, ipv6);
+    }
+  }
+
+  bdestroy_wrapper(&application_unique_string);
+  return;
+
+lookup_error:
+  OAILOG_WARNING(LOG_MME_APP, "Failed service lookup for TAI " TAI_FMT "\n",
+                 TAI_ARG(tai));
+  memset((void*)service_ip_addr, 0, sizeof(struct sockaddr));
+  bdestroy_wrapper(&application_unique_string);
+  return;
+}  
+  
+*/  
+  
+  
+  

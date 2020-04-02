@@ -357,6 +357,7 @@ int mme_app_send_s11_create_session_req(
   // Actually, since S and P GW are bundled together, there is no PGW selection (based on PGW id in ULA, or DNS query based on FQDN)
   if (1) {
     // TODO prototype may change
+   
     mme_app_select_sgw(
       &ue_mm_context->emm_context.originating_tai, (struct in_addr *const)&session_request_p->edns_peer_ip);
   }
