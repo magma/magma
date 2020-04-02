@@ -86,6 +86,9 @@ class PipelinedController(Enum):
     IPFIX = Controller(
         'magma.pipelined.app.ipfix', 'ipfix'
     )
+    LIMirror = Controller(
+        'magma.pipelined.app.li_mirror', 'li_mirror'
+    )
     PacketTracer = Controller(
         'magma.pipelined.app.packet_tracer', 'packet_tracer'
     )
