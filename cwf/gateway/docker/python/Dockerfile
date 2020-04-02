@@ -44,24 +44,78 @@ RUN apt-key add /tmp/jfrog.pub && \
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
-  curl \
-  libc-ares2 \
-  libev4 \
-  libevent-openssl-2.0-5 \
-  libffi-dev \
-  libjansson4 \
-  libjemalloc1 \
-  libssl-dev \
-  libsystemd-dev \
-  magma-nghttpx=1.31.1-1 \
-  net-tools \
-  openssl \
-  pkg-config \
-  python-cffi \
-  python3-aioeventlet \
-  python3-pip \
-  redis-server \
-  iptables
+    curl \
+    libc-ares2 \
+    libev4 \
+    libevent-openssl-2.0-5 \
+    libffi-dev \
+    libjansson4 \
+    libjemalloc1 \
+    libssl-dev \
+    libsystemd-dev \
+    magma-nghttpx=1.31.1-1 \
+    net-tools \
+    openssl \
+    pkg-config \
+    python-cffi \
+    python3-aioeventlet \
+    python3-pip \
+    redis-server \
+    iptables \
+    git \
+    automake \
+    gcc \
+    libtool \
+    libcap-ng-dev \
+    linux-headers-generic
+    
+RUN pip3 install \
+    Cython \
+    fire \
+    envoy \
+    glob2 \
+    ryu \
+    flask \
+    aiodns \
+    pymemoize \
+    wsgiserver \
+    pycrypto \
+    six \
+    eventlet \
+    h2 \
+    hpack \
+    docker \
+    redis \
+    redis-collections \
+    aiohttp \
+    Jinja2 \
+    netifaces \
+    pylint \
+    PyYAML \
+    pytz \
+    snowflake \
+    systemd-python \
+    itsdangerous \
+    click \
+    pycares \
+    python-dateutil \
+    jsonpickle 
+
+# Install OVS via Magma bionic pkg repo
+RUN git clone --single-branch --branch v2.12.0 https://github.com/openvswitch/ovs.git
+
+COPY cwf/gateway/deploy/roles/ovs/files/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch /tmp
+COPY cwf/gateway/deploy/roles/ovs/files/0002-ovs-Handle-spaces-in-ovs-arguments.patch /tmp
+COPY cwf/gateway/deploy/roles/ovs/files/0003-Add-pdp_start_epoch-custom-field-to-IPFIX-export.patch /tmp
+
+WORKDIR ovs
+RUN git apply /tmp/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch
+RUN git apply /tmp/0002-ovs-Handle-spaces-in-ovs-arguments.patch
+RUN git apply /tmp/0003-Add-pdp_start_epoch-custom-field-to-IPFIX-export.patch
+RUN ./boot.sh
+RUN ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc
+RUN make
+RUN make install
 
 # Install orc8r python (magma.common required for lte python)
 COPY orc8r/gateway/python /tmp/orc8r
@@ -71,18 +125,13 @@ RUN pip3 install /tmp/orc8r
 COPY lte/gateway/python /tmp/lte
 RUN pip3 install /tmp/lte
 
-# Copy the build artifacts.
-COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
-
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
 COPY orc8r/gateway/configs/templates /etc/magma/templates
 COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
 RUN mkdir -p /var/opt/magma/configs
 
-# Install OVS via Magma bionic pkg repo
-COPY cwf/gateway/deploy/roles/ovs/files/install_ovs.sh /tmp
-COPY cwf/gateway/deploy/roles/ovs/files/0001-Add-custom-IPDR-fields-for-IPFIX-export.patch /tmp
-COPY cwf/gateway/deploy/roles/ovs/files/0002-ovs-Handle-spaces-in-ovs-arguments.patch /tmp
-COPY cwf/gateway/deploy/roles/ovs/files/0003-Add-pdp_start_epoch-custom-field-to-IPFIX-export.patch /tmp
-RUN bash /tmp/install_ovs.sh
+WORKDIR /
+
+# Copy the build artifacts.
+COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
