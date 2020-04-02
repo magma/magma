@@ -8,7 +8,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 # LI might not be enabled for all setups
-if [ ! -d "/sys/class/net/eth4" ]
+if [ -d "/sys/class/net/eth4" ]
 then
   sudo ovs-vsctl --may-exist add-port cwag_br0 li_port -- set Interface li_port type=internal
   sudo ifconfig li_port up

@@ -12,7 +12,7 @@
   become: true
   script: setup_default_uplink_bridge.sh
 
-- name: Create LI bridge with peer patch to cwag_br0 and rules to forward RADIUS traffic to LI bridge
+- name: Create internal LI port on cwag_br0 and rules to forward RADIUS traffic to cwag_br0
   become: true
   script: setup_li_mirror_br.sh
 
