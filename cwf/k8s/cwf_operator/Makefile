@@ -28,3 +28,4 @@ vet::
 
 build::
 	go install ./...
+

@@ -46,6 +46,12 @@ ENV OPERATOR=/usr/local/bin/cwf-operator \
     USER_UID=1001 \
     USER_NAME=cwf-operator
 
+# Install the runtime deps.
+RUN apt-get update && apt-get install -y curl openssh-server fping
+
+RUN curl -L "https://github.com/Mirantis/virtlet/releases/download/v1.5.1/virtletctl" -o /usr/bin/virtletctl
+RUN chmod 755 /usr/bin/virtletctl
+
 # install operator binary
 COPY --from=builder /var/opt/magma/bin/manager ${OPERATOR}
 
