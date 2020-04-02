@@ -11,40 +11,25 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
 
 @dataclass
 class LocationDetailsQuery(DataClassJsonMixin):
     @dataclass
     class LocationDetailsQueryData(DataClassJsonMixin):
         @dataclass
-        class Node(DataClassJsonMixin):
-            @dataclass
-            class LocationType(DataClassJsonMixin):
-                name: str
-
-            id: str
-            name: str
-            latitude: Number
-            longitude: Number
-            locationType: LocationType
-            externalId: Optional[str]
+        class Node(LocationFragment):
+            pass
 
         location: Optional[Node]
 
     data: LocationDetailsQueryData
 
-    __QUERY__: str = """
+    __QUERY__: str = LocationFragmentQuery + """
     query LocationDetailsQuery($id: ID!) {
   location: node(id: $id) {
     ... on Location {
-      id
-      name
-      latitude
-      longitude
-      externalId
-      locationType {
-        name
-      }
+      ...LocationFragment
     }
   }
 }

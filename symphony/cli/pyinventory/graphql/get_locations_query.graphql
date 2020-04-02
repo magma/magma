@@ -2,14 +2,7 @@ query GetLocationsQuery {
   locations {
     edges {
       node {
-        id
-        name
-        latitude
-        longitude
-        externalId
-        locationType {
-          name
-        }
+        ...LocationFragment
       }
     }
   }
