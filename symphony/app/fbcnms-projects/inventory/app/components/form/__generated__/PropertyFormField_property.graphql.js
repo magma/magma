@@ -24,10 +24,20 @@ export type PropertyFormField_property = {|
     +id: string,
     +name: string,
     +type: PropertyKind,
-    +isEditable: ?boolean,
-    +isMandatory: ?boolean,
-    +isInstanceProperty: ?boolean,
+    +index: ?number,
     +stringValue: ?string,
+    +intValue: ?number,
+    +booleanValue: ?boolean,
+    +floatValue: ?number,
+    +latitudeValue: ?number,
+    +longitudeValue: ?number,
+    +rangeFromValue: ?number,
+    +rangeToValue: ?number,
+    +isEditable: ?boolean,
+    +isInstanceProperty: ?boolean,
+    +isMandatory: ?boolean,
+    +category: ?string,
+    +isDeleted: ?boolean,
   |},
   +stringValue: ?string,
   +intValue: ?number,
@@ -82,7 +92,56 @@ v2 = {
   "args": null,
   "storageKey": null
 },
-v3 = [
+v3 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "intValue",
+  "args": null,
+  "storageKey": null
+},
+v4 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "booleanValue",
+  "args": null,
+  "storageKey": null
+},
+v5 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "floatValue",
+  "args": null,
+  "storageKey": null
+},
+v6 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "latitudeValue",
+  "args": null,
+  "storageKey": null
+},
+v7 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "longitudeValue",
+  "args": null,
+  "storageKey": null
+},
+v8 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "rangeFromValue",
+  "args": null,
+  "storageKey": null
+},
+v9 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "rangeToValue",
+  "args": null,
+  "storageKey": null
+},
+v10 = [
   (v0/*: any*/),
   (v1/*: any*/)
 ];
@@ -115,7 +174,29 @@ return {
         {
           "kind": "ScalarField",
           "alias": null,
+          "name": "index",
+          "args": null,
+          "storageKey": null
+        },
+        (v2/*: any*/),
+        (v3/*: any*/),
+        (v4/*: any*/),
+        (v5/*: any*/),
+        (v6/*: any*/),
+        (v7/*: any*/),
+        (v8/*: any*/),
+        (v9/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
           "name": "isEditable",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "isInstanceProperty",
           "args": null,
           "storageKey": null
         },
@@ -129,63 +210,27 @@ return {
         {
           "kind": "ScalarField",
           "alias": null,
-          "name": "isInstanceProperty",
+          "name": "category",
           "args": null,
           "storageKey": null
         },
-        (v2/*: any*/)
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "isDeleted",
+          "args": null,
+          "storageKey": null
+        }
       ]
     },
     (v2/*: any*/),
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "intValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "floatValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "booleanValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "latitudeValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "longitudeValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "rangeFromValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "rangeToValue",
-      "args": null,
-      "storageKey": null
-    },
+    (v3/*: any*/),
+    (v5/*: any*/),
+    (v4/*: any*/),
+    (v6/*: any*/),
+    (v7/*: any*/),
+    (v8/*: any*/),
+    (v9/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -194,7 +239,7 @@ return {
       "args": null,
       "concreteType": "Equipment",
       "plural": false,
-      "selections": (v3/*: any*/)
+      "selections": (v10/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -204,7 +249,7 @@ return {
       "args": null,
       "concreteType": "Location",
       "plural": false,
-      "selections": (v3/*: any*/)
+      "selections": (v10/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -214,11 +259,11 @@ return {
       "args": null,
       "concreteType": "Service",
       "plural": false,
-      "selections": (v3/*: any*/)
+      "selections": (v10/*: any*/)
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '67524c0dbba3cf1a4b79dffefa3b014f';
+(node/*: any*/).hash = 'c0216f5951d95041e1ad709abaaf6f26';
 module.exports = node;

@@ -42,6 +42,8 @@ export type EquipmentPortsTable_portDefinition = {|
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
     |}>,
     +linkPropertyTypes: $ReadOnlyArray<?{|
       +id: string,
@@ -59,6 +61,8 @@ export type EquipmentPortsTable_portDefinition = {|
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
     |}>,
   |},
   +$refType: EquipmentPortsTable_portDefinition$ref,
@@ -179,6 +183,20 @@ v3 = [
     "kind": "ScalarField",
     "alias": null,
     "name": "isMandatory",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "category",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "isDeleted",
     "args": null,
     "storageKey": null
   }

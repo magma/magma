@@ -44,6 +44,8 @@ export type EquipmentPortsTable_link_port = {|
         +isEditable: ?boolean,
         +isInstanceProperty: ?boolean,
         +isMandatory: ?boolean,
+        +category: ?string,
+        +isDeleted: ?boolean,
       |}>
     |},
   |},
@@ -234,6 +236,20 @@ return {
                   "kind": "ScalarField",
                   "alias": null,
                   "name": "isMandatory",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "category",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "isDeleted",
                   "args": null,
                   "storageKey": null
                 }

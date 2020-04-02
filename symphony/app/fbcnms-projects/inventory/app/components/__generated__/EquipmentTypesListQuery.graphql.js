@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash bb336ecb492b65485e6a18f1da6874bd
+ * @relayHash fc7348b4e722420cbf21dd25c819b701
  */
 
 /* eslint-disable */
@@ -39,6 +39,8 @@ export type EquipmentTypesListQueryResponse = {|
           +isEditable: ?boolean,
           +isInstanceProperty: ?boolean,
           +isMandatory: ?boolean,
+          +category: ?string,
+          +isDeleted: ?boolean,
         |}>,
       |}
     |}>
@@ -74,6 +76,8 @@ query EquipmentTypesListQuery {
           isEditable
           isInstanceProperty
           isMandatory
+          category
+          isDeleted
         }
       }
     }
@@ -227,6 +231,20 @@ v2 = [
                     "name": "isMandatory",
                     "args": null,
                     "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "category",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "isDeleted",
+                    "args": null,
+                    "storageKey": null
                   }
                 ]
               }
@@ -257,7 +275,7 @@ return {
     "operationKind": "query",
     "name": "EquipmentTypesListQuery",
     "id": null,
-    "text": "query EquipmentTypesListQuery {\n  equipmentTypes {\n    edges {\n      node {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n      }\n    }\n  }\n}\n",
+    "text": "query EquipmentTypesListQuery {\n  equipmentTypes {\n    edges {\n      node {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n          category\n          isDeleted\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
