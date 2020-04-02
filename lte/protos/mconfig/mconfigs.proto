@@ -102,6 +102,7 @@ message PipelineD {
       uint32 port = 2;
     }
     IPDRExportDst ipdr_export_dst = 10;
+    repeated string li_imsis = 11;
     // DEPRECATED
     // repeated string apps = 4;
 }

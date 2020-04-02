@@ -93,6 +93,9 @@ func TestBuilder_Build(t *testing.T) {
 				{Ip: "1.2.3.4/24"},
 				{Ip: "1.1.1.1/24", Key: 111},
 			},
+			LiImsis: []string{
+				"IMSI001010000000013",
+			},
 			IpdrExportDst: &ltemconfig.PipelineD_IPDRExportDst{
 				Ip:   "192.168.128.88",
 				Port: 2040,
@@ -137,6 +140,9 @@ var defaultgwConfig = &models.GatewayCwfConfigs{
 	AllowedGrePeers: models.AllowedGrePeers{
 		{IP: "1.2.3.4/24"},
 		{IP: "1.1.1.1/24", Key: swag.Uint32(111)},
+	},
+	LiImsis: []string{
+		"IMSI001010000000013",
 	},
 	IPDRExportDst: &models.IPDRExportDst{
 		IP:   "192.168.128.88",

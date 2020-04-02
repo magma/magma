@@ -110,6 +110,7 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		RelayEnabled:    true,
 		Services:        pipelineDServices,
 		AllowedGrePeers: allowedGrePeers,
+		LiImsis:         gwConfig.LiImsis,
 		IpdrExportDst:   ipdrExportDst,
 	}
 	ret["sessiond"] = &ltemconfig.SessionD{
