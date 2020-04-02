@@ -11,7 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
+from .equipment_port_type_fragment import EquipmentPortTypeFragment, QUERY as EquipmentPortTypeFragmentQuery
 from .add_equipment_port_type_input import AddEquipmentPortTypeInput
 
 
@@ -20,31 +20,17 @@ class AddEquipmentPortTypeMutation(DataClassJsonMixin):
     @dataclass
     class AddEquipmentPortTypeMutationData(DataClassJsonMixin):
         @dataclass
-        class EquipmentPortType(DataClassJsonMixin):
-            @dataclass
-            class PropertyType(PropertyTypeFragment):
-                pass
-
-            id: str
-            name: str
-            propertyTypes: List[PropertyType]
-            linkPropertyTypes: List[PropertyType]
+        class EquipmentPortType(EquipmentPortTypeFragment):
+            pass
 
         addEquipmentPortType: EquipmentPortType
 
     data: AddEquipmentPortTypeMutationData
 
-    __QUERY__: str = PropertyTypeFragmentQuery + """
+    __QUERY__: str = EquipmentPortTypeFragmentQuery + """
     mutation AddEquipmentPortTypeMutation($input: AddEquipmentPortTypeInput!) {
   addEquipmentPortType(input: $input) {
-    id
-    name
-    propertyTypes {
-      ...PropertyTypeFragment
-    }
-    linkPropertyTypes {
-      ...PropertyTypeFragment
-    }
+    ...EquipmentPortTypeFragment
   }
 }
 

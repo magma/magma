@@ -1,14 +1,7 @@
 query EquipmentPortTypeQuery($id: ID!) {
   port_type: node(id: $id) {
     ... on EquipmentPortType {
-      id
-      name
-      propertyTypes {
-        ...PropertyTypeFragment
-      }
-      linkPropertyTypes {
-        ...PropertyTypeFragment
-      }
+      ...EquipmentPortTypeFragment
     }
   }
 }
