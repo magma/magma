@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {User} from './TempTypes';
+import type {User} from './UserManagementUtils';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -27,7 +27,7 @@ import UserAccountDetailsPane, {
 import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {USER_ROLES, USER_STATUSES} from './TempTypes';
+import {USER_ROLES, USER_STATUSES} from './UserManagementUtils';
 import {generateTempId} from '../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';

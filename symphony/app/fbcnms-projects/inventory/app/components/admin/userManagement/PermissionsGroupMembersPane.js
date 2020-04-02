@@ -10,7 +10,7 @@
 
 import type {GroupMember} from './GroupMemberViewer';
 import type {PermissionsGroupMembersPaneUserSearchQuery} from './__generated__/PermissionsGroupMembersPaneUserSearchQuery.graphql';
-import type {UserPermissionsGroup} from './TempTypes';
+import type {UserPermissionsGroup} from './UserManagementUtils';
 
 import * as React from 'react';
 import GroupMemberViewer, {ASSIGNMENT_BUTTON_VIEWS} from './GroupMemberViewer';
@@ -30,7 +30,7 @@ import {debounce} from 'lodash';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useMemo, useState} from 'react';
-import {userResponse2User} from './UserManagementContext';
+import {userResponse2User} from './UserManagementUtils';
 
 const userSearchQuery = graphql`
   query PermissionsGroupMembersPaneUserSearchQuery(

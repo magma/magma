@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from './TempTypes';
+import type {UserPermissionsGroup} from './UserManagementUtils';
 
 import * as React from 'react';
 import ViewHeader from '@fbcnms/ui/components/design-system/View/ViewHeader';

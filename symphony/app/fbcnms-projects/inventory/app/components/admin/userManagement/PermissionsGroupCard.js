@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from './TempTypes';
+import type {UserPermissionsGroup} from './UserManagementUtils';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -22,7 +22,7 @@ import Strings from '../../../common/CommonStrings';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {GROUP_STATUSES, NEW_GROUP_DIALOG_PARAM} from './TempTypes';
+import {GROUP_STATUSES, NEW_GROUP_DIALOG_PARAM} from './UserManagementUtils';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useMemo, useState} from 'react';

@@ -21,7 +21,7 @@ import PermissionsGroupsView, {
 import Strings from '../../../common/CommonStrings';
 import UsersView from './UsersView';
 import fbt from 'fbt';
-import {NEW_GROUP_DIALOG_PARAM} from './TempTypes';
+import {NEW_GROUP_DIALOG_PARAM} from './UserManagementUtils';
 import {UserManagementContextProvider} from './UserManagementContext';
 import {useCallback, useContext, useMemo, useState} from 'react';
 import {useHistory, withRouter} from 'react-router-dom';
