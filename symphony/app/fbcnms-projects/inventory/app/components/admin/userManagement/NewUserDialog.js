@@ -162,7 +162,7 @@ const NewUserDialog = ({onClose}: Props) => {
                 </DialogContent>
                 <DialogActions>
                   <Button
-                    onClick={onClose}
+                    onClick={() => onClose()}
                     disabled={creatingUser}
                     skin="regular">
                     {Strings.common.cancelButton}
