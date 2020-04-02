@@ -53,6 +53,8 @@ export default withStyles(styles)(
         isEditable
         isInstanceProperty
         isMandatory
+        category
+        isDeleted
       }
     `,
   }),

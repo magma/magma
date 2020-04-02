@@ -15,14 +15,14 @@ import Tokenizer from '@fbcnms/ui/components/Tokenizer';
 import update from 'immutability-helper';
 import {isJSON} from '@fbcnms/ui/utils/displayUtils';
 
-type Props = {
-  property: Property | PropertyType,
+type Props<T: Property | PropertyType> = {|
+  property: T,
   onBlur?: ?() => void,
-  onChange: Property => void,
+  onChange: T => void,
   disabled?: ?boolean,
-};
+|};
 
-function EnumPropertyValueInput(props: Props) {
+function EnumPropertyValueInput<T: Property | PropertyType>(props: Props<T>) {
   const {property, onBlur, onChange, disabled} = props;
   const jsonStr = property.stringValue || '';
   const options = isJSON(jsonStr) ? JSON.parse(jsonStr) : [];

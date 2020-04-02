@@ -43,10 +43,20 @@ export default withStyles(styles)(
           id
           name
           type
-          isEditable
-          isMandatory
-          isInstanceProperty
+          index
           stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          rangeFromValue
+          rangeToValue
+          isEditable
+          isInstanceProperty
+          isMandatory
+          category
+          isDeleted
         }
         stringValue
         intValue
