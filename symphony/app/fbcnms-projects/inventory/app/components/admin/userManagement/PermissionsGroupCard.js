@@ -25,7 +25,7 @@ import {GROUP_STATUSES, NEW_GROUP_DIALOG_PARAM} from './TempTypes';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useRouteMatch} from 'react-router-dom';
 import {useUserManagement} from './UserManagementContext';
 
 const useStyles = makeStyles(() => ({
@@ -56,7 +56,7 @@ export default function PermissionsGroupCard({
   onClose,
 }: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const match = useRouteMatch();
   const {groups, editGroup, addGroup} = useUserManagement();
   const groupId = match.params.id;
   const isOnNewGroup = groupId === NEW_GROUP_DIALOG_PARAM;
