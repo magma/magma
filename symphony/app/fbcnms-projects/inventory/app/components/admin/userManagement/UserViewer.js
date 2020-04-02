@@ -11,7 +11,6 @@
 import type {User} from './TempTypes';
 
 import * as React from 'react';
-import EmojiIcon from '@fbcnms/ui/components/design-system/Icons/Communication/EmojiIcon';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
@@ -27,11 +26,13 @@ const useStyles = makeStyles(() => ({
   photoContainer: {
     borderRadius: '50%',
     marginRight: '8px',
-    backgroundColor: symphony.palette.D200,
+    backgroundColor: symphony.palette.D100,
     width: '48px',
     height: '48px',
     display: 'flex',
     flexShrink: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   photo: {
     margin: 'auto',
@@ -77,7 +78,11 @@ export default function UserViewer(props: Props) {
           {user.photoId ? (
             user.photoId
           ) : (
-            <EmojiIcon color="light" className={classes.photo} />
+            <Text variant="h5" color="light">
+              {`${user.firstName}${user.lastName}${user.authID}`
+                .charAt(0)
+                .toUpperCase()}
+            </Text>
           )}
         </div>
       ) : null}
