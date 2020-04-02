@@ -177,6 +177,7 @@ const arrayConfigs = [
     id: 'saved_searches',
     title: 'Saved Searches',
     enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'user_management',

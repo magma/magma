@@ -279,7 +279,10 @@ export type ButtonProps = {|
 export type Props = {
   className?: string,
   children: React.Node,
-  onClick?: void | (() => void | Promise<void>),
+  onClick?:
+    | void
+    | (void | ((SyntheticMouseEvent<HTMLElement>) => void | Promise<void>)),
+
   leftIcon?: SvgIcon,
   leftIconClass?: string,
   rightIcon?: SvgIcon,
