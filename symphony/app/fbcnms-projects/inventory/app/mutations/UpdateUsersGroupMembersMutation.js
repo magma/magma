@@ -10,44 +10,38 @@
 
 import RelayEnvironemnt from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
-import type {
-  EditUserMutation,
-  EditUserMutationResponse,
-  EditUserMutationVariables,
-} from './__generated__/EditUserMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {StoreUpdater} from '../common/RelayEnvironment';
+import type {
+  UpdateUsersGroupMembersMutation,
+  UpdateUsersGroupMembersMutationResponse,
+  UpdateUsersGroupMembersMutationVariables,
+} from './__generated__/UpdateUsersGroupMembersMutation.graphql';
 
 const mutation = graphql`
-  mutation EditUserMutation($input: EditUserInput!) {
-    editUser(input: $input) {
+  mutation UpdateUsersGroupMembersMutation(
+    $input: UpdateUsersGroupMembersInput!
+  ) {
+    updateUsersGroupMembers(input: $input) {
       id
-      authID
-      firstName
-      lastName
-      email
+      name
+      description
       status
-      role
-      groups {
+      members {
         id
-        name
-      }
-      profilePhoto {
-        id
-        fileName
-        storeKey
+        authID
       }
     }
   }
 `;
 
 export default (
-  variables: EditUserMutationVariables,
-  callbacks?: MutationCallbacks<EditUserMutationResponse>,
+  variables: UpdateUsersGroupMembersMutationVariables,
+  callbacks?: MutationCallbacks<UpdateUsersGroupMembersMutationResponse>,
   updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation<EditUserMutation>(RelayEnvironemnt, {
+  commitMutation<UpdateUsersGroupMembersMutation>(RelayEnvironemnt, {
     mutation,
     variables,
     updater,

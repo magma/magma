@@ -16,9 +16,11 @@ import type {EditUserMutationResponse} from '../../../mutations/__generated__/Ed
 import type {EditUsersGroupMutationResponse} from '../../../mutations/__generated__/EditUsersGroupMutation.graphql';
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
 import type {StoreUpdater} from '../../../common/RelayEnvironment';
+import type {UpdateUsersGroupMembersMutationResponse} from '../../../mutations/__generated__/UpdateUsersGroupMembersMutation.graphql';
 import type {User, UserPermissionsGroup} from './TempTypes';
 import type {
   UserManagementContextQuery,
+  UserManagementContextQueryResponse,
   UserRole,
 } from './__generated__/UserManagementContextQuery.graphql';
 import type {UserManagementContext_UserQuery} from './__generated__/UserManagementContext_UserQuery.graphql';
@@ -29,6 +31,7 @@ import EditUserMutation from '../../../mutations/EditUserMutation';
 import EditUsersGroupMutation from '../../../mutations/EditUsersGroupMutation';
 import LoadingIndicator from '../../../common/LoadingIndicator';
 import RelayEnvironment from '../../../common/RelayEnvironment';
+import UpdateUsersGroupMembersMutation from '../../../mutations/UpdateUsersGroupMembersMutation';
 import axios from 'axios';
 import nullthrows from 'nullthrows';
 import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
@@ -43,11 +46,17 @@ import {useLazyLoadQuery} from 'react-relay/hooks';
 export type UserManagementContextValue = {
   groups: Array<UserPermissionsGroup>,
   users: Array<User>,
+  usersMap: UsersMap,
   addUser: (user: User, password: string) => Promise<User>,
   editUser: (newUserValue: User, updater?: StoreUpdater) => Promise<User>,
   changeUserPassword: (user: User, password: string) => Promise<User>,
   addGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
   editGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
+  updateGroupMembers: (
+    group: UserPermissionsGroup,
+    addUserIds: Array<string>,
+    removeUserIds: Array<string>,
+  ) => Promise<UserPermissionsGroup>,
 };
 
 const userQuery = graphql`
@@ -172,14 +181,16 @@ const editUser = (newUserValue: User, updater?: StoreUpdater) => {
   });
 };
 
-const editGroup = (newGroupValue: UserPermissionsGroup) => {
+const editGroup = (usersMap: UsersMap) => (
+  newGroupValue: UserPermissionsGroup,
+) => {
   return new Promise<UserPermissionsGroup>((resolve, reject) => {
     const callbacks: MutationCallbacks<EditUsersGroupMutationResponse> = {
       onCompleted: (response, errors) => {
         if (errors && errors[0]) {
           reject(errors[0].message);
         }
-        resolve(groupResponse2Group(response.editUsersGroup));
+        resolve(groupResponse2Group(response.editUsersGroup, usersMap));
       },
       onError: e => {
         reject(getGraphError(e));
@@ -199,14 +210,48 @@ const editGroup = (newGroupValue: UserPermissionsGroup) => {
   });
 };
 
-const addGroup = (newGroupValue: UserPermissionsGroup) => {
+const updateGroupMembers = (usersMap: UsersMap) => (
+  group: UserPermissionsGroup,
+  addUserIds: Array<string>,
+  removeUserIds: Array<string>,
+) => {
+  return new Promise<UserPermissionsGroup>((resolve, reject) => {
+    const cbs: MutationCallbacks<UpdateUsersGroupMembersMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(errors[0].message);
+        }
+        resolve(
+          groupResponse2Group(response.updateUsersGroupMembers, usersMap),
+        );
+      },
+      onError: e => {
+        reject(e.message);
+      },
+    };
+    UpdateUsersGroupMembersMutation(
+      {
+        input: {
+          id: group.id,
+          addUserIds,
+          removeUserIds,
+        },
+      },
+      cbs,
+    );
+  });
+};
+
+const addGroup = (usersMap: UsersMap) => (
+  newGroupValue: UserPermissionsGroup,
+) => {
   return new Promise<UserPermissionsGroup>((resolve, reject) => {
     const callbacks: MutationCallbacks<AddUsersGroupMutationResponse> = {
       onCompleted: (response, errors) => {
         if (errors && errors[0]) {
           reject(errors[0].message);
         }
-        resolve(groupResponse2Group(response.addUsersGroup));
+        resolve(groupResponse2Group(response.addUsersGroup, usersMap));
       },
       onError: e => {
         reject(getGraphError(e));
@@ -249,14 +294,17 @@ const addGroup = (newGroupValue: UserPermissionsGroup) => {
   });
 };
 
+const emptyUsersMap = new Map<string, User>();
 const UserManagementContext = React.createContext<UserManagementContextValue>({
   groups: [],
   users: [],
+  usersMap: emptyUsersMap,
   addUser,
   editUser,
   changeUserPassword,
-  addGroup,
-  editGroup,
+  addGroup: addGroup(emptyUsersMap),
+  editGroup: editGroup(emptyUsersMap),
+  updateGroupMembers: updateGroupMembers(emptyUsersMap),
 });
 
 export function useUserManagement() {
@@ -309,83 +357,105 @@ const usersQuery = graphql`
   }
 `;
 
-const userResponse2User = userResponse => ({
-  id: userResponse.id,
-  authID: userResponse.authID,
-  firstName: userResponse.firstName,
-  lastName: userResponse.lastName,
-  role: userResponse.role,
-  status: userResponse.status,
+type UsersReponsePart = $ElementType<
+  UserManagementContextQueryResponse,
+  'users',
+>;
+type UsersEdgesResponsePart = $ElementType<
+  $NonMaybeType<UsersReponsePart>,
+  'edges',
+>;
+type UserNodeReponseFieldsPart = $ElementType<UsersEdgesResponsePart, number>;
+type UsersReponseFieldsPart = $NonMaybeType<
+  $ElementType<$NonMaybeType<UserNodeReponseFieldsPart>, 'node'>,
+>;
+type GroupsReponsePart = $ElementType<
+  UserManagementContextQueryResponse,
+  'usersGroups',
+>;
+type GroupsEdgesResponsePart = $ElementType<
+  $NonMaybeType<GroupsReponsePart>,
+  'edges',
+>;
+type GroupNodeReponseFieldsPart = $ElementType<GroupsEdgesResponsePart, number>;
+type GroupReponseFieldsPart = $NonMaybeType<
+  $ElementType<$NonMaybeType<GroupNodeReponseFieldsPart>, 'node'>,
+>;
+
+export const userResponse2User: UsersReponseFieldsPart => User = (
+  userNode: UsersReponseFieldsPart,
+) => ({
+  id: userNode.id,
+  authID: userNode.authID,
+  firstName: userNode.firstName,
+  lastName: userNode.lastName,
+  role: userNode.role,
+  status: userNode.status,
+  groups: userNode.groups ?? [],
+  photoId: userNode.profilePhoto?.id,
 });
 
-const usersResponse2Users = usersResponse => {
-  const users: Array<User> = [];
-  const usersEdges = usersResponse?.edges;
-  if (usersEdges == null) {
-    return [];
-  }
-  // using 'for' and not simple 'map' beacuse of flow.
-  for (let i = 0; i < usersEdges.length; i++) {
-    const userNode = usersEdges[i].node;
-    if (userNode == null) {
-      continue;
-    }
-    users.push({
-      id: userNode.id,
-      authID: userNode.authID,
-      firstName: userNode.firstName,
-      lastName: userNode.lastName,
-      role: userNode.role,
-      status: userNode.status,
-    });
-  }
-  return users;
-};
+const usersResponse2Users = (usersResponse: UsersReponsePart) =>
+  usersResponse?.edges == null
+    ? []
+    : usersResponse?.edges
+        .filter(Boolean)
+        .map(ur => ur.node)
+        .filter(Boolean)
+        .map(userResponse2User);
 
-const groupResponse2Group = groupResponse => ({
+type UsersMap = Map<string, User>;
+const users2UsersMap: (Array<User>) => UsersMap = users =>
+  new Map<string, User>(users.map(user => [user.id, user]));
+
+const groupResponse2Group: (
+  GroupReponseFieldsPart,
+  UsersMap,
+) => UserPermissionsGroup = (groupResponse, usersMap) => ({
   id: groupResponse.id,
   name: groupResponse.name,
   description: groupResponse.description || '',
   status: groupResponse.status,
   members: groupResponse.members,
+  memberUsers: groupResponse.members
+    .map(member => usersMap.get(member.id))
+    .filter(Boolean),
 });
 
-const groupsResponse2Groups = groupsResponse => {
-  const groups: Array<UserPermissionsGroup> = [];
-  const groupsEdges = groupsResponse?.edges;
-  if (groupsEdges == null) {
-    return [];
-  }
-  // using 'for' and not simple 'map' beacuse of flow.
-  for (let i = 0; i < groupsEdges.length; i++) {
-    const groupNode = groupsEdges[i].node;
-    if (groupNode == null) {
-      continue;
-    }
-    groups.push(groupResponse2Group(groupNode));
-  }
-  return groups;
-};
+const groupsResponse2Groups: (
+  GroupsReponsePart,
+  UsersMap,
+) => Array<UserPermissionsGroup> = (groupsResponse, usersMap) =>
+  groupsResponse?.edges == null
+    ? []
+    : groupsResponse?.edges
+        .filter(Boolean)
+        .map(gr => gr.node)
+        .filter(Boolean)
+        .map(gr => groupResponse2Group(gr, usersMap));
 
 function ProviderWrap(props: Props) {
-  const providerValue = (users, groups) => ({
+  const providerValue = (users, groups, usersMap) => ({
     groups,
     users,
+    usersMap,
     addUser,
     editUser,
     changeUserPassword,
-    addGroup,
-    editGroup,
+    addGroup: addGroup(usersMap),
+    editGroup: editGroup(usersMap),
+    updateGroupMembers: updateGroupMembers(usersMap),
   });
 
   const data = useLazyLoadQuery<UserManagementContextQuery>(usersQuery);
 
+  const users = usersResponse2Users(data.users);
+  const usersMap = users2UsersMap(users);
+  const groups = groupsResponse2Groups(data.usersGroups, usersMap);
+
   return (
     <UserManagementContext.Provider
-      value={providerValue(
-        usersResponse2Users(data.users),
-        groupsResponse2Groups(data.usersGroups),
-      )}>
+      value={providerValue(users, groups, usersMap)}>
       {props.children}
     </UserManagementContext.Provider>
   );
