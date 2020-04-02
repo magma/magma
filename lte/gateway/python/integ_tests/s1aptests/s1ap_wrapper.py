@@ -306,25 +306,20 @@ class TestWrapper(object):
         req = s1ap_types.multiEnbConfigReq_t()
         req.numOfEnbs = num_of_enbs
         # ENB Parameter column index initialization
-        PLMN_LENGTH = 6
         CELLID_COL_IDX = 0
         TAC_COL_IDX = 1
         ENBTYPE_COL_IDX = 2
         PLMNID_COL_IDX = 3
+        PLMN_LENGTH_IDX = 4
 
         for idx1 in range(num_of_enbs):
             req.multiEnbCfgParam[idx1].cell_id = enb_list[idx1][CELLID_COL_IDX]
-
-        for idx1 in range(num_of_enbs):
             req.multiEnbCfgParam[idx1].tac = enb_list[idx1][TAC_COL_IDX]
-
-        for idx1 in range(num_of_enbs):
             req.multiEnbCfgParam[idx1].enbType = enb_list[idx1][ENBTYPE_COL_IDX]
-
-        for idx1 in range(num_of_enbs):
-            for idx3 in range(PLMN_LENGTH):
-                val = enb_list[idx1][PLMNID_COL_IDX][idx3]
-                req.multiEnbCfgParam[idx1].plmn_id[idx3] = int(val)
+            req.multiEnbCfgParam[idx1].plmn_length = enb_list[idx1][PLMN_LENGTH_IDX]
+            for idx2 in range(req.multiEnbCfgParam[idx1].plmn_length):
+                val = enb_list[idx1][PLMNID_COL_IDX][idx2]
+                req.multiEnbCfgParam[idx1].plmn_id[idx2] = int(val)
 
         print("***************** Sending Multiple Enb Config Request\n")
         assert (

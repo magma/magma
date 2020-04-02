@@ -25,10 +25,24 @@ class TestX2HandOverPingPong(unittest.TestCase):
     def test_x2_handoverPingPong(self):
         """ Multi Enb Multi UE attach detach """
 
-        # column is a enb parameter, row is a number of enb
-        """            Cell Id,   Tac, EnbType, PLMN Id """
-        enb_list = list([[1,       1,     1,    "001010"],
-                         [2,       2,     1,    "001010"]])
+        """ Note: Before execution of this test case,
+        make sure that following steps are correct
+        1. Configure same plmn and tac in both MME and s1ap tester
+        2. How to configure plmn and tac in MME:
+           a. Set mcc and mnc in gateway.mconfig for mme service
+           b. Set tac in gateway.mconfig for mme service
+           c. Restart MME service
+        3. How to configure plmn and tac in s1ap tester,
+           a. For multi-eNB test case, configure plmn and tac from test case.
+             In each multi-eNB test case, set plmn, plmn length and tac
+             in enb_list
+           b. For single eNB test case, configure plmn and tac in nbAppCfg.txt
+        """
+
+        # column is an enb parameter, row is number of enbs
+        """          Cell Id, Tac, EnbType, PLMN Id, PLMN length """
+        enb_list = [[1, 1, 1, "00101", 5],
+                    [2, 2, 1, "00101", 5]]
 
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
