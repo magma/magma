@@ -26,3 +26,7 @@ CONFIGS_TEMPLATES_PATH=/etc/magma/templates
 CERTS_VOLUME=/var/opt/magma/certs
 CONFIGS_OVERRIDE_VOLUME=/var/opt/magma/configs
 CONFIGS_DEFAULT_VOLUME=/etc/magma
+
+{{ if .Values.cwf.env }}
+{{ .Values.cwf.env }}
+{{- end }}
