@@ -87,6 +87,45 @@ func (tr txResolver) EditUsersGroup(ctx context.Context, input models.EditUsersG
 	return result, nil
 }
 
+func (tr txResolver) UpdateUserGroups(ctx context.Context, input models.UpdateUserGroupsInput) (*ent.User, error) {
+	var result, zero *ent.User
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.UpdateUserGroups(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) UpdateUsersGroupMembers(ctx context.Context, input models.UpdateUsersGroupMembersInput) (*ent.UsersGroup, error) {
+	var result, zero *ent.UsersGroup
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.UpdateUsersGroupMembers(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) DeleteUsersGroup(ctx context.Context, id int) (bool, error) {
+	var result, zero bool
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.DeleteUsersGroup(ctx, id)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	return result, nil
+}
+
 func (tr txResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (int, error) {
 	var result, zero int
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
