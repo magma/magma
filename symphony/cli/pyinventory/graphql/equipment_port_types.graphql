@@ -2,14 +2,7 @@ query EquipmentPortTypesQuery {
   equipmentPortTypes {
     edges {
       node {
-        id
-        name
-        propertyTypes {
-          ...PropertyTypeFragment
-        }
-        linkPropertyTypes {
-          ...PropertyTypeFragment
-        }
+        ...EquipmentPortTypeFragment
       }
     }
   }

@@ -11,7 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
+from .equipment_port_type_fragment import EquipmentPortTypeFragment, QUERY as EquipmentPortTypeFragmentQuery
 
 @dataclass
 class EquipmentPortTypesQuery(DataClassJsonMixin):
@@ -22,15 +22,8 @@ class EquipmentPortTypesQuery(DataClassJsonMixin):
             @dataclass
             class EquipmentPortTypeEdge(DataClassJsonMixin):
                 @dataclass
-                class EquipmentPortType(DataClassJsonMixin):
-                    @dataclass
-                    class PropertyType(PropertyTypeFragment):
-                        pass
-
-                    id: str
-                    name: str
-                    propertyTypes: List[PropertyType]
-                    linkPropertyTypes: List[PropertyType]
+                class EquipmentPortType(EquipmentPortTypeFragment):
+                    pass
 
                 node: Optional[EquipmentPortType]
 
@@ -40,19 +33,12 @@ class EquipmentPortTypesQuery(DataClassJsonMixin):
 
     data: EquipmentPortTypesQueryData
 
-    __QUERY__: str = PropertyTypeFragmentQuery + """
+    __QUERY__: str = EquipmentPortTypeFragmentQuery + """
     query EquipmentPortTypesQuery {
   equipmentPortTypes {
     edges {
       node {
-        id
-        name
-        propertyTypes {
-          ...PropertyTypeFragment
-        }
-        linkPropertyTypes {
-          ...PropertyTypeFragment
-        }
+        ...EquipmentPortTypeFragment
       }
     }
   }
