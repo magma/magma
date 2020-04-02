@@ -11,6 +11,7 @@
 import type {UserPermissionsGroup} from './TempTypes';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Grid from '@material-ui/core/Grid';
 import InventoryErrorBoundary from '../../../common/InventoryErrorBoundary';
@@ -24,7 +25,7 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import {GROUP_STATUSES, NEW_GROUP_DIALOG_PARAM} from './TempTypes';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {makeStyles} from '@material-ui/styles';
-import {useEffect, useMemo, useState} from 'react';
+import {useContext, useEffect, useMemo, useState} from 'react';
 import {useRouteMatch} from 'react-router-dom';
 import {useUserManagement} from './UserManagementContext';
 
@@ -58,6 +59,8 @@ export default function PermissionsGroupCard({
 }: Props) {
   const classes = useStyles();
   const match = useRouteMatch();
+  const {isFeatureEnabled} = useContext(AppContext);
+  const userManagementDevMode = isFeatureEnabled('user_management_dev');
   const {groups, editGroup, addGroup} = useUserManagement();
   const groupId = match.params.id;
   const isOnNewGroup = groupId === NEW_GROUP_DIALOG_PARAM;
@@ -125,10 +128,12 @@ export default function PermissionsGroupCard({
               onChange={setGroup}
               className={classes.detailsPane}
             />
-            <PermissionsGroupPoliciesPane
-              group={group}
-              className={classes.detailsPane}
-            />
+            {userManagementDevMode ? (
+              <PermissionsGroupPoliciesPane
+                group={group}
+                className={classes.detailsPane}
+              />
+            ) : null}
           </Grid>
           <Grid item xs={4} sm={4} lg={4} xl={4}>
             <PermissionsGroupMembersPane

@@ -11,6 +11,7 @@ import type {ContextRouter} from 'react-router';
 import type {NavigatableView} from '@fbcnms/ui/components/design-system/View/NavigatableViews';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import NavigatableViews from '@fbcnms/ui/components/design-system/View/NavigatableViews';
 import NewUserDialog from './NewUserDialog';
 import PermissionsGroupCard from './PermissionsGroupCard';
@@ -22,7 +23,7 @@ import UsersView from './UsersView';
 import fbt from 'fbt';
 import {NEW_GROUP_DIALOG_PARAM} from './TempTypes';
 import {UserManagementContextProvider} from './UserManagementContext';
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useContext, useMemo, useState} from 'react';
 import {useHistory, withRouter} from 'react-router-dom';
 
 const USERS_HEADER = fbt(
@@ -40,6 +41,10 @@ const UserManaementView = ({match}: Props) => {
     history,
     basePath,
   ]);
+
+  const {isFeatureEnabled} = useContext(AppContext);
+  const userManagementDevMode = isFeatureEnabled('user_management_dev');
+
   const VIEWS: Array<NavigatableView> = useMemo(
     () => [
       {
@@ -76,14 +81,16 @@ const UserManaementView = ({match}: Props) => {
             title: `${PERMISSION_GROUPS_VIEW_NAME}`,
             subtitle:
               'Create groups with different rules and add users to apply permissions',
-            actionButtons: [
-              {
-                title: fbt('Create Group', ''),
-                action: () => {
-                  history.push(`group/${NEW_GROUP_DIALOG_PARAM}`);
-                },
-              },
-            ],
+            actionButtons: userManagementDevMode
+              ? [
+                  {
+                    title: fbt('Create Group', ''),
+                    action: () => {
+                      history.push(`group/${NEW_GROUP_DIALOG_PARAM}`);
+                    },
+                  },
+                ]
+              : [],
           },
           children: <PermissionsGroupsView />,
         },
@@ -101,7 +108,7 @@ const UserManaementView = ({match}: Props) => {
         relatedMenuItemIndex: 1,
       },
     ],
-    [gotoGroupsPage, history],
+    [gotoGroupsPage, history, userManagementDevMode],
   );
 
   return (

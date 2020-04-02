@@ -185,6 +185,11 @@ const arrayConfigs = [
     enabledByDefault: false,
   },
   {
+    id: 'user_management_dev',
+    title: 'User Management - Dev mode',
+    enabledByDefault: false,
+  },
+  {
     id: 'grafana_metrics',
     title: 'Include tab for Grafana in the Metrics page',
     enabledByDefault: false,
