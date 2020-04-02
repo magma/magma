@@ -43,12 +43,13 @@ static obj_hash_table_t *g_e_dns_entries = NULL;
 
 //------------------------------------------------------------------------------
 struct in_addr *mme_app_edns_get_sgw_entry(bstring id)
+//void mme_app_edns_get_sgw_entry(bstring id, struct sockaddr **sockaddr)
 {
   struct in_addr *in_addr = NULL;
   obj_hashtable_get(
-    g_e_dns_entries, bdata(id), blength(id), (void **) &in_addr);
+    g_e_dns_entries, bdata(id), blength(id), (void **)&in_addr);
 
-  return in_addr;
+  return in_addr ;
 }
 
 //------------------------------------------------------------------------------
