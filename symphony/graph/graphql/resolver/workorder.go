@@ -258,19 +258,23 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 	if err != nil {
 		return nil, errors.Wrap(err, "querying work order")
 	}
-	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
-	if err != nil {
-		return nil, err
-	}
 	mutation := client.WorkOrder.
 		UpdateOne(wo).
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetStatus(input.Status.String()).
 		SetPriority(input.Priority.String()).
-		SetNillableIndex(input.Index).
-		SetNillableAssigneeID(assigneeID)
+		SetNillableIndex(input.Index)
 
+	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
+	if err != nil {
+		return nil, err
+	}
+	if assigneeID != nil {
+		mutation.SetAssigneeID(*assigneeID)
+	} else {
+		mutation.ClearAssignee()
+	}
 	ownerID, err := resolverutil.GetUserID(ctx, input.OwnerID, input.OwnerName)
 	if err != nil {
 		return nil, err
