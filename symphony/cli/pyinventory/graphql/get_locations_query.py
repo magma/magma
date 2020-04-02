@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
 
 @dataclass
 class GetLocationsQuery(DataClassJsonMixin):
@@ -21,17 +22,8 @@ class GetLocationsQuery(DataClassJsonMixin):
             @dataclass
             class LocationEdge(DataClassJsonMixin):
                 @dataclass
-                class Location(DataClassJsonMixin):
-                    @dataclass
-                    class LocationType(DataClassJsonMixin):
-                        name: str
-
-                    id: str
-                    name: str
-                    latitude: Number
-                    longitude: Number
-                    locationType: LocationType
-                    externalId: Optional[str]
+                class Location(LocationFragment):
+                    pass
 
                 node: Optional[Location]
 
@@ -41,19 +33,12 @@ class GetLocationsQuery(DataClassJsonMixin):
 
     data: GetLocationsQueryData
 
-    __QUERY__: str = """
+    __QUERY__: str = LocationFragmentQuery + """
     query GetLocationsQuery {
   locations {
     edges {
       node {
-        id
-        name
-        latitude
-        longitude
-        externalId
-        locationType {
-          name
-        }
+        ...LocationFragment
       }
     }
   }

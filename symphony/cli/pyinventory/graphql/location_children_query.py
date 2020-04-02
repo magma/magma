@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
 
 @dataclass
 class LocationChildrenQuery(DataClassJsonMixin):
@@ -19,17 +20,8 @@ class LocationChildrenQuery(DataClassJsonMixin):
         @dataclass
         class Node(DataClassJsonMixin):
             @dataclass
-            class Location(DataClassJsonMixin):
-                @dataclass
-                class LocationType(DataClassJsonMixin):
-                    name: str
-
-                id: str
-                name: str
-                latitude: Number
-                longitude: Number
-                locationType: LocationType
-                externalId: Optional[str]
+            class Location(LocationFragment):
+                pass
 
             children: List[Location]
 
@@ -37,19 +29,12 @@ class LocationChildrenQuery(DataClassJsonMixin):
 
     data: LocationChildrenQueryData
 
-    __QUERY__: str = """
+    __QUERY__: str = LocationFragmentQuery + """
     query LocationChildrenQuery($id: ID!) {
   location: node(id: $id) {
     ... on Location {
       children {
-        id
-        name
-        latitude
-        longitude
-        externalId
-        locationType {
-          name
-        }
+        ...LocationFragment
       }
     }
   }

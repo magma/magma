@@ -11,39 +11,24 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
 
 @dataclass
 class MoveLocationMutation(DataClassJsonMixin):
     @dataclass
     class MoveLocationMutationData(DataClassJsonMixin):
         @dataclass
-        class Location(DataClassJsonMixin):
-            @dataclass
-            class LocationType(DataClassJsonMixin):
-                name: str
-
-            id: str
-            name: str
-            latitude: Number
-            longitude: Number
-            locationType: LocationType
-            externalId: Optional[str]
+        class Location(LocationFragment):
+            pass
 
         moveLocation: Location
 
     data: MoveLocationMutationData
 
-    __QUERY__: str = """
+    __QUERY__: str = LocationFragmentQuery + """
     mutation MoveLocationMutation($locationID: ID!, $parentLocationID: ID) {
   moveLocation(locationID: $locationID, parentLocationID: $parentLocationID) {
-    id
-    name
-    latitude
-    longitude
-    externalId
-    locationType {
-      name
-    }
+    ...LocationFragment
   }
 }
 
