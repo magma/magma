@@ -68,7 +68,7 @@ class PolicyMixin(metaclass=ABCMeta):
             self.logger.error('Setup failed: %s', err)
             return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
 
-        self.logger.debug('Setting up enforcer default rules')
+        self.logger.debug('Setting up default rules')
         remaining_flows = self._install_default_flows_if_not_installed(
             self._datapath, startup_flows)
 

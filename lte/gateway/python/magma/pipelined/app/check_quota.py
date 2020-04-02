@@ -286,8 +286,8 @@ class CheckQuotaController(MagmaController):
             resubmit_table=self.egress_table
         )
 
-        self.logger.info("Setting up fake arp for for subscriber %s(%s),"
-                         "with fake ip %s", imsi, ue_mac , fake_ip)
+        self.logger.debug("Setting up fake arp for for subscriber %s(%s),"
+                          "with fake ip %s", imsi, ue_mac , fake_ip)
 
         if self.arp_contoller or self.arpd_controller_fut.done():
             if not self.arp_contoller:

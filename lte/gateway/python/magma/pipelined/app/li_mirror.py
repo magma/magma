@@ -85,6 +85,7 @@ class LIMirrorController(MagmaController):
                                     direction=Direction.OUT)
         actions = []
         if self._mirror_all:
+            self.logger.warning("Mirroring all traffic to LI")
             actions = [parser.OFPActionOutput(self._li_dst_port_num)]
         flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
                                              inbound_match, actions,
@@ -102,7 +103,7 @@ class LIMirrorController(MagmaController):
     def _install_mirror_flows(self, imsis):
         parser = self._datapath.ofproto_parser
         for imsi in imsis:
-            self.logger.error("adding imsi %s", imsi)
+            self.logger.debug("Enabling LI tracking for IMSI %s", imsi)
             match = MagmaMatch(imsi=encode_imsi(imsi))
             actions = [parser.OFPActionOutput(self._li_dst_port_num)]
             flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
@@ -111,7 +112,7 @@ class LIMirrorController(MagmaController):
 
     def _remove_mirror_flows(self, imsis):
         for imsi in imsis:
-            self.logger.error("removing imsi %s", imsi)
+            self.logger.error("Disabling LI tracking for IMSI  %s", imsi)
             match = MagmaMatch(imsi=encode_imsi(imsi))
             flows.delete_flow(self._datapath, self.tbl_num, match)
 
