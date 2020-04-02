@@ -38,6 +38,8 @@ cwf:
   repo:
     url: https://github.com/facebookincubator/magma.git
     branch: master
+#  env: |
+#    DPI_LICENSE_NAME=123
 
 ## Key Values for VM running using virtlet runtime
 image:

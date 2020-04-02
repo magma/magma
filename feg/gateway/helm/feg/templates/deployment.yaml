@@ -139,8 +139,8 @@ spec:
 {{ toYaml .Values.virtlet.user | indent 10 }}
 {{- end }}
           runcmd:
-          - /opt/magma/bin/bootstrap.sh
-          - /opt/magma/bin/install_gateway.sh {{ .Values.feg.type }}
+          - /opt/magma/bootstrap.sh
+          - /opt/magma/install_gateway.sh {{ .Values.feg.type }}
     spec:
       {{- if .Values.manifests.rbac }}
       serviceAccountName: {{ $serviceAccountName }}
@@ -168,22 +168,16 @@ spec:
           tty: true
           stdin: true
           volumeMounts:
-            - name: feg-bin
-              mountPath: /opt/magma/bin
             - name: feg-env
-              mountPath: /opt/magma/env
+              mountPath: /opt/magma
             - name: orc8r-secrets-certs
-              mountPath: /opt/magma/certs/rootCA.pem
+              mountPath: /opt/magma/rootCA.pem
               subPath: rootCA.pem
             {{- if .Values.secret.configs }}
             - name: {{ $envAll.Values.secret.configs.feg }}
               mountPath: /var/opt/magma/configs
             {{- end }}
       volumes:
-        - name: feg-bin
-          configMap:
-            name: {{ $envAll.Release.Name}}-bin
-            defaultMode: 0755
         - name: feg-env
           configMap:
             name: {{ $envAll.Release.Name}}-env
