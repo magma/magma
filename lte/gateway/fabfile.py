@@ -7,9 +7,9 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import sys
 from distutils.util import strtobool
 
+import sys
 from fabric.api import cd, env, execute, local, run, settings
 from fabric.operations import get
 
@@ -64,13 +64,15 @@ def test():
 
 
 def package(vcs='hg', all_deps="False",
-            cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY):
+            cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
+            destroy_vm='False'):
     """ Builds the magma package """
     all_deps = False if all_deps == "False" else True
+    destroy_vm = bool(strtobool(destroy_vm))
 
     # If a host list isn't specified, default to the magma vagrant vm
     if not env.hosts:
-        setup_env_vagrant()
+        vagrant_setup('magma', destroy_vm=destroy_vm)
 
     if not hasattr(env, 'debug_mode'):
         print("Error: The Deploy target isn't specified. Specify one with\n\n"
