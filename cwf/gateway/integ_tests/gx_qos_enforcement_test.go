@@ -414,7 +414,7 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 
 	// Check ReAuth success
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
-	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
