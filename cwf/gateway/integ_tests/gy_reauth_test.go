@@ -113,7 +113,7 @@ func TestGyReAuth(t *testing.T) {
 	// Check ReAuth success
 	assert.NoError(t, err)
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
-	assert.Equal(t, uint32(diam.LimitedSuccess), raa.ResultCode)
+	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Generate over 7M of data to check that initial quota was updated
 	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "5M"}}
