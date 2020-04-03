@@ -112,7 +112,7 @@ class UEMacAddressController(MagmaController):
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.add_ue_arp_flows(self._datapath,
                                                 yiaddr, chaddr)
-            self.logger.info("Learned imsi %s, ip %s and mac %s",
+            self.logger.info("From DHCP learn: IMSI %s, has ip %s and mac %s",
                              imsi, yiaddr, chaddr)
 
             # Associate IMSI to IPv4 addr in directory service

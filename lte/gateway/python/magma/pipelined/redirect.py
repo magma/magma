@@ -392,7 +392,7 @@ class RedirectionManager:
             self._redirect_dict[ip_str] = redirect_info
         except RedisError as exp:
             raise RedirectException(exp)
-        self.logger.info("Saved redirect rule for %s" % ip_str)
+        self.logger.info("Saved redirect rule for %s in Redis" % ip_str)
 
     def deactivate_flow_for_rule(self, datapath, imsi, rule_num):
         """
