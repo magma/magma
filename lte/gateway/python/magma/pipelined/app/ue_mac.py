@@ -191,6 +191,21 @@ class UEMacAddressController(MagmaController):
         self._add_resubmit_flow(sid, dlink_match_tcp, action,
                                 flows.PASSTHROUGH_PRIORITY)
 
+        # Install TCP flows for DNS over tls
+        ulink_match_tcp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                     ip_proto=IPPROTO_TCP,
+                                     tcp_dst=853,
+                                     eth_src=mac_addr)
+        self._add_resubmit_flow(sid, ulink_match_tcp, action,
+                                flows.PASSTHROUGH_PRIORITY)
+
+        dlink_match_tcp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                     ip_proto=IPPROTO_TCP,
+                                     tcp_src=853,
+                                     eth_dst=mac_addr)
+        self._add_resubmit_flow(sid, dlink_match_tcp, action,
+                                flows.PASSTHROUGH_PRIORITY)
+
     def _delete_dns_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
         # Set so packet skips enforcement controller
