@@ -70,20 +70,6 @@ static void* sgw_intertask_interface(void* args_p)
     spgw_state_t* spgw_state = get_spgw_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
-      case GTPV1U_CREATE_TUNNEL_RESP: {
-        OAILOG_DEBUG(
-          LOG_SPGW_APP,
-          "Received teid for S1-U: %u and status: %s\n",
-          received_message_p->ittiMsg.gtpv1uCreateTunnelResp.S1u_teid,
-          received_message_p->ittiMsg.gtpv1uCreateTunnelResp.status == 0 ?
-            "Success" :
-            "Failure");
-        sgw_handle_gtpv1uCreateTunnelResp(
-          spgw_state,
-          &received_message_p->ittiMsg.gtpv1uCreateTunnelResp,
-          imsi64);
-      } break;
-
       case MESSAGE_TEST:
         OAILOG_DEBUG(LOG_SPGW_APP, "Received MESSAGE_TEST\n");
         break;
@@ -128,11 +114,6 @@ static void* sgw_intertask_interface(void* args_p)
       case S11_SUSPEND_NOTIFICATION: {
         sgw_handle_suspend_notification(
            &received_message_p->ittiMsg.s11_suspend_notification, imsi64);
-      } break;
-
-      case GTPV1U_UPDATE_TUNNEL_RESP: {
-        sgw_handle_gtpv1uUpdateTunnelResp(
-          &received_message_p->ittiMsg.gtpv1uUpdateTunnelResp, imsi64);
       } break;
 
       case SGI_CREATE_ENDPOINT_RESPONSE: {
