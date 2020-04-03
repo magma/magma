@@ -90,7 +90,8 @@ func prometheusQuery(c echo.Context, query string, apiClient v1.API) error {
 		return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamTime, err), http.StatusBadRequest)
 	}
 
-	res, err := apiClient.Query(context.Background(), query, queryTime)
+	// TODO: catch the warnings replacing _
+	res, _, err := apiClient.Query(context.Background(), query, queryTime)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -129,7 +130,8 @@ func prometheusQueryRange(c echo.Context, query string, apiClient v1.API) error 
 	}
 	timeRange := v1.Range{Start: startTime, End: endTime, Step: step}
 
-	res, err := apiClient.QueryRange(context.Background(), query, timeRange)
+	// TODO: catch the warnings replacing _
+	res, _, err := apiClient.QueryRange(context.Background(), query, timeRange)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -284,7 +286,8 @@ func prometheusSeries(c echo.Context, seriesMatches []string, apiClient v1.API) 
 		return []model.LabelSet{}, obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 	}
 
-	res, err := apiClient.Series(context.Background(), seriesMatches, startTime, endTime)
+	// TODO: catch the warnings replacing _
+	res, _, err := apiClient.Series(context.Background(), seriesMatches, startTime, endTime)
 	if err != nil {
 		return []model.LabelSet{}, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -337,7 +340,8 @@ func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 		for _, matcher := range queryRestrictor.Matchers() {
 			seriesMatchers = append(seriesMatchers, fmt.Sprintf("{%s}", matcher.String()))
 		}
-		res, err := api.Series(context.Background(), seriesMatchers, minTime, maxTime)
+		// TODO: catch the warnings replacing _
+		res, _, err := api.Series(context.Background(), seriesMatchers, minTime, maxTime)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
