@@ -28,17 +28,25 @@ type ServiceLocation struct {
 	ProxyAliases map[string]int
 }
 
+type cloudConnection struct {
+	*grpc.ClientConn
+	expiration time.Time
+}
 type ServiceRegistry struct {
 	sync.RWMutex
 	ServiceConnections map[string]*grpc.ClientConn
 	ServiceLocations   map[string]ServiceLocation
+
+	cloudConnMu      sync.RWMutex
+	cloudConnections map[string]cloudConnection
 }
 
 // New creates and returns a new registry
 func New() *ServiceRegistry {
 	return &ServiceRegistry{
 		ServiceConnections: map[string]*grpc.ClientConn{},
-		ServiceLocations:   map[string]ServiceLocation{}}
+		ServiceLocations:   map[string]ServiceLocation{},
+		cloudConnections:   map[string]cloudConnection{}}
 }
 
 // String implements ServiceLocation stringer interface
