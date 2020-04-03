@@ -125,7 +125,7 @@ class DPIController(MagmaController):
                     service_id = SERVICE_IDS[serv]
                     break
             app_id += service_id
-            self.logger.error("Classified %s-%s as %d", app, service_type,
+            self.logger.debug("Classified %s-%s as %d", app, service_type,
                               app_id)
 
         try:
