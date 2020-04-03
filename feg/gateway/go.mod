@@ -25,9 +25,9 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/ishidawataru/sctp v0.0.0-20190922091402-408ec287e38c
-	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
+	github.com/prometheus/client_golang v1.2.1
 	github.com/prometheus/client_model v0.2.0
-	github.com/prometheus/common v0.2.0
+	github.com/prometheus/common v0.7.0
 	github.com/shirou/gopsutil v2.18.10+incompatible
 	github.com/stretchr/testify v1.4.0
 	github.com/thoas/go-funk v0.4.0
