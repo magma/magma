@@ -39,6 +39,7 @@ class SubTests(Enum):
 
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
+               transfer_images=False,
                destroy_vm="False", no_build="False", tests_to_run="integ_test"):
     """
     Run the integration tests. This defaults to running on local vagrant
@@ -82,7 +83,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     cwag_br_mac = cwag_host_to_mac[host]
 
     # Transfer built images from local machine to CWAG host
-    if gateway_host:
+    if gateway_host or transfer_images:
         execute(_transfer_docker_images)
     else:
         execute(_stop_gateway)
@@ -114,14 +115,16 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     # Get back to the gateway vm to setup static arp
     if not gateway_host:
-        vagrant_setup("cwag", destroy_vm)
+        # We do NOT want to destroy this VM after we just set it up...
+        vagrant_setup("cwag", False)
     else:
         ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
     execute(_set_cwag_networking, cwag_test_br_mac)
 
     # Start tests
     if not test_host:
-        vagrant_setup("cwag_test", destroy_vm)
+        # No, definitely do NOT destroy this VM
+        vagrant_setup("cwag_test", False)
     else:
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
