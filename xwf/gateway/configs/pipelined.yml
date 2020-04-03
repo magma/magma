@@ -27,6 +27,7 @@ log_level: INFO
 # the same order as the list. Cloud managed services will be initialized
 # after these static services.
 static_services: [
+  'xwf_passthru',
   'tunnel_learn',
   'vlan_learn',
   'startup_flows',
