@@ -581,10 +581,14 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	if entConfig == nil {
 		return m
 	}
-
 	cfg := entConfig.(*PolicyRuleConfig)
+	monKey := cfg.MonitoringKey
+	_, err := base64.StdEncoding.DecodeString(monKey)
+	if err != nil { // if not base64 - encode it for future use
+		monKey = base64.StdEncoding.EncodeToString([]byte(monKey))
+	}
 	m.FlowList = cfg.FlowList
-	m.MonitoringKey = cfg.MonitoringKey
+	m.MonitoringKey = monKey
 	m.Priority = cfg.Priority
 	m.Qos = cfg.Qos
 	m.RatingGroup = cfg.RatingGroup
