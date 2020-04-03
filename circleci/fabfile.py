@@ -68,7 +68,7 @@ def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
                docker_user: str = 'magmaci-bot',
                jfrog_key: str = 'jfrog_key',
                build_number: str = '0',
-               workflow_names: str = '',
+               workflow_names: str = 'lte-integ-test;cwf-integ-test',
                circle_key: str = 'circleci_key'):
     if env.stack not in STACKS:
         raise ValueError(f'Stack {env.stack} is not a valid stack.')
@@ -83,7 +83,9 @@ def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
                                       api_url, cert_file, cert_key_file)
     if lease is None:
         print('Did not acquire a node lease in a reasonable time frame.')
-        return
+        with open(f'{env.stack}_test_status', 'w+') as f:
+            f.write('SKIP')
+        raise Exception("Didn't get a node")
     _write_lease_to_disk(lease)
 
     try:
@@ -132,6 +134,8 @@ def _write_lease_to_disk(lease: NodeLease):
         f.write(lease.node_id)
     with open('lease_id.out', 'w+') as f:
         f.write(lease.lease_id)
+    with open(f'{env.stack}_test_status', 'w+') as f:
+        f.write('RUN')
 
 
 def _set_host_for_lease(lease: NodeLease, node_ssh_key: str):
@@ -337,7 +341,7 @@ def _do_newer_running_workflows_exist(repo: str,
     repo_org, repo_name = _get_repo_org(repo), _get_repo_name(repo)
     circle_url = 'https://circleci.com/api/v1.1/project/gh'
     resp = requests.get(f'{circle_url}/{repo_org}/{repo_name}?'
-                        f'circle_token={circle_key}&'
+                        f'circle-token={circle_key}&'
                         f'filter=running')
     if resp.status_code != 200:
         print(f'Got status code {resp.status_code} from CircleCI API, will '
