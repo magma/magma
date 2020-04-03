@@ -119,7 +119,7 @@ void LocalEnforcer::notify_finish_report_for_sessions(
     }
   }
   for (const auto &imsi_sid_pair : imsi_to_terminate) {
-    SessionStateUpdateCriteria& update_criteria = session_update[imsi_sid_pair.first][imsi_sid_pair.second];
+    auto update_criteria = get_default_update_criteria();
     complete_termination(
       session_map, imsi_sid_pair.first, imsi_sid_pair.second, update_criteria);
   }
@@ -215,7 +215,7 @@ void LocalEnforcer::aggregate_records(
     }
     // Update sessions
     for (const auto &session : it->second) {
-      SessionStateUpdateCriteria& uc = session_update[record.sid()][session->get_session_id()];
+      auto uc = get_default_update_criteria();
       session->add_used_credit(
         record.rule_id(), record.bytes_tx(), record.bytes_rx(), uc);
     }
@@ -276,7 +276,7 @@ void LocalEnforcer::terminate_service(
   }
 
   for (const auto &session : it->second) {
-    auto update_criteria = session_update[imsi][session->get_session_id()];
+    auto update_criteria = get_default_update_criteria();
 
     session->start_termination([this](SessionTerminateRequest term_req) {
       // report to cloud
@@ -392,7 +392,7 @@ UpdateSessionRequest LocalEnforcer::collect_updates(
     for (const auto &session : session_pair.second) {
       std::string imsi = session_pair.first;
       std::string sid = session->get_session_id();
-      auto update_criteria = session_update[imsi][sid];
+      auto update_criteria = get_default_update_criteria();
       session->get_updates(request, &actions, update_criteria, force_update);
     }
   }
@@ -972,7 +972,7 @@ void LocalEnforcer::update_charging_credits(
     }
     for (const auto &session : it->second) {
       std::string sid = session->get_session_id();
-      SessionStateUpdateCriteria& update_criteria = session_update[imsi][sid];
+      auto update_criteria = get_default_update_criteria();
       session->get_charging_pool().receive_credit(credit_update_resp, update_criteria);
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), update_criteria);
     }
@@ -1108,7 +1108,7 @@ void LocalEnforcer::terminate_subscriber(
 
   for (const auto &session : it->second) {
     if (session->get_apn() == apn) {
-      SessionStateUpdateCriteria& update_criteria = session_update[imsi][session->get_session_id()];
+      auto update_criteria = get_default_update_criteria();
       RulesToProcess rules_to_deactivate;
       // The assumption here is that
       // mutually exclusive rule names are used for different apns
@@ -1212,7 +1212,7 @@ ChargingReAuthAnswer::Result LocalEnforcer::init_charging_reauth(
                  << " during reauth";
     return ChargingReAuthAnswer::SESSION_NOT_FOUND;
   }
-  SessionStateUpdateCriteria& update_criteria = session_update[request.sid()][request.session_id()];
+  auto update_criteria = get_default_update_criteria();
   if (request.type() == ChargingReAuthRequest::SINGLE_SERVICE) {
     MLOG(MDEBUG) << "Initiating reauth of key " << request.charging_key()
                  << " for subscriber " << request.sid()
@@ -1301,7 +1301,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
   SessionUpdate& session_update)
 {
   std::string imsi = request.imsi();
-  SessionStateUpdateCriteria& update_criteria = session_update[imsi][session->get_session_id()];
+  auto update_criteria = get_default_update_criteria();
 
   activate_success = true;
   deactivate_success = true;
