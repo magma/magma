@@ -63,11 +63,35 @@ func TestAddRemoveSurvey(t *testing.T) {
 		QuestionText:   "give wifi data?",
 		WifiData:       []*models.SurveyWiFiScanData{&wifiData},
 	}
+	photoType := models.SurveyQuestionTypePhoto
+	sizeInBytes := 1
+	mimeType := "image/jpeg"
+	imageInput1 := models.FileInput{
+		StoreKey:         "key1",
+		FileName:         "fileName1",
+		SizeInBytes:      &sizeInBytes,
+		ModificationTime: &timestamp,
+		MimeType:         &mimeType,
+	}
+	imageInput2 := models.FileInput{
+		StoreKey:         "key2",
+		FileName:         "fileName2",
+		SizeInBytes:      &sizeInBytes,
+		ModificationTime: &timestamp,
+		MimeType:         &mimeType,
+	}
+	resp3 := models.SurveyQuestionResponse{
+		FormIndex:      2,
+		QuestionIndex:  2,
+		QuestionFormat: &photoType,
+		QuestionText:   "take photo",
+		ImagesData:     []*models.FileInput{&imageInput1, &imageInput2},
+	}
 	basicSurveyData := models.SurveyCreateData{
 		Name:                "survey_one",
 		LocationID:          location.ID,
 		CompletionTimestamp: 100000,
-		SurveyResponses:     []*models.SurveyQuestionResponse{&resp1, &resp2},
+		SurveyResponses:     []*models.SurveyQuestionResponse{&resp1, &resp2, &resp3},
 	}
 	surveyID, err := mr.CreateSurvey(ctx, basicSurveyData)
 	require.NoError(t, err)
@@ -92,7 +116,7 @@ func TestAddRemoveSurvey(t *testing.T) {
 
 	slID, err := sr.LocationID(ctx, fetchedSurvey)
 	require.NoError(t, err)
-	require.Equal(t, location.ID, slID, "VVerifying saved location vs fetched location: locationType")
+	require.Equal(t, location.ID, slID, "Verifying saved location vs fetched location: locationType")
 
 	require.Equal(t, "survey_one", fetchedSurvey.Name, "Verifying saved survey vs fetched survey: Name")
 
@@ -102,7 +126,7 @@ func TestAddRemoveSurvey(t *testing.T) {
 
 	responses, err := sr.SurveyResponses(ctx, fetchedSurvey)
 	require.NoError(t, err)
-	require.Len(t, responses, 2, "Verifying nu,ber of responses")
+	require.Len(t, responses, 3, "Verifying number of responses")
 
 	cellQ := fetchedSurvey.QueryQuestions().Where(surveyquestion.QuestionFormat(models.SurveyQuestionTypeCellular.String())).OnlyX(ctx)
 	wfQ := fetchedSurvey.QueryQuestions().Where(surveyquestion.QuestionFormat(models.SurveyQuestionTypeWifi.String())).OnlyX(ctx)
@@ -124,6 +148,12 @@ func TestAddRemoveSurvey(t *testing.T) {
 	require.Equal(t, 1, wfQ.QuestionIndex, "Verifying saved survey vs fetched survey: QuestionIndex")
 	require.Equal(t, 3, wfQ.QueryWifiScan().OnlyX(ctx).Strength, "Verifying fetched survey wifi scan's Strength")
 	require.Equal(t, timestamp, wfTmstmp, "Verifying fetched survey wifi scan's timestamp")
+
+	photoQuestions := fetchedSurvey.QueryQuestions().Where(surveyquestion.QuestionFormat(models.SurveyQuestionTypePhoto.String())).OnlyX(ctx)
+	require.Equal(t, 2, photoQuestions.FormIndex, "Verifying saved survey vs fetched survey: FormIndex")
+	require.Equal(t, 2, photoQuestions.QuestionIndex, "Verifying saved survey vs fetched survey: QuestionIndex")
+	require.Equal(t, 2, photoQuestions.QueryImages().CountX(ctx), "Verifying fetched survey images count")
+	require.Equal(t, "key1", photoQuestions.QueryImages().FirstX(ctx).StoreKey, "Verifying fetched survey StoreKey")
 
 	fetchedFile, err := fetchedSurvey.QuerySourceFile().Only(ctx)
 	require.NoError(t, err)

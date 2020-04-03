@@ -386,6 +386,13 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 			query.AddPhotoData(f)
 		}
 
+		if sr.ImagesData != nil {
+			err = r.addSurveyQuestionImagesData(ctx, sr, query)
+			if err != nil {
+				return BadID, err
+			}
+		}
+
 		question, err := query.Save(ctx)
 		if err != nil {
 			return BadID, errors.Wrap(err, "creating survey question")
@@ -404,6 +411,38 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 		}
 	}
 	return srv.ID, nil
+}
+
+func (r mutationResolver) addSurveyQuestionImagesData(ctx context.Context, sr *models.SurveyQuestionResponse, query *ent.SurveyQuestionCreate) error {
+	for _, imageData := range sr.ImagesData {
+		image, err :=
+			r.createImage(
+				ctx,
+				&models.AddImageInput{
+					ImgKey:   imageData.StoreKey,
+					FileName: imageData.FileName,
+					FileSize: func() int {
+						if imageData.SizeInBytes != nil {
+							return *imageData.SizeInBytes
+						}
+						return 0
+					}(),
+					Modified: time.Now(),
+					ContentType: func() string {
+						if imageData.MimeType != nil {
+							return *imageData.MimeType
+						}
+						return "image/jpeg"
+					}(),
+				},
+			)
+		if err != nil {
+			return errors.Wrap(err, "creating and saving images while creating survey question")
+		}
+		query.AddImages(image)
+	}
+
+	return nil
 }
 
 func (r mutationResolver) validateRootLocationUniqueness(ctx context.Context, typeid int, name string) error {
