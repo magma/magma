@@ -12,13 +12,8 @@
 import ExpressApplication from 'express';
 
 const app = ExpressApplication();
+const workflowRouter = require('./routes');
 
-app.get('/', (req, res) => {
-  res.send('hello world');
-});
-
-app.get('/echo/:str', (req, res) => {
-  res.send(req.params.str);
-});
+app.use('/', workflowRouter);
 
 app.listen(80);
