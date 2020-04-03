@@ -94,8 +94,9 @@ export default () => {
     <ApplicationMain>
       <AppContextProvider>
         <Switch>
+          <Route path={relativeUrl('/services')} component={Main} />
+          <Redirect exact from="/" to={relativeUrl('/hub')} />
           <Redirect exact from="/hub" to={relativeUrl('/services')} />
-          <Route path="/hub/services" component={Main} />
         </Switch>
       </AppContextProvider>
     </ApplicationMain>
