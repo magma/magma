@@ -169,6 +169,7 @@ func (r mutationResolver) AddPropertyTypes(
 		if types[i], err = client.Create().
 			SetName(input.Name).
 			SetType(input.Type.String()).
+			SetNillableExternalID(input.ExternalID).
 			SetNillableIndex(input.Index).
 			SetNillableCategory(input.Category).
 			SetNillableStringVal(input.StringValue).
@@ -2573,6 +2574,7 @@ func (r mutationResolver) updatePropType(ctx context.Context, input *models.Prop
 		SetName(input.Name).
 		SetType(input.Type.String()).
 		SetNillableIndex(input.Index).
+		SetNillableExternalID(input.ExternalID).
 		SetNillableStringVal(input.StringValue).
 		SetNillableIntVal(input.IntValue).
 		SetNillableBoolVal(input.BooleanValue).

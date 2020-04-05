@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 57e2f822b4861aa8fd13ba3b11c77766
+ * @relayHash 5604d17ba4c948a8030a2464682e0a91
  */
 
 /* eslint-disable */
@@ -31,6 +31,7 @@ export type PortFilterInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
   index?: ?number,

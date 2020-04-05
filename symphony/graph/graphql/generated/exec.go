@@ -639,6 +639,7 @@ type ComplexityRoot struct {
 		Category           func(childComplexity int) int
 		Deleted            func(childComplexity int) int
 		Editable           func(childComplexity int) int
+		ExternalID         func(childComplexity int) int
 		FloatVal           func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Index              func(childComplexity int) int
@@ -4318,6 +4319,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PropertyType.Editable(childComplexity), true
 
+	case "PropertyType.externalId":
+		if e.complexity.PropertyType.ExternalID == nil {
+			break
+		}
+
+		return e.complexity.PropertyType.ExternalID(childComplexity), true
+
 	case "PropertyType.floatValue":
 		if e.complexity.PropertyType.FloatVal == nil {
 			break
@@ -7323,6 +7331,7 @@ enum PropertyKind {
 
 type PropertyType implements Node {
   id: ID!
+  externalId: String
   name: String!
   type: PropertyKind!
   index: Int
@@ -7343,6 +7352,7 @@ type PropertyType implements Node {
 
 input PropertyTypeInput {
   id: ID
+  externalId: String
   name: String!
   type: PropertyKind!
   index: Int
@@ -8819,7 +8829,7 @@ type Mutation {
   editUser(input: EditUserInput!): User!
   addUsersGroup(input: AddUsersGroupInput!): UsersGroup!
   editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
-  updateUserGroups(input: UpdateUserGroupsInput!): User! 
+  updateUserGroups(input: UpdateUserGroupsInput!): User!
   updateUsersGroupMembers(input: UpdateUsersGroupMembersInput!): UsersGroup!
   deleteUsersGroup(id: ID!): Boolean!
   createSurvey(data: SurveyCreateData!): ID!
@@ -24828,6 +24838,40 @@ func (ec *executionContext) _PropertyType_id(ctx context.Context, field graphql.
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PropertyType_externalId(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PropertyType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExternalID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PropertyType_name(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -38958,6 +39002,12 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "externalId":
+			var err error
+			it.ExternalID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "name":
 			var err error
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
@@ -44041,6 +44091,8 @@ func (ec *executionContext) _PropertyType(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "externalId":
+			out.Values[i] = ec._PropertyType_externalId(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._PropertyType_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

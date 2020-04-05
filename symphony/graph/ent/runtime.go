@@ -520,19 +520,19 @@ func init() {
 	// propertytype.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	propertytype.UpdateDefaultUpdateTime = propertytypeDescUpdateTime.UpdateDefault.(func() time.Time)
 	// propertytypeDescIsInstanceProperty is the schema descriptor for is_instance_property field.
-	propertytypeDescIsInstanceProperty := propertytypeFields[12].Descriptor()
+	propertytypeDescIsInstanceProperty := propertytypeFields[13].Descriptor()
 	// propertytype.DefaultIsInstanceProperty holds the default value on creation for the is_instance_property field.
 	propertytype.DefaultIsInstanceProperty = propertytypeDescIsInstanceProperty.Default.(bool)
 	// propertytypeDescEditable is the schema descriptor for editable field.
-	propertytypeDescEditable := propertytypeFields[13].Descriptor()
+	propertytypeDescEditable := propertytypeFields[14].Descriptor()
 	// propertytype.DefaultEditable holds the default value on creation for the editable field.
 	propertytype.DefaultEditable = propertytypeDescEditable.Default.(bool)
 	// propertytypeDescMandatory is the schema descriptor for mandatory field.
-	propertytypeDescMandatory := propertytypeFields[14].Descriptor()
+	propertytypeDescMandatory := propertytypeFields[15].Descriptor()
 	// propertytype.DefaultMandatory holds the default value on creation for the mandatory field.
 	propertytype.DefaultMandatory = propertytypeDescMandatory.Default.(bool)
 	// propertytypeDescDeleted is the schema descriptor for deleted field.
-	propertytypeDescDeleted := propertytypeFields[15].Descriptor()
+	propertytypeDescDeleted := propertytypeFields[16].Descriptor()
 	// propertytype.DefaultDeleted holds the default value on creation for the deleted field.
 	propertytype.DefaultDeleted = propertytypeDescDeleted.Default.(bool)
 	reportfilterMixin := schema.ReportFilter{}.Mixin()

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash af94367100a2407f46ec087d1b812c5e
+ * @relayHash 6b201a06d5a471f405141ea95695e139
  */
 
 /* eslint-disable */
@@ -28,6 +28,7 @@ export type EditLocationTypeInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
   index?: ?number,

@@ -21,6 +21,9 @@ func (PropertyType) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("type"),
 		field.String("name"),
+		field.String("external_id").
+			Unique().
+			Optional(),
 		field.Int("index").
 			Optional(),
 		field.String("category").

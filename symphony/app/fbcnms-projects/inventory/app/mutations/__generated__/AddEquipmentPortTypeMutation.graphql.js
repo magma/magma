@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash eace6c36bb52d48493c1fbcfa6c06fb3
+ * @relayHash b44a5ddc27f539fe99830f567fcaa148
  */
 
 /* eslint-disable */
@@ -24,6 +24,7 @@ export type AddEquipmentPortTypeInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
   index?: ?number,
