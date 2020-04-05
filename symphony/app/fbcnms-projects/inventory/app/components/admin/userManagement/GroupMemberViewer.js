@@ -31,6 +31,7 @@ const useStyles = makeStyles(() => ({
     '&:not(:hover):not($alwaysShowAssigmentButton) $userAssignButton': {
       display: 'none',
     },
+    flexShrink: 0,
   },
   alwaysShowAssigmentButton: {},
   userDetails: {

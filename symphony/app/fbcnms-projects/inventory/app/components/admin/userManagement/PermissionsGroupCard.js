@@ -37,6 +37,9 @@ const useStyles = makeStyles(() => ({
       marginTop: '16px',
     },
   },
+  container: {
+    maxHeight: '100%',
+  },
 }));
 
 type Props = {
@@ -121,8 +124,8 @@ export default function PermissionsGroupCard({
   return (
     <InventoryErrorBoundary>
       <ViewContainer header={header} useBodyScrollingEffect={false}>
-        <Grid container spacing={2}>
-          <Grid item xs={8} sm={8} lg={8} xl={8}>
+        <Grid container spacing={2} className={classes.container}>
+          <Grid item xs={8} sm={8} lg={8} xl={8} className={classes.container}>
             <PermissionsGroupDetailsPane
               group={group}
               onChange={setGroup}
@@ -135,7 +138,7 @@ export default function PermissionsGroupCard({
               />
             ) : null}
           </Grid>
-          <Grid item xs={4} sm={4} lg={4} xl={4}>
+          <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
             <PermissionsGroupMembersPane
               group={group}
               className={classes.detailsPane}
