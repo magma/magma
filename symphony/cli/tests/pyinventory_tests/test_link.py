@@ -4,32 +4,31 @@
 # license that can be found in the LICENSE file.
 
 
+from pyinventory import InventoryClient
 from pyinventory.api.equipment import add_equipment
-from pyinventory.api.equipment_type import (
-    add_equipment_type,
-    delete_equipment_type_with_equipments,
-)
+from pyinventory.api.equipment_type import add_equipment_type
 from pyinventory.api.link import add_link, get_link_in_port_of_equipment
 from pyinventory.api.location import add_location
-from pyinventory.api.location_type import (
-    add_location_type,
-    delete_location_type_with_locations,
-)
+from pyinventory.api.location_type import add_location_type
 from pyinventory.api.port import edit_link_properties, get_port
-from pyinventory.api.port_type import (
-    add_equipment_port_type,
-    delete_equipment_port_type,
-)
+from pyinventory.api.port_type import add_equipment_port_type
 from pyinventory.consts import PropertyDefinition
 from pyinventory.exceptions import PortAlreadyOccupiedException
 from pyinventory.graphql.property_kind_enum import PropertyKind
 
+from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils.base_test import BaseTest
 
 
 class TestLink(BaseTest):
+    def __init__(
+        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+    ) -> None:
+        super().__init__(testName, client, stub)
+
     def setUp(self) -> None:
-        self.port_type1 = add_equipment_port_type(
+        super().setUp()
+        add_equipment_port_type(
             self.client,
             name="port type 1",
             properties=[
@@ -49,16 +48,13 @@ class TestLink(BaseTest):
                 )
             ],
         )
-        self.location_types_created = []
-        self.location_types_created.append(
-            add_location_type(
-                client=self.client,
-                name="City",
-                properties=[
-                    ("Mayor", "string", None, True),
-                    ("Contact", "email", None, True),
-                ],
-            )
+        add_location_type(
+            client=self.client,
+            name="City",
+            properties=[
+                ("Mayor", "string", None, True),
+                ("Contact", "email", None, True),
+            ],
         )
         self.location = add_location(
             client=self.client,
@@ -67,16 +63,13 @@ class TestLink(BaseTest):
             lat=10,
             long=20,
         )
-        self.equipment_types_created = []
-        self.equipment_types_created.append(
-            add_equipment_type(
-                client=self.client,
-                name="Tp-Link T1600G",
-                category="Router",
-                properties=[("IP", "string", None, True)],
-                ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
-                position_list=[],
-            )
+        add_equipment_type(
+            client=self.client,
+            name="Tp-Link T1600G",
+            category="Router",
+            properties=[("IP", "string", None, True)],
+            ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
+            position_list=[],
         )
         self.equipment1 = add_equipment(
             client=self.client,
@@ -98,19 +91,6 @@ class TestLink(BaseTest):
             equipment_type="Tp-Link T1600G",
             location=self.location,
             properties_dict={"IP": "192.688.0.2"},
-        )
-
-    def tearDown(self) -> None:
-        for equipment_type in self.equipment_types_created:
-            delete_equipment_type_with_equipments(
-                client=self.client, equipment_type=equipment_type
-            )
-        for location_type in self.location_types_created:
-            delete_location_type_with_locations(
-                client=self.client, location_type=location_type
-            )
-        delete_equipment_port_type(
-            client=self.client, equipment_port_type_id=self.port_type1.id
         )
 
     def test_add_link(self) -> None:

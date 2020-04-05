@@ -88,6 +88,8 @@ services:
     healthcheck:
       test: curl -If localhost/healthz/liveness
     restart: on-failure
+    ports:
+      - 8083:443
 
   migrate:
     image: integration_graph

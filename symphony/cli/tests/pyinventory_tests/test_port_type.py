@@ -4,21 +4,28 @@
 # license that can be found in the LICENSE file.
 
 
+from pyinventory import InventoryClient
 from pyinventory.api.equipment_type import _populate_equipment_port_types
 from pyinventory.api.port_type import (
     add_equipment_port_type,
-    delete_equipment_port_type,
     edit_equipment_port_type,
     get_equipment_port_type,
 )
 from pyinventory.consts import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
 
+from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils.base_test import BaseTest
 
 
 class TestEquipmentPortType(BaseTest):
+    def __init__(
+        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+    ) -> None:
+        super().__init__(testName, client, stub)
+
     def setUp(self) -> None:
+        super().setUp()
         self.port_type1 = add_equipment_port_type(
             self.client,
             name="port type 1",
@@ -38,11 +45,6 @@ class TestEquipmentPortType(BaseTest):
                     is_fixed=False,
                 )
             ],
-        )
-
-    def tearDown(self) -> None:
-        delete_equipment_port_type(
-            client=self.client, equipment_port_type_id=self.port_type1.id
         )
 
     def test_equipment_port_type_populated(self) -> None:
