@@ -13,6 +13,7 @@ import type {PermissionsGroupMembersPaneUserSearchQuery} from './__generated__/P
 import type {UserPermissionsGroup} from './UserManagementUtils';
 
 import * as React from 'react';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import GroupMemberViewer, {ASSIGNMENT_BUTTON_VIEWS} from './GroupMemberViewer';
 import InputAffix from '@fbcnms/ui/components/design-system/Input/InputAffix';
 import RelayEnvironment from '../../../common/RelayEnvironment';
@@ -93,6 +94,22 @@ const useStyles = makeStyles(() => ({
   user: {
     borderBottom: `1px solid ${symphony.palette.separatorLight}`,
   },
+  noMembers: {
+    width: '124px',
+    paddingTop: '50%',
+    alignSelf: 'center',
+  },
+  noSearchResults: {
+    paddingTop: '50%',
+    alignSelf: 'center',
+    textAlign: 'center',
+  },
+  clearSearchWrapper: {
+    marginTop: '16px',
+  },
+  clearSearch: {
+    ...symphony.typography.subtitle1,
+  },
 }));
 
 type Props = $ReadOnly<{|
@@ -111,9 +128,8 @@ export default function PermissionsGroupMembersPane(props: Props) {
     Array<GroupMember>,
   >([]);
 
-  const queryUsers = useCallback(
+  const debouncedQueryUsers = useCallback(
     debounce((searchTerm: string) => {
-      setSearchIsInProgress(true);
       fetchQuery<PermissionsGroupMembersPaneUserSearchQuery>(
         RelayEnvironment,
         userSearchQuery,
@@ -147,6 +163,14 @@ export default function PermissionsGroupMembersPane(props: Props) {
         .finally(() => setSearchIsInProgress(false));
     }, 200),
     [group],
+  );
+
+  const queryUsers = useCallback(
+    (searchTerm: string) => {
+      debouncedQueryUsers(searchTerm);
+      setSearchIsInProgress(true);
+    },
+    [debouncedQueryUsers],
   );
 
   const updateSearch = useCallback(
@@ -211,13 +235,15 @@ export default function PermissionsGroupMembersPane(props: Props) {
         </div>
         {isOnSearchMode ? null : (
           <div className={classes.usersListHeader}>
-            <Text variant="subtitle2" useEllipsis={true}>
-              <fbt desc="">
-                <fbt:plural count={group.members.length} showCount="yes">
-                  Member
-                </fbt:plural>
-              </fbt>
-            </Text>
+            {group.members.length > 0 ? (
+              <Text variant="subtitle2" useEllipsis={true}>
+                <fbt desc="">
+                  <fbt:plural count={group.members.length} showCount="yes">
+                    Member
+                  </fbt:plural>
+                </fbt>
+              </Text>
+            ) : null}
           </div>
         )}
       </>
@@ -259,18 +285,49 @@ export default function PermissionsGroupMembersPane(props: Props) {
     <div className={classNames(classes.root, className)}>
       <ViewContainer header={header}>
         <div className={classes.usersList}>
-          {memberUsers.map(member => (
-            <GroupMemberViewer
-              className={classes.user}
-              member={member}
-              assigmentButton={
-                isOnSearchMode
-                  ? ASSIGNMENT_BUTTON_VIEWS.always
-                  : ASSIGNMENT_BUTTON_VIEWS.onHover
-              }
-              group={group}
-            />
-          ))}
+          {memberUsers.length == 0 ? (
+            isOnSearchMode ? (
+              searchIsInProgress ? null : (
+                <div className={classes.noSearchResults}>
+                  <Text variant="h6" color="gray">
+                    <fbt desc="">
+                      No users found for '<fbt:param name="given search term">
+                        {userSearchValue}
+                      </fbt:param>'
+                    </fbt>
+                  </Text>
+                  <div className={classes.clearSearchWrapper}>
+                    <Button
+                      variant="text"
+                      skin="gray"
+                      onClick={() => updateSearch(NO_SEARCH_VALUE)}>
+                      <span className={classes.clearSearch}>
+                        <fbt desc="">Clear Search</fbt>
+                      </span>
+                    </Button>
+                  </div>
+                </div>
+              )
+            ) : (
+              <img
+                className={classes.noMembers}
+                src={'/inventory/static/images/noMembers.png'}
+              />
+            )
+          ) : (
+            memberUsers.map(member => (
+              <GroupMemberViewer
+                className={classes.user}
+                member={member}
+                assigmentButton={
+                  isOnSearchMode
+                    ? ASSIGNMENT_BUTTON_VIEWS.always
+                    : ASSIGNMENT_BUTTON_VIEWS.onHover
+                }
+                group={group}
+              />
+            ))
+          )}
         </div>
       </ViewContainer>
     </div>
