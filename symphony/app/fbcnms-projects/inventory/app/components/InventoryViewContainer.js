@@ -39,7 +39,7 @@ type ViewToggleProps = {
 type Props = ViewContainerProps & ViewToggleProps;
 
 const InventoryView = (props: Props) => {
-  const {onViewToggleClicked, ...restProps} = props;
+  const {onViewToggleClicked, header, ...restProps} = props;
   const viewProps: ViewContainerProps = {
     ...restProps,
   };
@@ -50,27 +50,34 @@ const InventoryView = (props: Props) => {
   if (selectedDisplayOption == DisplayOptions.map) {
     viewProps.bodyVariant = VARIANTS.plain;
   }
-  if (viewProps.header && onViewToggleClicked) {
-    const onViewOptionClicked = displayOptionId => {
-      setSelectedDisplayOption(displayOptionId);
-      if (onViewToggleClicked) {
-        onViewToggleClicked(displayOptionId);
-      }
-    };
-    viewProps.header.viewOptions = {
-      onItemClicked: onViewOptionClicked,
-      selectedButtonId: selectedDisplayOption,
-      buttons: [
-        {
-          item: <ListAltIcon />,
-          id: DisplayOptions.table,
+  if (header) {
+    if (!onViewToggleClicked) {
+      viewProps.header = header;
+    } else {
+      const onViewOptionClicked = displayOptionId => {
+        setSelectedDisplayOption(displayOptionId);
+        if (onViewToggleClicked) {
+          onViewToggleClicked(displayOptionId);
+        }
+      };
+      viewProps.header = {
+        ...header,
+        viewOptions: {
+          onItemClicked: onViewOptionClicked,
+          selectedButtonId: selectedDisplayOption,
+          buttons: [
+            {
+              item: <ListAltIcon />,
+              id: DisplayOptions.table,
+            },
+            {
+              item: <MapIcon />,
+              id: DisplayOptions.map,
+            },
+          ],
         },
-        {
-          item: <MapIcon />,
-          id: DisplayOptions.map,
-        },
-      ],
-    };
+      };
+    }
   }
   return (
     <div className={classes.root}>
