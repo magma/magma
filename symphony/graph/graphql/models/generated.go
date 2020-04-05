@@ -545,6 +545,7 @@ type PropertyInput struct {
 
 type PropertyTypeInput struct {
 	ID                 *int         `json:"id"`
+	ExternalID         *string      `json:"externalId"`
 	Name               string       `json:"name"`
 	Type               PropertyKind `json:"type"`
 	Index              *int         `json:"index"`

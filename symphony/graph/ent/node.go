@@ -2307,7 +2307,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pt.ID,
 		Type:   "PropertyType",
-		Fields: make([]*Field, 18),
+		Fields: make([]*Field, 19),
 		Edges:  make([]*Edge, 8),
 	}
 	var buf []byte
@@ -2343,10 +2343,18 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Name",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(pt.Index); err != nil {
+	if buf, err = json.Marshal(pt.ExternalID); err != nil {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "ExternalID",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pt.Index); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
 		Type:  "int",
 		Name:  "Index",
 		Value: string(buf),
@@ -2354,7 +2362,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.Category); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[6] = &Field{
 		Type:  "string",
 		Name:  "Category",
 		Value: string(buf),
@@ -2362,7 +2370,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.IntVal); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[7] = &Field{
 		Type:  "int",
 		Name:  "IntVal",
 		Value: string(buf),
@@ -2370,7 +2378,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.BoolVal); err != nil {
 		return nil, err
 	}
-	node.Fields[7] = &Field{
+	node.Fields[8] = &Field{
 		Type:  "bool",
 		Name:  "BoolVal",
 		Value: string(buf),
@@ -2378,7 +2386,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.FloatVal); err != nil {
 		return nil, err
 	}
-	node.Fields[8] = &Field{
+	node.Fields[9] = &Field{
 		Type:  "float64",
 		Name:  "FloatVal",
 		Value: string(buf),
@@ -2386,7 +2394,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.LatitudeVal); err != nil {
 		return nil, err
 	}
-	node.Fields[9] = &Field{
+	node.Fields[10] = &Field{
 		Type:  "float64",
 		Name:  "LatitudeVal",
 		Value: string(buf),
@@ -2394,7 +2402,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.LongitudeVal); err != nil {
 		return nil, err
 	}
-	node.Fields[10] = &Field{
+	node.Fields[11] = &Field{
 		Type:  "float64",
 		Name:  "LongitudeVal",
 		Value: string(buf),
@@ -2402,7 +2410,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.StringVal); err != nil {
 		return nil, err
 	}
-	node.Fields[11] = &Field{
+	node.Fields[12] = &Field{
 		Type:  "string",
 		Name:  "StringVal",
 		Value: string(buf),
@@ -2410,7 +2418,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.RangeFromVal); err != nil {
 		return nil, err
 	}
-	node.Fields[12] = &Field{
+	node.Fields[13] = &Field{
 		Type:  "float64",
 		Name:  "RangeFromVal",
 		Value: string(buf),
@@ -2418,7 +2426,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.RangeToVal); err != nil {
 		return nil, err
 	}
-	node.Fields[13] = &Field{
+	node.Fields[14] = &Field{
 		Type:  "float64",
 		Name:  "RangeToVal",
 		Value: string(buf),
@@ -2426,7 +2434,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.IsInstanceProperty); err != nil {
 		return nil, err
 	}
-	node.Fields[14] = &Field{
+	node.Fields[15] = &Field{
 		Type:  "bool",
 		Name:  "IsInstanceProperty",
 		Value: string(buf),
@@ -2434,7 +2442,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.Editable); err != nil {
 		return nil, err
 	}
-	node.Fields[15] = &Field{
+	node.Fields[16] = &Field{
 		Type:  "bool",
 		Name:  "Editable",
 		Value: string(buf),
@@ -2442,7 +2450,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.Mandatory); err != nil {
 		return nil, err
 	}
-	node.Fields[16] = &Field{
+	node.Fields[17] = &Field{
 		Type:  "bool",
 		Name:  "Mandatory",
 		Value: string(buf),
@@ -2450,7 +2458,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.Deleted); err != nil {
 		return nil, err
 	}
-	node.Fields[17] = &Field{
+	node.Fields[18] = &Field{
 		Type:  "bool",
 		Name:  "Deleted",
 		Value: string(buf),

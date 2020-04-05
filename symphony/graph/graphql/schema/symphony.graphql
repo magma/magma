@@ -858,6 +858,7 @@ enum PropertyKind {
 
 type PropertyType implements Node {
   id: ID!
+  externalId: String
   name: String!
   type: PropertyKind!
   index: Int
@@ -878,6 +879,7 @@ type PropertyType implements Node {
 
 input PropertyTypeInput {
   id: ID
+  externalId: String
   name: String!
   type: PropertyKind!
   index: Int

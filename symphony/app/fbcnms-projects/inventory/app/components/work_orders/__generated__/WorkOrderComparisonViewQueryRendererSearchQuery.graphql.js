@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0727bdd642e6e5b21fdba49cf5e6fa0c
+ * @relayHash a23d4a8360be4b972388e622cf613fcc
  */
 
 /* eslint-disable */
@@ -31,6 +31,7 @@ export type WorkOrderFilterInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
   index?: ?number,
