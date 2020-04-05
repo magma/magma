@@ -10,7 +10,6 @@
 
 import * as React from 'react';
 import * as imm from 'immutable';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import fbt from 'fbt';
 import {createContext, useCallback, useContext, useMemo, useState} from 'react';
@@ -181,7 +180,6 @@ type Props = {
 };
 
 export function FormAlertsContextProvider(props: Props) {
-  const {user} = useContext(AppContext);
   const errorsContext = FormRulesMaintainer();
   const editLocksContext = FormRulesMaintainer();
 
@@ -189,13 +187,6 @@ export function FormAlertsContextProvider(props: Props) {
     error: errorsContext,
     editLock: editLocksContext,
   };
-
-  editLocksContext.check({
-    fieldId: 'System Rules',
-    fieldDisplayName: 'Read Only User',
-    value: user?.isReadOnlyUser,
-    checkCallback: isReadOnlyUser => (isReadOnlyUser ? 'Read Only User' : ''),
-  });
 
   return (
     <FormAlertsContext.Provider value={providerValue}>
