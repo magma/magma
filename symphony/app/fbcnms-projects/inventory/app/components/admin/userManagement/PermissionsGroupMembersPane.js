@@ -76,20 +76,7 @@ const useStyles = makeStyles(() => ({
     marginRight: '4px',
   },
   userSearch: {
-    position: 'relative',
-    overflow: 'hidden',
-    borderRadius: '4px',
     marginTop: '8px',
-  },
-  searchProgress: {
-    position: 'absolute',
-    borderBottom: `3px solid transparent`,
-    bottom: 0,
-    left: '0%',
-  },
-  runSearch: {
-    borderBottomColor: symphony.palette.primary,
-    animation: '$progress 2s infinite',
   },
   clearSearchIcon: {},
   usersListHeader: {
@@ -105,19 +92,6 @@ const useStyles = makeStyles(() => ({
   },
   user: {
     borderBottom: `1px solid ${symphony.palette.separatorLight}`,
-  },
-  '@keyframes progress': {
-    '0%': {
-      right: '100%',
-      left: '0%',
-    },
-    '50%': {
-      left: '0%',
-    },
-    '100%': {
-      right: '0%',
-      left: '100%',
-    },
   },
 }));
 
@@ -218,15 +192,11 @@ export default function PermissionsGroupMembersPane(props: Props) {
     () => (
       <>
         <div className={classes.userSearch}>
-          <div
-            className={classNames(classes.searchProgress, {
-              [classes.runSearch]: searchIsInProgress,
-            })}
-          />
           <TextInput
             type="string"
             variant="outlined"
             placeholder={`${fbt('Search users...', '')}`}
+            isProcessing={searchIsInProgress}
             fullWidth={true}
             value={userSearchValue}
             onChange={e => updateSearch(e.target.value)}
@@ -254,8 +224,6 @@ export default function PermissionsGroupMembersPane(props: Props) {
     ),
     [
       classes.clearSearchIcon,
-      classes.runSearch,
-      classes.searchProgress,
       classes.userSearch,
       classes.usersListHeader,
       group.members.length,
