@@ -36,7 +36,7 @@ const userSearchQuery = graphql`
   query PermissionsGroupMembersPaneUserSearchQuery(
     $filters: [UserFilterInput!]!
   ) {
-    userSearch(limit: 10, filters: $filters) {
+    userSearch(filters: $filters) {
       users {
         id
         authID
@@ -64,23 +64,22 @@ const useStyles = makeStyles(() => ({
     backgroundColor: symphony.palette.white,
     height: '100%',
   },
+  header: {
+    paddingBottom: '5px',
+  },
   title: {
     marginBottom: '16px',
     display: 'flex',
     alignItems: 'center',
   },
-  usersListHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
   titleIcon: {
     marginRight: '4px',
   },
   userSearch: {
-    margin: '16px 0',
     position: 'relative',
     overflow: 'hidden',
     borderRadius: '4px',
+    marginTop: '8px',
   },
   searchProgress: {
     position: 'absolute',
@@ -93,6 +92,12 @@ const useStyles = makeStyles(() => ({
     animation: '$progress 2s infinite',
   },
   clearSearchIcon: {},
+  usersListHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginTop: '12px',
+    marginBottom: '-3px',
+  },
   usersList: {
     display: 'flex',
     flexDirection: 'column',
@@ -204,6 +209,14 @@ export default function PermissionsGroupMembersPane(props: Props) {
         <Text variant="caption" color="gray" useEllipsis={true}>
           <fbt desc="">Users can be members in multiple groups.</fbt>
         </Text>
+      </>
+    ),
+    [],
+  );
+
+  const searchBar = useMemo(
+    () => (
+      <>
         <div className={classes.userSearch}>
           <div
             className={classNames(classes.searchProgress, {
@@ -257,8 +270,10 @@ export default function PermissionsGroupMembersPane(props: Props) {
     () => ({
       title,
       subtitle,
+      searchBar,
+      className: classes.header,
     }),
-    [subtitle, title],
+    [classes.header, searchBar, subtitle, title],
   );
 
   const memberUsers: $ReadOnlyArray<GroupMember> = useMemo(

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash f6620540b84a0edd0eb1fb03088a057f
+ * @relayHash 553f067f5c58a1e59227f2e87ac9a452
  */
 
 /* eslint-disable */
@@ -85,7 +85,7 @@ export type PermissionsGroupMembersPaneUserSearchQuery = {|
 query PermissionsGroupMembersPaneUserSearchQuery(
   $filters: [UserFilterInput!]!
 ) {
-  userSearch(limit: 10, filters: $filters) {
+  userSearch(filters: $filters) {
     users {
       id
       authID
@@ -135,11 +135,6 @@ v2 = [
         "kind": "Variable",
         "name": "filters",
         "variableName": "filters"
-      },
-      {
-        "kind": "Literal",
-        "name": "limit",
-        "value": 10
       }
     ],
     "concreteType": "UserSearchResult",
@@ -267,11 +262,11 @@ return {
     "operationKind": "query",
     "name": "PermissionsGroupMembersPaneUserSearchQuery",
     "id": null,
-    "text": "query PermissionsGroupMembersPaneUserSearchQuery(\n  $filters: [UserFilterInput!]!\n) {\n  userSearch(limit: 10, filters: $filters) {\n    users {\n      id\n      authID\n      firstName\n      lastName\n      email\n      status\n      role\n      groups {\n        id\n        name\n      }\n      profilePhoto {\n        id\n        fileName\n        storeKey\n      }\n    }\n  }\n}\n",
+    "text": "query PermissionsGroupMembersPaneUserSearchQuery(\n  $filters: [UserFilterInput!]!\n) {\n  userSearch(filters: $filters) {\n    users {\n      id\n      authID\n      firstName\n      lastName\n      email\n      status\n      role\n      groups {\n        id\n        name\n      }\n      profilePhoto {\n        id\n        fileName\n        storeKey\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '26659ffa7d125f2d80f6375c8b85f1cc';
+(node/*: any*/).hash = '01be0fd4e5f83a289935b03fdad95aa0';
 module.exports = node;
