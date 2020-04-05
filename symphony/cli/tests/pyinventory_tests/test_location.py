@@ -8,6 +8,7 @@ import os
 import shutil
 import tempfile
 
+from pyinventory import InventoryClient
 from pyinventory.api.file import (
     add_file,
     add_files,
@@ -24,25 +25,25 @@ from pyinventory.api.location import (
     get_locations_by_external_id,
     move_location,
 )
-from pyinventory.api.location_type import (
-    add_location_type,
-    delete_location_type_with_locations,
-)
+from pyinventory.api.location_type import add_location_type
 from pyinventory.exceptions import LocationCannotBeDeletedWithDependency
 
+from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils.base_test import BaseTest
 
 
 class TestLocation(BaseTest):
+    def __init__(
+        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+    ) -> None:
+        super().__init__(testName, client, stub)
+
     def setUp(self) -> None:
         super().setUp()
-        self.location_types_created = []
-        self.location_types_created.append(
-            add_location_type(
-                self.client,
-                "City",
-                [("Mayor", "string", None, True), ("Contact", "email", None, True)],
-            )
+        add_location_type(
+            self.client,
+            "City",
+            [("Mayor", "string", None, True), ("Contact", "email", None, True)],
         )
         self.external_id = "test_external_id"
         self.suffixes = ["txt", "pdf", "png"]
@@ -82,13 +83,6 @@ class TestLocation(BaseTest):
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tmpdir)
-        delete_location(self.client, self.location_2)
-        delete_location(self.client, self.location_1)
-        delete_location(self.client, self.location_with_ext_id)
-        delete_location(self.client, self.location_child_1)
-        delete_location(self.client, self.location_child_2)
-        for location_type in self.location_types_created:
-            delete_location_type_with_locations(self.client, location_type)
 
     def test_location_created(self) -> None:
         fetch_location = get_location(self.client, [("City", "Lima1")])

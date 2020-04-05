@@ -31,7 +31,8 @@ from .graphql.user_status_enum import UserStatus
 __version__ = "2.5.0"
 
 INVENTORY_ENDPOINT = "https://{}.thesymphony.cloud"
-LOCALHOST_INVENTORY_ENDPOINT = "https://{}.localtest.me"
+LOCALHOST_INVENTORY_SERVER = "{}.localtest.me"
+LOCALHOST_INVENTORY_ENDPOINT = f"https://{LOCALHOST_INVENTORY_SERVER}"
 INVENTORY_GRAPHQL_ENDPOINT = "/graph/query"
 INVENTORY_STORE_PUT_ENDPOINT = "/store/put"
 INVENTORY_LOGIN_ENDPOINT = "/user/login"

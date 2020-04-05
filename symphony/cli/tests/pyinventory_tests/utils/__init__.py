@@ -2,12 +2,23 @@
 # Copyright (c) 2004-present Facebook All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
+import os
+import sys
 import time
 
 import requests
 from pyinventory import InventoryClient
+from pyinventory.consts import LOCALHOST_INVENTORY_SERVER
 
 from .constant import PLATFORM_SERVER_HEALTH_CHECK_URL, TestMode
+
+
+if True:
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../grpc"))
+    from ..grpc.rpc_pb2_grpc import (
+        TenantServiceStub,
+        google_dot_protobuf_dot_wrappers__pb2,
+    )
 
 
 TEST_MODE: TestMode = TestMode.DEV
@@ -44,3 +55,16 @@ def init_client(email: str, password: str) -> InventoryClient:
         return InventoryClient(email, password, tenant=f"{TENANT}.staging")
     else:
         return InventoryClient(email, password, is_dev_mode=True)
+
+
+def get_grpc_server_address() -> str:
+    if TEST_MODE == TestMode.LOCAL:
+        return LOCALHOST_INVENTORY_SERVER.format(TENANT) + ":8083"
+    elif TEST_MODE == TestMode.REMOTE:
+        raise NotImplementedError("T64902729")
+    else:
+        return "graph:443"
+
+
+def truncate_client(stub: TenantServiceStub) -> None:
+    stub.Truncate(google_dot_protobuf_dot_wrappers__pb2.StringValue(value=TENANT))

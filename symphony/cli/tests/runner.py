@@ -40,22 +40,24 @@ if __name__ == "__main__":
         default=None,
         nargs="?",
     )
-    parser.add_argument(
-        "-r",
-        "--remote",
-        help="Run against which tenant in production staging environment",
-        type=str,
-        default=None,
-    )
+    # TODO(T64902729): Restore after support for cleaning production between tests
+    # parser.add_argument(
+    #     "-r",
+    #     "--remote",
+    #     help="Run against which tenant in production staging environment",
+    #     type=str,
+    #     default=None,
+    # )
 
     args = parser.parse_args()
 
     if args.local is not None:
         pyinventory_tests.utils.TEST_MODE = TestMode.LOCAL
         pyinventory_tests.utils.TENANT = args.local
-    elif args.remote is not None:
-        pyinventory_tests.utils.TEST_MODE = TestMode.REMOTE
-        pyinventory_tests.utils.TENANT = args.remote
+    # TODO(T64902729): Restore after support for cleaning production between tests
+    # elif args.remote is not None:
+    #     pyinventory_tests.utils.TEST_MODE = TestMode.REMOTE
+    #     pyinventory_tests.utils.TENANT = args.remote
 
     loader = TestLoader()
     loader.testNamePatterns = [args.pattern]

@@ -4,22 +4,21 @@
 # license that can be found in the LICENSE file.
 
 import unittest
-from typing import cast
 
 from pyinventory import InventoryClient
 
-from . import init_client, wait_for_platform
-from .constant import TEST_USER_EMAIL
+from ..grpc.rpc_pb2_grpc import TenantServiceStub
+from . import truncate_client
 
 
 class BaseTest(unittest.TestCase):
-    client: InventoryClient = cast(InventoryClient, None)
+    def __init__(
+        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+    ) -> None:
+        super().__init__(testName)
+        self.client = client
+        self.stub = stub
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        wait_for_platform()
-        cls.client = init_client(TEST_USER_EMAIL, TEST_USER_EMAIL)
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        cls.client.session.close()
+    def setUp(self) -> None:
+        truncate_client(self.stub)
+        self.client._clear_types()
