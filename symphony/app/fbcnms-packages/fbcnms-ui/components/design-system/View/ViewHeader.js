@@ -19,7 +19,6 @@ import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import ToggleButton from '../ToggleButton/ToggleButtonGroup';
 import classNames from 'classnames';
-import {FormAlertsContextProvider} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -139,39 +138,37 @@ const ViewHeader = (props: FullViewHeaderProps) => {
           </div>
         )}
         {actionButtons != null && (
-          <FormAlertsContextProvider>
-            <div
-              className={classNames(
-                classes.actionButtons,
-                classes.collapsablePart,
-                {
-                  [classes.collapsed]: showMinimal,
-                },
-              )}>
-              {actionButtons.map((actionButton, index) => {
-                const {
-                  ignorePermissions,
-                  hideWhenDisabled,
-                  action,
-                  title,
-                  ...restButtonProps
-                } = actionButton;
-                return (
-                  <FormAction
-                    key={`viewHeaderAction${index}`}
-                    ignorePermissions={ignorePermissions}
-                    hideWhenDisabled={hideWhenDisabled}>
-                    <Button
-                      className={classes.actionButton}
-                      {...restButtonProps}
-                      onClick={action}>
-                      {title}
-                    </Button>
-                  </FormAction>
-                );
-              })}
-            </div>
-          </FormAlertsContextProvider>
+          <div
+            className={classNames(
+              classes.actionButtons,
+              classes.collapsablePart,
+              {
+                [classes.collapsed]: showMinimal,
+              },
+            )}>
+            {actionButtons.map((actionButton, index) => {
+              const {
+                ignorePermissions,
+                hideWhenDisabled,
+                action,
+                title,
+                ...restButtonProps
+              } = actionButton;
+              return (
+                <FormAction
+                  key={`viewHeaderAction${index}`}
+                  ignorePermissions={ignorePermissions}
+                  hideWhenDisabled={hideWhenDisabled}>
+                  <Button
+                    className={classes.actionButton}
+                    {...restButtonProps}
+                    onClick={action}>
+                    {title}
+                  </Button>
+                </FormAction>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
