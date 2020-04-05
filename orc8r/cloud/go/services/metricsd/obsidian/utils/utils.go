@@ -22,6 +22,10 @@ const (
 	ParamStepWidth  = "step"
 	ParamTime       = "time"
 
+	ParamMetric      = "metric"
+	ParamMatchTarget = "match_target"
+	ParamLimit       = "limit"
+
 	StatusSuccess = "success"
 )
 

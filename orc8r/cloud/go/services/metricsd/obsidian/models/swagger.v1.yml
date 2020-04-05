@@ -52,6 +52,10 @@ magma-gen-meta:
       filename: pushed_metric_swaggergen.go
     - go-struct-name: LabelPair
       filename: label_pair_swaggergen.go
+    - go-struct-name: TargetMetadata
+      filename: prometheus_target_metadata_swaggergen.go
+    - go-struct-name: TargetsMetadata
+      filename: prometheus_targets_metadata_swaggergen.go
 
 info:
   title:
@@ -67,6 +71,38 @@ tags:
 basePath: /magma/v1
 
 paths:
+  /tenants/targets_metadata:
+    get:
+      summary: Retrieve description of all metrics
+      tags:
+      - Metrics
+      parameters:
+        - in: query
+          name: match_target
+          type: string
+          description: "Label selectors like {job = \"magma_pushgateway\"} . All targets are selected if left empty"
+          required: false
+        - in: query
+          name: metric
+          type: string
+          description: A metric name to retrieve metadata for. All metric metadata is retrieved if left empty
+          required: false
+        - in: query
+          name: limit
+          type: string
+          description: Maximum number of targets to match
+          required: false
+      responses:
+        '200':
+          description:
+            Info of metrics
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/prometheus_targets_metadata'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/prometheus/query:
     get:
       summary: Retrieve the datapoints from a Prometheus Query
@@ -1190,3 +1226,40 @@ definitions:
     properties:
       state:
         type: string
+
+  prometheus_target_metadata:
+    type: object
+    required:
+      - instance
+      - job
+    properties:
+      instance:
+        type: string
+        example: "localhost:9090"
+      job:
+        type: string
+        example: "prometheus"
+
+  prometheus_targets_metadata:
+    type: object
+    required:
+    - target
+    - metric
+    - type
+    - help
+    - unit
+    properties:
+      target:
+        $ref: '#/definitions/prometheus_target_metadata'
+      metric:
+        type: string
+        example: "prometheus_tsdb_compaction_chunk_samples"
+      type:
+        type: string
+        example: "histogram"
+      help:
+        type: string
+        example: "Final number of samples on their first compaction"
+      unit:
+        type: string
+        example: "string"

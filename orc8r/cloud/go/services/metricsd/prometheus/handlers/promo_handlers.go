@@ -30,11 +30,12 @@ import (
 )
 
 const (
-	queryPart      = "query"
-	queryRangePart = "query_range"
-	seriesPart     = "series"
-	paramMatch     = "match"
-	paramPromMatch = "match[]"
+	targetsMetadata = "targets_metadata"
+	queryPart       = "query"
+	queryRangePart  = "query_range"
+	seriesPart      = "series"
+	paramMatch      = "match"
+	paramPromMatch  = "match[]"
 
 	PrometheusV1Root = handlers.ManageNetworkPath + obsidian.UrlSep + "prometheus"
 
@@ -55,6 +56,8 @@ const (
 	TenantPromV1SeriesURL     = tenantQueryRoot + prometheusAPIRoot + seriesPart
 	TenantPromV1ValuesURL     = tenantQueryRoot + prometheusAPIRoot + "label/:label_name/values"
 
+	TargetsMetadata = tenantH.TenantRootPath + obsidian.UrlSep + targetsMetadata
+
 	defaultStepWidth = "15s"
 )
 
@@ -67,6 +70,19 @@ func tenantQueryRestrictorProvider(tenantID int64) (restrictor.QueryRestrictor, 
 		return restrictor.QueryRestrictor{}, err
 	}
 	return *restrictor.NewQueryRestrictor(restrictor.Opts{ReplaceExistingLabel: false}).AddMatcher(metrics.NetworkLabelName, tenant.Networks...), nil
+}
+
+func GetPrometheusTargetsMetadata(api v1.API) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		res, err := api.TargetsMetadata(context.Background(),
+			c.QueryParam(utils.ParamMatchTarget),
+			c.QueryParam(utils.ParamMetric),
+			c.QueryParam(utils.ParamLimit))
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		return c.JSON(http.StatusOK, res)
+	}
 }
 
 func GetPrometheusQueryHandler(api v1.API) func(c echo.Context) error {
