@@ -9,7 +9,7 @@
  */
 
 import type {TabProps} from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
-import type {User} from './UserManagementUtils';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -18,7 +18,7 @@ import UserAccountPane from './UserAccountPane';
 import UserPermissionsPane from './UserPermissionsPane';
 import UserProfilePane from './UserProfilePane';
 import fbt from 'fbt';
-import {FormContextProvider} from '../../../common/FormContext';
+import {FormContextProvider} from '../../../../common/FormContext';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useMemo, useState} from 'react';
 

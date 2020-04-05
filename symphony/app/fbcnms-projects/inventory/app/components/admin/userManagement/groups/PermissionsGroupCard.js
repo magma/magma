@@ -8,26 +8,29 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from './UserManagementUtils';
+import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Grid from '@material-ui/core/Grid';
-import InventoryErrorBoundary from '../../../common/InventoryErrorBoundary';
+import InventoryErrorBoundary from '../../../../common/InventoryErrorBoundary';
 import PermissionsGroupDetailsPane from './PermissionsGroupDetailsPane';
 import PermissionsGroupMembersPane from './PermissionsGroupMembersPane';
 import PermissionsGroupPoliciesPane from './PermissionsGroupPoliciesPane';
-import Strings from '../../../common/CommonStrings';
+import Strings from '../../../../common/CommonStrings';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {GROUP_STATUSES, NEW_GROUP_DIALOG_PARAM} from './UserManagementUtils';
+import {
+  GROUP_STATUSES,
+  NEW_GROUP_DIALOG_PARAM,
+} from '../utils/UserManagementUtils';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useMemo, useState} from 'react';
 import {useRouteMatch} from 'react-router-dom';
-import {useUserManagement} from './UserManagementContext';
+import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   detailsPane: {

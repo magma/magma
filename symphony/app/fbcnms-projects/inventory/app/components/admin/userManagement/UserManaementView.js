@@ -13,15 +13,15 @@ import type {NavigatableView} from '@fbcnms/ui/components/design-system/View/Nav
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import NavigatableViews from '@fbcnms/ui/components/design-system/View/NavigatableViews';
-import NewUserDialog from './NewUserDialog';
-import PermissionsGroupCard from './PermissionsGroupCard';
+import NewUserDialog from './users/NewUserDialog';
+import PermissionsGroupCard from './groups/PermissionsGroupCard';
 import PermissionsGroupsView, {
   PERMISSION_GROUPS_VIEW_NAME,
-} from './PermissionsGroupsView';
+} from './groups/PermissionsGroupsView';
 import Strings from '../../../common/CommonStrings';
-import UsersView from './UsersView';
+import UsersView from './users/UsersView';
 import fbt from 'fbt';
-import {NEW_GROUP_DIALOG_PARAM} from './UserManagementUtils';
+import {NEW_GROUP_DIALOG_PARAM} from './utils/UserManagementUtils';
 import {UserManagementContextProvider} from './UserManagementContext';
 import {useCallback, useContext, useMemo, useState} from 'react';
 import {useHistory, withRouter} from 'react-router-dom';

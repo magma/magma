@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {User} from './UserManagementUtils';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -16,10 +16,10 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import FormContext, {FormContextProvider} from '../../../common/FormContext';
-import FormFieldTextInput from './FormFieldTextInput';
+import FormContext, {FormContextProvider} from '../../../../common/FormContext';
+import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
-import Strings from '../../../common/CommonStrings';
+import Strings from '../../../../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserAccountDetailsPane, {
   ACCOUNT_DISPLAY_VARIANTS,
@@ -27,12 +27,12 @@ import UserAccountDetailsPane, {
 import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {USER_ROLES, USER_STATUSES} from './UserManagementUtils';
-import {generateTempId} from '../../../common/EntUtils';
+import {USER_ROLES, USER_STATUSES} from '../utils/UserManagementUtils';
+import {generateTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useState} from 'react';
-import {useUserManagement} from './UserManagementContext';
+import {useUserManagement} from '../UserManagementContext';
 
 const initialUserData: User = {
   id: generateTempId(),

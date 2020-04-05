@@ -8,13 +8,13 @@
  * @format
  */
 
-import type {User} from './UserManagementUtils';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {USER_ROLES} from './UserManagementUtils';
+import {USER_ROLES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
