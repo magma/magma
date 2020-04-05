@@ -339,7 +339,11 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
           size="small"
         />
       ) : null}
-      <Text variant="body2" weight="medium" className={classes.buttonText}>
+      <Text
+        variant="body2"
+        weight="medium"
+        useEllipsis={true}
+        className={classes.buttonText}>
         {children}
       </Text>
       {RightIcon ? (
