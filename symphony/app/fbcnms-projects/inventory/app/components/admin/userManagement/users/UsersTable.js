@@ -12,7 +12,7 @@ import type {
   TableRowDataType,
   TableRowId,
 } from '@fbcnms/ui/components/design-system/Table/Table';
-import type {User} from './UserManagementUtils';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -22,13 +22,13 @@ import UserDetailsCard from './UserDetailsCard';
 import UserViewer from './UserViewer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {USER_ROLES, USER_STATUSES} from './UserManagementUtils';
-import {haveDifferentValues} from '../../../common/EntUtils';
+import {USER_ROLES, USER_STATUSES} from '../utils/UserManagementUtils';
+import {haveDifferentValues} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useContext} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useUserManagement} from './UserManagementContext';
+import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   root: {

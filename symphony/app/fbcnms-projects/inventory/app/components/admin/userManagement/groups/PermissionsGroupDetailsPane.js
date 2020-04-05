@@ -8,20 +8,20 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from './UserManagementUtils';
-import type {UsersGroupStatus} from './__generated__/UserManagementContextQuery.graphql';
+import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
+import type {UsersGroupStatus} from '../__generated__/UserManagementContextQuery.graphql';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormFieldTextInput from './FormFieldTextInput';
+import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {GROUP_STATUSES} from './UserManagementUtils';
+import {GROUP_STATUSES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useMemo} from 'react';
 

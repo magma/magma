@@ -8,21 +8,22 @@
  * @format
  */
 
-import type {GroupMember} from './GroupMemberViewer';
+import type {GroupMember} from '../utils/GroupMemberViewer';
 import type {PermissionsGroupMembersPaneUserSearchQuery} from './__generated__/PermissionsGroupMembersPaneUserSearchQuery.graphql';
-import type {UserPermissionsGroup} from './UserManagementUtils';
+import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import GroupMemberViewer, {ASSIGNMENT_BUTTON_VIEWS} from './GroupMemberViewer';
 import InputAffix from '@fbcnms/ui/components/design-system/Input/InputAffix';
-import RelayEnvironment from '../../../common/RelayEnvironment';
+import MembersList from '../utils/MembersList';
+import RelayEnvironment from '../../../../common/RelayEnvironment';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {ASSIGNMENT_BUTTON_VIEWS} from '../utils/GroupMemberViewer';
 import {
   CloseIcon,
   ProfileIcon,
@@ -31,7 +32,7 @@ import {debounce} from 'lodash';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useMemo, useState} from 'react';
-import {userResponse2User} from './UserManagementUtils';
+import {userResponse2User} from '../utils/UserManagementUtils';
 
 const userSearchQuery = graphql`
   query PermissionsGroupMembersPaneUserSearchQuery(
@@ -85,14 +86,6 @@ const useStyles = makeStyles(() => ({
     justifyContent: 'space-between',
     marginTop: '12px',
     marginBottom: '-3px',
-  },
-  usersList: {
-    display: 'flex',
-    flexDirection: 'column',
-    width: '100%',
-  },
-  user: {
-    borderBottom: `1px solid ${symphony.palette.separatorLight}`,
   },
   noMembers: {
     width: '124px',
@@ -284,8 +277,15 @@ export default function PermissionsGroupMembersPane(props: Props) {
   return (
     <div className={classNames(classes.root, className)}>
       <ViewContainer header={header}>
-        <div className={classes.usersList}>
-          {memberUsers.length == 0 ? (
+        <MembersList
+          members={memberUsers}
+          group={group}
+          assigmentButton={
+            isOnSearchMode
+              ? ASSIGNMENT_BUTTON_VIEWS.always
+              : ASSIGNMENT_BUTTON_VIEWS.onHover
+          }
+          emptyState={
             isOnSearchMode ? (
               searchIsInProgress ? null : (
                 <div className={classes.noSearchResults}>
@@ -314,21 +314,8 @@ export default function PermissionsGroupMembersPane(props: Props) {
                 src={'/inventory/static/images/noMembers.png'}
               />
             )
-          ) : (
-            memberUsers.map(member => (
-              <GroupMemberViewer
-                className={classes.user}
-                member={member}
-                assigmentButton={
-                  isOnSearchMode
-                    ? ASSIGNMENT_BUTTON_VIEWS.always
-                    : ASSIGNMENT_BUTTON_VIEWS.onHover
-                }
-                group={group}
-              />
-            ))
-          )}
-        </div>
+          }
+        />
       </ViewContainer>
     </div>
   );

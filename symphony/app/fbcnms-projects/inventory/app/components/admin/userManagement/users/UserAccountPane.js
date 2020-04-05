@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {User} from './UserManagementUtils';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import UserAccountDetailsPane, {
@@ -16,7 +16,7 @@ import UserAccountDetailsPane, {
 } from './UserAccountDetailsPane';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useUserManagement} from './UserManagementContext';
+import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   root: {

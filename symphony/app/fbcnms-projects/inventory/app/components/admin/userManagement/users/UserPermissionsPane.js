@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {User} from './UserManagementUtils';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';

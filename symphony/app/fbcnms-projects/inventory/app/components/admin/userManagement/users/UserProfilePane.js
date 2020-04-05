@@ -8,27 +8,27 @@
  * @format
  */
 
-import type {EmploymentType, User} from './UserManagementUtils';
+import type {EmploymentType, User} from '../utils/UserManagementUtils';
 import type {OptionProps} from '@fbcnms/ui/components/design-system/Select/SelectMenu';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FileUploadArea from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
-import FileUploadButton from '../../FileUpload/FileUploadButton';
+import FileUploadButton from '../../../FileUpload/FileUploadButton';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormFieldTextInput from './FormFieldTextInput';
+import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {DocumentAPIUrls} from '../../../common/DocumentAPI';
+import {DocumentAPIUrls} from '../../../../common/DocumentAPI';
 import {SQUARE_DIMENSION_PX} from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
-import {useFormContext} from '../../../common/FormContext';
+import {useFormContext} from '../../../../common/FormContext';
 
 const useStyles = makeStyles(() => ({
   root: {

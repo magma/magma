@@ -17,13 +17,13 @@ import type {EditUsersGroupMutationResponse} from '../../../mutations/__generate
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
 import type {StoreUpdater} from '../../../common/RelayEnvironment';
 import type {UpdateUsersGroupMembersMutationResponse} from '../../../mutations/__generated__/UpdateUsersGroupMembersMutation.graphql';
-import type {User, UserPermissionsGroup} from './UserManagementUtils';
+import type {User, UserPermissionsGroup} from './utils/UserManagementUtils';
 import type {
   UserManagementContextQuery,
   UserRole,
 } from './__generated__/UserManagementContextQuery.graphql';
 import type {UserManagementContext_UserQuery} from './__generated__/UserManagementContext_UserQuery.graphql';
-import type {UsersMap} from './UserManagementUtils';
+import type {UsersMap} from './utils/UserManagementUtils';
 
 import * as React from 'react';
 import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
@@ -38,7 +38,7 @@ import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
 import {LogEvents, ServerLogger} from '../../../common/LoggingUtils';
 import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {Suspense} from 'react';
-import {USER_ROLES} from './UserManagementUtils';
+import {USER_ROLES} from './utils/UserManagementUtils';
 import {getGraphError} from '../../../common/EntUtils';
 import {
   groupResponse2Group,
@@ -46,7 +46,7 @@ import {
   userResponse2User,
   users2UsersMap,
   usersResponse2Users,
-} from './UserManagementUtils';
+} from './utils/UserManagementUtils';
 import {useContext} from 'react';
 import {useLazyLoadQuery} from 'react-relay/hooks';
 

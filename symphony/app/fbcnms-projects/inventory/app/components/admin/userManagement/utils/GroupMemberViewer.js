@@ -8,19 +8,19 @@
  * @format
  */
 
-import type {User, UserPermissionsGroup} from './UserManagementUtils';
+import type {User, UserPermissionsGroup} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CheckIcon from '@fbcnms/ui/components/design-system/Icons/Indications/CheckIcon';
 import PlusIcon from '@fbcnms/ui/components/design-system/Icons/Actions/PlusIcon';
-import Strings from '../../../common/CommonStrings';
-import UserViewer from './UserViewer';
+import Strings from '../../../../common/CommonStrings';
+import UserViewer from '../users/UserViewer';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useState} from 'react';
-import {useUserManagement} from './UserManagementContext';
+import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -71,11 +71,15 @@ export type GroupMember = $ReadOnly<{|
   isMember: boolean,
 |}>;
 
+export type AssigenmentButtonProp = $ReadOnly<{|
+  assigmentButton: AssigenmentButtonView,
+|}>;
+
 type Props = $ReadOnly<{|
   member: GroupMember,
-  group: UserPermissionsGroup,
-  assigmentButton: AssigenmentButtonView,
+  group?: ?UserPermissionsGroup,
   className?: ?string,
+  ...AssigenmentButtonProp,
 |}>;
 
 export default function GroupMemberViewer(props: Props) {
@@ -88,6 +92,10 @@ export default function GroupMemberViewer(props: Props) {
 
   const toggleAssigment = useCallback(
     (memberUser, shouldAssign) => {
+      if (group == null) {
+        return;
+      }
+
       setIsProcessed(true);
       const add = shouldAssign ? [memberUser.user.id] : [];
       const remove = shouldAssign ? [] : [memberUser.user.id];
@@ -123,34 +131,36 @@ export default function GroupMemberViewer(props: Props) {
         showPhoto={true}
         showRole={true}
       />
-      <Button
-        className={classNames(classes.userAssignButton, {
-          [classes.togglingAssignment]: isProcessed,
-        })}
-        disabled={isProcessed}
-        onClick={() => toggleAssigment(member, !member.isMember)}
-        skin={member.isMember ? 'gray' : 'primary'}
-        leftIcon={member.isMember ? CheckIcon : PlusIcon}
-        leftIconClass={member.isMember ? classes.addedIcon : undefined}>
-        {member.isMember ? (
-          <>
-            <div className={classes.removeText}>
-              {isProcessed ? (
-                <fbt desc="">Removing</fbt>
-              ) : (
-                Strings.common.removeButton
-              )}
-            </div>
-            <div className={classes.addedText}>
-              <fbt desc="">Added</fbt>
-            </div>
-          </>
-        ) : isProcessed ? (
-          <fbt desc="">Adding</fbt>
-        ) : (
-          Strings.common.addButton
-        )}
-      </Button>
+      {group == null ? null : (
+        <Button
+          className={classNames(classes.userAssignButton, {
+            [classes.togglingAssignment]: isProcessed,
+          })}
+          disabled={isProcessed}
+          onClick={() => toggleAssigment(member, !member.isMember)}
+          skin={member.isMember ? 'gray' : 'primary'}
+          leftIcon={member.isMember ? CheckIcon : PlusIcon}
+          leftIconClass={member.isMember ? classes.addedIcon : undefined}>
+          {member.isMember ? (
+            <>
+              <div className={classes.removeText}>
+                {isProcessed ? (
+                  <fbt desc="">Removing</fbt>
+                ) : (
+                  Strings.common.removeButton
+                )}
+              </div>
+              <div className={classes.addedText}>
+                <fbt desc="">Added</fbt>
+              </div>
+            </>
+          ) : isProcessed ? (
+            <fbt desc="">Adding</fbt>
+          ) : (
+            Strings.common.addButton
+          )}
+        </Button>
+      )}
     </div>
   );
 }
