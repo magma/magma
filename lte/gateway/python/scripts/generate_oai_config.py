@@ -12,9 +12,8 @@ and the config/mconfig for the service.
 """
 
 import logging
-import socket
-
 import os
+import socket
 from create_oai_certs import generate_mme_certs
 from generate_service_config import generate_template_config
 from lte.protos.mconfig.mconfigs_pb2 import MME
@@ -139,6 +138,7 @@ def _get_context():
     for key in (
         "ovs_bridge_name",
         "ovs_gtp_port_number",
+        "ovs_mtr_port_number",
         "ovs_uplink_port_number",
         "ovs_uplink_mac",
     ):

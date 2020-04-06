@@ -4,12 +4,10 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core';
 import type {mesh_wifi_configs} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -20,7 +18,6 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
-import FormLabel from '@material-ui/core/FormLabel';
 import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
@@ -29,10 +26,12 @@ import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {additionalPropsToArray, additionalPropsToObject} from './WifiUtils';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
+import {useEffect, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 
-const styles = {
+const useStyles = makeStyles(() => ({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
@@ -50,173 +49,138 @@ const styles = {
     position: 'fixed',
     zIndex: '13000',
   },
+}));
+
+type Props = {
+  onCancel: () => void,
+  onSave: string => void,
 };
 
-type Props = ContextRouter &
-  WithStyles<typeof styles> & {
-    onCancel: () => void,
-    onSave: string => void,
-  };
+export default function WifiMeshDialog(props: Props) {
+  const classes = useStyles();
+  const {match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
 
-type State = {
-  meshID: string,
-  configs: mesh_wifi_configs,
-  additionalProps: ?Array<[string, string]>,
-  error?: string,
-};
+  const [meshID, setMeshID] = useState(match.params.meshID || '');
+  const [configs, setConfigs] = useState<mesh_wifi_configs>({});
+  const [additionalProps, setAdditionalProps] = useState<?Array<
+    [string, string],
+  >>([]);
 
-class WifiMeshDialog extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super();
-
-    const {meshID} = props.match.params;
-    this.state = {
-      meshID: meshID || '',
-      configs: {},
-      additionalProps: [],
-    };
-
-    if (meshID) {
+  const editingMeshID = match.params.meshID;
+  useEffect(() => {
+    if (editingMeshID) {
       MagmaV1API.getWifiByNetworkIdMeshesByMeshIdConfig({
-        networkId: nullthrows(props.match.params.networkId),
+        networkId: nullthrows(match.params.networkId),
         meshId: meshID,
       })
-        .then(configs =>
-          this.setState({
-            configs,
-            additionalProps: additionalPropsToArray(configs.additional_props),
-          }),
-        )
-        .catch(() => this.props.onCancel());
+        .then(configs => {
+          setConfigs({...configs});
+          setAdditionalProps(additionalPropsToArray(configs.additional_props));
+        })
+        .catch(e => {
+          enqueueSnackbar(e?.response?.data?.message || e.message, {
+            variant: 'error',
+          });
+          props.onCancel();
+        });
     }
+  }, [editingMeshID, enqueueSnackbar, match.params.networkId, meshID, props]);
+
+  if (editingMeshID && Object.keys(configs).length === 0) {
+    return <LoadingFillerBackdrop />;
   }
 
-  render() {
-    const {meshID} = this.props.match.params;
-    if (meshID && Object.keys(this.state.configs).length === 0) {
-      return <LoadingFillerBackdrop />;
-    }
+  const onSave = async () => {
+    const meshWifiConfigs = {
+      ...configs,
+      mesh_frequency: parseInt(configs.mesh_frequency),
+      additional_props: additionalPropsToObject(additionalProps) || undefined,
+    };
 
-    return (
-      <Dialog open={true} onClose={this.props.onCancel}>
-        <DialogTitle>{meshID ? 'Edit Mesh' : 'New Mesh'}</DialogTitle>
-        <DialogContent>
-          {this.state.error ? (
-            <FormLabel error>{this.state.error}</FormLabel>
-          ) : null}
-          <FormGroup row>
-            <TextField
-              required
-              className={this.props.classes.input}
-              label="Mesh Name"
-              margin="normal"
-              onChange={this.handlemeshIDChange}
-              value={this.state.meshID}
-              disabled={!!meshID}
-            />
-            <TextField
-              required
-              className={this.props.classes.input}
-              label="SSID"
-              margin="normal"
-              value={this.state.configs.ssid}
-              onChange={this.handleSSIDChange}
-            />
-            <TextField
-              className={this.props.classes.input}
-              label="Password"
-              margin="normal"
-              value={this.state.configs.password}
-              onChange={this.handlePasswordChange}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={this.state.configs.xwf_enabled}
-                  onChange={this.handledEnableXWFChange}
-                  color="primary"
-                />
-              }
-              label="Enable XWF"
-            />
-            <KeyValueFields
-              keyValuePairs={this.state.additionalProps || [['', '']]}
-              onChange={this.handleAdditionalPropsChange}
-            />
-          </FormGroup>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onCancel} skin="regular">
-            Cancel
-          </Button>
-          <Button onClick={this.onSave}>Save</Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
-
-  handlemeshIDChange = event => this.setState({meshID: event.target.value});
-  handleSSIDChange = ({target}) =>
-    this.setState({
-      configs: {
-        ...this.state.configs,
-        ssid: target.value,
-      },
-    });
-  handlePasswordChange = ({target}) =>
-    this.setState({
-      configs: {
-        ...this.state.configs,
-        password: target.value,
-      },
-    });
-  handledEnableXWFChange = ({target}) =>
-    this.setState({
-      configs: {
-        ...this.state.configs,
-        xwf_enabled: target.checked,
-      },
-    });
-  handleAdditionalPropsChange = value =>
-    this.setState({additionalProps: value});
-
-  onSave = async () => {
     try {
-      const editingMeshID = this.props.match.params.meshID;
       if (editingMeshID) {
         await MagmaV1API.putWifiByNetworkIdMeshesByMeshIdConfig({
-          networkId: nullthrows(this.props.match.params.networkId),
+          networkId: nullthrows(match.params.networkId),
           meshId: editingMeshID,
-          meshWifiConfigs: this.getConfigs(),
+          meshWifiConfigs,
         });
-        this.props.onSave(editingMeshID);
+        props.onSave(editingMeshID);
         return;
       }
 
       // create a mesh
       await MagmaV1API.postWifiByNetworkIdMeshes({
-        networkId: nullthrows(this.props.match.params.networkId),
+        networkId: nullthrows(match.params.networkId),
         wifiMesh: {
-          id: this.state.meshID,
-          config: this.getConfigs(),
-          name: this.state.meshID,
+          id: meshID,
+          config: meshWifiConfigs,
+          name: meshID,
           gateway_ids: [],
         },
       });
-      this.props.onSave(this.state.meshID);
+      props.onSave(meshID);
     } catch (e) {
-      this.setState({error: e.response.data.message || e.message});
+      enqueueSnackbar(e.response.data.message || e.message, {variant: 'error'});
     }
   };
 
-  getConfigs = () => {
-    return {
-      ...this.state.configs,
-      mesh_frequency: parseInt(this.state.configs.mesh_frequency),
-      additional_props:
-        additionalPropsToObject(this.state.additionalProps) || undefined,
-    };
-  };
-}
+  const onConfigChangeHandler = (fieldName: string) => ({target}) =>
+    setConfigs({...configs, [fieldName]: target.value});
 
-export default withStyles(styles)(withRouter(WifiMeshDialog));
+  return (
+    <Dialog open={true} onClose={props.onCancel}>
+      <DialogTitle>{editingMeshID ? 'Edit Mesh' : 'New Mesh'}</DialogTitle>
+      <DialogContent>
+        <FormGroup row>
+          <TextField
+            required
+            className={classes.input}
+            label="Mesh Name"
+            margin="normal"
+            onChange={({target}) => setMeshID(target.value)}
+            value={meshID}
+            disabled={!!editingMeshID}
+          />
+          <TextField
+            required
+            className={classes.input}
+            label="SSID"
+            margin="normal"
+            value={configs.ssid}
+            onChange={onConfigChangeHandler('ssid')}
+          />
+          <TextField
+            className={classes.input}
+            label="Password"
+            margin="normal"
+            value={configs.password}
+            onChange={onConfigChangeHandler('password')}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={configs.xwf_enabled}
+                onChange={({target}) =>
+                  setConfigs({...configs, xwf_enabled: target.checked})
+                }
+                color="primary"
+              />
+            }
+            label="Enable XWF"
+          />
+          <KeyValueFields
+            keyValuePairs={additionalProps || [['', '']]}
+            onChange={setAdditionalProps}
+          />
+        </FormGroup>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onCancel} skin="regular">
+          Cancel
+        </Button>
+        <Button onClick={onSave}>Save</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}

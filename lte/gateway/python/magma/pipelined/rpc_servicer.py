@@ -19,7 +19,9 @@ from lte.protos.pipelined_pb2 import (
     DeactivateFlowsResult,
     FlowResponse,
     RuleModResult,
-    SetupFlowsRequest,
+    SetupUEMacRequest,
+    SetupPolicyRequest,
+    SetupQuotaRequest,
     ActivateFlowsRequest,
     AllTableAssignments,
     TableAssignment)
@@ -29,7 +31,8 @@ from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
     RelayDisabledException
 from magma.pipelined.app.ue_mac import UEMacAddressController
-from magma.pipelined.app.meter_stats import MeterStatsController
+from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
@@ -41,14 +44,15 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     gRPC based server for Pipelined.
     """
 
-    def __init__(self, loop, metering_stats, enforcer_app, enforcement_stats,
-                 dpi_app, ue_mac_app, service_manager):
+    def __init__(self, loop, enforcer_app, enforcement_stats, dpi_app,
+                 ue_mac_app, check_quota_app, ipfix_app, service_manager):
         self._loop = loop
-        self._metering_stats = metering_stats
         self._enforcer_app = enforcer_app
         self._enforcement_stats = enforcement_stats
         self._dpi_app = dpi_app
         self._ue_mac_app = ue_mac_app
+        self._check_quota_app = check_quota_app
+        self._ipfix_app = ipfix_app
         self._service_manager = service_manager
 
     def add_to_server(self, server):
@@ -58,28 +62,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         pipelined_pb2_grpc.add_PipelinedServicer_to_server(self, server)
 
     # --------------------------
-    # Metering App
-    # --------------------------
-
-    def GetSubscriberMeteringFlows(self, request, context):
-        """
-        Returns all subscriber metering flows
-        """
-        if not self._service_manager.is_app_enabled(
-                MeterStatsController.APP_NAME):
-            context.set_code(grpc.StatusCode.UNAVAILABLE)
-            context.set_details('Service not enabled!')
-            return None
-        fut = Future()
-        self._loop.call_soon_threadsafe(
-            self._metering_stats.get_subscriber_metering_flows, fut)
-        return fut.result()
-
-    # --------------------------
     # Enforcement App
     # --------------------------
 
-    def SetupFlows(self, request, context):
+    def SetupPolicyFlows(self, request, context) -> SetupFlowsResult:
         """
         Setup flows for all subscribers, used on pipelined restarts
         """
@@ -89,17 +75,21 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
+        ret = self._enforcer_app.is_ready_for_restart_recovery(request.epoch)
+        if ret != SetupFlowsResult.SUCCESS:
+            return SetupFlowsResult(result=ret)
+
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_flows,
                                         request, fut)
         return fut.result()
 
-    def _setup_flows(self, request: SetupFlowsRequest,
+    def _setup_flows(self, request: SetupPolicyRequest,
                      fut: 'Future[List[SetupFlowsResult]]'
                      ) -> SetupFlowsResult:
-        enforcement_res = self._enforcer_app.setup_flows(request)
+        enforcement_res = self._enforcer_app.handle_restart(request.requests)
         # TODO check enf_stats result
-        self._enforcement_stats.setup_flows(request)
+        self._enforcement_stats.handle_restart(request.requests)
         fut.set_result(enforcement_res)
 
     def ActivateFlows(self, request, context):
@@ -239,9 +229,23 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
         resp = FlowResponse()
-        self._loop.call_soon_threadsafe(
-            self._dpi_app.classify_flow,
-            request.match, request.app_name)
+        self._loop.call_soon_threadsafe(self._dpi_app.add_classify_flow,
+                                        request.match, request.app_name,
+                                        request.service_type)
+        return resp
+
+    def RemoveFlow(self, request, context):
+        """
+        Add dpi flow
+        """
+        if not self._service_manager.is_app_enabled(
+                DPIController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+        resp = FlowResponse()
+        self._loop.call_soon_threadsafe(self._dpi_app.remove_classify_flow,
+                                        request.match)
         return resp
 
     def UpdateFlowStats(self, request, context):
@@ -260,6 +264,38 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # UE MAC App
     # --------------------------
 
+    def SetupUEMacFlows(self, request, context) -> SetupFlowsResult:
+        """
+        Activate a list of attached UEs
+        """
+        if not self._service_manager.is_app_enabled(
+                UEMacAddressController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
+        ret = self._ue_mac_app.is_ready_for_restart_recovery(request.epoch)
+        if ret != SetupFlowsResult.SUCCESS:
+            return SetupFlowsResult(result=ret)
+
+        fut = Future()
+        self._loop.call_soon_threadsafe(self._setup_ue_mac,
+                                        request, fut)
+        return fut.result()
+
+    def _setup_ue_mac(self, request: SetupUEMacRequest,
+                      fut: 'Future(SetupFlowsResult)'
+                      ) -> SetupFlowsResult:
+        res = self._ue_mac_app.handle_restart(request.requests)
+
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            for req in request.requests:
+                self._ipfix_app.add_ue_sample_flow(req.sid.id, req.msisdn,
+                                                   req.ap_mac_addr,
+                                                   req.ap_name)
+
+        fut.set_result(res)
+
     def AddUEMacFlow(self, request, context):
         """
         Associate UE MAC address to subscriber
@@ -276,10 +312,93 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Invalid UE MAC address provided')
             return None
 
-        resp = FlowResponse()
         self._loop.call_soon_threadsafe(
             self._ue_mac_app.add_ue_mac_flow,
             request.sid.id, request.mac_addr)
+
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            # Install trace flow
+            self._loop.call_soon_threadsafe(
+                self._ipfix_app.add_ue_sample_flow, request.sid.id,
+                request.msisdn, request.ap_mac_addr, request.ap_name)
+
+        resp = FlowResponse()
+        return resp
+
+    def DeleteUEMacFlow(self, request, context):
+        """
+        Delete UE MAC address to subscriber association
+        """
+        if not self._service_manager.is_app_enabled(
+                UEMacAddressController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
+        # 12 hex characters + 5 colons
+        if len(request.mac_addr) != 17:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details('Invalid UE MAC address provided')
+            return None
+
+        self._loop.call_soon_threadsafe(
+            self._ue_mac_app.delete_ue_mac_flow,
+            request.sid.id, request.mac_addr)
+
+        if self._service_manager.is_app_enabled(CheckQuotaController.APP_NAME):
+            self._loop.call_soon_threadsafe(
+                self._check_quota_app.remove_subscriber_flow, request.sid.id)
+
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            # Delete trace flow
+            self._loop.call_soon_threadsafe(
+                self._ipfix_app.delete_ue_sample_flow, request.sid.id)
+
+        resp = FlowResponse()
+        return resp
+
+    # --------------------------
+    # Check Quota App
+    # --------------------------
+
+    def SetupQuotaFlows(self, request, context) -> SetupFlowsResult:
+        """
+        Activate a list of quota rules
+        """
+        if not self._service_manager.is_app_enabled(
+                CheckQuotaController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
+        ret = self._check_quota_app.is_ready_for_restart_recovery(request.epoch)
+        if ret != SetupFlowsResult.SUCCESS:
+            return SetupFlowsResult(result=ret)
+
+        fut = Future()
+        self._loop.call_soon_threadsafe(self._setup_quota,
+                                        request, fut)
+        return fut.result()
+
+    def _setup_quota(self, request: SetupQuotaRequest,
+                     fut: 'Future(SetupFlowsResult)'
+                     ) -> SetupFlowsResult:
+        res = self._check_quota_app.handle_restart(request.requests)
+        fut.set_result(res)
+
+    def UpdateSubscriberQuotaState(self, request, context):
+        """
+        Updates the subcsciber quota state
+        """
+        if not self._service_manager.is_app_enabled(
+                CheckQuotaController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
+        resp = FlowResponse()
+        self._loop.call_soon_threadsafe(
+            self._check_quota_app.update_subscriber_quota_state, request.updates)
         return resp
 
     # --------------------------
@@ -296,7 +415,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             TableAssignment(app_name=app_name, main_table=tables.main_table,
                             scratch_tables=tables.scratch_tables) for
             app_name, tables in table_assignments.items()])
-
 
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult

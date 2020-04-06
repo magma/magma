@@ -86,7 +86,7 @@ development stack.
 To start Orchestrator (without metrics) is as simple as:
 
 ```bash
-HOST [magma/orc8r/cloud/docker]$ ./run.sh 
+HOST [magma/orc8r/cloud/docker]$ ./run.sh
 
 Creating orc8r_postgres_1 ... done
 Creating orc8r_test_1     ... done
@@ -181,11 +181,12 @@ the NMS to talk to your local Orchestrator:
 
 ```bash
 HOST [magma]$ cd symphony/app/fbcnms-projects/magmalte
+HOST [magma/symphony/app/fbcnms-projects/magmalte] $ docker-compose build magmalte
 HOST [magma/symphony/app/fbcnms-projects/magmalte] $ docker-compose up -d
 HOST [magma/symphony/app/fbcnms-projects/magmalte] $ ./scripts/dev_setup.sh
 ```
 
 After this, you will be able to access the UI by visiting
 [https://localhost](https://localhost), and using the email `admin@magma.test`
-and password `password1234`. If you see Gateway Error 502, don't worry, the
+and password `password1234`. We recommend Firefox or Chrome. If you see Gateway Error 502, don't worry, the
 NMS can take upto 60 seconds to finish starting up.

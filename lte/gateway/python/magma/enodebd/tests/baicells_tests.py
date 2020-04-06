@@ -10,12 +10,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 # pylint: disable=protected-access
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.tr069 import models
-from magma.enodebd.tests.test_utils.tr069_msg_builder import \
-    Tr069MessageBuilder
 from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
 from magma.enodebd.tests.test_utils.enodeb_handler import EnodebHandlerTestCase
+from magma.enodebd.tests.test_utils.tr069_msg_builder import \
+    Tr069MessageBuilder
+from magma.enodebd.tr069 import models
 
 
 class BaicellsHandlerTests(EnodebHandlerTestCase):
@@ -721,3 +721,36 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
         acs_state_machine.handle_tr069_message(req)
         self.assertTrue('Error' in acs_state_machine.get_state(),
                         'Should be in error state')
+
+    def test_autoremediation_from_fault(self):
+        """
+        Transition the state machine into the unexpected fault state, then
+        verify that it transitions itself back to WaitInform after an Inform
+        is received.
+        """
+        sm = EnodebAcsStateMachineBuilder.build_acs_state_machine(
+            EnodebDeviceName.BAICELLS,
+        )
+
+        # Send an initial inform
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '48BF74',
+            'BaiBS_RTS_3.1.6',
+            '120200002618AGP0003',
+            ['2 PERIODIC'],
+        )
+        resp = sm.handle_tr069_message(inform_msg)
+        self.assertTrue(isinstance(resp, models.InformResponse),
+                        'Should respond with an InformResponse')
+
+        # Now send a fault
+        req = models.Fault()
+        req.FaultCode = 12345
+        req.FaultString = 'Test FaultString'
+        sm.handle_tr069_message(req)
+        self.assertTrue('Error' in sm.get_state(), 'Should be in error state')
+
+        # Send the Inform again, verify SM transitions out of fault
+        resp = sm.handle_tr069_message(inform_msg)
+        self.assertTrue(isinstance(resp, models.DummyInput))
+        self.assertEqual('Waiting for an Inform', sm.get_state())

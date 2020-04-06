@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type ProjectType struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -29,30 +28,73 @@ type ProjectType struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description *string `json:"description,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProjectTypeQuery when eager-loading is set.
+	Edges ProjectTypeEdges `json:"edges"`
+}
+
+// ProjectTypeEdges holds the relations/edges for other nodes in the graph.
+type ProjectTypeEdges struct {
+	// Projects holds the value of the projects edge.
+	Projects []*Project
+	// Properties holds the value of the properties edge.
+	Properties []*PropertyType
+	// WorkOrders holds the value of the work_orders edge.
+	WorkOrders []*WorkOrderDefinition
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// ProjectsOrErr returns the Projects value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectTypeEdges) ProjectsOrErr() ([]*Project, error) {
+	if e.loadedTypes[0] {
+		return e.Projects, nil
+	}
+	return nil, &NotLoadedError{edge: "projects"}
+}
+
+// PropertiesOrErr returns the Properties value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectTypeEdges) PropertiesOrErr() ([]*PropertyType, error) {
+	if e.loadedTypes[1] {
+		return e.Properties, nil
+	}
+	return nil, &NotLoadedError{edge: "properties"}
+}
+
+// WorkOrdersOrErr returns the WorkOrders value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProjectTypeEdges) WorkOrdersOrErr() ([]*WorkOrderDefinition, error) {
+	if e.loadedTypes[2] {
+		return e.WorkOrders, nil
+	}
+	return nil, &NotLoadedError{edge: "work_orders"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ProjectType) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // description
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ProjectType fields.
 func (pt *ProjectType) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(projecttype.Columns); m != n {
+	if m, n := len(values), len(projecttype.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	pt.ID = strconv.FormatInt(value.Int64, 10)
+	pt.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -80,24 +122,24 @@ func (pt *ProjectType) assignValues(values ...interface{}) error {
 
 // QueryProjects queries the projects edge of the ProjectType.
 func (pt *ProjectType) QueryProjects() *ProjectQuery {
-	return (&ProjectTypeClient{pt.config}).QueryProjects(pt)
+	return (&ProjectTypeClient{config: pt.config}).QueryProjects(pt)
 }
 
 // QueryProperties queries the properties edge of the ProjectType.
 func (pt *ProjectType) QueryProperties() *PropertyTypeQuery {
-	return (&ProjectTypeClient{pt.config}).QueryProperties(pt)
+	return (&ProjectTypeClient{config: pt.config}).QueryProperties(pt)
 }
 
 // QueryWorkOrders queries the work_orders edge of the ProjectType.
 func (pt *ProjectType) QueryWorkOrders() *WorkOrderDefinitionQuery {
-	return (&ProjectTypeClient{pt.config}).QueryWorkOrders(pt)
+	return (&ProjectTypeClient{config: pt.config}).QueryWorkOrders(pt)
 }
 
 // Update returns a builder for updating this ProjectType.
 // Note that, you need to call ProjectType.Unwrap() before calling this method, if this ProjectType
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pt *ProjectType) Update() *ProjectTypeUpdateOne {
-	return (&ProjectTypeClient{pt.config}).UpdateOne(pt)
+	return (&ProjectTypeClient{config: pt.config}).UpdateOne(pt)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -128,12 +170,6 @@ func (pt *ProjectType) String() string {
 	}
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (pt *ProjectType) id() int {
-	id, _ := strconv.Atoi(pt.ID)
-	return id
 }
 
 // ProjectTypes is a parsable slice of ProjectType.

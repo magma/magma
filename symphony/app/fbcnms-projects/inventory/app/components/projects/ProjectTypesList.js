@@ -62,7 +62,7 @@ graphql`
 
 const projectTypesQuery = graphql`
   query ProjectTypesListQuery {
-    projectTypes(first: 50)
+    projectTypes(first: 500)
       @connection(key: "ProjectTypesListQuery_projectTypes") {
       edges {
         node {
@@ -82,6 +82,7 @@ class ProjectTypesList extends React.Component<Props, State> {
   };
 
   componentDidMount() {
+    // $FlowFixMe (T62907961) Relay flow types
     fetchQuery(RelayEnvironment, projectTypesQuery).then(response => {
       this.setState({
         projectTypes: response.projectTypes.edges.map(x => x.node),

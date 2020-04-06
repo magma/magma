@@ -1,0 +1,6 @@
+fragment EquipmentPositionDefinitionFragment on EquipmentPositionDefinition {
+  id
+  name
+  index
+  visibleLabel
+}

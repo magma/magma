@@ -7,33 +7,34 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from magma.enodebd.logger import EnodebdLogger as logger
-from typing import Optional, Any, Callable, Dict, List, Type
+from typing import Any, Callable, Dict, List, Optional, Type
+
 from magma.common.service import MagmaService
-from magma.enodebd.data_models.data_model import TrParam, DataModel
+from magma.enodebd.data_models import transform_for_enb, transform_for_magma
+from magma.enodebd.data_models.data_model import DataModel, TrParam
 from magma.enodebd.data_models.data_model_parameters import ParameterName, \
     TrParameterType
-from magma.enodebd.data_models import transform_for_magma, transform_for_enb
 from magma.enodebd.device_config.configuration_init import build_desired_config
 from magma.enodebd.device_config.enodeb_config_postprocessor import \
     EnodebConfigurationPostProcessor
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
+from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.acs_state_utils import \
-    parse_get_parameter_values_response, get_params_to_get, \
-    get_all_objects_to_delete, get_all_objects_to_add, \
-    get_all_param_values_to_set
+    get_all_objects_to_add, get_all_objects_to_delete, \
+    get_all_param_values_to_set, get_params_to_get, \
+    parse_get_parameter_values_response
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_impl import \
     BasicEnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_states import \
-    WaitInformState, SendGetTransientParametersState, \
-    GetParametersState, WaitGetParametersState, DeleteObjectsState, \
-    AddObjectsState, SetParameterValuesState, WaitSetParameterValuesState, \
-    WaitRebootResponseState, WaitInformMRebootState, EnodebAcsState, \
-    AcsMsgAndTransition, AcsReadMsgResult, WaitEmptyMessageState, ErrorState, \
-    EndSessionState, BaicellsSendRebootState, GetRPCMethodsState
+from magma.enodebd.state_machines.enb_acs_states import AcsMsgAndTransition, \
+    AcsReadMsgResult, AddObjectsState, BaicellsSendRebootState, \
+    DeleteObjectsState, EndSessionState, EnodebAcsState, ErrorState, \
+    GetParametersState, GetRPCMethodsState, SendGetTransientParametersState, \
+    SetParameterValuesState, WaitEmptyMessageState, WaitGetParametersState, \
+    WaitInformMRebootState, WaitInformState, WaitRebootResponseState, \
+    WaitSetParameterValuesState
 from magma.enodebd.tr069 import models
 
 
@@ -74,7 +75,7 @@ class BaicellsQAFBHandler(BasicEnodebAcsStateMachine):
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_empty', when_timeout='wait_inform'),
             # The states below are entered when an unexpected message type is
             # received
-            'unexpected_fault': ErrorState(self),
+            'unexpected_fault': ErrorState(self, inform_transition_target='wait_inform'),
         }
 
     @property
@@ -215,7 +216,7 @@ class BaicellsQafbGetObjectParametersState(EnodebAcsState):
         self.set_params_transition = when_set
         self.skip_transition = when_skip
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """ Respond with GetParameterValuesRequest """
         names = _get_object_params_to_get(self.acs.device_cfg,
                                           self.acs.data_model)

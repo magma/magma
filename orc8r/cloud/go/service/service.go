@@ -18,16 +18,16 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/cloud/go/util"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/encoding"
-	grpc_proto "google.golang.org/grpc/encoding/proto"
+	grpcProto "google.golang.org/grpc/encoding/proto"
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -84,17 +84,19 @@ type Service struct {
 // interceptor to perform identity check. If your service does not or can not
 // perform identity checks, (e.g. federation), use NewServiceWithOptions.
 func NewOrchestratorService(moduleName string, serviceName string) (*Service, error) {
+	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
-	return NewServiceWithOptions(moduleName, serviceName, grpc.UnaryInterceptor(unary.MiddlewareHandler))
+	return newServiceWithOptionsImpl(moduleName, serviceName, grpc.UnaryInterceptor(unary.MiddlewareHandler))
 }
 
 // NewOrchestratorServiceWithOptions returns a new GRPC orchestrator service
 // implementing service303 with the specified grpc server options. This service
 // will implement a middleware interceptor to perform identity check.
 func NewOrchestratorServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
+	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 	serverOptions = append(serverOptions, grpc.UnaryInterceptor(unary.MiddlewareHandler))
-	return NewServiceWithOptions(moduleName, serviceName, serverOptions...)
+	return newServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
 }
 
 // NewServiceWithOptions returns a new GRPC orchestrator service implementing
@@ -106,9 +108,11 @@ func NewOrchestratorServiceWithOptions(moduleName string, serviceName string, se
 // fatal. It also will load the config specified by [service name].yml. Since
 // not all services have configs, it will only log in case it does not exist
 func NewServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
-	// Parse the command line flags
 	flag.Parse()
+	return newServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
+}
 
+func newServiceWithOptionsImpl(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
 	// Load config, in case it does not exist, log
 	configMap, err := config.GetServiceConfig(moduleName, serviceName)
 	if err != nil {
@@ -118,7 +122,7 @@ func NewServiceWithOptions(moduleName string, serviceName string, serverOptions 
 
 	// Check if service was started with print-grpc-payload flag or MAGMA_PRINT_GRPC_PAYLOAD env is set
 	if printGrpcPayload || util.IsTruthyEnv(PrintGrpcPayloadEnv) {
-		ls := logCodec{encoding.GetCodec(grpc_proto.Name)}
+		ls := logCodec{encoding.GetCodec(grpcProto.Name)}
 		if ls.protoCodec != nil {
 			glog.Errorf("Adding Debug Codec for service %s", serviceName)
 			encoding.RegisterCodec(ls)
@@ -153,13 +157,13 @@ func NewServiceWithOptions(moduleName string, serviceName string, serverOptions 
 func (service *Service) Run() error {
 	port, err := registry.GetServicePort(service.Type)
 	if err != nil {
-		return fmt.Errorf("Failed to get service port: %s", err)
+		return fmt.Errorf("failed to get service port: %s", err)
 	}
 
 	// Create the server socket for gRPC
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		return fmt.Errorf("Failed to listen on port %d: %s", port, err)
+		return fmt.Errorf("failed to listen on port %d: %s", port, err)
 	}
 	service.State = protos.ServiceInfo_ALIVE
 	service.Health = protos.ServiceInfo_APP_HEALTHY
@@ -168,10 +172,13 @@ func (service *Service) Run() error {
 
 // Run the test service on a given Listener. This function blocks
 // by a signal or until the gRPC server is stopped.
-func (service *Service) RunTest(lis net.Listener) error {
+func (service *Service) RunTest(lis net.Listener) {
 	service.State = protos.ServiceInfo_ALIVE
 	service.Health = protos.ServiceInfo_APP_HEALTHY
-	return service.GrpcServer.Serve(lis)
+	err := service.GrpcServer.Serve(lis)
+	if err != nil {
+		glog.Fatal("Failed to run test service")
+	}
 }
 
 // GetDefaultKeepaliveParameters returns the default keepalive server parameters.

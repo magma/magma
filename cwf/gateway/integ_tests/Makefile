@@ -5,8 +5,8 @@ MAGMA_ROOT = /home/$USER/magma
 endif
 export MAGMA_ROOT
 
-# Integration tests to run
-MANDATORY_TESTS=TestAuthenticate
+# Integration tests to run (Tests with a prefix name Test)
+MANDATORY_TESTS=Test
 
 define execute_test
  	echo "Running test: $(1)"

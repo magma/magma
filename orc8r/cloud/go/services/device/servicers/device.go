@@ -13,8 +13,8 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/blobstore"
-	commonProtos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/device/protos"
+	commonProtos "magma/orc8r/lib/go/protos"
 
 	"github.com/thoas/go-funk"
 )

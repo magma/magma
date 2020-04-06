@@ -31,7 +31,6 @@
 #include <stdbool.h>
 
 #include "log.h"
-#include "assertions.h"
 #include "intertask_interface.h"
 #include "gcc_diag.h"
 #include "mme_config.h"
@@ -66,7 +65,15 @@ void mme_app_send_delete_session_request(
   MessageDef* message_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_DELETE_SESSION_REQUEST);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate new ITTI message for S11 Delete Session Request "
+      "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT " and LBI: %u\n",
+      ue_context_p->mme_ue_s1ap_id,
+      ebi);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   S11_DELETE_SESSION_REQUEST(message_p).local_teid = ue_context_p->mme_teid_s11;
   S11_DELETE_SESSION_REQUEST(message_p).teid =
     ue_context_p->pdn_contexts[cid]->s_gw_teid_s11_s4;
@@ -96,6 +103,8 @@ void mme_app_send_delete_session_request(
     ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   mme_config_unlock(&mme_config);
 
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   increment_counter("mme_spgw_delete_session_req", 1, NO_LABELS);
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -105,19 +114,13 @@ void mme_app_send_delete_session_request(
 void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id)
 {
   struct ue_mm_context_s* ue_context_p = NULL;
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  if (!mme_app_desc_p) {
-    OAILOG_ERROR(LOG_MME_APP, "Failed to fetch mme_app_desc_p \n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   OAILOG_INFO(
     LOG_MME_APP,
     "Handle Detach Req at MME app for ue-id: " MME_UE_S1AP_ID_FMT "\n",
     ue_id);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP, "UE context doesn't exist -> Nothing to do :-) \n");
@@ -129,6 +132,11 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id)
      * If UE is already in idle state, skip asking eNB to release UE context and
      * just clean up locally.
      */
+    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+    if (!mme_app_desc_p) {
+      OAILOG_ERROR(LOG_MME_APP, "Failed to fetch mme_app_desc_p \n");
+      OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
     if (ECM_IDLE == ue_context_p->ecm_state) {
       ue_context_p->ue_context_rel_cause = S1AP_IMPLICIT_CONTEXT_RELEASE;
       // Notify S1AP to release S1AP UE context locally.

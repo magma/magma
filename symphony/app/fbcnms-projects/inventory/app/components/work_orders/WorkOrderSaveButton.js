@@ -4,40 +4,44 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-import Button from '@fbcnms/ui/components/design-system/Button';
-import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
-import React, {useCallback, useContext} from 'react';
-import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import useRouter from '@fbcnms/ui/hooks/useRouter';
-import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {removeTempIDs} from '../../common/EntUtils';
-import {toPropertyInput} from '../../common/Property';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import type {
-  ChecklistViewer_checkListItems,
-  WorkOrderDetails_workOrder,
-} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
+  CheckListCategoryInput,
+  CheckListItemInput,
+} from '../../mutations/__generated__/EditWorkOrderMutation.graphql';
+import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
 import type {
   EditWorkOrderMutationResponse,
   EditWorkOrderMutationVariables,
 } from '../../mutations/__generated__/EditWorkOrderMutation.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {Property} from '../../common/Property';
+import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
+
+import Button from '@fbcnms/ui/components/design-system/Button';
+import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
+import FormAction from '../../../../../fbcnms-packages/fbcnms-ui/components/design-system/Form/FormAction';
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import React, {useCallback, useContext} from 'react';
+import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import useRouter from '@fbcnms/ui/hooks/useRouter';
+import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {isTempId} from '../../common/EntUtils';
+import {toPropertyInput} from '../../common/Property';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {
   workOrder: WorkOrderDetails_workOrder,
   properties: Array<Property>,
-  checklist: ChecklistViewer_checkListItems,
+  checkListCategories: ChecklistCategoriesStateType,
   locationId: ?string,
 };
 
 const WorkOrderSaveButton = (props: Props) => {
-  const {workOrder, properties, checklist, locationId} = props;
+  const {workOrder, properties, checkListCategories, locationId} = props;
   const enqueueSnackbar = useEnqueueSnackbar();
   const {history, match} = useRouter();
 
@@ -64,6 +68,32 @@ const WorkOrderSaveButton = (props: Props) => {
       assignee,
       project,
     } = workOrder;
+    const checkListCategoriesInput: Array<CheckListCategoryInput> = checkListCategories.map(
+      category => {
+        const checkList: Array<CheckListItemInput> = category.checkList.map(
+          item => {
+            return {
+              id: isTempId(item.id) ? undefined : item.id,
+              title: item.title,
+              type: item.type,
+              index: item.index,
+              helpText: item.helpText,
+              enumValues: item.enumValues,
+              selectedEnumValues: item.selectedEnumValues,
+              enumSelectionMode: item.enumSelectionMode,
+              stringValue: item.stringValue,
+              checked: item.checked,
+            };
+          },
+        );
+        return {
+          id: isTempId(category.id) ? undefined : category.id,
+          title: category.title,
+          description: category.description,
+          checkList,
+        };
+      },
+    );
     const variables: EditWorkOrderMutationVariables = {
       input: {
         id,
@@ -77,18 +107,7 @@ const WorkOrderSaveButton = (props: Props) => {
         projectId: project?.id,
         properties: toPropertyInput(properties),
         locationId,
-        checkList: removeTempIDs(checklist).map(item => {
-          return {
-            id: item.id,
-            title: item.title,
-            type: item.type,
-            index: item.index,
-            helpText: item.helpText,
-            enumValues: item.enumValues,
-            stringValue: item.stringValue,
-            checked: item.checked,
-          };
-        }),
+        checkListCategories: checkListCategoriesInput,
       },
     };
     const callbacks: MutationCallbacks<EditWorkOrderMutationResponse> = {
@@ -110,9 +129,9 @@ const WorkOrderSaveButton = (props: Props) => {
     EditWorkOrderMutation(variables, callbacks);
   }, [
     workOrder,
+    checkListCategories,
     properties,
     locationId,
-    checklist,
     enqueueError,
     history,
     match.url,
@@ -121,12 +140,11 @@ const WorkOrderSaveButton = (props: Props) => {
   const validationContext = useContext(FormValidationContext);
 
   return (
-    <Button
-      disabled={validationContext.error.detected}
-      tooltip={validationContext.error.message}
-      onClick={saveWorkOrder}>
-      Save
-    </Button>
+    <FormAction disabled={validationContext.error.detected}>
+      <Button tooltip={validationContext.error.message} onClick={saveWorkOrder}>
+        Save
+      </Button>
+    </FormAction>
   );
 };
 

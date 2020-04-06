@@ -31,6 +31,7 @@ export type ServiceTypeItem_serviceType$data = ServiceTypeItem_serviceType;
 export type ServiceTypeItem_serviceType$key = {
   +$data?: ServiceTypeItem_serviceType$data,
   +$fragmentRefs: ServiceTypeItem_serviceType$ref,
+  ...
 };
 */
 

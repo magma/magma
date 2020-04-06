@@ -29,6 +29,7 @@ const locationTypesQuery = graphql`
 
 const useLocationTypes = () => {
   const locationTypesResponse = useGraphQL(
+    // $FlowFixMe (T62907961) Relay flow types
     RelayEnvironment,
     locationTypesQuery,
     {},

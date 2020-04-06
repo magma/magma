@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 503cc32f0834f25af8d8ffb210bbc93b
+ * @relayHash 8743d5287c29658649e17871fd92cbe4
  */
 
 /* eslint-disable */
@@ -20,7 +20,7 @@ export type RemoveServiceEndpointMutationVariables = {|
   serviceEndpointId: string
 |};
 export type RemoveServiceEndpointMutationResponse = {|
-  +removeServiceEndpoint: ?{|
+  +removeServiceEndpoint: {|
     +$fragmentRefs: ServiceCard_service$ref
   |}
 |};

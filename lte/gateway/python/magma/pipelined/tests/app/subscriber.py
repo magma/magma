@@ -31,7 +31,7 @@ def try_grpc_call_with_retries(grpc_call, retry_count=5, retry_interval=1):
         except grpc.RpcError as error:
             err_code = error.exception().code()
             # Retry if unavailable
-            if (err_code == grpc.StatusCode.UNAVAILABLE):
+            if err_code == grpc.StatusCode.UNAVAILABLE:
                 logging.warning("Pipelined unavailable, retrying...")
                 time.sleep(retry_interval * (2 ** i))
                 continue

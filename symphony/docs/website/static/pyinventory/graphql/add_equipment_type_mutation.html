@@ -1,3 +1,6 @@
+<!--
+@generated
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -26,208 +29,68 @@
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.enum_field"><code class="name flex">
-<span>def <span class="ident">enum_field</span></span>(<span>enum_type)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput"><code class="flex name class">
-<span>class <span class="ident">AddEquipmentTypeInput</span></span>
-<span>(</span><span>name, positions, ports, properties, category=None)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>AddEquipmentTypeInput(name: str, positions: List[pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.EquipmentPositionInput], ports: List[pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.EquipmentPortInput], properties: List[pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.PropertyTypeInput], category: Union[str, NoneType] = None)</p></section>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.EquipmentPortInput"><code class="name">var <span class="ident">EquipmentPortInput</span></code></dt>
-<dd>
-<section class="desc"><p>EquipmentPortInput(name: str, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, visibleLabel: Union[str, NoneType] = None, portTypeID: Union[str, NoneType] = None, bandwidth: Union[str, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.EquipmentPositionInput"><code class="name">var <span class="ident">EquipmentPositionInput</span></code></dt>
-<dd>
-<section class="desc"><p>EquipmentPositionInput(name: str, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, visibleLabel: Union[str, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.PropertyTypeInput"><code class="name">var <span class="ident">PropertyTypeInput</span></code></dt>
-<dd>
-<section class="desc"><p>PropertyTypeInput(name: str, type: pyinventory.graphql.add_equipment_type_mutation.PropertyKind, id: Union[str, NoneType] = None, index: Union[int, NoneType] = None, category: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[float, NoneType] = None, latitudeValue: Union[float, NoneType] = None, longitudeValue: Union[float, NoneType] = None, rangeFromValue: Union[float, NoneType] = None, rangeToValue: Union[float, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None, isMandatory: Union[bool, NoneType] = None, isDeleted: Union[bool, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.category"><code class="name">var <span class="ident">category</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-</dd>
 <dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation"><code class="flex name class">
 <span>class <span class="ident">AddEquipmentTypeMutation</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData">AddEquipmentTypeMutation.AddEquipmentTypeMutationData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>AddEquipmentTypeMutation(data: Union[pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData, NoneType] = None, errors: Any = None)</p></section>
+<section class="desc"><p>AddEquipmentTypeMutation(data: pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData, <strong>QUERY</strong>: str = '\n
+mutation AddEquipmentTypeMutation($input: AddEquipmentTypeInput!) {\n
+addEquipmentType(input: $input) {\n
+id\n
+name\n
+category\n
+propertyTypes {\n
+id\n
+name\n
+type\n
+index\n
+stringValue\n
+intValue\n
+booleanValue\n
+floatValue\n
+latitudeValue\n
+longitudeValue\n
+isEditable\n
+isInstanceProperty\n
+}\n
+positionDefinitions {\n
+id\n
+name\n
+index\n
+visibleLabel\n
+}\n
+portDefinitions {\n
+id\n
+name\n
+index\n
+visibleLabel\n
+}\n
+}\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData"><code class="name">var <span class="ident">AddEquipmentTypeMutationData</span></code></dt>
 <dd>
-<section class="desc"><p>AddEquipmentTypeMutationData(addEquipmentType: Union[pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData.EquipmentType, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
+<section class="desc"><p>AddEquipmentTypeMutationData(addEquipmentType: pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData.EquipmentType)</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, input)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, input: <a title="pyinventory.graphql.add_equipment_type_input.AddEquipmentTypeInput" href="add_equipment_type_input.html#pyinventory.graphql.add_equipment_type_input.AddEquipmentTypeInput">AddEquipmentTypeInput</a>) -> <a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData">AddEquipmentTypeMutation.AddEquipmentTypeMutationData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind"><code class="flex name class">
-<span>class <span class="ident">PropertyKind</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.bool"><code class="name">var <span class="ident">bool</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.date"><code class="name">var <span class="ident">date</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.datetime_local"><code class="name">var <span class="ident">datetime_local</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.email"><code class="name">var <span class="ident">email</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.enum"><code class="name">var <span class="ident">enum</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.equipment"><code class="name">var <span class="ident">equipment</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.float"><code class="name">var <span class="ident">float</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.gps_location"><code class="name">var <span class="ident">gps_location</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.int"><code class="name">var <span class="ident">int</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.location"><code class="name">var <span class="ident">location</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.range"><code class="name">var <span class="ident">range</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.service"><code class="name">var <span class="ident">service</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.string"><code class="name">var <span class="ident">string</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
 </dd>
 </dl>
 </dd>
@@ -245,57 +108,13 @@
 <li><code><a title="pyinventory.graphql" href="index.html">pyinventory.graphql</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.enum_field" href="#pyinventory.graphql.add_equipment_type_mutation.enum_field">enum_field</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
-<li>
-<h4><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput">AddEquipmentTypeInput</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.EquipmentPortInput" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.EquipmentPortInput">EquipmentPortInput</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.EquipmentPositionInput" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.EquipmentPositionInput">EquipmentPositionInput</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.PropertyTypeInput" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.PropertyTypeInput">PropertyTypeInput</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.category" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.category">category</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.from_dict" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.from_json" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.schema" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.to_dict" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.to_json" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeInput.to_json">to_json</a></code></li>
-</ul>
-</li>
 <li>
 <h4><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation">AddEquipmentTypeMutation</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData">AddEquipmentTypeMutationData</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.data" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.errors" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.execute" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.from_dict" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.from_json" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.schema" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.to_dict" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.to_json" href="#pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.to_json">to_json</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind">PropertyKind</a></code></h4>
-<ul class="two-column">
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.bool" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.bool">bool</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.date" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.date">date</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.datetime_local" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.datetime_local">datetime_local</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.email" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.email">email</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.enum" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.enum">enum</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.equipment" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.equipment">equipment</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.float" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.float">float</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.gps_location" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.gps_location">gps_location</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.int" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.int">int</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.location" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.location">location</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.range" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.range">range</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.service" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.service">service</a></code></li>
-<li><code><a title="pyinventory.graphql.add_equipment_type_mutation.PropertyKind.string" href="#pyinventory.graphql.add_equipment_type_mutation.PropertyKind.string">string</a></code></li>
 </ul>
 </li>
 </ul>

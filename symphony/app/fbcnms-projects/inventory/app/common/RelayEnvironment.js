@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {StoreUpdater as RelayStoreUpdater} from 'relay-runtime';
+
 import axios from 'axios';
 import {Environment, Network, RecordSource, Store} from 'relay-runtime';
 
@@ -29,5 +31,4 @@ const RelayEnvironment = new Environment({
 
 export default RelayEnvironment;
 
-// TODO: This is type any - but until relay releases flow types, we can't use it
-export type StoreUpdater = (store: typeof Store) => void;
+export type StoreUpdater = RelayStoreUpdater;

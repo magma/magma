@@ -37,6 +37,8 @@ class DevConf : public cartography::Method {
  public:
   void enable() override;
 
+  folly::dynamic getPluginConfig();
+
  private:
   void handleFileWatchEvent(FileWatchEvent event);
   void handleDeviceDiff(
@@ -60,6 +62,7 @@ class DevConf : public cartography::Method {
   ConfigFileMode mode;
 
   cartography::DeviceConfigs oldDeviceConfigs;
+  folly::dynamic pluginConfig;
 };
 
 } // namespace magma

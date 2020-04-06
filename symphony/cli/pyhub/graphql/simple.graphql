@@ -1,0 +1,8 @@
+query VersionQuery {
+  version {
+    major
+    minor
+    patch
+    string
+  }
+}

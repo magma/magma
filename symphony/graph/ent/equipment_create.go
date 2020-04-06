@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -29,26 +28,13 @@ import (
 // EquipmentCreate is the builder for creating a Equipment entity.
 type EquipmentCreate struct {
 	config
-	create_time     *time.Time
-	update_time     *time.Time
-	name            *string
-	future_state    *string
-	device_id       *string
-	external_id     *string
-	_type           map[string]struct{}
-	location        map[string]struct{}
-	parent_position map[string]struct{}
-	positions       map[string]struct{}
-	ports           map[string]struct{}
-	work_order      map[string]struct{}
-	properties      map[string]struct{}
-	files           map[string]struct{}
-	hyperlinks      map[string]struct{}
+	mutation *EquipmentMutation
+	hooks    []Hook
 }
 
 // SetCreateTime sets the create_time field.
 func (ec *EquipmentCreate) SetCreateTime(t time.Time) *EquipmentCreate {
-	ec.create_time = &t
+	ec.mutation.SetCreateTime(t)
 	return ec
 }
 
@@ -62,7 +48,7 @@ func (ec *EquipmentCreate) SetNillableCreateTime(t *time.Time) *EquipmentCreate 
 
 // SetUpdateTime sets the update_time field.
 func (ec *EquipmentCreate) SetUpdateTime(t time.Time) *EquipmentCreate {
-	ec.update_time = &t
+	ec.mutation.SetUpdateTime(t)
 	return ec
 }
 
@@ -76,13 +62,13 @@ func (ec *EquipmentCreate) SetNillableUpdateTime(t *time.Time) *EquipmentCreate 
 
 // SetName sets the name field.
 func (ec *EquipmentCreate) SetName(s string) *EquipmentCreate {
-	ec.name = &s
+	ec.mutation.SetName(s)
 	return ec
 }
 
 // SetFutureState sets the future_state field.
 func (ec *EquipmentCreate) SetFutureState(s string) *EquipmentCreate {
-	ec.future_state = &s
+	ec.mutation.SetFutureState(s)
 	return ec
 }
 
@@ -96,7 +82,7 @@ func (ec *EquipmentCreate) SetNillableFutureState(s *string) *EquipmentCreate {
 
 // SetDeviceID sets the device_id field.
 func (ec *EquipmentCreate) SetDeviceID(s string) *EquipmentCreate {
-	ec.device_id = &s
+	ec.mutation.SetDeviceID(s)
 	return ec
 }
 
@@ -110,7 +96,7 @@ func (ec *EquipmentCreate) SetNillableDeviceID(s *string) *EquipmentCreate {
 
 // SetExternalID sets the external_id field.
 func (ec *EquipmentCreate) SetExternalID(s string) *EquipmentCreate {
-	ec.external_id = &s
+	ec.mutation.SetExternalID(s)
 	return ec
 }
 
@@ -123,11 +109,8 @@ func (ec *EquipmentCreate) SetNillableExternalID(s *string) *EquipmentCreate {
 }
 
 // SetTypeID sets the type edge to EquipmentType by id.
-func (ec *EquipmentCreate) SetTypeID(id string) *EquipmentCreate {
-	if ec._type == nil {
-		ec._type = make(map[string]struct{})
-	}
-	ec._type[id] = struct{}{}
+func (ec *EquipmentCreate) SetTypeID(id int) *EquipmentCreate {
+	ec.mutation.SetTypeID(id)
 	return ec
 }
 
@@ -137,16 +120,13 @@ func (ec *EquipmentCreate) SetType(e *EquipmentType) *EquipmentCreate {
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (ec *EquipmentCreate) SetLocationID(id string) *EquipmentCreate {
-	if ec.location == nil {
-		ec.location = make(map[string]struct{})
-	}
-	ec.location[id] = struct{}{}
+func (ec *EquipmentCreate) SetLocationID(id int) *EquipmentCreate {
+	ec.mutation.SetLocationID(id)
 	return ec
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (ec *EquipmentCreate) SetNillableLocationID(id *string) *EquipmentCreate {
+func (ec *EquipmentCreate) SetNillableLocationID(id *int) *EquipmentCreate {
 	if id != nil {
 		ec = ec.SetLocationID(*id)
 	}
@@ -159,16 +139,13 @@ func (ec *EquipmentCreate) SetLocation(l *Location) *EquipmentCreate {
 }
 
 // SetParentPositionID sets the parent_position edge to EquipmentPosition by id.
-func (ec *EquipmentCreate) SetParentPositionID(id string) *EquipmentCreate {
-	if ec.parent_position == nil {
-		ec.parent_position = make(map[string]struct{})
-	}
-	ec.parent_position[id] = struct{}{}
+func (ec *EquipmentCreate) SetParentPositionID(id int) *EquipmentCreate {
+	ec.mutation.SetParentPositionID(id)
 	return ec
 }
 
 // SetNillableParentPositionID sets the parent_position edge to EquipmentPosition by id if the given value is not nil.
-func (ec *EquipmentCreate) SetNillableParentPositionID(id *string) *EquipmentCreate {
+func (ec *EquipmentCreate) SetNillableParentPositionID(id *int) *EquipmentCreate {
 	if id != nil {
 		ec = ec.SetParentPositionID(*id)
 	}
@@ -181,19 +158,14 @@ func (ec *EquipmentCreate) SetParentPosition(e *EquipmentPosition) *EquipmentCre
 }
 
 // AddPositionIDs adds the positions edge to EquipmentPosition by ids.
-func (ec *EquipmentCreate) AddPositionIDs(ids ...string) *EquipmentCreate {
-	if ec.positions == nil {
-		ec.positions = make(map[string]struct{})
-	}
-	for i := range ids {
-		ec.positions[ids[i]] = struct{}{}
-	}
+func (ec *EquipmentCreate) AddPositionIDs(ids ...int) *EquipmentCreate {
+	ec.mutation.AddPositionIDs(ids...)
 	return ec
 }
 
 // AddPositions adds the positions edges to EquipmentPosition.
 func (ec *EquipmentCreate) AddPositions(e ...*EquipmentPosition) *EquipmentCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -201,19 +173,14 @@ func (ec *EquipmentCreate) AddPositions(e ...*EquipmentPosition) *EquipmentCreat
 }
 
 // AddPortIDs adds the ports edge to EquipmentPort by ids.
-func (ec *EquipmentCreate) AddPortIDs(ids ...string) *EquipmentCreate {
-	if ec.ports == nil {
-		ec.ports = make(map[string]struct{})
-	}
-	for i := range ids {
-		ec.ports[ids[i]] = struct{}{}
-	}
+func (ec *EquipmentCreate) AddPortIDs(ids ...int) *EquipmentCreate {
+	ec.mutation.AddPortIDs(ids...)
 	return ec
 }
 
 // AddPorts adds the ports edges to EquipmentPort.
 func (ec *EquipmentCreate) AddPorts(e ...*EquipmentPort) *EquipmentCreate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -221,16 +188,13 @@ func (ec *EquipmentCreate) AddPorts(e ...*EquipmentPort) *EquipmentCreate {
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
-func (ec *EquipmentCreate) SetWorkOrderID(id string) *EquipmentCreate {
-	if ec.work_order == nil {
-		ec.work_order = make(map[string]struct{})
-	}
-	ec.work_order[id] = struct{}{}
+func (ec *EquipmentCreate) SetWorkOrderID(id int) *EquipmentCreate {
+	ec.mutation.SetWorkOrderID(id)
 	return ec
 }
 
 // SetNillableWorkOrderID sets the work_order edge to WorkOrder by id if the given value is not nil.
-func (ec *EquipmentCreate) SetNillableWorkOrderID(id *string) *EquipmentCreate {
+func (ec *EquipmentCreate) SetNillableWorkOrderID(id *int) *EquipmentCreate {
 	if id != nil {
 		ec = ec.SetWorkOrderID(*id)
 	}
@@ -243,19 +207,14 @@ func (ec *EquipmentCreate) SetWorkOrder(w *WorkOrder) *EquipmentCreate {
 }
 
 // AddPropertyIDs adds the properties edge to Property by ids.
-func (ec *EquipmentCreate) AddPropertyIDs(ids ...string) *EquipmentCreate {
-	if ec.properties == nil {
-		ec.properties = make(map[string]struct{})
-	}
-	for i := range ids {
-		ec.properties[ids[i]] = struct{}{}
-	}
+func (ec *EquipmentCreate) AddPropertyIDs(ids ...int) *EquipmentCreate {
+	ec.mutation.AddPropertyIDs(ids...)
 	return ec
 }
 
 // AddProperties adds the properties edges to Property.
 func (ec *EquipmentCreate) AddProperties(p ...*Property) *EquipmentCreate {
-	ids := make([]string, len(p))
+	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
@@ -263,19 +222,14 @@ func (ec *EquipmentCreate) AddProperties(p ...*Property) *EquipmentCreate {
 }
 
 // AddFileIDs adds the files edge to File by ids.
-func (ec *EquipmentCreate) AddFileIDs(ids ...string) *EquipmentCreate {
-	if ec.files == nil {
-		ec.files = make(map[string]struct{})
-	}
-	for i := range ids {
-		ec.files[ids[i]] = struct{}{}
-	}
+func (ec *EquipmentCreate) AddFileIDs(ids ...int) *EquipmentCreate {
+	ec.mutation.AddFileIDs(ids...)
 	return ec
 }
 
 // AddFiles adds the files edges to File.
 func (ec *EquipmentCreate) AddFiles(f ...*File) *EquipmentCreate {
-	ids := make([]string, len(f))
+	ids := make([]int, len(f))
 	for i := range f {
 		ids[i] = f[i].ID
 	}
@@ -283,19 +237,14 @@ func (ec *EquipmentCreate) AddFiles(f ...*File) *EquipmentCreate {
 }
 
 // AddHyperlinkIDs adds the hyperlinks edge to Hyperlink by ids.
-func (ec *EquipmentCreate) AddHyperlinkIDs(ids ...string) *EquipmentCreate {
-	if ec.hyperlinks == nil {
-		ec.hyperlinks = make(map[string]struct{})
-	}
-	for i := range ids {
-		ec.hyperlinks[ids[i]] = struct{}{}
-	}
+func (ec *EquipmentCreate) AddHyperlinkIDs(ids ...int) *EquipmentCreate {
+	ec.mutation.AddHyperlinkIDs(ids...)
 	return ec
 }
 
 // AddHyperlinks adds the hyperlinks edges to Hyperlink.
 func (ec *EquipmentCreate) AddHyperlinks(h ...*Hyperlink) *EquipmentCreate {
-	ids := make([]string, len(h))
+	ids := make([]int, len(h))
 	for i := range h {
 		ids[i] = h[i].ID
 	}
@@ -304,36 +253,54 @@ func (ec *EquipmentCreate) AddHyperlinks(h ...*Hyperlink) *EquipmentCreate {
 
 // Save creates the Equipment in the database.
 func (ec *EquipmentCreate) Save(ctx context.Context) (*Equipment, error) {
-	if ec.create_time == nil {
+	if _, ok := ec.mutation.CreateTime(); !ok {
 		v := equipment.DefaultCreateTime()
-		ec.create_time = &v
+		ec.mutation.SetCreateTime(v)
 	}
-	if ec.update_time == nil {
+	if _, ok := ec.mutation.UpdateTime(); !ok {
 		v := equipment.DefaultUpdateTime()
-		ec.update_time = &v
+		ec.mutation.SetUpdateTime(v)
 	}
-	if ec.name == nil {
+	if _, ok := ec.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if err := equipment.NameValidator(*ec.name); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+	if v, ok := ec.mutation.Name(); ok {
+		if err := equipment.NameValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
 	}
-	if len(ec._type) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
+	if v, ok := ec.mutation.DeviceID(); ok {
+		if err := equipment.DeviceIDValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"device_id\": %v", err)
+		}
 	}
-	if ec._type == nil {
+	if _, ok := ec.mutation.TypeID(); !ok {
 		return nil, errors.New("ent: missing required edge \"type\"")
 	}
-	if len(ec.location) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
+	var (
+		err  error
+		node *Equipment
+	)
+	if len(ec.hooks) == 0 {
+		node, err = ec.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ec.mutation = mutation
+			node, err = ec.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(ec.hooks); i > 0; i-- {
+			mut = ec.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ec.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(ec.parent_position) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"parent_position\"")
-	}
-	if len(ec.work_order) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"work_order\"")
-	}
-	return ec.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -347,64 +314,64 @@ func (ec *EquipmentCreate) SaveX(ctx context.Context) *Equipment {
 
 func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 	var (
-		e    = &Equipment{config: ec.config}
-		spec = &sqlgraph.CreateSpec{
+		e     = &Equipment{config: ec.config}
+		_spec = &sqlgraph.CreateSpec{
 			Table: equipment.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipment.FieldID,
 			},
 		}
 	)
-	if value := ec.create_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+	if value, ok := ec.mutation.CreateTime(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldCreateTime,
 		})
-		e.CreateTime = *value
+		e.CreateTime = value
 	}
-	if value := ec.update_time; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+	if value, ok := ec.mutation.UpdateTime(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldUpdateTime,
 		})
-		e.UpdateTime = *value
+		e.UpdateTime = value
 	}
-	if value := ec.name; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+	if value, ok := ec.mutation.Name(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldName,
 		})
-		e.Name = *value
+		e.Name = value
 	}
-	if value := ec.future_state; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+	if value, ok := ec.mutation.FutureState(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldFutureState,
 		})
-		e.FutureState = *value
+		e.FutureState = value
 	}
-	if value := ec.device_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+	if value, ok := ec.mutation.DeviceID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldDeviceID,
 		})
-		e.DeviceID = *value
+		e.DeviceID = value
 	}
-	if value := ec.external_id; value != nil {
-		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+	if value, ok := ec.mutation.ExternalID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipment.FieldExternalID,
 		})
-		e.ExternalID = *value
+		e.ExternalID = value
 	}
-	if nodes := ec._type; len(nodes) > 0 {
+	if nodes := ec.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -413,21 +380,17 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ec.location; len(nodes) > 0 {
+	if nodes := ec.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -436,21 +399,17 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ec.parent_position; len(nodes) > 0 {
+	if nodes := ec.mutation.ParentPositionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -459,21 +418,17 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentposition.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ec.positions; len(nodes) > 0 {
+	if nodes := ec.mutation.PositionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -482,21 +437,17 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentposition.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ec.ports; len(nodes) > 0 {
+	if nodes := ec.mutation.PortsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -505,21 +456,17 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ec.work_order; len(nodes) > 0 {
+	if nodes := ec.mutation.WorkOrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -528,21 +475,17 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: workorder.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ec.properties; len(nodes) > 0 {
+	if nodes := ec.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -551,21 +494,17 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: property.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ec.files; len(nodes) > 0 {
+	if nodes := ec.mutation.FilesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -574,21 +513,17 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: file.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ec.hyperlinks; len(nodes) > 0 {
+	if nodes := ec.mutation.HyperlinksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -597,27 +532,23 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: hyperlink.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges = append(spec.Edges, edge)
+		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, ec.driver, spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, ec.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	id := spec.ID.Value.(int64)
-	e.ID = strconv.FormatInt(id, 10)
+	id := _spec.ID.Value.(int64)
+	e.ID = int(id)
 	return e, nil
 }

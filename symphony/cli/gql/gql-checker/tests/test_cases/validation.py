@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+
 from gql import gql
 
 
-gql('''
+gql(
+    """
     query NestedQueryWithFragment {
       hero {
         ...NameAndAppearances
@@ -17,24 +20,30 @@ gql('''
       name
       appearsIn
     }
-''')
+"""
+)
 
-gql('''
+gql(
+    """
     query HeroSpaceshipQuery {
       hero {
         favoriteSpaceship
       }
     }
-''') # GQL101: Cannot query field "favoriteSpaceship" on type "Character".
+"""
+)  # GQL101: Cannot query field "favoriteSpaceship" on type "Character".
 
-gql('''
+gql(
+    """
     query HeroNoFieldsQuery {
       hero
     }
-''') # GQL101: Field "hero" of type "Character" must have a sub selection.
+"""
+)  # GQL101: Field "hero" of type "Character" must have a sub selection.
 
 
-gql('''
+gql(
+    """
     query HeroFieldsOnScalarQuery {
       hero {
         name {
@@ -42,19 +51,24 @@ gql('''
         }
       }
     }
-''') # GQL101: Field "name" of type "String" must not have a sub selection.
+"""
+)  # GQL101: Field "name" of type "String" must not have a sub selection.
 
 
-gql('''
+gql(
+    """
     query DroidFieldOnCharacter {
       hero {
         name
         primaryFunction
       }
     }
-''') # GQL101: Cannot query field "primaryFunction" on type "Character". However, this field exists on "Droid". Perhaps you meant to use an inline fragment?
+"""
+)  # GQL101: Cannot query field "primaryFunction" on type "Character". However,
+# this field exists on "Droid". Perhaps you meant to use an inline fragment?
 
-gql('''
+gql(
+    """
     query DroidFieldInFragment {
       hero {
         name
@@ -64,9 +78,11 @@ gql('''
     fragment DroidFields on Droid {
       primaryFunction
     }
-''')
+"""
+)
 
-gql('''
+gql(
+    """
     query DroidFieldInFragment {
       hero {
         name
@@ -75,4 +91,5 @@ gql('''
         }
       }
     }
-''')
+"""
+)

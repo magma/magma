@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -54,8 +54,10 @@ function UsersSettings(props: Props) {
   const [editingUser, setEditingUser] = useState<?EditUser>(null);
   const [users, setUsers] = useState<Array<EditUser>>([]);
   const [showDialog, setShowDialog] = useState<boolean>(false);
-  const {networkIds, ssoEnabled} = useContext(AppContext);
+  const {networkIds, ssoEnabled, isTabEnabled} = useContext(AppContext);
   const enqueueSnackbar = useEnqueueSnackbar();
+
+  const isNmsEnabled = isTabEnabled('nms');
 
   const {isLoading, error} = useAxios({
     url: '/user/async/',
@@ -114,7 +116,9 @@ function UsersSettings(props: Props) {
           ? 'Read Only User'
           : 'Super User'}
       </TableCell>
-      <TableCell>{renderList(row.networkIDs || [])}</TableCell>
+      {isNmsEnabled ? (
+        <TableCell>{renderList(row.networkIDs || [])}</TableCell>
+      ) : null}
       <TableCell>
         <IconButton onClick={() => deleteUser(row)}>
           <DeleteIcon />
@@ -142,7 +146,7 @@ function UsersSettings(props: Props) {
             <TableRow>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
-              <TableCell>Accessible Networks</TableCell>
+              {isNmsEnabled ? <TableCell>Accessible Networks</TableCell> : null}
               <TableCell />
             </TableRow>
           </TableHead>

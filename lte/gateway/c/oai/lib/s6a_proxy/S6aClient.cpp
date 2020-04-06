@@ -107,13 +107,6 @@ S6aClient::S6aClient()
     // Create stub for S6aProxy gRPC service
     stub_ = S6aProxy::NewStub(channel);
   }
-  // TODO: Re-enable EPS Authentication as an auth option
-  /*else if (get_cloud_subscriberdb_enabled()) {
-    auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-      "eps_authentication", ServiceRegistrySingleton::CLOUD);
-    // Create stub for EPS Authentication gRPC service
-    stub_ = S6aProxy::NewStub(channel);
-  } */
   else {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "subscriberdb", ServiceRegistrySingleton::LOCAL);

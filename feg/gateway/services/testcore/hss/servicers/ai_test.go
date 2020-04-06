@@ -16,11 +16,10 @@ import (
 	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers/test"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
@@ -31,7 +30,7 @@ import (
 
 func TestNewAIA_MissingSessionID(t *testing.T) {
 	m := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewAIA(server, m)
 	assert.Error(t, err)
 
@@ -44,7 +43,7 @@ func TestNewAIA_MissingSessionID(t *testing.T) {
 
 func TestNewAIA_UnknownIMSI(t *testing.T) {
 	air := createAIR("sub_unknown")
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewAIA(server, air)
 	assert.Exactly(t, storage.NewUnknownSubscriberError("sub_unknown"), err)
 
@@ -56,7 +55,7 @@ func TestNewAIA_UnknownIMSI(t *testing.T) {
 }
 
 func TestNewAIA_SuccessfulResponse(t *testing.T) {
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	amf := []byte("\x80\x00")
 	rand := []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f")
 	milenage, err := crypto.NewMockMilenageCipher(amf, rand)
@@ -92,7 +91,7 @@ func TestNewAIA_SuccessfulResponse(t *testing.T) {
 }
 
 func TestNewAIA_MultipleVectors(t *testing.T) {
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	air := createAIRExtended("sub1", 3)
 	response, err := hss.NewAIA(server, air)
 	assert.NoError(t, err)
@@ -117,11 +116,11 @@ func TestNewAIA_MultipleVectors(t *testing.T) {
 }
 
 func TestNewAIA_MissingAuthKey(t *testing.T) {
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 
 	air := createAIR("missing_auth_key")
 	response, err := hss.NewAIA(server, air)
-	assert.Exactly(t, servicers.NewAuthRejectedError("incorrect key size. Expected 16 bytes, but got 0 bytes"), err)
+	assert.Exactly(t, hss.NewAuthRejectedError("incorrect key size. Expected 16 bytes, but got 0 bytes"), err)
 
 	// Check that the AIA has the expected error.
 	var aia definitions.AIA
@@ -246,7 +245,7 @@ func createAIRExtended(userName string, numRequestedVectors uint32) *diam.Messag
 }
 
 func TestNewSuccessfulAIA(t *testing.T) {
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	serverCfg := server.Config.Server
 
 	msg := createAIR("user1")

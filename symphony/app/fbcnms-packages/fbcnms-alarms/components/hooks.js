@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -78,7 +78,10 @@ export function useLoadRules<TRuleUnion>({
 type InputChangeFunc<TFormState, TVal> = (
   formUpdate: FormUpdate<TFormState, TVal>,
 ) => (event: SyntheticInputEvent<HTMLElement>) => void;
-type FormUpdate<TFormState, TVal = string> = (val: TVal) => $Shape<TFormState>;
+type FormUpdate<TFormState, TVal = string> = (
+  val: TVal,
+  event: SyntheticInputEvent<HTMLElement>,
+) => $Shape<TFormState>;
 
 export function useForm<TFormState: {}>({
   initialState,
@@ -97,6 +100,7 @@ export function useForm<TFormState: {}>({
   ) => void,
   addListItem: (listName: $Keys<TFormState>, item: {}) => void,
   removeListItem: (listName: $Keys<TFormState>, idx: number) => void,
+  setFormState: (f: TFormState) => void,
 |} {
   const [formState, setFormState] = React.useState<TFormState>(initialState);
   const formUpdatedRef = React.useRef(onFormUpdated);
@@ -110,12 +114,12 @@ export function useForm<TFormState: {}>({
         ...update,
       };
       setFormState(nextState);
-      if (typeof onFormUpdated === 'function') {
-        onFormUpdated(nextState);
+      if (typeof formUpdatedRef.current === 'function') {
+        formUpdatedRef.current(nextState);
       }
       return nextState;
     },
-    [formState, onFormUpdated, setFormState],
+    [formState, formUpdatedRef, setFormState],
   );
 
   /**
@@ -171,7 +175,7 @@ export function useForm<TFormState: {}>({
       event: SyntheticInputEvent<HTMLElement>,
     ) => {
       const value = event.target.value;
-      updateFormState(formUpdate(value));
+      updateFormState(formUpdate(value, event));
     },
     [updateFormState],
   );
@@ -183,6 +187,7 @@ export function useForm<TFormState: {}>({
     updateListItem,
     addListItem,
     removeListItem,
+    setFormState,
   };
 }
 
@@ -253,9 +258,12 @@ export function useAlertRuleReceiver({
   const saveReceiver = React.useCallback(async () => {
     let updatedRoutes: AlertRoutingTree = response || {
       routes: [],
-      receiver: `${match.params.networkId || '0'}_network_base_route`,
+      receiver: `${match.params.networkId || '0'}_tenant_base_route`,
     };
-    if ((!receiver || receiver.trim() === '') && initialReceiver) {
+    if (
+      (receiver == null || receiver.trim() === '') &&
+      initialReceiver != null
+    ) {
       // remove the route
       updatedRoutes = {
         ...updatedRoutes,
@@ -263,7 +271,7 @@ export function useAlertRuleReceiver({
           route => route.receiver !== initialReceiver,
         ),
       };
-    } else if (receiver && !initialReceiver) {
+    } else if (receiver != null && initialReceiver == null) {
       // creating a new route
       const newRoute: AlertRoutingTree = {
         receiver: receiver,

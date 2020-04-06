@@ -14,9 +14,9 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/blobstore"
-	magmaerrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	magmaerrors "magma/orc8r/lib/go/errors"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
@@ -42,12 +42,12 @@ func TestSqlBlobStorage_ListKeys(t *testing.T) {
 		setup: func(mock sqlmock.Sqlmock) {
 			mock.ExpectQuery("SELECT \"key\" FROM network_table").
 				WithArgs("network", "type").
-				WillReturnError(errors.New("Mock query error"))
+				WillReturnError(errors.New("mock query error"))
 		},
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
 			return store.ListKeys("network", "type")
 		},
-		expectedError:  errors.New("Mock query error"),
+		expectedError:  errors.New("mock query error"),
 		expectedResult: nil,
 	}
 
@@ -103,14 +103,14 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 					"WHERE \\(\\(network_id = \\$1 AND type = \\$2 AND \"key\" = \\$3\\)\\)",
 			).
 				WithArgs("network", "t3", "k3").
-				WillReturnError(errors.New("Mock query error"))
+				WillReturnError(errors.New("mock query error"))
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
 			return store.Get("network", storage.TypeAndKey{Type: "t3", Key: "k3"})
 		},
 
-		expectedError:  errors.New("Mock query error"),
+		expectedError:  errors.New("mock query error"),
 		expectedResult: nil,
 	}
 	runCase(t, happyPath)
@@ -149,18 +149,88 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 		setup: func(mock sqlmock.Sqlmock) {
 			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
 				WithArgs("network", "t1", "k1", "network", "t2", "k2").
-				WillReturnError(errors.New("Mock query error"))
+				WillReturnError(errors.New("mock query error"))
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
 			return store.GetMany("network", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 		},
 
-		expectedError:  errors.New("Mock query error"),
+		expectedError:  errors.New("mock query error"),
 		expectedResult: []blobstore.Blob{},
 	}
 
 	runCase(t, happyPath)
+	runCase(t, queryError)
+}
+
+func TestSqlBlobStorage_Search(t *testing.T) {
+	happyPath := &testCase{
+		setup: func(mock sqlmock.Sqlmock) {
+			mock.ExpectQuery("SELECT network_id, type, \"key\", value, version FROM network_table").
+				WithArgs("network", "t1", "t2", "t3", "k1", "k2", "k3").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"network_id", "type", "key", "value", "version"}).
+						AddRow("network", "t1", "k1", []byte("value1"), 42).
+						AddRow("network", "t2", "k2", []byte("value2"), 43),
+				)
+		},
+
+		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+			return store.Search(blobstore.CreateSearchFilter(strPtr("network"), []string{"t1", "t2", "t3"}, []string{"k1", "k2", "k3"}))
+		},
+
+		expectedError: nil,
+		expectedResult: map[string][]blobstore.Blob{
+			"network": {
+				{Type: "t1", Key: "k1", Value: []byte("value1"), Version: 42},
+				{Type: "t2", Key: "k2", Value: []byte("value2"), Version: 43},
+			},
+		},
+	}
+
+	multipleNetworks := &testCase{
+		setup: func(mock sqlmock.Sqlmock) {
+			mock.ExpectQuery("SELECT network_id, type, \"key\", value, version FROM network_table").
+				WithArgs("t1", "t2", "t3", "k1", "k2", "k3").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"network_id", "type", "key", "value", "version"}).
+						AddRow("network1", "t1", "k1", []byte("value1"), 42).
+						AddRow("network2", "t2", "k2", []byte("value2"), 43),
+				)
+		},
+
+		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+			return store.Search(blobstore.CreateSearchFilter(nil, []string{"t1", "t2", "t3"}, []string{"k1", "k2", "k3"}))
+		},
+
+		expectedError: nil,
+		expectedResult: map[string][]blobstore.Blob{
+			"network1": {
+				{Type: "t1", Key: "k1", Value: []byte("value1"), Version: 42},
+			},
+			"network2": {
+				{Type: "t2", Key: "k2", Value: []byte("value2"), Version: 43},
+			},
+		},
+	}
+
+	queryError := &testCase{
+		setup: func(mock sqlmock.Sqlmock) {
+			mock.ExpectQuery("SELECT network_id, type, \"key\", value, version FROM network_table").
+				WithArgs("network", "t1", "t2", "t3", "k1", "k2", "k3").
+				WillReturnError(errors.New("mock error"))
+		},
+
+		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+			return store.Search(blobstore.CreateSearchFilter(strPtr("network"), []string{"t1", "t2", "t3"}, []string{"k1", "k2", "k3"}))
+		},
+
+		expectedError: errors.New("failed to query DB: mock error"),
+	}
+
+	runCase(t, happyPath)
+	runCase(t, multipleNetworks)
 	runCase(t, queryError)
 }
 
@@ -282,7 +352,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			updatePrepare := mock.ExpectPrepare("UPDATE network_table")
 			updatePrepare.ExpectExec().
 				WithArgs([]byte("goodbye"), 43, "network", "t1", "k1").
-				WillReturnError(errors.New("Mock query error"))
+				WillReturnError(errors.New("mock query error"))
 			updatePrepare.WillBeClosed()
 		},
 
@@ -297,7 +367,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			return nil, err
 		},
 
-		expectedError:  errors.New("Error updating blob (network, t1, k1): Mock query error"),
+		expectedError:  errors.New("Error updating blob (network, t1, k1): mock query error"),
 		expectedResult: nil,
 	}
 
@@ -319,7 +389,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 
 			mock.ExpectExec("INSERT INTO network_table").
 				WithArgs("network", "t2", "k2", []byte("world"), 1000).
-				WillReturnError(errors.New("Mock query error"))
+				WillReturnError(errors.New("mock query error"))
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
@@ -333,7 +403,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			return nil, err
 		},
 
-		expectedError:  errors.New("error creating blobs: Mock query error"),
+		expectedError:  errors.New("error creating blobs: mock query error"),
 		expectedResult: nil,
 	}
 
@@ -365,7 +435,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 		setup: func(mock sqlmock.Sqlmock) {
 			mock.ExpectExec("DELETE FROM network_table").
 				WithArgs("network", "t1", "k1", "network", "t2", "k2").
-				WillReturnError(errors.New("Mock query error"))
+				WillReturnError(errors.New("mock query error"))
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
@@ -373,7 +443,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 			return nil, err
 		},
 
-		expectedError:  errors.New("Mock query error"),
+		expectedError:  errors.New("mock query error"),
 		expectedResult: nil,
 	}
 
@@ -404,7 +474,7 @@ func TestSqlBlobStorage_IncrementVersion(t *testing.T) {
 }
 
 func TestSqlBlobStorage_Integration(t *testing.T) {
-	// Use an in-memory sqlite datastore
+	// Use an in-memory sqlite data store
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
@@ -430,7 +500,6 @@ func runCase(t *testing.T, test *testCase) {
 	if err != nil {
 		t.Fatalf("Error opening stub DB conn: %s", err)
 	}
-	defer db.Close()
 
 	factory := blobstore.NewSQLBlobStorageFactory("network_table", db, sqorc.GetSqlBuilder())
 	expectCreateTable(mock)

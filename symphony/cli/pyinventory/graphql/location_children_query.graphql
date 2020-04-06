@@ -4,6 +4,8 @@ query LocationChildrenQuery($id: ID!) {
       children {
         id
         name
+        latitude
+        longitude
         externalId
         locationType {
           name

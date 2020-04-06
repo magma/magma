@@ -12,8 +12,11 @@ import type {
   EntityLocationFilter,
   FilterConfig,
   FilterValue,
+  FiltersQuery,
   Operator,
+  SavedSearchConfig,
 } from './ComparisonViewTypes';
+import type {FilterOperator} from './hooks/__generated__/filterBookmarksHookReportFiltersQuery.graphql';
 import type {PropertyType} from '../../common/PropertyType';
 import type {locationTypesHookLocationTypesQueryResponse} from './hooks/__generated__/locationTypesHookLocationTypesQuery.graphql.js';
 import type {propertiesHookPossiblePropertiesQueryResponse} from './hooks/__generated__/propertiesHookPossiblePropertiesQuery.graphql.js';
@@ -36,6 +39,15 @@ export const dateValues = [
     label: 'Less than',
   },
 ];
+
+export type TableSize = {
+  height: number,
+  width: number,
+};
+
+export type TableIndex = {
+  index: number,
+};
 
 export function getOperatorLabel(operator: Operator): string {
   switch (operator) {
@@ -83,6 +95,7 @@ export function getInitialFilterValue(
     operator,
     stringValue: null,
     idSet: null,
+    stringSet: null,
     boolValue: null,
     propertyValue: propertyType
       ? {
@@ -118,6 +131,7 @@ export function doesFilterHasValue(filterValue: FilterValue): boolean {
     !!filterValue.stringValue ||
     filterValue.boolValue != null ||
     (!!filterValue.idSet && filterValue.idSet.length > 0) ||
+    (!!filterValue.stringSet && filterValue.stringSet.length > 0) ||
     (!!propValue && !!getPropertyValue(propValue))
   );
 }
@@ -169,11 +183,11 @@ export function getPossibleProperties(
     data.possibleProperties
       .filter(prop => prop.type !== 'gps_location' && prop.type !== 'range')
       .map((prop, index) => ({
-        id: prop.name + prop.type,
+        id: '@tmp',
         type: prop.type,
         name: prop.name,
         index: index,
-        stringValue: prop.stringValue,
+        stringValue: '',
       })),
     prop => prop.name + prop.type,
   );
@@ -181,5 +195,66 @@ export function getPossibleProperties(
   for (const k in propertiesGroup) {
     supportedProperties.push(propertiesGroup[k][0]);
   }
+
   return supportedProperties;
 }
+
+export const configToFilterQuery = (
+  savedSearchConfig: SavedSearchConfig,
+): FiltersQuery => {
+  return savedSearchConfig.filters.map(f => {
+    const valObj = {
+      id: shortid.generate(),
+      key: f.key,
+      name: f.name,
+      operator: f.operator,
+      stringValue: f.stringValue,
+      idSet: f.idSet,
+      boolValue: f.boolValue,
+      propertyValue: f.propertyValue,
+      stringSet: f.stringSet,
+    };
+    for (const field in valObj) {
+      if (valObj[field] == null) {
+        delete valObj[field];
+      }
+    }
+    return valObj;
+  });
+};
+
+export const toOperator = (op: FilterOperator): Operator => {
+  switch (op) {
+    case 'IS':
+      return 'is';
+    case 'CONTAINS':
+      return 'contains';
+    case 'DATE_GREATER_THAN':
+      return 'date_greater_than';
+    case 'DATE_LESS_THAN':
+      return 'date_less_than';
+    case 'IS_NOT_ONE_OF':
+      return 'is_not_one_of';
+    case 'IS_ONE_OF':
+      return 'is_one_of';
+  }
+  throw new Error(`Operator ${op} is not supported`);
+};
+
+export const stringToOperator = (op: string): FilterOperator => {
+  switch (op) {
+    case 'is':
+      return 'IS';
+    case 'contains':
+      return 'CONTAINS';
+    case 'date_greater_than':
+      return 'DATE_GREATER_THAN';
+    case 'date_less_than':
+      return 'DATE_LESS_THAN';
+    case 'is_not_one_of':
+      return 'IS_NOT_ONE_OF';
+    case 'is_one_of':
+      return 'IS_ONE_OF';
+  }
+  throw new Error(`Operator ${op} is not supported`);
+};

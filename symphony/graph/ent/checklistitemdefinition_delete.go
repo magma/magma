@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // CheckListItemDefinitionDelete is the builder for deleting a CheckListItemDefinition entity.
 type CheckListItemDefinitionDelete struct {
 	config
+	hooks      []Hook
+	mutation   *CheckListItemDefinitionMutation
 	predicates []predicate.CheckListItemDefinition
 }
 
@@ -30,7 +33,30 @@ func (clidd *CheckListItemDefinitionDelete) Where(ps ...predicate.CheckListItemD
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (clidd *CheckListItemDefinitionDelete) Exec(ctx context.Context) (int, error) {
-	return clidd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(clidd.hooks) == 0 {
+		affected, err = clidd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*CheckListItemDefinitionMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			clidd.mutation = mutation
+			affected, err = clidd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(clidd.hooks); i > 0; i-- {
+			mut = clidd.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, clidd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (clidd *CheckListItemDefinitionDelete) ExecX(ctx context.Context) int {
 }
 
 func (clidd *CheckListItemDefinitionDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: checklistitemdefinition.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: checklistitemdefinition.FieldID,
 			},
 		},
 	}
 	if ps := clidd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, clidd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, clidd.driver, _spec)
 }
 
 // CheckListItemDefinitionDeleteOne is the builder for deleting a single CheckListItemDefinition entity.
@@ -74,7 +100,7 @@ func (cliddo *CheckListItemDefinitionDeleteOne) Exec(ctx context.Context) error 
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{checklistitemdefinition.Label}
+		return &NotFoundError{checklistitemdefinition.Label}
 	default:
 		return nil
 	}

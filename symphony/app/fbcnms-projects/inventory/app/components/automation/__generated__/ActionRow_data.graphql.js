@@ -33,6 +33,7 @@ export type ActionRow_data$data = ActionRow_data;
 export type ActionRow_data$key = {
   +$data?: ActionRow_data$data,
   +$fragmentRefs: ActionRow_data$ref,
+  ...
 };
 */
 

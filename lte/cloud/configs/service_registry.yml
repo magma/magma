@@ -11,12 +11,7 @@ services:
     port: 9083
     proxy_type: "clientcert"
 
-  meteringd_records:
+  policydb:
     host: "localhost"
-    port: 9090
-    proxy_type: "clientcert"
-
-  eps_authentication:
-    host: "localhost"
-    port: 9101
+    port: 9085
     proxy_type: "clientcert"

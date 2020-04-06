@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -27,12 +27,12 @@ import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   appBar: {
     backgroundColor: '#f5f5f5',
     marginBottom: '20px',
   },
-});
+}));
 
 type Props = {|
   onClose: () => void,

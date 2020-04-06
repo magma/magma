@@ -175,18 +175,18 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
     }
   };
 
+  deleteTempId = (propType: PropertyType) => {
+    if (propType.id && isNaN(propType.id) && propType.id.includes('@tmp')) {
+      return {
+        ...propType,
+        id: undefined,
+      };
+    }
+    return {...propType};
+  };
+
   editServiceType = () => {
     const {id, name, propertyTypes} = this.state.editingServiceType;
-
-    const deleteTempId = (propType: PropertyType) => {
-      if (propType.id && propType.id.includes('@tmp')) {
-        return {
-          ...propType,
-          id: undefined,
-        };
-      }
-      return {...propType};
-    };
 
     const data: ServiceTypeEditData = {
       id,
@@ -195,7 +195,7 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       // $FlowFixMe property input doesn't have an id
       properties: propertyTypes
         .filter(propType => !!propType.name)
-        .map(deleteTempId),
+        .map(this.deleteTempId),
     };
 
     const variables: EditServiceTypeMutationVariables = {
@@ -232,7 +232,9 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       name,
       hasCustomer: false,
       // $FlowFixMe property input doesn't have an id
-      properties: propertyTypes.filter(propType => !!propType.name),
+      properties: propertyTypes
+        .filter(propType => !!propType.name)
+        .map(this.deleteTempId),
     };
 
     const variables: AddServiceTypeMutationVariables = {
@@ -260,7 +262,9 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       },
     };
     const updater = store => {
+      // $FlowFixMe (T62907961) Relay flow types
       const rootQuery = store.getRoot();
+      // $FlowFixMe (T62907961) Relay flow types
       const newNode = store.getRootField('addServiceType');
       if (!newNode) {
         return;
@@ -270,11 +274,14 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
         'ServiceTypes_serviceTypes',
       );
       const edge = ConnectionHandler.createEdge(
+        // $FlowFixMe (T62907961) Relay flow types
         store,
+        // $FlowFixMe (T62907961) Relay flow types
         types,
         newNode,
         'ServiceTypesEdge',
       );
+      // $FlowFixMe (T62907961) Relay flow types
       ConnectionHandler.insertEdgeBefore(types, edge);
     };
 

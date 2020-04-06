@@ -20,4 +20,5 @@
     full_provision: true
 
   roles:
+    - role: stretch_snapshot
     - role: trfserver

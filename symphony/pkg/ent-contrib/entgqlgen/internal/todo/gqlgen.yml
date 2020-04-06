@@ -1,0 +1,17 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+schema:
+  - todo.graphql
+
+autobind:
+  - github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.IntID
+  Node:
+    model:
+      - github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent.Noder

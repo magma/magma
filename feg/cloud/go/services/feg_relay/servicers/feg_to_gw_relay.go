@@ -16,16 +16,15 @@ import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/services/feg_relay/utils"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/directoryd"
+	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-
-	"magma/orc8r/cloud/go/services/directoryd"
-	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 )
 
 // FegToGwRelayServer is a server serving requests from FeG to Access Gateway
@@ -48,7 +47,7 @@ func getHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
 		return "", err
 	}
 	for _, nid := range servedIds {
-		hwId, err := directoryd.GetHardwareIdByIMSI(imsi, nid)
+		hwId, err := directoryd.GetHWIDForIMSI(nid, imsi)
 		if err == nil && len(hwId) != 0 {
 			glog.V(2).Infof("IMSI to send is %v\n", imsi)
 			return hwId, nil

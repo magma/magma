@@ -36,6 +36,7 @@ export type LocationBreadcrumbsTitle_locationDetails$data = LocationBreadcrumbsT
 export type LocationBreadcrumbsTitle_locationDetails$key = {
   +$data?: LocationBreadcrumbsTitle_locationDetails$data,
   +$fragmentRefs: LocationBreadcrumbsTitle_locationDetails$ref,
+  ...
 };
 */
 

@@ -8,8 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 from magma.common.service import MagmaService
-from magma.directoryd.rpc_servicer import DirectoryServiceRpcServicer, \
-    GatewayDirectoryServiceRpcServicer
+from magma.directoryd.rpc_servicer import GatewayDirectoryServiceRpcServicer
 from orc8r.protos.mconfig import mconfigs_pb2
 
 
@@ -17,11 +16,8 @@ def main():
     """ main() for Directoryd """
     service = MagmaService('directoryd', mconfigs_pb2.DirectoryD())
 
-    # Add all servicers to the server
-    directory_service_servicer = DirectoryServiceRpcServicer(
-        service.mconfig, service.config)
+    # Add servicer to the server
     gateway_directory_servicer = GatewayDirectoryServiceRpcServicer()
-    directory_service_servicer.add_to_server(service.rpc_server)
     gateway_directory_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop

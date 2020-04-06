@@ -29,7 +29,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/feg/gateway/services/swx_proxy/metrics"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -138,7 +138,7 @@ func NewSwxProxyWithCache(config *SwxProxyConfig, cache *cache.Impl) (*swxProxy,
 		requestTracker: diameter.NewRequestTracker(),
 		originStateID:  originStateID,
 		cache:          cache,
-		Relay:          &fegRelayClient{registry: registry.NewCloudRegistry()},
+		Relay:          &fegRelayClient{registry: registry.Get()},
 	}
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_SWX_APP_ID, Code: diam.MultimediaAuthentication, Request: false},

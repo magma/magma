@@ -31,7 +31,11 @@ int main(int argc, char* argv[]) {
   folly::init(&argc, &argv);
 
   devmand::Application app;
-  app.init();
+  const shared_ptr<devmand::magma::DevConf>& devConf =
+      std::make_shared<devmand::magma::DevConf>(
+          app.getEventBase(), devmand::FLAGS_device_configuration_file);
+
+  app.init(devConf);
 
   // Add services which export the unified view
   app.addService(std::make_unique<devmand::magma::Service>(app));
@@ -60,8 +64,7 @@ int main(int argc, char* argv[]) {
   app.setDefaultPlatform(snmpv2::Device::createDevice);
 
   // Add ways to discover devices.
-  app.addDeviceDiscoveryMethod(std::make_shared<devmand::magma::DevConf>(
-      app.getEventBase(), devmand::FLAGS_device_configuration_file));
+  app.addDeviceDiscoveryMethod(devConf);
 
   app.run();
   return app.status();

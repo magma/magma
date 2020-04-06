@@ -268,12 +268,21 @@
 #define TBCD_TO_PLMN_T(tBCDsTRING, pLMN)                                       \
   do {                                                                         \
     DevAssert((tBCDsTRING)->size == 3);                                        \
-    (pLMN)->mcc_digit2 = (((tBCDsTRING)->buf[0] & 0xf0) >> 4);                 \
-    (pLMN)->mcc_digit1 = ((tBCDsTRING)->buf[0] & 0x0f);                        \
-    (pLMN)->mnc_digit3 = (((tBCDsTRING)->buf[1] & 0xf0) >> 4);                 \
-    (pLMN)->mcc_digit3 = ((tBCDsTRING)->buf[1] & 0x0f);                        \
-    (pLMN)->mnc_digit2 = (((tBCDsTRING)->buf[2] & 0xf0) >> 4);                 \
-    (pLMN)->mnc_digit1 = ((tBCDsTRING)->buf[2] & 0x0f);                        \
+    if (((tBCDsTRING)->buf[1] & 0xf0) == 0xf0) {                               \
+      (pLMN)->mcc_digit2 = (((tBCDsTRING)->buf[0] & 0xf0) >> 4);               \
+      (pLMN)->mcc_digit1 = ((tBCDsTRING)->buf[0] & 0x0f);                      \
+      (pLMN)->mcc_digit3 = ((tBCDsTRING)->buf[1] & 0x0f);                      \
+      (pLMN)->mnc_digit3 = (((tBCDsTRING)->buf[1] & 0xf0) >> 4);               \
+      (pLMN)->mnc_digit1 = ((tBCDsTRING)->buf[2] & 0x0f);                      \
+      (pLMN)->mnc_digit2 = (((tBCDsTRING)->buf[2] & 0xf0) >> 4);               \
+    } else {                                                                   \
+      (pLMN)->mcc_digit2 = (((tBCDsTRING)->buf[0] & 0xf0) >> 4);               \
+      (pLMN)->mcc_digit1 = ((tBCDsTRING)->buf[0] & 0x0f);                      \
+      (pLMN)->mnc_digit1 = (((tBCDsTRING)->buf[1] & 0xf0) >> 4);               \
+      (pLMN)->mcc_digit3 = ((tBCDsTRING)->buf[1] & 0x0f);                      \
+      (pLMN)->mnc_digit3 = (((tBCDsTRING)->buf[2] & 0xf0) >> 4);               \
+      (pLMN)->mnc_digit2 = ((tBCDsTRING)->buf[2] & 0x0f);                      \
+    }                                                                          \
   } while (0)
 
 #define PLMN_T_TO_TBCD(pLMN, tBCDsTRING, mNClENGTH)                            \

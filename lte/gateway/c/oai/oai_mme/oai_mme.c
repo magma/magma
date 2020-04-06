@@ -51,6 +51,8 @@
 #include "intertask_interface_types.h"
 #if EMBEDDED_SGW
 #include "pgw_defs.h"
+#include "service303.h"
+#include "shared_ts_log.h"
 #include "spgw_config.h"
 #include "sgw_defs.h"
 #endif
@@ -107,7 +109,6 @@ int main(int argc, char *argv[])
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(sgw_init(&spgw_config, mme_config.use_stateless));
-  CHECK_INIT_RETURN(pgw_init(&spgw_config));
 #else
   CHECK_INIT_RETURN(udp_init());  
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));

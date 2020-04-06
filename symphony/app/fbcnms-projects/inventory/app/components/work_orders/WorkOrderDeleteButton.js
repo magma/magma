@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -18,10 +18,11 @@ import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import React from 'react';
 import RemoveWorkOrderMutation from '../../mutations/RemoveWorkOrderMutation';
-import SymphonyTheme from '@fbcnms/ui/theme/symphony';
 import classNames from 'classnames';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -29,15 +30,10 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {withSnackbar} from 'notistack';
 import {withStyles} from '@material-ui/core/styles';
 
-const styles = _theme => ({
+const styles = () => ({
   deleteButton: {
-    cursor: 'pointer',
-    color: SymphonyTheme.palette.D400,
-    width: '32px',
-    height: '32px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    minWidth: 'unset',
+    paddingTop: '2px',
   },
 });
 
@@ -51,11 +47,17 @@ type Props = {
 
 class WorkOrderDeleteButton extends React.Component<Props> {
   render() {
-    const {classes, className} = this.props;
+    const {className, classes} = this.props;
     return (
-      <div className={classNames(classes.deleteButton, className)}>
-        <DeleteOutlineIcon onClick={this.removeWorkOrder} />
-      </div>
+      <FormAction>
+        <Button
+          className={classNames(className, classes.deleteButton)}
+          variant="text"
+          skin="gray"
+          onClick={this.removeWorkOrder}>
+          <DeleteOutlineIcon />
+        </Button>
+      </FormAction>
     );
   }
 
@@ -81,6 +83,7 @@ class WorkOrderDeleteButton extends React.Component<Props> {
 
         const updater = store => {
           this.props.onWorkOrderRemoved();
+          // $FlowFixMe (T62907961) Relay flow types
           store.delete(workOrderId);
         };
 

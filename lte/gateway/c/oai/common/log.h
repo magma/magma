@@ -164,6 +164,7 @@ typedef enum {
   LOG_ITTI,
   LOG_SGS,
   LOG_ASYNC_SYSTEM,
+  LOG_ASSERT,
   MAX_LOG_PROTOS,
 } log_proto_t;
 

@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // ServiceDelete is the builder for deleting a Service entity.
 type ServiceDelete struct {
 	config
+	hooks      []Hook
+	mutation   *ServiceMutation
 	predicates []predicate.Service
 }
 
@@ -30,7 +33,30 @@ func (sd *ServiceDelete) Where(ps ...predicate.Service) *ServiceDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (sd *ServiceDelete) Exec(ctx context.Context) (int, error) {
-	return sd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(sd.hooks) == 0 {
+		affected, err = sd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ServiceMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			sd.mutation = mutation
+			affected, err = sd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(sd.hooks); i > 0; i-- {
+			mut = sd.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, sd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (sd *ServiceDelete) ExecX(ctx context.Context) int {
 }
 
 func (sd *ServiceDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: service.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: service.FieldID,
 			},
 		},
 	}
 	if ps := sd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, sd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, sd.driver, _spec)
 }
 
 // ServiceDeleteOne is the builder for deleting a single Service entity.
@@ -74,7 +100,7 @@ func (sdo *ServiceDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{service.Label}
+		return &NotFoundError{service.Label}
 	default:
 		return nil
 	}

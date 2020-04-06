@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -63,6 +63,7 @@ export const LogEvents = {
     'location_comparison_view_filter_removed',
   LOCATION_COMPARISON_VIEW_FILTER_SET: 'location_comparison_view_filter_set',
   COMPARISON_VIEW_SUBJECT_CHANGED: 'comparison_view_subject_changed',
+  COMPARISON_VIEW_FILTERS_CHANGED: 'comparison_view_filters_changed',
   LOCATIONS_MAP_POPUP_OPENED: 'locations_map_popup_opened',
   PROJECTS_MAP_POPUP_OPENED: 'projects_map_popup_opened',
   ATTACH_EQUIPMENT_TO_POSITION_CLICKED: 'attach_equipment_to_position_clicked',
@@ -77,7 +78,10 @@ export const LogEvents = {
   DOCUMENTATION_LINK_CLICKED: 'documentation_link_clicked',
   DOCUMENTATION_LINK_CLICKED_FROM_EXPORT_DIALOG:
     'documentation_link_clicked_from_export_dialog',
-
+  SAVED_SEARCH_LOADED: 'saved_search_loaded',
+  SAVED_SEARCH_CREATED: 'saved_search_created',
+  SAVED_SEARCH_DELETED: 'saved_search_deleted',
+  SAVED_SEARCH_EDITED: 'saved_search_edited',
   //Work Orders Logs:
   ADD_WORK_ORDER_TYPE_BUTTON_CLICKED: 'add_work_order_template_button_clicked',
   DELETE_WORK_ORDER_BUTTON_CLICKED: 'delete_work_order_button_clicked',

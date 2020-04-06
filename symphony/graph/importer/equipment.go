@@ -18,7 +18,7 @@ import (
 
 // processEquipmentCSV  imports equipment from CSV file to DB
 func (m *importer) processEquipmentCSV(w http.ResponseWriter, r *http.Request) {
-	log := m.log.For(r.Context())
+	log := m.logger.For(r.Context())
 	log.Debug("Equipment- started")
 	instance := true
 	if err := r.ParseMultipartForm(maxFormSize); err != nil {
@@ -50,7 +50,16 @@ func (m *importer) processEquipmentCSV(w http.ResponseWriter, r *http.Request) {
 		equipmentTypeNameIdx := findIndex(firstLine, "Equipment Type")
 
 		m.populateIndexToLocationTypeMap(ctx, firstLine, false)
-		_ = m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine, ImportEntityEquipment), true)
+		header, err := NewImportHeader(firstLine, ImportEntityEquipment)
+		if err != nil {
+			// 'equipment upload' doesn't use equipment-parent-name ('exported equipment upload' does)
+			if header.prnt3Idx != -1 {
+				log.Warn("can't create import header", zap.Error(err))
+				http.Error(w, "can't create import header", http.StatusInternalServerError)
+				return
+			}
+		}
+		_ = m.populateEquipmentTypeNameToIDMap(ctx, header, true)
 		ic := getImportContext(ctx)
 		equipmentTypeIDToProperties := ic.equipmentTypeIDToProperties
 		equipmentTypeNameToID := ic.equipmentTypeNameToID
@@ -83,7 +92,7 @@ func (m *importer) processEquipmentCSV(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, fmt.Sprintf("row %d: cannot find equipment type %q", i, equipTypeName), http.StatusInternalServerError)
 				return
 			}
-			var locationID string
+			var locationID int
 			if fullLocationPath {
 				locationID, err = m.getOrCreateEquipmentLocationByFullPath(ctx, line, firstLine, uploadLocationProps)
 				if err != nil {
@@ -122,13 +131,13 @@ func (m *importer) processEquipmentCSV(w http.ResponseWriter, r *http.Request) {
 
 			et, err := m.ClientFrom(ctx).EquipmentType.Query().Where(equipmenttype.ID(equipTypeID)).Only(ctx)
 			if err != nil {
-				log.Warn("[SKIP]cannot find equipment type by ID", zap.String("equip type id", equipTypeID), zap.Error(err))
+				log.Warn("[SKIP]cannot find equipment type by ID", zap.Int("equip type id", equipTypeID), zap.Error(err))
 				http.Error(w, fmt.Sprintf("row %d: [SKIP]cannot find equipment type by ID (%q)", i, equipTypeID), http.StatusInternalServerError)
 				return
 			}
 			loc, err := m.ClientFrom(ctx).Location.Get(ctx, locationID)
 			if err != nil {
-				log.Warn("[SKIP]cannot find location type by ID", zap.String("loc type id", locationID), zap.Error(err))
+				log.Warn("[SKIP]cannot find location type by ID", zap.Int("loc type id", locationID), zap.Error(err))
 				http.Error(w, fmt.Sprintf("row %d: [SKIP]cannot find location type by ID (%q)", i, locationID), http.StatusInternalServerError)
 				return
 			}

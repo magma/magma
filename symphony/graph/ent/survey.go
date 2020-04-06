@@ -8,11 +8,12 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 )
 
@@ -20,7 +21,7 @@ import (
 type Survey struct {
 	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -33,32 +34,95 @@ type Survey struct {
 	CreationTimestamp time.Time `json:"creation_timestamp,omitempty" gqlgen:"creationTimestamp"`
 	// CompletionTimestamp holds the value of the "completion_timestamp" field.
 	CompletionTimestamp time.Time `json:"completion_timestamp,omitempty" gqlgen:"completionTimestamp"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyQuery when eager-loading is set.
+	Edges              SurveyEdges `json:"edges"`
+	survey_location    *int
+	survey_source_file *int
+}
+
+// SurveyEdges holds the relations/edges for other nodes in the graph.
+type SurveyEdges struct {
+	// Location holds the value of the location edge.
+	Location *Location
+	// SourceFile holds the value of the source_file edge.
+	SourceFile *File
+	// Questions holds the value of the questions edge.
+	Questions []*SurveyQuestion
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// LocationOrErr returns the Location value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyEdges) LocationOrErr() (*Location, error) {
+	if e.loadedTypes[0] {
+		if e.Location == nil {
+			// The edge location was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: location.Label}
+		}
+		return e.Location, nil
+	}
+	return nil, &NotLoadedError{edge: "location"}
+}
+
+// SourceFileOrErr returns the SourceFile value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyEdges) SourceFileOrErr() (*File, error) {
+	if e.loadedTypes[1] {
+		if e.SourceFile == nil {
+			// The edge source_file was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: file.Label}
+		}
+		return e.SourceFile, nil
+	}
+	return nil, &NotLoadedError{edge: "source_file"}
+}
+
+// QuestionsOrErr returns the Questions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyEdges) QuestionsOrErr() ([]*SurveyQuestion, error) {
+	if e.loadedTypes[2] {
+		return e.Questions, nil
+	}
+	return nil, &NotLoadedError{edge: "questions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Survey) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullTime{},
-		&sql.NullTime{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // owner_name
+		&sql.NullTime{},   // creation_timestamp
+		&sql.NullTime{},   // completion_timestamp
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Survey) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // survey_location
+		&sql.NullInt64{}, // survey_source_file
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Survey fields.
 func (s *Survey) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(survey.Columns); m != n {
+	if m, n := len(values), len(survey.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	s.ID = strconv.FormatInt(value.Int64, 10)
+	s.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -90,29 +154,44 @@ func (s *Survey) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		s.CompletionTimestamp = value.Time
 	}
+	values = values[6:]
+	if len(values) == len(survey.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_location", value)
+		} else if value.Valid {
+			s.survey_location = new(int)
+			*s.survey_location = int(value.Int64)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_source_file", value)
+		} else if value.Valid {
+			s.survey_source_file = new(int)
+			*s.survey_source_file = int(value.Int64)
+		}
+	}
 	return nil
 }
 
 // QueryLocation queries the location edge of the Survey.
 func (s *Survey) QueryLocation() *LocationQuery {
-	return (&SurveyClient{s.config}).QueryLocation(s)
+	return (&SurveyClient{config: s.config}).QueryLocation(s)
 }
 
 // QuerySourceFile queries the source_file edge of the Survey.
 func (s *Survey) QuerySourceFile() *FileQuery {
-	return (&SurveyClient{s.config}).QuerySourceFile(s)
+	return (&SurveyClient{config: s.config}).QuerySourceFile(s)
 }
 
 // QueryQuestions queries the questions edge of the Survey.
 func (s *Survey) QueryQuestions() *SurveyQuestionQuery {
-	return (&SurveyClient{s.config}).QueryQuestions(s)
+	return (&SurveyClient{config: s.config}).QueryQuestions(s)
 }
 
 // Update returns a builder for updating this Survey.
 // Note that, you need to call Survey.Unwrap() before calling this method, if this Survey
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (s *Survey) Update() *SurveyUpdateOne {
-	return (&SurveyClient{s.config}).UpdateOne(s)
+	return (&SurveyClient{config: s.config}).UpdateOne(s)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -145,12 +224,6 @@ func (s *Survey) String() string {
 	builder.WriteString(s.CompletionTimestamp.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (s *Survey) id() int {
-	id, _ := strconv.Atoi(s.ID)
-	return id
 }
 
 // Surveys is a parsable slice of Survey.

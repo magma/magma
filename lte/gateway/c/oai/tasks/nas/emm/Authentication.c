@@ -646,9 +646,7 @@ int emm_proc_authentication_failure(
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   // Get the UE context
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   emm_context_t *emm_ctx = NULL;
   int rc = RETURNerror;
 
@@ -941,9 +939,7 @@ int emm_proc_authentication_complete(
     ue_id);
 
   // Get the UE context
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   emm_context_t *emm_ctx = NULL;
 
   if (!ue_mm_context) {

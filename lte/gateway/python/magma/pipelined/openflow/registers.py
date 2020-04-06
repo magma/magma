@@ -12,8 +12,10 @@ from enum import IntEnum
 # Global registers:
 IMSI_REG = 'metadata'
 DIRECTION_REG = 'reg1'
+DPI_REG = 'reg10'
 TEST_PACKET_REG = 'reg5'
 PASSTHROUGH_REG = 'reg6'
+VLAN_TAG_REG = 'reg7'
 
 # Local scratch registers (These registers are reset when submitting to
 # another app):

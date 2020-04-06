@@ -4,13 +4,14 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
 import type {ProjectLink} from '@fbcnms/ui/components/layout/AppDrawerProjectNavigation';
+import type {Tab} from '@fbcnms/types/tabs';
 
-const allTabs = [
+const allTabs: $ReadOnlyArray<ProjectLink> = [
   {
     id: 'inventory',
     name: 'Inventory',
@@ -35,9 +36,15 @@ const allTabs = [
     secondary: 'Automation Management',
     url: '/automation',
   },
+  {
+    id: 'hub',
+    name: 'Hub',
+    secondary: 'Network Hub',
+    url: '/hub',
+  },
 ];
 
-const ADMIN = {
+const ADMIN: ProjectLink = {
   id: 'admin',
   name: 'Admin',
   secondary: 'Administrative Tools',
@@ -45,7 +52,7 @@ const ADMIN = {
 };
 
 export function getProjectLinks(
-  enabledTabs: Array<string>,
+  enabledTabs: $ReadOnlyArray<Tab>,
   user: ?{isSuperUser: boolean},
 ): ProjectLink[] {
   const links = allTabs.filter(tab => enabledTabs.includes(tab.id));
@@ -55,6 +62,6 @@ export function getProjectLinks(
   return links;
 }
 
-export function getProjectTabs(): {id: string, name: string}[] {
+export function getProjectTabs(): {id: Tab, name: string}[] {
   return allTabs.map(tab => tab);
 }

@@ -13,8 +13,8 @@ import (
 	"fmt"
 
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
+	"magma/orc8r/lib/go/errors"
 )
 
 // CancelLocation relays the CancelLocationRequest to a corresponding

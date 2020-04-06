@@ -7,7 +7,6 @@
 package workorderdefinition
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -16,35 +15,28 @@ import (
 )
 
 // ID filters vertices based on their identifier.
-func ID(id string) predicate.WorkOrderDefinition {
-	return predicate.WorkOrderDefinition(
-		func(s *sql.Selector) {
-			id, _ := strconv.Atoi(id)
-			s.Where(sql.EQ(s.C(FieldID), id))
-		},
-	)
+func ID(id int) predicate.WorkOrderDefinition {
+	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldID), id))
+	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id string) predicate.WorkOrderDefinition {
+func IDEQ(id int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.EQ(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id string) predicate.WorkOrderDefinition {
+func IDNEQ(id int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.NEQ(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...string) predicate.WorkOrderDefinition {
+func IDIn(ids ...int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
@@ -54,15 +46,14 @@ func IDIn(ids ...string) predicate.WorkOrderDefinition {
 		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
-			v[i], _ = strconv.Atoi(ids[i])
+			v[i] = ids[i]
 		}
 		s.Where(sql.In(s.C(FieldID), v...))
-	},
-	)
+	})
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...string) predicate.WorkOrderDefinition {
+func IDNotIn(ids ...int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
@@ -72,87 +63,73 @@ func IDNotIn(ids ...string) predicate.WorkOrderDefinition {
 		}
 		v := make([]interface{}, len(ids))
 		for i := range v {
-			v[i], _ = strconv.Atoi(ids[i])
+			v[i] = ids[i]
 		}
 		s.Where(sql.NotIn(s.C(FieldID), v...))
-	},
-	)
+	})
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id string) predicate.WorkOrderDefinition {
+func IDGT(id int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.GT(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id string) predicate.WorkOrderDefinition {
+func IDGTE(id int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.GTE(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id string) predicate.WorkOrderDefinition {
+func IDLT(id int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.LT(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id string) predicate.WorkOrderDefinition {
+func IDLTE(id int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
-		id, _ := strconv.Atoi(id)
 		s.Where(sql.LTE(s.C(FieldID), id))
-	},
-	)
+	})
 }
 
 // CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldCreateTime), v))
-	},
-	)
+	})
 }
 
 // UpdateTime applies equality check predicate on the "update_time" field. It's identical to UpdateTimeEQ.
 func UpdateTime(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldUpdateTime), v))
-	},
-	)
+	})
 }
 
 // Index applies equality check predicate on the "index" field. It's identical to IndexEQ.
 func Index(v int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldIndex), v))
-	},
-	)
+	})
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldCreateTime), v))
-	},
-	)
+	})
 }
 
 // CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
 func CreateTimeNEQ(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldCreateTime), v))
-	},
-	)
+	})
 }
 
 // CreateTimeIn applies the In predicate on the "create_time" field.
@@ -169,8 +146,7 @@ func CreateTimeIn(vs ...time.Time) predicate.WorkOrderDefinition {
 			return
 		}
 		s.Where(sql.In(s.C(FieldCreateTime), v...))
-	},
-	)
+	})
 }
 
 // CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
@@ -187,56 +163,49 @@ func CreateTimeNotIn(vs ...time.Time) predicate.WorkOrderDefinition {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldCreateTime), v...))
-	},
-	)
+	})
 }
 
 // CreateTimeGT applies the GT predicate on the "create_time" field.
 func CreateTimeGT(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldCreateTime), v))
-	},
-	)
+	})
 }
 
 // CreateTimeGTE applies the GTE predicate on the "create_time" field.
 func CreateTimeGTE(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldCreateTime), v))
-	},
-	)
+	})
 }
 
 // CreateTimeLT applies the LT predicate on the "create_time" field.
 func CreateTimeLT(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldCreateTime), v))
-	},
-	)
+	})
 }
 
 // CreateTimeLTE applies the LTE predicate on the "create_time" field.
 func CreateTimeLTE(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldCreateTime), v))
-	},
-	)
+	})
 }
 
 // UpdateTimeEQ applies the EQ predicate on the "update_time" field.
 func UpdateTimeEQ(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldUpdateTime), v))
-	},
-	)
+	})
 }
 
 // UpdateTimeNEQ applies the NEQ predicate on the "update_time" field.
 func UpdateTimeNEQ(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldUpdateTime), v))
-	},
-	)
+	})
 }
 
 // UpdateTimeIn applies the In predicate on the "update_time" field.
@@ -253,8 +222,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.WorkOrderDefinition {
 			return
 		}
 		s.Where(sql.In(s.C(FieldUpdateTime), v...))
-	},
-	)
+	})
 }
 
 // UpdateTimeNotIn applies the NotIn predicate on the "update_time" field.
@@ -271,56 +239,49 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.WorkOrderDefinition {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldUpdateTime), v...))
-	},
-	)
+	})
 }
 
 // UpdateTimeGT applies the GT predicate on the "update_time" field.
 func UpdateTimeGT(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldUpdateTime), v))
-	},
-	)
+	})
 }
 
 // UpdateTimeGTE applies the GTE predicate on the "update_time" field.
 func UpdateTimeGTE(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldUpdateTime), v))
-	},
-	)
+	})
 }
 
 // UpdateTimeLT applies the LT predicate on the "update_time" field.
 func UpdateTimeLT(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldUpdateTime), v))
-	},
-	)
+	})
 }
 
 // UpdateTimeLTE applies the LTE predicate on the "update_time" field.
 func UpdateTimeLTE(v time.Time) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldUpdateTime), v))
-	},
-	)
+	})
 }
 
 // IndexEQ applies the EQ predicate on the "index" field.
 func IndexEQ(v int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldIndex), v))
-	},
-	)
+	})
 }
 
 // IndexNEQ applies the NEQ predicate on the "index" field.
 func IndexNEQ(v int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldIndex), v))
-	},
-	)
+	})
 }
 
 // IndexIn applies the In predicate on the "index" field.
@@ -337,8 +298,7 @@ func IndexIn(vs ...int) predicate.WorkOrderDefinition {
 			return
 		}
 		s.Where(sql.In(s.C(FieldIndex), v...))
-	},
-	)
+	})
 }
 
 // IndexNotIn applies the NotIn predicate on the "index" field.
@@ -355,56 +315,49 @@ func IndexNotIn(vs ...int) predicate.WorkOrderDefinition {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldIndex), v...))
-	},
-	)
+	})
 }
 
 // IndexGT applies the GT predicate on the "index" field.
 func IndexGT(v int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldIndex), v))
-	},
-	)
+	})
 }
 
 // IndexGTE applies the GTE predicate on the "index" field.
 func IndexGTE(v int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldIndex), v))
-	},
-	)
+	})
 }
 
 // IndexLT applies the LT predicate on the "index" field.
 func IndexLT(v int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldIndex), v))
-	},
-	)
+	})
 }
 
 // IndexLTE applies the LTE predicate on the "index" field.
 func IndexLTE(v int) predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldIndex), v))
-	},
-	)
+	})
 }
 
 // IndexIsNil applies the IsNil predicate on the "index" field.
 func IndexIsNil() predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.IsNull(s.C(FieldIndex)))
-	},
-	)
+	})
 }
 
 // IndexNotNil applies the NotNil predicate on the "index" field.
 func IndexNotNil() predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldIndex)))
-	},
-	)
+	})
 }
 
 // HasType applies the HasEdge predicate on the "type" edge.
@@ -416,8 +369,7 @@ func HasType() predicate.WorkOrderDefinition {
 			sqlgraph.Edge(sqlgraph.M2O, false, TypeTable, TypeColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
-	},
-	)
+	})
 }
 
 // HasTypeWith applies the HasEdge predicate on the "type" edge with a given conditions (other predicates).
@@ -433,8 +385,7 @@ func HasTypeWith(preds ...predicate.WorkOrderType) predicate.WorkOrderDefinition
 				p(s)
 			}
 		})
-	},
-	)
+	})
 }
 
 // HasProjectType applies the HasEdge predicate on the "project_type" edge.
@@ -446,8 +397,7 @@ func HasProjectType() predicate.WorkOrderDefinition {
 			sqlgraph.Edge(sqlgraph.M2O, true, ProjectTypeTable, ProjectTypeColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
-	},
-	)
+	})
 }
 
 // HasProjectTypeWith applies the HasEdge predicate on the "project_type" edge with a given conditions (other predicates).
@@ -463,44 +413,37 @@ func HasProjectTypeWith(preds ...predicate.ProjectType) predicate.WorkOrderDefin
 				p(s)
 			}
 		})
-	},
-	)
+	})
 }
 
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.WorkOrderDefinition) predicate.WorkOrderDefinition {
-	return predicate.WorkOrderDefinition(
-		func(s *sql.Selector) {
-			s1 := s.Clone().SetP(nil)
-			for _, p := range predicates {
-				p(s1)
-			}
-			s.Where(s1.P())
-		},
-	)
+	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
+		s1 := s.Clone().SetP(nil)
+		for _, p := range predicates {
+			p(s1)
+		}
+		s.Where(s1.P())
+	})
 }
 
 // Or groups list of predicates with the OR operator between them.
 func Or(predicates ...predicate.WorkOrderDefinition) predicate.WorkOrderDefinition {
-	return predicate.WorkOrderDefinition(
-		func(s *sql.Selector) {
-			s1 := s.Clone().SetP(nil)
-			for i, p := range predicates {
-				if i > 0 {
-					s1.Or()
-				}
-				p(s1)
+	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
+		s1 := s.Clone().SetP(nil)
+		for i, p := range predicates {
+			if i > 0 {
+				s1.Or()
 			}
-			s.Where(s1.P())
-		},
-	)
+			p(s1)
+		}
+		s.Where(s1.P())
+	})
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.WorkOrderDefinition) predicate.WorkOrderDefinition {
-	return predicate.WorkOrderDefinition(
-		func(s *sql.Selector) {
-			p(s.Not())
-		},
-	)
+	return predicate.WorkOrderDefinition(func(s *sql.Selector) {
+		p(s.Not())
+	})
 }

@@ -10,42 +10,48 @@
 package graphhttp
 
 import (
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions/action/magmarebootnode"
 	"github.com/facebookincubator/symphony/pkg/actions/executor"
 	"github.com/facebookincubator/symphony/pkg/actions/trigger/magmaalert"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/oc"
 	"github.com/facebookincubator/symphony/pkg/orc8r"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/server/xserver"
+	"go.opencensus.io/stats/view"
 	"gocloud.dev/server/health"
-	"net/http"
+	"net/url"
 )
 
 // Injectors from wire.go:
 
 func NewServer(cfg Config) (*server.Server, func(), error) {
-	mySQLTenancy := cfg.Tenancy
-	logger := cfg.Logger
-	config := cfg.Orc8r
-	client := newOrc8rClient(config)
-	registry := newActionsRegistry(client)
-	router, err := newRouter(mySQLTenancy, logger, client, registry)
+	graphhttpRouterConfig, err := newRouterConfig(cfg)
 	if err != nil {
 		return nil, nil, err
 	}
+	router, cleanup, err := newRouter(graphhttpRouterConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	logger := cfg.Logger
 	zapLogger := xserver.NewRequestLogger(logger)
+	mySQLTenancy := cfg.Tenancy
 	v := newHealthChecker(mySQLTenancy)
-	v2 := xserver.DefaultViews()
+	v2 := provideViews()
 	exporter, err := xserver.NewPrometheusExporter(logger)
 	if err != nil {
+		cleanup()
 		return nil, nil, err
 	}
 	options := cfg.Census
 	jaegerOptions := oc.JaegerOptions(options)
-	traceExporter, cleanup, err := xserver.NewJaegerExporter(logger, jaegerOptions)
+	traceExporter, cleanup2, err := xserver.NewJaegerExporter(logger, jaegerOptions)
 	if err != nil {
+		cleanup()
 		return nil, nil, err
 	}
 	profilingEnabler := _wireProfilingEnablerValue
@@ -65,6 +71,7 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	}
 	serverServer := server.New(router, serverOptions)
 	return serverServer, func() {
+		cleanup2()
 		cleanup()
 	}, nil
 }
@@ -78,24 +85,41 @@ var (
 
 // Config defines the http server config.
 type Config struct {
-	Tenancy *viewer.MySQLTenancy
-	Logger  log.Logger
-	Census  oc.Options
-	Orc8r   orc8r.Config
+	Tenancy    *viewer.MySQLTenancy
+	AuthURL    *url.URL
+	Emitter    event.Emitter
+	Subscriber event.Subscriber
+	Logger     log.Logger
+	Census     oc.Options
+	Orc8r      orc8r.Config
 }
 
 func newHealthChecker(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
 }
 
-func newOrc8rClient(config orc8r.Config) *http.Client {
-	client, _ := orc8r.NewClient(config)
-	return client
+func newRouterConfig(config Config) (cfg routerConfig, err error) {
+	client, _ := orc8r.NewClient(config.Orc8r)
+	registry := executor.NewRegistry()
+	if err = registry.RegisterTrigger(magmaalert.New()); err != nil {
+		return
+	}
+	if err = registry.RegisterAction(magmarebootnode.New(client)); err != nil {
+		return
+	}
+	cfg = routerConfig{logger: config.Logger}
+	cfg.viewer.tenancy = config.Tenancy
+	cfg.viewer.authurl = config.AuthURL.String()
+	cfg.events.emitter = config.Emitter
+	cfg.events.subscriber = config.Subscriber
+	cfg.orc8r.client = client
+	cfg.actions.registry = registry
+	return cfg, nil
 }
 
-func newActionsRegistry(orc8rClient *http.Client) *executor.Registry {
-	registry := executor.NewRegistry()
-	registry.MustRegisterTrigger(magmaalert.New())
-	registry.MustRegisterAction(magmarebootnode.New(orc8rClient))
-	return registry
+func provideViews() []*view.View {
+	views := xserver.DefaultViews()
+	views = append(views, mysql.DefaultViews...)
+	views = append(views, event.DefaultViews...)
+	return views
 }

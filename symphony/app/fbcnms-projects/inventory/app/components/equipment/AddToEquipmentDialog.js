@@ -9,7 +9,9 @@
  */
 import type {Equipment, EquipmentPosition} from '../../common/Equipment';
 import type {EquipmentType} from '../../common/EquipmentType';
+import type {TabProps} from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 
+import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -17,15 +19,13 @@ import DialogContent from '@material-ui/core/DialogContent';
 import EquipmentTypesList from '../EquipmentTypesList';
 import LocationEquipments from '../location/LocationEquipments';
 import MoveEquipmentToPositionMutation from '../../mutations/MoveEquipmentToPositionMutation';
-import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
+import TabsBar from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
+import fbt from 'fbt';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {last} from 'lodash';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 
 type Props = {
   open: boolean,
@@ -35,43 +35,57 @@ type Props = {
   position: EquipmentPosition,
 };
 
-const useStyles = makeStyles(theme => ({
-  tabs: {
-    borderBottom: `1px ${theme.palette.grey[200]} solid`,
-  },
-}));
+type ViewTab = {|
+  id: string,
+  tab: TabProps,
+  view: React.Node,
+|};
 
 const AddToEquipmentDialog = (props: Props) => {
-  const [tab, setTab] = useState('new');
-  const [selectedEquipmentType, setSelectedEquipmentType] = useState(null);
-  const [selectedEquipment, setSelectedEquipment] = useState(null);
-  const classes = useStyles();
-
   const locations = props.parentEquipment.locationHierarchy;
   const parentLocation = nullthrows(last(locations));
-  return (
-    <Dialog maxWidth="sm" open={props.open} onClose={props.onClose}>
-      <DialogContent>
-        <Tabs
-          className={classes.tabs}
-          value={tab}
-          onChange={(_, newTab) => setTab(newTab)}
-          indicatorColor="primary"
-          textColor="primary">
-          <Tab label="New Equipment" value="new" />
-          <Tab label="Existing Equipment" value="existing" />
-        </Tabs>
-        {tab === 'new' && (
+  const [selectedEquipmentType, setSelectedEquipmentType] = useState(null);
+  const [selectedEquipment, setSelectedEquipment] = useState(null);
+  const tabBars: Array<ViewTab> = useMemo(
+    () => [
+      {
+        id: 'new',
+        tab: {
+          label: fbt('NEW EQUIPMENT', ''),
+        },
+        view: (
           <EquipmentTypesList
             onSelect={type => setSelectedEquipmentType(type)}
           />
-        )}
-        {tab === 'existing' && (
+        ),
+      },
+      {
+        id: 'existing',
+        tab: {
+          label: fbt('EXISTING EQUIPMENT', ''),
+        },
+        view: (
           <LocationEquipments
             locationId={parentLocation.id}
             onSelect={equipment => setSelectedEquipment(equipment)}
           />
-        )}
+        ),
+      },
+    ],
+    [parentLocation.id],
+  );
+  const [activeTabBar, setActiveTabBar] = useState<number>(0);
+
+  return (
+    <Dialog maxWidth="sm" open={props.open} onClose={props.onClose}>
+      <DialogContent>
+        <TabsBar
+          spread={true}
+          tabs={tabBars.map(tabBar => tabBar.tab)}
+          activeTabIndex={activeTabBar}
+          onChange={setActiveTabBar}
+        />
+        {tabBars[activeTabBar].view}
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose} skin="regular">
@@ -79,11 +93,13 @@ const AddToEquipmentDialog = (props: Props) => {
         </Button>
         <Button
           disabled={
-            (tab === 'new' && selectedEquipmentType === null) ||
-            (tab === 'existing' && selectedEquipment === null)
+            (tabBars[activeTabBar].id === 'new' &&
+              selectedEquipmentType === null) ||
+            (tabBars[activeTabBar].id === 'existing' &&
+              selectedEquipment === null)
           }
           onClick={() => {
-            if (tab === 'new') {
+            if (tabBars[activeTabBar].id === 'new') {
               props.onEquipmentTypeSelected(nullthrows(selectedEquipmentType));
             } else {
               MoveEquipmentToPositionMutation(

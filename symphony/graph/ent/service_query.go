@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -32,6 +33,15 @@ type ServiceQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Service
+	// eager-loading edges.
+	withType       *ServiceTypeQuery
+	withDownstream *ServiceQuery
+	withUpstream   *ServiceQuery
+	withProperties *PropertyQuery
+	withLinks      *LinkQuery
+	withCustomer   *CustomerQuery
+	withEndpoints  *ServiceEndpointQuery
+	withFKs        bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -144,14 +154,14 @@ func (sq *ServiceQuery) QueryEndpoints() *ServiceEndpointQuery {
 	return query
 }
 
-// First returns the first Service entity in the query. Returns *ErrNotFound when no service was found.
+// First returns the first Service entity in the query. Returns *NotFoundError when no service was found.
 func (sq *ServiceQuery) First(ctx context.Context) (*Service, error) {
 	sSlice, err := sq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(sSlice) == 0 {
-		return nil, &ErrNotFound{service.Label}
+		return nil, &NotFoundError{service.Label}
 	}
 	return sSlice[0], nil
 }
@@ -165,21 +175,21 @@ func (sq *ServiceQuery) FirstX(ctx context.Context) *Service {
 	return s
 }
 
-// FirstID returns the first Service id in the query. Returns *ErrNotFound when no id was found.
-func (sq *ServiceQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+// FirstID returns the first Service id in the query. Returns *NotFoundError when no id was found.
+func (sq *ServiceQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{service.Label}
+		err = &NotFoundError{service.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (sq *ServiceQuery) FirstXID(ctx context.Context) string {
+func (sq *ServiceQuery) FirstXID(ctx context.Context) int {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -197,9 +207,9 @@ func (sq *ServiceQuery) Only(ctx context.Context) (*Service, error) {
 	case 1:
 		return sSlice[0], nil
 	case 0:
-		return nil, &ErrNotFound{service.Label}
+		return nil, &NotFoundError{service.Label}
 	default:
-		return nil, &ErrNotSingular{service.Label}
+		return nil, &NotSingularError{service.Label}
 	}
 }
 
@@ -213,8 +223,8 @@ func (sq *ServiceQuery) OnlyX(ctx context.Context) *Service {
 }
 
 // OnlyID returns the only Service id in the query, returns an error if not exactly one id was returned.
-func (sq *ServiceQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (sq *ServiceQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -222,15 +232,15 @@ func (sq *ServiceQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{service.Label}
+		err = &NotFoundError{service.Label}
 	default:
-		err = &ErrNotSingular{service.Label}
+		err = &NotSingularError{service.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (sq *ServiceQuery) OnlyXID(ctx context.Context) string {
+func (sq *ServiceQuery) OnlyXID(ctx context.Context) int {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -253,8 +263,8 @@ func (sq *ServiceQuery) AllX(ctx context.Context) []*Service {
 }
 
 // IDs executes the query and returns a list of Service ids.
-func (sq *ServiceQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (sq *ServiceQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := sq.Select(service.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -262,7 +272,7 @@ func (sq *ServiceQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *ServiceQuery) IDsX(ctx context.Context) []string {
+func (sq *ServiceQuery) IDsX(ctx context.Context) []int {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -313,6 +323,83 @@ func (sq *ServiceQuery) Clone() *ServiceQuery {
 	}
 }
 
+//  WithType tells the query-builder to eager-loads the nodes that are connected to
+// the "type" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithType(opts ...func(*ServiceTypeQuery)) *ServiceQuery {
+	query := &ServiceTypeQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withType = query
+	return sq
+}
+
+//  WithDownstream tells the query-builder to eager-loads the nodes that are connected to
+// the "downstream" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithDownstream(opts ...func(*ServiceQuery)) *ServiceQuery {
+	query := &ServiceQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withDownstream = query
+	return sq
+}
+
+//  WithUpstream tells the query-builder to eager-loads the nodes that are connected to
+// the "upstream" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithUpstream(opts ...func(*ServiceQuery)) *ServiceQuery {
+	query := &ServiceQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withUpstream = query
+	return sq
+}
+
+//  WithProperties tells the query-builder to eager-loads the nodes that are connected to
+// the "properties" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithProperties(opts ...func(*PropertyQuery)) *ServiceQuery {
+	query := &PropertyQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withProperties = query
+	return sq
+}
+
+//  WithLinks tells the query-builder to eager-loads the nodes that are connected to
+// the "links" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithLinks(opts ...func(*LinkQuery)) *ServiceQuery {
+	query := &LinkQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withLinks = query
+	return sq
+}
+
+//  WithCustomer tells the query-builder to eager-loads the nodes that are connected to
+// the "customer" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithCustomer(opts ...func(*CustomerQuery)) *ServiceQuery {
+	query := &CustomerQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withCustomer = query
+	return sq
+}
+
+//  WithEndpoints tells the query-builder to eager-loads the nodes that are connected to
+// the "endpoints" edge. The optional arguments used to configure the query builder of the edge.
+func (sq *ServiceQuery) WithEndpoints(opts ...func(*ServiceEndpointQuery)) *ServiceQuery {
+	query := &ServiceEndpointQuery{config: sq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withEndpoints = query
+	return sq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -356,30 +443,388 @@ func (sq *ServiceQuery) Select(field string, fields ...string) *ServiceSelect {
 
 func (sq *ServiceQuery) sqlAll(ctx context.Context) ([]*Service, error) {
 	var (
-		nodes []*Service
-		spec  = sq.querySpec()
+		nodes       = []*Service{}
+		withFKs     = sq.withFKs
+		_spec       = sq.querySpec()
+		loadedTypes = [7]bool{
+			sq.withType != nil,
+			sq.withDownstream != nil,
+			sq.withUpstream != nil,
+			sq.withProperties != nil,
+			sq.withLinks != nil,
+			sq.withCustomer != nil,
+			sq.withEndpoints != nil,
+		}
 	)
-	spec.ScanValues = func() []interface{} {
+	if sq.withType != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, service.ForeignKeys...)
+	}
+	_spec.ScanValues = func() []interface{} {
 		node := &Service{config: sq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, sq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, sq.driver, _spec); err != nil {
 		return nil, err
 	}
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := sq.withType; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Service)
+		for i := range nodes {
+			if fk := nodes[i].service_type; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(servicetype.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Type = n
+			}
+		}
+	}
+
+	if query := sq.withDownstream; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*Service)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: true,
+				Table:   service.DownstreamTable,
+				Columns: service.DownstreamPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(service.DownstreamPrimaryKey[1], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, sq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "downstream": %v`, err)
+		}
+		query.Where(service.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "downstream" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Downstream = append(nodes[i].Edges.Downstream, n)
+			}
+		}
+	}
+
+	if query := sq.withUpstream; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*Service)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: false,
+				Table:   service.UpstreamTable,
+				Columns: service.UpstreamPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(service.UpstreamPrimaryKey[0], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, sq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "upstream": %v`, err)
+		}
+		query.Where(service.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "upstream" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Upstream = append(nodes[i].Edges.Upstream, n)
+			}
+		}
+	}
+
+	if query := sq.withProperties; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Service)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Property(func(s *sql.Selector) {
+			s.Where(sql.InValues(service.PropertiesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.service_properties
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "service_properties" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_properties" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Properties = append(node.Edges.Properties, n)
+		}
+	}
+
+	if query := sq.withLinks; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*Service)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: false,
+				Table:   service.LinksTable,
+				Columns: service.LinksPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(service.LinksPrimaryKey[0], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, sq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "links": %v`, err)
+		}
+		query.Where(link.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "links" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Links = append(nodes[i].Edges.Links, n)
+			}
+		}
+	}
+
+	if query := sq.withCustomer; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[int]*Service, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+		}
+		var (
+			edgeids []int
+			edges   = make(map[int][]*Service)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: false,
+				Table:   service.CustomerTable,
+				Columns: service.CustomerPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(service.CustomerPrimaryKey[0], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&sql.NullInt64{}, &sql.NullInt64{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*sql.NullInt64)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*sql.NullInt64)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := int(eout.Int64)
+				inValue := int(ein.Int64)
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, sq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "customer": %v`, err)
+		}
+		query.Where(customer.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "customer" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Customer = append(nodes[i].Edges.Customer, n)
+			}
+		}
+	}
+
+	if query := sq.withEndpoints; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Service)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.ServiceEndpoint(func(s *sql.Selector) {
+			s.Where(sql.InValues(service.EndpointsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.service_endpoints
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "service_endpoints" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoints" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Endpoints = append(node.Edges.Endpoints, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (sq *ServiceQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := sq.querySpec()
-	return sqlgraph.CountNodes(ctx, sq.driver, spec)
+	_spec := sq.querySpec()
+	return sqlgraph.CountNodes(ctx, sq.driver, _spec)
 }
 
 func (sq *ServiceQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -391,12 +836,12 @@ func (sq *ServiceQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (sq *ServiceQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   service.Table,
 			Columns: service.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: service.FieldID,
 			},
 		},
@@ -404,26 +849,26 @@ func (sq *ServiceQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := sq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := sq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := sq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := sq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (sq *ServiceQuery) sqlQuery() *sql.Selector {

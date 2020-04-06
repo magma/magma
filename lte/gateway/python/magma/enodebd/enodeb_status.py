@@ -254,7 +254,10 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
         rf_tx_desired = False
     mme_connected = _parse_param_as_bool(enodeb, ParameterName.MME_STATUS)
     gps_connected = _get_gps_status_as_bool(enodeb)
-    ptp_connected = _parse_param_as_bool(enodeb, ParameterName.PTP_STATUS)
+    try:
+        ptp_connected = _parse_param_as_bool(enodeb, ParameterName.PTP_STATUS)
+    except ConfigurationError:
+        ptp_connected = False
 
     return EnodebStatus(enodeb_configured=enodeb_configured,
                         gps_latitude=gps_lat,

@@ -124,15 +124,18 @@ class LocationTypeItem extends React.Component<Props> {
             },
           },
           store => {
+            // $FlowFixMe (T62907961) Relay flow types
             const rootQuery = store.getRoot();
             const locationTypes = ConnectionHandler.getConnection(
               rootQuery,
               'Catalog_locationTypes',
             );
             ConnectionHandler.deleteNode(
+              // $FlowFixMe (T62907961) Relay flow types
               locationTypes,
               this.props.locationType.id,
             );
+            // $FlowFixMe (T62907961) Relay flow types
             store.delete(this.props.locationType.id);
           },
         );

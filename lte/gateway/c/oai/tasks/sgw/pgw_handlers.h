@@ -28,21 +28,32 @@
 
 #ifndef FILE_PGW_HANDLERS_SEEN
 #define FILE_PGW_HANDLERS_SEEN
-#include "s5_messages_types.h"
-#include "sgw_messages_types.h"
+#include "gx_messages_types.h"
 #include "spgw_state.h"
 
-int pgw_handle_create_bearer_request(
-  spgw_state_t *spgw_state,
-  const itti_s5_create_bearer_request_t *const bearer_req_p);
-uint32_t pgw_handle_nw_init_activate_bearer_rsp(
-  const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp);
-uint32_t pgw_handle_nw_initiated_bearer_actv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p);
-uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
-  const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp);
-uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p);
+void handle_s5_create_session_request(
+  spgw_state_t* spgw_state,
+  s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p,
+  teid_t context_teid,
+  ebi_t eps_bearer_id);
+
+uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(
+  gtpv2c_cause_t cause,
+  ebi_t lbi);
+
+int spgw_handle_nw_initiated_bearer_actv_req(
+  spgw_state_t* state,
+  const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
+  imsi64_t imsi64,
+  gtpv2c_cause_value_t* failed_cause);
+
+int32_t spgw_handle_nw_initiated_bearer_deactv_req(
+  spgw_state_t* spgw_state,
+  const itti_gx_nw_init_deactv_bearer_request_t* const bearer_req_p,
+  imsi64_t imsi64);
+
+int spgw_send_nw_init_activate_bearer_rsp(
+  gtpv2c_cause_value_t cause,
+  imsi64_t imsi64,
+  uint8_t eps_bearer_id);
 #endif /* FILE_PGW_HANDLERS_SEEN */

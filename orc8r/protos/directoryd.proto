@@ -10,59 +10,57 @@ import "orc8r/protos/common.proto";
 
 package magma.orc8r;
 
-option go_package = "magma/orc8r/cloud/go/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
 // --------------------------------------------------------------------------
-// Directory Service
-//
-//
-//
+// Directory service -- controller
 // --------------------------------------------------------------------------
 
-enum TableID {
-  IMSI_TO_HWID = 0;
-  HWID_TO_HOSTNAME = 1;
+message GetHostnameForHWIDRequest {
+  string hwid = 1;
 }
 
-message GetLocationRequest {
-  string id = 1;
-  TableID table = 2;
-  string networkID = 3;
+message GetHostnameForHWIDResponse {
+  string hostname = 1;
 }
 
-message DeleteLocationRequest {
-  string id = 1;
-  TableID table = 2;
-  string networkID = 3;
+message MapHWIDToHostnameRequest {
+  map<string, string> hwidToHostname = 1;
 }
 
-message LocationRecord {
-  // Object location. Client is responsible for location encoding and decoding
-  string location = 1;
+message GetIMSIForSessionIDRequest {
+  string networkID = 1;
+  string sessionID = 2;
 }
 
-message UpdateDirectoryLocationRequest {
-  string id = 1;
-  LocationRecord record = 2;
-  TableID table = 3;
+message GetIMSIForSessionIDResponse {
+  string imsi = 1;
 }
 
-
-// DirectoryService provides a central directory on the Orchestrator that
-// associates an ID with a location.
-service DirectoryService {
-
-  // Get location of an object from the directory service
-  // Throws UNKNOWN if object ID does not exist
-  rpc GetLocation (GetLocationRequest) returns (LocationRecord) {};
-
-  // Update the location record of an object in the directory service
-  rpc UpdateLocation (UpdateDirectoryLocationRequest) returns (Void) {};
-
-  // Delete location record of an object from the directory service
-  // Throws UNKNOWN if object ID does not exist
-  rpc DeleteLocation (DeleteLocationRequest) returns (Void) {};
+message MapSessionIDToIMSIRequest {
+  string networkID = 1;
+  map<string, string> sessionIDToIMSI = 2;
 }
+
+// DirectoryLookup service associates various identities and locations.
+// This service runs in the controller, generating and consuming mostly derived state.
+service DirectoryLookup {
+  // GetHostnameForHWID returns the hostname mapped to by hardware ID.
+  rpc GetHostnameForHWID(GetHostnameForHWIDRequest) returns (GetHostnameForHWIDResponse) {};
+
+  // MapHWIDsToHostnames maps {hwid -> hostname}.
+  rpc MapHWIDsToHostnames(MapHWIDToHostnameRequest) returns (Void) {};
+
+  // GetIMSIForSessionID returns the IMSI mapped to by session ID.
+  rpc GetIMSIForSessionID(GetIMSIForSessionIDRequest) returns (GetIMSIForSessionIDResponse) {};
+
+  // MapSessionIDsToIMSIs maps {session ID -> IMSI}.
+  rpc MapSessionIDsToIMSIs(MapSessionIDToIMSIRequest) returns (Void) {};
+}
+
+// --------------------------------------------------------------------------
+// Directory service -- gateway
+// --------------------------------------------------------------------------
 
 message UpdateRecordRequest {
   string id = 1;

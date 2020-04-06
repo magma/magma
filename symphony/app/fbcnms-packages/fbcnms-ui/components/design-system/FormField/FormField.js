@@ -9,13 +9,16 @@
  */
 
 import * as React from 'react';
-import FormFieldContext from './FormFieldContext';
+import FormElementContext from '../Form/FormElementContext';
+import FormValidationContext from '../Form/FormValidationContext';
 import Text from '../Text';
 import classNames from 'classnames';
 import nullthrows from 'nullthrows';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useMemo} from 'react';
 
-const useStyles = makeStyles(({symphony}) => ({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -49,10 +52,14 @@ type Props = {
   helpText?: string,
   children: React.Node,
   disabled: boolean,
-  hasError: boolean,
-  required: boolean,
+  hasError?: boolean,
+  required?: boolean,
   errorText?: ?string,
   hasSpacer?: boolean,
+  validation?: {
+    id: string,
+    value: string | number,
+  },
 };
 
 const FormField = (props: Props) => {
@@ -60,16 +67,35 @@ const FormField = (props: Props) => {
     children,
     label,
     helpText,
-    disabled,
+    disabled: disabledProp,
     className,
-    hasError,
-    errorText,
+    hasError: hasErrorProp,
+    errorText: errorTextProp,
     hasSpacer,
-    required,
+    required = false,
+    validation,
   } = props;
   const classes = useStyles();
+
+  const validationContext = useContext(FormValidationContext);
+  const disabled = useMemo(
+    () => disabledProp || validationContext.editLock.detected,
+    [disabledProp, validationContext.editLock.detected],
+  );
+
+  const requireFieldError =
+    validation == null
+      ? ''
+      : validationContext.error.check({
+          fieldId: validation.id,
+          fieldDisplayName: label ?? validation.id,
+          value: validation.value,
+          required: required,
+        });
+  const errorText = errorTextProp ?? requireFieldError;
+  const hasError = hasErrorProp || !!requireFieldError;
   return (
-    <FormFieldContext.Provider value={{disabled, hasError}}>
+    <FormElementContext.Provider value={{disabled, hasError}}>
       <div
         className={classNames(
           classes.root,
@@ -93,7 +119,7 @@ const FormField = (props: Props) => {
           <div className={classes.spacer} />
         )}
       </div>
-    </FormFieldContext.Provider>
+    </FormElementContext.Provider>
   );
 };
 

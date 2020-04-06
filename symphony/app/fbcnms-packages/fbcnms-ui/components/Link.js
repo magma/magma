@@ -4,25 +4,26 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
 import type {WithStyles} from '@material-ui/core';
 
-import React from 'react';
+import * as React from 'react';
+import symphony from '../theme/symphony';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
   onClick: () => void,
-  children: any,
+  children: React.Node,
 } & WithStyles<typeof styles>;
 
-const styles = theme => ({
+const styles = () => ({
   root: {
     cursor: 'pointer',
     textDecoration: 'underline',
-    color: theme.palette.primary.main,
+    color: symphony.palette.primary,
   },
 });
 

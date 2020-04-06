@@ -15,7 +15,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers/test"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/lte/cloud/go/crypto"
 
 	"github.com/stretchr/testify/assert"
@@ -65,15 +65,15 @@ func TestULR_Successful(t *testing.T) {
 	ula, err := s6aProxy.UpdateLocation(context.Background(), ulr)
 	assert.NoError(t, err)
 	assert.Equal(t, protos.ErrorCode_UNDEFINED, ula.ErrorCode)
-	assert.Equal(t, uint32(test.DefaultMaxUlBitRate), ula.GetTotalAmbr().GetMaxBandwidthUl())
-	assert.Equal(t, uint32(test.DefaultMaxDlBitRate), ula.GetTotalAmbr().GetMaxBandwidthDl())
+	assert.Equal(t, uint32(test_utils.DefaultMaxUlBitRate), ula.GetTotalAmbr().GetMaxBandwidthUl())
+	assert.Equal(t, uint32(test_utils.DefaultMaxDlBitRate), ula.GetTotalAmbr().GetMaxBandwidthDl())
 	assert.Equal(t, []byte("12345"), ula.Msisdn)
 
 	assert.Equal(t, 1, len(ula.Apn))
 	apn := ula.Apn[0]
 	assert.Equal(t, "oai.ipv4", apn.ServiceSelection)
-	assert.Equal(t, uint32(test.DefaultMaxUlBitRate), apn.GetAmbr().GetMaxBandwidthUl())
-	assert.Equal(t, uint32(test.DefaultMaxDlBitRate), apn.GetAmbr().GetMaxBandwidthDl())
+	assert.Equal(t, uint32(test_utils.DefaultMaxUlBitRate), apn.GetAmbr().GetMaxBandwidthUl())
+	assert.Equal(t, uint32(test_utils.DefaultMaxDlBitRate), apn.GetAmbr().GetMaxBandwidthDl())
 	assert.Equal(t, int32(9), apn.GetQosProfile().GetClassId())
 	assert.Equal(t, true, apn.GetQosProfile().GetPreemptionVulnerability())
 	assert.Equal(t, uint32(15), apn.GetQosProfile().GetPriorityLevel())

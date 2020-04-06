@@ -15,18 +15,18 @@ import (
 	"os"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/dispatcher"
-	sync_rpc_broker "magma/orc8r/cloud/go/services/dispatcher/broker"
+	syncRpcBroker "magma/orc8r/cloud/go/services/dispatcher/broker"
 	"magma/orc8r/cloud/go/services/dispatcher/httpserver"
 	"magma/orc8r/cloud/go/services/dispatcher/servicers"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 )
 
-const HTTP_SERVER_PORT = 9080
+const HttpServerPort = 9080
 
 func main() {
 	// Set MaxConnectionAge to infinity so Sync RPC stream doesn't restart
@@ -45,11 +45,12 @@ func main() {
 	}
 
 	// create a broker
-	broker := sync_rpc_broker.NewGatewayReqRespBroker()
+	broker := syncRpcBroker.NewGatewayReqRespBroker()
 
 	// get ec2 public host name
 	hostName := getHostName()
 	glog.V(2).Infof("hostName is: %v\n", hostName)
+
 	// create servicer
 	syncRpcServicer, err := servicers.NewSyncRPCService(hostName, broker)
 	if err != nil {
@@ -63,7 +64,7 @@ func main() {
 	srv.GrpcServer.RegisterService(protos.GetLegacyDispatcherDesc(), syncRpcServicer)
 
 	// run http server
-	go httpServer.Run(fmt.Sprintf(":%d", HTTP_SERVER_PORT))
+	go httpServer.Run(fmt.Sprintf(":%d", HttpServerPort))
 
 	err = srv.Run()
 	if err != nil {

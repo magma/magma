@@ -8,12 +8,17 @@ ENV PATH ${PATH}:${GOBIN}
 ENV GOPROXY https://proxy.golang.org
 
 # Copy go.mod file to cache the downloads
-COPY go/go.mod /gomod/
-WORKDIR /gomod
+COPY cloud/go/go.mod /gomod/cloud/go/
+COPY gateway/go/go.mod /gomod/gateway/go/
+COPY lib/go/go.mod /gomod/lib/go/
+COPY lib/go/protos/go.mod /gomod/lib/go/protos/
+WORKDIR /gomod/cloud/go
 RUN go mod download
 
 # Copy magma code
-COPY go/ /go/src/magma/orc8r/cloud/go/
+COPY cloud/go/ /go/src/magma/orc8r/cloud/go/
+COPY gateway/go/ /go/src/magma/orc8r/gateway/go/
+COPY lib/go/ /go/src/magma/orc8r/lib/go/
 
 # Build prom_alertconfig service
 WORKDIR /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/
@@ -24,6 +29,6 @@ FROM alpine:3.11
 COPY --from=go /build/bin/prometheus_configurer /bin/prometheus_configurer
 
 # Copy config files
-COPY docker/prometheus-configurer/configs /etc/configs
+COPY cloud/docker/prometheus-configurer/configs /etc/configs
 
 ENTRYPOINT ["prometheus_configurer"]

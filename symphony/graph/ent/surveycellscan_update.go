@@ -8,8 +8,7 @@ package ent
 
 import (
 	"context"
-	"errors"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -24,58 +23,9 @@ import (
 // SurveyCellScanUpdate is the builder for updating SurveyCellScan entities.
 type SurveyCellScanUpdate struct {
 	config
-
-	update_time                  *time.Time
-	network_type                 *string
-	signal_strength              *int
-	addsignal_strength           *int
-	timestamp                    *time.Time
-	cleartimestamp               bool
-	base_station_id              *string
-	clearbase_station_id         bool
-	network_id                   *string
-	clearnetwork_id              bool
-	system_id                    *string
-	clearsystem_id               bool
-	cell_id                      *string
-	clearcell_id                 bool
-	location_area_code           *string
-	clearlocation_area_code      bool
-	mobile_country_code          *string
-	clearmobile_country_code     bool
-	mobile_network_code          *string
-	clearmobile_network_code     bool
-	primary_scrambling_code      *string
-	clearprimary_scrambling_code bool
-	operator                     *string
-	clearoperator                bool
-	arfcn                        *int
-	addarfcn                     *int
-	cleararfcn                   bool
-	physical_cell_id             *string
-	clearphysical_cell_id        bool
-	tracking_area_code           *string
-	cleartracking_area_code      bool
-	timing_advance               *int
-	addtiming_advance            *int
-	cleartiming_advance          bool
-	earfcn                       *int
-	addearfcn                    *int
-	clearearfcn                  bool
-	uarfcn                       *int
-	adduarfcn                    *int
-	clearuarfcn                  bool
-	latitude                     *float64
-	addlatitude                  *float64
-	clearlatitude                bool
-	longitude                    *float64
-	addlongitude                 *float64
-	clearlongitude               bool
-	survey_question              map[string]struct{}
-	location                     map[string]struct{}
-	clearedSurveyQuestion        bool
-	clearedLocation              bool
-	predicates                   []predicate.SurveyCellScan
+	hooks      []Hook
+	mutation   *SurveyCellScanMutation
+	predicates []predicate.SurveyCellScan
 }
 
 // Where adds a new predicate for the builder.
@@ -86,30 +36,26 @@ func (scsu *SurveyCellScanUpdate) Where(ps ...predicate.SurveyCellScan) *SurveyC
 
 // SetNetworkType sets the network_type field.
 func (scsu *SurveyCellScanUpdate) SetNetworkType(s string) *SurveyCellScanUpdate {
-	scsu.network_type = &s
+	scsu.mutation.SetNetworkType(s)
 	return scsu
 }
 
 // SetSignalStrength sets the signal_strength field.
 func (scsu *SurveyCellScanUpdate) SetSignalStrength(i int) *SurveyCellScanUpdate {
-	scsu.signal_strength = &i
-	scsu.addsignal_strength = nil
+	scsu.mutation.ResetSignalStrength()
+	scsu.mutation.SetSignalStrength(i)
 	return scsu
 }
 
 // AddSignalStrength adds i to signal_strength.
 func (scsu *SurveyCellScanUpdate) AddSignalStrength(i int) *SurveyCellScanUpdate {
-	if scsu.addsignal_strength == nil {
-		scsu.addsignal_strength = &i
-	} else {
-		*scsu.addsignal_strength += i
-	}
+	scsu.mutation.AddSignalStrength(i)
 	return scsu
 }
 
 // SetTimestamp sets the timestamp field.
 func (scsu *SurveyCellScanUpdate) SetTimestamp(t time.Time) *SurveyCellScanUpdate {
-	scsu.timestamp = &t
+	scsu.mutation.SetTimestamp(t)
 	return scsu
 }
 
@@ -123,14 +69,13 @@ func (scsu *SurveyCellScanUpdate) SetNillableTimestamp(t *time.Time) *SurveyCell
 
 // ClearTimestamp clears the value of timestamp.
 func (scsu *SurveyCellScanUpdate) ClearTimestamp() *SurveyCellScanUpdate {
-	scsu.timestamp = nil
-	scsu.cleartimestamp = true
+	scsu.mutation.ClearTimestamp()
 	return scsu
 }
 
 // SetBaseStationID sets the base_station_id field.
 func (scsu *SurveyCellScanUpdate) SetBaseStationID(s string) *SurveyCellScanUpdate {
-	scsu.base_station_id = &s
+	scsu.mutation.SetBaseStationID(s)
 	return scsu
 }
 
@@ -144,14 +89,13 @@ func (scsu *SurveyCellScanUpdate) SetNillableBaseStationID(s *string) *SurveyCel
 
 // ClearBaseStationID clears the value of base_station_id.
 func (scsu *SurveyCellScanUpdate) ClearBaseStationID() *SurveyCellScanUpdate {
-	scsu.base_station_id = nil
-	scsu.clearbase_station_id = true
+	scsu.mutation.ClearBaseStationID()
 	return scsu
 }
 
 // SetNetworkID sets the network_id field.
 func (scsu *SurveyCellScanUpdate) SetNetworkID(s string) *SurveyCellScanUpdate {
-	scsu.network_id = &s
+	scsu.mutation.SetNetworkID(s)
 	return scsu
 }
 
@@ -165,14 +109,13 @@ func (scsu *SurveyCellScanUpdate) SetNillableNetworkID(s *string) *SurveyCellSca
 
 // ClearNetworkID clears the value of network_id.
 func (scsu *SurveyCellScanUpdate) ClearNetworkID() *SurveyCellScanUpdate {
-	scsu.network_id = nil
-	scsu.clearnetwork_id = true
+	scsu.mutation.ClearNetworkID()
 	return scsu
 }
 
 // SetSystemID sets the system_id field.
 func (scsu *SurveyCellScanUpdate) SetSystemID(s string) *SurveyCellScanUpdate {
-	scsu.system_id = &s
+	scsu.mutation.SetSystemID(s)
 	return scsu
 }
 
@@ -186,14 +129,13 @@ func (scsu *SurveyCellScanUpdate) SetNillableSystemID(s *string) *SurveyCellScan
 
 // ClearSystemID clears the value of system_id.
 func (scsu *SurveyCellScanUpdate) ClearSystemID() *SurveyCellScanUpdate {
-	scsu.system_id = nil
-	scsu.clearsystem_id = true
+	scsu.mutation.ClearSystemID()
 	return scsu
 }
 
 // SetCellID sets the cell_id field.
 func (scsu *SurveyCellScanUpdate) SetCellID(s string) *SurveyCellScanUpdate {
-	scsu.cell_id = &s
+	scsu.mutation.SetCellID(s)
 	return scsu
 }
 
@@ -207,14 +149,13 @@ func (scsu *SurveyCellScanUpdate) SetNillableCellID(s *string) *SurveyCellScanUp
 
 // ClearCellID clears the value of cell_id.
 func (scsu *SurveyCellScanUpdate) ClearCellID() *SurveyCellScanUpdate {
-	scsu.cell_id = nil
-	scsu.clearcell_id = true
+	scsu.mutation.ClearCellID()
 	return scsu
 }
 
 // SetLocationAreaCode sets the location_area_code field.
 func (scsu *SurveyCellScanUpdate) SetLocationAreaCode(s string) *SurveyCellScanUpdate {
-	scsu.location_area_code = &s
+	scsu.mutation.SetLocationAreaCode(s)
 	return scsu
 }
 
@@ -228,14 +169,13 @@ func (scsu *SurveyCellScanUpdate) SetNillableLocationAreaCode(s *string) *Survey
 
 // ClearLocationAreaCode clears the value of location_area_code.
 func (scsu *SurveyCellScanUpdate) ClearLocationAreaCode() *SurveyCellScanUpdate {
-	scsu.location_area_code = nil
-	scsu.clearlocation_area_code = true
+	scsu.mutation.ClearLocationAreaCode()
 	return scsu
 }
 
 // SetMobileCountryCode sets the mobile_country_code field.
 func (scsu *SurveyCellScanUpdate) SetMobileCountryCode(s string) *SurveyCellScanUpdate {
-	scsu.mobile_country_code = &s
+	scsu.mutation.SetMobileCountryCode(s)
 	return scsu
 }
 
@@ -249,14 +189,13 @@ func (scsu *SurveyCellScanUpdate) SetNillableMobileCountryCode(s *string) *Surve
 
 // ClearMobileCountryCode clears the value of mobile_country_code.
 func (scsu *SurveyCellScanUpdate) ClearMobileCountryCode() *SurveyCellScanUpdate {
-	scsu.mobile_country_code = nil
-	scsu.clearmobile_country_code = true
+	scsu.mutation.ClearMobileCountryCode()
 	return scsu
 }
 
 // SetMobileNetworkCode sets the mobile_network_code field.
 func (scsu *SurveyCellScanUpdate) SetMobileNetworkCode(s string) *SurveyCellScanUpdate {
-	scsu.mobile_network_code = &s
+	scsu.mutation.SetMobileNetworkCode(s)
 	return scsu
 }
 
@@ -270,14 +209,13 @@ func (scsu *SurveyCellScanUpdate) SetNillableMobileNetworkCode(s *string) *Surve
 
 // ClearMobileNetworkCode clears the value of mobile_network_code.
 func (scsu *SurveyCellScanUpdate) ClearMobileNetworkCode() *SurveyCellScanUpdate {
-	scsu.mobile_network_code = nil
-	scsu.clearmobile_network_code = true
+	scsu.mutation.ClearMobileNetworkCode()
 	return scsu
 }
 
 // SetPrimaryScramblingCode sets the primary_scrambling_code field.
 func (scsu *SurveyCellScanUpdate) SetPrimaryScramblingCode(s string) *SurveyCellScanUpdate {
-	scsu.primary_scrambling_code = &s
+	scsu.mutation.SetPrimaryScramblingCode(s)
 	return scsu
 }
 
@@ -291,14 +229,13 @@ func (scsu *SurveyCellScanUpdate) SetNillablePrimaryScramblingCode(s *string) *S
 
 // ClearPrimaryScramblingCode clears the value of primary_scrambling_code.
 func (scsu *SurveyCellScanUpdate) ClearPrimaryScramblingCode() *SurveyCellScanUpdate {
-	scsu.primary_scrambling_code = nil
-	scsu.clearprimary_scrambling_code = true
+	scsu.mutation.ClearPrimaryScramblingCode()
 	return scsu
 }
 
 // SetOperator sets the operator field.
 func (scsu *SurveyCellScanUpdate) SetOperator(s string) *SurveyCellScanUpdate {
-	scsu.operator = &s
+	scsu.mutation.SetOperator(s)
 	return scsu
 }
 
@@ -312,15 +249,14 @@ func (scsu *SurveyCellScanUpdate) SetNillableOperator(s *string) *SurveyCellScan
 
 // ClearOperator clears the value of operator.
 func (scsu *SurveyCellScanUpdate) ClearOperator() *SurveyCellScanUpdate {
-	scsu.operator = nil
-	scsu.clearoperator = true
+	scsu.mutation.ClearOperator()
 	return scsu
 }
 
 // SetArfcn sets the arfcn field.
 func (scsu *SurveyCellScanUpdate) SetArfcn(i int) *SurveyCellScanUpdate {
-	scsu.arfcn = &i
-	scsu.addarfcn = nil
+	scsu.mutation.ResetArfcn()
+	scsu.mutation.SetArfcn(i)
 	return scsu
 }
 
@@ -334,24 +270,19 @@ func (scsu *SurveyCellScanUpdate) SetNillableArfcn(i *int) *SurveyCellScanUpdate
 
 // AddArfcn adds i to arfcn.
 func (scsu *SurveyCellScanUpdate) AddArfcn(i int) *SurveyCellScanUpdate {
-	if scsu.addarfcn == nil {
-		scsu.addarfcn = &i
-	} else {
-		*scsu.addarfcn += i
-	}
+	scsu.mutation.AddArfcn(i)
 	return scsu
 }
 
 // ClearArfcn clears the value of arfcn.
 func (scsu *SurveyCellScanUpdate) ClearArfcn() *SurveyCellScanUpdate {
-	scsu.arfcn = nil
-	scsu.cleararfcn = true
+	scsu.mutation.ClearArfcn()
 	return scsu
 }
 
 // SetPhysicalCellID sets the physical_cell_id field.
 func (scsu *SurveyCellScanUpdate) SetPhysicalCellID(s string) *SurveyCellScanUpdate {
-	scsu.physical_cell_id = &s
+	scsu.mutation.SetPhysicalCellID(s)
 	return scsu
 }
 
@@ -365,14 +296,13 @@ func (scsu *SurveyCellScanUpdate) SetNillablePhysicalCellID(s *string) *SurveyCe
 
 // ClearPhysicalCellID clears the value of physical_cell_id.
 func (scsu *SurveyCellScanUpdate) ClearPhysicalCellID() *SurveyCellScanUpdate {
-	scsu.physical_cell_id = nil
-	scsu.clearphysical_cell_id = true
+	scsu.mutation.ClearPhysicalCellID()
 	return scsu
 }
 
 // SetTrackingAreaCode sets the tracking_area_code field.
 func (scsu *SurveyCellScanUpdate) SetTrackingAreaCode(s string) *SurveyCellScanUpdate {
-	scsu.tracking_area_code = &s
+	scsu.mutation.SetTrackingAreaCode(s)
 	return scsu
 }
 
@@ -386,15 +316,14 @@ func (scsu *SurveyCellScanUpdate) SetNillableTrackingAreaCode(s *string) *Survey
 
 // ClearTrackingAreaCode clears the value of tracking_area_code.
 func (scsu *SurveyCellScanUpdate) ClearTrackingAreaCode() *SurveyCellScanUpdate {
-	scsu.tracking_area_code = nil
-	scsu.cleartracking_area_code = true
+	scsu.mutation.ClearTrackingAreaCode()
 	return scsu
 }
 
 // SetTimingAdvance sets the timing_advance field.
 func (scsu *SurveyCellScanUpdate) SetTimingAdvance(i int) *SurveyCellScanUpdate {
-	scsu.timing_advance = &i
-	scsu.addtiming_advance = nil
+	scsu.mutation.ResetTimingAdvance()
+	scsu.mutation.SetTimingAdvance(i)
 	return scsu
 }
 
@@ -408,25 +337,20 @@ func (scsu *SurveyCellScanUpdate) SetNillableTimingAdvance(i *int) *SurveyCellSc
 
 // AddTimingAdvance adds i to timing_advance.
 func (scsu *SurveyCellScanUpdate) AddTimingAdvance(i int) *SurveyCellScanUpdate {
-	if scsu.addtiming_advance == nil {
-		scsu.addtiming_advance = &i
-	} else {
-		*scsu.addtiming_advance += i
-	}
+	scsu.mutation.AddTimingAdvance(i)
 	return scsu
 }
 
 // ClearTimingAdvance clears the value of timing_advance.
 func (scsu *SurveyCellScanUpdate) ClearTimingAdvance() *SurveyCellScanUpdate {
-	scsu.timing_advance = nil
-	scsu.cleartiming_advance = true
+	scsu.mutation.ClearTimingAdvance()
 	return scsu
 }
 
 // SetEarfcn sets the earfcn field.
 func (scsu *SurveyCellScanUpdate) SetEarfcn(i int) *SurveyCellScanUpdate {
-	scsu.earfcn = &i
-	scsu.addearfcn = nil
+	scsu.mutation.ResetEarfcn()
+	scsu.mutation.SetEarfcn(i)
 	return scsu
 }
 
@@ -440,25 +364,20 @@ func (scsu *SurveyCellScanUpdate) SetNillableEarfcn(i *int) *SurveyCellScanUpdat
 
 // AddEarfcn adds i to earfcn.
 func (scsu *SurveyCellScanUpdate) AddEarfcn(i int) *SurveyCellScanUpdate {
-	if scsu.addearfcn == nil {
-		scsu.addearfcn = &i
-	} else {
-		*scsu.addearfcn += i
-	}
+	scsu.mutation.AddEarfcn(i)
 	return scsu
 }
 
 // ClearEarfcn clears the value of earfcn.
 func (scsu *SurveyCellScanUpdate) ClearEarfcn() *SurveyCellScanUpdate {
-	scsu.earfcn = nil
-	scsu.clearearfcn = true
+	scsu.mutation.ClearEarfcn()
 	return scsu
 }
 
 // SetUarfcn sets the uarfcn field.
 func (scsu *SurveyCellScanUpdate) SetUarfcn(i int) *SurveyCellScanUpdate {
-	scsu.uarfcn = &i
-	scsu.adduarfcn = nil
+	scsu.mutation.ResetUarfcn()
+	scsu.mutation.SetUarfcn(i)
 	return scsu
 }
 
@@ -472,25 +391,20 @@ func (scsu *SurveyCellScanUpdate) SetNillableUarfcn(i *int) *SurveyCellScanUpdat
 
 // AddUarfcn adds i to uarfcn.
 func (scsu *SurveyCellScanUpdate) AddUarfcn(i int) *SurveyCellScanUpdate {
-	if scsu.adduarfcn == nil {
-		scsu.adduarfcn = &i
-	} else {
-		*scsu.adduarfcn += i
-	}
+	scsu.mutation.AddUarfcn(i)
 	return scsu
 }
 
 // ClearUarfcn clears the value of uarfcn.
 func (scsu *SurveyCellScanUpdate) ClearUarfcn() *SurveyCellScanUpdate {
-	scsu.uarfcn = nil
-	scsu.clearuarfcn = true
+	scsu.mutation.ClearUarfcn()
 	return scsu
 }
 
 // SetLatitude sets the latitude field.
 func (scsu *SurveyCellScanUpdate) SetLatitude(f float64) *SurveyCellScanUpdate {
-	scsu.latitude = &f
-	scsu.addlatitude = nil
+	scsu.mutation.ResetLatitude()
+	scsu.mutation.SetLatitude(f)
 	return scsu
 }
 
@@ -504,25 +418,20 @@ func (scsu *SurveyCellScanUpdate) SetNillableLatitude(f *float64) *SurveyCellSca
 
 // AddLatitude adds f to latitude.
 func (scsu *SurveyCellScanUpdate) AddLatitude(f float64) *SurveyCellScanUpdate {
-	if scsu.addlatitude == nil {
-		scsu.addlatitude = &f
-	} else {
-		*scsu.addlatitude += f
-	}
+	scsu.mutation.AddLatitude(f)
 	return scsu
 }
 
 // ClearLatitude clears the value of latitude.
 func (scsu *SurveyCellScanUpdate) ClearLatitude() *SurveyCellScanUpdate {
-	scsu.latitude = nil
-	scsu.clearlatitude = true
+	scsu.mutation.ClearLatitude()
 	return scsu
 }
 
 // SetLongitude sets the longitude field.
 func (scsu *SurveyCellScanUpdate) SetLongitude(f float64) *SurveyCellScanUpdate {
-	scsu.longitude = &f
-	scsu.addlongitude = nil
+	scsu.mutation.ResetLongitude()
+	scsu.mutation.SetLongitude(f)
 	return scsu
 }
 
@@ -536,32 +445,24 @@ func (scsu *SurveyCellScanUpdate) SetNillableLongitude(f *float64) *SurveyCellSc
 
 // AddLongitude adds f to longitude.
 func (scsu *SurveyCellScanUpdate) AddLongitude(f float64) *SurveyCellScanUpdate {
-	if scsu.addlongitude == nil {
-		scsu.addlongitude = &f
-	} else {
-		*scsu.addlongitude += f
-	}
+	scsu.mutation.AddLongitude(f)
 	return scsu
 }
 
 // ClearLongitude clears the value of longitude.
 func (scsu *SurveyCellScanUpdate) ClearLongitude() *SurveyCellScanUpdate {
-	scsu.longitude = nil
-	scsu.clearlongitude = true
+	scsu.mutation.ClearLongitude()
 	return scsu
 }
 
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
-func (scsu *SurveyCellScanUpdate) SetSurveyQuestionID(id string) *SurveyCellScanUpdate {
-	if scsu.survey_question == nil {
-		scsu.survey_question = make(map[string]struct{})
-	}
-	scsu.survey_question[id] = struct{}{}
+func (scsu *SurveyCellScanUpdate) SetSurveyQuestionID(id int) *SurveyCellScanUpdate {
+	scsu.mutation.SetSurveyQuestionID(id)
 	return scsu
 }
 
 // SetNillableSurveyQuestionID sets the survey_question edge to SurveyQuestion by id if the given value is not nil.
-func (scsu *SurveyCellScanUpdate) SetNillableSurveyQuestionID(id *string) *SurveyCellScanUpdate {
+func (scsu *SurveyCellScanUpdate) SetNillableSurveyQuestionID(id *int) *SurveyCellScanUpdate {
 	if id != nil {
 		scsu = scsu.SetSurveyQuestionID(*id)
 	}
@@ -574,16 +475,13 @@ func (scsu *SurveyCellScanUpdate) SetSurveyQuestion(s *SurveyQuestion) *SurveyCe
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (scsu *SurveyCellScanUpdate) SetLocationID(id string) *SurveyCellScanUpdate {
-	if scsu.location == nil {
-		scsu.location = make(map[string]struct{})
-	}
-	scsu.location[id] = struct{}{}
+func (scsu *SurveyCellScanUpdate) SetLocationID(id int) *SurveyCellScanUpdate {
+	scsu.mutation.SetLocationID(id)
 	return scsu
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (scsu *SurveyCellScanUpdate) SetNillableLocationID(id *string) *SurveyCellScanUpdate {
+func (scsu *SurveyCellScanUpdate) SetNillableLocationID(id *int) *SurveyCellScanUpdate {
 	if id != nil {
 		scsu = scsu.SetLocationID(*id)
 	}
@@ -597,29 +495,47 @@ func (scsu *SurveyCellScanUpdate) SetLocation(l *Location) *SurveyCellScanUpdate
 
 // ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
 func (scsu *SurveyCellScanUpdate) ClearSurveyQuestion() *SurveyCellScanUpdate {
-	scsu.clearedSurveyQuestion = true
+	scsu.mutation.ClearSurveyQuestion()
 	return scsu
 }
 
 // ClearLocation clears the location edge to Location.
 func (scsu *SurveyCellScanUpdate) ClearLocation() *SurveyCellScanUpdate {
-	scsu.clearedLocation = true
+	scsu.mutation.ClearLocation()
 	return scsu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (scsu *SurveyCellScanUpdate) Save(ctx context.Context) (int, error) {
-	if scsu.update_time == nil {
+	if _, ok := scsu.mutation.UpdateTime(); !ok {
 		v := surveycellscan.UpdateDefaultUpdateTime()
-		scsu.update_time = &v
+		scsu.mutation.SetUpdateTime(v)
 	}
-	if len(scsu.survey_question) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"survey_question\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(scsu.hooks) == 0 {
+		affected, err = scsu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyCellScanMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			scsu.mutation = mutation
+			affected, err = scsu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(scsu.hooks); i > 0; i-- {
+			mut = scsu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, scsu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	if len(scsu.location) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"location\"")
-	}
-	return scsu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -645,328 +561,328 @@ func (scsu *SurveyCellScanUpdate) ExecX(ctx context.Context) {
 }
 
 func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   surveycellscan.Table,
 			Columns: surveycellscan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveycellscan.FieldID,
 			},
 		},
 	}
 	if ps := scsu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value := scsu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldUpdateTime,
 		})
 	}
-	if value := scsu.network_type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.NetworkType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldNetworkType,
 		})
 	}
-	if value := scsu.signal_strength; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.SignalStrength(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldSignalStrength,
 		})
 	}
-	if value := scsu.addsignal_strength; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.AddedSignalStrength(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldSignalStrength,
 		})
 	}
-	if value := scsu.timestamp; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.Timestamp(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldTimestamp,
 		})
 	}
-	if scsu.cleartimestamp {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.TimestampCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: surveycellscan.FieldTimestamp,
 		})
 	}
-	if value := scsu.base_station_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.BaseStationID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldBaseStationID,
 		})
 	}
-	if scsu.clearbase_station_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.BaseStationIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldBaseStationID,
 		})
 	}
-	if value := scsu.network_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.NetworkID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldNetworkID,
 		})
 	}
-	if scsu.clearnetwork_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.NetworkIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldNetworkID,
 		})
 	}
-	if value := scsu.system_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.SystemID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldSystemID,
 		})
 	}
-	if scsu.clearsystem_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.SystemIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldSystemID,
 		})
 	}
-	if value := scsu.cell_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.CellID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldCellID,
 		})
 	}
-	if scsu.clearcell_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.CellIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldCellID,
 		})
 	}
-	if value := scsu.location_area_code; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.LocationAreaCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldLocationAreaCode,
 		})
 	}
-	if scsu.clearlocation_area_code {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.LocationAreaCodeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldLocationAreaCode,
 		})
 	}
-	if value := scsu.mobile_country_code; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.MobileCountryCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldMobileCountryCode,
 		})
 	}
-	if scsu.clearmobile_country_code {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.MobileCountryCodeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldMobileCountryCode,
 		})
 	}
-	if value := scsu.mobile_network_code; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.MobileNetworkCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldMobileNetworkCode,
 		})
 	}
-	if scsu.clearmobile_network_code {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.MobileNetworkCodeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldMobileNetworkCode,
 		})
 	}
-	if value := scsu.primary_scrambling_code; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.PrimaryScramblingCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldPrimaryScramblingCode,
 		})
 	}
-	if scsu.clearprimary_scrambling_code {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.PrimaryScramblingCodeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldPrimaryScramblingCode,
 		})
 	}
-	if value := scsu.operator; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.Operator(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldOperator,
 		})
 	}
-	if scsu.clearoperator {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.OperatorCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldOperator,
 		})
 	}
-	if value := scsu.arfcn; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.Arfcn(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldArfcn,
 		})
 	}
-	if value := scsu.addarfcn; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.AddedArfcn(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldArfcn,
 		})
 	}
-	if scsu.cleararfcn {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.ArfcnCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveycellscan.FieldArfcn,
 		})
 	}
-	if value := scsu.physical_cell_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.PhysicalCellID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldPhysicalCellID,
 		})
 	}
-	if scsu.clearphysical_cell_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.PhysicalCellIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldPhysicalCellID,
 		})
 	}
-	if value := scsu.tracking_area_code; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.TrackingAreaCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldTrackingAreaCode,
 		})
 	}
-	if scsu.cleartracking_area_code {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.TrackingAreaCodeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldTrackingAreaCode,
 		})
 	}
-	if value := scsu.timing_advance; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.TimingAdvance(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldTimingAdvance,
 		})
 	}
-	if value := scsu.addtiming_advance; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.AddedTimingAdvance(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldTimingAdvance,
 		})
 	}
-	if scsu.cleartiming_advance {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.TimingAdvanceCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveycellscan.FieldTimingAdvance,
 		})
 	}
-	if value := scsu.earfcn; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.Earfcn(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldEarfcn,
 		})
 	}
-	if value := scsu.addearfcn; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.AddedEarfcn(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldEarfcn,
 		})
 	}
-	if scsu.clearearfcn {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.EarfcnCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveycellscan.FieldEarfcn,
 		})
 	}
-	if value := scsu.uarfcn; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.Uarfcn(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldUarfcn,
 		})
 	}
-	if value := scsu.adduarfcn; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.AddedUarfcn(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldUarfcn,
 		})
 	}
-	if scsu.clearuarfcn {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.UarfcnCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveycellscan.FieldUarfcn,
 		})
 	}
-	if value := scsu.latitude; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.Latitude(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldLatitude,
 		})
 	}
-	if value := scsu.addlatitude; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.AddedLatitude(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldLatitude,
 		})
 	}
-	if scsu.clearlatitude {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.LatitudeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveycellscan.FieldLatitude,
 		})
 	}
-	if value := scsu.longitude; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.Longitude(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldLongitude,
 		})
 	}
-	if value := scsu.addlongitude; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsu.mutation.AddedLongitude(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldLongitude,
 		})
 	}
-	if scsu.clearlongitude {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsu.mutation.LongitudeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveycellscan.FieldLongitude,
 		})
 	}
-	if scsu.clearedSurveyQuestion {
+	if scsu.mutation.SurveyQuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -975,14 +891,14 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := scsu.survey_question; len(nodes) > 0 {
+	if nodes := scsu.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -991,21 +907,17 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if scsu.clearedLocation {
+	if scsu.mutation.LocationCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1014,14 +926,14 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := scsu.location; len(nodes) > 0 {
+	if nodes := scsu.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1030,22 +942,20 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, scsu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, scsu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{surveycellscan.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -1056,86 +966,32 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 // SurveyCellScanUpdateOne is the builder for updating a single SurveyCellScan entity.
 type SurveyCellScanUpdateOne struct {
 	config
-	id string
-
-	update_time                  *time.Time
-	network_type                 *string
-	signal_strength              *int
-	addsignal_strength           *int
-	timestamp                    *time.Time
-	cleartimestamp               bool
-	base_station_id              *string
-	clearbase_station_id         bool
-	network_id                   *string
-	clearnetwork_id              bool
-	system_id                    *string
-	clearsystem_id               bool
-	cell_id                      *string
-	clearcell_id                 bool
-	location_area_code           *string
-	clearlocation_area_code      bool
-	mobile_country_code          *string
-	clearmobile_country_code     bool
-	mobile_network_code          *string
-	clearmobile_network_code     bool
-	primary_scrambling_code      *string
-	clearprimary_scrambling_code bool
-	operator                     *string
-	clearoperator                bool
-	arfcn                        *int
-	addarfcn                     *int
-	cleararfcn                   bool
-	physical_cell_id             *string
-	clearphysical_cell_id        bool
-	tracking_area_code           *string
-	cleartracking_area_code      bool
-	timing_advance               *int
-	addtiming_advance            *int
-	cleartiming_advance          bool
-	earfcn                       *int
-	addearfcn                    *int
-	clearearfcn                  bool
-	uarfcn                       *int
-	adduarfcn                    *int
-	clearuarfcn                  bool
-	latitude                     *float64
-	addlatitude                  *float64
-	clearlatitude                bool
-	longitude                    *float64
-	addlongitude                 *float64
-	clearlongitude               bool
-	survey_question              map[string]struct{}
-	location                     map[string]struct{}
-	clearedSurveyQuestion        bool
-	clearedLocation              bool
+	hooks    []Hook
+	mutation *SurveyCellScanMutation
 }
 
 // SetNetworkType sets the network_type field.
 func (scsuo *SurveyCellScanUpdateOne) SetNetworkType(s string) *SurveyCellScanUpdateOne {
-	scsuo.network_type = &s
+	scsuo.mutation.SetNetworkType(s)
 	return scsuo
 }
 
 // SetSignalStrength sets the signal_strength field.
 func (scsuo *SurveyCellScanUpdateOne) SetSignalStrength(i int) *SurveyCellScanUpdateOne {
-	scsuo.signal_strength = &i
-	scsuo.addsignal_strength = nil
+	scsuo.mutation.ResetSignalStrength()
+	scsuo.mutation.SetSignalStrength(i)
 	return scsuo
 }
 
 // AddSignalStrength adds i to signal_strength.
 func (scsuo *SurveyCellScanUpdateOne) AddSignalStrength(i int) *SurveyCellScanUpdateOne {
-	if scsuo.addsignal_strength == nil {
-		scsuo.addsignal_strength = &i
-	} else {
-		*scsuo.addsignal_strength += i
-	}
+	scsuo.mutation.AddSignalStrength(i)
 	return scsuo
 }
 
 // SetTimestamp sets the timestamp field.
 func (scsuo *SurveyCellScanUpdateOne) SetTimestamp(t time.Time) *SurveyCellScanUpdateOne {
-	scsuo.timestamp = &t
+	scsuo.mutation.SetTimestamp(t)
 	return scsuo
 }
 
@@ -1149,14 +1005,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableTimestamp(t *time.Time) *Survey
 
 // ClearTimestamp clears the value of timestamp.
 func (scsuo *SurveyCellScanUpdateOne) ClearTimestamp() *SurveyCellScanUpdateOne {
-	scsuo.timestamp = nil
-	scsuo.cleartimestamp = true
+	scsuo.mutation.ClearTimestamp()
 	return scsuo
 }
 
 // SetBaseStationID sets the base_station_id field.
 func (scsuo *SurveyCellScanUpdateOne) SetBaseStationID(s string) *SurveyCellScanUpdateOne {
-	scsuo.base_station_id = &s
+	scsuo.mutation.SetBaseStationID(s)
 	return scsuo
 }
 
@@ -1170,14 +1025,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableBaseStationID(s *string) *Surve
 
 // ClearBaseStationID clears the value of base_station_id.
 func (scsuo *SurveyCellScanUpdateOne) ClearBaseStationID() *SurveyCellScanUpdateOne {
-	scsuo.base_station_id = nil
-	scsuo.clearbase_station_id = true
+	scsuo.mutation.ClearBaseStationID()
 	return scsuo
 }
 
 // SetNetworkID sets the network_id field.
 func (scsuo *SurveyCellScanUpdateOne) SetNetworkID(s string) *SurveyCellScanUpdateOne {
-	scsuo.network_id = &s
+	scsuo.mutation.SetNetworkID(s)
 	return scsuo
 }
 
@@ -1191,14 +1045,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableNetworkID(s *string) *SurveyCel
 
 // ClearNetworkID clears the value of network_id.
 func (scsuo *SurveyCellScanUpdateOne) ClearNetworkID() *SurveyCellScanUpdateOne {
-	scsuo.network_id = nil
-	scsuo.clearnetwork_id = true
+	scsuo.mutation.ClearNetworkID()
 	return scsuo
 }
 
 // SetSystemID sets the system_id field.
 func (scsuo *SurveyCellScanUpdateOne) SetSystemID(s string) *SurveyCellScanUpdateOne {
-	scsuo.system_id = &s
+	scsuo.mutation.SetSystemID(s)
 	return scsuo
 }
 
@@ -1212,14 +1065,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableSystemID(s *string) *SurveyCell
 
 // ClearSystemID clears the value of system_id.
 func (scsuo *SurveyCellScanUpdateOne) ClearSystemID() *SurveyCellScanUpdateOne {
-	scsuo.system_id = nil
-	scsuo.clearsystem_id = true
+	scsuo.mutation.ClearSystemID()
 	return scsuo
 }
 
 // SetCellID sets the cell_id field.
 func (scsuo *SurveyCellScanUpdateOne) SetCellID(s string) *SurveyCellScanUpdateOne {
-	scsuo.cell_id = &s
+	scsuo.mutation.SetCellID(s)
 	return scsuo
 }
 
@@ -1233,14 +1085,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableCellID(s *string) *SurveyCellSc
 
 // ClearCellID clears the value of cell_id.
 func (scsuo *SurveyCellScanUpdateOne) ClearCellID() *SurveyCellScanUpdateOne {
-	scsuo.cell_id = nil
-	scsuo.clearcell_id = true
+	scsuo.mutation.ClearCellID()
 	return scsuo
 }
 
 // SetLocationAreaCode sets the location_area_code field.
 func (scsuo *SurveyCellScanUpdateOne) SetLocationAreaCode(s string) *SurveyCellScanUpdateOne {
-	scsuo.location_area_code = &s
+	scsuo.mutation.SetLocationAreaCode(s)
 	return scsuo
 }
 
@@ -1254,14 +1105,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableLocationAreaCode(s *string) *Su
 
 // ClearLocationAreaCode clears the value of location_area_code.
 func (scsuo *SurveyCellScanUpdateOne) ClearLocationAreaCode() *SurveyCellScanUpdateOne {
-	scsuo.location_area_code = nil
-	scsuo.clearlocation_area_code = true
+	scsuo.mutation.ClearLocationAreaCode()
 	return scsuo
 }
 
 // SetMobileCountryCode sets the mobile_country_code field.
 func (scsuo *SurveyCellScanUpdateOne) SetMobileCountryCode(s string) *SurveyCellScanUpdateOne {
-	scsuo.mobile_country_code = &s
+	scsuo.mutation.SetMobileCountryCode(s)
 	return scsuo
 }
 
@@ -1275,14 +1125,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableMobileCountryCode(s *string) *S
 
 // ClearMobileCountryCode clears the value of mobile_country_code.
 func (scsuo *SurveyCellScanUpdateOne) ClearMobileCountryCode() *SurveyCellScanUpdateOne {
-	scsuo.mobile_country_code = nil
-	scsuo.clearmobile_country_code = true
+	scsuo.mutation.ClearMobileCountryCode()
 	return scsuo
 }
 
 // SetMobileNetworkCode sets the mobile_network_code field.
 func (scsuo *SurveyCellScanUpdateOne) SetMobileNetworkCode(s string) *SurveyCellScanUpdateOne {
-	scsuo.mobile_network_code = &s
+	scsuo.mutation.SetMobileNetworkCode(s)
 	return scsuo
 }
 
@@ -1296,14 +1145,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableMobileNetworkCode(s *string) *S
 
 // ClearMobileNetworkCode clears the value of mobile_network_code.
 func (scsuo *SurveyCellScanUpdateOne) ClearMobileNetworkCode() *SurveyCellScanUpdateOne {
-	scsuo.mobile_network_code = nil
-	scsuo.clearmobile_network_code = true
+	scsuo.mutation.ClearMobileNetworkCode()
 	return scsuo
 }
 
 // SetPrimaryScramblingCode sets the primary_scrambling_code field.
 func (scsuo *SurveyCellScanUpdateOne) SetPrimaryScramblingCode(s string) *SurveyCellScanUpdateOne {
-	scsuo.primary_scrambling_code = &s
+	scsuo.mutation.SetPrimaryScramblingCode(s)
 	return scsuo
 }
 
@@ -1317,14 +1165,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillablePrimaryScramblingCode(s *string
 
 // ClearPrimaryScramblingCode clears the value of primary_scrambling_code.
 func (scsuo *SurveyCellScanUpdateOne) ClearPrimaryScramblingCode() *SurveyCellScanUpdateOne {
-	scsuo.primary_scrambling_code = nil
-	scsuo.clearprimary_scrambling_code = true
+	scsuo.mutation.ClearPrimaryScramblingCode()
 	return scsuo
 }
 
 // SetOperator sets the operator field.
 func (scsuo *SurveyCellScanUpdateOne) SetOperator(s string) *SurveyCellScanUpdateOne {
-	scsuo.operator = &s
+	scsuo.mutation.SetOperator(s)
 	return scsuo
 }
 
@@ -1338,15 +1185,14 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableOperator(s *string) *SurveyCell
 
 // ClearOperator clears the value of operator.
 func (scsuo *SurveyCellScanUpdateOne) ClearOperator() *SurveyCellScanUpdateOne {
-	scsuo.operator = nil
-	scsuo.clearoperator = true
+	scsuo.mutation.ClearOperator()
 	return scsuo
 }
 
 // SetArfcn sets the arfcn field.
 func (scsuo *SurveyCellScanUpdateOne) SetArfcn(i int) *SurveyCellScanUpdateOne {
-	scsuo.arfcn = &i
-	scsuo.addarfcn = nil
+	scsuo.mutation.ResetArfcn()
+	scsuo.mutation.SetArfcn(i)
 	return scsuo
 }
 
@@ -1360,24 +1206,19 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableArfcn(i *int) *SurveyCellScanUp
 
 // AddArfcn adds i to arfcn.
 func (scsuo *SurveyCellScanUpdateOne) AddArfcn(i int) *SurveyCellScanUpdateOne {
-	if scsuo.addarfcn == nil {
-		scsuo.addarfcn = &i
-	} else {
-		*scsuo.addarfcn += i
-	}
+	scsuo.mutation.AddArfcn(i)
 	return scsuo
 }
 
 // ClearArfcn clears the value of arfcn.
 func (scsuo *SurveyCellScanUpdateOne) ClearArfcn() *SurveyCellScanUpdateOne {
-	scsuo.arfcn = nil
-	scsuo.cleararfcn = true
+	scsuo.mutation.ClearArfcn()
 	return scsuo
 }
 
 // SetPhysicalCellID sets the physical_cell_id field.
 func (scsuo *SurveyCellScanUpdateOne) SetPhysicalCellID(s string) *SurveyCellScanUpdateOne {
-	scsuo.physical_cell_id = &s
+	scsuo.mutation.SetPhysicalCellID(s)
 	return scsuo
 }
 
@@ -1391,14 +1232,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillablePhysicalCellID(s *string) *Surv
 
 // ClearPhysicalCellID clears the value of physical_cell_id.
 func (scsuo *SurveyCellScanUpdateOne) ClearPhysicalCellID() *SurveyCellScanUpdateOne {
-	scsuo.physical_cell_id = nil
-	scsuo.clearphysical_cell_id = true
+	scsuo.mutation.ClearPhysicalCellID()
 	return scsuo
 }
 
 // SetTrackingAreaCode sets the tracking_area_code field.
 func (scsuo *SurveyCellScanUpdateOne) SetTrackingAreaCode(s string) *SurveyCellScanUpdateOne {
-	scsuo.tracking_area_code = &s
+	scsuo.mutation.SetTrackingAreaCode(s)
 	return scsuo
 }
 
@@ -1412,15 +1252,14 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableTrackingAreaCode(s *string) *Su
 
 // ClearTrackingAreaCode clears the value of tracking_area_code.
 func (scsuo *SurveyCellScanUpdateOne) ClearTrackingAreaCode() *SurveyCellScanUpdateOne {
-	scsuo.tracking_area_code = nil
-	scsuo.cleartracking_area_code = true
+	scsuo.mutation.ClearTrackingAreaCode()
 	return scsuo
 }
 
 // SetTimingAdvance sets the timing_advance field.
 func (scsuo *SurveyCellScanUpdateOne) SetTimingAdvance(i int) *SurveyCellScanUpdateOne {
-	scsuo.timing_advance = &i
-	scsuo.addtiming_advance = nil
+	scsuo.mutation.ResetTimingAdvance()
+	scsuo.mutation.SetTimingAdvance(i)
 	return scsuo
 }
 
@@ -1434,25 +1273,20 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableTimingAdvance(i *int) *SurveyCe
 
 // AddTimingAdvance adds i to timing_advance.
 func (scsuo *SurveyCellScanUpdateOne) AddTimingAdvance(i int) *SurveyCellScanUpdateOne {
-	if scsuo.addtiming_advance == nil {
-		scsuo.addtiming_advance = &i
-	} else {
-		*scsuo.addtiming_advance += i
-	}
+	scsuo.mutation.AddTimingAdvance(i)
 	return scsuo
 }
 
 // ClearTimingAdvance clears the value of timing_advance.
 func (scsuo *SurveyCellScanUpdateOne) ClearTimingAdvance() *SurveyCellScanUpdateOne {
-	scsuo.timing_advance = nil
-	scsuo.cleartiming_advance = true
+	scsuo.mutation.ClearTimingAdvance()
 	return scsuo
 }
 
 // SetEarfcn sets the earfcn field.
 func (scsuo *SurveyCellScanUpdateOne) SetEarfcn(i int) *SurveyCellScanUpdateOne {
-	scsuo.earfcn = &i
-	scsuo.addearfcn = nil
+	scsuo.mutation.ResetEarfcn()
+	scsuo.mutation.SetEarfcn(i)
 	return scsuo
 }
 
@@ -1466,25 +1300,20 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableEarfcn(i *int) *SurveyCellScanU
 
 // AddEarfcn adds i to earfcn.
 func (scsuo *SurveyCellScanUpdateOne) AddEarfcn(i int) *SurveyCellScanUpdateOne {
-	if scsuo.addearfcn == nil {
-		scsuo.addearfcn = &i
-	} else {
-		*scsuo.addearfcn += i
-	}
+	scsuo.mutation.AddEarfcn(i)
 	return scsuo
 }
 
 // ClearEarfcn clears the value of earfcn.
 func (scsuo *SurveyCellScanUpdateOne) ClearEarfcn() *SurveyCellScanUpdateOne {
-	scsuo.earfcn = nil
-	scsuo.clearearfcn = true
+	scsuo.mutation.ClearEarfcn()
 	return scsuo
 }
 
 // SetUarfcn sets the uarfcn field.
 func (scsuo *SurveyCellScanUpdateOne) SetUarfcn(i int) *SurveyCellScanUpdateOne {
-	scsuo.uarfcn = &i
-	scsuo.adduarfcn = nil
+	scsuo.mutation.ResetUarfcn()
+	scsuo.mutation.SetUarfcn(i)
 	return scsuo
 }
 
@@ -1498,25 +1327,20 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableUarfcn(i *int) *SurveyCellScanU
 
 // AddUarfcn adds i to uarfcn.
 func (scsuo *SurveyCellScanUpdateOne) AddUarfcn(i int) *SurveyCellScanUpdateOne {
-	if scsuo.adduarfcn == nil {
-		scsuo.adduarfcn = &i
-	} else {
-		*scsuo.adduarfcn += i
-	}
+	scsuo.mutation.AddUarfcn(i)
 	return scsuo
 }
 
 // ClearUarfcn clears the value of uarfcn.
 func (scsuo *SurveyCellScanUpdateOne) ClearUarfcn() *SurveyCellScanUpdateOne {
-	scsuo.uarfcn = nil
-	scsuo.clearuarfcn = true
+	scsuo.mutation.ClearUarfcn()
 	return scsuo
 }
 
 // SetLatitude sets the latitude field.
 func (scsuo *SurveyCellScanUpdateOne) SetLatitude(f float64) *SurveyCellScanUpdateOne {
-	scsuo.latitude = &f
-	scsuo.addlatitude = nil
+	scsuo.mutation.ResetLatitude()
+	scsuo.mutation.SetLatitude(f)
 	return scsuo
 }
 
@@ -1530,25 +1354,20 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableLatitude(f *float64) *SurveyCel
 
 // AddLatitude adds f to latitude.
 func (scsuo *SurveyCellScanUpdateOne) AddLatitude(f float64) *SurveyCellScanUpdateOne {
-	if scsuo.addlatitude == nil {
-		scsuo.addlatitude = &f
-	} else {
-		*scsuo.addlatitude += f
-	}
+	scsuo.mutation.AddLatitude(f)
 	return scsuo
 }
 
 // ClearLatitude clears the value of latitude.
 func (scsuo *SurveyCellScanUpdateOne) ClearLatitude() *SurveyCellScanUpdateOne {
-	scsuo.latitude = nil
-	scsuo.clearlatitude = true
+	scsuo.mutation.ClearLatitude()
 	return scsuo
 }
 
 // SetLongitude sets the longitude field.
 func (scsuo *SurveyCellScanUpdateOne) SetLongitude(f float64) *SurveyCellScanUpdateOne {
-	scsuo.longitude = &f
-	scsuo.addlongitude = nil
+	scsuo.mutation.ResetLongitude()
+	scsuo.mutation.SetLongitude(f)
 	return scsuo
 }
 
@@ -1562,32 +1381,24 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableLongitude(f *float64) *SurveyCe
 
 // AddLongitude adds f to longitude.
 func (scsuo *SurveyCellScanUpdateOne) AddLongitude(f float64) *SurveyCellScanUpdateOne {
-	if scsuo.addlongitude == nil {
-		scsuo.addlongitude = &f
-	} else {
-		*scsuo.addlongitude += f
-	}
+	scsuo.mutation.AddLongitude(f)
 	return scsuo
 }
 
 // ClearLongitude clears the value of longitude.
 func (scsuo *SurveyCellScanUpdateOne) ClearLongitude() *SurveyCellScanUpdateOne {
-	scsuo.longitude = nil
-	scsuo.clearlongitude = true
+	scsuo.mutation.ClearLongitude()
 	return scsuo
 }
 
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
-func (scsuo *SurveyCellScanUpdateOne) SetSurveyQuestionID(id string) *SurveyCellScanUpdateOne {
-	if scsuo.survey_question == nil {
-		scsuo.survey_question = make(map[string]struct{})
-	}
-	scsuo.survey_question[id] = struct{}{}
+func (scsuo *SurveyCellScanUpdateOne) SetSurveyQuestionID(id int) *SurveyCellScanUpdateOne {
+	scsuo.mutation.SetSurveyQuestionID(id)
 	return scsuo
 }
 
 // SetNillableSurveyQuestionID sets the survey_question edge to SurveyQuestion by id if the given value is not nil.
-func (scsuo *SurveyCellScanUpdateOne) SetNillableSurveyQuestionID(id *string) *SurveyCellScanUpdateOne {
+func (scsuo *SurveyCellScanUpdateOne) SetNillableSurveyQuestionID(id *int) *SurveyCellScanUpdateOne {
 	if id != nil {
 		scsuo = scsuo.SetSurveyQuestionID(*id)
 	}
@@ -1600,16 +1411,13 @@ func (scsuo *SurveyCellScanUpdateOne) SetSurveyQuestion(s *SurveyQuestion) *Surv
 }
 
 // SetLocationID sets the location edge to Location by id.
-func (scsuo *SurveyCellScanUpdateOne) SetLocationID(id string) *SurveyCellScanUpdateOne {
-	if scsuo.location == nil {
-		scsuo.location = make(map[string]struct{})
-	}
-	scsuo.location[id] = struct{}{}
+func (scsuo *SurveyCellScanUpdateOne) SetLocationID(id int) *SurveyCellScanUpdateOne {
+	scsuo.mutation.SetLocationID(id)
 	return scsuo
 }
 
 // SetNillableLocationID sets the location edge to Location by id if the given value is not nil.
-func (scsuo *SurveyCellScanUpdateOne) SetNillableLocationID(id *string) *SurveyCellScanUpdateOne {
+func (scsuo *SurveyCellScanUpdateOne) SetNillableLocationID(id *int) *SurveyCellScanUpdateOne {
 	if id != nil {
 		scsuo = scsuo.SetLocationID(*id)
 	}
@@ -1623,29 +1431,47 @@ func (scsuo *SurveyCellScanUpdateOne) SetLocation(l *Location) *SurveyCellScanUp
 
 // ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
 func (scsuo *SurveyCellScanUpdateOne) ClearSurveyQuestion() *SurveyCellScanUpdateOne {
-	scsuo.clearedSurveyQuestion = true
+	scsuo.mutation.ClearSurveyQuestion()
 	return scsuo
 }
 
 // ClearLocation clears the location edge to Location.
 func (scsuo *SurveyCellScanUpdateOne) ClearLocation() *SurveyCellScanUpdateOne {
-	scsuo.clearedLocation = true
+	scsuo.mutation.ClearLocation()
 	return scsuo
 }
 
 // Save executes the query and returns the updated entity.
 func (scsuo *SurveyCellScanUpdateOne) Save(ctx context.Context) (*SurveyCellScan, error) {
-	if scsuo.update_time == nil {
+	if _, ok := scsuo.mutation.UpdateTime(); !ok {
 		v := surveycellscan.UpdateDefaultUpdateTime()
-		scsuo.update_time = &v
+		scsuo.mutation.SetUpdateTime(v)
 	}
-	if len(scsuo.survey_question) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"survey_question\"")
+
+	var (
+		err  error
+		node *SurveyCellScan
+	)
+	if len(scsuo.hooks) == 0 {
+		node, err = scsuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyCellScanMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			scsuo.mutation = mutation
+			node, err = scsuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(scsuo.hooks); i > 0; i-- {
+			mut = scsuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, scsuo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(scsuo.location) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"location\"")
-	}
-	return scsuo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1671,322 +1497,326 @@ func (scsuo *SurveyCellScanUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyCellScan, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   surveycellscan.Table,
 			Columns: surveycellscan.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  scsuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: surveycellscan.FieldID,
 			},
 		},
 	}
-	if value := scsuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	id, ok := scsuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing SurveyCellScan.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := scsuo.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldUpdateTime,
 		})
 	}
-	if value := scsuo.network_type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.NetworkType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldNetworkType,
 		})
 	}
-	if value := scsuo.signal_strength; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.SignalStrength(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldSignalStrength,
 		})
 	}
-	if value := scsuo.addsignal_strength; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.AddedSignalStrength(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldSignalStrength,
 		})
 	}
-	if value := scsuo.timestamp; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.Timestamp(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldTimestamp,
 		})
 	}
-	if scsuo.cleartimestamp {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.TimestampCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: surveycellscan.FieldTimestamp,
 		})
 	}
-	if value := scsuo.base_station_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.BaseStationID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldBaseStationID,
 		})
 	}
-	if scsuo.clearbase_station_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.BaseStationIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldBaseStationID,
 		})
 	}
-	if value := scsuo.network_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.NetworkID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldNetworkID,
 		})
 	}
-	if scsuo.clearnetwork_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.NetworkIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldNetworkID,
 		})
 	}
-	if value := scsuo.system_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.SystemID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldSystemID,
 		})
 	}
-	if scsuo.clearsystem_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.SystemIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldSystemID,
 		})
 	}
-	if value := scsuo.cell_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.CellID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldCellID,
 		})
 	}
-	if scsuo.clearcell_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.CellIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldCellID,
 		})
 	}
-	if value := scsuo.location_area_code; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.LocationAreaCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldLocationAreaCode,
 		})
 	}
-	if scsuo.clearlocation_area_code {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.LocationAreaCodeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldLocationAreaCode,
 		})
 	}
-	if value := scsuo.mobile_country_code; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.MobileCountryCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldMobileCountryCode,
 		})
 	}
-	if scsuo.clearmobile_country_code {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.MobileCountryCodeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldMobileCountryCode,
 		})
 	}
-	if value := scsuo.mobile_network_code; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.MobileNetworkCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldMobileNetworkCode,
 		})
 	}
-	if scsuo.clearmobile_network_code {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.MobileNetworkCodeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldMobileNetworkCode,
 		})
 	}
-	if value := scsuo.primary_scrambling_code; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.PrimaryScramblingCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldPrimaryScramblingCode,
 		})
 	}
-	if scsuo.clearprimary_scrambling_code {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.PrimaryScramblingCodeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldPrimaryScramblingCode,
 		})
 	}
-	if value := scsuo.operator; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.Operator(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldOperator,
 		})
 	}
-	if scsuo.clearoperator {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.OperatorCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldOperator,
 		})
 	}
-	if value := scsuo.arfcn; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.Arfcn(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldArfcn,
 		})
 	}
-	if value := scsuo.addarfcn; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.AddedArfcn(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldArfcn,
 		})
 	}
-	if scsuo.cleararfcn {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.ArfcnCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveycellscan.FieldArfcn,
 		})
 	}
-	if value := scsuo.physical_cell_id; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.PhysicalCellID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldPhysicalCellID,
 		})
 	}
-	if scsuo.clearphysical_cell_id {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.PhysicalCellIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldPhysicalCellID,
 		})
 	}
-	if value := scsuo.tracking_area_code; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.TrackingAreaCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldTrackingAreaCode,
 		})
 	}
-	if scsuo.cleartracking_area_code {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.TrackingAreaCodeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: surveycellscan.FieldTrackingAreaCode,
 		})
 	}
-	if value := scsuo.timing_advance; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.TimingAdvance(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldTimingAdvance,
 		})
 	}
-	if value := scsuo.addtiming_advance; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.AddedTimingAdvance(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldTimingAdvance,
 		})
 	}
-	if scsuo.cleartiming_advance {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.TimingAdvanceCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveycellscan.FieldTimingAdvance,
 		})
 	}
-	if value := scsuo.earfcn; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.Earfcn(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldEarfcn,
 		})
 	}
-	if value := scsuo.addearfcn; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.AddedEarfcn(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldEarfcn,
 		})
 	}
-	if scsuo.clearearfcn {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.EarfcnCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveycellscan.FieldEarfcn,
 		})
 	}
-	if value := scsuo.uarfcn; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.Uarfcn(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldUarfcn,
 		})
 	}
-	if value := scsuo.adduarfcn; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.AddedUarfcn(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldUarfcn,
 		})
 	}
-	if scsuo.clearuarfcn {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.UarfcnCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: surveycellscan.FieldUarfcn,
 		})
 	}
-	if value := scsuo.latitude; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.Latitude(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldLatitude,
 		})
 	}
-	if value := scsuo.addlatitude; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.AddedLatitude(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldLatitude,
 		})
 	}
-	if scsuo.clearlatitude {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.LatitudeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveycellscan.FieldLatitude,
 		})
 	}
-	if value := scsuo.longitude; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.Longitude(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldLongitude,
 		})
 	}
-	if value := scsuo.addlongitude; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := scsuo.mutation.AddedLongitude(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
-			Value:  *value,
+			Value:  value,
 			Column: surveycellscan.FieldLongitude,
 		})
 	}
-	if scsuo.clearlongitude {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if scsuo.mutation.LongitudeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeFloat64,
 			Column: surveycellscan.FieldLongitude,
 		})
 	}
-	if scsuo.clearedSurveyQuestion {
+	if scsuo.mutation.SurveyQuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -1995,14 +1825,14 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := scsuo.survey_question; len(nodes) > 0 {
+	if nodes := scsuo.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -2011,21 +1841,17 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: surveyquestion.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if scsuo.clearedLocation {
+	if scsuo.mutation.LocationCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -2034,14 +1860,14 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := scsuo.location; len(nodes) > 0 {
+	if nodes := scsuo.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: false,
@@ -2050,25 +1876,23 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: location.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	scs = &SurveyCellScan{config: scsuo.config}
-	spec.Assign = scs.assignValues
-	spec.ScanValues = scs.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, scsuo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = scs.assignValues
+	_spec.ScanValues = scs.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, scsuo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{surveycellscan.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

@@ -55,3 +55,4 @@ vim
 virtualenv
 zip
 zlib1g-dev
+libprotoc-dev

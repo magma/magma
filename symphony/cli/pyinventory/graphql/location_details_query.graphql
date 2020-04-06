@@ -2,8 +2,13 @@ query LocationDetailsQuery($id: ID!) {
   location: node(id: $id) {
     ... on Location {
       id
-      externalId
       name
+      latitude
+      longitude
+      externalId
+      locationType {
+        name
+      }
     }
   }
 }

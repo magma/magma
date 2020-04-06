@@ -40,6 +40,7 @@ export type PowerSearchEquipmentResultsTable_equipment$data = PowerSearchEquipme
 export type PowerSearchEquipmentResultsTable_equipment$key = $ReadOnlyArray<{
   +$data?: PowerSearchEquipmentResultsTable_equipment$data,
   +$fragmentRefs: PowerSearchEquipmentResultsTable_equipment$ref,
+  ...
 }>;
 */
 

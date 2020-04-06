@@ -1,18 +1,23 @@
 {
   "wiki": {
+    "General": [
+      "team-processes",
+      "release-notes"
+    ],
     "Inventory": [
       "inventory-intro",
       "csv-upload",
-      "py-inventory",
       "equipment-export",
       "service-export"
-    ],
-    "NMS": [
-      "nms-overview"
     ],
     "Mobile App": [
       "mobile-app-intro",
       "root-device"
+    ],
+    "API": [
+      "py-inventory",
+      "py-inventory-release-notes",
+      "graphql-breaking-changes"
     ]
   }
 }

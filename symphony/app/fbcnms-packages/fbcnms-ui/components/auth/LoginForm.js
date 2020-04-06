@@ -48,7 +48,7 @@ type Props = {
   error?: string,
   classes: {[string]: string},
   action: string,
-  isSSO?: boolean,
+  ssoEnabled?: boolean,
   ssoAction?: string,
 };
 
@@ -58,7 +58,7 @@ class LoginForm extends React.Component<Props, State> {
   form: ElementRef<any>;
 
   render() {
-    const {classes, csrfToken, isSSO, ssoAction} = this.props;
+    const {classes, csrfToken, ssoEnabled, ssoAction} = this.props;
     const error = this.props.error ? (
       <FormLabel error>{this.props.error}</FormLabel>
     ) : null;
@@ -66,7 +66,7 @@ class LoginForm extends React.Component<Props, State> {
     const params = new URLSearchParams(window.location.search);
     const to = params.get('to');
 
-    if (isSSO) {
+    if (ssoEnabled) {
       return (
         <Card raised={true} className={classes.card}>
           <CardContent>

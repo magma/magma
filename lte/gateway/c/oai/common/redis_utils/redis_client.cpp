@@ -101,9 +101,11 @@ std::string RedisClient::read(const std::string& key)
   db_client_->sync_commit();
   auto db_read_reply = db_read_fut.get();
 
-  if (
-    db_read_reply.is_null() || db_read_reply.is_error() ||
-    !db_read_reply.is_string()) {
+  if (db_read_reply.is_null()) {
+    return "";
+  }
+
+  if(db_read_reply.is_error() || !db_read_reply.is_string()) {
     throw std::runtime_error("Could not read from redis");
   }
 
@@ -149,6 +151,36 @@ int RedisClient::clear_keys(const std::vector<std::string>& keys_to_clear)
   }
 
   return RETURNok;
+}
+
+std::vector<std::string> RedisClient::get_keys(const std::string& pattern)
+{
+  size_t cursor = 0;
+  std::vector<std::string> replies;
+  do {
+    auto reply_future = db_client_->scan(cursor, pattern);
+    db_client_->sync_commit();
+    auto db_read_reply = reply_future.get();
+
+    if (db_read_reply.is_null()) {
+      return replies;
+    }
+
+    if (db_read_reply.is_error() || !db_read_reply.is_array()) {
+      throw std::runtime_error("Could not read from redis");
+    }
+    // First result is cursor, second result is pattern matched keys
+    auto response = db_read_reply.as_array();
+    auto returned_keys = response[1];
+
+    for (const auto& reply : returned_keys.as_array()) {
+      replies.emplace_back(reply.as_string());
+    }
+
+    cursor = std::stoi(response[0].as_string());;
+  } while (cursor != 0);
+
+  return replies;
 }
 
 } // namespace lte

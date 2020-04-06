@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -28,6 +29,8 @@ type TechnicianQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Technician
+	// eager-loading edges.
+	withWorkOrders *WorkOrderQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -68,14 +71,14 @@ func (tq *TechnicianQuery) QueryWorkOrders() *WorkOrderQuery {
 	return query
 }
 
-// First returns the first Technician entity in the query. Returns *ErrNotFound when no technician was found.
+// First returns the first Technician entity in the query. Returns *NotFoundError when no technician was found.
 func (tq *TechnicianQuery) First(ctx context.Context) (*Technician, error) {
 	ts, err := tq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(ts) == 0 {
-		return nil, &ErrNotFound{technician.Label}
+		return nil, &NotFoundError{technician.Label}
 	}
 	return ts[0], nil
 }
@@ -89,21 +92,21 @@ func (tq *TechnicianQuery) FirstX(ctx context.Context) *Technician {
 	return t
 }
 
-// FirstID returns the first Technician id in the query. Returns *ErrNotFound when no id was found.
-func (tq *TechnicianQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+// FirstID returns the first Technician id in the query. Returns *NotFoundError when no id was found.
+func (tq *TechnicianQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &ErrNotFound{technician.Label}
+		err = &NotFoundError{technician.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (tq *TechnicianQuery) FirstXID(ctx context.Context) string {
+func (tq *TechnicianQuery) FirstXID(ctx context.Context) int {
 	id, err := tq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -121,9 +124,9 @@ func (tq *TechnicianQuery) Only(ctx context.Context) (*Technician, error) {
 	case 1:
 		return ts[0], nil
 	case 0:
-		return nil, &ErrNotFound{technician.Label}
+		return nil, &NotFoundError{technician.Label}
 	default:
-		return nil, &ErrNotSingular{technician.Label}
+		return nil, &NotSingularError{technician.Label}
 	}
 }
 
@@ -137,8 +140,8 @@ func (tq *TechnicianQuery) OnlyX(ctx context.Context) *Technician {
 }
 
 // OnlyID returns the only Technician id in the query, returns an error if not exactly one id was returned.
-func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = tq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -146,15 +149,15 @@ func (tq *TechnicianQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &ErrNotFound{technician.Label}
+		err = &NotFoundError{technician.Label}
 	default:
-		err = &ErrNotSingular{technician.Label}
+		err = &NotSingularError{technician.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (tq *TechnicianQuery) OnlyXID(ctx context.Context) string {
+func (tq *TechnicianQuery) OnlyXID(ctx context.Context) int {
 	id, err := tq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -177,8 +180,8 @@ func (tq *TechnicianQuery) AllX(ctx context.Context) []*Technician {
 }
 
 // IDs executes the query and returns a list of Technician ids.
-func (tq *TechnicianQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (tq *TechnicianQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := tq.Select(technician.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -186,7 +189,7 @@ func (tq *TechnicianQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (tq *TechnicianQuery) IDsX(ctx context.Context) []string {
+func (tq *TechnicianQuery) IDsX(ctx context.Context) []int {
 	ids, err := tq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -237,6 +240,17 @@ func (tq *TechnicianQuery) Clone() *TechnicianQuery {
 	}
 }
 
+//  WithWorkOrders tells the query-builder to eager-loads the nodes that are connected to
+// the "work_orders" edge. The optional arguments used to configure the query builder of the edge.
+func (tq *TechnicianQuery) WithWorkOrders(opts ...func(*WorkOrderQuery)) *TechnicianQuery {
+	query := &WorkOrderQuery{config: tq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withWorkOrders = query
+	return tq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -280,30 +294,67 @@ func (tq *TechnicianQuery) Select(field string, fields ...string) *TechnicianSel
 
 func (tq *TechnicianQuery) sqlAll(ctx context.Context) ([]*Technician, error) {
 	var (
-		nodes []*Technician
-		spec  = tq.querySpec()
+		nodes       = []*Technician{}
+		_spec       = tq.querySpec()
+		loadedTypes = [1]bool{
+			tq.withWorkOrders != nil,
+		}
 	)
-	spec.ScanValues = func() []interface{} {
+	_spec.ScanValues = func() []interface{} {
 		node := &Technician{config: tq.config}
 		nodes = append(nodes, node)
-		return node.scanValues()
+		values := node.scanValues()
+		return values
 	}
-	spec.Assign = func(values ...interface{}) error {
+	_spec.Assign = func(values ...interface{}) error {
 		if len(nodes) == 0 {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, tq.driver, spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, tq.driver, _spec); err != nil {
 		return nil, err
 	}
+	if len(nodes) == 0 {
+		return nodes, nil
+	}
+
+	if query := tq.withWorkOrders; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Technician)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.WorkOrder(func(s *sql.Selector) {
+			s.Where(sql.InValues(technician.WorkOrdersColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.work_order_technician
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "work_order_technician" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_technician" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.WorkOrders = append(node.Edges.WorkOrders, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (tq *TechnicianQuery) sqlCount(ctx context.Context) (int, error) {
-	spec := tq.querySpec()
-	return sqlgraph.CountNodes(ctx, tq.driver, spec)
+	_spec := tq.querySpec()
+	return sqlgraph.CountNodes(ctx, tq.driver, _spec)
 }
 
 func (tq *TechnicianQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -315,12 +366,12 @@ func (tq *TechnicianQuery) sqlExist(ctx context.Context) (bool, error) {
 }
 
 func (tq *TechnicianQuery) querySpec() *sqlgraph.QuerySpec {
-	spec := &sqlgraph.QuerySpec{
+	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   technician.Table,
 			Columns: technician.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: technician.FieldID,
 			},
 		},
@@ -328,26 +379,26 @@ func (tq *TechnicianQuery) querySpec() *sqlgraph.QuerySpec {
 		Unique: true,
 	}
 	if ps := tq.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
 	if limit := tq.limit; limit != nil {
-		spec.Limit = *limit
+		_spec.Limit = *limit
 	}
 	if offset := tq.offset; offset != nil {
-		spec.Offset = *offset
+		_spec.Offset = *offset
 	}
 	if ps := tq.order; len(ps) > 0 {
-		spec.Order = func(selector *sql.Selector) {
+		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return spec
+	return _spec
 }
 
 func (tq *TechnicianQuery) sqlQuery() *sql.Selector {

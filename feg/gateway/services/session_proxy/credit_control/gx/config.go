@@ -17,7 +17,7 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
-	managed_configs "magma/orc8r/gateway/mconfig"
+	managed_configs "magma/gateway/mconfig"
 )
 
 // PCRF Environment Variables
@@ -32,6 +32,7 @@ const (
 	PCRFRealmEnv              = "PCRF_REALM"
 	PCRF91CompliantEnv        = "PCRF_91_COMPLIANT"
 	DisableDestHostEnv        = "DISABLE_DEST_HOST"
+	OverwriteDestHostEnv      = "GX_OVERWRITE_DEST_HOST"
 	DisableEUIIPv6IfNoIPEnv   = "DISABLE_EUI64_IPV6_IF_NO_IP"
 	FramedIPv4AddrRequiredEnv = "FRAMED_IPV4_ADDR_REQUIRED"
 	DefaultFramedIPv4AddrEnv  = "DEFAULT_FRAMED_IPV4_ADDR"
@@ -58,9 +59,10 @@ func GetPCRFConfiguration() *diameter.DiameterServerConfig {
 			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, PCRFAddrEnv, "127.0.0.1:3870"),
 			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GxNetworkEnv, "tcp"),
 			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GxLocalAddr, "")},
-			DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, PCRFHostEnv, ""),
-			DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, PCRFRealmEnv, ""),
-			DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
+			DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, PCRFHostEnv, ""),
+			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, PCRFRealmEnv, ""),
+			DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
+			OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, OverwriteDestHostEnv, false),
 		}
 	}
 	gxCfg := configsPtr.GetGx().GetServer()
@@ -71,9 +73,10 @@ func GetPCRFConfiguration() *diameter.DiameterServerConfig {
 			diameter.NetworkFlag, GxNetworkEnv, gxCfg.GetProtocol()),
 		LocalAddr: diameter.GetValueOrEnv(
 			diameter.LocalAddrFlag, GxLocalAddr, gxCfg.GetLocalAddress())},
-		DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, PCRFHostEnv, gxCfg.GetDestHost()),
-		DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, PCRFRealmEnv, gxCfg.GetDestHost()),
-		DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, gxCfg.GetDisableDestHost()),
+		DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, PCRFHostEnv, gxCfg.GetDestHost()),
+		DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, PCRFRealmEnv, gxCfg.GetDestHost()),
+		DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, gxCfg.GetDisableDestHost()),
+		OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gxCfg.GetOverwriteDestHost()),
 	}
 }
 
@@ -108,6 +111,18 @@ func GetGxClientConfiguration() *diameter.DiameterClientConfig {
 		WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
 		RetryCount:         uint(retries),
 		SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, ""),
+	}
+}
+
+func GetGxGlobalConfig() *GxGlobalConfig {
+	configsPtr := &mconfig.SessionProxyConfig{}
+	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
+	if err != nil || !validGxConfig(configsPtr) {
+		log.Printf("%s Managed Gx Server Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
+		return &GxGlobalConfig{}
+	}
+	return &GxGlobalConfig{
+		PCFROverwriteApn: configsPtr.GetGx().OverwriteApn,
 	}
 }
 

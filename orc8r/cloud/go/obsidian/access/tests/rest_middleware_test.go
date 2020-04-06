@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"magma/orc8r/cloud/go/obsidian/access"
-	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
+	tenantsh "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 )
 
 func TestMiddlewareWithoutCertifier(t *testing.T) {
@@ -33,7 +33,7 @@ func TestMiddlewareWithoutCertifier(t *testing.T) {
 	// Test if we set httpCode to be 503 when certifier is down
 	s, err := SendRequest(
 		"GET", // READ
-		urlPrefix+magmadh.RegisterNetwork+"/"+TEST_NETWORK_ID,
+		urlPrefix+RegisterNetworkV1+"/"+TEST_NETWORK_ID,
 		"test cert string",
 	)
 	assert.NoError(t, err)
@@ -58,7 +58,7 @@ func TestMiddleware(t *testing.T) {
 	// Test READ network entity
 	s, err := SendRequest(
 		"GET", // READ
-		urlPrefix+magmadh.RegisterNetwork+"/"+TEST_NETWORK_ID,
+		urlPrefix+RegisterNetworkV1+"/"+TEST_NETWORK_ID,
 		operCertSn,
 	)
 	assert.NoError(t, err)
@@ -67,7 +67,7 @@ func TestMiddleware(t *testing.T) {
 	// Test WRITE network entity
 	s, err = SendRequest(
 		"PUT", // WRITE
-		urlPrefix+magmadh.RegisterNetwork+"/"+TEST_NETWORK_ID,
+		urlPrefix+RegisterNetworkV1+"/"+TEST_NETWORK_ID,
 		operCertSn,
 	)
 	assert.NoError(t, err)
@@ -76,7 +76,7 @@ func TestMiddleware(t *testing.T) {
 	// Test READ network entity
 	s, err = SendRequest(
 		"GET", // READ
-		urlPrefix+magmadh.RegisterNetwork+"/"+WRITE_TEST_NETWORK_ID,
+		urlPrefix+RegisterNetworkV1+"/"+WRITE_TEST_NETWORK_ID,
 		operCertSn,
 	)
 	assert.NoError(t, err)
@@ -85,7 +85,7 @@ func TestMiddleware(t *testing.T) {
 	// Test WRITE network entity
 	s, err = SendRequest(
 		"PUT", // WRITE
-		urlPrefix+magmadh.RegisterNetwork+"/"+WRITE_TEST_NETWORK_ID,
+		urlPrefix+RegisterNetworkV1+"/"+WRITE_TEST_NETWORK_ID,
 		operCertSn,
 	)
 	assert.NoError(t, err)
@@ -95,7 +95,7 @@ func TestMiddleware(t *testing.T) {
 	// Test READ network Wildcard
 	s, err = SendRequest(
 		"GET", // READ
-		urlPrefix+magmadh.RegisterNetwork,
+		urlPrefix+RegisterNetworkV1,
 		operCertSn,
 	)
 	assert.NoError(t, err)
@@ -104,7 +104,25 @@ func TestMiddleware(t *testing.T) {
 	// Test WRITE network Wildcard
 	s, err = SendRequest(
 		"POST", // WRITE
-		urlPrefix+magmadh.RegisterNetwork,
+		urlPrefix+RegisterNetworkV1,
+		operCertSn,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 403, s)
+
+	// Test WRITE Tenants URL
+	s, err = SendRequest(
+		"GET",
+		urlPrefix+tenantsh.TenantInfoURL,
+		operCertSn,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 403, s)
+
+	// Test WRITE Tenants URL
+	s, err = SendRequest(
+		"POST",
+		urlPrefix+tenantsh.TenantInfoURL,
 		operCertSn,
 	)
 	assert.NoError(t, err)
@@ -114,7 +132,7 @@ func TestMiddleware(t *testing.T) {
 	// Super - Test READ network entity
 	s, err = SendRequest(
 		"GET", // READ
-		urlPrefix+magmadh.RegisterNetwork+"/"+WRITE_TEST_NETWORK_ID,
+		urlPrefix+RegisterNetworkV1+"/"+WRITE_TEST_NETWORK_ID,
 		superCertSn,
 	)
 	assert.NoError(t, err)
@@ -123,7 +141,7 @@ func TestMiddleware(t *testing.T) {
 	// Super - Test WRITE network entity
 	s, err = SendRequest(
 		"PUT", // WRITE
-		urlPrefix+magmadh.RegisterNetwork+"/"+TEST_NETWORK_ID,
+		urlPrefix+RegisterNetworkV1+"/"+TEST_NETWORK_ID,
 		superCertSn,
 	)
 	assert.NoError(t, err)
@@ -132,7 +150,7 @@ func TestMiddleware(t *testing.T) {
 	// Super - Test READ network Wildcard
 	s, err = SendRequest(
 		"GET", // READ
-		urlPrefix+magmadh.RegisterNetwork,
+		urlPrefix+RegisterNetworkV1,
 		superCertSn,
 	)
 	assert.NoError(t, err)
@@ -141,7 +159,7 @@ func TestMiddleware(t *testing.T) {
 	// Super - Test WRITE network Wildcard
 	s, err = SendRequest(
 		"POST", // WRITE
-		urlPrefix+magmadh.RegisterNetwork,
+		urlPrefix+RegisterNetworkV1,
 		superCertSn,
 	)
 	assert.NoError(t, err)
@@ -150,7 +168,7 @@ func TestMiddleware(t *testing.T) {
 	// Super - Test READ Any URL
 	s, err = SendRequest(
 		"GET", // READ
-		urlPrefix+magmadh.RegisterNetwork,
+		urlPrefix+RegisterNetworkV1,
 		superCertSn,
 	)
 	assert.NoError(t, err)
@@ -173,6 +191,25 @@ func TestMiddleware(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, s)
+
+	// Super - Test WRITE Tenants URL
+	s, err = SendRequest(
+		"GET",
+		urlPrefix+tenantsh.TenantInfoURL,
+		superCertSn,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+
+	// Super - Test WRITE Tenants URL
+	s, err = SendRequest(
+		"POST",
+		urlPrefix+tenantsh.TenantInfoURL,
+		superCertSn,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+
 }
 
 func startTestMidlewareServer(t *testing.T) *echo.Echo {
@@ -181,22 +218,22 @@ func startTestMidlewareServer(t *testing.T) *echo.Echo {
 	assert.NotNil(t, e)
 
 	// Endpoint requiring Network Wildcard READ Access Permissions
-	e.GET(magmadh.RegisterNetwork, func(c echo.Context) error {
+	e.GET(RegisterNetworkV1, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
 
 	// Endpoint requiring Network Wildcard WRITE Access Permissions
-	e.POST(magmadh.RegisterNetwork, func(c echo.Context) error {
+	e.POST(RegisterNetworkV1, func(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	})
 
 	// Endpoint requiring a specific Network READ Entity Access Permissions
-	e.GET(magmadh.ManageNetwork, func(c echo.Context) error {
+	e.GET(ManageNetworkV1, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
 
 	// Endpoint requiring a specific Network WRITE Entity Access Permissions
-	e.PUT(magmadh.ManageNetwork, func(c echo.Context) error {
+	e.PUT(ManageNetworkV1, func(c echo.Context) error {
 		return c.String(http.StatusOK, "")
 	})
 
@@ -208,6 +245,16 @@ func startTestMidlewareServer(t *testing.T) *echo.Echo {
 	// Endpoint requiring Write supervisor permissions
 	e.PUT("/malformed/url", func(c echo.Context) error {
 		return c.String(http.StatusOK, "!")
+	})
+
+	// Tenants Endpoint requiring Network Wildcard WRITE access permissions
+	e.POST(tenantsh.TenantInfoURL, func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
+	})
+
+	// Tenants Endpoint requiring Network Wildcard READ access permissions
+	e.GET(tenantsh.TenantInfoURL, func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
 	})
 
 	e.Use(access.Middleware) // inject obsidian access control middleware

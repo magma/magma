@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -15,7 +15,7 @@ import {getOrganization} from '@fbcnms/express-middleware/organizationMiddleware
 
 const ORGS = [
   {
-    id: '1',
+    id: 1,
     name: 'custom_domain_org',
     customDomains: ['subdomain.localtest.me'],
     networkIDs: [],
@@ -25,7 +25,7 @@ const ORGS = [
     ssoIssuer: '',
   },
   {
-    id: '2',
+    id: 2,
     name: 'subdomain',
     customDomains: [],
     networkIDs: [],

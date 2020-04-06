@@ -4,12 +4,13 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow strict-local
+ * @flow strict-local strict-local
  * @format
  */
 
 'use strict';
 
+import type {AlertSkin} from './Alert';
 import type {ComponentType, ElementConfig, Node} from 'react';
 
 import Alert from './Alert';
@@ -22,6 +23,8 @@ type State = {|
 export type DialogProps = {|
   cancelLabel?: Node,
   confirmLabel?: Node,
+  checkboxLabel?: Node,
+  skin?: AlertSkin,
   message: Node,
   title?: ?Node,
 |};

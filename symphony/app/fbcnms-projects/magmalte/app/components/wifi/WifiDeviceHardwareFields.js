@@ -4,43 +4,39 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
 import type {gateway_device} from '@fbcnms/magma-api';
 
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
 
-const styles = {
+const useStyles = makeStyles(() => ({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
     width: '100%',
   },
-};
+}));
 
-type Props = WithStyles<typeof styles> & {
+type Props = {
   record: gateway_device,
 };
 
-class WifiDeviceHardwareFields extends React.Component<Props> {
-  render() {
-    return (
-      <>
-        <TextField
-          label="HW ID"
-          className={this.props.classes.input}
-          value={this.props.record.hardware_id}
-          disabled={true}
-        />
-      </>
-    );
-  }
+export default function WifiDeviceHardwareFields(props: Props) {
+  const classes = useStyles();
+  return (
+    <>
+      <TextField
+        label="HW ID"
+        className={classes.input}
+        value={props.record.hardware_id}
+        disabled={true}
+      />
+    </>
+  );
 }
-
-export default withStyles(styles)(WifiDeviceHardwareFields);

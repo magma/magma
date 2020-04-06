@@ -21,22 +21,9 @@ import (
 // FileUpdate is the builder for updating File entities.
 type FileUpdate struct {
 	config
-
-	update_time      *time.Time
-	_type            *string
-	name             *string
-	size             *int
-	addsize          *int
-	clearsize        bool
-	modified_at      *time.Time
-	clearmodified_at bool
-	uploaded_at      *time.Time
-	clearuploaded_at bool
-	content_type     *string
-	store_key        *string
-	category         *string
-	clearcategory    bool
-	predicates       []predicate.File
+	hooks      []Hook
+	mutation   *FileMutation
+	predicates []predicate.File
 }
 
 // Where adds a new predicate for the builder.
@@ -47,20 +34,20 @@ func (fu *FileUpdate) Where(ps ...predicate.File) *FileUpdate {
 
 // SetType sets the type field.
 func (fu *FileUpdate) SetType(s string) *FileUpdate {
-	fu._type = &s
+	fu.mutation.SetType(s)
 	return fu
 }
 
 // SetName sets the name field.
 func (fu *FileUpdate) SetName(s string) *FileUpdate {
-	fu.name = &s
+	fu.mutation.SetName(s)
 	return fu
 }
 
 // SetSize sets the size field.
 func (fu *FileUpdate) SetSize(i int) *FileUpdate {
-	fu.size = &i
-	fu.addsize = nil
+	fu.mutation.ResetSize()
+	fu.mutation.SetSize(i)
 	return fu
 }
 
@@ -74,24 +61,19 @@ func (fu *FileUpdate) SetNillableSize(i *int) *FileUpdate {
 
 // AddSize adds i to size.
 func (fu *FileUpdate) AddSize(i int) *FileUpdate {
-	if fu.addsize == nil {
-		fu.addsize = &i
-	} else {
-		*fu.addsize += i
-	}
+	fu.mutation.AddSize(i)
 	return fu
 }
 
 // ClearSize clears the value of size.
 func (fu *FileUpdate) ClearSize() *FileUpdate {
-	fu.size = nil
-	fu.clearsize = true
+	fu.mutation.ClearSize()
 	return fu
 }
 
 // SetModifiedAt sets the modified_at field.
 func (fu *FileUpdate) SetModifiedAt(t time.Time) *FileUpdate {
-	fu.modified_at = &t
+	fu.mutation.SetModifiedAt(t)
 	return fu
 }
 
@@ -105,14 +87,13 @@ func (fu *FileUpdate) SetNillableModifiedAt(t *time.Time) *FileUpdate {
 
 // ClearModifiedAt clears the value of modified_at.
 func (fu *FileUpdate) ClearModifiedAt() *FileUpdate {
-	fu.modified_at = nil
-	fu.clearmodified_at = true
+	fu.mutation.ClearModifiedAt()
 	return fu
 }
 
 // SetUploadedAt sets the uploaded_at field.
 func (fu *FileUpdate) SetUploadedAt(t time.Time) *FileUpdate {
-	fu.uploaded_at = &t
+	fu.mutation.SetUploadedAt(t)
 	return fu
 }
 
@@ -126,26 +107,25 @@ func (fu *FileUpdate) SetNillableUploadedAt(t *time.Time) *FileUpdate {
 
 // ClearUploadedAt clears the value of uploaded_at.
 func (fu *FileUpdate) ClearUploadedAt() *FileUpdate {
-	fu.uploaded_at = nil
-	fu.clearuploaded_at = true
+	fu.mutation.ClearUploadedAt()
 	return fu
 }
 
 // SetContentType sets the content_type field.
 func (fu *FileUpdate) SetContentType(s string) *FileUpdate {
-	fu.content_type = &s
+	fu.mutation.SetContentType(s)
 	return fu
 }
 
 // SetStoreKey sets the store_key field.
 func (fu *FileUpdate) SetStoreKey(s string) *FileUpdate {
-	fu.store_key = &s
+	fu.mutation.SetStoreKey(s)
 	return fu
 }
 
 // SetCategory sets the category field.
 func (fu *FileUpdate) SetCategory(s string) *FileUpdate {
-	fu.category = &s
+	fu.mutation.SetCategory(s)
 	return fu
 }
 
@@ -159,23 +139,45 @@ func (fu *FileUpdate) SetNillableCategory(s *string) *FileUpdate {
 
 // ClearCategory clears the value of category.
 func (fu *FileUpdate) ClearCategory() *FileUpdate {
-	fu.category = nil
-	fu.clearcategory = true
+	fu.mutation.ClearCategory()
 	return fu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (fu *FileUpdate) Save(ctx context.Context) (int, error) {
-	if fu.update_time == nil {
+	if _, ok := fu.mutation.UpdateTime(); !ok {
 		v := file.UpdateDefaultUpdateTime()
-		fu.update_time = &v
+		fu.mutation.SetUpdateTime(v)
 	}
-	if fu.size != nil {
-		if err := file.SizeValidator(*fu.size); err != nil {
+	if v, ok := fu.mutation.Size(); ok {
+		if err := file.SizeValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"size\": %v", err)
 		}
 	}
-	return fu.sqlSave(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(fu.hooks) == 0 {
+		affected, err = fu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*FileMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			fu.mutation = mutation
+			affected, err = fu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(fu.hooks); i > 0; i-- {
+			mut = fu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, fu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -201,119 +203,121 @@ func (fu *FileUpdate) ExecX(ctx context.Context) {
 }
 
 func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   file.Table,
 			Columns: file.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: file.FieldID,
 			},
 		},
 	}
 	if ps := fu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value := fu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fu.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldUpdateTime,
 		})
 	}
-	if value := fu._type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fu.mutation.GetType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldType,
 		})
 	}
-	if value := fu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fu.mutation.Name(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldName,
 		})
 	}
-	if value := fu.size; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fu.mutation.Size(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldSize,
 		})
 	}
-	if value := fu.addsize; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := fu.mutation.AddedSize(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldSize,
 		})
 	}
-	if fu.clearsize {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if fu.mutation.SizeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: file.FieldSize,
 		})
 	}
-	if value := fu.modified_at; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fu.mutation.ModifiedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldModifiedAt,
 		})
 	}
-	if fu.clearmodified_at {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if fu.mutation.ModifiedAtCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: file.FieldModifiedAt,
 		})
 	}
-	if value := fu.uploaded_at; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fu.mutation.UploadedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldUploadedAt,
 		})
 	}
-	if fu.clearuploaded_at {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if fu.mutation.UploadedAtCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: file.FieldUploadedAt,
 		})
 	}
-	if value := fu.content_type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fu.mutation.ContentType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldContentType,
 		})
 	}
-	if value := fu.store_key; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fu.mutation.StoreKey(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldStoreKey,
 		})
 	}
-	if value := fu.category; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fu.mutation.Category(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldCategory,
 		})
 	}
-	if fu.clearcategory {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if fu.mutation.CategoryCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: file.FieldCategory,
 		})
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{file.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -324,40 +328,26 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // FileUpdateOne is the builder for updating a single File entity.
 type FileUpdateOne struct {
 	config
-	id string
-
-	update_time      *time.Time
-	_type            *string
-	name             *string
-	size             *int
-	addsize          *int
-	clearsize        bool
-	modified_at      *time.Time
-	clearmodified_at bool
-	uploaded_at      *time.Time
-	clearuploaded_at bool
-	content_type     *string
-	store_key        *string
-	category         *string
-	clearcategory    bool
+	hooks    []Hook
+	mutation *FileMutation
 }
 
 // SetType sets the type field.
 func (fuo *FileUpdateOne) SetType(s string) *FileUpdateOne {
-	fuo._type = &s
+	fuo.mutation.SetType(s)
 	return fuo
 }
 
 // SetName sets the name field.
 func (fuo *FileUpdateOne) SetName(s string) *FileUpdateOne {
-	fuo.name = &s
+	fuo.mutation.SetName(s)
 	return fuo
 }
 
 // SetSize sets the size field.
 func (fuo *FileUpdateOne) SetSize(i int) *FileUpdateOne {
-	fuo.size = &i
-	fuo.addsize = nil
+	fuo.mutation.ResetSize()
+	fuo.mutation.SetSize(i)
 	return fuo
 }
 
@@ -371,24 +361,19 @@ func (fuo *FileUpdateOne) SetNillableSize(i *int) *FileUpdateOne {
 
 // AddSize adds i to size.
 func (fuo *FileUpdateOne) AddSize(i int) *FileUpdateOne {
-	if fuo.addsize == nil {
-		fuo.addsize = &i
-	} else {
-		*fuo.addsize += i
-	}
+	fuo.mutation.AddSize(i)
 	return fuo
 }
 
 // ClearSize clears the value of size.
 func (fuo *FileUpdateOne) ClearSize() *FileUpdateOne {
-	fuo.size = nil
-	fuo.clearsize = true
+	fuo.mutation.ClearSize()
 	return fuo
 }
 
 // SetModifiedAt sets the modified_at field.
 func (fuo *FileUpdateOne) SetModifiedAt(t time.Time) *FileUpdateOne {
-	fuo.modified_at = &t
+	fuo.mutation.SetModifiedAt(t)
 	return fuo
 }
 
@@ -402,14 +387,13 @@ func (fuo *FileUpdateOne) SetNillableModifiedAt(t *time.Time) *FileUpdateOne {
 
 // ClearModifiedAt clears the value of modified_at.
 func (fuo *FileUpdateOne) ClearModifiedAt() *FileUpdateOne {
-	fuo.modified_at = nil
-	fuo.clearmodified_at = true
+	fuo.mutation.ClearModifiedAt()
 	return fuo
 }
 
 // SetUploadedAt sets the uploaded_at field.
 func (fuo *FileUpdateOne) SetUploadedAt(t time.Time) *FileUpdateOne {
-	fuo.uploaded_at = &t
+	fuo.mutation.SetUploadedAt(t)
 	return fuo
 }
 
@@ -423,26 +407,25 @@ func (fuo *FileUpdateOne) SetNillableUploadedAt(t *time.Time) *FileUpdateOne {
 
 // ClearUploadedAt clears the value of uploaded_at.
 func (fuo *FileUpdateOne) ClearUploadedAt() *FileUpdateOne {
-	fuo.uploaded_at = nil
-	fuo.clearuploaded_at = true
+	fuo.mutation.ClearUploadedAt()
 	return fuo
 }
 
 // SetContentType sets the content_type field.
 func (fuo *FileUpdateOne) SetContentType(s string) *FileUpdateOne {
-	fuo.content_type = &s
+	fuo.mutation.SetContentType(s)
 	return fuo
 }
 
 // SetStoreKey sets the store_key field.
 func (fuo *FileUpdateOne) SetStoreKey(s string) *FileUpdateOne {
-	fuo.store_key = &s
+	fuo.mutation.SetStoreKey(s)
 	return fuo
 }
 
 // SetCategory sets the category field.
 func (fuo *FileUpdateOne) SetCategory(s string) *FileUpdateOne {
-	fuo.category = &s
+	fuo.mutation.SetCategory(s)
 	return fuo
 }
 
@@ -456,23 +439,45 @@ func (fuo *FileUpdateOne) SetNillableCategory(s *string) *FileUpdateOne {
 
 // ClearCategory clears the value of category.
 func (fuo *FileUpdateOne) ClearCategory() *FileUpdateOne {
-	fuo.category = nil
-	fuo.clearcategory = true
+	fuo.mutation.ClearCategory()
 	return fuo
 }
 
 // Save executes the query and returns the updated entity.
 func (fuo *FileUpdateOne) Save(ctx context.Context) (*File, error) {
-	if fuo.update_time == nil {
+	if _, ok := fuo.mutation.UpdateTime(); !ok {
 		v := file.UpdateDefaultUpdateTime()
-		fuo.update_time = &v
+		fuo.mutation.SetUpdateTime(v)
 	}
-	if fuo.size != nil {
-		if err := file.SizeValidator(*fuo.size); err != nil {
+	if v, ok := fuo.mutation.Size(); ok {
+		if err := file.SizeValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"size\": %v", err)
 		}
 	}
-	return fuo.sqlSave(ctx)
+	var (
+		err  error
+		node *File
+	)
+	if len(fuo.hooks) == 0 {
+		node, err = fuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*FileMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			fuo.mutation = mutation
+			node, err = fuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(fuo.hooks); i > 0; i-- {
+			mut = fuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, fuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -498,116 +503,122 @@ func (fuo *FileUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   file.Table,
 			Columns: file.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  fuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: file.FieldID,
 			},
 		},
 	}
-	if value := fuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	id, ok := fuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing File.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := fuo.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldUpdateTime,
 		})
 	}
-	if value := fuo._type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fuo.mutation.GetType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldType,
 		})
 	}
-	if value := fuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fuo.mutation.Name(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldName,
 		})
 	}
-	if value := fuo.size; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fuo.mutation.Size(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldSize,
 		})
 	}
-	if value := fuo.addsize; value != nil {
-		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+	if value, ok := fuo.mutation.AddedSize(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldSize,
 		})
 	}
-	if fuo.clearsize {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if fuo.mutation.SizeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeInt,
 			Column: file.FieldSize,
 		})
 	}
-	if value := fuo.modified_at; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fuo.mutation.ModifiedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldModifiedAt,
 		})
 	}
-	if fuo.clearmodified_at {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if fuo.mutation.ModifiedAtCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: file.FieldModifiedAt,
 		})
 	}
-	if value := fuo.uploaded_at; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fuo.mutation.UploadedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldUploadedAt,
 		})
 	}
-	if fuo.clearuploaded_at {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if fuo.mutation.UploadedAtCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: file.FieldUploadedAt,
 		})
 	}
-	if value := fuo.content_type; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fuo.mutation.ContentType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldContentType,
 		})
 	}
-	if value := fuo.store_key; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fuo.mutation.StoreKey(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldStoreKey,
 		})
 	}
-	if value := fuo.category; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := fuo.mutation.Category(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: file.FieldCategory,
 		})
 	}
-	if fuo.clearcategory {
-		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+	if fuo.mutation.CategoryCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: file.FieldCategory,
 		})
 	}
 	f = &File{config: fuo.config}
-	spec.Assign = f.assignValues
-	spec.ScanValues = f.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, fuo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = f.assignValues
+	_spec.ScanValues = f.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, fuo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{file.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

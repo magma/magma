@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // ServiceTypeDelete is the builder for deleting a ServiceType entity.
 type ServiceTypeDelete struct {
 	config
+	hooks      []Hook
+	mutation   *ServiceTypeMutation
 	predicates []predicate.ServiceType
 }
 
@@ -30,7 +33,30 @@ func (std *ServiceTypeDelete) Where(ps ...predicate.ServiceType) *ServiceTypeDel
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (std *ServiceTypeDelete) Exec(ctx context.Context) (int, error) {
-	return std.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(std.hooks) == 0 {
+		affected, err = std.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ServiceTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			std.mutation = mutation
+			affected, err = std.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(std.hooks); i > 0; i-- {
+			mut = std.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, std.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (std *ServiceTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (std *ServiceTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: servicetype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: servicetype.FieldID,
 			},
 		},
 	}
 	if ps := std.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, std.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, std.driver, _spec)
 }
 
 // ServiceTypeDeleteOne is the builder for deleting a single ServiceType entity.
@@ -74,7 +100,7 @@ func (stdo *ServiceTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{servicetype.Label}
+		return &NotFoundError{servicetype.Label}
 	default:
 		return nil
 	}

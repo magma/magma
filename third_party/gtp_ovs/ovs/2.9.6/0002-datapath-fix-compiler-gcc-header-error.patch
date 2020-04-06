@@ -1,0 +1,33 @@
+From faf1f6bd083bbec6540d4c89791556c7795b7b19 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Wed, 12 Feb 2020 03:03:55 +0000
+Subject: [PATCH 2/4] datapath: fix compiler-gcc header error
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ datapath/linux/compat/include/linux/compiler-gcc.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/datapath/linux/compat/include/linux/compiler-gcc.h b/datapath/linux/compat/include/linux/compiler-gcc.h
+index bfcd5312a..6b5689595 100644
+--- a/datapath/linux/compat/include/linux/compiler-gcc.h
++++ b/datapath/linux/compat/include/linux/compiler-gcc.h
+@@ -1,8 +1,15 @@
+ #ifndef __LINUX_COMPILER_H
++
++#if 0
++/* Disable this check - it no longer makes sense with so many backports
++ * due to spectre mitigation
++ */
++
+ #ifndef HAVE_LINUX_COMPILER_TYPES_H
+ #error "Please don't include <linux/compiler-gcc.h> directly, include <linux/compiler.h> instead."
+ #endif
+ #endif
++#endif
+ 
+ #include_next <linux/compiler-gcc.h>
+ 
+-- 
+2.17.1
+

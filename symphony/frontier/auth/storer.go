@@ -66,7 +66,7 @@ func (s *UserStorer) Load(ctx context.Context, key string) (authboss.User, error
 	case nil:
 		logger.Debug("loaded user")
 		return &User{u, userUpdater{u.Update()}}, nil
-	case *ent.ErrNotFound:
+	case *ent.NotFoundError:
 		logger.Debug("user not found")
 		return nil, authboss.ErrUserNotFound
 	default:

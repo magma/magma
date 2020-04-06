@@ -12,6 +12,8 @@ LICENSE file in the root directory of this source tree.
 package unary
 
 import (
+	"runtime/debug"
+
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
@@ -105,7 +107,8 @@ func callHandler(
 ) (resp interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = status.Errorf(codes.Unknown, "Handler Panic: %s", r)
+			err = status.Errorf(
+				codes.Unknown, "Handler Panic: %s; Stack Trace: %s", r, debug.Stack())
 			uncaughtCounterVec.WithLabelValues(info.FullMethod).Inc()
 		}
 	}()

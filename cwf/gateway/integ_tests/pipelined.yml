@@ -29,8 +29,10 @@ log_level: INFO
 static_services: [
   'ue_mac',
   'arpd',
+  'check_quota',
   'access_control',
   'tunnel_learn',
+  'vlan_learn',
   'startup_flows',
   'ryu_rest_service',
 ]
@@ -75,6 +77,7 @@ dpi:
   enabled: false
   mon_port: mon1
   mon_port_number: 32769
+  idle_timeout: 5
 
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: cwag_br0
@@ -106,6 +109,20 @@ monitored_ifaces: ['cwag_br0',
 
 # Whether pipelined should cleanup flows on restarts
 clean_restart: true
+
+# Information for cwf check quota servers
+quota_check_ip: '192.168.128.99'
+has_quota_port: 51115
+no_quota_port: 51125
+
+# Configuration for IPFIX sampling
+ipfix:
+  enabled: false
+  probability: 30000
+  collector_set_id: 1
+  cache_timeout: 60
+  obs_domain_id: 1
+  obs_point_id: 1
 
 ###############
 ## IMPORTANT ##

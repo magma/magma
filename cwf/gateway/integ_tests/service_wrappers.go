@@ -18,8 +18,8 @@ import (
 	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/testcore/hss"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
 	registryTestUtils "magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-redis/redis"
 	"github.com/golang/glog"
@@ -53,9 +53,10 @@ type pipelinedClient struct {
 
 // Wrapper for PolicyDB objects
 type policyDBWrapper struct {
-	redisClient object_store.RedisClient
-	policyMap   object_store.ObjectMap
-	baseNameMap object_store.ObjectMap
+	redisClient      object_store.RedisClient
+	policyMap        object_store.ObjectMap
+	baseNameMap      object_store.ObjectMap
+	omniPresentRules object_store.ObjectMap
 }
 
 /**  ========== HSS Helpers ========== **/
@@ -150,7 +151,7 @@ func addPCRFRules(rules *fegprotos.AccountRules) error {
 	return err
 }
 
-func addPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorInfo) error {
+func addPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorConfiguration) error {
 	cli, err := getPCRFClient()
 	if err != nil {
 		return err
@@ -177,6 +178,63 @@ func getOCSClient() (*ocsClient, error) {
 	}, err
 }
 
+// setNewOCSConfig tries to override the default ocs settings
+// Input: ocsConfig data
+func setNewOCSConfig(ocsConfig *fegprotos.OCSConfig) error {
+	cli, err := getOCSClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetOCSSettings(context.Background(), ocsConfig)
+	return err
+}
+
+func usePCRFMockDriver() error {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetPCRFConfigs(context.Background(), &fegprotos.PCRFConfigs{UseMockDriver: true})
+	return err
+}
+
+func clearPCRFMockDriver() error {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetPCRFConfigs(context.Background(), &fegprotos.PCRFConfigs{UseMockDriver: false})
+	return err
+}
+
+func setPCRFExpectations(expectations []*fegprotos.GxCreditControlExpectation, defaultAnswer *fegprotos.GxCreditControlAnswer) error {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return err
+	}
+	request := &fegprotos.GxCreditControlExpectations{
+		Expectations: expectations,
+		GxDefaultCca: defaultAnswer,
+	}
+	if defaultAnswer != nil {
+		request.UnexpectedRequestBehavior = fegprotos.UnexpectedRequestBehavior_CONTINUE_WITH_DEFAULT_ANSWER
+	}
+	_, err = cli.SetExpectations(context.Background(), request)
+	return err
+}
+
+func getAssertExpectationsResult() ([]*fegprotos.ExpectationResult, []*fegprotos.ErrorByIndex, error) {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return nil, nil, nil
+	}
+	res, err := cli.AssertExpectations(context.Background(), &protos.Void{})
+	if err != nil {
+		return nil, nil, err
+	}
+	return res.Results, res.Errors, nil
+}
+
 // addSubscriber tries to add this subscriber to the OCS server.
 // Input: The subscriber data which will be added.
 func addSubscriberToOCS(sub *lteprotos.SubscriberID) error {
@@ -195,6 +253,29 @@ func clearSubscribersFromOCS() error {
 	}
 	_, err = cli.ClearSubscribers(context.Background(), &protos.Void{})
 	return err
+}
+
+// setCreditOCS tries to set a credit for this subscriber to the OCS server
+// Input: The credit info data which will be set
+func setCreditOnOCS(creditInfo *fegprotos.CreditInfo) error {
+	cli, err := getOCSClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetCredit(context.Background(), creditInfo)
+	return err
+}
+
+// sendChargingReAuthRequest triggers a RAR from OCS to Sessiond
+// Input: ChargingReAuthTarget
+func sendChargingReAuthRequest(imsi string, ratingGroup uint32) (*fegprotos.ChargingReAuthAnswer, error) {
+	cli, err := getOCSClient()
+	if err != nil {
+		return nil, err
+	}
+	raa, err := cli.ReAuth(context.Background(),
+		&fegprotos.ChargingReAuthTarget{Imsi: imsi, RatingGroup: ratingGroup})
+	return raa, err
 }
 
 /**  ========== Pipelined Helpers ========== **/
@@ -260,9 +341,16 @@ func initializePolicyDBWrapper() (*policyDBWrapper, error) {
 		policydb.GetBaseNameSerializer(),
 		policydb.GetBaseNameDeserializer(),
 	)
+	omniPresentRules := object_store.NewRedisMap(
+		redisClientImpl,
+		"policydb:omnipresent_rules",
+		policydb.GetRuleMappingSerializer(),
+		policydb.GetRuleMappingDeserializer(),
+	)
 	return &policyDBWrapper{
-		redisClient: redisClientImpl,
-		policyMap:   policyMap,
-		baseNameMap: baseNameMap,
+		redisClient:      redisClientImpl,
+		policyMap:        policyMap,
+		baseNameMap:      baseNameMap,
+		omniPresentRules: omniPresentRules,
 	}, nil
 }

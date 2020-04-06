@@ -40,7 +40,8 @@ int start_of_controller(bool persist_state)
   static openflow::BaseApplication base_app(persist_state);
   static openflow::GTPApplication gtp_app(
     std::string(bdata(spgw_config.sgw_config.ovs_config.uplink_mac)),
-    spgw_config.sgw_config.ovs_config.gtp_port_num);
+    spgw_config.sgw_config.ovs_config.gtp_port_num,
+    spgw_config.sgw_config.ovs_config.mtr_port_num);
   // Base app registers first, because it deletes/creates default flow
   ctrl.register_for_event(&base_app, openflow::EVENT_SWITCH_UP);
   ctrl.register_for_event(&base_app, openflow::EVENT_ERROR);
@@ -78,17 +79,16 @@ int openflow_controller_add_gtp_tunnel(
   uint32_t i_tei,
   uint32_t o_tei,
   const char *imsi,
-  struct ipv4flow_dl *flow_dl)
+  struct ipv4flow_dl *flow_dl,
+  uint32_t flow_precedence_dl)
 {
   if (flow_dl) {
-    auto add_tunnel =
-        std::make_shared<openflow::AddGTPTunnelEvent>(ue, enb, i_tei,
-            o_tei, imsi, flow_dl);
+    auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
+      ue, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   } else {
-    auto add_tunnel =
-        std::make_shared<openflow::AddGTPTunnelEvent>(ue, enb, i_tei,
-            o_tei, imsi);
+    auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
+      ue, enb, i_tei, o_tei, imsi);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   }
   return 0;
@@ -116,7 +116,7 @@ int openflow_controller_discard_data_on_tunnel(
 {
   if (flow_dl) {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
-        ue, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL, flow_dl);
+        ue, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL, flow_dl, false);
     ctrl.inject_external_event(gtp_tunnel, external_event_callback);
   } else {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
@@ -129,15 +129,20 @@ int openflow_controller_discard_data_on_tunnel(
 int openflow_controller_forward_data_on_tunnel(
   struct in_addr ue,
   uint32_t i_tei,
-  struct ipv4flow_dl *flow_dl)
+  struct ipv4flow_dl *flow_dl,
+  uint32_t flow_precedence_dl)
 {
   if (flow_dl) {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
-        ue, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL, flow_dl);
+      ue,
+      i_tei,
+      openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL,
+      flow_dl,
+      flow_precedence_dl);
     ctrl.inject_external_event(gtp_tunnel, external_event_callback);
   } else {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
-        ue, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
+      ue, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
     ctrl.inject_external_event(gtp_tunnel, external_event_callback);
   }
   return 0;

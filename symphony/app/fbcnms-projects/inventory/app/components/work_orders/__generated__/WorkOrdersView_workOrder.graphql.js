@@ -39,12 +39,14 @@ export type WorkOrdersView_workOrder = $ReadOnlyArray<{|
     +id: string,
     +name: string,
   |},
+  +closeDate: ?any,
   +$refType: WorkOrdersView_workOrder$ref,
 |}>;
 export type WorkOrdersView_workOrder$data = WorkOrdersView_workOrder;
 export type WorkOrdersView_workOrder$key = $ReadOnlyArray<{
   +$data?: WorkOrdersView_workOrder$data,
   +$fragmentRefs: WorkOrdersView_workOrder$ref,
+  ...
 }>;
 */
 
@@ -150,10 +152,17 @@ return {
       "concreteType": "Project",
       "plural": false,
       "selections": (v2/*: any*/)
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "closeDate",
+      "args": null,
+      "storageKey": null
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b420cc68c865cc34e5985dbd20c78f64';
+(node/*: any*/).hash = '42b2b499a9e1e4cf729326accb86a899';
 module.exports = node;

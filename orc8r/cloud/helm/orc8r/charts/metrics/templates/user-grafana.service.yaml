@@ -1,0 +1,46 @@
+{{/*
+Copyright (c) 2018-present, Facebook, Inc.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.
+*/}}
+{{- if .Values.userGrafana.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-user-grafana
+  labels:
+    app.kubernetes.io/component: user-grafana
+{{ include "metrics.labels" . | indent 4 }}
+    {{- with .Values.userGrafana.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- with .Values.userGrafana.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4}}
+  {{- end }}
+spec:
+  selector:
+    app.kubernetes.io/component: user-grafana
+{{ include "selector-labels" . | indent 4 }}
+  type: {{ .Values.userGrafana.service.type }}
+  ports:
+{{- range $port := .Values.userGrafana.service.ports }}
+     - name: {{ $port.name }}
+       port: {{ $port.port }}
+       targetPort: {{ $port.targetPort }}
+{{- end }}
+{{- if eq .Values.userGrafana.service.type "LoadBalancer" }}
+  {{- if .Values.userGrafana.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.userGrafana.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.userGrafana.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.userGrafana.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}
+{{- end }}

@@ -9,41 +9,65 @@ import (
 	"net/http"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
-	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/log"
 )
 
-type resolver struct {
-	log         log.Logger
-	withTx      bool
-	orc8rClient *http.Client
-}
+type (
+	// Config configures resolver.
+	Config struct {
+		Logger     log.Logger
+		Emitter    event.Emitter
+		Subscriber event.Subscriber
+	}
 
-// User information of the graphql request initiator
-type User struct {
-	email string
-}
+	// Option allows for managing resolver configuration using functional options.
+	Option func(*resolver)
+
+	resolver struct {
+		logger log.Logger
+		event  struct {
+			event.Emitter
+			event.Subscriber
+		}
+		mutation struct{ transactional bool }
+		orc8r    struct{ client *http.Client }
+	}
+)
 
 // New creates a graphql resolver.
-func New(logger log.Logger, opts ...ResolveOption) (generated.ResolverRoot, error) {
-	r := &resolver{log: logger, withTx: true}
+func New(cfg Config, opts ...Option) generated.ResolverRoot {
+	r := &resolver{logger: cfg.Logger}
+	r.event.Emitter = cfg.Emitter
+	r.event.Subscriber = cfg.Subscriber
+	r.mutation.transactional = true
 	for _, opt := range opts {
 		opt(r)
 	}
-	return r, nil
+	return r
 }
 
-func (r resolver) ClientFrom(ctx context.Context) *ent.Client {
+// WithTransaction if set to true, will wraps the mutation with transaction.
+func WithTransaction(b bool) Option {
+	return func(r *resolver) {
+		r.mutation.transactional = b
+	}
+}
+
+// WithOrc8rClient is used to provide orchestrator http client.
+func WithOrc8rClient(client *http.Client) Option {
+	return func(r *resolver) {
+		r.orc8r.client = client
+	}
+}
+
+func (resolver) ClientFrom(ctx context.Context) *ent.Client {
 	client := ent.FromContext(ctx)
 	if client == nil {
 		panic("no ClientFrom attached to context")
 	}
 	return client
-}
-
-func (r resolver) User(ctx context.Context) User {
-	return User{viewer.FromContext(ctx).User}
 }
 
 func (r resolver) Equipment() generated.EquipmentResolver {
@@ -74,6 +98,10 @@ func (resolver) File() generated.FileResolver {
 	return fileResolver{}
 }
 
+func (resolver) User() generated.UserResolver {
+	return userResolver{}
+}
+
 func (resolver) Link() generated.LinkResolver {
 	return linkResolver{}
 }
@@ -90,16 +118,25 @@ func (resolver) FloorPlan() generated.FloorPlanResolver {
 	return floorPlanResolver{}
 }
 
-func (r resolver) Mutation() generated.MutationResolver {
-	mr := mutationResolver{r}
-	if r.withTx {
-		return txResolver{mr}
+func (r resolver) Mutation() (mr generated.MutationResolver) {
+	mr = mutationResolver{r}
+	if r.mutation.transactional {
+		mr = txResolver{mr}
+	}
+	mr = eventResolver{
+		MutationResolver: mr,
+		emitter:          r.event.Emitter,
+		logger:           r.logger,
 	}
 	return mr
 }
 
 func (r resolver) Query() generated.QueryResolver {
 	return queryResolver{r}
+}
+
+func (r resolver) Subscription() generated.SubscriptionResolver {
+	return subscriptionResolver{r}
 }
 
 func (resolver) WorkOrder() generated.WorkOrderResolver {
@@ -166,6 +203,10 @@ func (resolver) ProjectType() generated.ProjectTypeResolver {
 	return projectTypeResolver{}
 }
 
+func (resolver) CheckListCategory() generated.CheckListCategoryResolver {
+	return checkListCategoryResolver{}
+}
+
 func (resolver) CheckListItem() generated.CheckListItemResolver {
 	return checkListItemResolver{}
 }
@@ -190,19 +231,10 @@ func (resolver) ActionsTrigger() generated.ActionsTriggerResolver {
 	return actionsTriggerResolver{}
 }
 
-// ResolveOption allows for managing resolver configuration using functional options.
-type ResolveOption func(*resolver)
-
-// WithTransaction if set to true, will wraps the mutation with transaction.
-func WithTransaction(b bool) ResolveOption {
-	return func(r *resolver) {
-		r.withTx = b
-	}
+func (resolver) Viewer() generated.ViewerResolver {
+	return viewerResolver{}
 }
 
-// WithOrc8rClient is used to provide orchestrator http client.
-func WithOrc8rClient(client *http.Client) ResolveOption {
-	return func(r *resolver) {
-		r.orc8rClient = client
-	}
+func (r resolver) ReportFilter() generated.ReportFilterResolver {
+	return reportFilterResolver{}
 }

@@ -138,6 +138,12 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
           |},
           +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
         |},
+        +serviceEndpoints: $ReadOnlyArray<{|
+          +role: ServiceEndpointRole,
+          +service: {|
+            +name: string
+          |},
+        |}>,
       |}>,
       +workOrder: ?{|
         +id: string,
@@ -233,6 +239,7 @@ export type EquipmentPortsTable_positionAttachedEquipment$data = EquipmentPortsT
 export type EquipmentPortsTable_positionAttachedEquipment$key = {
   +$data?: EquipmentPortsTable_positionAttachedEquipment$data,
   +$fragmentRefs: EquipmentPortsTable_positionAttachedEquipment$ref,
+  ...
 };
 */
 
@@ -406,6 +413,36 @@ v21 = {
   "storageKey": null
 },
 v22 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "serviceEndpoints",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "ServiceEndpoint",
+  "plural": true,
+  "selections": [
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "role",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "service",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": [
+        (v1/*: any*/)
+      ]
+    }
+  ]
+},
+v23 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "properties",
@@ -667,7 +704,8 @@ return {
                       "args": null
                     }
                   ]
-                }
+                },
+                (v22/*: any*/)
               ]
             },
             {
@@ -689,7 +727,7 @@ return {
                 }
               ]
             },
-            (v22/*: any*/),
+            (v23/*: any*/),
             {
               "kind": "LinkedField",
               "alias": null,
@@ -702,37 +740,8 @@ return {
             }
           ]
         },
-        (v22/*: any*/),
-        {
-          "kind": "LinkedField",
-          "alias": null,
-          "name": "serviceEndpoints",
-          "storageKey": null,
-          "args": null,
-          "concreteType": "ServiceEndpoint",
-          "plural": true,
-          "selections": [
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "role",
-              "args": null,
-              "storageKey": null
-            },
-            {
-              "kind": "LinkedField",
-              "alias": null,
-              "name": "service",
-              "storageKey": null,
-              "args": null,
-              "concreteType": "Service",
-              "plural": false,
-              "selections": [
-                (v1/*: any*/)
-              ]
-            }
-          ]
-        }
+        (v23/*: any*/),
+        (v22/*: any*/)
       ]
     },
     {

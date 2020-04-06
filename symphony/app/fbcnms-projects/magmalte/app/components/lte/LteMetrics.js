@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -13,6 +13,7 @@ import type {MetricGraphConfig} from '../insights/Metrics';
 import AppBar from '@material-ui/core/AppBar';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import GatewayMetrics from '../insights/GatewayMetrics';
+import Grafana from '../insights/Grafana';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
@@ -219,6 +220,10 @@ function InternalMetrics() {
   return <GatewayMetrics configs={INTERNAL_CONFIGS} />;
 }
 
+function GrafanaDashboard() {
+  return <Grafana grafanaURL={'/grafana'} />;
+}
+
 export default function() {
   const lteNetworkMetrics = useContext(AppContext).isFeatureEnabled(
     'lte_network_metrics',
@@ -230,7 +235,16 @@ export default function() {
   const classes = useStyles();
   const {match, relativePath, relativeUrl, location} = useRouter();
 
-  const currentTab = findIndex(['gateways', 'network', 'internal'], route =>
+  const grafanaEnabled =
+    useContext(AppContext).isFeatureEnabled('grafana_metrics') &&
+    useContext(AppContext).user.isSuperUser;
+
+  const tabNames = ['gateways', 'network', 'internal'];
+  if (grafanaEnabled) {
+    tabNames.push('grafana');
+  }
+
+  const currentTab = findIndex(tabNames, route =>
     location.pathname.startsWith(match.url + '/' + route),
   );
 
@@ -245,6 +259,9 @@ export default function() {
           <Tab component={NestedRouteLink} label="Gateways" to="/gateways" />
           <Tab component={NestedRouteLink} label="Network" to="/network" />
           <Tab component={NestedRouteLink} label="Internal" to="/internal" />
+          {grafanaEnabled && (
+            <Tab component={NestedRouteLink} label="Grafana" to="/grafana" />
+          )}
         </Tabs>
       </AppBar>
       <Switch>
@@ -254,6 +271,9 @@ export default function() {
         />
         <Route path={relativePath('/network')} component={NetworkKPIs} />
         <Route path={relativePath('/internal')} component={InternalMetrics} />
+        {grafanaEnabled && (
+          <Route path={relativePath('/grafana')} component={GrafanaDashboard} />
+        )}
         <Redirect to={relativeUrl('/gateways')} />
       </Switch>
     </>

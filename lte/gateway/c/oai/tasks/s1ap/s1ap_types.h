@@ -42,6 +42,10 @@ typedef struct s1ap_state_s {
   uint32_t num_enbs;
 } s1ap_state_t;
 
+typedef struct s1ap_imsi_map_s {
+  hash_table_uint64_ts_t* mme_ue_id_imsi_htbl;
+} s1ap_imsi_map_t;
+
 enum s1_timer_class_s {
   S1AP_INVALID_TIMER_CLASS,
   S1AP_ENB_TIMER,

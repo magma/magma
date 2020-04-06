@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // LocationTypeDelete is the builder for deleting a LocationType entity.
 type LocationTypeDelete struct {
 	config
+	hooks      []Hook
+	mutation   *LocationTypeMutation
 	predicates []predicate.LocationType
 }
 
@@ -30,7 +33,30 @@ func (ltd *LocationTypeDelete) Where(ps ...predicate.LocationType) *LocationType
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ltd *LocationTypeDelete) Exec(ctx context.Context) (int, error) {
-	return ltd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(ltd.hooks) == 0 {
+		affected, err = ltd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*LocationTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ltd.mutation = mutation
+			affected, err = ltd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(ltd.hooks); i > 0; i-- {
+			mut = ltd.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ltd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (ltd *LocationTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (ltd *LocationTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: locationtype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: locationtype.FieldID,
 			},
 		},
 	}
 	if ps := ltd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ltd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ltd.driver, _spec)
 }
 
 // LocationTypeDeleteOne is the builder for deleting a single LocationType entity.
@@ -74,7 +100,7 @@ func (ltdo *LocationTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{locationtype.Label}
+		return &NotFoundError{locationtype.Label}
 	default:
 		return nil
 	}

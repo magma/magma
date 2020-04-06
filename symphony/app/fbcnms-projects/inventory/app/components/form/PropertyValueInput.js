@@ -21,11 +21,10 @@ import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import GPSPropertyValueInput from './GPSPropertyValueInput';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
-import MenuItem from '@material-ui/core/MenuItem';
 import RangePropertyValueInput from './RangePropertyValueInput';
+import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import ServiceTypeahead from '../typeahead/ServiceTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TextField from '@material-ui/core/TextField';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import classNames from 'classnames';
 import update from 'immutability-helper';
@@ -107,17 +106,17 @@ class PropertyValueInput extends React.Component<Props> {
       case 'enum': {
         return inputType == 'Property' ? (
           <EnumPropertySelectValueInput
-            label={label}
             className={classNames(classes.input, className)}
-            inputClassName={classNames(classes.selectMenu, inputClassName)}
-            margin={margin}
             property={property}
             onChange={onChange}
-            autoFocus={autoFocus}
             disabled={disabled}
           />
         ) : (
-          <EnumPropertyValueInput property={property} onChange={onChange} />
+          <EnumPropertyValueInput
+            property={property}
+            onChange={onChange}
+            disabled={disabled}
+          />
         );
       }
       case 'date':
@@ -238,37 +237,34 @@ class PropertyValueInput extends React.Component<Props> {
         );
       case 'bool':
         return (
-          <TextField
-            autoFocus={autoFocus}
-            select
+          <Select
             id="property-value"
-            variant="outlined"
             className={classNames(classes.input, className)}
-            onBlur={e => onBlur && onBlur(e)}
             label={label}
             disabled={disabled}
-            margin={margin}
-            value={!!property.booleanValue ? 'True' : 'False'}
-            onChange={event =>
+            selectedValue={property.booleanValue}
+            onChange={value =>
               onChange(
                 update(property, {
                   booleanValue: {
-                    $set: event.target.value === 'True' ? true : false,
+                    $set: value,
                   },
                 }),
               )
             }
-            SelectProps={{
-              classes: {
-                selectMenu: classes.selectMenu,
+            options={[
+              {
+                key: 'true',
+                value: true,
+                label: 'True',
               },
-            }}>
-            {['True', 'False'].map(boolVal => (
-              <MenuItem key={boolVal} value={boolVal}>
-                {boolVal}
-              </MenuItem>
-            ))}
-          </TextField>
+              {
+                key: 'false',
+                value: false,
+                label: 'False',
+              },
+            ]}
+          />
         );
       case 'range':
         return (

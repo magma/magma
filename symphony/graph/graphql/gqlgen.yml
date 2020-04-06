@@ -23,3 +23,7 @@ struct_tag: gqlgen
 autobind:
   - github.com/facebookincubator/symphony/graph/ent
 
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.IntID

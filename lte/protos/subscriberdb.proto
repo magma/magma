@@ -153,7 +153,7 @@ message Non3GPPUserProfile {
 
   AggregatedMaximumBitrate ambr = 4;
 
-  APNConfiguration apn_config = 5;
+  repeated APNConfiguration apn_config = 5;
 
   AccessNetworkIdentifier access_net_id = 6;
 }
@@ -190,31 +190,6 @@ message SubscriberUpdate {
 }
 
 // --------------------------------------------------------------------------
-// PolicyAssignment controller definition.
-// --------------------------------------------------------------------------
-message EnableStaticRuleRequest {
-  string imsi = 1;
-  repeated string rule_ids = 2; // Static rule IDs
-  repeated string base_names = 3;
-}
-
-message DisableStaticRuleRequest {
-  string imsi = 1;
-  repeated string rule_ids = 2; // Static rule IDs
-  repeated string base_names = 3;
-}
-
-service PolicyAssignmentController {
-  // Associate the static rule with the IMSI
-  //
-  rpc EnableStaticRules (EnableStaticRuleRequest) returns (magma.orc8r.Void) {}
-
-  // Unassociate the static rule with the IMSI
-  //
-  rpc DisableStaticRules (DisableStaticRuleRequest) returns (magma.orc8r.Void) {}
-}
-
-// --------------------------------------------------------------------------
 // SubscriberDB service definition.
 // --------------------------------------------------------------------------
 service SubscriberDB {
@@ -242,47 +217,4 @@ service SubscriberDB {
   // List the subscribers in the store.
   //
   rpc ListSubscribers (magma.orc8r.Void) returns (SubscriberIDSet) {}
-}
-
-// --------------------------------------------------------------------------
-// SubscriberDB controller
-// --------------------------------------------------------------------------
-message SubscriberLookup {
-  magma.orc8r.NetworkID network_id = 1;
-
-  SubscriberID sid = 2;
-}
-
-message GetAllSubscriberDataResponse {
-  repeated SubscriberData subscribers = 1;
-}
-
-service SubscriberDBController {
-
-  // Adds a new subscriber to the store.
-  // Throws ALREADY_EXISTS if the subscriber already exists.
-  //
-  rpc AddSubscriber (SubscriberData) returns (magma.orc8r.Void) {}
-
-  // Deletes an existing subscriber.
-  // If the subscriber is not already present, this request is ignored.
-  //
-  rpc DeleteSubscriber (SubscriberLookup) returns (magma.orc8r.Void) {}
-
-  // Updates an existing subscriber.
-  // Throws NOT_FOUND if the subscriber is missing.
-  //
-  rpc UpdateSubscriber (SubscriberData) returns (magma.orc8r.Void) {}
-
-  // Returns the SubscriberData for a subscriber.
-  // Throws NOT_FOUND if the subscriber is missing.
-  //
-  rpc GetSubscriberData (SubscriberLookup) returns (SubscriberData) {}
-
-  // List the subscribers in the store.
-  //
-  rpc ListSubscribers (magma.orc8r.NetworkID) returns (SubscriberIDSet) {}
-
-  // Get all subscriber data for the network
-  rpc GetAllSubscriberData (magma.orc8r.NetworkID) returns (GetAllSubscriberDataResponse) {}
 }

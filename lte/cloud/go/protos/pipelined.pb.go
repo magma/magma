@@ -10,7 +10,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	protos "magma/orc8r/cloud/go/protos"
+	protos "magma/orc8r/lib/go/protos"
 	math "math"
 )
 
@@ -50,7 +50,7 @@ func (x SetupFlowsResult_Result) String() string {
 }
 
 func (SetupFlowsResult_Result) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{1, 0}
+	return fileDescriptor_e17e923ef6f5752e, []int{4, 0}
 }
 
 type RuleModResult_Result int32
@@ -78,17 +78,48 @@ func (x RuleModResult_Result) String() string {
 }
 
 func (RuleModResult_Result) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{4, 0}
+	return fileDescriptor_e17e923ef6f5752e, []int{7, 0}
 }
 
+type SubscriberQuotaUpdate_Type int32
+
+const (
+	SubscriberQuotaUpdate_VALID_QUOTA SubscriberQuotaUpdate_Type = 0
+	SubscriberQuotaUpdate_NO_QUOTA    SubscriberQuotaUpdate_Type = 1
+	SubscriberQuotaUpdate_TERMINATE   SubscriberQuotaUpdate_Type = 2
+)
+
+var SubscriberQuotaUpdate_Type_name = map[int32]string{
+	0: "VALID_QUOTA",
+	1: "NO_QUOTA",
+	2: "TERMINATE",
+}
+
+var SubscriberQuotaUpdate_Type_value = map[string]int32{
+	"VALID_QUOTA": 0,
+	"NO_QUOTA":    1,
+	"TERMINATE":   2,
+}
+
+func (x SubscriberQuotaUpdate_Type) String() string {
+	return proto.EnumName(SubscriberQuotaUpdate_Type_name, int32(x))
+}
+
+func (SubscriberQuotaUpdate_Type) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_e17e923ef6f5752e, []int{13, 0}
+}
+
+// Deprecated
 type SetupFlowsRequest struct {
 	// List of requests to activate
 	Requests []*ActivateFlowsRequest `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests,omitempty"`
 	// epoch to prevent outdated setup calls
-	Epoch                uint64   `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Epoch uint64 `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
+	// List of subscriber quota updates
+	QuotaUpdates         *UpdateSubscriberQuotaStateRequest `protobuf:"bytes,3,opt,name=quota_updates,json=quotaUpdates,proto3" json:"quota_updates,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                           `json:"-"`
+	XXX_unrecognized     []byte                             `json:"-"`
+	XXX_sizecache        int32                              `json:"-"`
 }
 
 func (m *SetupFlowsRequest) Reset()         { *m = SetupFlowsRequest{} }
@@ -130,6 +161,160 @@ func (m *SetupFlowsRequest) GetEpoch() uint64 {
 	return 0
 }
 
+func (m *SetupFlowsRequest) GetQuotaUpdates() *UpdateSubscriberQuotaStateRequest {
+	if m != nil {
+		return m.QuotaUpdates
+	}
+	return nil
+}
+
+type SetupUEMacRequest struct {
+	// List of UEs to activate
+	Requests []*UEMacFlowRequest `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests,omitempty"`
+	// epoch to prevent outdated setup calls
+	Epoch                uint64   `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetupUEMacRequest) Reset()         { *m = SetupUEMacRequest{} }
+func (m *SetupUEMacRequest) String() string { return proto.CompactTextString(m) }
+func (*SetupUEMacRequest) ProtoMessage()    {}
+func (*SetupUEMacRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e17e923ef6f5752e, []int{1}
+}
+
+func (m *SetupUEMacRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetupUEMacRequest.Unmarshal(m, b)
+}
+func (m *SetupUEMacRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetupUEMacRequest.Marshal(b, m, deterministic)
+}
+func (m *SetupUEMacRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetupUEMacRequest.Merge(m, src)
+}
+func (m *SetupUEMacRequest) XXX_Size() int {
+	return xxx_messageInfo_SetupUEMacRequest.Size(m)
+}
+func (m *SetupUEMacRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetupUEMacRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetupUEMacRequest proto.InternalMessageInfo
+
+func (m *SetupUEMacRequest) GetRequests() []*UEMacFlowRequest {
+	if m != nil {
+		return m.Requests
+	}
+	return nil
+}
+
+func (m *SetupUEMacRequest) GetEpoch() uint64 {
+	if m != nil {
+		return m.Epoch
+	}
+	return 0
+}
+
+type SetupPolicyRequest struct {
+	// List of requests to activate
+	Requests []*ActivateFlowsRequest `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests,omitempty"`
+	// epoch to prevent outdated setup calls
+	Epoch                uint64   `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetupPolicyRequest) Reset()         { *m = SetupPolicyRequest{} }
+func (m *SetupPolicyRequest) String() string { return proto.CompactTextString(m) }
+func (*SetupPolicyRequest) ProtoMessage()    {}
+func (*SetupPolicyRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e17e923ef6f5752e, []int{2}
+}
+
+func (m *SetupPolicyRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetupPolicyRequest.Unmarshal(m, b)
+}
+func (m *SetupPolicyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetupPolicyRequest.Marshal(b, m, deterministic)
+}
+func (m *SetupPolicyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetupPolicyRequest.Merge(m, src)
+}
+func (m *SetupPolicyRequest) XXX_Size() int {
+	return xxx_messageInfo_SetupPolicyRequest.Size(m)
+}
+func (m *SetupPolicyRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetupPolicyRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetupPolicyRequest proto.InternalMessageInfo
+
+func (m *SetupPolicyRequest) GetRequests() []*ActivateFlowsRequest {
+	if m != nil {
+		return m.Requests
+	}
+	return nil
+}
+
+func (m *SetupPolicyRequest) GetEpoch() uint64 {
+	if m != nil {
+		return m.Epoch
+	}
+	return 0
+}
+
+type SetupQuotaRequest struct {
+	// List of quota rules to activate
+	QuotaUpdates *UpdateSubscriberQuotaStateRequest `protobuf:"bytes,1,opt,name=quota_updates,json=quotaUpdates,proto3" json:"quota_updates,omitempty"`
+	// epoch to prevent outdated setup calls
+	Epoch                uint64   `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetupQuotaRequest) Reset()         { *m = SetupQuotaRequest{} }
+func (m *SetupQuotaRequest) String() string { return proto.CompactTextString(m) }
+func (*SetupQuotaRequest) ProtoMessage()    {}
+func (*SetupQuotaRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e17e923ef6f5752e, []int{3}
+}
+
+func (m *SetupQuotaRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetupQuotaRequest.Unmarshal(m, b)
+}
+func (m *SetupQuotaRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetupQuotaRequest.Marshal(b, m, deterministic)
+}
+func (m *SetupQuotaRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetupQuotaRequest.Merge(m, src)
+}
+func (m *SetupQuotaRequest) XXX_Size() int {
+	return xxx_messageInfo_SetupQuotaRequest.Size(m)
+}
+func (m *SetupQuotaRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetupQuotaRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetupQuotaRequest proto.InternalMessageInfo
+
+func (m *SetupQuotaRequest) GetQuotaUpdates() *UpdateSubscriberQuotaStateRequest {
+	if m != nil {
+		return m.QuotaUpdates
+	}
+	return nil
+}
+
+func (m *SetupQuotaRequest) GetEpoch() uint64 {
+	if m != nil {
+		return m.Epoch
+	}
+	return 0
+}
+
 type SetupFlowsResult struct {
 	Result               SetupFlowsResult_Result `protobuf:"varint,1,opt,name=result,proto3,enum=magma.lte.SetupFlowsResult_Result" json:"result,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
@@ -141,7 +326,7 @@ func (m *SetupFlowsResult) Reset()         { *m = SetupFlowsResult{} }
 func (m *SetupFlowsResult) String() string { return proto.CompactTextString(m) }
 func (*SetupFlowsResult) ProtoMessage()    {}
 func (*SetupFlowsResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{1}
+	return fileDescriptor_e17e923ef6f5752e, []int{4}
 }
 
 func (m *SetupFlowsResult) XXX_Unmarshal(b []byte) error {
@@ -186,7 +371,7 @@ func (m *ActivateFlowsRequest) Reset()         { *m = ActivateFlowsRequest{} }
 func (m *ActivateFlowsRequest) String() string { return proto.CompactTextString(m) }
 func (*ActivateFlowsRequest) ProtoMessage()    {}
 func (*ActivateFlowsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{2}
+	return fileDescriptor_e17e923ef6f5752e, []int{5}
 }
 
 func (m *ActivateFlowsRequest) XXX_Unmarshal(b []byte) error {
@@ -252,7 +437,7 @@ func (m *DeactivateFlowsRequest) Reset()         { *m = DeactivateFlowsRequest{}
 func (m *DeactivateFlowsRequest) String() string { return proto.CompactTextString(m) }
 func (*DeactivateFlowsRequest) ProtoMessage()    {}
 func (*DeactivateFlowsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{3}
+	return fileDescriptor_e17e923ef6f5752e, []int{6}
 }
 
 func (m *DeactivateFlowsRequest) XXX_Unmarshal(b []byte) error {
@@ -299,7 +484,7 @@ func (m *RuleModResult) Reset()         { *m = RuleModResult{} }
 func (m *RuleModResult) String() string { return proto.CompactTextString(m) }
 func (*RuleModResult) ProtoMessage()    {}
 func (*RuleModResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{4}
+	return fileDescriptor_e17e923ef6f5752e, []int{7}
 }
 
 func (m *RuleModResult) XXX_Unmarshal(b []byte) error {
@@ -346,7 +531,7 @@ func (m *ActivateFlowsResult) Reset()         { *m = ActivateFlowsResult{} }
 func (m *ActivateFlowsResult) String() string { return proto.CompactTextString(m) }
 func (*ActivateFlowsResult) ProtoMessage()    {}
 func (*ActivateFlowsResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{5}
+	return fileDescriptor_e17e923ef6f5752e, []int{8}
 }
 
 func (m *ActivateFlowsResult) XXX_Unmarshal(b []byte) error {
@@ -391,7 +576,7 @@ func (m *DeactivateFlowsResult) Reset()         { *m = DeactivateFlowsResult{} }
 func (m *DeactivateFlowsResult) String() string { return proto.CompactTextString(m) }
 func (*DeactivateFlowsResult) ProtoMessage()    {}
 func (*DeactivateFlowsResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{6}
+	return fileDescriptor_e17e923ef6f5752e, []int{9}
 }
 
 func (m *DeactivateFlowsResult) XXX_Unmarshal(b []byte) error {
@@ -416,6 +601,7 @@ type FlowRequest struct {
 	Match                *FlowMatch `protobuf:"bytes,1,opt,name=match,proto3" json:"match,omitempty"`
 	AppName              string     `protobuf:"bytes,2,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
 	BytesRx              uint64     `protobuf:"varint,3,opt,name=bytes_rx,json=bytesRx,proto3" json:"bytes_rx,omitempty"`
+	ServiceType          string     `protobuf:"bytes,4,opt,name=service_type,json=serviceType,proto3" json:"service_type,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
 	XXX_unrecognized     []byte     `json:"-"`
 	XXX_sizecache        int32      `json:"-"`
@@ -425,7 +611,7 @@ func (m *FlowRequest) Reset()         { *m = FlowRequest{} }
 func (m *FlowRequest) String() string { return proto.CompactTextString(m) }
 func (*FlowRequest) ProtoMessage()    {}
 func (*FlowRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{7}
+	return fileDescriptor_e17e923ef6f5752e, []int{10}
 }
 
 func (m *FlowRequest) XXX_Unmarshal(b []byte) error {
@@ -467,6 +653,13 @@ func (m *FlowRequest) GetBytesRx() uint64 {
 	return 0
 }
 
+func (m *FlowRequest) GetServiceType() string {
+	if m != nil {
+		return m.ServiceType
+	}
+	return ""
+}
+
 type FlowResponse struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -477,7 +670,7 @@ func (m *FlowResponse) Reset()         { *m = FlowResponse{} }
 func (m *FlowResponse) String() string { return proto.CompactTextString(m) }
 func (*FlowResponse) ProtoMessage()    {}
 func (*FlowResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{8}
+	return fileDescriptor_e17e923ef6f5752e, []int{11}
 }
 
 func (m *FlowResponse) XXX_Unmarshal(b []byte) error {
@@ -503,7 +696,12 @@ var xxx_messageInfo_FlowResponse proto.InternalMessageInfo
 type UEMacFlowRequest struct {
 	Sid *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
 	// UE MAC address
-	MacAddr              string   `protobuf:"bytes,2,opt,name=mac_addr,json=macAddr,proto3" json:"mac_addr,omitempty"`
+	MacAddr string `protobuf:"bytes,2,opt,name=mac_addr,json=macAddr,proto3" json:"mac_addr,omitempty"`
+	Msisdn  string `protobuf:"bytes,3,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
+	// AP MAC address
+	ApMacAddr string `protobuf:"bytes,4,opt,name=ap_mac_addr,json=apMacAddr,proto3" json:"ap_mac_addr,omitempty"`
+	// AP Name
+	ApName               string   `protobuf:"bytes,5,opt,name=ap_name,json=apName,proto3" json:"ap_name,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -513,7 +711,7 @@ func (m *UEMacFlowRequest) Reset()         { *m = UEMacFlowRequest{} }
 func (m *UEMacFlowRequest) String() string { return proto.CompactTextString(m) }
 func (*UEMacFlowRequest) ProtoMessage()    {}
 func (*UEMacFlowRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{9}
+	return fileDescriptor_e17e923ef6f5752e, []int{12}
 }
 
 func (m *UEMacFlowRequest) XXX_Unmarshal(b []byte) error {
@@ -548,6 +746,122 @@ func (m *UEMacFlowRequest) GetMacAddr() string {
 	return ""
 }
 
+func (m *UEMacFlowRequest) GetMsisdn() string {
+	if m != nil {
+		return m.Msisdn
+	}
+	return ""
+}
+
+func (m *UEMacFlowRequest) GetApMacAddr() string {
+	if m != nil {
+		return m.ApMacAddr
+	}
+	return ""
+}
+
+func (m *UEMacFlowRequest) GetApName() string {
+	if m != nil {
+		return m.ApName
+	}
+	return ""
+}
+
+type SubscriberQuotaUpdate struct {
+	Sid *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	// UE MAC address
+	MacAddr              string                     `protobuf:"bytes,2,opt,name=mac_addr,json=macAddr,proto3" json:"mac_addr,omitempty"`
+	UpdateType           SubscriberQuotaUpdate_Type `protobuf:"varint,3,opt,name=update_type,json=updateType,proto3,enum=magma.lte.SubscriberQuotaUpdate_Type" json:"update_type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
+}
+
+func (m *SubscriberQuotaUpdate) Reset()         { *m = SubscriberQuotaUpdate{} }
+func (m *SubscriberQuotaUpdate) String() string { return proto.CompactTextString(m) }
+func (*SubscriberQuotaUpdate) ProtoMessage()    {}
+func (*SubscriberQuotaUpdate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e17e923ef6f5752e, []int{13}
+}
+
+func (m *SubscriberQuotaUpdate) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SubscriberQuotaUpdate.Unmarshal(m, b)
+}
+func (m *SubscriberQuotaUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SubscriberQuotaUpdate.Marshal(b, m, deterministic)
+}
+func (m *SubscriberQuotaUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SubscriberQuotaUpdate.Merge(m, src)
+}
+func (m *SubscriberQuotaUpdate) XXX_Size() int {
+	return xxx_messageInfo_SubscriberQuotaUpdate.Size(m)
+}
+func (m *SubscriberQuotaUpdate) XXX_DiscardUnknown() {
+	xxx_messageInfo_SubscriberQuotaUpdate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SubscriberQuotaUpdate proto.InternalMessageInfo
+
+func (m *SubscriberQuotaUpdate) GetSid() *SubscriberID {
+	if m != nil {
+		return m.Sid
+	}
+	return nil
+}
+
+func (m *SubscriberQuotaUpdate) GetMacAddr() string {
+	if m != nil {
+		return m.MacAddr
+	}
+	return ""
+}
+
+func (m *SubscriberQuotaUpdate) GetUpdateType() SubscriberQuotaUpdate_Type {
+	if m != nil {
+		return m.UpdateType
+	}
+	return SubscriberQuotaUpdate_VALID_QUOTA
+}
+
+type UpdateSubscriberQuotaStateRequest struct {
+	Updates              []*SubscriberQuotaUpdate `protobuf:"bytes,1,rep,name=updates,proto3" json:"updates,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
+	XXX_unrecognized     []byte                   `json:"-"`
+	XXX_sizecache        int32                    `json:"-"`
+}
+
+func (m *UpdateSubscriberQuotaStateRequest) Reset()         { *m = UpdateSubscriberQuotaStateRequest{} }
+func (m *UpdateSubscriberQuotaStateRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateSubscriberQuotaStateRequest) ProtoMessage()    {}
+func (*UpdateSubscriberQuotaStateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e17e923ef6f5752e, []int{14}
+}
+
+func (m *UpdateSubscriberQuotaStateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateSubscriberQuotaStateRequest.Unmarshal(m, b)
+}
+func (m *UpdateSubscriberQuotaStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateSubscriberQuotaStateRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateSubscriberQuotaStateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateSubscriberQuotaStateRequest.Merge(m, src)
+}
+func (m *UpdateSubscriberQuotaStateRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateSubscriberQuotaStateRequest.Size(m)
+}
+func (m *UpdateSubscriberQuotaStateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateSubscriberQuotaStateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateSubscriberQuotaStateRequest proto.InternalMessageInfo
+
+func (m *UpdateSubscriberQuotaStateRequest) GetUpdates() []*SubscriberQuotaUpdate {
+	if m != nil {
+		return m.Updates
+	}
+	return nil
+}
+
 type TableAssignment struct {
 	AppName              string   `protobuf:"bytes,1,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
 	MainTable            uint64   `protobuf:"varint,2,opt,name=main_table,json=mainTable,proto3" json:"main_table,omitempty"`
@@ -561,7 +875,7 @@ func (m *TableAssignment) Reset()         { *m = TableAssignment{} }
 func (m *TableAssignment) String() string { return proto.CompactTextString(m) }
 func (*TableAssignment) ProtoMessage()    {}
 func (*TableAssignment) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{10}
+	return fileDescriptor_e17e923ef6f5752e, []int{15}
 }
 
 func (m *TableAssignment) XXX_Unmarshal(b []byte) error {
@@ -614,7 +928,7 @@ func (m *AllTableAssignments) Reset()         { *m = AllTableAssignments{} }
 func (m *AllTableAssignments) String() string { return proto.CompactTextString(m) }
 func (*AllTableAssignments) ProtoMessage()    {}
 func (*AllTableAssignments) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{11}
+	return fileDescriptor_e17e923ef6f5752e, []int{16}
 }
 
 func (m *AllTableAssignments) XXX_Unmarshal(b []byte) error {
@@ -654,7 +968,7 @@ func (m *SerializedRyuPacket) Reset()         { *m = SerializedRyuPacket{} }
 func (m *SerializedRyuPacket) String() string { return proto.CompactTextString(m) }
 func (*SerializedRyuPacket) ProtoMessage()    {}
 func (*SerializedRyuPacket) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{12}
+	return fileDescriptor_e17e923ef6f5752e, []int{17}
 }
 
 func (m *SerializedRyuPacket) XXX_Unmarshal(b []byte) error {
@@ -700,7 +1014,7 @@ func (m *PacketDropTableId) Reset()         { *m = PacketDropTableId{} }
 func (m *PacketDropTableId) String() string { return proto.CompactTextString(m) }
 func (*PacketDropTableId) ProtoMessage()    {}
 func (*PacketDropTableId) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e17e923ef6f5752e, []int{13}
+	return fileDescriptor_e17e923ef6f5752e, []int{18}
 }
 
 func (m *PacketDropTableId) XXX_Unmarshal(b []byte) error {
@@ -731,7 +1045,11 @@ func (m *PacketDropTableId) GetTableId() int32 {
 func init() {
 	proto.RegisterEnum("magma.lte.SetupFlowsResult_Result", SetupFlowsResult_Result_name, SetupFlowsResult_Result_value)
 	proto.RegisterEnum("magma.lte.RuleModResult_Result", RuleModResult_Result_name, RuleModResult_Result_value)
+	proto.RegisterEnum("magma.lte.SubscriberQuotaUpdate_Type", SubscriberQuotaUpdate_Type_name, SubscriberQuotaUpdate_Type_value)
 	proto.RegisterType((*SetupFlowsRequest)(nil), "magma.lte.SetupFlowsRequest")
+	proto.RegisterType((*SetupUEMacRequest)(nil), "magma.lte.SetupUEMacRequest")
+	proto.RegisterType((*SetupPolicyRequest)(nil), "magma.lte.SetupPolicyRequest")
+	proto.RegisterType((*SetupQuotaRequest)(nil), "magma.lte.SetupQuotaRequest")
 	proto.RegisterType((*SetupFlowsResult)(nil), "magma.lte.SetupFlowsResult")
 	proto.RegisterType((*ActivateFlowsRequest)(nil), "magma.lte.ActivateFlowsRequest")
 	proto.RegisterType((*DeactivateFlowsRequest)(nil), "magma.lte.DeactivateFlowsRequest")
@@ -741,6 +1059,8 @@ func init() {
 	proto.RegisterType((*FlowRequest)(nil), "magma.lte.FlowRequest")
 	proto.RegisterType((*FlowResponse)(nil), "magma.lte.FlowResponse")
 	proto.RegisterType((*UEMacFlowRequest)(nil), "magma.lte.UEMacFlowRequest")
+	proto.RegisterType((*SubscriberQuotaUpdate)(nil), "magma.lte.SubscriberQuotaUpdate")
+	proto.RegisterType((*UpdateSubscriberQuotaStateRequest)(nil), "magma.lte.UpdateSubscriberQuotaStateRequest")
 	proto.RegisterType((*TableAssignment)(nil), "magma.lte.TableAssignment")
 	proto.RegisterType((*AllTableAssignments)(nil), "magma.lte.AllTableAssignments")
 	proto.RegisterType((*SerializedRyuPacket)(nil), "magma.lte.SerializedRyuPacket")
@@ -750,85 +1070,99 @@ func init() {
 func init() { proto.RegisterFile("lte/protos/pipelined.proto", fileDescriptor_e17e923ef6f5752e) }
 
 var fileDescriptor_e17e923ef6f5752e = []byte{
-	// 945 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xdd, 0x6e, 0x23, 0x35,
-	0x14, 0xee, 0x24, 0x6d, 0xb2, 0x39, 0x6d, 0xd3, 0xc4, 0xe9, 0x36, 0xe9, 0x2c, 0x0b, 0x61, 0x24,
-	0xa4, 0xc2, 0x45, 0x2a, 0x15, 0x89, 0x45, 0xbb, 0x17, 0x68, 0x68, 0xd2, 0x6c, 0x60, 0xcb, 0x46,
-	0x4e, 0x83, 0x56, 0x5c, 0x30, 0x72, 0x66, 0x4c, 0xd6, 0xda, 0xf9, 0xc3, 0x76, 0x60, 0xcb, 0x03,
-	0xf0, 0x10, 0xbc, 0x02, 0xdc, 0xf0, 0x86, 0x68, 0x3c, 0x4e, 0xea, 0x4c, 0xd3, 0x56, 0xc0, 0xd5,
-	0xf8, 0xe7, 0x3b, 0xdf, 0x39, 0x3e, 0xdf, 0x39, 0xf6, 0x80, 0x1d, 0x4a, 0x7a, 0x9a, 0xf2, 0x44,
-	0x26, 0xe2, 0x34, 0x65, 0x29, 0x0d, 0x59, 0x4c, 0x83, 0x9e, 0x5a, 0x40, 0xb5, 0x88, 0xcc, 0x23,
-	0xd2, 0x0b, 0x25, 0xb5, 0x8f, 0x13, 0xee, 0x7f, 0xc9, 0x97, 0x40, 0x3f, 0x89, 0xa2, 0x24, 0xce,
-	0x51, 0xb6, 0xc9, 0x10, 0x51, 0x49, 0x39, 0x8b, 0xe7, 0x9a, 0xc1, 0x3e, 0x36, 0xd9, 0x93, 0x90,
-	0xf9, 0xd7, 0xc1, 0x4c, 0x6f, 0x75, 0x8d, 0x2d, 0x41, 0x85, 0x60, 0x49, 0xec, 0x45, 0x24, 0x26,
-	0x73, 0xca, 0x35, 0xe2, 0xa9, 0x89, 0x58, 0xcc, 0x84, 0xcf, 0xd9, 0x8c, 0xf2, 0x25, 0x81, 0xf3,
-	0x13, 0x34, 0x27, 0x54, 0x2e, 0xd2, 0x8b, 0x30, 0xf9, 0x55, 0x60, 0xfa, 0xf3, 0x82, 0x0a, 0x89,
-	0x5e, 0xc0, 0x23, 0x9e, 0x0f, 0x45, 0xc7, 0xea, 0x96, 0x4f, 0x76, 0xcf, 0x3e, 0xea, 0xad, 0x4e,
-	0xd1, 0x73, 0x7d, 0xc9, 0x7e, 0x21, 0x92, 0x9a, 0x26, 0x78, 0x65, 0x80, 0x0e, 0x61, 0x87, 0xa6,
-	0x89, 0xff, 0xb6, 0x53, 0xea, 0x5a, 0x27, 0xdb, 0x38, 0x9f, 0x38, 0xbf, 0x5b, 0xd0, 0x30, 0x1d,
-	0x89, 0x45, 0x28, 0xd1, 0x73, 0xa8, 0x70, 0x35, 0xea, 0x58, 0x5d, 0xeb, 0xa4, 0x7e, 0xe6, 0x18,
-	0x5e, 0x8a, 0xe0, 0x5e, 0xfe, 0xc1, 0xda, 0xc2, 0xf9, 0x02, 0x2a, 0x9a, 0x65, 0x17, 0xaa, 0x93,
-	0xe9, 0xf9, 0xf9, 0x60, 0x32, 0x69, 0x6c, 0x65, 0x93, 0x0b, 0x77, 0xf4, 0x6a, 0x8a, 0x07, 0x0d,
-	0x0b, 0x21, 0xa8, 0xbf, 0x9e, 0x5e, 0xf5, 0xdd, 0xab, 0x41, 0xdf, 0x1b, 0x8c, 0x5f, 0x9f, 0xbf,
-	0x6c, 0x94, 0x9c, 0xbf, 0x2d, 0x38, 0xdc, 0x74, 0x02, 0xf4, 0x29, 0x94, 0x05, 0x0b, 0x54, 0x24,
-	0xbb, 0x67, 0x6d, 0x33, 0x92, 0x55, 0xd6, 0x46, 0x7d, 0x9c, 0x61, 0x50, 0x1b, 0xaa, 0x2c, 0xf5,
-	0x48, 0x10, 0x70, 0x75, 0xc8, 0x1a, 0xae, 0xb0, 0xd4, 0x0d, 0x02, 0x8e, 0x8e, 0xe1, 0x11, 0x5f,
-	0x84, 0xd4, 0x63, 0x81, 0xe8, 0x94, 0xbb, 0xe5, 0x93, 0x1a, 0xae, 0x66, 0xf3, 0x51, 0x20, 0xd0,
-	0x73, 0xd8, 0x0f, 0xae, 0x63, 0x12, 0x31, 0xdf, 0xcb, 0x96, 0x44, 0x67, 0x5b, 0x25, 0xf6, 0xb1,
-	0xe1, 0x68, 0xac, 0xb4, 0xc5, 0x8b, 0x90, 0xe2, 0x3d, 0x8d, 0xcd, 0x26, 0xc2, 0xf9, 0x11, 0x8e,
-	0xfa, 0x94, 0xfc, 0xcf, 0xa0, 0xcd, 0xd8, 0x4a, 0x6b, 0xb1, 0x39, 0x7f, 0x58, 0xb0, 0x9f, 0x79,
-	0xba, 0x4c, 0x02, 0x9d, 0xd3, 0x36, 0x54, 0x35, 0x58, 0x71, 0xd7, 0x70, 0x25, 0xc7, 0xa2, 0x67,
-	0x2b, 0xc9, 0x4a, 0x4a, 0x32, 0xb3, 0x30, 0xd6, 0x28, 0x8a, 0x7a, 0x3d, 0xdb, 0xac, 0x57, 0x0b,
-	0x0e, 0xc6, 0x2e, 0xbe, 0x1a, 0xb9, 0xaf, 0xbc, 0xe5, 0xa2, 0x65, 0x8a, 0x58, 0x72, 0xfe, 0xb4,
-	0xa0, 0x55, 0x10, 0x4c, 0xd1, 0xbc, 0x84, 0x96, 0x90, 0x44, 0xea, 0x7c, 0x7a, 0xb9, 0x9b, 0x65,
-	0xbd, 0x76, 0xee, 0x0a, 0x0b, 0x37, 0x73, 0x23, 0x95, 0xe5, 0xdc, 0x04, 0x7d, 0x03, 0x87, 0xa6,
-	0x34, 0x2b, 0xaa, 0xd2, 0x03, 0x54, 0xc8, 0x10, 0x49, 0x73, 0x39, 0x6d, 0x78, 0x7c, 0x4b, 0x2a,
-	0x75, 0xfe, 0x04, 0x76, 0xb3, 0xe9, 0x52, 0xb8, 0xcf, 0x60, 0x27, 0x22, 0xd2, 0x7f, 0xab, 0xa5,
-	0x3b, 0x34, 0x9c, 0x64, 0xb0, 0xcb, 0x6c, 0x0f, 0xe7, 0x90, 0x4c, 0x39, 0x92, 0xa6, 0x5e, 0x4c,
-	0x22, 0xaa, 0xeb, 0xad, 0x4a, 0xd2, 0xf4, 0x3b, 0x12, 0xd1, 0x6c, 0x6b, 0x76, 0x2d, 0xa9, 0xf0,
-	0xf8, 0xfb, 0x4e, 0x59, 0xf5, 0x5b, 0x55, 0xcd, 0xf1, 0x7b, 0xa7, 0x0e, 0x7b, 0xb9, 0x43, 0x91,
-	0x26, 0xb1, 0xa0, 0xce, 0x1b, 0x68, 0x4c, 0x07, 0x97, 0xc4, 0x37, 0xa3, 0xf8, 0x77, 0xe5, 0x13,
-	0x11, 0xdf, 0x2c, 0xfa, 0x6a, 0x44, 0xfc, 0xac, 0xea, 0x1d, 0x0e, 0x07, 0x57, 0x64, 0x16, 0x52,
-	0x57, 0x08, 0x36, 0x8f, 0x23, 0x1a, 0xcb, 0xb5, 0x90, 0xad, 0xf5, 0x90, 0x9f, 0x02, 0x44, 0x84,
-	0xc5, 0x9e, 0xcc, 0x4c, 0xf4, 0x25, 0x51, 0xcb, 0x56, 0x14, 0x07, 0xfa, 0x04, 0xea, 0xc2, 0xe7,
-	0xd9, 0xb9, 0x73, 0x44, 0xde, 0x48, 0xdb, 0x78, 0x5f, 0xaf, 0x2a, 0x54, 0xd6, 0x12, 0x2d, 0x37,
-	0x0c, 0x0b, 0x6e, 0x05, 0x1a, 0x42, 0x53, 0x59, 0x79, 0xe4, 0x66, 0x51, 0x97, 0x84, 0x6d, 0x1c,
-	0xaf, 0x60, 0x87, 0x1b, 0xb2, 0x40, 0xe4, 0xbc, 0x80, 0xd6, 0x84, 0x72, 0x46, 0x42, 0xf6, 0x1b,
-	0x0d, 0xf0, 0xf5, 0x62, 0x4c, 0xfc, 0x77, 0x54, 0xa2, 0x06, 0x94, 0xd3, 0x77, 0xf9, 0x75, 0xb5,
-	0x87, 0xb3, 0x21, 0x42, 0xb0, 0xcd, 0x22, 0xc1, 0x74, 0x4e, 0xd4, 0xd8, 0xe9, 0x41, 0x33, 0xc7,
-	0xf7, 0x79, 0x92, 0x2a, 0x5f, 0x23, 0x95, 0xc0, 0x3c, 0x34, 0x9d, 0xf0, 0x1d, 0x5c, 0x95, 0xf9,
-	0xd6, 0xd9, 0x5f, 0x3b, 0x50, 0x1b, 0x2f, 0x9f, 0x0d, 0x34, 0x04, 0x7b, 0x48, 0xe5, 0x8d, 0x02,
-	0x97, 0xfa, 0x39, 0x50, 0xd5, 0x84, 0x9a, 0xfa, 0x18, 0xea, 0x29, 0xe9, 0x7d, 0x9f, 0xb0, 0xc0,
-	0x2e, 0x16, 0x8f, 0xf2, 0xe8, 0x6c, 0xa1, 0x11, 0xc0, 0xcd, 0x2d, 0x8a, 0x3e, 0xb8, 0xe3, 0x72,
-	0x55, 0x95, 0x60, 0x3f, 0xb9, 0xe7, 0xea, 0x75, 0xb6, 0x10, 0x86, 0xfd, 0xb5, 0x1e, 0x44, 0x0f,
-	0x3d, 0x08, 0xf6, 0x87, 0x77, 0x03, 0x34, 0xe7, 0x1b, 0x38, 0x28, 0xb4, 0x0a, 0xfa, 0xd8, 0x30,
-	0xda, 0x7c, 0xe3, 0xd9, 0xdd, 0xfb, 0x20, 0x9a, 0xd9, 0x85, 0xfa, 0x90, 0xca, 0xfc, 0x3a, 0x9d,
-	0x0a, 0x32, 0xa7, 0x9b, 0xb2, 0x66, 0x17, 0xfa, 0x1a, 0x53, 0x3f, 0xe1, 0xc1, 0x32, 0x77, 0x5f,
-	0x01, 0x9c, 0x73, 0xaa, 0x99, 0xd1, 0x51, 0x21, 0xc3, 0xcb, 0x60, 0xda, 0xb7, 0xd6, 0x75, 0xb3,
-	0x6d, 0xa1, 0x3e, 0x1c, 0x4c, 0xd3, 0x40, 0x13, 0x4c, 0x24, 0x91, 0xe2, 0xbf, 0xb0, 0x5c, 0xc0,
-	0x9e, 0x1b, 0x04, 0xab, 0xbe, 0x45, 0xa6, 0x4c, 0xc5, 0x6e, 0xbe, 0x8f, 0xe7, 0x5b, 0x38, 0x1a,
-	0x52, 0xb9, 0xa9, 0x63, 0x36, 0x64, 0x66, 0x4d, 0xba, 0xdb, 0x26, 0x5f, 0x3f, 0xf9, 0xe1, 0x58,
-	0x01, 0x4e, 0xb3, 0x5f, 0x0b, 0x3f, 0x4c, 0x16, 0xc1, 0xe9, 0x3c, 0xd1, 0xff, 0x18, 0xb3, 0x8a,
-	0xfa, 0x7e, 0xfe, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x80, 0xa5, 0xa9, 0x67, 0x13, 0x09, 0x00,
-	0x00,
+	// 1213 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0xdf, 0x6e, 0x1a, 0xc7,
+	0x17, 0xf6, 0x1a, 0x0c, 0xe1, 0x00, 0x06, 0x8f, 0x1d, 0x83, 0xc9, 0x2f, 0xf9, 0x91, 0x95, 0x22,
+	0xb9, 0x55, 0x85, 0x25, 0xb7, 0x6a, 0xaa, 0xe4, 0xa2, 0xda, 0x1a, 0x9c, 0xd0, 0xc6, 0x36, 0x19,
+	0x20, 0xaa, 0x7a, 0xd1, 0xd5, 0xb0, 0x3b, 0x22, 0xab, 0xec, 0xb2, 0x9b, 0x9d, 0x21, 0x0d, 0x55,
+	0xaf, 0xfb, 0x00, 0xbd, 0xec, 0x1b, 0x54, 0xbd, 0xea, 0x65, 0x9f, 0xa5, 0xcf, 0x52, 0xa9, 0x9a,
+	0x3f, 0x90, 0x65, 0x8d, 0x4d, 0xfe, 0xb4, 0x57, 0xec, 0xcc, 0x9c, 0xf3, 0x9d, 0x6f, 0xce, 0x39,
+	0xf3, 0xcd, 0x00, 0x0d, 0x9f, 0xd3, 0xa3, 0x28, 0x0e, 0x79, 0xc8, 0x8e, 0x22, 0x2f, 0xa2, 0xbe,
+	0x37, 0xa1, 0x6e, 0x4b, 0x4e, 0xa0, 0x42, 0x40, 0xc6, 0x01, 0x69, 0xf9, 0x9c, 0x36, 0x0e, 0xc2,
+	0xd8, 0xf9, 0x22, 0x9e, 0x1b, 0x3a, 0x61, 0x10, 0x84, 0x13, 0x65, 0xd5, 0x38, 0x48, 0x22, 0x84,
+	0xbe, 0xe7, 0xcc, 0xdc, 0x91, 0x5e, 0x6a, 0x26, 0x96, 0x18, 0x65, 0xcc, 0x0b, 0x27, 0x76, 0x40,
+	0x26, 0x64, 0x4c, 0x63, 0x6d, 0x71, 0x3b, 0x69, 0x31, 0x1d, 0x31, 0x27, 0xf6, 0x46, 0x34, 0x9e,
+	0x03, 0x98, 0x7f, 0x1a, 0xb0, 0xd3, 0xa7, 0x7c, 0x1a, 0x9d, 0xfa, 0xe1, 0x0f, 0x0c, 0xd3, 0x97,
+	0x53, 0xca, 0x38, 0x7a, 0x08, 0x37, 0x62, 0xf5, 0xc9, 0xea, 0x46, 0x33, 0x73, 0x58, 0x3c, 0xfe,
+	0x7f, 0x6b, 0x41, 0xb5, 0x65, 0x39, 0xdc, 0x7b, 0x45, 0x38, 0x4d, 0xba, 0xe0, 0x85, 0x03, 0xda,
+	0x83, 0x2d, 0x1a, 0x85, 0xce, 0xf3, 0xfa, 0x66, 0xd3, 0x38, 0xcc, 0x62, 0x35, 0x40, 0x4f, 0xa1,
+	0xfc, 0x72, 0x1a, 0x72, 0x62, 0x4f, 0x23, 0x97, 0x70, 0xca, 0xea, 0x99, 0xa6, 0x71, 0x58, 0x3c,
+	0xfe, 0x24, 0x81, 0x3b, 0x94, 0x2b, 0xfd, 0x05, 0xc9, 0xa7, 0xc2, 0xbe, 0xcf, 0x09, 0xa7, 0xf3,
+	0x20, 0x25, 0x09, 0xa1, 0xec, 0x98, 0x39, 0xd2, 0xd4, 0x87, 0x9d, 0x33, 0xe2, 0xcc, 0xa9, 0xdf,
+	0xbf, 0x44, 0xfd, 0x56, 0x32, 0x84, 0x30, 0x15, 0xbc, 0xdf, 0x92, 0xb6, 0x39, 0x06, 0x24, 0x63,
+	0xf4, 0x64, 0xde, 0xff, 0xbb, 0xfc, 0x98, 0x3f, 0xe9, 0xcd, 0xc8, 0x4d, 0xcf, 0xe3, 0x5c, 0x4a,
+	0x9a, 0xf1, 0xa1, 0x49, 0xbb, 0x22, 0xfa, 0xcf, 0x06, 0x54, 0x93, 0x6d, 0xc0, 0xa6, 0x3e, 0x47,
+	0x0f, 0x20, 0x17, 0xcb, 0x2f, 0x19, 0x76, 0xfb, 0xd8, 0x4c, 0x84, 0x4d, 0x1b, 0xb7, 0xd4, 0x0f,
+	0xd6, 0x1e, 0xe6, 0xe7, 0x90, 0xd3, 0x28, 0x45, 0xc8, 0xf7, 0x87, 0x27, 0x27, 0x9d, 0x7e, 0xbf,
+	0xba, 0x21, 0x06, 0xa7, 0x56, 0xf7, 0xc9, 0x10, 0x77, 0xaa, 0x06, 0x42, 0xb0, 0x7d, 0x31, 0x1c,
+	0xb4, 0xad, 0x41, 0xa7, 0x6d, 0x77, 0x7a, 0x17, 0x27, 0x8f, 0xab, 0x9b, 0xe6, 0x1f, 0x06, 0xec,
+	0xad, 0xca, 0x1f, 0xfa, 0x08, 0x32, 0xcc, 0x73, 0x75, 0x02, 0x6a, 0x49, 0x26, 0x8b, 0xad, 0x77,
+	0xdb, 0x58, 0xd8, 0xa0, 0x1a, 0xe4, 0xbd, 0xc8, 0x26, 0xae, 0x1b, 0xcb, 0x4d, 0x16, 0x70, 0xce,
+	0x8b, 0x2c, 0xd7, 0x8d, 0xd1, 0x01, 0xdc, 0x88, 0xa7, 0x3e, 0xb5, 0x3d, 0x57, 0xb4, 0x5f, 0xe6,
+	0xb0, 0x80, 0xf3, 0x62, 0xdc, 0x75, 0x19, 0x7a, 0x00, 0x65, 0x77, 0x36, 0x21, 0x81, 0xe7, 0xd8,
+	0x62, 0x8a, 0xd5, 0xb3, 0xb2, 0xac, 0x37, 0x13, 0x81, 0x74, 0x0b, 0x4c, 0x7d, 0x8a, 0x4b, 0xda,
+	0x56, 0x0c, 0x98, 0xf9, 0x3d, 0xec, 0xb7, 0x29, 0xf9, 0x40, 0xd2, 0x49, 0x6e, 0x9b, 0x4b, 0xdc,
+	0xcc, 0x5f, 0x0d, 0x28, 0x8b, 0x48, 0x67, 0xa1, 0xab, 0x73, 0x5a, 0x83, 0xbc, 0x36, 0x96, 0xd8,
+	0x05, 0x9c, 0x53, 0xb6, 0xe8, 0xfe, 0xa2, 0x64, 0x9b, 0xb2, 0x64, 0xc9, 0xb6, 0x5c, 0x82, 0x48,
+	0xd7, 0xeb, 0xfe, 0xea, 0x7a, 0xed, 0x42, 0xa5, 0x67, 0xe1, 0x41, 0xd7, 0x7a, 0x62, 0xcf, 0x27,
+	0x8d, 0x64, 0x11, 0x37, 0xcd, 0xdf, 0x0d, 0xd8, 0x4d, 0x15, 0x4c, 0xc2, 0x3c, 0x86, 0x5d, 0xc6,
+	0x09, 0xd7, 0xf9, 0xb4, 0x55, 0x98, 0xf9, 0x69, 0xa9, 0x5f, 0x45, 0x0b, 0xef, 0x28, 0x27, 0x99,
+	0x65, 0xe5, 0x82, 0xbe, 0x86, 0xbd, 0x64, 0x69, 0x16, 0x50, 0x9b, 0x6b, 0xa0, 0x50, 0xa2, 0x48,
+	0x1a, 0xcb, 0xac, 0xc1, 0xcd, 0x4b, 0xa5, 0x92, 0xfb, 0xff, 0xc5, 0x80, 0x62, 0x42, 0x17, 0xd0,
+	0xc7, 0xb0, 0x15, 0x10, 0xee, 0x3c, 0xd7, 0xb5, 0xdb, 0x4b, 0x44, 0x11, 0x66, 0x67, 0x62, 0x0d,
+	0x2b, 0x13, 0x51, 0x3a, 0x12, 0x45, 0xf6, 0x84, 0x04, 0x54, 0x37, 0x5c, 0x9e, 0x44, 0xd1, 0x39,
+	0x09, 0xa8, 0x58, 0x1a, 0xcd, 0x38, 0x65, 0x76, 0xfc, 0x5a, 0x0a, 0x5e, 0x16, 0xe7, 0xe5, 0x18,
+	0xbf, 0x46, 0x77, 0xa1, 0xc4, 0x68, 0xfc, 0xca, 0x73, 0xa8, 0xcd, 0x67, 0x11, 0xad, 0x67, 0xa5,
+	0x67, 0x51, 0xcf, 0x0d, 0x66, 0x11, 0x35, 0xb7, 0xa1, 0xa4, 0x38, 0xb1, 0x28, 0x9c, 0x30, 0x6a,
+	0xfe, 0x66, 0x40, 0x35, 0xad, 0x60, 0xef, 0xd8, 0x63, 0x01, 0x71, 0x92, 0x27, 0x23, 0x1f, 0x10,
+	0x47, 0x1e, 0x8d, 0x7d, 0xc8, 0x05, 0xcc, 0x63, 0xee, 0x44, 0xd2, 0x2c, 0x60, 0x3d, 0x42, 0x77,
+	0xa0, 0x48, 0x22, 0x7b, 0xe1, 0xa5, 0x48, 0x16, 0x48, 0x74, 0xa6, 0xfd, 0x6a, 0x90, 0x27, 0x7a,
+	0xeb, 0x5b, 0xca, 0x91, 0xc8, 0x9d, 0x9b, 0x7f, 0x19, 0x70, 0x33, 0xa5, 0x4a, 0x4a, 0x82, 0xfe,
+	0x25, 0xc2, 0xa7, 0x50, 0x54, 0xa2, 0xa8, 0xb2, 0x97, 0x91, 0xed, 0x7e, 0x6f, 0x25, 0x5a, 0x22,
+	0x78, 0x4b, 0xe4, 0x15, 0x83, 0xf2, 0x94, 0x39, 0xfe, 0x0c, 0xb2, 0xe2, 0x17, 0x55, 0xa0, 0xf8,
+	0xcc, 0x7a, 0xd2, 0x6d, 0xdb, 0x4f, 0x87, 0x17, 0x03, 0xab, 0xba, 0x81, 0x4a, 0x70, 0xe3, 0xfc,
+	0x42, 0x8f, 0x0c, 0x54, 0x86, 0xc2, 0xa0, 0x83, 0xcf, 0xba, 0xe7, 0xd6, 0x40, 0x74, 0xbd, 0x0d,
+	0x77, 0xd7, 0x0a, 0x2f, 0x7a, 0x00, 0xf9, 0x37, 0xba, 0x2d, 0x7a, 0xb5, 0xb9, 0x8e, 0x1e, 0x9e,
+	0x3b, 0x98, 0x31, 0x54, 0x06, 0x64, 0xe4, 0x53, 0x8b, 0x31, 0x6f, 0x3c, 0x09, 0xe8, 0x84, 0x2f,
+	0xb5, 0x99, 0xb1, 0xdc, 0x66, 0xb7, 0x01, 0x02, 0xe2, 0x4d, 0x6c, 0x2e, 0x5c, 0xb4, 0xb2, 0x17,
+	0xc4, 0x8c, 0xc4, 0x40, 0xf7, 0x60, 0x9b, 0x39, 0xb1, 0xe8, 0x55, 0x65, 0xa1, 0xd4, 0x2f, 0x8b,
+	0xcb, 0x7a, 0x56, 0x5a, 0x09, 0x1d, 0xdb, 0xb5, 0x7c, 0x3f, 0x15, 0x96, 0xa1, 0x47, 0xb0, 0x23,
+	0xbd, 0x6c, 0xf2, 0x66, 0x52, 0x6f, 0xa8, 0x91, 0xd8, 0x50, 0xca, 0x0f, 0x57, 0x79, 0x0a, 0xc8,
+	0x7c, 0x08, 0xbb, 0x7d, 0x1a, 0x7b, 0xc4, 0xf7, 0x7e, 0xa4, 0x2e, 0x9e, 0x4d, 0x7b, 0xc4, 0x79,
+	0x41, 0x39, 0xaa, 0x42, 0x26, 0x7a, 0xa1, 0xee, 0x98, 0x12, 0x16, 0x9f, 0x08, 0x41, 0xd6, 0x0b,
+	0x98, 0xa7, 0x4b, 0x2e, 0xbf, 0xcd, 0x16, 0xec, 0x28, 0xfb, 0x76, 0x1c, 0x46, 0x32, 0x56, 0x57,
+	0xf6, 0x87, 0xa2, 0xa6, 0xfb, 0x69, 0x0b, 0xe7, 0xb9, 0x5a, 0x3a, 0xfe, 0x3b, 0x0f, 0x85, 0xde,
+	0xfc, 0xb9, 0x85, 0x7a, 0xfa, 0x7a, 0x53, 0x1a, 0x2e, 0x0f, 0x3e, 0xba, 0x9d, 0xbe, 0xce, 0x96,
+	0xee, 0xf8, 0xc6, 0xad, 0x6b, 0x6e, 0x3b, 0x73, 0x03, 0x61, 0x28, 0x2f, 0xc9, 0x1e, 0x5a, 0xf7,
+	0x02, 0x68, 0xdc, 0xb9, 0xda, 0x40, 0x63, 0x7e, 0x0b, 0x95, 0x94, 0x3a, 0xa1, 0xbb, 0x09, 0xa7,
+	0xd5, 0x97, 0x4c, 0xa3, 0x79, 0x9d, 0x89, 0x46, 0xb6, 0x60, 0xfb, 0x11, 0xe5, 0x6a, 0x83, 0x43,
+	0x46, 0xc6, 0x14, 0xed, 0x68, 0x2f, 0xf9, 0xec, 0x6c, 0x3d, 0x0b, 0x3d, 0xb7, 0xd1, 0x48, 0x49,
+	0x29, 0xa6, 0x4e, 0x18, 0xbb, 0x32, 0xd7, 0xe6, 0x06, 0xfa, 0x12, 0xe0, 0x24, 0xa6, 0x1a, 0x19,
+	0xed, 0xa7, 0x04, 0x71, 0x4e, 0xa6, 0x76, 0x69, 0x5e, 0x6b, 0x97, 0x04, 0xc0, 0x34, 0x08, 0x5f,
+	0xbd, 0x37, 0x40, 0x1b, 0x2a, 0xea, 0x98, 0x88, 0x79, 0x71, 0xd2, 0xd8, 0xfb, 0xa0, 0x9c, 0x43,
+	0xe5, 0xcd, 0x43, 0x4b, 0x25, 0xf9, 0x7f, 0xe9, 0x52, 0x27, 0x1f, 0x61, 0xeb, 0x1a, 0x81, 0x42,
+	0xe3, 0x6a, 0x29, 0x40, 0xef, 0xf4, 0x54, 0x7b, 0x1b, 0xda, 0x0b, 0xfd, 0x5f, 0x41, 0x3b, 0xf9,
+	0x10, 0x5e, 0x47, 0xfb, 0x14, 0x4a, 0x96, 0xeb, 0x2e, 0xd0, 0xd0, 0x75, 0xaf, 0xe4, 0xeb, 0x78,
+	0x75, 0x45, 0xcf, 0xfa, 0x94, 0xd3, 0x0f, 0x87, 0xfa, 0x06, 0xf6, 0x1f, 0x51, 0xbe, 0x4a, 0x82,
+	0x56, 0x34, 0xeb, 0xd2, 0x69, 0xba, 0xec, 0xf2, 0xd5, 0xad, 0xef, 0x0e, 0xa4, 0xc1, 0x91, 0xf8,
+	0xff, 0xe3, 0xf8, 0xe1, 0xd4, 0x3d, 0x1a, 0x87, 0xfa, 0x8f, 0xd0, 0x28, 0x27, 0x7f, 0x3f, 0xfd,
+	0x27, 0x00, 0x00, 0xff, 0xff, 0xde, 0x7a, 0xd3, 0x46, 0x9c, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // PipelinedClient is the client API for Pipelined service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PipelinedClient interface {
-	// Get subscriber metering flows
-	GetSubscriberMeteringFlows(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*FlowTable, error)
 	// Setup flows for subscribers (used on restarts)
-	SetupFlows(ctx context.Context, in *SetupFlowsRequest, opts ...grpc.CallOption) (*SetupFlowsResult, error)
+	SetupPolicyFlows(ctx context.Context, in *SetupPolicyRequest, opts ...grpc.CallOption) (*SetupFlowsResult, error)
 	// Activate flows for a subscriber based on predefined flow templates
 	ActivateFlows(ctx context.Context, in *ActivateFlowsRequest, opts ...grpc.CallOption) (*ActivateFlowsResult, error)
 	// Deactivate flows for a subscriber
@@ -837,35 +1171,36 @@ type PipelinedClient interface {
 	GetPolicyUsage(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*RuleRecordTable, error)
 	// Add new dpi flow
 	CreateFlow(ctx context.Context, in *FlowRequest, opts ...grpc.CallOption) (*FlowResponse, error)
+	// Remove dpi flow
+	RemoveFlow(ctx context.Context, in *FlowRequest, opts ...grpc.CallOption) (*FlowResponse, error)
 	// Update flow stats
 	UpdateFlowStats(ctx context.Context, in *FlowRequest, opts ...grpc.CallOption) (*FlowResponse, error)
+	// Setup subscribers flows (used on restarts)
+	SetupQuotaFlows(ctx context.Context, in *SetupQuotaRequest, opts ...grpc.CallOption) (*SetupFlowsResult, error)
+	// Synchronize subscribers quota check flows
+	UpdateSubscriberQuotaState(ctx context.Context, in *UpdateSubscriberQuotaStateRequest, opts ...grpc.CallOption) (*FlowResponse, error)
+	// Setup subscribers flows (used on restarts)
+	SetupUEMacFlows(ctx context.Context, in *SetupUEMacRequest, opts ...grpc.CallOption) (*SetupFlowsResult, error)
 	// Add a flow for a subscriber by matching the provided UE MAC address
 	AddUEMacFlow(ctx context.Context, in *UEMacFlowRequest, opts ...grpc.CallOption) (*FlowResponse, error)
+	// Delete a flow for a subscriber by matching the provided UE MAC address
+	DeleteUEMacFlow(ctx context.Context, in *UEMacFlowRequest, opts ...grpc.CallOption) (*FlowResponse, error)
 	// Get the flow table assignment for all apps ordered by main table number
 	// and name
 	GetAllTableAssignments(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*AllTableAssignments, error)
 }
 
 type pipelinedClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewPipelinedClient(cc *grpc.ClientConn) PipelinedClient {
+func NewPipelinedClient(cc grpc.ClientConnInterface) PipelinedClient {
 	return &pipelinedClient{cc}
 }
 
-func (c *pipelinedClient) GetSubscriberMeteringFlows(ctx context.Context, in *protos.Void, opts ...grpc.CallOption) (*FlowTable, error) {
-	out := new(FlowTable)
-	err := c.cc.Invoke(ctx, "/magma.lte.Pipelined/GetSubscriberMeteringFlows", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pipelinedClient) SetupFlows(ctx context.Context, in *SetupFlowsRequest, opts ...grpc.CallOption) (*SetupFlowsResult, error) {
+func (c *pipelinedClient) SetupPolicyFlows(ctx context.Context, in *SetupPolicyRequest, opts ...grpc.CallOption) (*SetupFlowsResult, error) {
 	out := new(SetupFlowsResult)
-	err := c.cc.Invoke(ctx, "/magma.lte.Pipelined/SetupFlows", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/magma.lte.Pipelined/SetupPolicyFlows", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -908,6 +1243,15 @@ func (c *pipelinedClient) CreateFlow(ctx context.Context, in *FlowRequest, opts 
 	return out, nil
 }
 
+func (c *pipelinedClient) RemoveFlow(ctx context.Context, in *FlowRequest, opts ...grpc.CallOption) (*FlowResponse, error) {
+	out := new(FlowResponse)
+	err := c.cc.Invoke(ctx, "/magma.lte.Pipelined/RemoveFlow", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *pipelinedClient) UpdateFlowStats(ctx context.Context, in *FlowRequest, opts ...grpc.CallOption) (*FlowResponse, error) {
 	out := new(FlowResponse)
 	err := c.cc.Invoke(ctx, "/magma.lte.Pipelined/UpdateFlowStats", in, out, opts...)
@@ -917,9 +1261,45 @@ func (c *pipelinedClient) UpdateFlowStats(ctx context.Context, in *FlowRequest, 
 	return out, nil
 }
 
+func (c *pipelinedClient) SetupQuotaFlows(ctx context.Context, in *SetupQuotaRequest, opts ...grpc.CallOption) (*SetupFlowsResult, error) {
+	out := new(SetupFlowsResult)
+	err := c.cc.Invoke(ctx, "/magma.lte.Pipelined/SetupQuotaFlows", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pipelinedClient) UpdateSubscriberQuotaState(ctx context.Context, in *UpdateSubscriberQuotaStateRequest, opts ...grpc.CallOption) (*FlowResponse, error) {
+	out := new(FlowResponse)
+	err := c.cc.Invoke(ctx, "/magma.lte.Pipelined/UpdateSubscriberQuotaState", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pipelinedClient) SetupUEMacFlows(ctx context.Context, in *SetupUEMacRequest, opts ...grpc.CallOption) (*SetupFlowsResult, error) {
+	out := new(SetupFlowsResult)
+	err := c.cc.Invoke(ctx, "/magma.lte.Pipelined/SetupUEMacFlows", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *pipelinedClient) AddUEMacFlow(ctx context.Context, in *UEMacFlowRequest, opts ...grpc.CallOption) (*FlowResponse, error) {
 	out := new(FlowResponse)
 	err := c.cc.Invoke(ctx, "/magma.lte.Pipelined/AddUEMacFlow", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pipelinedClient) DeleteUEMacFlow(ctx context.Context, in *UEMacFlowRequest, opts ...grpc.CallOption) (*FlowResponse, error) {
+	out := new(FlowResponse)
+	err := c.cc.Invoke(ctx, "/magma.lte.Pipelined/DeleteUEMacFlow", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -937,10 +1317,8 @@ func (c *pipelinedClient) GetAllTableAssignments(ctx context.Context, in *protos
 
 // PipelinedServer is the server API for Pipelined service.
 type PipelinedServer interface {
-	// Get subscriber metering flows
-	GetSubscriberMeteringFlows(context.Context, *protos.Void) (*FlowTable, error)
 	// Setup flows for subscribers (used on restarts)
-	SetupFlows(context.Context, *SetupFlowsRequest) (*SetupFlowsResult, error)
+	SetupPolicyFlows(context.Context, *SetupPolicyRequest) (*SetupFlowsResult, error)
 	// Activate flows for a subscriber based on predefined flow templates
 	ActivateFlows(context.Context, *ActivateFlowsRequest) (*ActivateFlowsResult, error)
 	// Deactivate flows for a subscriber
@@ -949,10 +1327,20 @@ type PipelinedServer interface {
 	GetPolicyUsage(context.Context, *protos.Void) (*RuleRecordTable, error)
 	// Add new dpi flow
 	CreateFlow(context.Context, *FlowRequest) (*FlowResponse, error)
+	// Remove dpi flow
+	RemoveFlow(context.Context, *FlowRequest) (*FlowResponse, error)
 	// Update flow stats
 	UpdateFlowStats(context.Context, *FlowRequest) (*FlowResponse, error)
+	// Setup subscribers flows (used on restarts)
+	SetupQuotaFlows(context.Context, *SetupQuotaRequest) (*SetupFlowsResult, error)
+	// Synchronize subscribers quota check flows
+	UpdateSubscriberQuotaState(context.Context, *UpdateSubscriberQuotaStateRequest) (*FlowResponse, error)
+	// Setup subscribers flows (used on restarts)
+	SetupUEMacFlows(context.Context, *SetupUEMacRequest) (*SetupFlowsResult, error)
 	// Add a flow for a subscriber by matching the provided UE MAC address
 	AddUEMacFlow(context.Context, *UEMacFlowRequest) (*FlowResponse, error)
+	// Delete a flow for a subscriber by matching the provided UE MAC address
+	DeleteUEMacFlow(context.Context, *UEMacFlowRequest) (*FlowResponse, error)
 	// Get the flow table assignment for all apps ordered by main table number
 	// and name
 	GetAllTableAssignments(context.Context, *protos.Void) (*AllTableAssignments, error)
@@ -962,11 +1350,8 @@ type PipelinedServer interface {
 type UnimplementedPipelinedServer struct {
 }
 
-func (*UnimplementedPipelinedServer) GetSubscriberMeteringFlows(ctx context.Context, req *protos.Void) (*FlowTable, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSubscriberMeteringFlows not implemented")
-}
-func (*UnimplementedPipelinedServer) SetupFlows(ctx context.Context, req *SetupFlowsRequest) (*SetupFlowsResult, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetupFlows not implemented")
+func (*UnimplementedPipelinedServer) SetupPolicyFlows(ctx context.Context, req *SetupPolicyRequest) (*SetupFlowsResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetupPolicyFlows not implemented")
 }
 func (*UnimplementedPipelinedServer) ActivateFlows(ctx context.Context, req *ActivateFlowsRequest) (*ActivateFlowsResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ActivateFlows not implemented")
@@ -980,11 +1365,26 @@ func (*UnimplementedPipelinedServer) GetPolicyUsage(ctx context.Context, req *pr
 func (*UnimplementedPipelinedServer) CreateFlow(ctx context.Context, req *FlowRequest) (*FlowResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateFlow not implemented")
 }
+func (*UnimplementedPipelinedServer) RemoveFlow(ctx context.Context, req *FlowRequest) (*FlowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveFlow not implemented")
+}
 func (*UnimplementedPipelinedServer) UpdateFlowStats(ctx context.Context, req *FlowRequest) (*FlowResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateFlowStats not implemented")
 }
+func (*UnimplementedPipelinedServer) SetupQuotaFlows(ctx context.Context, req *SetupQuotaRequest) (*SetupFlowsResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetupQuotaFlows not implemented")
+}
+func (*UnimplementedPipelinedServer) UpdateSubscriberQuotaState(ctx context.Context, req *UpdateSubscriberQuotaStateRequest) (*FlowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSubscriberQuotaState not implemented")
+}
+func (*UnimplementedPipelinedServer) SetupUEMacFlows(ctx context.Context, req *SetupUEMacRequest) (*SetupFlowsResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetupUEMacFlows not implemented")
+}
 func (*UnimplementedPipelinedServer) AddUEMacFlow(ctx context.Context, req *UEMacFlowRequest) (*FlowResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddUEMacFlow not implemented")
+}
+func (*UnimplementedPipelinedServer) DeleteUEMacFlow(ctx context.Context, req *UEMacFlowRequest) (*FlowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUEMacFlow not implemented")
 }
 func (*UnimplementedPipelinedServer) GetAllTableAssignments(ctx context.Context, req *protos.Void) (*AllTableAssignments, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllTableAssignments not implemented")
@@ -994,38 +1394,20 @@ func RegisterPipelinedServer(s *grpc.Server, srv PipelinedServer) {
 	s.RegisterService(&_Pipelined_serviceDesc, srv)
 }
 
-func _Pipelined_GetSubscriberMeteringFlows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(protos.Void)
+func _Pipelined_SetupPolicyFlows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetupPolicyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PipelinedServer).GetSubscriberMeteringFlows(ctx, in)
+		return srv.(PipelinedServer).SetupPolicyFlows(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/magma.lte.Pipelined/GetSubscriberMeteringFlows",
+		FullMethod: "/magma.lte.Pipelined/SetupPolicyFlows",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PipelinedServer).GetSubscriberMeteringFlows(ctx, req.(*protos.Void))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Pipelined_SetupFlows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetupFlowsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PipelinedServer).SetupFlows(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.lte.Pipelined/SetupFlows",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PipelinedServer).SetupFlows(ctx, req.(*SetupFlowsRequest))
+		return srv.(PipelinedServer).SetupPolicyFlows(ctx, req.(*SetupPolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1102,6 +1484,24 @@ func _Pipelined_CreateFlow_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Pipelined_RemoveFlow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FlowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PipelinedServer).RemoveFlow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.Pipelined/RemoveFlow",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PipelinedServer).RemoveFlow(ctx, req.(*FlowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Pipelined_UpdateFlowStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FlowRequest)
 	if err := dec(in); err != nil {
@@ -1120,6 +1520,60 @@ func _Pipelined_UpdateFlowStats_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Pipelined_SetupQuotaFlows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetupQuotaRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PipelinedServer).SetupQuotaFlows(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.Pipelined/SetupQuotaFlows",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PipelinedServer).SetupQuotaFlows(ctx, req.(*SetupQuotaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Pipelined_UpdateSubscriberQuotaState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSubscriberQuotaStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PipelinedServer).UpdateSubscriberQuotaState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.Pipelined/UpdateSubscriberQuotaState",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PipelinedServer).UpdateSubscriberQuotaState(ctx, req.(*UpdateSubscriberQuotaStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Pipelined_SetupUEMacFlows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetupUEMacRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PipelinedServer).SetupUEMacFlows(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.Pipelined/SetupUEMacFlows",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PipelinedServer).SetupUEMacFlows(ctx, req.(*SetupUEMacRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Pipelined_AddUEMacFlow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UEMacFlowRequest)
 	if err := dec(in); err != nil {
@@ -1134,6 +1588,24 @@ func _Pipelined_AddUEMacFlow_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PipelinedServer).AddUEMacFlow(ctx, req.(*UEMacFlowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Pipelined_DeleteUEMacFlow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UEMacFlowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PipelinedServer).DeleteUEMacFlow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.Pipelined/DeleteUEMacFlow",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PipelinedServer).DeleteUEMacFlow(ctx, req.(*UEMacFlowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1161,12 +1633,8 @@ var _Pipelined_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*PipelinedServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetSubscriberMeteringFlows",
-			Handler:    _Pipelined_GetSubscriberMeteringFlows_Handler,
-		},
-		{
-			MethodName: "SetupFlows",
-			Handler:    _Pipelined_SetupFlows_Handler,
+			MethodName: "SetupPolicyFlows",
+			Handler:    _Pipelined_SetupPolicyFlows_Handler,
 		},
 		{
 			MethodName: "ActivateFlows",
@@ -1185,12 +1653,32 @@ var _Pipelined_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Pipelined_CreateFlow_Handler,
 		},
 		{
+			MethodName: "RemoveFlow",
+			Handler:    _Pipelined_RemoveFlow_Handler,
+		},
+		{
 			MethodName: "UpdateFlowStats",
 			Handler:    _Pipelined_UpdateFlowStats_Handler,
 		},
 		{
+			MethodName: "SetupQuotaFlows",
+			Handler:    _Pipelined_SetupQuotaFlows_Handler,
+		},
+		{
+			MethodName: "UpdateSubscriberQuotaState",
+			Handler:    _Pipelined_UpdateSubscriberQuotaState_Handler,
+		},
+		{
+			MethodName: "SetupUEMacFlows",
+			Handler:    _Pipelined_SetupUEMacFlows_Handler,
+		},
+		{
 			MethodName: "AddUEMacFlow",
 			Handler:    _Pipelined_AddUEMacFlow_Handler,
+		},
+		{
+			MethodName: "DeleteUEMacFlow",
+			Handler:    _Pipelined_DeleteUEMacFlow_Handler,
 		},
 		{
 			MethodName: "GetAllTableAssignments",

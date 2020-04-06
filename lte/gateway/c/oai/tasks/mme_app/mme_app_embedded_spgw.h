@@ -24,7 +24,6 @@
 #if EMBEDDED_SGW
 #include "sgw_config.h"
 #include "sgw_defs.h"
-#include "pgw_defs.h"
 
 
 

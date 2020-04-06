@@ -9,13 +9,25 @@
 package integ_tests
 
 import (
+	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
-	"magma/lte/cloud/go/protos"
+	lteProtos "magma/lte/cloud/go/protos"
 
 	"github.com/go-openapi/swag"
 )
 
-func getStaticPassAll(ruleID string, monitoringKey string) *protos.PolicyRule {
+func getUsageInformation(monitorKey string, quota uint64) []*protos.UsageMonitoringInformation {
+	return []*protos.UsageMonitoringInformation{
+		{
+			MonitoringLevel: protos.MonitoringLevel_RuleLevel,
+			MonitoringKey:   []byte(monitorKey),
+			Octets:          &protos.Octets{TotalOctets: quota},
+		},
+	}
+}
+
+func getStaticPassAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32,
+	qos *models.FlowQos) *lteProtos.PolicyRule {
 	rule := &models.PolicyRuleConfig{
 		FlowList: []*models.FlowDescription{
 			{
@@ -37,9 +49,42 @@ func getStaticPassAll(ruleID string, monitoringKey string) *protos.PolicyRule {
 				},
 			},
 		},
+		Qos:           qos,
 		MonitoringKey: monitoringKey,
-		Priority:      swag.Uint32(3),
-		TrackingType:  models.PolicyRuleTrackingTypeONLYPCRF,
+		Priority:      swag.Uint32(priority),
+		TrackingType:  trackingType,
+		RatingGroup:   ratingGroup,
+	}
+
+	return rule.ToProto(ruleID)
+}
+
+func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) *lteProtos.PolicyRule {
+	rule := &models.PolicyRuleConfig{
+		FlowList: []*models.FlowDescription{
+			{
+				Action: swag.String("DENY"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_IP"),
+					IPV4Dst:   "0.0.0.0/0",
+					IPV4Src:   "0.0.0.0/0",
+				},
+			},
+			{
+				Action: swag.String("DENY"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("DOWNLINK"),
+					IPProto:   swag.String("IPPROTO_IP"),
+					IPV4Dst:   "0.0.0.0/0",
+					IPV4Src:   "0.0.0.0/0",
+				},
+			},
+		},
+		MonitoringKey: monitoringKey,
+		Priority:      swag.Uint32(priority),
+		TrackingType:  trackingType,
+		RatingGroup:   ratingGroup,
 	}
 
 	return rule.ToProto(ruleID)

@@ -22,3 +22,14 @@ services:
       target: base
     entrypoint: /bin/bash -lc
     command: ['echo Hello World!']
+
+  # Test instance of psql
+  postgres_test:
+    image: postgres
+    ports:
+      - 5433:5432/tcp
+    environment:
+      POSTGRES_USER: magma_test
+      POSTGRES_PASSWORD: magma_test
+      POSTGRES_DB: magma_test
+    restart: always

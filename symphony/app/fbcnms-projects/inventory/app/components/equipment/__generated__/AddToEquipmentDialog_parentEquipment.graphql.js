@@ -28,6 +28,7 @@ export type AddToEquipmentDialog_parentEquipment$data = AddToEquipmentDialog_par
 export type AddToEquipmentDialog_parentEquipment$key = {
   +$data?: AddToEquipmentDialog_parentEquipment$data,
   +$fragmentRefs: AddToEquipmentDialog_parentEquipment$ref,
+  ...
 };
 */
 

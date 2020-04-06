@@ -28,9 +28,9 @@ import (
 	"strings"
 	"time"
 
-	"magma/orc8r/cloud/go/security/cert"
-	"magma/orc8r/cloud/go/security/key"
 	"magma/orc8r/cloud/go/util"
+	"magma/orc8r/lib/go/security/cert"
+	"magma/orc8r/lib/go/security/key"
 )
 
 var (

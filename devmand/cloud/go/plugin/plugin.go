@@ -12,14 +12,15 @@ package plugin
 import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/service/config"
-	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
+	"magma/orc8r/lib/go/service/serviceregistry"
 	"orc8r/devmand/cloud/go/devmand"
 	"orc8r/devmand/cloud/go/plugin/handlers"
 	"orc8r/devmand/cloud/go/plugin/models"
@@ -71,4 +72,8 @@ func (*DevmandOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.Conf
 // GetStreamerProviders gets the stream providers
 func (*DevmandOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
 	return []providers.StreamProvider{}
+}
+
+func (*DevmandOrchestratorPlugin) GetStateIndexers() []indexer.Indexer {
+	return []indexer.Indexer{}
 }

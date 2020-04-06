@@ -37,27 +37,48 @@ type User struct {
 	Networks []string `json:"networks,omitempty"`
 	// Tabs holds the value of the "tabs" field.
 	Tabs []string `json:"tabs,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges UserEdges `json:"edges"`
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Tokens holds the value of the tokens edge.
+	Tokens []*Token
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TokensOrErr returns the Tokens value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) TokensOrErr() ([]*Token, error) {
+	if e.loadedTypes[0] {
+		return e.Tokens, nil
+	}
+	return nil, &NotLoadedError{edge: "tokens"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&[]byte{},
-		&[]byte{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // created_at
+		&sql.NullTime{},   // updated_at
+		&sql.NullString{}, // email
+		&sql.NullString{}, // password
+		&sql.NullInt64{},  // role
+		&sql.NullString{}, // tenant
+		&[]byte{},         // networks
+		&[]byte{},         // tabs
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the User fields.
 func (u *User) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(user.Columns); m != n {
+	if m, n := len(values), len(user.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -117,14 +138,14 @@ func (u *User) assignValues(values ...interface{}) error {
 
 // QueryTokens queries the tokens edge of the User.
 func (u *User) QueryTokens() *TokenQuery {
-	return (&UserClient{u.config}).QueryTokens(u)
+	return (&UserClient{config: u.config}).QueryTokens(u)
 }
 
 // Update returns a builder for updating this User.
 // Note that, you need to call User.Unwrap() before calling this method, if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (u *User) Update() *UserUpdateOne {
-	return (&UserClient{u.config}).UpdateOne(u)
+	return (&UserClient{config: u.config}).UpdateOne(u)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,

@@ -34,7 +34,7 @@ This VM runs an iperf3 server.
 - see https://facebookincubator.github.io/magma/docs/basics/prerequisites for 
 our prerequisites on running our VMs. (Ignore docker part)
 
-To the run the test, run `fab integ_test`. 
+To the run the test, run `fab integ_test` from `magma/cwf/gateway`.
 This fabfile will
 - Provision the 3 VMs
 - Build and start docker containers on `cwag-dev`

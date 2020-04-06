@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -13,7 +13,7 @@ import classNames from 'classnames';
 import symphony from '../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-export const typographyStyles = makeStyles({
+const styles = {
   h1: symphony.typography.h1,
   h2: symphony.typography.h2,
   h3: symphony.typography.h3,
@@ -42,6 +42,9 @@ export const typographyStyles = makeStyles({
   errorColor: {
     color: symphony.palette.R600,
   },
+  warningColor: {
+    color: symphony.palette.Y600,
+  },
   lightWeight: {
     fontWeight: 300,
   },
@@ -54,7 +57,14 @@ export const typographyStyles = makeStyles({
   boldWeight: {
     fontWeight: 600,
   },
-});
+  truncate: {
+    display: 'block',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+};
+export const typographyStyles = makeStyles<Props, typeof styles>(() => styles);
 
 type Props = {
   children: ?React.Node,
@@ -73,12 +83,21 @@ type Props = {
     | 'caption'
     | 'overline',
   className?: string,
+  useEllipsis?: ?boolean,
   weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold',
-  color?: 'light' | 'regular' | 'primary' | 'error' | 'gray',
+  color?: 'light' | 'regular' | 'primary' | 'error' | 'gray' | 'warning',
 };
 
 const Text = (props: Props) => {
-  const {children, variant, className, color, weight, ...rest} = props;
+  const {
+    children,
+    variant = 'body1',
+    className,
+    color = 'regular',
+    weight = 'inherit',
+    useEllipsis = false,
+    ...rest
+  } = props;
   const classes = typographyStyles();
   return (
     <span
@@ -87,17 +106,12 @@ const Text = (props: Props) => {
         classes[variant],
         classes[`${color ?? 'regular'}Color`],
         classes[`${weight ? weight : 'regular'}Weight`],
+        {[classes.truncate]: useEllipsis},
         className,
       )}>
       {children}
     </span>
   );
-};
-
-Text.defaultProps = {
-  variant: 'body1',
-  color: 'regular',
-  weight: 'inherit',
 };
 
 export default Text;

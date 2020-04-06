@@ -19,10 +19,11 @@ type Props = {
   property: Property | PropertyType,
   onBlur?: ?() => void,
   onChange: Property => void,
+  disabled?: ?boolean,
 };
 
 function EnumPropertyValueInput(props: Props) {
-  const {property, onBlur, onChange} = props;
+  const {property, onBlur, onChange, disabled} = props;
   const jsonStr = property.stringValue || '';
   const options = isJSON(jsonStr) ? JSON.parse(jsonStr) : [];
   const optionsArr = Array.isArray(options) ? options : [];
@@ -36,6 +37,7 @@ function EnumPropertyValueInput(props: Props) {
     <Tokenizer
       searchSource="UserInput"
       tokens={tokens}
+      disabled={disabled}
       onEntriesRequested={() => {}}
       placeholder="Press Enter after each value"
       onChange={newEntries => {

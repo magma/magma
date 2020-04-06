@@ -16,6 +16,7 @@ import ServiceLinksView_links from './__generated__/ServiceLinksView_links.graph
 import {createFragmentContainer, graphql} from 'react-relay';
 
 type Props = {
+  // $FlowFixMe (T62907961) Relay flow types
   links: ServiceLinksView_links,
   onDeleteLink: (link: Link) => void,
 };

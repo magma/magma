@@ -134,9 +134,8 @@ func prepareServiceData(ctx context.Context, t *testing.T, r TestExporterResolve
 }
 
 func TestEmptyServicesDataExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, servicesRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
@@ -171,16 +170,16 @@ func TestEmptyServicesDataExport(t *testing.T) {
 }
 
 func TestServicesExport(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, servicesRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
+	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
 	ctx := viewertest.NewContext(r.client)
@@ -258,16 +257,16 @@ func TestServicesExport(t *testing.T) {
 }
 
 func TestServiceWithFilters(t *testing.T) {
-	r, err := newExporterTestResolver(t)
+	r := newExporterTestResolver(t)
 	log := r.exporter.log
-	require.NoError(t, err)
 
 	e := &exporter{log, servicesRower{log}}
 	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
 	server := httptest.NewServer(th)
 	defer server.Close()
 
-	req, err := http.NewRequest("GET", server.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
+	require.NoError(t, err)
 	req.Header.Set(tenantHeader, "fb-test")
 
 	ctx := viewertest.NewContext(r.client)

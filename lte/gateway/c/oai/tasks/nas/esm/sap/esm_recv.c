@@ -348,9 +348,8 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   }
 
   if (is_standalone) {
-    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t* ue_mm_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, ue_id);
+    ue_mm_context_t* ue_mm_context_p =
+      mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
     //Select APN
     struct apn_configuration_s* apn_config = mme_app_select_apn(
       ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn);
@@ -422,6 +421,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
 
     emm_context->esm_ctx.is_standalone = true;
 
+    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
     mme_app_send_s11_create_session_req(
       mme_app_desc_p, ue_mm_context_p, pdn_cid);
   } else {

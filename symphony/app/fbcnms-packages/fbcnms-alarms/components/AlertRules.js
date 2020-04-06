@@ -4,35 +4,31 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import * as React from 'react';
 import AddEditRule from './rules/AddEditRule';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Grid from '@material-ui/core/Grid';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import PrometheusEditor from './rules/PrometheusEditor';
-import SimpleTable from './SimpleTable';
-import TableActionDialog from './TableActionDialog';
-import TableAddButton from './common/TableAddButton';
+import SimpleTable from './table/SimpleTable';
+import TableActionDialog from './table/TableActionDialog';
+import TableAddButton from './table/TableAddButton';
 import axios from 'axios';
 import {makeStyles} from '@material-ui/styles';
+import {useAlarmContext} from './AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useLoadRules} from './hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
-import type {AlertConfig} from './AlarmAPIType';
-import type {ApiUtil} from './AlarmsApi';
-import type {ColumnData} from './SimpleTable';
-import type {GenericRule, RuleInterfaceMap} from './rules/RuleInterface';
-
-type Props<TRuleUnion> = {
-  apiUtil: ApiUtil,
-  ruleMap?: ?RuleInterfaceMap<TRuleUnion>,
-  thresholdEditorEnabled?: ?boolean,
-};
+import type {ColumnData} from './table/SimpleTable';
+import type {GenericRule} from './rules/RuleInterface';
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    padding: theme.spacing(4),
+  },
   addButton: {
     position: 'fixed',
     bottom: 0,
@@ -52,7 +48,8 @@ const useStyles = makeStyles(theme => ({
 
 const PROMETHEUS_RULE_TYPE = 'prometheus';
 
-export default function AlertRules<TRuleUnion>(props: Props<TRuleUnion>) {
+export default function AlertRules<TRuleUnion>() {
+  const {apiUtil, ruleMap} = useAlarmContext();
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const {match} = useRouter();
@@ -72,18 +69,8 @@ export default function AlertRules<TRuleUnion>(props: Props<TRuleUnion>) {
     null,
   );
 
-  // merge custom ruleMap with default prometheus rule map
-  const ruleMap = React.useMemo<RuleInterfaceMap<TRuleUnion>>(
-    () =>
-      Object.assign(
-        {},
-        getPrometheusRuleInterface({apiUtil: props.apiUtil}),
-        props.ruleMap || {},
-      ),
-    [props.ruleMap, props.apiUtil],
-  );
   const {rules, isLoading} = useLoadRules({
-    ruleMap: ruleMap,
+    ruleMap,
     lastRefreshTime,
   });
 
@@ -134,7 +121,7 @@ export default function AlertRules<TRuleUnion>(props: Props<TRuleUnion>) {
     try {
       // only show matching alerts for prometheus rules for now
       if (selectedRow && selectedRow.ruleType === PROMETHEUS_RULE_TYPE) {
-        const response = await props.apiUtil.viewMatchingAlerts({
+        const response = await apiUtil.viewMatchingAlerts({
           networkId: match.params.networkId,
           expression: selectedRow.expression,
         });
@@ -145,7 +132,7 @@ export default function AlertRules<TRuleUnion>(props: Props<TRuleUnion>) {
         variant: 'error',
       });
     }
-  }, [selectedRow, props.apiUtil, match.params.networkId, enqueueSnackbar]);
+  }, [selectedRow, apiUtil, match.params.networkId, enqueueSnackbar]);
   const handleActionsMenuClose = React.useCallback(() => {
     setSelectedRow(null);
     menuAnchorEl.current = null;
@@ -196,8 +183,6 @@ export default function AlertRules<TRuleUnion>(props: Props<TRuleUnion>) {
   if (isAddEditAlert) {
     return (
       <AddEditRule
-        apiUtil={props.apiUtil}
-        ruleMap={ruleMap || {}}
         initialConfig={selectedRow}
         isNew={isNewAlert}
         defaultRuleType={PROMETHEUS_RULE_TYPE}
@@ -206,13 +191,12 @@ export default function AlertRules<TRuleUnion>(props: Props<TRuleUnion>) {
           setLastRefreshTime(new Date().toLocaleString());
           handleActionsMenuClose();
         }}
-        thresholdEditorEnabled={props.thresholdEditorEnabled}
       />
     );
   }
 
   return (
-    <>
+    <Grid className={classes.root}>
       <SimpleTable
         columnStruct={columnStruct}
         tableData={rules || []}
@@ -267,35 +251,6 @@ export default function AlertRules<TRuleUnion>(props: Props<TRuleUnion>) {
         label="Add Alert"
         data-testid="add-edit-alert-button"
       />
-    </>
+    </Grid>
   );
-}
-
-function getPrometheusRuleInterface({
-  apiUtil,
-}: {
-  apiUtil: ApiUtil,
-}): RuleInterfaceMap<AlertConfig> {
-  return {
-    [PROMETHEUS_RULE_TYPE]: {
-      friendlyName: PROMETHEUS_RULE_TYPE,
-      RuleEditor: PrometheusEditor,
-      /**
-       * Get alert rules from backend and map to generic
-       */
-      getRules: async req => {
-        const rules = await apiUtil.getAlertRules(req);
-        return rules.map<GenericRule<AlertConfig>>(rule => ({
-          name: rule.alert,
-          description: rule.annotations?.description || '',
-          severity: rule.labels?.severity || '',
-          period: rule.for || '',
-          expression: rule.expr,
-          ruleType: PROMETHEUS_RULE_TYPE,
-          rawRule: rule,
-        }));
-      },
-      deleteRule: params => apiUtil.deleteAlertRule(params),
-    },
-  };
 }

@@ -27,7 +27,7 @@ CWAG_TEST_BR_NAME = "cwag_test_br0"
 
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
-               destroy_vm="False"):
+               destroy_vm="False", no_build="False"):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -44,9 +44,12 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     trf_host: The ssh address string of the machine to run the tests on
         on. Formatted as "host:port". If not specified, defaults to the
         `magma_trfserver` vagrant box.
+
+    no_build: When set to true, this script will NOT rebuild all docker images.
     """
 
     destroy_vm = bool(strtobool(destroy_vm))
+    no_build = bool(strtobool(no_build))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -66,7 +69,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         execute(_transfer_docker_images)
     else:
         execute(_stop_gateway)
-        execute(_build_gateway)
+        if not no_build:
+            execute(_build_gateway)
     execute(_run_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
@@ -90,7 +94,6 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     host = env.hosts[0]
     cwag_test_br_mac = cwag_test_host_to_mac[host]
     execute(_set_cwag_test_configs)
-    execute(_start_ue_simulator)
 
     # Get back to the gateway vm to setup static arp
     if not gateway_host:
@@ -104,6 +107,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         vagrant_setup("cwag_test", destroy_vm)
     else:
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
+    execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
     execute(_run_integ_tests, test_host, trf_host)
 
@@ -173,6 +177,7 @@ def _build_gateway():
         sudo(' docker-compose'
              ' -f docker-compose.yml'
              ' -f docker-compose.override.yml'
+             ' -f docker-compose.nginx.yml'
              ' -f docker-compose.integ-test.yml'
              ' build --parallel')
 
@@ -195,7 +200,7 @@ def _start_ue_simulator():
 
 def _start_trfserver():
     """ Starts the traffic gen server"""
-    run('nohup iperf3 -s -B %s > /dev/null &' % TRF_SERVER_IP, pty=False)
+    run('nohup iperf3 -s --json -B %s > /dev/null &' % TRF_SERVER_IP, pty=False)
 
 
 def _run_unit_tests():

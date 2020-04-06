@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
+	"flag"
 	"os"
 
 	"magma/orc8r/cloud/go/plugin"
@@ -25,6 +26,7 @@ var networkId string
 var gatewayId string
 
 func main() {
+	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 
 	rootCmd.PersistentFlags().StringVar(&networkId, "network", "", "the network id")

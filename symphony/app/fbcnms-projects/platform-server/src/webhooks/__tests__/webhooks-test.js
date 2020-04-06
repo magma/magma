@@ -47,7 +47,7 @@ const TEST_PAYLOAD = {
 
 beforeAll(async () => {
   await Organization.create({
-    id: '1',
+    id: 1,
     name: 'master',
     customDomains: [],
     networkIDs: [],
@@ -57,7 +57,7 @@ beforeAll(async () => {
     ssoIssuer: '',
   });
   await Organization.create({
-    id: '2',
+    id: 2,
     name: 'notmaster',
     customDomains: [],
     networkIDs: ['network1'],

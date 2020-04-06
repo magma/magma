@@ -38,10 +38,7 @@ bootstrap_config:
 enable_config_streamer: True
 enable_upgrade_manager: True
 enable_network_monitor: False
-enable_systemd_tailer: False
 enable_sync_rpc: True
-
-systemd_tailer_poll_interval: 30 # seconds
 
 upgrader_factory:
   module: magma.magmad.upgrade.docker_upgrader

@@ -73,6 +73,7 @@ const ServiceComparisonViewQueryRenderer = (props: Props) => {
           stringValue: f.stringValue,
           propertyValue: f.propertyValue,
           idSet: f.idSet,
+          stringSet: f.stringSet,
         })),
         serviceKey: serviceKey,
       }}

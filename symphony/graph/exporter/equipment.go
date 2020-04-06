@@ -7,7 +7,9 @@ package exporter
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -16,6 +18,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
 	"github.com/facebookincubator/symphony/pkg/log"
 
+	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -29,6 +32,7 @@ type equipmentFilterInput struct {
 	Operator      models.FilterOperator      `jsons:"operator"`
 	StringValue   string                     `json:"stringValue"`
 	IDSet         []string                   `json:"idSet"`
+	StringSet     []string                   `json:"stringSet"`
 	PropertyValue models.PropertyTypeInput   `json:"propertyValue"`
 }
 
@@ -37,8 +41,8 @@ type equipmentRower struct {
 }
 
 func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, error) {
-	log := er.log.For(ctx)
 	var (
+		logger          = er.log.For(ctx)
 		err             error
 		filterInput     []*models.EquipmentFilterInput
 		equipDataHeader = [...]string{bom + "Equipment ID", "Equipment Name", "Equipment Type", "External ID"}
@@ -48,7 +52,7 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 	if filtersParam != "" {
 		filterInput, err = paramToFilterInput(filtersParam)
 		if err != nil {
-			log.Error("cannot filter equipment", zap.Error(err))
+			logger.Error("cannot filter equipment", zap.Error(err))
 			return nil, errors.Wrap(err, "cannot filter equipment")
 		}
 	}
@@ -56,7 +60,7 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 
 	equips, err := resolverutil.EquipmentSearch(ctx, client, filterInput, nil)
 	if err != nil {
-		log.Error("cannot query equipment", zap.Error(err))
+		logger.Error("cannot query equipment", zap.Error(err))
 		return nil, errors.Wrap(err, "cannot query equipment")
 	}
 	cg := ctxgroup.WithContext(ctx, ctxgroup.MaxConcurrency(32))
@@ -68,19 +72,19 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 	cg.Go(func(ctx context.Context) (err error) {
 		orderedLocTypes, err = locationTypeHierarchy(ctx, client)
 		if err != nil {
-			log.Error("cannot query location types", zap.Error(err))
+			logger.Error("cannot query location types", zap.Error(err))
 			return errors.Wrap(err, "cannot query location types")
 		}
 		return nil
 	})
 	cg.Go(func(ctx context.Context) (err error) {
-		equipIDs := make([]string, len(equipList))
+		equipIDs := make([]int, len(equipList))
 		for i, e := range equips.Equipment {
 			equipIDs[i] = e.ID
 		}
 		propertyTypes, err = propertyTypesSlice(ctx, equipIDs, client, models.PropertyEntityEquipment)
 		if err != nil {
-			log.Error("cannot query property types", zap.Error(err))
+			logger.Error("cannot query property types", zap.Error(err))
 			return errors.Wrap(err, "cannot query property types")
 		}
 		return nil
@@ -107,33 +111,35 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 		})
 	}
 	if err := cg.Wait(); err != nil {
-		log.Error("error in wait", zap.Error(err))
+		logger.Error("error in wait", zap.Error(err))
 		return nil, errors.WithMessage(err, "error in wait")
 	}
 	return allrows, nil
 }
 
 func paramToFilterInput(params string) ([]*models.EquipmentFilterInput, error) {
-	var returnType []*models.EquipmentFilterInput
 	var inputs []equipmentFilterInput
 	err := json.Unmarshal([]byte(params), &inputs)
 	if err != nil {
 		return nil, err
 	}
-
+	returnType := make([]*models.EquipmentFilterInput, 0, len(inputs))
 	for _, f := range inputs {
 		upperName := strings.ToUpper(f.Name.String())
 		upperOp := strings.ToUpper(f.Operator.String())
-		StringVal := f.StringValue
-		propVal := f.PropertyValue
-		maxDepth := 5
+		propertyValue := f.PropertyValue
+		intIDSet, err := toIntSlice(f.IDSet)
+		if err != nil {
+			return nil, fmt.Errorf("wrong id set %q: %w", f.IDSet, err)
+		}
 		inp := models.EquipmentFilterInput{
 			FilterType:    models.EquipmentFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
-			StringValue:   &StringVal,
-			PropertyValue: &propVal,
-			IDSet:         f.IDSet,
-			MaxDepth:      &maxDepth,
+			StringValue:   pointer.ToString(f.StringValue),
+			PropertyValue: &propertyValue,
+			IDSet:         intIDSet,
+			StringSet:     f.StringSet,
+			MaxDepth:      pointer.ToInt(5),
 		}
 		returnType = append(returnType, &inp)
 	}
@@ -168,7 +174,7 @@ func equipToSlice(ctx context.Context, equipment *ent.Equipment, orderedLocTypes
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
-	row := []string{equipment.ID, equipment.Name, equipment.QueryType().OnlyX(ctx).Name, equipment.ExternalID}
+	row := []string{strconv.Itoa(equipment.ID), equipment.Name, equipment.QueryType().OnlyX(ctx).Name, equipment.ExternalID}
 	row = append(row, lParents...)
 	row = append(row, eParents...)
 	row = append(row, properties...)

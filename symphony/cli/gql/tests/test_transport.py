@@ -1,30 +1,33 @@
+#!/usr/bin/env python3
+
 import pytest
 import requests
-
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 
 
 @pytest.fixture
 def client():
-    request = requests.get('http://swapi.graphene-python.org/graphql',
-                           headers={
-                               'Host': 'swapi.graphene-python.org',
-                               'Accept': 'text/html',
-                           })
+    request = requests.get(
+        "http://swapi.graphene-python.org/graphql",
+        headers={"Host": "swapi.graphene-python.org", "Accept": "text/html"},
+    )
     request.raise_for_status()
-    csrf = request.cookies['csrftoken']
+    csrf = request.cookies["csrftoken"]
 
     return Client(
-        transport=RequestsHTTPTransport(url='http://swapi.graphene-python.org/graphql',
-                                        cookies={"csrftoken": csrf},
-                                        headers={'x-csrftoken':  csrf}),
-        fetch_schema_from_transport=True
+        transport=RequestsHTTPTransport(
+            url="http://swapi.graphene-python.org/graphql",
+            cookies={"csrftoken": csrf},
+            headers={"x-csrftoken": csrf},
+        ),
+        fetch_schema_from_transport=True,
     )
 
 
 def test_hero_name_query(client):
-    query = gql('''
+    query = gql(
+        """
     {
       myFavoriteFilm: film(id:"RmlsbToz") {
         id
@@ -39,7 +42,8 @@ def test_hero_name_query(client):
         }
       }
     }
-    ''')
+    """
+    )
     expected = {
         "myFavoriteFilm": {
             "id": "RmlsbToz",
@@ -47,33 +51,13 @@ def test_hero_name_query(client):
             "episodeId": 6,
             "characters": {
                 "edges": [
-                  {
-                      "node": {
-                          "name": "Luke Skywalker"
-                      }
-                  },
-                    {
-                      "node": {
-                          "name": "C-3PO"
-                      }
-                  },
-                    {
-                      "node": {
-                          "name": "R2-D2"
-                      }
-                  },
-                    {
-                      "node": {
-                          "name": "Darth Vader"
-                      }
-                  },
-                    {
-                      "node": {
-                          "name": "Leia Organa"
-                      }
-                  }
+                    {"node": {"name": "Luke Skywalker"}},
+                    {"node": {"name": "C-3PO"}},
+                    {"node": {"name": "R2-D2"}},
+                    {"node": {"name": "Darth Vader"}},
+                    {"node": {"name": "Leia Organa"}},
                 ]
-            }
+            },
         }
     }
     result = client.execute(query)

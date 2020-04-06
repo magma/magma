@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 import type {EntityType} from '../comparison_view/ComparisonViewTypes';
@@ -74,9 +74,6 @@ const PowerSearchFilterSubjectDropDown = (props: Props) => {
         className={classes.input}
         SelectProps={{
           classes: {selectMenu: classes.selectMenu},
-          MenuProps: {
-            className: classes.menu,
-          },
         }}
         margin="dense">
         {Object.keys(FILTER_SUBJECTS).map(type => (

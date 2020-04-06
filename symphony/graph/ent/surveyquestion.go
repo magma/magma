@@ -8,11 +8,11 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 )
 
@@ -20,7 +20,7 @@ import (
 type SurveyQuestion struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -61,46 +61,113 @@ type SurveyQuestion struct {
 	IntData int `json:"int_data,omitempty"`
 	// DateData holds the value of the "date_data" field.
 	DateData time.Time `json:"date_data,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the SurveyQuestionQuery when eager-loading is set.
+	Edges                  SurveyQuestionEdges `json:"edges"`
+	survey_question_survey *int
+}
+
+// SurveyQuestionEdges holds the relations/edges for other nodes in the graph.
+type SurveyQuestionEdges struct {
+	// Survey holds the value of the survey edge.
+	Survey *Survey
+	// WifiScan holds the value of the wifi_scan edge.
+	WifiScan []*SurveyWiFiScan
+	// CellScan holds the value of the cell_scan edge.
+	CellScan []*SurveyCellScan
+	// PhotoData holds the value of the photo_data edge.
+	PhotoData []*File
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// SurveyOrErr returns the Survey value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e SurveyQuestionEdges) SurveyOrErr() (*Survey, error) {
+	if e.loadedTypes[0] {
+		if e.Survey == nil {
+			// The edge survey was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: survey.Label}
+		}
+		return e.Survey, nil
+	}
+	return nil, &NotLoadedError{edge: "survey"}
+}
+
+// WifiScanOrErr returns the WifiScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyQuestionEdges) WifiScanOrErr() ([]*SurveyWiFiScan, error) {
+	if e.loadedTypes[1] {
+		return e.WifiScan, nil
+	}
+	return nil, &NotLoadedError{edge: "wifi_scan"}
+}
+
+// CellScanOrErr returns the CellScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyQuestionEdges) CellScanOrErr() ([]*SurveyCellScan, error) {
+	if e.loadedTypes[2] {
+		return e.CellScan, nil
+	}
+	return nil, &NotLoadedError{edge: "cell_scan"}
+}
+
+// PhotoDataOrErr returns the PhotoData value or an error if the edge
+// was not loaded in eager-loading.
+func (e SurveyQuestionEdges) PhotoDataOrErr() ([]*File, error) {
+	if e.loadedTypes[3] {
+		return e.PhotoData, nil
+	}
+	return nil, &NotLoadedError{edge: "photo_data"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*SurveyQuestion) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullInt64{},
-		&sql.NullBool{},
-		&sql.NullString{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&sql.NullFloat64{},
-		&sql.NullInt64{},
-		&sql.NullTime{},
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullString{},  // form_name
+		&sql.NullString{},  // form_description
+		&sql.NullInt64{},   // form_index
+		&sql.NullString{},  // question_type
+		&sql.NullString{},  // question_format
+		&sql.NullString{},  // question_text
+		&sql.NullInt64{},   // question_index
+		&sql.NullBool{},    // bool_data
+		&sql.NullString{},  // email_data
+		&sql.NullFloat64{}, // latitude
+		&sql.NullFloat64{}, // longitude
+		&sql.NullFloat64{}, // location_accuracy
+		&sql.NullFloat64{}, // altitude
+		&sql.NullString{},  // phone_data
+		&sql.NullString{},  // text_data
+		&sql.NullFloat64{}, // float_data
+		&sql.NullInt64{},   // int_data
+		&sql.NullTime{},    // date_data
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*SurveyQuestion) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // survey_question_survey
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the SurveyQuestion fields.
 func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(surveyquestion.Columns); m != n {
+	if m, n := len(values), len(surveyquestion.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	sq.ID = strconv.FormatInt(value.Int64, 10)
+	sq.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -202,34 +269,43 @@ func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		sq.DateData = value.Time
 	}
+	values = values[20:]
+	if len(values) == len(surveyquestion.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_survey", value)
+		} else if value.Valid {
+			sq.survey_question_survey = new(int)
+			*sq.survey_question_survey = int(value.Int64)
+		}
+	}
 	return nil
 }
 
 // QuerySurvey queries the survey edge of the SurveyQuestion.
 func (sq *SurveyQuestion) QuerySurvey() *SurveyQuery {
-	return (&SurveyQuestionClient{sq.config}).QuerySurvey(sq)
+	return (&SurveyQuestionClient{config: sq.config}).QuerySurvey(sq)
 }
 
 // QueryWifiScan queries the wifi_scan edge of the SurveyQuestion.
 func (sq *SurveyQuestion) QueryWifiScan() *SurveyWiFiScanQuery {
-	return (&SurveyQuestionClient{sq.config}).QueryWifiScan(sq)
+	return (&SurveyQuestionClient{config: sq.config}).QueryWifiScan(sq)
 }
 
 // QueryCellScan queries the cell_scan edge of the SurveyQuestion.
 func (sq *SurveyQuestion) QueryCellScan() *SurveyCellScanQuery {
-	return (&SurveyQuestionClient{sq.config}).QueryCellScan(sq)
+	return (&SurveyQuestionClient{config: sq.config}).QueryCellScan(sq)
 }
 
 // QueryPhotoData queries the photo_data edge of the SurveyQuestion.
 func (sq *SurveyQuestion) QueryPhotoData() *FileQuery {
-	return (&SurveyQuestionClient{sq.config}).QueryPhotoData(sq)
+	return (&SurveyQuestionClient{config: sq.config}).QueryPhotoData(sq)
 }
 
 // Update returns a builder for updating this SurveyQuestion.
 // Note that, you need to call SurveyQuestion.Unwrap() before calling this method, if this SurveyQuestion
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (sq *SurveyQuestion) Update() *SurveyQuestionUpdateOne {
-	return (&SurveyQuestionClient{sq.config}).UpdateOne(sq)
+	return (&SurveyQuestionClient{config: sq.config}).UpdateOne(sq)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -290,12 +366,6 @@ func (sq *SurveyQuestion) String() string {
 	builder.WriteString(sq.DateData.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (sq *SurveyQuestion) id() int {
-	id, _ := strconv.Atoi(sq.ID)
-	return id
 }
 
 // SurveyQuestions is a parsable slice of SurveyQuestion.

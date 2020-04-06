@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a4722d92648e451717219d1d56b50701
+ * @relayHash 191b82ba9d62f38c9170f86968158f97
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "WORK_ORDER" | "%future added value";
+export type ImageEntity = "EQUIPMENT" | "LOCATION" | "SITE_SURVEY" | "USER" | "WORK_ORDER" | "%future added value";
 export type AddHyperlinkInput = {|
   entityType: ImageEntity,
   entityId: string,
@@ -32,6 +32,7 @@ export type AddHyperlinkMutationResponse = {|
     +url: string,
     +displayName: ?string,
     +category: ?string,
+    +createTime: any,
   |}
 |};
 export type AddHyperlinkMutation = {|
@@ -50,6 +51,7 @@ mutation AddHyperlinkMutation(
     url
     displayName
     category
+    createTime
   }
 }
 */
@@ -106,6 +108,13 @@ v1 = [
         "name": "category",
         "args": null,
         "storageKey": null
+      },
+      {
+        "kind": "ScalarField",
+        "alias": null,
+        "name": "createTime",
+        "args": null,
+        "storageKey": null
       }
     ]
   }
@@ -130,11 +139,11 @@ return {
     "operationKind": "mutation",
     "name": "AddHyperlinkMutation",
     "id": null,
-    "text": "mutation AddHyperlinkMutation(\n  $input: AddHyperlinkInput!\n) {\n  addHyperlink(input: $input) {\n    id\n    url\n    displayName\n    category\n  }\n}\n",
+    "text": "mutation AddHyperlinkMutation(\n  $input: AddHyperlinkInput!\n) {\n  addHyperlink(input: $input) {\n    id\n    url\n    displayName\n    category\n    createTime\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'faa4690267121d0368b89e9cf7326524';
+(node/*: any*/).hash = '8aeb4cde118c6a2a5365fe50a82c419e';
 module.exports = node;

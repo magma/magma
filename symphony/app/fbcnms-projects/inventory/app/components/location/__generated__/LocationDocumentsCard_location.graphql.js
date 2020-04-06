@@ -36,6 +36,7 @@ export type LocationDocumentsCard_location$data = LocationDocumentsCard_location
 export type LocationDocumentsCard_location$key = {
   +$data?: LocationDocumentsCard_location$data,
   +$fragmentRefs: LocationDocumentsCard_location$ref,
+  ...
 };
 */
 

@@ -78,7 +78,7 @@ message EnodebD {
 //------------------------------------------------------------------------------
 message PipelineD {
     enum NetworkServices {
-        METERING = 0;
+        METERING = 0 [deprecated=true];  // deprecated
         DPI = 1;
         ENFORCEMENT = 2;
     }
@@ -97,6 +97,11 @@ message PipelineD {
       uint32 key = 2;
     }
     repeated AllowedGrePeer allowed_gre_peers = 9;
+    message IPDRExportDst {
+      string ip = 1;
+      uint32 port = 2;
+    }
+    IPDRExportDst ipdr_export_dst = 10;
     // DEPRECATED
     // repeated string apps = 4;
 }

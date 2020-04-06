@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 'use strict';
@@ -76,29 +76,33 @@ export const access = (level: AccessRoleLevel) => {
     }
 
     logger.info(
-      'Client has no permission to view route: [%s]',
+      `Client has no permission to view route: [%s]. They are ${
+        req.user ? '' : 'not'
+      } logged in`,
       req.hostname + req.originalUrl,
     );
 
-    // if there is a logged in user, we shouldn't redirect to login page
-    // because it would create an infinite loop since the login page redirects
-    // back if ther user is logged in
-    const redirectURL = req.user
-      ? '/'
-      : addQueryParamsToUrl(req.access.loginUrl, {
-          to: req.originalUrl,
-        });
-
-    res.format({
-      // for axios requests, redirect does not work, so we return 403 error.
-      json: () =>
-        res.status(403).json({
-          errorCode: ErrorCodes.USER_NOT_LOGGED_IN,
-          description: 'You must login to see this',
-        }),
-      // for browser requests, simply redirect
-      html: () => res.redirect(redirectURL),
-      default: () => res.redirect(redirectURL),
-    });
+    if (!req.user) {
+      // No logged in user, attempt to redirect to login url
+      const loginURL = addQueryParamsToUrl(req.access.loginUrl, {
+        to: req.originalUrl,
+      });
+      res.format({
+        // for axios requests, redirect does not work, so we return 403 error.
+        json: () =>
+          res.status(403).json({
+            errorCode: ErrorCodes.USER_NOT_LOGGED_IN,
+            description: 'You must login to see this',
+          }),
+        // for browser requests, simply redirect
+        html: () => res.redirect(loginURL),
+        default: () => res.redirect(loginURL),
+      });
+    } else {
+      // if there is a logged in user, we shouldn't redirect to login page
+      // because it would create an infinite loop since the login page redirects
+      // back if ther user is logged in.
+      res.redirect('/');
+    }
   };
 };

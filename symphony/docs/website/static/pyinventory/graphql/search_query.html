@@ -1,3 +1,6 @@
+<!--
+@generated
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -32,62 +35,49 @@
 <dl>
 <dt id="pyinventory.graphql.search_query.SearchQuery"><code class="flex name class">
 <span>class <span class="ident">SearchQuery</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<span>(</span><span>data: <a title="pyinventory.graphql.search_query.SearchQuery.SearchQueryData" href="#pyinventory.graphql.search_query.SearchQuery.SearchQueryData">SearchQuery.SearchQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>SearchQuery(data: Union[pyinventory.graphql.search_query.SearchQuery.SearchQueryData, NoneType] = None, errors: Any = None)</p></section>
+<section class="desc"><p>SearchQuery(data: pyinventory.graphql.search_query.SearchQuery.SearchQueryData, <strong>QUERY</strong>: str = '\n
+query SearchQuery(\n
+$name: String!\n
+$after: Cursor\n
+$first: Int = 10\n
+$before: Cursor\n
+$last: Int\n) {\n
+searchForEntity(\n
+name: $name\n
+after: $after\n
+first: $first\n
+before: $before\n
+last: $last\n
+) {\n
+edges {\n
+node {\n
+entityId\n
+entityType\n
+name\n
+type\n
+}\n
+}\n
+}\n}\n\n
+')</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.search_query.SearchQuery.SearchQueryData"><code class="name">var <span class="ident">SearchQueryData</span></code></dt>
 <dd>
 <section class="desc"><p>SearchQueryData(searchForEntity: pyinventory.graphql.search_query.SearchQuery.SearchQueryData.SearchEntriesConnection)</p></section>
 </dd>
-<dt id="pyinventory.graphql.search_query.SearchQuery.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.search_query.SearchQuery.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="pyinventory.graphql.search_query.SearchQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, name, after=None, first=10, before=None, last=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.search_query.SearchQuery.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.search_query.SearchQuery.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.search_query.SearchQuery.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.search_query.SearchQuery.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.search_query.SearchQuery.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
+<span>def <span class="ident">execute</span></span>(<span>client: gql.gql.graphql_client.GraphqlClient, name: str, after: Union[str, NoneType] = None, first: Union[int, NoneType] = 10, before: Union[str, NoneType] = None, last: Union[int, NoneType] = None) -> <a title="pyinventory.graphql.search_query.SearchQuery.SearchQueryData" href="#pyinventory.graphql.search_query.SearchQuery.SearchQueryData">SearchQuery.SearchQueryData</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -112,16 +102,9 @@
 <ul>
 <li>
 <h4><code><a title="pyinventory.graphql.search_query.SearchQuery" href="#pyinventory.graphql.search_query.SearchQuery">SearchQuery</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="pyinventory.graphql.search_query.SearchQuery.SearchQueryData" href="#pyinventory.graphql.search_query.SearchQuery.SearchQueryData">SearchQueryData</a></code></li>
-<li><code><a title="pyinventory.graphql.search_query.SearchQuery.data" href="#pyinventory.graphql.search_query.SearchQuery.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.search_query.SearchQuery.errors" href="#pyinventory.graphql.search_query.SearchQuery.errors">errors</a></code></li>
 <li><code><a title="pyinventory.graphql.search_query.SearchQuery.execute" href="#pyinventory.graphql.search_query.SearchQuery.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.search_query.SearchQuery.from_dict" href="#pyinventory.graphql.search_query.SearchQuery.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.search_query.SearchQuery.from_json" href="#pyinventory.graphql.search_query.SearchQuery.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.search_query.SearchQuery.schema" href="#pyinventory.graphql.search_query.SearchQuery.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.search_query.SearchQuery.to_dict" href="#pyinventory.graphql.search_query.SearchQuery.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.search_query.SearchQuery.to_json" href="#pyinventory.graphql.search_query.SearchQuery.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

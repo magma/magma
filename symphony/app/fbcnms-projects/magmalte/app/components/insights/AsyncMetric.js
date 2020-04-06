@@ -29,12 +29,12 @@ type Props = {
   networkId?: string,
 };
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   loadingContainer: {
     paddingTop: 100,
     textAlign: 'center',
   },
-});
+}));
 
 export type TimeRange =
   | '3_hours'

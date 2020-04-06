@@ -35,7 +35,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "assertions.h"
 #include "common_types.h"
 #include "conversions.h"
 #include "intertask_interface.h"
@@ -151,16 +150,18 @@ int mme_app_send_s6a_update_location_req(
     // Start ULR Response timer
     nas_itti_timer_arg_t timer_callback_fun = {0};
     timer_callback_fun.nas_timer_callback = mme_app_handle_ulr_timer_expiry;
-    timer_callback_fun.nas_timer_callback_arg = (void *) &(ue_context_p->mme_ue_s1ap_id);
-    if (timer_setup(
-      ue_context_p->ulr_response_timer.sec,
-      0,
-      TASK_MME_APP,
-      INSTANCE_DEFAULT,
-      TIMER_ONE_SHOT,
-      &timer_callback_fun,
-      sizeof(timer_callback_fun),
-      &(ue_context_p->ulr_response_timer.id)) < 0) {
+    timer_callback_fun.nas_timer_callback_arg =
+      (void*) &(ue_context_p->mme_ue_s1ap_id);
+    if (
+      timer_setup(
+        ue_context_p->ulr_response_timer.sec,
+        0,
+        TASK_MME_APP,
+        INSTANCE_DEFAULT,
+        TIMER_ONE_SHOT,
+        &timer_callback_fun,
+        sizeof(timer_callback_fun),
+        &(ue_context_p->ulr_response_timer.id)) < 0) {
       OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to start Update location update response timer for UE id  %d "
@@ -217,7 +218,12 @@ int mme_app_handle_s6a_update_location_ans(
   struct ue_mm_context_s* ue_mm_context = NULL;
   int rc = RETURNok;
 
-  DevAssert(ula_pP);
+  if (ula_pP == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid S6a Update Location Answer ITTI message received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   IMSI_STRING_TO_IMSI64((char*) ula_pP->imsi, &imsi64);
   OAILOG_DEBUG(LOG_MME_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
@@ -363,7 +369,12 @@ int mme_app_handle_s6a_cancel_location_req(
   int cla_result = DIAMETER_SUCCESS;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(clr_pP);
+  if (clr_pP == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid S6a Cancel Location Request ITTI message received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   IMSI_STRING_TO_IMSI64((char*) clr_pP->imsi, &imsi);
   OAILOG_DEBUG(

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 8760624c984be01ad99f90c23f77a2f1
+ * @relayHash 52284b6d63204f84e17e43b314827f8d
  */
 
 /* eslint-disable */
@@ -45,7 +45,7 @@ export type LocationsMapTypesQuery = {|
 
 /*
 query LocationsMapTypesQuery {
-  locationTypes(first: 50) {
+  locationTypes {
     edges {
       node {
         id
@@ -86,14 +86,8 @@ v2 = [
     "kind": "LinkedField",
     "alias": null,
     "name": "locationTypes",
-    "storageKey": "locationTypes(first:50)",
-    "args": [
-      {
-        "kind": "Literal",
-        "name": "first",
-        "value": 50
-      }
-    ],
+    "storageKey": null,
+    "args": null,
     "concreteType": "LocationTypeConnection",
     "plural": false,
     "selections": [
@@ -199,11 +193,11 @@ return {
     "operationKind": "query",
     "name": "LocationsMapTypesQuery",
     "id": null,
-    "text": "query LocationsMapTypesQuery {\n  locationTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n        locations(enforceHasLatLong: true) {\n          edges {\n            node {\n              id\n              name\n              latitude\n              longitude\n            }\n          }\n        }\n      }\n    }\n  }\n}\n",
+    "text": "query LocationsMapTypesQuery {\n  locationTypes {\n    edges {\n      node {\n        id\n        name\n        locations(enforceHasLatLong: true) {\n          edges {\n            node {\n              id\n              name\n              latitude\n              longitude\n            }\n          }\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '1d624a8f5f1114312884179c1dbe0c13';
+(node/*: any*/).hash = 'fc689b6b48f62c12d1c96d10d3f80c7c';
 module.exports = node;

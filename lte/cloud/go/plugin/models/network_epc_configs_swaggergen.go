@@ -192,7 +192,7 @@ var networkEpcConfigsNetworkServicesItemsEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["metering","dpi","policy_enforcement"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["dpi","policy_enforcement"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {

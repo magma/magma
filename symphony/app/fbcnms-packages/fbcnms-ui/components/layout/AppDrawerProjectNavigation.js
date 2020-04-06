@@ -4,9 +4,11 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
+
+import type {Tab} from '@fbcnms/types/tabs';
 
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import IconButton from '@material-ui/core/IconButton';
@@ -22,7 +24,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../../hooks';
 
 export type ProjectLink = {
-  id: string,
+  id: Tab,
   name: string,
   secondary: string,
   url: string,

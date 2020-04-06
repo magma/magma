@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // ProjectTypeDelete is the builder for deleting a ProjectType entity.
 type ProjectTypeDelete struct {
 	config
+	hooks      []Hook
+	mutation   *ProjectTypeMutation
 	predicates []predicate.ProjectType
 }
 
@@ -30,7 +33,30 @@ func (ptd *ProjectTypeDelete) Where(ps ...predicate.ProjectType) *ProjectTypeDel
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ptd *ProjectTypeDelete) Exec(ctx context.Context) (int, error) {
-	return ptd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(ptd.hooks) == 0 {
+		affected, err = ptd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ProjectTypeMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ptd.mutation = mutation
+			affected, err = ptd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(ptd.hooks); i > 0; i-- {
+			mut = ptd.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ptd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (ptd *ProjectTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (ptd *ProjectTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: projecttype.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: projecttype.FieldID,
 			},
 		},
 	}
 	if ps := ptd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, ptd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, ptd.driver, _spec)
 }
 
 // ProjectTypeDeleteOne is the builder for deleting a single ProjectType entity.
@@ -74,7 +100,7 @@ func (ptdo *ProjectTypeDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{projecttype.Label}
+		return &NotFoundError{projecttype.Label}
 	default:
 		return nil
 	}

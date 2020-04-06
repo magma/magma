@@ -1,5 +1,5 @@
-// flow-typed signature: 5934458d8287c23337a0363563a548f9
-// flow-typed version: b77688cf5d/@babel/register_v7.x.x/flow_>=v0.30.x
+// flow-typed signature: 9fd1ed52c746a31b4121d9a2c4503cfd
+// flow-typed version: c6154227d1/@babel/register_v7.x.x/flow_>=v0.104.x
 
 declare module '@babel/register' {
   declare type Ignore = boolean | string | RegExp | (filename: string) => boolean;

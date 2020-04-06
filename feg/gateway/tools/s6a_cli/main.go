@@ -26,8 +26,8 @@ import (
 	"magma/feg/gateway/services/s6a_proxy"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/s6a_proxy/servicers/test"
-	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/tools/commands"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"golang.org/x/net/context"
 )

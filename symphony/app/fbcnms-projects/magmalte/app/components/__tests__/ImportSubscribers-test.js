@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -20,7 +20,8 @@ describe('ImportSubscribers parseFileAndSave', () => {
   const setErrorMsg = jest.fn();
   const props = {onSave: jest.fn(), onSaveError: jest.fn()};
   const id = 311;
-  const CSV_HEADER = 'imsi,lte_state,lte_auth_key,lte_auth_opc,sub_profile';
+  const CSV_HEADER =
+    'imsi,lte_state,lte_auth_key,lte_auth_opc,sub_profile,active_apns';
   beforeEach(() => {
     MagmaAPIBindings.postLteByNetworkIdSubscribers.mockResolvedValueOnce(id);
   });

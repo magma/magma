@@ -7,7 +7,7 @@
 syntax = "proto3";
 
 package magma.orc8r;
-option go_package = "magma/orc8r/cloud/go/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
 message GatewayRequest {
     string gwId = 1;
@@ -57,7 +57,6 @@ message SyncRPCResponse {
     // If it's a heartbeat, reqId and respBody will be ignored.
     bool heartBeat = 3;
 }
-
 
 service SyncRPCService {
     // creates a bidirectional stream from gateway to cloud

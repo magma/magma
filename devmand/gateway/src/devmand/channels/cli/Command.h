@@ -47,6 +47,7 @@ class Command {
     boost::replace_all(cmd, "\n", "\\n");
     boost::replace_all(cmd, "\r", "\\r");
     boost::replace_all(cmd, "\t", "\\t");
+    boost::replace_all(cmd, "\"", "\\\"");
     return cmd;
   }
 

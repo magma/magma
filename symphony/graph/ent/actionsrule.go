@@ -9,7 +9,6 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 type ActionsRule struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -40,27 +39,27 @@ type ActionsRule struct {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ActionsRule) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
-		&sql.NullString{},
-		&[]byte{},
-		&[]byte{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // name
+		&sql.NullString{}, // triggerID
+		&[]byte{},         // ruleFilters
+		&[]byte{},         // ruleActions
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ActionsRule fields.
 func (ar *ActionsRule) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(actionsrule.Columns); m != n {
+	if m, n := len(values), len(actionsrule.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	ar.ID = strconv.FormatInt(value.Int64, 10)
+	ar.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -105,7 +104,7 @@ func (ar *ActionsRule) assignValues(values ...interface{}) error {
 // Note that, you need to call ActionsRule.Unwrap() before calling this method, if this ActionsRule
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ar *ActionsRule) Update() *ActionsRuleUpdateOne {
-	return (&ActionsRuleClient{ar.config}).UpdateOne(ar)
+	return (&ActionsRuleClient{config: ar.config}).UpdateOne(ar)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -138,12 +137,6 @@ func (ar *ActionsRule) String() string {
 	builder.WriteString(fmt.Sprintf("%v", ar.RuleActions))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (ar *ActionsRule) id() int {
-	id, _ := strconv.Atoi(ar.ID)
-	return id
 }
 
 // ActionsRules is a parsable slice of ActionsRule.

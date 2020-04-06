@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -15,5 +15,5 @@ import {storiesOf} from '@storybook/react';
 
 storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/DialogError`, module).add(
   'default',
-  () => <DialogError message={'This is an error message!'} />,
+  () => <DialogError message={'This is an error message!'} color={'error'} />,
 );

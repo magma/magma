@@ -35,12 +35,17 @@ std::unique_ptr<devices::Device> PlaintextCliDevice::createDeviceWithEngine(
     Application& app,
     const cartography::DeviceConfig& deviceConfig,
     Engine& engine) {
-  IoConfigurationBuilder ioConfigurationBuilder(deviceConfig, engine);
+  DeviceType deviceType = DeviceType::create(deviceConfig);
+  shared_ptr<CliFlavour> cliFlavour = engine.getCliFlavour(deviceType);
+  IoConfigurationBuilder ioConfigurationBuilder(
+      deviceConfig, engine, cliFlavour);
 
   auto cmdCache = ReadCachingCli::createCache();
+  auto treeCache = make_shared<TreeCache>(
+      ioConfigurationBuilder.getConnectionParameters()->flavour);
 
   const std::shared_ptr<Channel>& channel = std::make_shared<Channel>(
-      deviceConfig.id, ioConfigurationBuilder.createAll(cmdCache));
+      deviceConfig.id, ioConfigurationBuilder.createAll(cmdCache, treeCache));
 
   return std::make_unique<devices::cli::PlaintextCliDevice>(
       app,

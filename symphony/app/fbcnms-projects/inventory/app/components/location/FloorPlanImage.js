@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -20,9 +20,9 @@ import TextField from '@material-ui/core/TextField';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useSnackbar from '@fbcnms/ui/hooks/useSnackbar';
 import {makeStyles} from '@material-ui/styles';
-import {uploadFile} from '../FileUpload';
+import {uploadFile} from '../FileUpload/FileUploadUtils';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   img: {
     maxWidth: '500px',
     maxHeight: '500px',
@@ -32,7 +32,7 @@ const useStyles = makeStyles({
     margin: '5px 0',
     width: '100%',
   },
-});
+}));
 
 type ReferencePoint = {
   x: number,

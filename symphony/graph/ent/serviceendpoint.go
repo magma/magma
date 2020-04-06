@@ -8,11 +8,12 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 )
 
@@ -20,36 +21,88 @@ import (
 type ServiceEndpoint struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Role holds the value of the "role" field.
 	Role string `json:"role,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ServiceEndpointQuery when eager-loading is set.
+	Edges                 ServiceEndpointEdges `json:"edges"`
+	service_endpoints     *int
+	service_endpoint_port *int
+}
+
+// ServiceEndpointEdges holds the relations/edges for other nodes in the graph.
+type ServiceEndpointEdges struct {
+	// Port holds the value of the port edge.
+	Port *EquipmentPort
+	// Service holds the value of the service edge.
+	Service *Service
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// PortOrErr returns the Port value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEndpointEdges) PortOrErr() (*EquipmentPort, error) {
+	if e.loadedTypes[0] {
+		if e.Port == nil {
+			// The edge port was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipmentport.Label}
+		}
+		return e.Port, nil
+	}
+	return nil, &NotLoadedError{edge: "port"}
+}
+
+// ServiceOrErr returns the Service value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEndpointEdges) ServiceOrErr() (*Service, error) {
+	if e.loadedTypes[1] {
+		if e.Service == nil {
+			// The edge service was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: service.Label}
+		}
+		return e.Service, nil
+	}
+	return nil, &NotLoadedError{edge: "service"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*ServiceEndpoint) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullString{},
+		&sql.NullInt64{},  // id
+		&sql.NullTime{},   // create_time
+		&sql.NullTime{},   // update_time
+		&sql.NullString{}, // role
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*ServiceEndpoint) fkValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{}, // service_endpoints
+		&sql.NullInt64{}, // service_endpoint_port
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the ServiceEndpoint fields.
 func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(serviceendpoint.Columns); m != n {
+	if m, n := len(values), len(serviceendpoint.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	se.ID = strconv.FormatInt(value.Int64, 10)
+	se.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -66,24 +119,39 @@ func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		se.Role = value.String
 	}
+	values = values[3:]
+	if len(values) == len(serviceendpoint.ForeignKeys) {
+		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field service_endpoints", value)
+		} else if value.Valid {
+			se.service_endpoints = new(int)
+			*se.service_endpoints = int(value.Int64)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field service_endpoint_port", value)
+		} else if value.Valid {
+			se.service_endpoint_port = new(int)
+			*se.service_endpoint_port = int(value.Int64)
+		}
+	}
 	return nil
 }
 
 // QueryPort queries the port edge of the ServiceEndpoint.
 func (se *ServiceEndpoint) QueryPort() *EquipmentPortQuery {
-	return (&ServiceEndpointClient{se.config}).QueryPort(se)
+	return (&ServiceEndpointClient{config: se.config}).QueryPort(se)
 }
 
 // QueryService queries the service edge of the ServiceEndpoint.
 func (se *ServiceEndpoint) QueryService() *ServiceQuery {
-	return (&ServiceEndpointClient{se.config}).QueryService(se)
+	return (&ServiceEndpointClient{config: se.config}).QueryService(se)
 }
 
 // Update returns a builder for updating this ServiceEndpoint.
 // Note that, you need to call ServiceEndpoint.Unwrap() before calling this method, if this ServiceEndpoint
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (se *ServiceEndpoint) Update() *ServiceEndpointUpdateOne {
-	return (&ServiceEndpointClient{se.config}).UpdateOne(se)
+	return (&ServiceEndpointClient{config: se.config}).UpdateOne(se)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -110,12 +178,6 @@ func (se *ServiceEndpoint) String() string {
 	builder.WriteString(se.Role)
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (se *ServiceEndpoint) id() int {
-	id, _ := strconv.Atoi(se.ID)
-	return id
 }
 
 // ServiceEndpoints is a parsable slice of ServiceEndpoint.

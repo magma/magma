@@ -22,8 +22,8 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {useHistory} from 'react-router';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = (_theme: Theme) => ({
@@ -61,7 +61,7 @@ type Props = {
 const EquipmentServicesTable = (props: Props) => {
   const [anchorEl, setAnchorEl] = useState<?HTMLElement>(null);
   const [selectedService, setSelectedService] = useState<?Service>(null);
-  const {history} = useRouter();
+  const history = useHistory();
 
   const navigateToService = (serviceId: string) => {
     history.push(`/inventory/services?service=${serviceId}`);

@@ -14,12 +14,13 @@ import (
 	"log"
 	"time"
 
-	"magma/orc8r/cloud/go/service/config"
-
 	"google.golang.org/grpc"
+
+	platform_registry "magma/orc8r/lib/go/registry"
 )
 
 type MockCloudRegistry struct {
+	*platform_registry.ServiceRegistry
 	ServerAddr string
 }
 
@@ -38,7 +39,6 @@ func (m *MockCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn
 	}
 	return conn, nil
 }
-
-func (*MockCloudRegistry) GetCloudConnectionFromServiceConfig(serviceConfig *config.ConfigMap, service string) (*grpc.ClientConn, error) {
-	return nil, nil
+func (m *MockCloudRegistry) GetConnection(service string) (*grpc.ClientConn, error) {
+	return m.GetCloudConnection(service)
 }

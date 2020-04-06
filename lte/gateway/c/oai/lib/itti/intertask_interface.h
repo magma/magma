@@ -184,6 +184,13 @@ MessageDef *itti_alloc_new_message(
   task_id_t origin_task_id,
   MessagesIds message_id);
 
+/**
+ * \brief Returns IMSI of ITTI task
+ * @param msg MessageDef struct
+ * @return uint64 IMSI
+ */
+imsi64_t itti_get_associated_imsi(MessageDef* msg);
+
 /** \brief handle signals and wait for all threads to join when the process complete.
  * This function should be called from the main thread after having created all ITTI tasks.
  **/

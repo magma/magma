@@ -1,3 +1,6 @@
+<!--
+@generated
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -82,13 +85,13 @@
 <h3>Methods</h3>
 <dl>
 <dt id="pyinventory.session.simple_utc.tzname"><code class="name flex">
-<span>def <span class="ident">tzname</span></span>(<span>self, dt)</span>
+<span>def <span class="ident">tzname</span></span>(<span>self, dt: Union[datetime.datetime, NoneType]) -> Union[str, NoneType]</span>
 </code></dt>
 <dd>
 <section class="desc"><p>datetime -&gt; string name of time zone.</p></section>
 </dd>
 <dt id="pyinventory.session.simple_utc.utcoffset"><code class="name flex">
-<span>def <span class="ident">utcoffset</span></span>(<span>self, dt)</span>
+<span>def <span class="ident">utcoffset</span></span>(<span>self, dt: Union[datetime.datetime, NoneType]) -> Union[datetime.timedelta, NoneType]</span>
 </code></dt>
 <dd>
 <section class="desc"><p>datetime -&gt; timedelta showing offset from UTC, negative values indicating West of UTC</p></section>

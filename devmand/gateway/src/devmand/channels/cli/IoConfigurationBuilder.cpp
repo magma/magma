@@ -19,6 +19,7 @@
 #include <devmand/channels/cli/SshSession.h>
 #include <devmand/channels/cli/SshSocketReader.h>
 #include <devmand/channels/cli/TimeoutTrackingCli.h>
+#include <devmand/channels/cli/TreeCacheCli.h>
 #include <folly/Singleton.h>
 
 namespace devmand {
@@ -38,7 +39,8 @@ IoConfigurationBuilder::IoConfigurationBuilder(
 
 IoConfigurationBuilder::IoConfigurationBuilder(
     const DeviceConfig& deviceConfig,
-    channels::cli::Engine& engine) {
+    channels::cli::Engine& engine,
+    shared_ptr<CliFlavour> cliFlavour) {
   const std::map<std::string, std::string>& plaintextCliKv =
       deviceConfig.channelConfigs.at("cli").kvPairs;
 
@@ -47,7 +49,7 @@ IoConfigurationBuilder::IoConfigurationBuilder(
       deviceConfig.ip,
       plaintextCliKv.at("username"),
       plaintextCliKv.at("password"),
-      loadConfigValue(plaintextCliKv, "flavour", ""),
+      cliFlavour,
       folly::to<int>(plaintextCliKv.at("port")),
       toSeconds(loadConfigValue(
           plaintextCliKv, configKeepAliveIntervalSeconds, "60")),
@@ -65,8 +67,9 @@ IoConfigurationBuilder::~IoConfigurationBuilder() {
 }
 
 shared_ptr<Cli> IoConfigurationBuilder::createAll(
-    shared_ptr<CliCache> commandCache) {
-  return createAllUsingFactory(commandCache);
+    shared_ptr<CliCache> commandCache,
+    shared_ptr<TreeCache> treeCache) {
+  return createAllUsingFactory(commandCache, treeCache);
 }
 
 chrono::seconds IoConfigurationBuilder::toSeconds(const string& value) {
@@ -74,31 +77,43 @@ chrono::seconds IoConfigurationBuilder::toSeconds(const string& value) {
 }
 
 shared_ptr<Cli> IoConfigurationBuilder::createAllUsingFactory(
-    shared_ptr<CliCache> commandCache) {
+    shared_ptr<CliCache> commandCache,
+    shared_ptr<TreeCache> treeCache) {
   function<SemiFuture<shared_ptr<Cli>>()> cliFactory =
-      [params = connectionParameters, commandCache]() {
+      [params = connectionParameters, commandCache, treeCache]() {
         return createPromptAwareCli(params).thenValue(
-            [params, commandCache](shared_ptr<Cli> sshCli) -> shared_ptr<Cli> {
+            [params, commandCache, treeCache](
+                shared_ptr<Cli> sshCli) -> shared_ptr<Cli> {
               MLOG(MDEBUG) << "[" << params->id << "] "
-                           << "Creating cli layers rcclli, ttcli, qcli";
-              // create caching cli
-              const shared_ptr<ReadCachingCli>& rccli =
+                           << "Creating cli layers up to qcli";
+              // create logging cache directly above ssh connection
+              shared_ptr<LoggingCli> lCli1 = make_shared<LoggingCli>(
+                  params->id + ".ssh", sshCli, params->lExecutor);
+              // create read caching cli
+              shared_ptr<ReadCachingCli> rcCli =
                   std::make_shared<ReadCachingCli>(
-                      params->id, sshCli, commandCache, params->rcExecutor);
-              // create timeout tracker
-              shared_ptr<TimeoutTrackingCli> ttcli = TimeoutTrackingCli::make(
+                      params->id, lCli1, commandCache, params->rcExecutor);
+              // create tree caching cli
+              shared_ptr<TreeCacheCli> tcCli = std::make_shared<TreeCacheCli>(
                   params->id,
-                  rccli,
+                  rcCli,
+                  params->tcExecutor,
+                  params->flavour,
+                  treeCache);
+              // create timeout tracker
+              shared_ptr<TimeoutTrackingCli> ttCli = TimeoutTrackingCli::make(
+                  params->id,
+                  tcCli,
                   params->timekeeper,
                   params->ttExecutor,
                   params->cmdTimeout);
-              // create logging cli
-              shared_ptr<LoggingCli> lcli =
-                  make_shared<LoggingCli>(params->id, ttcli, params->lExecutor);
+              // create logging cli above the cache
+              shared_ptr<LoggingCli> lCli2 = make_shared<LoggingCli>(
+                  params->id + ".tt", ttCli, params->lExecutor);
               // create Queued cli
-              shared_ptr<QueuedCli> qcli =
-                  QueuedCli::make(params->id, lcli, params->qExecutor);
-              return qcli;
+              shared_ptr<QueuedCli> qCli =
+                  QueuedCli::make(params->id, lCli2, params->qExecutor);
+              return qCli;
             });
       };
 
@@ -189,7 +204,7 @@ IoConfigurationBuilder::makeConnectionParameters(
     string hostname,
     string username,
     string password,
-    string flavour,
+    shared_ptr<CliFlavour> cliFlavour,
     int port,
     chrono::seconds kaTimeout,
     chrono::seconds cmdTimeout,
@@ -204,7 +219,7 @@ IoConfigurationBuilder::makeConnectionParameters(
   connectionParameters->username = username;
   connectionParameters->password = password;
   connectionParameters->port = port;
-  connectionParameters->flavour = CliFlavour::create(flavour);
+  connectionParameters->flavour = cliFlavour;
   connectionParameters->kaTimeout = kaTimeout;
   connectionParameters->cmdTimeout = cmdTimeout;
   connectionParameters->reconnectingQuietPeriod = reconnectingQuietPeriod;
@@ -216,6 +231,8 @@ IoConfigurationBuilder::makeConnectionParameters(
       engine.getExecutor(Engine::executorRequestType::paCli);
   connectionParameters->rcExecutor =
       engine.getExecutor(Engine::executorRequestType::rcCli);
+  connectionParameters->tcExecutor =
+      engine.getExecutor(Engine::executorRequestType::tcCli);
   connectionParameters->ttExecutor =
       engine.getExecutor(Engine::executorRequestType::ttCli);
   connectionParameters->lExecutor =
@@ -235,6 +252,11 @@ string IoConfigurationBuilder::loadConfigValue(
     const string& key,
     const string& defaultValue) {
   return config.find(key) != config.end() ? config.at(key) : defaultValue;
+}
+
+shared_ptr<IoConfigurationBuilder::ConnectionParameters>
+IoConfigurationBuilder::getConnectionParameters() {
+  return connectionParameters;
 }
 
 } // namespace cli

@@ -8,7 +8,9 @@ package resolver
 import (
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -19,27 +21,28 @@ import (
 )
 
 func TestAddWorkOrderType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
 
-	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
+	typ, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
 	require.NoError(t, err)
 
-	fetchedWOType, _ := qr.WorkOrderType(ctx, woType.ID)
-	require.Equal(t, fetchedWOType.Name, "example_type", "verifying work order type name")
+	node, err := qr.Node(ctx, typ.ID)
+	require.NoError(t, err)
+	typ, ok := node.(*ent.WorkOrderType)
+	require.True(t, ok)
+	assert.Equal(t, typ.Name, "example_type", "verifying work order type name")
 }
 
 func TestAddWorkOrderTypes(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
 
-	_, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_a"})
+	_, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_a"})
 	require.NoError(t, err)
 	_, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_b"})
 	require.NoError(t, err)
@@ -49,8 +52,7 @@ func TestAddWorkOrderTypes(t *testing.T) {
 }
 
 func TestNumberOfWorkOrders(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, wtr := r.Mutation(), r.WorkOrderType()
@@ -80,29 +82,30 @@ func TestNumberOfWorkOrders(t *testing.T) {
 }
 
 func TestAddWorkOrderTypeWithDescription(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
 
-	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+	typ, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
 		Name:        "example_type",
 		Description: pointer.ToString("wo_type_desc"),
 	})
 	require.NoError(t, err)
 
-	fetchedWOType, _ := qr.WorkOrderType(ctx, woType.ID)
-	require.Equal(t, fetchedWOType.Description, "wo_type_desc", "verifying work order type description")
+	node, err := qr.Node(ctx, typ.ID)
+	require.NoError(t, err)
+	typ, ok := node.(*ent.WorkOrderType)
+	require.True(t, ok)
+	assert.Equal(t, typ.Description, "wo_type_desc", "verifying work order type description")
 }
 
 func TestAddWorkOrderTypeWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr, wtr := r.Mutation(), r.WorkOrderType()
 
+	mr, wtr := r.Mutation(), r.WorkOrderType()
 	strValue, strIndex := "Foo", 7
 	intValue, intIndex := 5, 12
 
@@ -143,12 +146,11 @@ func TestAddWorkOrderTypeWithProperties(t *testing.T) {
 }
 
 func TestAddWorkOrderTypeWithCheckList(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr, wtr := r.Mutation(), r.WorkOrderType()
 
+	mr, wtr := r.Mutation(), r.WorkOrderType()
 	indexValue := 1
 	fooCL := models.CheckListDefinitionInput{
 		Title: "Foo",
@@ -173,12 +175,11 @@ func TestAddWorkOrderTypeWithCheckList(t *testing.T) {
 }
 
 func TestAddWorkOrderTypesSameName(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr, qr := r.Mutation(), r.Query()
 
+	mr, qr := r.Mutation(), r.Query()
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_name"})
 	require.NoError(t, err)
 	require.Equal(t, "example_type_name", woType.Name)
@@ -189,12 +190,11 @@ func TestAddWorkOrderTypesSameName(t *testing.T) {
 }
 
 func TestRemoveWorkOrderType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr, qr := r.Mutation(), r.Query()
 
+	mr, qr := r.Mutation(), r.Query()
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_name"})
 	require.NoError(t, err)
 	require.Equal(t, "example_type_name", woType.Name)
@@ -212,14 +212,12 @@ func TestRemoveWorkOrderType(t *testing.T) {
 }
 
 func TestEditWorkOrderType(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
+
 	mr, qr := r.Mutation(), r.Query()
-
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_name"})
-
 	require.NoError(t, err)
 	require.Equal(t, "example_type_name", woType.Name)
 
@@ -242,18 +240,19 @@ func TestEditWorkOrderType(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, types.Edges, 2)
 
-	typ, err := qr.WorkOrderType(ctx, woType.ID)
+	node, err := qr.Node(ctx, woType.ID)
 	require.NoError(t, err)
+	typ, ok := node.(*ent.WorkOrderType)
+	require.True(t, ok)
 	require.Equal(t, "example_type_name_2", typ.Name)
 }
 
 func TestEditWorkOrderTypeWithProperties(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr := r.Mutation()
 
+	mr := r.Mutation()
 	strValue := "Foo"
 	strPropType := models.PropertyTypeInput{
 		Name:        "str_prop",
@@ -311,12 +310,11 @@ func TestEditWorkOrderTypeWithProperties(t *testing.T) {
 }
 
 func TestDeleteWorkOrderTypeProperty(t *testing.T) {
-	r, err := newTestResolver(t)
-	require.NoError(t, err)
+	r := newTestResolver(t)
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
-	mr := r.Mutation()
 
+	mr := r.Mutation()
 	strValue := "Foo"
 	strPropType := models.PropertyTypeInput{
 		Name:        "str_prop",

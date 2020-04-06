@@ -46,12 +46,13 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
 
         print("********Triggering Attach Request with PND Type IPv4v6 test")
 
-        self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.
-                                              UE_ATTACH_REQUEST,
-                                              attach_req)
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response,
-                        s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+        )
 
         # Trigger Authentication Response
         auth_res = s1ap_types.ueAuthResp_t()
@@ -59,38 +60,53 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         sqnRecvd = s1ap_types.ueSqnRcvd_t()
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
-        self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_AUTH_RESP,
-                                              auth_res)
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response,
-                        s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+        )
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete)
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+        )
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+        )
 
         # Trigger Attach Complete
         attach_complete = s1ap_types.ueAttachComplete_t()
         attach_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE,
-            attach_complete)
+            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete
+        )
+        # Wait on EMM Information from MME
+        self._s1ap_wrapper._s1_util.receive_emm_info()
 
         print("************************* Running UE detach")
         # Now detach the UE
         detach_req = s1ap_types.uedetachReq_t()
         detach_req.ue_Id = req.ue_id
-        detach_req.ueDetType = s1ap_types.ueDetachType_t.\
-            UE_SWITCHOFF_DETACH.value
+        detach_req.ueDetType = (
+            s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
+        )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
+        )
         # Wait for UE context release command
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
 
 
 if __name__ == "__main__":

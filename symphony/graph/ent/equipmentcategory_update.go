@@ -8,8 +8,7 @@ package ent
 
 import (
 	"context"
-	"strconv"
-	"time"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -22,12 +21,9 @@ import (
 // EquipmentCategoryUpdate is the builder for updating EquipmentCategory entities.
 type EquipmentCategoryUpdate struct {
 	config
-
-	update_time  *time.Time
-	name         *string
-	types        map[string]struct{}
-	removedTypes map[string]struct{}
-	predicates   []predicate.EquipmentCategory
+	hooks      []Hook
+	mutation   *EquipmentCategoryMutation
+	predicates []predicate.EquipmentCategory
 }
 
 // Where adds a new predicate for the builder.
@@ -38,24 +34,19 @@ func (ecu *EquipmentCategoryUpdate) Where(ps ...predicate.EquipmentCategory) *Eq
 
 // SetName sets the name field.
 func (ecu *EquipmentCategoryUpdate) SetName(s string) *EquipmentCategoryUpdate {
-	ecu.name = &s
+	ecu.mutation.SetName(s)
 	return ecu
 }
 
 // AddTypeIDs adds the types edge to EquipmentType by ids.
-func (ecu *EquipmentCategoryUpdate) AddTypeIDs(ids ...string) *EquipmentCategoryUpdate {
-	if ecu.types == nil {
-		ecu.types = make(map[string]struct{})
-	}
-	for i := range ids {
-		ecu.types[ids[i]] = struct{}{}
-	}
+func (ecu *EquipmentCategoryUpdate) AddTypeIDs(ids ...int) *EquipmentCategoryUpdate {
+	ecu.mutation.AddTypeIDs(ids...)
 	return ecu
 }
 
 // AddTypes adds the types edges to EquipmentType.
 func (ecu *EquipmentCategoryUpdate) AddTypes(e ...*EquipmentType) *EquipmentCategoryUpdate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -63,19 +54,14 @@ func (ecu *EquipmentCategoryUpdate) AddTypes(e ...*EquipmentType) *EquipmentCate
 }
 
 // RemoveTypeIDs removes the types edge to EquipmentType by ids.
-func (ecu *EquipmentCategoryUpdate) RemoveTypeIDs(ids ...string) *EquipmentCategoryUpdate {
-	if ecu.removedTypes == nil {
-		ecu.removedTypes = make(map[string]struct{})
-	}
-	for i := range ids {
-		ecu.removedTypes[ids[i]] = struct{}{}
-	}
+func (ecu *EquipmentCategoryUpdate) RemoveTypeIDs(ids ...int) *EquipmentCategoryUpdate {
+	ecu.mutation.RemoveTypeIDs(ids...)
 	return ecu
 }
 
 // RemoveTypes removes types edges to EquipmentType.
 func (ecu *EquipmentCategoryUpdate) RemoveTypes(e ...*EquipmentType) *EquipmentCategoryUpdate {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -84,11 +70,35 @@ func (ecu *EquipmentCategoryUpdate) RemoveTypes(e ...*EquipmentType) *EquipmentC
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (ecu *EquipmentCategoryUpdate) Save(ctx context.Context) (int, error) {
-	if ecu.update_time == nil {
+	if _, ok := ecu.mutation.UpdateTime(); !ok {
 		v := equipmentcategory.UpdateDefaultUpdateTime()
-		ecu.update_time = &v
+		ecu.mutation.SetUpdateTime(v)
 	}
-	return ecu.sqlSave(ctx)
+
+	var (
+		err      error
+		affected int
+	)
+	if len(ecu.hooks) == 0 {
+		affected, err = ecu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentCategoryMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ecu.mutation = mutation
+			affected, err = ecu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(ecu.hooks); i > 0; i-- {
+			mut = ecu.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ecu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -114,38 +124,38 @@ func (ecu *EquipmentCategoryUpdate) ExecX(ctx context.Context) {
 }
 
 func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentcategory.Table,
 			Columns: equipmentcategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentcategory.FieldID,
 			},
 		},
 	}
 	if ps := ecu.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value := ecu.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := ecu.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentcategory.FieldUpdateTime,
 		})
 	}
-	if value := ecu.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := ecu.mutation.Name(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentcategory.FieldName,
 		})
 	}
-	if nodes := ecu.removedTypes; len(nodes) > 0 {
+	if nodes := ecu.mutation.RemovedTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -154,21 +164,17 @@ func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ecu.types; len(nodes) > 0 {
+	if nodes := ecu.mutation.TypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -177,22 +183,20 @@ func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return 0, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, ecu.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	if n, err = sqlgraph.UpdateNodes(ctx, ecu.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{equipmentcategory.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return 0, err
@@ -203,34 +207,25 @@ func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 // EquipmentCategoryUpdateOne is the builder for updating a single EquipmentCategory entity.
 type EquipmentCategoryUpdateOne struct {
 	config
-	id string
-
-	update_time  *time.Time
-	name         *string
-	types        map[string]struct{}
-	removedTypes map[string]struct{}
+	hooks    []Hook
+	mutation *EquipmentCategoryMutation
 }
 
 // SetName sets the name field.
 func (ecuo *EquipmentCategoryUpdateOne) SetName(s string) *EquipmentCategoryUpdateOne {
-	ecuo.name = &s
+	ecuo.mutation.SetName(s)
 	return ecuo
 }
 
 // AddTypeIDs adds the types edge to EquipmentType by ids.
-func (ecuo *EquipmentCategoryUpdateOne) AddTypeIDs(ids ...string) *EquipmentCategoryUpdateOne {
-	if ecuo.types == nil {
-		ecuo.types = make(map[string]struct{})
-	}
-	for i := range ids {
-		ecuo.types[ids[i]] = struct{}{}
-	}
+func (ecuo *EquipmentCategoryUpdateOne) AddTypeIDs(ids ...int) *EquipmentCategoryUpdateOne {
+	ecuo.mutation.AddTypeIDs(ids...)
 	return ecuo
 }
 
 // AddTypes adds the types edges to EquipmentType.
 func (ecuo *EquipmentCategoryUpdateOne) AddTypes(e ...*EquipmentType) *EquipmentCategoryUpdateOne {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -238,19 +233,14 @@ func (ecuo *EquipmentCategoryUpdateOne) AddTypes(e ...*EquipmentType) *Equipment
 }
 
 // RemoveTypeIDs removes the types edge to EquipmentType by ids.
-func (ecuo *EquipmentCategoryUpdateOne) RemoveTypeIDs(ids ...string) *EquipmentCategoryUpdateOne {
-	if ecuo.removedTypes == nil {
-		ecuo.removedTypes = make(map[string]struct{})
-	}
-	for i := range ids {
-		ecuo.removedTypes[ids[i]] = struct{}{}
-	}
+func (ecuo *EquipmentCategoryUpdateOne) RemoveTypeIDs(ids ...int) *EquipmentCategoryUpdateOne {
+	ecuo.mutation.RemoveTypeIDs(ids...)
 	return ecuo
 }
 
 // RemoveTypes removes types edges to EquipmentType.
 func (ecuo *EquipmentCategoryUpdateOne) RemoveTypes(e ...*EquipmentType) *EquipmentCategoryUpdateOne {
-	ids := make([]string, len(e))
+	ids := make([]int, len(e))
 	for i := range e {
 		ids[i] = e[i].ID
 	}
@@ -259,11 +249,35 @@ func (ecuo *EquipmentCategoryUpdateOne) RemoveTypes(e ...*EquipmentType) *Equipm
 
 // Save executes the query and returns the updated entity.
 func (ecuo *EquipmentCategoryUpdateOne) Save(ctx context.Context) (*EquipmentCategory, error) {
-	if ecuo.update_time == nil {
+	if _, ok := ecuo.mutation.UpdateTime(); !ok {
 		v := equipmentcategory.UpdateDefaultUpdateTime()
-		ecuo.update_time = &v
+		ecuo.mutation.SetUpdateTime(v)
 	}
-	return ecuo.sqlSave(ctx)
+
+	var (
+		err  error
+		node *EquipmentCategory
+	)
+	if len(ecuo.hooks) == 0 {
+		node, err = ecuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*EquipmentCategoryMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ecuo.mutation = mutation
+			node, err = ecuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(ecuo.hooks); i > 0; i-- {
+			mut = ecuo.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, ecuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -289,32 +303,36 @@ func (ecuo *EquipmentCategoryUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (ecuo *EquipmentCategoryUpdateOne) sqlSave(ctx context.Context) (ec *EquipmentCategory, err error) {
-	spec := &sqlgraph.UpdateSpec{
+	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   equipmentcategory.Table,
 			Columns: equipmentcategory.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  ecuo.id,
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: equipmentcategory.FieldID,
 			},
 		},
 	}
-	if value := ecuo.update_time; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	id, ok := ecuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing EquipmentCategory.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := ecuo.mutation.UpdateTime(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentcategory.FieldUpdateTime,
 		})
 	}
-	if value := ecuo.name; value != nil {
-		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+	if value, ok := ecuo.mutation.Name(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: equipmentcategory.FieldName,
 		})
 	}
-	if nodes := ecuo.removedTypes; len(nodes) > 0 {
+	if nodes := ecuo.mutation.RemovedTypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -323,21 +341,17 @@ func (ecuo *EquipmentCategoryUpdateOne) sqlSave(ctx context.Context) (ec *Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ecuo.types; len(nodes) > 0 {
+	if nodes := ecuo.mutation.TypesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: true,
@@ -346,25 +360,23 @@ func (ecuo *EquipmentCategoryUpdateOne) sqlSave(ctx context.Context) (ec *Equipm
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
+					Type:   field.TypeInt,
 					Column: equipmenttype.FieldID,
 				},
 			},
 		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		spec.Edges.Add = append(spec.Edges.Add, edge)
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	ec = &EquipmentCategory{config: ecuo.config}
-	spec.Assign = ec.assignValues
-	spec.ScanValues = ec.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, ecuo.driver, spec); err != nil {
-		if cerr, ok := isSQLConstraintError(err); ok {
+	_spec.Assign = ec.assignValues
+	_spec.ScanValues = ec.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, ecuo.driver, _spec); err != nil {
+		if _, ok := err.(*sqlgraph.NotFoundError); ok {
+			err = &NotFoundError{equipmentcategory.Label}
+		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err

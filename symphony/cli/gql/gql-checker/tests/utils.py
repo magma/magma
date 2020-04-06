@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import re
 
 
@@ -15,5 +17,5 @@ def extract_expected_errors(data):
             message = match.group(4)
             expected_codes.extend(codes)
             if message:
-              expected_messages.append(message)
+                expected_messages.append(message)
     return expected_codes, expected_messages

@@ -299,11 +299,11 @@ var fileDescriptor_7d3d10afaccdb1f2 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // AuthenticatorClient is the client API for Authenticator service.
 //
@@ -320,10 +320,10 @@ type AuthenticatorClient interface {
 }
 
 type authenticatorClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewAuthenticatorClient(cc *grpc.ClientConn) AuthenticatorClient {
+func NewAuthenticatorClient(cc grpc.ClientConnInterface) AuthenticatorClient {
 	return &authenticatorClient{cc}
 }
 
@@ -474,10 +474,10 @@ type EapRouterClient interface {
 }
 
 type eapRouterClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewEapRouterClient(cc *grpc.ClientConn) EapRouterClient {
+func NewEapRouterClient(cc grpc.ClientConnInterface) EapRouterClient {
 	return &eapRouterClient{cc}
 }
 

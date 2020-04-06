@@ -27,6 +27,7 @@ export type PhotosGrid_images$data = PhotosGrid_images;
 export type PhotosGrid_images$key = $ReadOnlyArray<{
   +$data?: PhotosGrid_images$data,
   +$fragmentRefs: PhotosGrid_images$ref,
+  ...
 }>;
 */
 

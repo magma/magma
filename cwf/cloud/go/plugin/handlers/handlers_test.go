@@ -19,6 +19,7 @@ import (
 	"magma/feg/cloud/go/feg"
 	plugin3 "magma/feg/cloud/go/plugin"
 	models3 "magma/feg/cloud/go/plugin/models"
+	plugin4 "magma/lte/cloud/go/plugin"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -26,7 +27,6 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
@@ -35,6 +35,7 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -45,6 +46,7 @@ import (
 
 func TestCwfNetworks(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin4.LteOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin3.FegOrchestratorPlugin{})
 	test_init.StartTestService(t)
@@ -294,7 +296,7 @@ func TestCwfGateways(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 	test_init.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -331,7 +333,7 @@ func TestCwfGateways(t *testing.T) {
 		Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
 			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1", Key: swag.Uint32(123)},
+				{IP: "1.1.1.1"},
 			},
 		},
 		Magmad: &models.MagmadGatewayConfigs{
@@ -367,7 +369,7 @@ func TestCwfGateways(t *testing.T) {
 			Name: "foobar", Description: "foo bar",
 			CarrierWifi: &models2.GatewayCwfConfigs{
 				AllowedGrePeers: models2.AllowedGrePeers{
-					{IP: "1.1.1.1", Key: swag.Uint32(123)},
+					{IP: "1.1.1.1"},
 				},
 			},
 			Tier: "t1",
@@ -403,7 +405,7 @@ func TestCwfGateways(t *testing.T) {
 		Name: "foobar", Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
 			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1", Key: swag.Uint32(123)},
+				{IP: "1.1.1.1"},
 			},
 		},
 		Tier: "t1",
@@ -438,9 +440,7 @@ func TestCwfGateways(t *testing.T) {
 		Name:        "newname",
 		Description: "bar baz",
 		CarrierWifi: &models2.GatewayCwfConfigs{
-			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1", Key: swag.Uint32(123)},
-			},
+			AllowedGrePeers: models2.AllowedGrePeers{{IP: "1.1.1.1"}},
 		},
 		Magmad: &models.MagmadGatewayConfigs{
 			AutoupgradeEnabled:      swag.Bool(true),
@@ -478,7 +478,7 @@ func TestCwfGateways(t *testing.T) {
 	// Test get gateway CarrierWifi config
 	expectedGwConfGet := &models2.GatewayCwfConfigs{
 		AllowedGrePeers: models2.AllowedGrePeers{
-			{IP: "1.1.1.1", Key: swag.Uint32(123)},
+			{IP: "1.1.1.1"},
 		},
 	}
 	tc = tests.Test{
@@ -650,7 +650,7 @@ func seedCwfGateway(t *testing.T) {
 		Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
 			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1/24", Key: swag.Uint32(123)},
+				{IP: "1.1.1.1/24"},
 			},
 		},
 		Magmad: &models.MagmadGatewayConfigs{

@@ -116,7 +116,8 @@ static int s1ap_generate_s1_setup_response(
 static int s1ap_mme_generate_ue_context_release_command(
   s1ap_state_t *state,
   ue_description_t *ue_ref_p,
-  enum s1cause);
+  enum s1cause,
+  imsi64_t imsi64);
 
 static bool is_all_erabId_same(
   S1ap_PathSwitchRequestIEs_t *pathSwitchRequest_p);
@@ -467,6 +468,7 @@ int s1ap_mme_handle_s1_setup_request(
       S1ap_Cause_PR_misc,
       S1ap_CauseMisc_control_processing_overload,
       S1ap_TimeToWait_v20s);
+
     increment_counter(
       "s1_setup",
       1,
@@ -495,6 +497,7 @@ int s1ap_mme_handle_s1_setup_request(
       S1ap_Cause_PR_misc,
       S1ap_CauseMisc_unknown_PLMN,
       S1ap_TimeToWait_v20s);
+
     increment_counter(
       "s1_setup", 1, 2, "result", "failure", "cause", "plmnid_or_tac_mismatch");
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
@@ -660,6 +663,7 @@ int s1ap_mme_handle_ue_cap_indication(
   ue_description_t *ue_ref_p = NULL;
   S1ap_UECapabilityInfoIndicationIEs_t *ue_cap_p = NULL;
   int rc = RETURNok;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(message != NULL);
@@ -674,6 +678,12 @@ int s1ap_mme_handle_ue_cap_indication(
       (uint32_t) ue_cap_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+
+  s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    s1ap_imsi_map->mme_ue_id_imsi_htbl,
+    (const hash_key_t) ue_cap_p->mme_ue_s1ap_id,
+    &imsi64);
 
   if (ue_ref_p->enb_ue_s1ap_id != ue_cap_p->eNB_UE_S1AP_ID) {
     OAILOG_DEBUG(
@@ -722,6 +732,8 @@ int s1ap_mme_handle_ue_cap_indication(
       ue_cap_ind_p->radio_capabilities,
       ue_cap_p->ueRadioCapability.buf,
       ue_cap_ind_p->radio_capabilities_length);
+
+    message_p->ittiMsgHeader.imsi = imsi64;
     rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
@@ -745,6 +757,7 @@ int s1ap_mme_handle_initial_context_setup_response(
   ue_description_t *ue_ref_p = NULL;
   MessageDef *message_p = NULL;
   int rc = RETURNok;
+  imsi64_t imsi64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   initialContextSetupResponseIEs_p =
@@ -762,6 +775,12 @@ int s1ap_mme_handle_initial_context_setup_response(
       (uint32_t) initialContextSetupResponseIEs_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+
+  s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    s1ap_imsi_map->mme_ue_id_imsi_htbl,
+    (const hash_key_t) initialContextSetupResponseIEs_p->mme_ue_s1ap_id,
+    &imsi64);
 
   if (
     ue_ref_p->enb_ue_s1ap_id !=
@@ -812,6 +831,7 @@ int s1ap_mme_handle_initial_context_setup_response(
         eRABSetupItemCtxtSURes_p->transportLayerAddress.size);
   }
   // TODO num items
+  message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
@@ -830,6 +850,7 @@ int s1ap_mme_handle_ue_context_release_request(
   long cause_value;
   enum s1cause s1_release_cause = S1AP_RADIO_EUTRAN_GENERATED_REASON;
   int rc = RETURNok;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   ueContextReleaseRequest_p = &message->msg.s1ap_UEContextReleaseRequestIEs;
@@ -939,6 +960,12 @@ int s1ap_mme_handle_ue_context_release_request(
        * Send a UE context Release Command to eNB after releasing S1-U bearer tunnel mapping for all the
        * bearers.
        */
+      s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+      hashtable_uint64_ts_get(
+        imsi_map->mme_ue_id_imsi_htbl,
+        (const hash_key_t) ueContextReleaseRequest_p->mme_ue_s1ap_id,
+        &imsi64);
+
       message_p =
         itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_REQ);
       AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
@@ -951,6 +978,8 @@ int s1ap_mme_handle_ue_context_release_request(
       S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = s1_release_cause;
       S1AP_UE_CONTEXT_RELEASE_REQ(message_p).cause =
         ueContextReleaseRequest_p->cause;
+
+      message_p->ittiMsgHeader.imsi = imsi64;
       rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
@@ -972,7 +1001,8 @@ int s1ap_mme_handle_ue_context_release_request(
 static int s1ap_mme_generate_ue_context_release_command(
   s1ap_state_t *state,
   ue_description_t *ue_ref_p,
-  enum s1cause cause)
+  enum s1cause cause,
+  imsi64_t imsi64)
 {
   uint8_t *buffer = NULL;
   uint32_t length = 0;
@@ -1051,7 +1081,7 @@ static int s1ap_mme_generate_ue_context_release_command(
   // Start timer to track UE context release complete from eNB
 
   // We can safely remove UE context now, no need for timer
-  s1ap_mme_release_ue_context(state, ue_ref_p);
+  s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
 
   free_s1ap_uecontextreleasecommand(ueContextReleaseCommandIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
@@ -1062,7 +1092,8 @@ static int s1ap_mme_generate_ue_context_release_command(
 //------------------------------------------------------------------------------
 static int s1ap_mme_generate_ue_context_modification(
   ue_description_t *ue_ref_p,
-  const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP)
+  const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP,
+  imsi64_t imsi64)
 {
   uint8_t *buffer = NULL;
   uint32_t length = 0;
@@ -1094,16 +1125,18 @@ static int s1ap_mme_generate_ue_context_modification(
     S1ap_LAI_t *lai_item = &ueContextModificationIEs_p->registeredLAI;
     lai_item->pLMNidentity.size = PLMN_SIZE;
     lai_item->pLMNidentity.buf = calloc(PLMN_SIZE, sizeof(uint8_t));
+    uint8_t mnc_length = mme_config_find_mnc_length(
+      ue_context_mod_req_pP->lai.mccdigit1,
+      ue_context_mod_req_pP->lai.mccdigit2,
+      ue_context_mod_req_pP->lai.mccdigit3,
+      ue_context_mod_req_pP->lai.mncdigit1,
+      ue_context_mod_req_pP->lai.mncdigit2,
+      ue_context_mod_req_pP->lai.mncdigit3);
+    if (mnc_length != 2 && mnc_length != 3) {
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
     LAI_T_TO_TBCD(
-      ue_context_mod_req_pP->lai,
-      lai_item->pLMNidentity.buf,
-      (mme_config_find_mnc_length(
-        ue_context_mod_req_pP->lai.mccdigit1,
-        ue_context_mod_req_pP->lai.mccdigit2,
-        ue_context_mod_req_pP->lai.mccdigit3,
-        ue_context_mod_req_pP->lai.mncdigit1,
-        ue_context_mod_req_pP->lai.mncdigit2,
-        ue_context_mod_req_pP->lai.mncdigit3)));
+      ue_context_mod_req_pP->lai, lai_item->pLMNidentity.buf, mnc_length);
 
     TAC_TO_ASN1(ue_context_mod_req_pP->lai.lac, &lai_item->lAC);
     lai_item->iE_Extensions = NULL;
@@ -1153,11 +1186,12 @@ static int s1ap_mme_generate_ue_context_modification(
 
 //------------------------------------------------------------------------------
 int s1ap_handle_ue_context_release_command(
-  s1ap_state_t *state,
-  const itti_s1ap_ue_context_release_command_t
-    *const ue_context_release_command_pP)
+  s1ap_state_t* state,
+  const itti_s1ap_ue_context_release_command_t* const
+    ue_context_release_command_pP,
+  imsi64_t imsi64)
 {
-  ue_description_t *ue_ref_p = NULL;
+  ue_description_t* ue_ref_p = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -1184,7 +1218,7 @@ int s1ap_handle_ue_context_release_command(
       s1ap_remove_ue(state, ue_ref_p);
     } else {
       rc = s1ap_mme_generate_ue_context_release_command(
-        state, ue_ref_p, ue_context_release_command_pP->cause);
+        state, ue_ref_p, ue_context_release_command_pP->cause, imsi64);
     }
   }
 
@@ -1196,7 +1230,8 @@ int s1ap_handle_ue_context_release_command(
 //------------------------------------------------------------------------------
 int s1ap_handle_ue_context_mod_req(
   s1ap_state_t *state,
-  const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP)
+  const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP,
+  imsi64_t imsi64)
 {
   ue_description_t *ue_ref_p = NULL;
   int rc = RETURNok;
@@ -1214,7 +1249,7 @@ int s1ap_handle_ue_context_mod_req(
     rc = RETURNok;
   } else {
     rc = s1ap_mme_generate_ue_context_modification(
-      ue_ref_p, ue_context_mod_req_pP);
+      ue_ref_p, ue_context_mod_req_pP, imsi64);
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
@@ -1274,6 +1309,7 @@ int s1ap_mme_handle_initial_context_setup_failure(
   S1ap_Cause_PR cause_type;
   long cause_value;
   int rc = RETURNok;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   initialContextSetupFailureIEs_p =
@@ -1308,6 +1344,13 @@ int s1ap_mme_handle_initial_context_setup_failure(
         initialContextSetupFailureIEs_p->eNB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK));
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    imsi_map->mme_ue_id_imsi_htbl,
+    (const hash_key_t) initialContextSetupFailureIEs_p->mme_ue_s1ap_id,
+    &imsi64);
+
   // Pass this message to MME APP for necessary handling
   // Log the Cause Type and Cause value
   cause_type = initialContextSetupFailureIEs_p->cause.present;
@@ -1374,6 +1417,8 @@ int s1ap_mme_handle_initial_context_setup_failure(
     sizeof(itti_mme_app_initial_context_setup_failure_t));
   MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(message_p).mme_ue_s1ap_id =
     ue_ref_p->mme_ue_s1ap_id;
+
+  message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
@@ -1388,6 +1433,7 @@ int s1ap_mme_handle_ue_context_modification_response(
   ue_description_t *ue_ref_p = NULL;
   MessageDef *message_p = NULL;
   int rc = RETURNok;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   ueContextModification_p = &message->msg.s1ap_UEContextModificationResponseIEs;
@@ -1416,6 +1462,13 @@ int s1ap_mme_handle_ue_context_modification_response(
        * Send a UE context Release Command to eNB after releasing S1-U bearer tunnel mapping for all the
        * bearers.
        */
+
+      s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+      hashtable_uint64_ts_get(
+        imsi_map->mme_ue_id_imsi_htbl,
+        (const hash_key_t) ueContextModification_p->mme_ue_s1ap_id,
+        &imsi64);
+
       message_p = itti_alloc_new_message(
         TASK_S1AP, S1AP_UE_CONTEXT_MODIFICATION_RESPONSE);
       AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
@@ -1427,6 +1480,8 @@ int s1ap_mme_handle_ue_context_modification_response(
         ue_ref_p->mme_ue_s1ap_id;
       S1AP_UE_CONTEXT_MODIFICATION_RESPONSE(message_p).enb_ue_s1ap_id =
         ue_ref_p->enb_ue_s1ap_id;
+
+      message_p->ittiMsgHeader.imsi = imsi64;
       rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
@@ -1457,6 +1512,7 @@ int s1ap_mme_handle_ue_context_modification_failure(
   int rc = RETURNok;
   S1ap_Cause_PR cause_type;
   int64_t cause_value;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   ueContextModification_p = &message->msg.s1ap_UEContextModificationFailureIEs;
@@ -1480,6 +1536,13 @@ int s1ap_mme_handle_ue_context_modification_failure(
     if (
       ue_ref_p->enb_ue_s1ap_id ==
       (ueContextModification_p->eNB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK)) {
+
+      s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+      hashtable_uint64_ts_get(
+        imsi_map->mme_ue_id_imsi_htbl,
+        (const hash_key_t) ueContextModification_p->mme_ue_s1ap_id,
+        &imsi64);
+
       // Pass this message to MME APP for necessary handling
       // Log the Cause Type and Cause value
       cause_type = ueContextModification_p->cause.present;
@@ -1548,6 +1611,8 @@ int s1ap_mme_handle_ue_context_modification_failure(
       S1AP_UE_CONTEXT_MODIFICATION_FAILURE(message_p).enb_ue_s1ap_id =
         ue_ref_p->enb_ue_s1ap_id;
       S1AP_UE_CONTEXT_MODIFICATION_FAILURE(message_p).cause = cause_value;
+
+      message_p->ittiMsgHeader.imsi = imsi64;
       rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
@@ -1589,6 +1654,8 @@ int s1ap_mme_handle_path_switch_request(
   uint32_t num_erab = 0;
   uint16_t index = 0;
   itti_s1ap_path_switch_request_failure_t path_switch_req_failure = {0};
+  imsi64_t imsi64 = INVALID_IMSI64;
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -1620,7 +1687,7 @@ int s1ap_mme_handle_path_switch_request(
     path_switch_req_failure.mme_ue_s1ap_id =
       pathSwitchRequest_p->sourceMME_UE_S1AP_ID;
     path_switch_req_failure.enb_ue_s1ap_id = enb_ue_s1ap_id;
-    s1ap_handle_path_switch_req_failure(state, &path_switch_req_failure);
+    s1ap_handle_path_switch_req_failure(state, &path_switch_req_failure, imsi64);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
@@ -1682,6 +1749,15 @@ int s1ap_mme_handle_path_switch_request(
       &state->mmeid2associd,
       (const hash_key_t) new_ue_ref_p->mme_ue_s1ap_id,
       (void *) (uintptr_t) assoc_id);
+
+    // Update mme_ue_s1ap => IMSI mapping
+    hashtable_uint64_ts_remove(
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id);
+    hashtable_uint64_ts_insert(
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) new_ue_ref_p->mme_ue_s1ap_id,
+      imsi64);
     OAILOG_DEBUG(
       LOG_S1AP,
       "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
@@ -1741,7 +1817,8 @@ int s1ap_mme_handle_path_switch_request(
     &ecgi,
     &tai,
     encryption_algorithm_capabilitie,
-    integrity_algorithm_capabilities);
+    integrity_algorithm_capabilities,
+    imsi64);
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
@@ -1762,6 +1839,7 @@ static bool s1ap_send_enb_deregistered_ind(
 {
   arg_s1ap_send_enb_dereg_ind_t *arg = (arg_s1ap_send_enb_dereg_ind_t *) argP;
   ue_description_t *ue_ref_p = (ue_description_t *) dataP;
+  imsi64_t imsi64 = INVALID_IMSI64;
   /*
    * Ask for a release of each UE context associated to the eNB
    */
@@ -1774,6 +1852,12 @@ static bool s1ap_send_enb_deregistered_ind(
       // Send deregistered ind for this also and let MMEAPP find the context using enb_ue_s1ap_id_key
       OAILOG_WARNING(LOG_S1AP, "UE with invalid MME s1ap id found");
     }
+
+    s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+    hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id,
+      &imsi64);
 
     AssertFatal(
       arg->current_ue_index < S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE,
@@ -1788,6 +1872,8 @@ static bool s1ap_send_enb_deregistered_ind(
     if (arg->current_ue_index == 0 && arg->handled_ues > 0) {
       S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister =
         S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE;
+
+      arg->message_p->ittiMsgHeader.imsi = imsi64;
       itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, arg->message_p);
       arg->message_p = NULL;
     }
@@ -1912,6 +1998,7 @@ int s1ap_handle_sctp_disconnection(
       0;
   }
   S1AP_ENB_DEREGISTERED_IND(message_p).enb_id = enb_association->enb_id;
+
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   message_p = NULL;
 
@@ -2042,6 +2129,7 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(ue_ref_p != NULL);
   ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
+  imsi64_t imsi64 = INVALID_IMSI64;
   OAILOG_DEBUG(
     LOG_S1AP,
     "Expired- UE Context Release Timer for UE id  %d \n",
@@ -2058,6 +2146,14 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
     sizeof(itti_s1ap_ue_context_release_complete_t));
   S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
     ue_ref_p->mme_ue_s1ap_id;
+
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    imsi_map->mme_ue_id_imsi_htbl,
+    (const hash_key_t) ue_ref_p->mme_ue_s1ap_id,
+    &imsi64);
+
+  message_p->ittiMsgHeader.imsi = imsi64;
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
   OAILOG_DEBUG(
@@ -2065,13 +2161,18 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
     "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
     (uint32_t) ue_ref_p->mme_ue_s1ap_id);
   s1ap_remove_ue(state, ue_ref_p);
+
+  hashtable_uint64_ts_remove(
+    imsi_map->mme_ue_id_imsi_htbl,
+    (const hash_key_t) ue_ref_p->mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
 //------------------------------------------------------------------------------
 void s1ap_mme_release_ue_context(
   s1ap_state_t *state,
-  ue_description_t *ue_ref_p)
+  ue_description_t *ue_ref_p,
+  imsi64_t imsi64)
 {
   MessageDef *message_p = NULL;
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -2092,12 +2193,15 @@ void s1ap_mme_release_ue_context(
     sizeof(itti_s1ap_ue_context_release_complete_t));
   S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
     ue_ref_p->mme_ue_s1ap_id;
+
+  message_p->ittiMsgHeader.imsi = imsi64;
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
   OAILOG_DEBUG(
     LOG_S1AP,
     "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
     (uint32_t) ue_ref_p->mme_ue_s1ap_id);
+
   s1ap_remove_ue(state, ue_ref_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
@@ -2128,6 +2232,7 @@ int s1ap_mme_handle_erab_setup_response(
   ue_description_t *ue_ref_p = NULL;
   MessageDef *message_p = NULL;
   int rc = RETURNok;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   s1ap_E_RABSetupResponseIEs_p = &message->msg.s1ap_E_RABSetupResponseIEs;
 
@@ -2152,6 +2257,12 @@ int s1ap_mme_handle_erab_setup_response(
       (enb_ue_s1ap_id_t) s1ap_E_RABSetupResponseIEs_p->eNB_UE_S1AP_ID);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    imsi_map->mme_ue_id_imsi_htbl,
+    (const hash_key_t) ue_ref_p->mme_ue_s1ap_id,
+    &imsi64);
 
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_SETUP_RSP);
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
@@ -2203,6 +2314,7 @@ int s1ap_mme_handle_erab_setup_response(
     }
   }
 
+  message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
@@ -2235,6 +2347,7 @@ int s1ap_mme_handle_enb_reset(
   int rc = RETURNok;
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   enb_ue_s1ap_id_t enb_ue_s1ap_id;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -2352,6 +2465,11 @@ int s1ap_mme_handle_enb_reset(
         if (s1_sig_conn_id_p->mME_UE_S1AP_ID != NULL) {
           mme_ue_s1ap_id =
             (mme_ue_s1ap_id_t) * (s1_sig_conn_id_p->mME_UE_S1AP_ID);
+          s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+          hashtable_uint64_ts_get(
+            imsi_map->mme_ue_id_imsi_htbl,
+            (const hash_key_t) mme_ue_s1ap_id,
+            &imsi64);
           if (
             (ue_ref_p = s1ap_state_get_ue_mmeid(state, mme_ue_s1ap_id)) !=
             NULL) {
@@ -2425,12 +2543,14 @@ int s1ap_mme_handle_enb_reset(
       }
   }
 
+  msg->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, msg);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 //------------------------------------------------------------------------------
 int s1ap_handle_enb_initiated_reset_ack(
-  const itti_s1ap_enb_initiated_reset_ack_t *const enb_reset_ack_p)
+  const itti_s1ap_enb_initiated_reset_ack_t *const enb_reset_ack_p,
+  imsi64_t imsi64)
 {
   uint8_t *buffer = NULL;
   uint32_t length = 0;
@@ -2486,6 +2606,7 @@ int s1ap_handle_enb_initiated_reset_ack(
     enb_reset_ack_p->sctp_assoc_id,
     enb_reset_ack_p->sctp_stream_id,
     INVALID_MME_UE_S1AP_ID);
+
   free_wrapper((void **) &(enb_reset_ack_p->ue_to_reset_list));
   increment_counter("s1_reset_from_enb", 1, 1, "action", "reset_ack_sent");
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
@@ -2519,21 +2640,19 @@ void s1ap_enb_assoc_clean_up_timer_expiry(
 
 int s1ap_handle_paging_request(
   s1ap_state_t *state,
-  const itti_s1ap_paging_request_t *paging_request)
+  const itti_s1ap_paging_request_t *paging_request,
+  imsi64_t imsi64)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(paging_request != NULL);
   // ue_description_t* ue_ref_p = NULL;
   S1ap_PagingIEs_t *paging_message = NULL;
   s1ap_message message = {0};
-  imsi64_t imsi64;
   int rc = RETURNok;
   uint8_t num_of_tac = 0;
   uint16_t tai_list_count = paging_request->tai_list_count;
   bool is_tai_found = false;
   uint32_t idx = 0;
-
-  IMSI_STRING_TO_IMSI64((char *) paging_request->imsi, &imsi64);
   paging_message = &message.msg.s1ap_PagingIEs;
 
   paging_message->presenceMask = 0;   // no optional fields
@@ -2801,8 +2920,9 @@ static bool is_all_erabId_same(
 }
 //------------------------------------------------------------------------------
 int s1ap_handle_path_switch_req_ack(
-  s1ap_state_t *state,
-  const itti_s1ap_path_switch_request_ack_t *path_switch_req_ack_p)
+  s1ap_state_t* state,
+  const itti_s1ap_path_switch_request_ack_t* path_switch_req_ack_p,
+  imsi64_t imsi64)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -2864,7 +2984,8 @@ int s1ap_handle_path_switch_req_ack(
 //------------------------------------------------------------------------------
 int s1ap_handle_path_switch_req_failure(
   s1ap_state_t *state,
-  const itti_s1ap_path_switch_request_failure_t *path_switch_req_failure_p)
+  const itti_s1ap_path_switch_request_failure_t *path_switch_req_failure_p,
+  imsi64_t imsi64)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -2952,6 +3073,7 @@ int s1ap_mme_handle_erab_rel_response(
   ue_description_t *ue_ref_p = NULL;
   MessageDef *message_p = NULL;
   int rc = RETURNok;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   s1ap_E_RABReleaseResponseIEs_p = &message->msg.s1ap_E_RABReleaseResponseIEs;
 
@@ -2977,6 +3099,12 @@ int s1ap_mme_handle_erab_rel_response(
       (enb_ue_s1ap_id_t) s1ap_E_RABReleaseResponseIEs_p->eNB_UE_S1AP_ID);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    imsi_map->mme_ue_id_imsi_htbl,
+    (const hash_key_t) s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id,
+    &imsi64);
 
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_REL_RSP);
   if (message_p == NULL) {
@@ -3023,6 +3151,7 @@ int s1ap_mme_handle_erab_rel_response(
         1;
     }
   }
+  message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }

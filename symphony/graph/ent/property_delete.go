@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,8 @@ import (
 // PropertyDelete is the builder for deleting a Property entity.
 type PropertyDelete struct {
 	config
+	hooks      []Hook
+	mutation   *PropertyMutation
 	predicates []predicate.Property
 }
 
@@ -30,7 +33,30 @@ func (pd *PropertyDelete) Where(ps ...predicate.Property) *PropertyDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (pd *PropertyDelete) Exec(ctx context.Context) (int, error) {
-	return pd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(pd.hooks) == 0 {
+		affected, err = pd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*PropertyMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			pd.mutation = mutation
+			affected, err = pd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(pd.hooks); i > 0; i-- {
+			mut = pd.hooks[i-1](mut)
+		}
+		if _, err := mut.Mutate(ctx, pd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -43,23 +69,23 @@ func (pd *PropertyDelete) ExecX(ctx context.Context) int {
 }
 
 func (pd *PropertyDelete) sqlExec(ctx context.Context) (int, error) {
-	spec := &sqlgraph.DeleteSpec{
+	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table: property.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: property.FieldID,
 			},
 		},
 	}
 	if ps := pd.predicates; len(ps) > 0 {
-		spec.Predicate = func(selector *sql.Selector) {
+		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	return sqlgraph.DeleteNodes(ctx, pd.driver, spec)
+	return sqlgraph.DeleteNodes(ctx, pd.driver, _spec)
 }
 
 // PropertyDeleteOne is the builder for deleting a single Property entity.
@@ -74,7 +100,7 @@ func (pdo *PropertyDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &ErrNotFound{property.Label}
+		return &NotFoundError{property.Label}
 	default:
 		return nil
 	}

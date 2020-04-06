@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -13,6 +13,7 @@ import type {
   AddHyperlinkMutationResponse,
   AddHyperlinkMutationVariables,
 } from './../mutations/__generated__/AddHyperlinkMutation.graphql';
+import type {ButtonProps} from '@fbcnms/ui/components/design-system/Button';
 import type {ImageEntity} from '../mutations/__generated__/AddImageMutation.graphql';
 import type {MutationCallbacks} from '../mutations/MutationCallbacks.js';
 import type {WithSnackbarProps} from 'notistack';
@@ -22,6 +23,7 @@ import AddHyperlinkDialog from './AddHyperlinkDialog';
 import AddHyperlinkMutation from '../mutations/AddHyperlinkMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Strings from '../common/CommonStrings';
@@ -32,9 +34,12 @@ import {withSnackbar} from 'notistack';
 type addLinkProps = {
   entityId: string,
   entityType: ImageEntity,
+  allowCategories?: boolean,
+  children?: ?React.Node,
+  className?: string,
 };
 
-type Props = addLinkProps & WithSnackbarProps;
+type Props = addLinkProps & ButtonProps & WithSnackbarProps;
 
 const addNewHyperlink = (input: AddHyperlinkInput, onError: string => void) => {
   const variables: AddHyperlinkMutationVariables = {
@@ -42,9 +47,13 @@ const addNewHyperlink = (input: AddHyperlinkInput, onError: string => void) => {
   };
 
   const updater = store => {
+    // $FlowFixMe (T62907961) Relay flow types
     const newNode = store.getRootField('addHyperlink');
+    // $FlowFixMe (T62907961) Relay flow types
     const entityProxy = store.get(input.entityId);
+    // $FlowFixMe (T62907961) Relay flow types
     const hyperlinkNodes = entityProxy.getLinkedRecords('hyperlinks') || [];
+    // $FlowFixMe (T62907961) Relay flow types
     entityProxy.setLinkedRecords([...hyperlinkNodes, newNode], 'hyperlinks');
   };
 
@@ -61,13 +70,26 @@ const addNewHyperlink = (input: AddHyperlinkInput, onError: string => void) => {
 };
 
 const AddHyperlinkButton = (props: Props) => {
+  const {
+    entityId,
+    entityType,
+    allowCategories = true,
+    enqueueSnackbar,
+    className,
+    skin = 'gray',
+    variant,
+    disabled,
+    children,
+  } = props;
+
   const [addHyperlinkDialogOpened, setAddHyperlinkDialogOpened] = useState(
     false,
   );
   const [dialogKey, setDialogKey] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const appContext = useContext(AppContext);
-  const categoriesEnabled = appContext.isFeatureEnabled('file_categories');
+  const categoriesEnabled =
+    allowCategories && appContext.isFeatureEnabled('file_categories');
 
   const openDialog = useCallback((category: ?string) => {
     setSelectedCategory(category);
@@ -78,7 +100,6 @@ const AddHyperlinkButton = (props: Props) => {
 
   const callAddNewHyperlink = useCallback(
     (url: string, displayName: ?string) => {
-      const {entityId, entityType, enqueueSnackbar} = props;
       const onError = errorMessage => {
         enqueueSnackbar(errorMessage, {
           children: key => (
@@ -95,25 +116,31 @@ const AddHyperlinkButton = (props: Props) => {
       };
       addNewHyperlink(input, onError);
     },
-    [props, selectedCategory],
+    [enqueueSnackbar, entityId, entityType, selectedCategory],
   );
 
   return (
-    <>
+    <FormAction>
       {categoriesEnabled && Strings.documents.categories.length ? (
         <PopoverMenu
-          skin="gray"
+          skin={skin}
           menuDockRight={true}
           options={Strings.documents.categories.map(category => ({
+            key: category,
             label: category,
             value: category,
           }))}
           onChange={openDialog}>
-          {Strings.documents.addLinkButton}
+          {children ?? Strings.documents.addLinkButton}
         </PopoverMenu>
       ) : (
-        <Button skin="gray" onClick={openDialog}>
-          {Strings.documents.addLinkButton}
+        <Button
+          onClick={() => openDialog()}
+          className={className}
+          skin={skin}
+          variant={variant}
+          disabled={disabled}>
+          {children ?? Strings.documents.addLinkButton}
         </Button>
       )}
       <AddHyperlinkDialog
@@ -123,7 +150,7 @@ const AddHyperlinkButton = (props: Props) => {
         onClose={() => setAddHyperlinkDialogOpened(false)}
         targetCategory={selectedCategory}
       />
-    </>
+    </FormAction>
   );
 };
 

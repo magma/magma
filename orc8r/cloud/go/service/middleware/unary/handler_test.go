@@ -73,9 +73,9 @@ func TestCallHandlerPanics(t *testing.T) {
 	)
 
 	assert.Error(t, err)
-	assert.EqualError(
+	assert.Contains(
 		t,
-		err,
+		err.Error(),
 		"rpc error: code = Unknown desc = Handler Panic: failed",
 	)
 

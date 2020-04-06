@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package streamer
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/golang/protobuf/proto"
@@ -18,15 +19,16 @@ import (
 	"magma/lte/cloud/go/lte"
 	lteModels "magma/lte/cloud/go/plugin/models"
 	lteProtos "magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
 )
 
 const (
 	policyStreamName   = "policydb"
 	baseNameStreamName = "base_names"
-
 	mappingsStreamName = "rule_mappings"
+	networkWideRules   = "network_wide_rules"
 )
 
 type PoliciesProvider struct{}
@@ -207,4 +209,39 @@ func (r *RuleMappingsProvider) getAssignedPoliciesBySid(policyRules []configurat
 
 func sortUpdates(updates []*protos.DataUpdate) {
 	sort.Slice(updates, func(i, j int) bool { return updates[i].Key < updates[j].Key })
+}
+
+type NetworkWideRulesProvider struct{}
+
+func (r *NetworkWideRulesProvider) GetStreamName() string {
+	return networkWideRules
+}
+
+func (r *NetworkWideRulesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	if err != nil {
+		return nil, err
+	}
+	iNetworkSubscriberConfig, err := configurator.LoadNetworkConfig(gwEnt.NetworkID, lte.NetworkSubscriberConfigType)
+	if err == merrors.ErrNotFound {
+		return []*protos.DataUpdate{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	config, ok := iNetworkSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
+	if !ok {
+		return nil, fmt.Errorf("Failed to convert to NetworkSubscriberConfig")
+	}
+
+	assignedPolicies := &lteProtos.AssignedPolicies{AssignedPolicies: config.NetworkWideRuleNames}
+	for _, baseName := range config.NetworkWideBaseNames {
+		assignedPolicies.AssignedBaseNames = append(assignedPolicies.AssignedBaseNames, string(baseName))
+	}
+
+	marshaledPolicies, err := proto.Marshal(assignedPolicies)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal active policies")
+	}
+	return []*protos.DataUpdate{{Key: "", Value: marshaledPolicies}}, nil
 }

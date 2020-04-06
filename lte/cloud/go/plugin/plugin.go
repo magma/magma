@@ -17,14 +17,15 @@ import (
 	subscriberStreamer "magma/lte/cloud/go/services/subscriberdb/streamer"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/service/config"
-	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
+	"magma/orc8r/lib/go/service/serviceregistry"
 )
 
 // LteOrchestratorPlugin implements OrchestratorPlugin for the LTE module
@@ -45,9 +46,11 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		state.NewStateSerde(lte.EnodebStateType, &lteModels.EnodebState{}),
+		state.NewStateSerde(lte.ICMPStateType, &lteModels.IcmpStatus{}),
 
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lteModels.NetworkCellularConfigs{}),
+		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &lteModels.NetworkSubscriberConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &lteModels.GatewayCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &lteModels.EnodebConfiguration{}),
 
@@ -56,6 +59,8 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &lteModels.LteSubscription{}),
 
 		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &lteModels.RatingGroup{}),
+
+		configurator.NewNetworkEntityConfigSerde(lte.ApnEntityType, &lteModels.ApnConfiguration{}),
 	}
 }
 
@@ -81,5 +86,10 @@ func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider 
 		&policyStreamer.PoliciesProvider{},
 		&policyStreamer.BaseNamesProvider{},
 		&policyStreamer.RuleMappingsProvider{},
+		&policyStreamer.NetworkWideRulesProvider{},
 	}
+}
+
+func (*LteOrchestratorPlugin) GetStateIndexers() []indexer.Indexer {
+	return []indexer.Indexer{}
 }

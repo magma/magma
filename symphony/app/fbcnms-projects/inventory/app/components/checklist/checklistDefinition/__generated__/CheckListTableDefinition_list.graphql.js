@@ -30,6 +30,7 @@ export type CheckListTableDefinition_list$data = CheckListTableDefinition_list;
 export type CheckListTableDefinition_list$key = $ReadOnlyArray<{
   +$data?: CheckListTableDefinition_list$data,
   +$fragmentRefs: CheckListTableDefinition_list$ref,
+  ...
 }>;
 */
 

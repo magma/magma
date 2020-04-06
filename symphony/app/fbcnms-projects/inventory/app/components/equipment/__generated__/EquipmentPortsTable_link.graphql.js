@@ -17,6 +17,7 @@ import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_link$ref: FragmentReference;
@@ -70,6 +71,12 @@ export type EquipmentPortsTable_link = {|
       |},
       +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
     |},
+    +serviceEndpoints: $ReadOnlyArray<{|
+      +role: ServiceEndpointRole,
+      +service: {|
+        +name: string
+      |},
+    |}>,
   |}>,
   +workOrder: ?{|
     +id: string,
@@ -117,6 +124,7 @@ export type EquipmentPortsTable_link$data = EquipmentPortsTable_link;
 export type EquipmentPortsTable_link$key = {
   +$data?: EquipmentPortsTable_link$data,
   +$fragmentRefs: EquipmentPortsTable_link$ref,
+  ...
 };
 */
 
@@ -374,6 +382,36 @@ return {
               "kind": "FragmentSpread",
               "name": "EquipmentBreadcrumbs_equipment",
               "args": null
+            }
+          ]
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "serviceEndpoints",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "ServiceEndpoint",
+          "plural": true,
+          "selections": [
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "role",
+              "args": null,
+              "storageKey": null
+            },
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "service",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "Service",
+              "plural": false,
+              "selections": [
+                (v2/*: any*/)
+              ]
             }
           ]
         }

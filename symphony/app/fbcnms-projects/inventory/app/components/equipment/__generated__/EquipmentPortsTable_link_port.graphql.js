@@ -17,6 +17,7 @@ import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_link_port$ref: FragmentReference;
 declare export opaque type EquipmentPortsTable_link_port$fragmentType: EquipmentPortsTable_link_port$ref;
@@ -66,12 +67,19 @@ export type EquipmentPortsTable_link_port = {|
     |},
     +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
   |},
+  +serviceEndpoints: $ReadOnlyArray<{|
+    +role: ServiceEndpointRole,
+    +service: {|
+      +name: string
+    |},
+  |}>,
   +$refType: EquipmentPortsTable_link_port$ref,
 |};
 export type EquipmentPortsTable_link_port$data = EquipmentPortsTable_link_port;
 export type EquipmentPortsTable_link_port$key = {
   +$data?: EquipmentPortsTable_link_port$data,
   +$fragmentRefs: EquipmentPortsTable_link_port$ref,
+  ...
 };
 */
 
@@ -306,10 +314,40 @@ return {
           "args": null
         }
       ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceEndpoints",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ServiceEndpoint",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "role",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "service",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
+          "plural": false,
+          "selections": [
+            (v1/*: any*/)
+          ]
+        }
+      ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '363de704eb7f79b8cf8c598cc8bcfb3d';
+(node/*: any*/).hash = 'ba9cdd6f665e1b0e6671ca379f9a27f5';
 module.exports = node;

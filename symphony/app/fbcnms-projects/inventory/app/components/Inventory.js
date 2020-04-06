@@ -30,13 +30,14 @@ import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
 import {makeStyles} from '@material-ui/styles';
 import {setLoggerUser} from '../common/LoggingUtils';
 import {shouldShowSettings} from '@fbcnms/magmalte/app/components/Settings';
+import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
   },
-});
+}));
 
 function Index() {
   const classes = useStyles();
@@ -48,7 +49,8 @@ function Index() {
     'multi_subject_reports',
   );
   const {tabs, user, ssoEnabled} = useContext(AppContext);
-  const {location, relativeUrl} = useRouter();
+  const relativeUrl = useRelativeUrl();
+  const {location} = useRouter();
 
   return (
     <div className={classes.root}>

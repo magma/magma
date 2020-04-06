@@ -9,11 +9,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 import netifaces
 from collections import namedtuple
 
+from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupUEMacRequest
+
 from magma.common.misc_utils import cidr_to_ip_netmask_tuple
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, load_passthrough
+from magma.pipelined.directoryd_client import get_all_records
 
 from ryu.controller import dpset
 from ryu.lib.packet import ether_types, arp
@@ -43,7 +46,8 @@ class ArpController(MagmaController):
 
     ArpdConfig = namedtuple(
         'ArpdConfig',
-        ['virtual_iface', 'virtual_mac', 'ue_ip_blocks'],
+        ['virtual_iface', 'virtual_mac', 'ue_ip_blocks', 'cwf_check_quota_ip',
+         'cwf_bridge_mac', 'mtr_ip', 'mtr_mac'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -55,52 +59,94 @@ class ArpController(MagmaController):
         self.local_eth_addr = kwargs['config']['local_ue_eth_addr']
         self.setup_type = kwargs['config']['setup_type']
         self.allow_unknown_uplink_arps = kwargs['config']['allow_unknown_arps']
-        if self.local_eth_addr:
-            self.config = self._get_config(kwargs['config'], kwargs['mconfig'])
+        self.config = self._get_config(kwargs['config'], kwargs['mconfig'])
         self._current_ues = []
+        self._datapath = None
 
     def _get_config(self, config_dict, mconfig):
-        def get_virtual_iface_mac():
-            virtual_iface = config_dict['virtual_interface']
-            virt_ifaddresses = netifaces.ifaddresses(virtual_iface)
+        def get_virtual_iface_mac(iface):
+            virt_ifaddresses = netifaces.ifaddresses(iface)
             return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
-
+        virtual_iface = config_dict.get('virtual_interface', None)
+        virtual_mac = None
+        if virtual_iface:
+            virtual_mac = get_virtual_iface_mac(virtual_iface)
+        mtr_ip = None
+        if 'mtr_ip' in config_dict:
+            mtr_ip = config_dict['mtr_ip']
+        mtr_mac = None
+        if mtr_ip:
+            mtr_mac = get_virtual_iface_mac(config_dict['mtr_interface'])
         return self.ArpdConfig(
-            virtual_iface=config_dict['virtual_interface'],
-            virtual_mac=get_virtual_iface_mac(),
+            #TODO failsafes for fields not existing or yml updates
+            virtual_iface=virtual_iface,
+            virtual_mac=virtual_mac,
             ue_ip_blocks=[cidr_to_ip_netmask_tuple(mconfig.ue_ip_block)],
+            cwf_check_quota_ip=config_dict.get('quota_check_ip', None),
+            cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
+            mtr_ip=mtr_ip,
+            mtr_mac=mtr_mac,
         )
 
     def initialize_on_connect(self, datapath):
-        flows.delete_all_flows_from_table(datapath, self.table_num)
+        self._datapath = datapath
+        self.delete_all_flows(datapath)
+        self._install_default_flows(datapath)
+
+    def _install_default_flows(self, datapath):
         if self.local_eth_addr:
             for ip_block in self.config.ue_ip_blocks:
                 self.add_ue_arp_flows(datapath, ip_block,
                                        self.config.virtual_mac)
             self._install_default_eth_dst_flow(datapath)
-        if self.setup_type == 'CWF' and self.allow_unknown_uplink_arps:
-            self._install_allow_incoming_arp_flow(datapath)
+            if self.config.mtr_ip:
+                self._install_local_eth_dst_flow(datapath)
+
+        if self.setup_type == 'CWF':
+            self.set_incoming_arp_flows(datapath,
+                self.config.cwf_check_quota_ip, self.config.cwf_bridge_mac)
+            if self.allow_unknown_uplink_arps:
+                self._install_allow_incoming_arp_flow(datapath)
+        if self.config.mtr_ip:
+            self.set_incoming_arp_flows(datapath, self.config.mtr_ip,
+                                        self.config.mtr_mac)
 
         self._install_default_forward_flow(datapath)
         self._install_default_arp_drop_flow(datapath)
+
+    def handle_restart(self,
+                       ue_requests: SetupUEMacRequest) -> SetupFlowsResult:
+        """
+        Setup the arp flows for the controller, this is used when the controller
+        restarts. Only setup those UEs that are passed from sessiond.
+        """
+        self.delete_all_flows(self._datapath)
+        self._install_default_flows(self._datapath)
+        records = get_all_records()
+        attached_ues = [ue.sid.id for ue in ue_requests]
+        for rec in records:
+            if rec not in attached_ues:
+                self.logger.warning(
+                    "IMSI %s is in directoryd, but not and active UE", rec.id)
+                continue
+            self.logger.debug("Restoring arp for IMSI %s, ip %s mac %s", rec.id,
+                              rec.fields['ipv4_addr'], rec.fields['mac_addr'])
+
+            self.arp_contoller.add_ue_arp_flows(self._datapath,
+                                                rec.fields['ipv4_addr'],
+                                                rec.fields['mac_addr'])
 
     def add_ue_arp_flows(self, datapath, ue_ip, ue_mac):
         """
         Installs flows to allow arp traffic from the UE and to reply to ARPs
         sent for the UE ip address
         """
-        self._set_incoming_arp_flows(datapath, ue_ip, ue_mac)
+        self.set_incoming_arp_flows(datapath, ue_ip, ue_mac)
         # If we already installed an outgoing allow don't overwrite the rule
         # TODO its probably better for ue mac to manage this
         if ue_ip not in self._current_ues:
             self._current_ues.append(ue_ip)
             self._set_outgoing_arp_flows(datapath, ue_ip)
-
-    def cleanup_on_discnnect(self, datapath):
-        self.delete_all_flows(datapath)
-        self._set_incoming_arp_flows(datapath)
-        self._set_default_eth_dst_flow(datapath)
-        self._set_default_forward_flow(datapath)
 
     def cleanup_on_disconnect(self, datapath):
         self.delete_all_flows(datapath)
@@ -108,7 +154,7 @@ class ArpController(MagmaController):
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.table_num)
 
-    def _set_incoming_arp_flows(self, datapath, ip_block, src_mac):
+    def set_incoming_arp_flows(self, datapath, ip_block, src_mac):
         """
         Install flow rules for incoming ARPs(to UE):
             - For ARP request: respond to incoming ARP requests.
@@ -204,6 +250,24 @@ class ArpController(MagmaController):
         flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
                                              actions,
                                              priority=flows.DEFAULT_PRIORITY,
+                                             resubmit_table=self.next_table)
+
+    def _install_local_eth_dst_flow(self, datapath):
+        """
+        Add lower-pri flow rule to set `eth_dst` on outgoing packets to the
+        specified MAC address.
+        """
+        self.logger.info('Setting local eth_dst to %s for ip %s',
+                         self.config.virtual_iface, self.config.mtr_ip)
+        parser = datapath.ofproto_parser
+        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                           ipv4_dst=self.config.mtr_ip, direction=Direction.OUT)
+        actions = [
+            parser.NXActionRegLoad2(dst='eth_dst', value=self.config.mtr_mac),
+        ]
+        flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
+                                             actions,
+                                             priority=flows.UE_FLOW_PRIORITY,
                                              resubmit_table=self.next_table)
 
     def _install_default_forward_flow(self, datapath):

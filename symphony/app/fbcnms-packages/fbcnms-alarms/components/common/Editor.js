@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  *
  * Wrappper component for editors such as AddEditRule, AddEditReceiver, etc
@@ -71,10 +71,7 @@ export default function Editor({
                 justify="flex-end"
                 alignItems="center">
                 <Grid item>
-                  <Button
-                    variant="outlined"
-                    onClick={() => onExit()}
-                    className={classes.button}>
+                  <Button variant="outlined" onClick={() => onExit()}>
                     Close
                   </Button>
                 </Grid>
@@ -83,7 +80,6 @@ export default function Editor({
                     variant="contained"
                     color="primary"
                     type="submit"
-                    className={classes.button}
                     data-testid="editor-submit-button">
                     {isNew ? 'Add' : 'Save'}
                   </Button>

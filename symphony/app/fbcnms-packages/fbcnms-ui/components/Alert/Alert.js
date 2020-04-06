@@ -9,21 +9,39 @@
  */
 
 import type {Node} from 'react';
-import type {WithStyles} from '@material-ui/core';
 
 import Button from '../design-system/Button';
+import Checkbox from '../design-system/Checkbox/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import React from 'react';
-import {withStyles} from '@material-ui/core/styles';
+import React, {useState} from 'react';
+import Text from '../design-system/Text';
+import {makeStyles} from '@material-ui/styles';
 
-type Props = WithStyles<typeof styles> & {|
+const useStyles = makeStyles(theme => ({
+  paper: {
+    minWidth: `${theme.breakpoints.values.sm / 2}px`,
+  },
+  checkboxContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    marginLeft: '8px',
+  },
+}));
+
+export type AlertSkin = 'primary' | 'red';
+
+type Props = {|
   cancelLabel?: Node,
   confirmLabel?: Node,
   message: Node,
+  checkboxLabel?: Node,
+  skin?: AlertSkin,
   onCancel?: () => void,
   onClose?: () => void,
   onConfirm?: () => void,
@@ -31,55 +49,64 @@ type Props = WithStyles<typeof styles> & {|
   open?: boolean,
 |};
 
-const styles = theme => ({
-  paper: {
-    minWidth: `${theme.breakpoints.values.sm / 2}px`,
-  },
-});
+const Alert = ({
+  cancelLabel,
+  confirmLabel,
+  message,
+  checkboxLabel,
+  onCancel,
+  onClose,
+  onConfirm,
+  title,
+  open,
+  skin = 'primary',
+}: Props) => {
+  const classes = useStyles();
+  const [checkboxChecked, setCheckboxChecked] = useState(false);
+  const hasActions = cancelLabel != null || confirmLabel != null;
 
-class Alert extends React.Component<Props> {
-  render() {
-    const {
-      classes,
-      cancelLabel,
-      confirmLabel,
-      message,
-      onCancel,
-      onClose,
-      onConfirm,
-      title,
-      open,
-    } = this.props;
-    const hasActions = cancelLabel != null || confirmLabel != null;
-
-    return (
-      <Dialog
-        classes={classes}
-        open={open}
-        onClose={onCancel}
-        onExited={onClose}
-        maxWidth="sm">
-        {title && <DialogTitle>{title}</DialogTitle>}
-        <DialogContent>
-          <DialogContentText>{message}</DialogContentText>
-        </DialogContent>
-        {hasActions && (
-          <DialogActions>
-            {cancelLabel && (
-              <Button skin="regular" onClick={onCancel}>
-                {cancelLabel}
-              </Button>
-            )}
-            {confirmLabel && (
-              <Button onClick={onConfirm} autoFocus>
-                {confirmLabel}
-              </Button>
-            )}
-          </DialogActions>
+  return (
+    <Dialog
+      classes={{paper: classes.paper}}
+      open={open}
+      onClose={onCancel}
+      onExited={onClose}
+      maxWidth="sm">
+      {title && <DialogTitle>{title}</DialogTitle>}
+      <DialogContent>
+        <Text>{message}</Text>
+        {checkboxLabel && (
+          <div className={classes.checkboxContainer}>
+            <Checkbox
+              checked={checkboxChecked}
+              onChange={selection =>
+                setCheckboxChecked(selection === 'checked' ? true : false)
+              }
+            />
+            <Text className={classes.checkboxLabel}>{checkboxLabel}</Text>
+          </div>
         )}
-      </Dialog>
-    );
-  }
-}
+      </DialogContent>
+      {hasActions && (
+        <DialogActions>
+          {cancelLabel && (
+            <Button skin="regular" onClick={onCancel}>
+              {cancelLabel}
+            </Button>
+          )}
+          {confirmLabel && (
+            <Button
+              onClick={onConfirm}
+              autoFocus
+              skin={skin}
+              disabled={checkboxLabel != null && !checkboxChecked}>
+              {confirmLabel}
+            </Button>
+          )}
+        </DialogActions>
+      )}
+    </Dialog>
+  );
+};
 
-export default withStyles(styles)(Alert);
+export default Alert;

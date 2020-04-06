@@ -22,10 +22,10 @@ import (
 	"magma/feg/cloud/go/services/health"
 	"magma/orc8r/cloud/go/http2"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"

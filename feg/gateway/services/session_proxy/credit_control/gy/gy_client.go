@@ -15,8 +15,6 @@ import (
 	"strconv"
 	"time"
 
-	"magma/feg/gateway/registry"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
@@ -25,6 +23,7 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/metrics"
+	"magma/gateway/service_registry"
 )
 
 const (
@@ -43,34 +42,38 @@ type CreditClient interface {
 }
 
 // ReAuthHandler defines a function that responds to a RAR message with an RAA
-type ReAuthHandler func(request *ReAuthRequest) *ReAuthAnswer
+type ChargingReAuthHandler func(request *ChargingReAuthRequest) *ChargingReAuthAnswer
 
 // GyClient holds the relevant state for sending and receiving diameter calls
 // over Gy
 type GyClient struct {
-	diamClient *diameter.Client
-	serverCfg  *diameter.DiameterServerConfig
+	diamClient   *diameter.Client
+	serverCfg    *diameter.DiameterServerConfig
+	globalConfig *GyGlobalConfig
+}
+
+type GyGlobalConfig struct {
+	OCSOverwriteApn      string
+	OCSServiceIdentifier string
 }
 
 var (
-	apnOverwrite      string
 	serviceIdentifier int64 = -1
 )
 
-// NewGyClient contructs a new GyClient with the magma diameter settings
+// NewGyClient constructs a new GyClient with the magma diameter settings
 func NewConnectedGyClient(
 	diamClient *diameter.Client,
 	serverCfg *diameter.DiameterServerConfig,
-	reAuthHandler ReAuthHandler,
-	cloudRegistry registry.CloudRegistry,
+	reAuthHandler ChargingReAuthHandler,
+	cloudRegistry service_registry.GatewayRegistry,
+	globalConfig *GyGlobalConfig,
 ) *GyClient {
 	diamClient.RegisterAnswerHandlerForAppID(diam.CreditControl, diam.CHARGING_CONTROL_APP_ID, getCCAHandler())
 	registerReAuthHandler(reAuthHandler, diamClient)
-	apnOverwrite = diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, "")
-	siStr := diameter.GetValueOrEnv(OCSServiceIdentifierFlag, OCSServiceIdentifierEnv, "")
-	if len(siStr) > 0 {
+	if globalConfig != nil && len(globalConfig.OCSServiceIdentifier) > 0 {
 		var err error
-		serviceIdentifier, err = strconv.ParseInt(siStr, 10, 0)
+		serviceIdentifier, err = strconv.ParseInt(globalConfig.OCSServiceIdentifier, 10, 0)
 		if err != nil {
 			serviceIdentifier = -1
 		}
@@ -83,21 +86,23 @@ func NewConnectedGyClient(
 			credit_control.NewASRHandler(diamClient, cloudRegistry))
 	}
 	return &GyClient{
-		diamClient: diamClient,
-		serverCfg:  serverCfg,
+		diamClient:   diamClient,
+		serverCfg:    serverCfg,
+		globalConfig: globalConfig,
 	}
 }
 
-// NewGyClient contructs a new GyClient with the magma diameter settings
+// NewGyClient constructs a new GyClient with the magma diameter settings
 func NewGyClient(
 	clientCfg *diameter.DiameterClientConfig,
 	serverCfg *diameter.DiameterServerConfig,
-	reAuthHandler ReAuthHandler,
-	cloudRegistry registry.CloudRegistry,
+	reAuthHandler ChargingReAuthHandler,
+	cloudRegistry service_registry.GatewayRegistry,
+	globalConfig *GyGlobalConfig,
 ) *GyClient {
 	diamClient := diameter.NewClient(clientCfg)
 	diamClient.BeginConnection(serverCfg)
-	return NewConnectedGyClient(diamClient, serverCfg, reAuthHandler, cloudRegistry)
+	return NewConnectedGyClient(diamClient, serverCfg, reAuthHandler, cloudRegistry, globalConfig)
 }
 
 // SendCreditControlRequest sends a Credit Control Request to the
@@ -163,9 +168,9 @@ func (gyClient *GyClient) DisableConnections(period time.Duration) {
 
 // RegisterReAuthHandler adds a handler to the client for responding to RAR
 // messages received from the OCS
-func registerReAuthHandler(reAuthHandler ReAuthHandler, diamClient *diameter.Client) {
+func registerReAuthHandler(reAuthHandler ChargingReAuthHandler, diamClient *diameter.Client) {
 	reqHandler := func(conn diam.Conn, message *diam.Message) {
-		rar := &ReAuthRequest{}
+		rar := &ChargingReAuthRequest{}
 		if err := message.Unmarshal(rar); err != nil {
 			glog.Errorf("Received unparseable RAR over Gy %s\n%s", message, err)
 			return
@@ -186,7 +191,7 @@ func registerReAuthHandler(reAuthHandler ReAuthHandler, diamClient *diameter.Cli
 	diamClient.RegisterRequestHandlerForAppID(diam.ReAuth, diam.CHARGING_CONTROL_APP_ID, reqHandler)
 }
 
-func createReAuthAnswerMessage(requestMsg *diam.Message, answer *ReAuthAnswer) *diam.Message {
+func createReAuthAnswerMessage(requestMsg *diam.Message, answer *ChargingReAuthAnswer) *diam.Message {
 	ansMsg := requestMsg.Answer(answer.ResultCode)
 	ansMsg.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(answer.SessionID)))
 	return ansMsg
@@ -195,7 +200,11 @@ func createReAuthAnswerMessage(requestMsg *diam.Message, answer *ReAuthAnswer) *
 // getAdditionalAvps retrieves any extra AVPs based on the type of request.
 // For update and terminate, it returns the used credit AVPs
 func getAdditionalAvps(request *CreditControlRequest) ([]*diam.AVP, error) {
-	avpList := make([]*diam.AVP, 0, len(request.Credits))
+	avpList := make([]*diam.AVP, 0, len(request.Credits)+1)
+	if len(request.TgppCtx.GetGyDestHost()) > 0 {
+		avpList = append(avpList,
+			diam.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity(request.TgppCtx.GetGyDestHost())))
+	}
 	for _, credit := range request.Credits {
 		avpList = append(avpList, getMSCCAVP(request.Type, credit))
 	}
@@ -247,7 +256,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 			},
 		})
 	}
-	m.InsertAVP(getServiceInfoAvp(server, request))
+	m.InsertAVP(getServiceInfoAvp(server, request, gyClient.globalConfig))
 
 	m.NewAVP(avp.MultipleServicesIndicator, avp.Mbit, 0, datatype.Enumerated(0x01))
 
@@ -266,7 +275,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 }
 
 // getServiceInfoAvp() Fills the Service-Information AVP
-func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditControlRequest) *diam.AVP {
+func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditControlRequest, gyGlobalConfig *GyGlobalConfig) *diam.AVP {
 
 	svcInfoGrp := []*diam.AVP{}
 	csAddr, _, _ := net.SplitHostPort(server.Addr)
@@ -303,8 +312,8 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPGGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 	}
 	apn := datatype.UTF8String(request.Apn)
-	if len(apnOverwrite) > 0 {
-		apn = datatype.UTF8String(apnOverwrite)
+	if len(gyGlobalConfig.OCSOverwriteApn) > 0 {
+		apn = datatype.UTF8String(gyGlobalConfig.OCSOverwriteApn)
 	}
 	if len(apn) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.CalledStationID, avp.Mbit, 0, apn))
@@ -434,6 +443,7 @@ func getCCAHandler() diameter.AnswerHandler {
 			Answer: &CreditControlAnswer{
 				ResultCode:    cca.ResultCode,
 				SessionID:     sid,
+				OriginHost:    cca.OriginHost,
 				RequestNumber: cca.RequestNumber,
 				Credits:       getReceivedCredits(&cca),
 			},

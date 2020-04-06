@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -19,7 +19,7 @@ import TextField from '@material-ui/core/TextField';
 
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'block',
     margin: '5px 0',
@@ -38,7 +38,7 @@ const useStyles = makeStyles({
     height: '30px',
     verticalAlign: 'bottom',
   },
-});
+}));
 
 type Props = {
   allowedGREPeers: allowed_gre_peers,

@@ -11,6 +11,11 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
+
+	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 
 	"github.com/facebookincubator/symphony/graph/ent/location"
 
@@ -40,6 +45,18 @@ const (
 	serviceVal          = "service"
 )
 
+func toIntSlice(a []string) ([]int, error) {
+	var intSlice []int
+	for _, i := range a {
+		j, err := strconv.Atoi(i)
+		if err != nil {
+			return nil, err
+		}
+		intSlice = append(intSlice, j)
+	}
+	return intSlice, nil
+}
+
 func index(a []string, x string) int {
 	for i, n := range a {
 		if strings.EqualFold(x, n) {
@@ -47,6 +64,40 @@ func index(a []string, x string) int {
 		}
 	}
 	return -1
+}
+
+func getQueryFields(e ExportEntity) []string {
+	var v reflect.Value
+	switch e {
+	case ExportEntityWorkOrders:
+		model := models.WorkOrderSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityLocation:
+		model := models.LocationSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityPort:
+		model := models.PortSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityEquipment:
+		model := models.EquipmentSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityLink:
+		model := models.LinkSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	case ExportEntityService:
+		model := models.ServiceSearchResult{}
+		v = reflect.ValueOf(&model).Elem()
+	default:
+		return []string{}
+	}
+
+	fields := make([]string, v.NumField())
+	for i := 0; i < v.NumField(); i++ {
+		a := []rune(v.Type().Field(i).Name)
+		a[0] = unicode.ToLower(a[0])
+		fields[i] = string(a)
+	}
+	return fields
 }
 
 func locationTypeHierarchy(ctx context.Context, c *ent.Client) ([]string, error) {
@@ -105,7 +156,7 @@ func locationHierarchyForEquipment(ctx context.Context, equipment *ent.Equipment
 	for {
 		exist, err := firstEquipmentWithLocation.QueryLocation().Exist(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying location parent for equipment: %s, ID: %s", firstEquipmentWithLocation.Name, firstEquipmentWithLocation.ID)
+			return nil, errors.Wrapf(err, "querying location parent for equipment: %s, ID: %d", firstEquipmentWithLocation.Name, firstEquipmentWithLocation.ID)
 		}
 		if exist {
 			break
@@ -113,7 +164,7 @@ func locationHierarchyForEquipment(ctx context.Context, equipment *ent.Equipment
 		// switch to parent equipment
 		position, err := firstEquipmentWithLocation.QueryParentPosition().Only(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "no location and equipment parent for equipment %s, ID: %s", firstEquipmentWithLocation.Name, firstEquipmentWithLocation.ID)
+			return nil, errors.Wrapf(err, "no location and equipment parent for equipment %s, ID: %d", firstEquipmentWithLocation.Name, firstEquipmentWithLocation.ID)
 		}
 		firstEquipmentWithLocation = position.QueryParent().OnlyX(ctx)
 	}
@@ -127,12 +178,12 @@ func locationHierarchy(ctx context.Context, location *ent.Location, orderedLocTy
 	for {
 		typ, err := currLoc.QueryType().Only(ctx)
 		if err != nil {
-			return nil, errors.Errorf("getting location type for location : %s (id:%s)", currLoc.Name, currLoc.ID)
+			return nil, errors.Errorf("getting location type for location : %s (id:%d)", currLoc.Name, currLoc.ID)
 		}
 		typeName := typ.Name
 		idx := index(orderedLocTypes, typeName)
 		if idx == -1 {
-			return nil, errors.Errorf("location type does not exist : %s", typeName)
+			return nil, errors.Errorf("location type does not exist: %s", typeName)
 		}
 		parents[idx] = currLoc.Name
 		currLoc, err = currLoc.QueryParent().Only(ctx)
@@ -147,7 +198,7 @@ func locationHierarchy(ctx context.Context, location *ent.Location, orderedLocTy
 }
 
 // nolint: funlen
-func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity models.PropertyEntity) ([]string, error) {
+func propertyTypesSlice(ctx context.Context, ids []int, c *ent.Client, entity models.PropertyEntity) ([]string, error) {
 	var (
 		propTypes       []string
 		alreadyAppended = map[string]string{}
@@ -310,6 +361,14 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 				}
 			}
 		}
+	case models.PropertyEntityWorkOrder:
+		types, err := c.PropertyType.Query().
+			Where(propertytype.HasPropertiesWith(property.HasWorkOrderWith(workorder.IDIn(ids...)))).
+			GroupBy(propertytype.FieldName).Strings(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return types, nil
 	default:
 		return nil, errors.Errorf("entity not supported %s", entity)
 	}
@@ -328,62 +387,69 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		var err error
 		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying property types for equipment %s (id=%s)", entity.Name, entity.ID)
+			return nil, errors.Wrapf(err, "querying property types for equipment %s (id=%d)", entity.Name, entity.ID)
 		}
 		props, err = entity.QueryProperties().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying equipment properties (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "querying equipment properties (id=%d)", entity.ID)
 		}
 	case models.PropertyEntityPort:
 		entity := instance.(*ent.EquipmentPort)
 		var err error
 		typs, err = entity.QueryDefinition().QueryEquipmentPortType().QueryPropertyTypes().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying property types for port (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "querying property types for port (id=%d)", entity.ID)
 		}
 		props, err = entity.QueryProperties().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying port properties (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "querying port properties (id=%d)", entity.ID)
 		}
 	case models.PropertyEntityLink:
 		entity := instance.(*ent.Link)
 		ports, err := entity.QueryPorts().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying link for ports (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "querying link for ports (id=%d)", entity.ID)
 		}
 		for _, port := range ports {
 			var err error
 			portTypeLinkProperties, err := port.QueryDefinition().QueryEquipmentPortType().QueryLinkPropertyTypes().All(ctx)
 			if err != nil {
-				return nil, errors.Wrapf(err, "querying property types for port (id=%s)", entity.ID)
+				return nil, errors.Wrapf(err, "querying property types for port (id=%d)", entity.ID)
 			}
 			typs = append(typs, portTypeLinkProperties...)
 		}
 		props, err = entity.QueryProperties().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying link properties (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "querying link properties (id=%d)", entity.ID)
 		}
 	case models.PropertyEntityService:
 		entity := instance.(*ent.Service)
 		var err error
 		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying property types for service (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "querying property types for service (id=%d)", entity.ID)
 		}
 		props, err = entity.QueryProperties().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying services properties (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "querying services properties (id=%d)", entity.ID)
 		}
 	case models.PropertyEntityLocation:
 		entity := instance.(*ent.Location)
 		var err error
 		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "can't query property types for location (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "can't query property types for location (id=%d)", entity.ID)
 		}
 		props, err = entity.QueryProperties().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying location properties (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "querying location properties (id=%d)", entity.ID)
+		}
+	case models.PropertyEntityWorkOrder:
+		entity := instance.(*ent.WorkOrder)
+		var err error
+		props, err = entity.QueryProperties().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying property types for work order %s (id=%d)", entity.Name, entity.ID)
 		}
 	default:
 		return nil, errors.Errorf("entityType not supported %s", entityType)
@@ -404,7 +470,7 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 	for _, p := range props {
 		propTyp, err := p.QueryType().Only(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "querying type of property (id=%s)", p.ID)
+			return nil, errors.Wrapf(err, "querying type of property (id=%d)", p.ID)
 		}
 		propTypeName := propTyp.Name
 		idx := index(propertyTypes, propTypeName)
@@ -445,23 +511,23 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 	case boolVal:
 		return strconv.FormatBool(vo.FieldByName("BoolVal").Bool()), nil
 	case equipmentVal, locationVal:
-		property, ok := v.(*ent.Property)
+		p, ok := v.(*ent.Property)
 		if !ok {
 			return "", nil
 		}
-		var id string
+		var id int
 		if typ == equipmentVal {
-			id, _ = property.QueryEquipmentValue().OnlyID(ctx)
+			id, _ = p.QueryEquipmentValue().OnlyID(ctx)
 		} else {
-			id, _ = property.QueryLocationValue().OnlyID(ctx)
+			id, _ = p.QueryLocationValue().OnlyID(ctx)
 		}
-		return id, nil
+		return strconv.Itoa(id), nil
 	case serviceVal:
-		property, ok := v.(*ent.Property)
+		p, ok := v.(*ent.Property)
 		if !ok {
 			return "", nil
 		}
-		value, _ := property.QueryServiceValue().Only(ctx)
+		value, _ := p.QueryServiceValue().Only(ctx)
 		if value == nil {
 			return "", nil
 		}

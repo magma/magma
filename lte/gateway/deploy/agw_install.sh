@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Setting up env variable, user and project path
 MAGMA_USER="magma"
 AGW_INSTALL_CONFIG="/etc/systemd/system/multi-user.target.wants/agw_installation.service"
@@ -7,6 +7,7 @@ DEPLOY_PATH="/home/$MAGMA_USER/magma/lte/gateway/deploy"
 SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
+KVERS=$(uname -r)
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
@@ -22,6 +23,7 @@ fi
 
 echo "Making sure $MAGMA_USER user is sudoers"
 if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
+  apt install -y sudo
   adduser $MAGMA_USER sudo
   echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 fi
@@ -50,18 +52,18 @@ else
 fi
 
 echo "Checking if the righ kernel version is installed (4.9.0-9-amd64)"
-if [ "$(uname -r)" != "4.9.0-9-amd64" ]; then
+if [ "$KVERS" != "4.9.0-9-amd64" ]; then
   # Adding the snapshot to retrieve 4.9.0-9-amd64
   if ! grep -q "deb http://snapshot.debian.org/archive/debian/20190801T025637Z" /etc/apt/sources.list; then
     echo "deb http://snapshot.debian.org/archive/debian/20190801T025637Z stretch main non-free contrib" >> /etc/apt/sources.list
   fi
   apt update
   # Installing prerequesites, Kvers, headers
-  apt install -y sudo python-minimal aptitude linux-image-4.9.0-9-amd64 linux-headers-4.9.0-9-amd64
+  apt install -y python-minimal aptitude linux-image-4.9.0-9-amd64 linux-headers-4.9.0-9-amd64
   # Removing dev repository snapshot from source.list
   sed -i '/20190801T025637Z/d' /etc/apt/sources.list
   # Removing incompatible Kernel version
-  DEBIAN_FRONTEND=noninteractive apt remove -y linux-image-4.9.0-11-amd64
+  DEBIAN_FRONTEND=noninteractive apt remove -y linux-image-"$KVERS"
   # Setting REBOOT flag to 1 because we need to boot with the right Kernel version
   NEED_REBOOT=1
 fi
@@ -100,7 +102,11 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev
   alias python=python3
   pip3 install ansible
+
   git clone https://github.com/facebookincubator/magma.git /home/$MAGMA_USER/magma
+  cd /home/$MAGMA_USER/magma
+  git checkout v1.0.1
+
   echo "Generating localhost hostfile for Ansible"
   echo "[ovs_build]
   127.0.0.1 ansible_connection=local

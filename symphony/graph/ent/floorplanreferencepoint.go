@@ -8,7 +8,6 @@ package ent
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 type FloorPlanReferencePoint struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID string `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -38,27 +37,27 @@ type FloorPlanReferencePoint struct {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*FloorPlanReferencePoint) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{},
-		&sql.NullTime{},
-		&sql.NullTime{},
-		&sql.NullInt64{},
-		&sql.NullInt64{},
-		&sql.NullFloat64{},
-		&sql.NullFloat64{},
+		&sql.NullInt64{},   // id
+		&sql.NullTime{},    // create_time
+		&sql.NullTime{},    // update_time
+		&sql.NullInt64{},   // x
+		&sql.NullInt64{},   // y
+		&sql.NullFloat64{}, // latitude
+		&sql.NullFloat64{}, // longitude
 	}
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the FloorPlanReferencePoint fields.
 func (fprp *FloorPlanReferencePoint) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(floorplanreferencepoint.Columns); m != n {
+	if m, n := len(values), len(floorplanreferencepoint.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
 	if !ok {
 		return fmt.Errorf("unexpected type %T for field id", value)
 	}
-	fprp.ID = strconv.FormatInt(value.Int64, 10)
+	fprp.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field create_time", values[0])
@@ -97,7 +96,7 @@ func (fprp *FloorPlanReferencePoint) assignValues(values ...interface{}) error {
 // Note that, you need to call FloorPlanReferencePoint.Unwrap() before calling this method, if this FloorPlanReferencePoint
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (fprp *FloorPlanReferencePoint) Update() *FloorPlanReferencePointUpdateOne {
-	return (&FloorPlanReferencePointClient{fprp.config}).UpdateOne(fprp)
+	return (&FloorPlanReferencePointClient{config: fprp.config}).UpdateOne(fprp)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
@@ -130,12 +129,6 @@ func (fprp *FloorPlanReferencePoint) String() string {
 	builder.WriteString(fmt.Sprintf("%v", fprp.Longitude))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// id returns the int representation of the ID field.
-func (fprp *FloorPlanReferencePoint) id() int {
-	id, _ := strconv.Atoi(fprp.ID)
-	return id
 }
 
 // FloorPlanReferencePoints is a parsable slice of FloorPlanReferencePoint.

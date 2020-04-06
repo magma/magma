@@ -27,8 +27,8 @@ import (
 	"magma/cwf/gateway/services/uesim"
 	"magma/feg/gateway/services/eap"
 	"magma/lte/cloud/go/crypto"
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/tools/commands"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )

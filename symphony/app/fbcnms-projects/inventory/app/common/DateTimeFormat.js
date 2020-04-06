@@ -31,26 +31,38 @@ const CALENDAR = {
   sameElse: YEAR_FORMATTER,
 };
 
-export default class DateTimeFormat {
-  static commentTime(dateTimeValue: MomentInput): string {
-    return moment(dateTimeValue).calendar(null, CALENDAR);
-  }
+const intlDateTime = (
+  dateTimeValue: ?string | ?number,
+  formatOptions: Intl$DateTimeFormatOptions,
+  fallback: string,
+) => {
+  // eslint-disable-next-line no-warning-comments
+  // $FlowFixMe - Date.parse can handle number and nulls
+  const dateTime = Date.parse(dateTimeValue);
+  return Number.isNaN(dateTime)
+    ? fallback
+    : new Intl.DateTimeFormat('default', formatOptions).format(dateTime);
+};
 
-  static dateTime = (
-    dateTimeValue: ?string | ?number,
-    fallback: string = '',
-  ) => {
-    // eslint-disable-next-line no-warning-comments
-    // $FlowFixMe - Date.parse can handle number and nulls
-    const dateTime = Date.parse(dateTimeValue);
-    return Number.isNaN(dateTime)
-      ? fallback
-      : new Intl.DateTimeFormat('default', {
-          hour: 'numeric',
-          minute: 'numeric',
-          year: 'numeric',
-          month: 'numeric',
-          day: 'numeric',
-        }).format(dateTime);
-  };
+const FORMT_DATE_AND_TIME = {
+  hour: 'numeric',
+  minute: 'numeric',
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+};
+
+const FORMT_DATE_ONLY = {
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+};
+
+export default class DateTimeFormat {
+  static commentTime = (dateTimeValue: MomentInput) =>
+    moment(dateTimeValue).calendar(null, CALENDAR);
+  static dateTime = (dateTimeValue: ?string | ?number, fallback: string = '') =>
+    intlDateTime(dateTimeValue, FORMT_DATE_AND_TIME, fallback);
+  static dateOnly = (dateTimeValue: ?string | ?number, fallback: string = '') =>
+    intlDateTime(dateTimeValue, FORMT_DATE_ONLY, fallback);
 }

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package devmand.channels.cli.plugin;
+
+message CliRequest {
+    int32 id = 1;
+    string cmd = 2;
+    bool write = 3;
+}
+
+message CliResponse {
+    int32 id = 1;
+    string output = 2;
+}
