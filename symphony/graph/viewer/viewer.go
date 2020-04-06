@@ -65,6 +65,7 @@ type UserHandler struct {
 	Logger  log.Logger
 }
 
+// NewFeatureSet create FeatureSet from a list of features.
 func NewFeatureSet(features ...string) FeatureSet {
 	set := make(FeatureSet, len(features))
 	for _, feature := range features {
@@ -187,9 +188,6 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 				http.Error(w, "getting tenancy client", http.StatusServiceUnavailable)
 				return
 			}
-			if v.Role == "readonly" {
-				client = client.ReadOnly()
-			}
 			ctx = ent.NewContext(ctx, client)
 		}
 		h.ServeHTTP(w, r.WithContext(ctx))
@@ -220,7 +218,7 @@ func (h UserHandler) getOrCreateUser(ctx context.Context) (*ent.User, error) {
 		}
 		h.Logger.For(ctx).Info("New user created", zap.String("AuthID", v.User))
 	}
-	return u, nil
+	return u, err
 }
 
 // UserHandler adds users if request is from user that is not found.
@@ -235,7 +233,17 @@ func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "user is deactivated", http.StatusForbidden)
 		return
 	}
-	h.Handler.ServeHTTP(w, r)
+	// TODO(T64743627): Stop checking read only
+	readOnly, err := IsUserReadOnly(ctx, u)
+	if err != nil {
+		http.Error(w, "check is read only", http.StatusServiceUnavailable)
+		return
+	}
+	if readOnly {
+		client := ent.FromContext(ctx).ReadOnly()
+		ctx = ent.NewContext(ctx, client)
+	}
+	h.Handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
 type contextKey struct{}

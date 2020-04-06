@@ -7,9 +7,9 @@ package graphgrpc
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/ent/user"
-
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/viewer"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
@@ -27,6 +27,14 @@ type (
 // NewUserService create a new user service.
 func NewUserService(provider UserProvider) UserService {
 	return UserService{provider}
+}
+
+func (s UserService) createWriteGroup(ctx context.Context, client *ent.Client) error {
+	_, err := client.UsersGroup.Create().SetName(viewer.WritePermissionGroupName).Save(ctx)
+	if !ent.IsConstraintError(err) {
+		return err
+	}
+	return nil
 }
 
 // Create a user by authID, tenantID and required role.
@@ -56,6 +64,12 @@ func (s UserService) Create(ctx context.Context, input *AddUserInput) (*User, er
 	} else {
 		_, err = client.User.UpdateOne(u).SetStatus(user.StatusACTIVE).SetRole(role).Save(ctx)
 	}
+	if err != nil {
+		return nil, status.FromContextError(err).Err()
+	}
+
+	// TODO(T64743627): Stop creating this group
+	err = s.createWriteGroup(ctx, client)
 	if err != nil {
 		return nil, status.FromContextError(err).Err()
 	}

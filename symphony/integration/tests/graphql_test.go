@@ -90,6 +90,7 @@ func newClient(t *testing.T, tenant, user string) *client {
 		&http.Client{Transport: &c},
 	)
 	require.NoError(t, c.createTenant())
+	require.NoError(t, c.createOwnerUser())
 	return &c
 }
 
@@ -108,6 +109,21 @@ func (c *client) createTenant() error {
 		Create(context.Background(), &wrappers.StringValue{Value: c.tenant})
 	switch st, _ := status.FromError(err); st.Code() {
 	case codes.OK, codes.AlreadyExists:
+	default:
+		return st.Err()
+	}
+	return nil
+}
+
+func (c *client) createOwnerUser() error {
+	conn, err := grpc.Dial("graph:443", grpc.WithInsecure())
+	if err != nil {
+		return err
+	}
+	_, err = graphgrpc.NewUserServiceClient(conn).
+		Create(context.Background(), &graphgrpc.AddUserInput{Tenant: c.tenant, Id: c.user, IsOwner: true})
+	switch st, _ := status.FromError(err); st.Code() {
+	case codes.OK:
 	default:
 		return st.Err()
 	}
