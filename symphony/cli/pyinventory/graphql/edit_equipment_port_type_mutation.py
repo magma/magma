@@ -15,6 +15,15 @@ from .equipment_port_type_fragment import EquipmentPortTypeFragment, QUERY as Eq
 from .edit_equipment_port_type_input import EditEquipmentPortTypeInput
 
 
+QUERY: List[str] = EquipmentPortTypeFragmentQuery + ["""
+mutation EditEquipmentPortTypeMutation($input: EditEquipmentPortTypeInput!) {
+  editEquipmentPortType(input: $input) {
+    ...EquipmentPortTypeFragment
+  }
+}
+
+"""]
+
 @dataclass
 class EditEquipmentPortTypeMutation(DataClassJsonMixin):
     @dataclass
@@ -27,19 +36,10 @@ class EditEquipmentPortTypeMutation(DataClassJsonMixin):
 
     data: EditEquipmentPortTypeMutationData
 
-    __QUERY__: str = EquipmentPortTypeFragmentQuery + """
-    mutation EditEquipmentPortTypeMutation($input: EditEquipmentPortTypeInput!) {
-  editEquipmentPortType(input: $input) {
-    ...EquipmentPortTypeFragment
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: EditEquipmentPortTypeInput) -> EditEquipmentPortTypeMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

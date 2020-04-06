@@ -26,6 +26,7 @@ const {
   organizationMiddleware,
   sessionMiddleware,
 } = require('@fbcnms/express-middleware');
+const {insertFeatures} = require('@fbcnms/platform-server/features');
 const {oidcAuthMiddleware} = require('@fbcnms/auth/oidc/middleware');
 const connectSession = require('connect-session-sequelize');
 const express = require('express');
@@ -134,6 +135,7 @@ app.use(
   '/graph',
   passport.authenticate(['basic_local', 'session'], {session: false}),
   access(USER),
+  insertFeatures,
   require('./graph/routes'),
 );
 app.use(

@@ -11,7 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-QUERY: str = """
+QUERY: List[str] = ["""
 fragment EquipmentFragment on Equipment {
   id
   externalId
@@ -22,7 +22,7 @@ fragment EquipmentFragment on Equipment {
   }
 }
 
-"""
+"""]
 
 @dataclass
 class EquipmentFragment(DataClassJsonMixin):

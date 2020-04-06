@@ -15,6 +15,40 @@ from gql.gql.enum_utils import enum_field
 from .survey_question_type_enum import SurveyQuestionType
 
 
+QUERY: List[str] = ["""
+query LocationSurveysQuery($id: ID!) {
+  location: node(id: $id) {
+    ... on Location {
+      surveys {
+        id
+        name
+        completionTimestamp
+        sourceFile {
+          id
+          fileName
+          storeKey
+        }
+        surveyResponses {
+          formName
+          questionFormat
+          questionText
+          boolData
+          emailData
+          latitude
+          longitude
+          phoneData
+          textData
+          floatData
+          intData
+          dateData
+        }
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class LocationSurveysQuery(DataClassJsonMixin):
     @dataclass
@@ -56,44 +90,10 @@ class LocationSurveysQuery(DataClassJsonMixin):
 
     data: LocationSurveysQueryData
 
-    __QUERY__: str = """
-    query LocationSurveysQuery($id: ID!) {
-  location: node(id: $id) {
-    ... on Location {
-      surveys {
-        id
-        name
-        completionTimestamp
-        sourceFile {
-          id
-          fileName
-          storeKey
-        }
-        surveyResponses {
-          formName
-          questionFormat
-          questionText
-          boolData
-          emailData
-          latitude
-          longitude
-          phoneData
-          textData
-          floatData
-          intData
-          dateData
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> LocationSurveysQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

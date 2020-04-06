@@ -631,10 +631,7 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref)
   hashtable_ts_free(&enb_ref->ue_coll, ue_ref->enb_ue_s1ap_id);
   hashtable_ts_free(&state->mmeid2associd, mme_ue_s1ap_id);
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_remove(
-    imsi_map->mme_ue_id_imsi_htbl,
-    (const hash_key_t) mme_ue_s1ap_id);
+
 
   if (!enb_ref->nb_ue_associated) {
     if (enb_ref->s1_state == S1AP_RESETING) {

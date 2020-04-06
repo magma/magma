@@ -12,6 +12,20 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import DataClassJsonMixin
 
 
+QUERY: List[str] = ["""
+query LatestPythonPackageQuery {
+  latestPythonPackage {
+    lastPythonPackage {
+      version
+    }
+    lastBreakingPythonPackage {
+      version
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class LatestPythonPackageQuery(DataClassJsonMixin):
     @dataclass
@@ -29,24 +43,10 @@ class LatestPythonPackageQuery(DataClassJsonMixin):
 
     data: LatestPythonPackageQueryData
 
-    __QUERY__: str = """
-    query LatestPythonPackageQuery {
-  latestPythonPackage {
-    lastPythonPackage {
-      version
-    }
-    lastBreakingPythonPackage {
-      version
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient) -> LatestPythonPackageQueryData:
         # fmt: off
         variables = {}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

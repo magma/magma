@@ -1176,6 +1176,12 @@ int s1ap_handle_ue_context_release_command(
      * Check the cause. If it is implicit detach or sctp reset/shutdown no need to send UE context release command to
      * eNB. Free UE context locally.
      */
+
+    s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+    hashtable_uint64_ts_remove(
+        imsi_map->mme_ue_id_imsi_htbl,
+        (const hash_key_t) ue_context_release_command_pP->mme_ue_s1ap_id);
+
     if (
       ue_context_release_command_pP->cause == S1AP_IMPLICIT_CONTEXT_RELEASE ||
       ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
@@ -1646,6 +1652,11 @@ int s1ap_mme_handle_path_switch_request(
     "ID: " ENB_UE_S1AP_ID_FMT "\n",
     enb_ue_s1ap_id);
 
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) pathSwitchRequest_p->sourceMME_UE_S1AP_ID,
+      &imsi64);
+
   /* If all the E-RAB ID IEs in E-RABToBeSwitchedDLList is set to the
    * same value, send PATH SWITCH REQUEST FAILURE message to eNB */
   if (true == is_all_erabId_same(pathSwitchRequest_p)) {
@@ -1717,14 +1728,6 @@ int s1ap_mme_handle_path_switch_request(
       (const hash_key_t) new_ue_ref_p->mme_ue_s1ap_id,
       (void *) (uintptr_t) assoc_id);
 
-    // Update mme_ue_s1ap => IMSI mapping
-    hashtable_uint64_ts_remove(
-      imsi_map->mme_ue_id_imsi_htbl,
-      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id);
-    hashtable_uint64_ts_insert(
-      imsi_map->mme_ue_id_imsi_htbl,
-      (const hash_key_t) new_ue_ref_p->mme_ue_s1ap_id,
-      imsi64);
     OAILOG_DEBUG(
       LOG_S1AP,
       "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
@@ -2123,15 +2126,17 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
   message_p->ittiMsgHeader.imsi = imsi64;
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
-  OAILOG_DEBUG(
-    LOG_S1AP,
-    "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
-    (uint32_t) ue_ref_p->mme_ue_s1ap_id);
-  s1ap_remove_ue(state, ue_ref_p);
 
   hashtable_uint64_ts_remove(
-    imsi_map->mme_ue_id_imsi_htbl,
-    (const hash_key_t) ue_ref_p->mme_ue_s1ap_id);
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id);
+
+  OAILOG_DEBUG(
+      LOG_S1AP,
+      "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
+      (uint32_t) ue_ref_p->mme_ue_s1ap_id);
+  s1ap_remove_ue(state, ue_ref_p);
+
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 

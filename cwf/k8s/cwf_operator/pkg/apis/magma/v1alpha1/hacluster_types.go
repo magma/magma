@@ -57,8 +57,13 @@ type HAClusterStatus struct {
 	// Active contains the resource name of the active gateway in the HACluster
 	Active string `json:"active"`
 
-	// InitState denotes the initialization state of the HACluster
-	InitState HAClusterInitState `json:"initState"`
+	// ActiveInitState denotes the initialization state of the active in the
+	// HACluster
+	ActiveInitState HAClusterInitState `json:"activeInitState"`
+
+	// StandbyInitState denotes the initialization state of the standby in
+	// the HACluster
+	StandbyInitState HAClusterInitState `json:"standbyInitState"`
 	// Important: Run "make gen" to regenerate code after modifying this file
 }
 

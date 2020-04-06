@@ -71,12 +71,18 @@ spec:
               description: Active contains the resource name of the active gateway
                 in the HACluster
               type: string
-            initState:
-              description: InitState denotes the initialization state of the HACluster
+            activeInitState:
+              description: ActiveInitState denotes the initialization state of the
+                active in the HACluster
+              type: string
+            standbyInitState:
+              description: StandbyInitState denotes the initialization state of the
+                standby in the HACluster
               type: string
           required:
           - active
-          - initState
+          - activeInitState
+          - standbyInitState
           type: object
       type: object
   version: v1alpha1

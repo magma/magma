@@ -19,6 +19,56 @@ from .service_endpoint_role_enum import ServiceEndpointRole
 from .service_create_data_input import ServiceCreateData
 
 
+QUERY: List[str] = CustomerFragmentQuery + PropertyFragmentQuery + ["""
+mutation AddServiceMutation($data: ServiceCreateData!) {
+  addService(data: $data) {
+    id
+    name
+    externalId
+    customer {
+      ...CustomerFragment
+    }
+    endpoints {
+      id
+      port {
+        id
+        properties {
+          ...PropertyFragment
+        }
+        definition {
+          id
+          name
+          portType {
+            id
+            name
+          }
+        }
+        link {
+          id
+          properties {
+            ...PropertyFragment
+          }
+          services {
+            id
+          }
+        }
+      }
+      role
+    }
+    links {
+      id
+      properties {
+        ...PropertyFragment
+      }
+      services {
+        id
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class AddServiceMutation(DataClassJsonMixin):
     @dataclass
@@ -96,60 +146,10 @@ class AddServiceMutation(DataClassJsonMixin):
 
     data: AddServiceMutationData
 
-    __QUERY__: str = CustomerFragmentQuery + PropertyFragmentQuery + """
-    mutation AddServiceMutation($data: ServiceCreateData!) {
-  addService(data: $data) {
-    id
-    name
-    externalId
-    customer {
-      ...CustomerFragment
-    }
-    endpoints {
-      id
-      port {
-        id
-        properties {
-          ...PropertyFragment
-        }
-        definition {
-          id
-          name
-          portType {
-            id
-            name
-          }
-        }
-        link {
-          id
-          properties {
-            ...PropertyFragment
-          }
-          services {
-            id
-          }
-        }
-      }
-      role
-    }
-    links {
-      id
-      properties {
-        ...PropertyFragment
-      }
-      services {
-        id
-      }
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, data: ServiceCreateData) -> AddServiceMutationData:
         # fmt: off
         variables = {"data": data}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

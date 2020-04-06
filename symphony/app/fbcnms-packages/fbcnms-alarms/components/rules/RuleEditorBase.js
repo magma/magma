@@ -24,7 +24,9 @@ import SelectRuleType from './SelectRuleType';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import {useAlarmContext} from '../AlarmContext';
-import {useAlertRuleReceiver, useForm} from '../hooks';
+import {useAlertRuleReceiver} from '../hooks';
+import {useForm} from '@fbcnms/ui/hooks';
+
 import type {Props as EditorProps} from '../common/Editor';
 import type {Labels} from '../AlarmAPIType';
 

@@ -13,6 +13,15 @@ from dataclasses_json import DataClassJsonMixin
 
 from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
 
+QUERY: List[str] = LocationFragmentQuery + ["""
+mutation MoveLocationMutation($locationID: ID!, $parentLocationID: ID) {
+  moveLocation(locationID: $locationID, parentLocationID: $parentLocationID) {
+    ...LocationFragment
+  }
+}
+
+"""]
+
 @dataclass
 class MoveLocationMutation(DataClassJsonMixin):
     @dataclass
@@ -25,19 +34,10 @@ class MoveLocationMutation(DataClassJsonMixin):
 
     data: MoveLocationMutationData
 
-    __QUERY__: str = LocationFragmentQuery + """
-    mutation MoveLocationMutation($locationID: ID!, $parentLocationID: ID) {
-  moveLocation(locationID: $locationID, parentLocationID: $parentLocationID) {
-    ...LocationFragment
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, locationID: str, parentLocationID: Optional[str] = None) -> MoveLocationMutationData:
         # fmt: off
         variables = {"locationID": locationID, "parentLocationID": parentLocationID}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

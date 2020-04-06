@@ -12,6 +12,31 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import DataClassJsonMixin
 
 
+QUERY: List[str] = ["""
+query LocationDepsQuery($id: ID!) {
+  location: node(id: $id) {
+    ... on Location {
+      files {
+        id
+      }
+      images {
+        id
+      }
+      children {
+        id
+      }
+      surveys {
+        id
+      }
+      equipments {
+        id
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class LocationDepsQuery(DataClassJsonMixin):
     @dataclass
@@ -44,35 +69,10 @@ class LocationDepsQuery(DataClassJsonMixin):
 
     data: LocationDepsQueryData
 
-    __QUERY__: str = """
-    query LocationDepsQuery($id: ID!) {
-  location: node(id: $id) {
-    ... on Location {
-      files {
-        id
-      }
-      images {
-        id
-      }
-      children {
-        id
-      }
-      surveys {
-        id
-      }
-      equipments {
-        id
-      }
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> LocationDepsQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

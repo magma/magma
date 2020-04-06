@@ -23,7 +23,7 @@ import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useForm} from '../../hooks';
+import {useForm} from '@fbcnms/ui/hooks';
 
 import type {AlertManagerGlobalConfig, HTTPConfig} from '../../AlarmAPIType';
 import type {Props as EditorProps} from '../../common/Editor';

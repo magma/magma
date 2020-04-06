@@ -204,6 +204,6 @@ class InOutController(MagmaController):
         if self._mtr_service_enabled:
             match = MagmaMatch(in_port=self.config.mtr_port)
             actions = [load_direction(parser, Direction.IN)]
-            flows.add_resubmit_next_service_flow(dp, self._ingress_tbl_nu,
+            flows.add_resubmit_next_service_flow(dp, self._ingress_tbl_num,
                 match, actions=actions, priority=flows.DEFAULT_PRIORITY,
                 resubmit_table=next_table)

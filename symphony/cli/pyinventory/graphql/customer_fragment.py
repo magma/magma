@@ -11,14 +11,14 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-QUERY: str = """
+QUERY: List[str] = ["""
 fragment CustomerFragment on Customer {
   id
   name
   externalId
 }
 
-"""
+"""]
 
 @dataclass
 class CustomerFragment(DataClassJsonMixin):

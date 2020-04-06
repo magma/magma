@@ -13,6 +13,22 @@ from dataclasses_json import DataClassJsonMixin
 
 from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 
+QUERY: List[str] = PropertyFragmentQuery + ["""
+query EquipmentTypeAndPropertiesQuery($id: ID!) {
+  equipment: node(id: $id) {
+    ... on Equipment {
+      equipmentType {
+        name
+      }
+      properties {
+        ...PropertyFragment
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class EquipmentTypeAndPropertiesQuery(DataClassJsonMixin):
     @dataclass
@@ -34,26 +50,10 @@ class EquipmentTypeAndPropertiesQuery(DataClassJsonMixin):
 
     data: EquipmentTypeAndPropertiesQueryData
 
-    __QUERY__: str = PropertyFragmentQuery + """
-    query EquipmentTypeAndPropertiesQuery($id: ID!) {
-  equipment: node(id: $id) {
-    ... on Equipment {
-      equipmentType {
-        name
-      }
-      properties {
-        ...PropertyFragment
-      }
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> EquipmentTypeAndPropertiesQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

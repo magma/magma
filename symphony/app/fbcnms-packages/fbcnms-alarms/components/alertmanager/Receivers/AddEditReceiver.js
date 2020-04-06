@@ -20,8 +20,7 @@ import Typography from '@material-ui/core/Typography';
 import WebhookConfigEditor from './WebhookConfigEditor';
 import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useForm} from '../../hooks';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useForm, useRouter} from '@fbcnms/ui/hooks';
 
 import type {
   AlertReceiver,
