@@ -15,6 +15,15 @@ from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
 from .add_customer_input import AddCustomerInput
 
 
+QUERY: List[str] = CustomerFragmentQuery + ["""
+mutation AddCustomerMutation($input: AddCustomerInput!) {
+  addCustomer(input: $input) {
+    ...CustomerFragment
+  }
+}
+
+"""]
+
 @dataclass
 class AddCustomerMutation(DataClassJsonMixin):
     @dataclass
@@ -27,19 +36,10 @@ class AddCustomerMutation(DataClassJsonMixin):
 
     data: AddCustomerMutationData
 
-    __QUERY__: str = CustomerFragmentQuery + """
-    mutation AddCustomerMutation($input: AddCustomerInput!) {
-  addCustomer(input: $input) {
-    ...CustomerFragment
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddCustomerInput) -> AddCustomerMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

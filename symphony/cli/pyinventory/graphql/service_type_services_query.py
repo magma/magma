@@ -13,6 +13,24 @@ from dataclasses_json import DataClassJsonMixin
 
 from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
 
+QUERY: List[str] = CustomerFragmentQuery + ["""
+query ServiceTypeServicesQuery($id: ID!) {
+  serviceType: node(id: $id) {
+    ... on ServiceType {
+      services {
+        id
+        name
+        externalId
+        customer {
+          ...CustomerFragment
+        }
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class ServiceTypeServicesQuery(DataClassJsonMixin):
     @dataclass
@@ -36,28 +54,10 @@ class ServiceTypeServicesQuery(DataClassJsonMixin):
 
     data: ServiceTypeServicesQueryData
 
-    __QUERY__: str = CustomerFragmentQuery + """
-    query ServiceTypeServicesQuery($id: ID!) {
-  serviceType: node(id: $id) {
-    ... on ServiceType {
-      services {
-        id
-        name
-        externalId
-        customer {
-          ...CustomerFragment
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> ServiceTypeServicesQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

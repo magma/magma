@@ -13,6 +13,39 @@ from dataclasses_json import DataClassJsonMixin
 
 from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 
+QUERY: List[str] = PropertyFragmentQuery + ["""
+query EquipmentPortsQuery($id: ID!) {
+  equipment: node(id: $id) {
+    ... on Equipment {
+      ports {
+        id
+        properties {
+          ...PropertyFragment
+        }
+        definition {
+          id
+          name
+          portType {
+            id
+            name
+          }
+        }
+        link {
+          id
+          properties {
+            ...PropertyFragment
+          }
+          services {
+            id
+          }
+        }
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class EquipmentPortsQuery(DataClassJsonMixin):
     @dataclass
@@ -61,43 +94,10 @@ class EquipmentPortsQuery(DataClassJsonMixin):
 
     data: EquipmentPortsQueryData
 
-    __QUERY__: str = PropertyFragmentQuery + """
-    query EquipmentPortsQuery($id: ID!) {
-  equipment: node(id: $id) {
-    ... on Equipment {
-      ports {
-        id
-        properties {
-          ...PropertyFragment
-        }
-        definition {
-          id
-          name
-          portType {
-            id
-            name
-          }
-        }
-        link {
-          id
-          properties {
-            ...PropertyFragment
-          }
-          services {
-            id
-          }
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> EquipmentPortsQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

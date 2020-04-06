@@ -15,6 +15,18 @@ from .equipment_fragment import EquipmentFragment, QUERY as EquipmentFragmentQue
 from .equipment_filter_input import EquipmentFilterInput
 
 
+QUERY: List[str] = EquipmentFragmentQuery + ["""
+query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
+  equipmentSearch(filters: $filters, limit: $limit) {
+    equipment {
+      ...EquipmentFragment
+    }
+    count
+  }
+}
+
+"""]
+
 @dataclass
 class EquipmentSearchQuery(DataClassJsonMixin):
     @dataclass
@@ -32,22 +44,10 @@ class EquipmentSearchQuery(DataClassJsonMixin):
 
     data: EquipmentSearchQueryData
 
-    __QUERY__: str = EquipmentFragmentQuery + """
-    query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
-  equipmentSearch(filters: $filters, limit: $limit) {
-    equipment {
-      ...EquipmentFragment
-    }
-    count
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, filters: List[EquipmentFilterInput] = [], limit: Optional[int] = None) -> EquipmentSearchQueryData:
         # fmt: off
         variables = {"filters": filters, "limit": limit}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

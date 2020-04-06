@@ -15,6 +15,32 @@ from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 from .edit_equipment_port_input import EditEquipmentPortInput
 
 
+QUERY: List[str] = PropertyFragmentQuery + ["""
+mutation EditEquipmentPortMutation($input: EditEquipmentPortInput!) {
+  editEquipmentPort(input: $input) {
+    id
+    properties {
+      ...PropertyFragment
+    }
+    definition {
+      id
+      name
+      portType {
+        id
+        name
+      }
+    }
+    link {
+      id
+      services {
+        id
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class EditEquipmentPortMutation(DataClassJsonMixin):
     @dataclass
@@ -54,36 +80,10 @@ class EditEquipmentPortMutation(DataClassJsonMixin):
 
     data: EditEquipmentPortMutationData
 
-    __QUERY__: str = PropertyFragmentQuery + """
-    mutation EditEquipmentPortMutation($input: EditEquipmentPortInput!) {
-  editEquipmentPort(input: $input) {
-    id
-    properties {
-      ...PropertyFragment
-    }
-    definition {
-      id
-      name
-      portType {
-        id
-        name
-      }
-    }
-    link {
-      id
-      services {
-        id
-      }
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: EditEquipmentPortInput) -> EditEquipmentPortMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

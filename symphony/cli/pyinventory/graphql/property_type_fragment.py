@@ -14,7 +14,7 @@ from dataclasses_json import DataClassJsonMixin
 from gql.gql.enum_utils import enum_field
 from .property_kind_enum import PropertyKind
 
-QUERY: str = """
+QUERY: List[str] = ["""
 fragment PropertyTypeFragment on PropertyType {
   id
   externalId
@@ -36,7 +36,7 @@ fragment PropertyTypeFragment on PropertyType {
   isDeleted
 }
 
-"""
+"""]
 
 @dataclass
 class PropertyTypeFragment(DataClassJsonMixin):

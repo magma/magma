@@ -77,11 +77,11 @@ class DataclassesRenderer:
                     f"{fragment_name}Query"
                     for fragment_name in sorted(set(parsed_query.used_fragments))
                 ]
-                buffer.write(f'QUERY: str = {" + ".join(queries)} + """')
+                buffer.write(f'QUERY: List[str] = {" + ".join(queries)} + ["""')
             else:
-                buffer.write('QUERY: str = """')
+                buffer.write('QUERY: List[str] = ["""')
             buffer.write(parsed_query.query)
-            buffer.write('"""')
+            buffer.write('"""]')
             buffer.write("")
 
         for obj in parsed_query.fragment_objects:
@@ -217,6 +217,17 @@ class DataclassesRenderer:
     def __render_operation(
         self, parsed_query: ParsedQuery, buffer: CodeChunk, parsed_op: ParsedOperation
     ) -> None:
+        if len(parsed_query.used_fragments):
+            queries = [
+                f"{fragment_name}Query"
+                for fragment_name in sorted(set(parsed_query.used_fragments))
+            ]
+            buffer.write(f'QUERY: List[str] = {" + ".join(queries)} + ["""')
+        else:
+            buffer.write('QUERY: List[str] = ["""')
+        buffer.write(parsed_query.query)
+        buffer.write('"""]')
+        buffer.write("")
         buffer.write("@dataclass")
         with buffer.write_block(f"class {parsed_op.name}(DataClassJsonMixin):"):
             # Render children
@@ -246,18 +257,6 @@ class DataclassesRenderer:
                 vars_args = ""
                 variables_dict = "{}"
 
-            if len(parsed_query.used_fragments):
-                queries = [
-                    f"{fragment_name}Query"
-                    for fragment_name in sorted(set(parsed_query.used_fragments))
-                ]
-                buffer.write(f'__QUERY__: str = {" + ".join(queries)} + """')
-            else:
-                buffer.write('__QUERY__: str = """')
-            buffer.write(parsed_query.query)
-            buffer.write('"""')
-            buffer.write("")
-
             buffer.write("@classmethod")
             buffer.write("# fmt: off")
             with buffer.write_block(
@@ -267,7 +266,8 @@ class DataclassesRenderer:
                 buffer.write("# fmt: off")
                 buffer.write(f"variables = {variables_dict}")
                 buffer.write(
-                    "response_text = client.call(cls.__QUERY__, " "variables=variables)"
+                    "response_text = client.call(''.join(set(QUERY)), "
+                    "variables=variables)"
                 )
                 buffer.write("return cls.from_json(response_text).data")
 
