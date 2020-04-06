@@ -173,6 +173,7 @@ const useStyles = makeStyles(_theme => ({
     background: 'none',
     padding: 0,
     height: '24px',
+    maxWidth: '100%',
     '&$primarySkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
