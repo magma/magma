@@ -767,7 +767,7 @@ func (r mutationResolver) AddEquipmentPortDefinitions(
 				)
 				return nil, gqlerror.Errorf(
 					"A port definition with the name %v already exists under %v",
-					input.Name, equipmentTypeID,
+					input.Name, *equipmentTypeID,
 				)
 			}
 		}
