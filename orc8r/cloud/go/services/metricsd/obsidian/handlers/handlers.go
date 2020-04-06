@@ -49,6 +49,9 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			obsidian.Handler{Path: promH.TenantPromV1QueryRangeURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 			obsidian.Handler{Path: promH.TenantPromV1SeriesURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 			obsidian.Handler{Path: promH.TenantPromV1ValuesURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+
+			// TargetsMetadata
+			obsidian.Handler{Path: promH.TargetsMetadata, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 		)
 	} else {
 		pAPI := v1.NewAPI(client)
@@ -67,6 +70,9 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			obsidian.Handler{Path: promH.TenantPromV1QueryRangeURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromQueryRangeHandler(pAPI)},
 			obsidian.Handler{Path: promH.TenantPromV1SeriesURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromSeriesHandler(pAPI)},
 			obsidian.Handler{Path: promH.TenantPromV1ValuesURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromValuesHandler(pAPI)},
+
+			// TargetsMetadata
+			obsidian.Handler{Path: promH.TargetsMetadata, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusTargetsMetadata(pAPI)},
 		)
 	}
 
