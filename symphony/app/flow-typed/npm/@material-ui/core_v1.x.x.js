@@ -133,6 +133,10 @@ declare module "@material-ui/core/Button" {
   declare module.exports: $Exports<"@material-ui/core/Button/Button">;
 }
 
+declare module "@material-ui/core/ButtonGroup" {
+  declare module.exports: $Exports<"@material-ui/core/ButtonGroup/ButtonGroup">;
+}
+
 declare module "@material-ui/core/ButtonBase/ButtonBase" {
   import type {ComponentType, ElementType, Node} from "react";
 
