@@ -73,14 +73,15 @@ add_boolean_option(S1AP_DEBUG_LIST                 False    "Traces, option to b
 ################################################################
 # SCTP LAYER OPTIONS
 ################################################################
-add_boolean_option(SCTP_DUMP_LIST                  False    "Traces, option to be removed soon")
-add_boolean_option(TRACE_HASHTABLE                 False    "Trace hashtables operations ")
-add_boolean_option(TRACE_3GPP_SPEC                 True     "Log hits of 3GPP specifications requirements")
-add_boolean_option(ENABLE_OPENFLOW                 False    "Openflow based dataplane")
-add_boolean_option(EMBEDDED_SGW                    False    "Add the SPGW task to the MME binary")
-add_boolean_option(LINK_GCOV                       False    "Whether to link gcov")
+add_boolean_option(SCTP_DUMP_LIST                     False    "Traces, option to be removed soon")
+add_boolean_option(TRACE_HASHTABLE                    False    "Trace hashtables operations ")
+add_boolean_option(TRACE_3GPP_SPEC                    True     "Log hits of 3GPP specifications requirements")
+add_boolean_option(ENABLE_OPENFLOW                    False    "Openflow based dataplane")
+add_boolean_option(EMBEDDED_SGW                       False    "Add the SPGW task to the MME binary")
+add_boolean_option(LINK_GCOV                          False    "Whether to link gcov")
 
-add_boolean_option(S6A_OVER_GRPC                   True     "S6a messages sent over gRPC")
+add_boolean_option(S6A_OVER_GRPC                      True     "S6a messages sent over gRPC")
+add_boolean_option(SPGW_ENABLE_SESSIOND_AND_MOBILITYD False    "Option to enable or disable sessiond and mobilityd services")
 
 ################################################################
 # Include CMake modules to find other library

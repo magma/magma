@@ -86,6 +86,20 @@ int pgw_handle_allocate_ipv4_address(
       auto sgi_resp = handle_allocate_ipv4_address_status(
         status, *addr, subscriber_id, apn, pdn_type, sgi_create_endpoint_resp);
 
+    /* TODO Rashmi: SPGW_ENABLE_SESSIOND_AND_MOBILITYD shall be moved to
+     * calling of this function, the reason for adding here is because we are
+     * in mid-of adding logic for assigning UE Ip address without relying on
+     * mobilityd service
+     */
+#ifndef SPGW_ENABLE_SESSIOND_AND_MOBILITYD
+      s5_response.eps_bearer_id = eps_bearer_id;
+      s5_response.context_teid  = context_teid;
+      s5_response.sgi_create_endpoint_resp = sgi_resp;
+      s5_response.failure_cause = S5_OK;
+      handle_s5_create_session_response(
+          spgw_state, new_bearer_ctxt_info_p, s5_response);
+      OAILOG_FUNC_OUT(LOG_PGW_APP);
+#endif
       if (sgi_resp.status == SGI_STATUS_OK) {
         // create session in PCEF and return
         s5_create_session_request_t session_req = {0};
