@@ -181,6 +181,11 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
+    id: 'read_only_users',
+    title: 'Read Only Users',
+    enabledByDefault: false,
+  },
+  {
     id: 'user_management',
     title: 'User Management - Users and Permissions admin section',
     enabledByDefault: false,

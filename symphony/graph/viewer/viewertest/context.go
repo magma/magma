@@ -13,9 +13,10 @@ import (
 
 // DefaultViewer defines the default viewer set by this package.
 var DefaultViewer = viewer.Viewer{
-	Tenant: "test",
-	User:   "tester@example.com",
-	Role:   "superuser",
+	Tenant:   "test",
+	User:     "tester@example.com",
+	Role:     "superuser",
+	Features: viewer.NewFeatureSet(viewer.FeatureReadOnly),
 }
 
 // Option enables viewer customization.

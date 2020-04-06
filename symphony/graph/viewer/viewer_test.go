@@ -66,17 +66,6 @@ func TestViewerHandler(t *testing.T) {
 				assert.NotZero(t, rec.Body.Len())
 			},
 		},
-		{
-			name: "ReadOnlyUser",
-			prepare: func(req *http.Request) {
-				req.Header.Set(TenantHeader, "test")
-				req.Header.Set(RoleHeader, "readonly")
-			},
-			expect: func(t *testing.T, rec *httptest.ResponseRecorder) {
-				assert.Equal(t, http.StatusOK, rec.Code)
-				assert.NotZero(t, rec.Body.Len())
-			},
-		},
 	}
 
 	h := TenancyHandler(
@@ -86,10 +75,6 @@ func TestViewerHandler(t *testing.T) {
 			require.NotNil(t, viewer)
 			assert.NotNil(t, log.FieldsFromContext(ctx))
 			_, _ = io.WriteString(w, viewer.Tenant)
-			if r.Header.Get(RoleHeader) == "readonly" {
-				_, err := ent.FromContext(ctx).Tx(ctx)
-				require.EqualError(t, err, "ent: starting a transaction: permission denied: read-only user")
-			}
 		}),
 		NewFixedTenancy(&ent.Client{}),
 	)
@@ -218,93 +203,139 @@ func TestWebSocketUpgradeHandler(t *testing.T) {
 func TestUserHandler(t *testing.T) {
 	client := newTestClient(t)
 	ctx := ent.NewContext(context.Background(), client)
-	u, err := client.User.Create().SetAuthID("user1").Save(ctx)
+	_, err := client.User.Create().SetAuthID("simple_user").Save(ctx)
+	require.NoError(t, err)
+	_, err = client.User.Create().SetAuthID("deactivated_user").SetStatus(user.StatusDEACTIVATED).Save(ctx)
+	require.NoError(t, err)
+	_, err = client.User.Create().SetAuthID("owner_user").SetRole(user.RoleOWNER).Save(ctx)
+	require.NoError(t, err)
+	userWithGroup, err := client.User.Create().SetAuthID("user_with_group").Save(ctx)
+	require.NoError(t, err)
+	_, err = client.UsersGroup.Create().SetName(WritePermissionGroupName).AddMembers(userWithGroup).Save(ctx)
 	require.NoError(t, err)
 
-	t.Run("WithUserEntExists", func(t *testing.T) {
-		h := UserHandler{
-			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				count, err := client.User.Query().Count(ctx)
-				require.NoError(t, err)
-				require.Equal(t, 1, count)
-				w.WriteHeader(http.StatusAccepted)
-			}),
-			Logger: log.NewNopLogger(),
-		}
-		v := &Viewer{
-			Tenant: "test",
-			User:   "user1",
-			Role:   "",
-		}
-		ctx = NewContext(ctx, v)
-		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		req = req.WithContext(ctx)
-		rec := httptest.NewRecorder()
-		h.ServeHTTP(rec, req)
-		assert.Equal(t, http.StatusAccepted, rec.Code)
-	})
-	t.Run("WithUserEntNotExist", func(t *testing.T) {
-		h := UserHandler{
-			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				exist, err := client.User.Query().Where(user.AuthID("user2")).Exist(ctx)
+	tests := []struct {
+		name           string
+		viewer         Viewer
+		expectRequest  func(*testing.T, *http.Request)
+		expectResponse func(*testing.T, *httptest.ResponseRecorder)
+	}{
+		{
+			name: "WithUserEntNotExist",
+			viewer: Viewer{
+				Tenant: "test",
+				User:   "new_user",
+				Role:   "",
+			},
+			expectRequest: func(t *testing.T, r *http.Request) {
+				exist, err := client.User.Query().Where(user.AuthID("new_user")).Exist(ctx)
 				require.NoError(t, err)
 				require.True(t, exist)
-				count, err := client.User.Query().Count(ctx)
+			},
+			expectResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusAccepted, rec.Code)
+			},
+		},
+		{
+			name: "WithNoUserInViewer",
+			viewer: Viewer{
+				Tenant: "test",
+				User:   "",
+				Role:   "",
+			},
+			expectRequest: func(t *testing.T, r *http.Request) {},
+			expectResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
+			},
+		},
+		{
+			name: "WithDeactivatedUserEntExists",
+			viewer: Viewer{
+				Tenant: "test",
+				User:   "deactivated_user",
+				Role:   "",
+			},
+			expectRequest: func(t *testing.T, r *http.Request) {},
+			expectResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusForbidden, rec.Code)
+				assert.Equal(t, "user is deactivated\n", rec.Body.String())
+			},
+		},
+		{
+			name: "WithReadOnlyUserEnt",
+			viewer: Viewer{
+				Tenant:   "test",
+				User:     "simple_user",
+				Role:     "",
+				Features: NewFeatureSet(FeatureReadOnly),
+			},
+			expectRequest: func(t *testing.T, r *http.Request) {
+				ctx := r.Context()
+				_, err := ent.FromContext(ctx).Tx(ctx)
+				require.EqualError(t, err, "ent: starting a transaction: permission denied: read-only user")
+			},
+			expectResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusAccepted, rec.Code)
+			},
+		},
+		{
+			name: "WithOwnerUserEnt",
+			viewer: Viewer{
+				Tenant:   "test",
+				User:     "owner_user",
+				Role:     "",
+				Features: NewFeatureSet(FeatureReadOnly),
+			},
+			expectRequest: func(t *testing.T, r *http.Request) {
+				ctx := r.Context()
+				tx, err := ent.FromContext(ctx).Tx(ctx)
 				require.NoError(t, err)
-				require.Equal(t, 2, count)
-				w.WriteHeader(http.StatusAccepted)
-			}),
-			Logger: log.NewNopLogger(),
-		}
-		v := &Viewer{
-			Tenant: "test",
-			User:   "user2",
-			Role:   "",
-		}
-		ctx = NewContext(ctx, v)
-		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		req = req.WithContext(ctx)
-		rec := httptest.NewRecorder()
-		h.ServeHTTP(rec, req)
-		assert.Equal(t, http.StatusAccepted, rec.Code)
-	})
-	t.Run("WithNoUserInViewer", func(t *testing.T) {
-		h := UserHandler{
-			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
-			Logger:  log.NewNopLogger(),
-		}
-		v := &Viewer{
-			Tenant: "test",
-			User:   "",
-			Role:   "",
-		}
-		ctx = NewContext(ctx, v)
-		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		req = req.WithContext(ctx)
-		rec := httptest.NewRecorder()
-		h.ServeHTTP(rec, req)
-		assert.Equal(t, http.StatusServiceUnavailable, rec.Code)
-	})
-	t.Run("WithDeactivatedUserEntExists", func(t *testing.T) {
-		h := UserHandler{
-			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
-			Logger:  log.NewNopLogger(),
-		}
-		v := &Viewer{
-			Tenant: "test",
-			User:   "user1",
-			Role:   "",
-		}
-		ctx = NewContext(ctx, v)
-		err = client.User.UpdateOne(u).SetStatus(user.StatusDEACTIVATED).Exec(ctx)
-		require.NoError(t, err)
-		req := httptest.NewRequest(http.MethodPost, "/", nil)
-		req = req.WithContext(ctx)
-		rec := httptest.NewRecorder()
-		h.ServeHTTP(rec, req)
-		assert.Equal(t, http.StatusForbidden, rec.Code)
-		assert.Equal(t, "user is deactivated\n", rec.Body.String())
-	})
+				err = tx.Rollback()
+				require.NoError(t, err)
+			},
+			expectResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusAccepted, rec.Code)
+			},
+		},
+		{
+			name: "WithUserEntWithGroup",
+			viewer: Viewer{
+				Tenant:   "test",
+				User:     "user_with_group",
+				Role:     "",
+				Features: NewFeatureSet(FeatureReadOnly),
+			},
+			expectRequest: func(t *testing.T, r *http.Request) {
+				ctx := r.Context()
+				tx, err := ent.FromContext(ctx).Tx(ctx)
+				require.NoError(t, err)
+				err = tx.Rollback()
+				require.NoError(t, err)
+			},
+			expectResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusAccepted, rec.Code)
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			h := UserHandler{
+				Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					tc.expectRequest(t, r)
+					w.WriteHeader(http.StatusAccepted)
+				}),
+				Logger: log.NewNopLogger(),
+			}
+			ctx = NewContext(ctx, &tc.viewer)
+			req := httptest.NewRequest(http.MethodPost, "/", nil)
+			req = req.WithContext(ctx)
+			rec := httptest.NewRecorder()
+			h.ServeHTTP(rec, req)
+			tc.expectResponse(t, rec)
+		})
+	}
 }
 
 func TestViewerMarshalLog(t *testing.T) {
