@@ -447,4 +447,22 @@ func TestViewerTenancy(t *testing.T) {
 		h.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusAccepted, rec.Code)
 	})
+	t.Run("WithFeatures", func(t *testing.T) {
+		h := TenancyHandler(
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				viewer := FromContext(r.Context())
+				assert.True(t, viewer.Features.Enabled("feature1"))
+				assert.True(t, viewer.Features.Enabled("feature2"))
+				assert.False(t, viewer.Features.Enabled("feature3"))
+				w.WriteHeader(http.StatusAccepted)
+			}),
+			nil,
+		)
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		req.Header.Set(TenantHeader, "test")
+		req.Header.Set(FeaturesHeader, "feature1,feature2")
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusAccepted, rec.Code)
+	})
 }

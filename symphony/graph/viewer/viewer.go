@@ -29,6 +29,8 @@ const (
 	UserHeader = "x-auth-user-email"
 	// RoleHeader is the http role header.
 	RoleHeader = "x-auth-user-role"
+	// FeaturesHeader is the http feature header.
+	FeaturesHeader = "x-auth-features"
 )
 
 // Attributes recorded on the span of the requests.
@@ -47,16 +49,28 @@ var (
 	KeyUserAgent = tag.MustNewKey(UserAgentAttribute)
 )
 
+// FeatureSet holds the list of features of the viewer
+type FeatureSet map[string]struct{}
+
 // Viewer holds additional per request information.
 type Viewer struct {
-	Tenant string `json:"organization"`
-	User   string `json:"email"`
-	Role   string `json:"role"`
+	Tenant   string     `json:"organization"`
+	User     string     `json:"email"`
+	Role     string     `json:"role"`
+	Features FeatureSet `json:"-"`
 }
 
 type UserHandler struct {
 	Handler http.Handler
 	Logger  log.Logger
+}
+
+func NewFeatureSet(features ...string) FeatureSet {
+	set := make(FeatureSet, len(features))
+	for _, feature := range features {
+		set[feature] = struct{}{}
+	}
+	return set
 }
 
 // MarshalLogObject implements zapcore.ObjectMarshaler interface.
@@ -86,6 +100,12 @@ func (v *Viewer) tags(r *http.Request) []tag.Mutator {
 		tag.Upsert(KeyRole, v.Role),
 		tag.Upsert(KeyUserAgent, userAgent),
 	}
+}
+
+// Enabled check if feature is in FeatureSet.
+func (f FeatureSet) Enabled(feature string) bool {
+	_, ok := f[feature]
+	return ok
 }
 
 // WebSocketUpgradeHandler authenticates websocket upgrade requests.
@@ -150,9 +170,10 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 		}
 
 		v := &Viewer{
-			Tenant: tenant,
-			User:   r.Header.Get(UserHeader),
-			Role:   r.Header.Get(RoleHeader),
+			Tenant:   tenant,
+			User:     r.Header.Get(UserHeader),
+			Role:     r.Header.Get(RoleHeader),
+			Features: NewFeatureSet(strings.Split(r.Header.Get(FeaturesHeader), ",")...),
 		}
 
 		ctx := log.NewFieldsContext(r.Context(), zap.Object("viewer", v))
