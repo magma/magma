@@ -11,6 +11,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
@@ -33,6 +35,16 @@ func main() {
 	multitenancyLabel := flag.String("multitenant-label", "tenant", fmt.Sprintf("The label name to segment alerting rules to enable multi-tenant support, having each tenant's alerts in a separate file. Default is %s", defaultTenancyLabel))
 	restrictQueries := flag.Bool("restrict-queries", false, "If this flag is set all alert rule expressions will be restricted to only match series with {<multitenant-label>=<tenant>}")
 	flag.Parse()
+
+	// Check if rulesDir exists and create it if not
+	if _, err := os.Stat(*rulesDir); os.IsNotExist(err) {
+		files, err := ioutil.ReadDir("/")
+		fmt.Println(files)
+		err = os.Mkdir(*rulesDir, 644)
+		if err != nil {
+			glog.Fatalf("Could not create rules directory: %v", err)
+		}
+	}
 
 	fileLocks, err := alert.NewFileLocker(alert.NewDirectoryClient(*rulesDir))
 	clientTenancy := alert.TenancyConfig{
