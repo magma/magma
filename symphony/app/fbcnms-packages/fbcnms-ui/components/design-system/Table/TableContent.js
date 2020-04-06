@@ -132,7 +132,10 @@ const TableContent = <T>(props: Props<T>) => {
                     col.className,
                     cellClassName,
                   )}>
-                  <Text className={classes.textualCell} variant="body2">
+                  <Text
+                    className={classes.textualCell}
+                    useEllipsis={true}
+                    variant="body2">
                     {renderedCol}
                   </Text>
                 </td>
