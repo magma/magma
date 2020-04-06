@@ -93,6 +93,10 @@ service:
       port: 1813
       targetport: 1813
       nodePort: ""
+    health:
+      port: 9107
+      target: 9107
+      nodePort: ""
 tolerations: []
 
 affinity: {}

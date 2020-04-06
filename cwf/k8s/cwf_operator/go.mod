@@ -27,14 +27,18 @@ require (
 	github.com/go-logr/glogr v0.1.0
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
-	github.com/prometheus/alertmanager v0.20.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975 // indirect
+	google.golang.org/grpc v1.27.1
 	helm.sh/helm/v3 v3.1.2 // indirect
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2
 	k8s.io/client-go v12.0.0+incompatible
+
+	magma/feg/cloud/go/protos v0.0.0
+	magma/lte/cloud/go v0.0.0 // indirect
+	magma/orc8r/lib/go/protos v0.0.0
 	sigs.k8s.io/controller-runtime v0.5.1
 )
 
@@ -64,4 +68,10 @@ replace (
 	k8s.io/metrics => k8s.io/metrics v0.0.0-20191016113814-3b1a734dba6e
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.0.0-20191016112829-06bb3c9d77c9
 	magma/cwf/k8s/go => ../../../cwf/k8s/go
+	magma/feg/cloud/go/protos => ../../../feg/cloud/go/protos
+	magma/gateway => ../../../orc8r/gateway/go
+	magma/lte/cloud/go => ../../../lte/cloud/go
+	magma/orc8r/cloud/go => ../../../orc8r/cloud/go
+	magma/orc8r/lib/go => ../../../orc8r/lib/go
+	magma/orc8r/lib/go/protos => ../../../orc8r/lib/go/protos
 )
