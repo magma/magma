@@ -8,13 +8,11 @@
  * @format
  */
 
-import AppContext from '@fbcnms/ui/context/AppContext';
 import React from 'react';
 import Settings from '@fbcnms/magmalte/app/components/Settings';
-
-import {useContext} from 'react';
+import {useMainContext} from './MainContext';
 
 export default function() {
-  const {user} = useContext(AppContext);
-  return <Settings isSuperUser={user?.isSuperUser} />;
+  const {integrationUserDefinition} = useMainContext();
+  return <Settings isSuperUser={integrationUserDefinition.isSuperUser} />;
 }

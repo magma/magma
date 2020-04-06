@@ -8,18 +8,18 @@
  * @format
  */
 
-import type {User} from './TempTypes';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import FormFieldTextInput from './FormFieldTextInput';
+import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
-import Strings from '../../../common/CommonStrings';
+import Strings from '../../../../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-import {useFormContext} from '../../../common/FormContext';
+import {useFormContext} from '../../../../common/FormContext';
 
 const useStyles = makeStyles(() => ({
   sectionHeader: {

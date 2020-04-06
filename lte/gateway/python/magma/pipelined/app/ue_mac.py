@@ -20,6 +20,7 @@ from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.directoryd_client import update_record
 from magma.pipelined.imsi import encode_imsi, decode_imsi
 from magma.pipelined.openflow import flows
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, load_passthrough
@@ -46,6 +47,10 @@ class UEMacAddressController(MagmaController):
         self._datapath = None
         self._dhcp_learn_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
+        self._li_port = None
+        if 'li_local_iface' in kwargs['config']:
+            self._li_port = \
+                BridgeTools.get_ofport(kwargs['config']['li_local_iface'])
 
     def initialize_on_connect(self, datapath):
         self.delete_all_flows(datapath)
@@ -107,7 +112,7 @@ class UEMacAddressController(MagmaController):
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.add_ue_arp_flows(self._datapath,
                                                 yiaddr, chaddr)
-            self.logger.info("Learned imsi %s, ip %s and mac %s",
+            self.logger.info("From DHCP learn: IMSI %s, has ip %s and mac %s",
                              imsi, yiaddr, chaddr)
 
             # Associate IMSI to IPv4 addr in directory service
@@ -182,6 +187,21 @@ class UEMacAddressController(MagmaController):
         dlink_match_tcp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                      ip_proto=IPPROTO_TCP,
                                      tcp_src=53,
+                                     eth_dst=mac_addr)
+        self._add_resubmit_flow(sid, dlink_match_tcp, action,
+                                flows.PASSTHROUGH_PRIORITY)
+
+        # Install TCP flows for DNS over tls
+        ulink_match_tcp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                     ip_proto=IPPROTO_TCP,
+                                     tcp_dst=853,
+                                     eth_src=mac_addr)
+        self._add_resubmit_flow(sid, ulink_match_tcp, action,
+                                flows.PASSTHROUGH_PRIORITY)
+
+        dlink_match_tcp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                     ip_proto=IPPROTO_TCP,
+                                     tcp_src=853,
                                      eth_dst=mac_addr)
         self._add_resubmit_flow(sid, dlink_match_tcp, action,
                                 flows.PASSTHROUGH_PRIORITY)
@@ -310,6 +330,12 @@ class UEMacAddressController(MagmaController):
         """
         # Allows arp packets from uplink(no eth dst set) to go to the arp table
         self._add_uplink_arp_allow_flow()
+
+        if self._li_port:
+            match = MagmaMatch(in_port=self._li_port)
+            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                match, actions=[], priority=flows.DEFAULT_PRIORITY,
+                resubmit_table=self.next_table)
 
         # TODO We might want a default drop all rule with min priority, but
         # adding it breakes all unit tests for this controller(needs work)

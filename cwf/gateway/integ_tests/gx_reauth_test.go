@@ -104,7 +104,7 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 
 	// Check ReAuth success
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
-	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// Check that UE flows were deleted for rule 2 and 3
 	recordsBySubID, err = tr.GetPolicyUsage()
@@ -177,7 +177,7 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 
 	// Check ReAuth success
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
-	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// Check that all UE mac flows are deleted
 	recordsBySubID, err = tr.GetPolicyUsage()
@@ -270,7 +270,7 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 
 	// Check ReAuth success
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
-	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// Generate more traffic
 	_, err = tr.GenULTraffic(req)
@@ -376,7 +376,7 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 
 	// Check ReAuth success
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
-	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// Generate more traffic
 	_, err = tr.GenULTraffic(req)
@@ -457,7 +457,7 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 
 	// Check ReAuth success
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
-	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// Generate more traffic
 	_, err = tr.GenULTraffic(req)

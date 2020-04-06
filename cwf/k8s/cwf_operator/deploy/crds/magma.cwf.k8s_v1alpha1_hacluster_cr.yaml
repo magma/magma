@@ -26,4 +26,5 @@ metadata:
   name: example-hacluster
 spec:
   gatewayResourceNames:
-    - "example-cwag"
+    - "example-cwag01"
+    - "example-cwag02"

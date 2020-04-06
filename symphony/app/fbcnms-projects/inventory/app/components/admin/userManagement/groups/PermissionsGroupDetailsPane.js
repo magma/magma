@@ -8,21 +8,22 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from './TempTypes';
-import type {UsersGroupStatus} from './__generated__/UserManagementContextQuery.graphql';
+import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
+import type {UsersGroupStatus} from '../__generated__/UserManagementContextQuery.graphql';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormFieldTextInput from './FormFieldTextInput';
+import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {GROUP_STATUSES} from './TempTypes';
+import {GROUP_STATUSES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useMemo} from 'react';
+import {useContext, useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -45,6 +46,8 @@ type Props = $ReadOnly<{
 
 export default function PermissionsGroupDetailsPane(props: Props) {
   const {group, className, onChange} = props;
+  const {isFeatureEnabled} = useContext(AppContext);
+  const userManagementDevMode = isFeatureEnabled('user_management_dev');
   const classes = useStyles();
 
   const statuses = useMemo(
@@ -75,20 +78,22 @@ export default function PermissionsGroupDetailsPane(props: Props) {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} lg={6} xl={6}>
-            <FormField label={`${fbt('Status', '')}`}>
-              <Select
-                options={statuses}
-                selectedValue={group.status}
-                onChange={status =>
-                  onChange({
-                    ...group,
-                    status,
-                  })
-                }
-              />
-            </FormField>
-          </Grid>
+          {userManagementDevMode ? (
+            <Grid item xs={12} sm={6} lg={6} xl={6}>
+              <FormField label={`${fbt('Status', '')}`}>
+                <Select
+                  options={statuses}
+                  selectedValue={group.status}
+                  onChange={status =>
+                    onChange({
+                      ...group,
+                      status,
+                    })
+                  }
+                />
+              </FormField>
+            </Grid>
+          ) : null}
           <Grid item xs={12}>
             <FormFieldTextInput
               className={classes.descriptionField}

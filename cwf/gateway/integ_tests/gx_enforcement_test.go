@@ -28,7 +28,7 @@ import (
 const (
 	KiloBytes                = 1024
 	MegaBytes                = 1024 * KiloBytes
-	Buffer                   = 50 * KiloBytes
+	Buffer                   = 100 * KiloBytes
 	RevalidationTimeoutEvent = 17
 )
 

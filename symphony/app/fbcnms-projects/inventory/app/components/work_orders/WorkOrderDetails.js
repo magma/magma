@@ -14,6 +14,7 @@ import type {ChecklistCategoriesMutateStateActionType} from '../checklist/Checkl
 import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
 import type {ContextRouter} from 'react-router-dom';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {Property} from '../../common/Property';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 
@@ -57,7 +58,7 @@ import {
   reducer,
 } from '../checklist/ChecklistCategoriesMutateReducer';
 import {makeStyles} from '@material-ui/styles';
-import {sortPropertiesByIndex} from '../../common/Property';
+import {sortPropertiesByIndex, toMutableProperty} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
 
 type Props = {
@@ -149,9 +150,12 @@ const WorkOrderDetails = ({
   const [workOrder, setWorkOrder] = useState<WorkOrderDetails_workOrder>(
     propsWorkOrder,
   );
-  const [properties, setProperties] = useState(
-    // eslint-disable-next-line flowtype/no-weak-types
-    ([...propsWorkOrder.properties]: any).sort(sortPropertiesByIndex),
+  const [properties, setProperties] = useState<Array<Property>>(
+    propsWorkOrder.properties
+      .filter(Boolean)
+      .slice()
+      .map<Property>(toMutableProperty)
+      .sort(sortPropertiesByIndex),
   );
   const [locationId, setLocationId] = useState(propsWorkOrder.location?.id);
   const [isLoadingDocument, setIsLoadingDocument] = useState(false);

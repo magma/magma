@@ -12,6 +12,7 @@ import ipaddress
 import logging
 import os
 import threading
+import time
 from queue import Queue
 import grpc
 
@@ -329,6 +330,58 @@ class MagmadUtil(object):
             magmad_client: MagmadServiceClient
         """
         self._magmad_client = magmad_client
+
+        self._data = {
+            "user": "vagrant",
+            "host": "192.168.60.142",
+            "password": "vagrant",
+            "command": "test",
+        }
+
+        self._command = "sshpass -p {password} ssh " \
+                        "-o UserKnownHostsFile=/dev/null " \
+                        "-o StrictHostKeyChecking=no " \
+                        "{user}@{host} {command}"
+
+    def exec_command(self, command):
+        """
+        Run a command remotly on magma_dev VM.
+
+        Args:
+            command: command (str) to be executed on remote host
+            e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
+
+        """
+        data = self._data
+        data["command"] = '"' + command + '"'
+        os.system(self._command.format(**data))
+
+    def set_config_stateless(self, enabled):
+        """
+            Sets the use_stateless flag in mme.yml file
+
+            Args:
+                enabled: sets the flag to true if enabled
+
+            """
+        if enabled:
+            self.exec_command(
+                "sed -i 's/use_stateless: false/use_stateless: true/g' "
+                "/etc/magma/mme.yml"
+            )
+        else:
+            self.exec_command(
+                "sed -i 's/use_stateless: true/use_stateless: false/g' "
+                "/etc/magma/mme.yml"
+            )
+
+    def restart_all_services(self):
+        """
+            Restart all magma services on magma_dev VM
+            """
+        self.exec_command("sudo service magma@* stop ; "
+                          "sudo service magma@magmad start")
+        time.sleep(10)
 
     def restart_services(self, services):
         """

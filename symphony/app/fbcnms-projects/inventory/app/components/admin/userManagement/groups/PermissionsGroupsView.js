@@ -9,16 +9,16 @@
  */
 
 import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
-import type {UserPermissionsGroup} from './TempTypes';
+import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
-import {GROUP_STATUSES} from './TempTypes';
+import {GROUP_STATUSES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
-import {useUserManagement} from './UserManagementContext';
+import {useUserManagement} from '../UserManagementContext';
 
 export const PERMISSION_GROUPS_VIEW_NAME = fbt(
   'Groups',

@@ -17,7 +17,9 @@ import Button from './Button';
 type Props = $ReadOnly<{|
   className?: string,
   icon: React.ComponentType<SvgIconStyleProps>,
-  onClick?: void | (() => void | Promise<void>),
+  onClick?:
+    | void
+    | (void | ((SyntheticMouseEvent<HTMLElement>) => void | Promise<void>)),
   skin?: ButtonSkin,
   disabled?: boolean,
 |}>;

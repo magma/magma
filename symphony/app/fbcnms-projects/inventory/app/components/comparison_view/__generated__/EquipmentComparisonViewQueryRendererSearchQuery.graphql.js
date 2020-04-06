@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 149bffbfa2b8da0c4fe0ad2cb22512a2
+ * @relayHash 13fbd66341decec728f912262e004cfd
  */
 
 /* eslint-disable */
@@ -31,6 +31,7 @@ export type EquipmentFilterInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
   index?: ?number,

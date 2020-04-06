@@ -15,7 +15,9 @@ import FormAlertsContext, {
   DEFAULT_CONTEXT_VALUE as DEFAULT_ALERTS,
   FormAlertsContextProvider,
 } from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
+import fbt from 'fbt';
 import {createContext, useContext} from 'react';
+import {useMainContext} from '../components/MainContext';
 
 type FromContextType = $ReadOnly<{|
   alerts: FormAlertsContextType,
@@ -32,14 +34,30 @@ type Props = {
 };
 
 export function FormContextProvider(props: Props) {
+  const {me} = useMainContext();
+
   return (
     <FormAlertsContextProvider>
       <FormAlertsContext.Consumer>
-        {alerts => (
-          <FormContext.Provider value={{alerts}}>
-            {props.children}
-          </FormContext.Provider>
-        )}
+        {alerts => {
+          alerts.editLock.check({
+            fieldId: 'System Rules',
+            fieldDisplayName: 'Read Only User',
+            value: me?.permissions.canWrite,
+            checkCallback: canWrite =>
+              canWrite
+                ? ''
+                : `${fbt(
+                    'Writing permissions are required. Contact your system administrator.',
+                    '',
+                  )}`,
+          });
+          return (
+            <FormContext.Provider value={{alerts}}>
+              {props.children}
+            </FormContext.Provider>
+          );
+        }}
       </FormAlertsContext.Consumer>
     </FormAlertsContextProvider>
   );

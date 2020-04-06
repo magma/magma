@@ -4,14 +4,7 @@ query LocationTypeLocationsQuery($id: ID!) {
       locations {
         edges {
           node {
-            id
-            name
-            latitude
-            longitude
-            externalId
-            locationType {
-              name
-            }
+            ...LocationFragment
           }
         }
       }

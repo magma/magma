@@ -16,11 +16,11 @@ import ProjectComparisonView from '../projects/ProjectComparisonView';
 import React, {useContext} from 'react';
 import WorkOrderComparisonView from './WorkOrderComparisonView';
 import WorkOrderConfigure from './WorkOrderConfigure';
-import nullthrows from '@fbcnms/util/nullthrows';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {WorkOrdersNavListItems} from './WorkOrdersNavListItems';
 import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
 import {makeStyles} from '@material-ui/styles';
+import {useMainContext} from '../../components/MainContext';
 import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
 const useStyles = makeStyles(theme => ({
@@ -35,16 +35,17 @@ const useStyles = makeStyles(theme => ({
 
 function WorkOrdersMain() {
   const classes = useStyles();
-  const {tabs, user} = useContext(AppContext);
+  const {tabs} = useContext(AppContext);
   const relativeUrl = useRelativeUrl();
+  const {integrationUserDefinition} = useMainContext();
 
   return (
     <div className={classes.root}>
       <AppSideBar
         mainItems={<WorkOrdersNavListItems />}
-        projects={getProjectLinks(tabs, user)}
+        projects={getProjectLinks(tabs, integrationUserDefinition)}
         showSettings={true}
-        user={nullthrows(user)}
+        user={integrationUserDefinition}
       />
       <AppContent>
         <Switch>

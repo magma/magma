@@ -54,6 +54,7 @@ const (
 	ManageGatewayPath            = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
 	ManageGatewayNamePath        = ManageGatewayPath + obsidian.UrlSep + "name"
 	ManageGatewayDescriptionPath = ManageGatewayPath + obsidian.UrlSep + "description"
+	ManageGatewayLiImsisPath     = ManageGatewayPath + obsidian.UrlSep + "li_imsis"
 	ManageGatewayConfigPath      = ManageGatewayPath + obsidian.UrlSep + "magmad"
 	ManageGatewayDevicePath      = ManageGatewayPath + obsidian.UrlSep + "device"
 	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "status"
@@ -96,6 +97,7 @@ func GetHandlers() []obsidian.Handler {
 
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayLiImsisPath, new(cwfModels.LiImsis))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rModels.MagmadGatewayConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rModels.TierID))...)
 	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)

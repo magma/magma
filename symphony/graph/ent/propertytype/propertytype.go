@@ -18,7 +18,8 @@ const (
 	FieldCreateTime         = "create_time"          // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
 	FieldUpdateTime         = "update_time"          // FieldType holds the string denoting the type vertex property in the database.
 	FieldType               = "type"                 // FieldName holds the string denoting the name vertex property in the database.
-	FieldName               = "name"                 // FieldIndex holds the string denoting the index vertex property in the database.
+	FieldName               = "name"                 // FieldExternalID holds the string denoting the external_id vertex property in the database.
+	FieldExternalID         = "external_id"          // FieldIndex holds the string denoting the index vertex property in the database.
 	FieldIndex              = "index"                // FieldCategory holds the string denoting the category vertex property in the database.
 	FieldCategory           = "category"             // FieldIntVal holds the string denoting the int_val vertex property in the database.
 	FieldIntVal             = "int_val"              // FieldBoolVal holds the string denoting the bool_val vertex property in the database.
@@ -118,6 +119,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldType,
 	FieldName,
+	FieldExternalID,
 	FieldIndex,
 	FieldCategory,
 	FieldIntVal,

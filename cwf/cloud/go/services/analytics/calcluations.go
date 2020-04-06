@@ -167,7 +167,8 @@ func (x *UserConsumptionCalculation) Calculate(prometheusClient PrometheusAPI) (
 }
 
 func queryPrometheusVector(prometheusClient PrometheusAPI, query string) (model.Vector, error) {
-	val, err := prometheusClient.Query(context.Background(), query, time.Now())
+	// TODO: catch the warning at _
+	val, _, err := prometheusClient.Query(context.Background(), query, time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +183,8 @@ func queryPrometheusVector(prometheusClient PrometheusAPI, query string) (model.
 }
 
 func queryPrometheusMatrix(prometheusClient PrometheusAPI, query string, r v1.Range) (model.Matrix, error) {
-	val, err := prometheusClient.QueryRange(context.Background(), query, r)
+	// TODO: catch the warning at _
+	val, _, err := prometheusClient.QueryRange(context.Background(), query, r)
 	if err != nil {
 		return nil, err
 	}

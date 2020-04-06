@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 8b4fdf5fad8209f92de5ddce9795484a
+ * @relayHash 39e7172abe597d4453316c488773f29f
  */
 
 /* eslint-disable */
@@ -27,6 +27,7 @@ export type EditProjectTypeInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
   index?: ?number,

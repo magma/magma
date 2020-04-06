@@ -11,39 +11,25 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
+from .equipment_port_type_fragment import EquipmentPortTypeFragment, QUERY as EquipmentPortTypeFragmentQuery
 
 @dataclass
 class EquipmentPortTypeQuery(DataClassJsonMixin):
     @dataclass
     class EquipmentPortTypeQueryData(DataClassJsonMixin):
         @dataclass
-        class Node(DataClassJsonMixin):
-            @dataclass
-            class PropertyType(PropertyTypeFragment):
-                pass
-
-            id: str
-            name: str
-            propertyTypes: List[PropertyType]
-            linkPropertyTypes: List[PropertyType]
+        class Node(EquipmentPortTypeFragment):
+            pass
 
         port_type: Optional[Node]
 
     data: EquipmentPortTypeQueryData
 
-    __QUERY__: str = PropertyTypeFragmentQuery + """
+    __QUERY__: str = EquipmentPortTypeFragmentQuery + """
     query EquipmentPortTypeQuery($id: ID!) {
   port_type: node(id: $id) {
     ... on EquipmentPortType {
-      id
-      name
-      propertyTypes {
-        ...PropertyTypeFragment
-      }
-      linkPropertyTypes {
-        ...PropertyTypeFragment
-      }
+      ...EquipmentPortTypeFragment
     }
   }
 }

@@ -25,9 +25,12 @@ go 1.13
 
 require (
 	github.com/go-logr/glogr v0.1.0
-	github.com/gorilla/mux v1.7.2 // indirect
+	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
+	github.com/prometheus/alertmanager v0.20.0
 	github.com/spf13/pflag v1.0.5
+	github.com/stretchr/testify v1.4.0
+	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975 // indirect
 	helm.sh/helm/v3 v3.1.2 // indirect
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2

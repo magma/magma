@@ -8,25 +8,29 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from './TempTypes';
+import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Grid from '@material-ui/core/Grid';
-import InventoryErrorBoundary from '../../../common/InventoryErrorBoundary';
+import InventoryErrorBoundary from '../../../../common/InventoryErrorBoundary';
 import PermissionsGroupDetailsPane from './PermissionsGroupDetailsPane';
 import PermissionsGroupMembersPane from './PermissionsGroupMembersPane';
 import PermissionsGroupPoliciesPane from './PermissionsGroupPoliciesPane';
-import Strings from '../../../common/CommonStrings';
+import Strings from '../../../../common/CommonStrings';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {GROUP_STATUSES, NEW_GROUP_DIALOG_PARAM} from './TempTypes';
+import {
+  GROUP_STATUSES,
+  NEW_GROUP_DIALOG_PARAM,
+} from '../utils/UserManagementUtils';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {makeStyles} from '@material-ui/styles';
-import {useEffect, useMemo, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
-import {useUserManagement} from './UserManagementContext';
+import {useContext, useEffect, useMemo, useState} from 'react';
+import {useRouteMatch} from 'react-router-dom';
+import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   detailsPane: {
@@ -35,6 +39,9 @@ const useStyles = makeStyles(() => ({
     '&:not(:first-child)': {
       marginTop: '16px',
     },
+  },
+  container: {
+    maxHeight: '100%',
   },
 }));
 
@@ -49,6 +56,7 @@ const initialNewGroup: UserPermissionsGroup = {
   description: '',
   status: GROUP_STATUSES.ACTIVE.key,
   members: [],
+  memberUsers: [],
 };
 
 export default function PermissionsGroupCard({
@@ -56,7 +64,9 @@ export default function PermissionsGroupCard({
   onClose,
 }: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const match = useRouteMatch();
+  const {isFeatureEnabled} = useContext(AppContext);
+  const userManagementDevMode = isFeatureEnabled('user_management_dev');
   const {groups, editGroup, addGroup} = useUserManagement();
   const groupId = match.params.id;
   const isOnNewGroup = groupId === NEW_GROUP_DIALOG_PARAM;
@@ -117,19 +127,21 @@ export default function PermissionsGroupCard({
   return (
     <InventoryErrorBoundary>
       <ViewContainer header={header} useBodyScrollingEffect={false}>
-        <Grid container spacing={2}>
-          <Grid item xs={8} sm={8} lg={8} xl={8}>
+        <Grid container spacing={2} className={classes.container}>
+          <Grid item xs={8} sm={8} lg={8} xl={8} className={classes.container}>
             <PermissionsGroupDetailsPane
               group={group}
               onChange={setGroup}
               className={classes.detailsPane}
             />
-            <PermissionsGroupPoliciesPane
-              group={group}
-              className={classes.detailsPane}
-            />
+            {userManagementDevMode ? (
+              <PermissionsGroupPoliciesPane
+                group={group}
+                className={classes.detailsPane}
+              />
+            ) : null}
           </Grid>
-          <Grid item xs={4} sm={4} lg={4} xl={4}>
+          <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
             <PermissionsGroupMembersPane
               group={group}
               className={classes.detailsPane}

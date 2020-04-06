@@ -96,12 +96,13 @@ func TestAddEquipmentTypeWithProperties(t *testing.T) {
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, qr, etr := r.Mutation(), r.Query(), r.EquipmentType()
-
+	extID := "12345"
 	ptype := models.PropertyTypeInput{
 		Name:        "str_prop",
 		Type:        "string",
 		Index:       pointer.ToInt(5),
 		StringValue: pointer.ToString("Foo"),
+		ExternalID:  &extID,
 	}
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:       "example_type_a",
@@ -115,6 +116,7 @@ func TestAddEquipmentTypeWithProperties(t *testing.T) {
 	assert.Equal(t, fetchedPropertyTypes[0].Name, "str_prop")
 	assert.Equal(t, fetchedPropertyTypes[0].Type, "string")
 	assert.Equal(t, fetchedPropertyTypes[0].Index, 5)
+	assert.Equal(t, fetchedPropertyTypes[0].ExternalID, extID)
 }
 
 func TestAddEquipmentTypeWithoutPositionNames(t *testing.T) {

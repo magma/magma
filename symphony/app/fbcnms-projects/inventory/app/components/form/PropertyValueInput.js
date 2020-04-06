@@ -31,16 +31,16 @@ import update from 'immutability-helper';
 import {getPropertyValue} from '../../common/Property';
 import {withStyles} from '@material-ui/core/styles';
 
-type Props = {
+type Props<T: Property | PropertyType> = {
   autoFocus: boolean,
   className: string,
   inputClassName?: ?string,
   label: ?string,
   inputType: 'Property' | 'PropertyType',
-  property: Property | PropertyType,
+  property: T,
   required: boolean,
   disabled: boolean,
-  onChange: (Property | PropertyType) => void,
+  onChange: T => void,
   onBlur?: (e: FocusEvent<HTMLInputElement>) => void,
   onKeyDown?: ?(e: SyntheticKeyboardEvent<>) => void,
   margin: 'none' | 'dense' | 'normal',
@@ -50,7 +50,8 @@ type Props = {
 
 const styles = {
   input: {
-    width: (props: Props): string => (props.fullWidth ? 'auto' : '300px'),
+    width: (props: Props<Property | PropertyType>): string =>
+      props.fullWidth ? 'auto' : '300px',
     display: 'flex',
     '&&': {
       margin: '0px',
@@ -72,7 +73,9 @@ const styles = {
   },
 };
 
-class PropertyValueInput extends React.Component<Props> {
+class PropertyValueInput<T: Property | PropertyType> extends React.Component<
+  Props<T>,
+> {
   static defaultProps = {
     required: false,
     autoFocus: false,

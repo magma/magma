@@ -59,8 +59,9 @@
         "DPI",
         "ENFORCEMENT"
        ],
-       "allowedGrePeers": [
-       ]
+      "allowedGrePeers": [
+       ],
+      "liImsis": []
     },
     "subscriberdb": {
       "@type": "type.googleapis.com/magma.mconfig.SubscriberDB",

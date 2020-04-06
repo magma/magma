@@ -118,7 +118,9 @@ class IPFIXController(MagmaController):
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, err = p.communicate()
             err_str = err.decode('utf-8')
-            self.logger.error(err_str)
+            if err_str:
+                self.logger.error("Failed setting up ipfix sampling %s",
+                                  err_str)
         except subprocess.CalledProcessError as e:
             raise Exception('Error: {} failed with: {}'.format(action_str, e))
 

@@ -8,7 +8,6 @@
  * @format
  */
 
-// import type {OptionsToggleProps} from '../Buttons/OptionsToggleButton';
 import type {ButtonProps} from '../Button';
 import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 import type {ToggleButtonProps} from '../ToggleButton/ToggleButtonGroup';
@@ -90,92 +89,104 @@ export type ActionButtonProps = {|
   ...ButtonProps,
 |};
 
-export type ViewHeaderProps = {
+export type ViewHeaderProps = $ReadOnly<{|
   title: React.Node,
   subtitle?: ?React.Node,
   searchBar?: ?React.Node,
   showMinimal?: ?boolean,
-};
+  className?: ?string,
+|}>;
 
-export type ViewHeaderActionsProps = {
+export type ViewHeaderActionsProps = $ReadOnly<{|
   actionButtons?: Array<ActionButtonProps>,
-};
+|}>;
 
-export type ViewHeaderOptionsProps = {
+export type ViewHeaderOptionsProps = $ReadOnly<{|
   viewOptions?: ToggleButtonProps,
-};
+|}>;
 
-export type FullViewHeaderProps = ViewHeaderProps &
-  ViewHeaderActionsProps &
-  ViewHeaderOptionsProps;
+export type FullViewHeaderProps = $ReadOnly<{|
+  ...ViewHeaderProps,
+  ...ViewHeaderActionsProps,
+  ...ViewHeaderOptionsProps,
+|}>;
 
-const ViewHeader = (props: FullViewHeaderProps) => {
-  const {title, subtitle, viewOptions, searchBar, showMinimal = false} = props;
-  const actionButtons: Array<ActionButtonProps> = props.actionButtons || [];
-  const classes = useStyles();
+const ViewHeader = React.forwardRef<FullViewHeaderProps, HTMLElement>(
+  (props, ref) => {
+    const {
+      title,
+      subtitle,
+      viewOptions,
+      searchBar,
+      showMinimal = false,
+      className,
+    } = props;
+    const actionButtons: Array<ActionButtonProps> = props.actionButtons || [];
+    const classes = useStyles();
 
-  return (
-    <div className={classes.root}>
-      <div className={classNames(classes.column, classes.expandedColumn)}>
-        <Text variant="h6" className={classes.title}>
-          {title}
-        </Text>
-        <div
-          className={classNames(classes.collapsablePart, {
-            [classes.collapsed]: showMinimal,
-          })}>
-          <Text variant="body2" color="gray">
-            {subtitle}
+    return (
+      <div className={classNames(classes.root, className)} ref={ref}>
+        <div className={classNames(classes.column, classes.expandedColumn)}>
+          <Text variant="h6" className={classes.title}>
+            {title}
           </Text>
-          {searchBar != null && (
-            <div className={classes.searchBarContainer}>{searchBar}</div>
+          <div
+            className={classNames(classes.collapsablePart, {
+              [classes.collapsed]: showMinimal,
+            })}>
+            <Text variant="body2" color="gray">
+              {subtitle}
+            </Text>
+            {searchBar != null && (
+              <div className={classes.searchBarContainer}>{searchBar}</div>
+            )}
+          </div>
+        </div>
+        <div className={classes.column}>
+          {viewOptions != null && (
+            <div className={classes.viewOptionsContainer}>
+              <ToggleButton {...viewOptions} />
+            </div>
+          )}
+          {actionButtons != null && (
+            <FormAlertsContextProvider>
+              <div
+                className={classNames(
+                  classes.actionButtons,
+                  classes.collapsablePart,
+                  {
+                    [classes.collapsed]: showMinimal,
+                  },
+                )}>
+                {actionButtons.map((actionButton, index) => {
+                  const {
+                    ignorePermissions,
+                    hideWhenDisabled,
+                    action,
+                    title,
+                    ...restButtonProps
+                  } = actionButton;
+                  return (
+                    <FormAction
+                      key={`viewHeaderAction${index}`}
+                      ignorePermissions={ignorePermissions}
+                      hideWhenDisabled={hideWhenDisabled}>
+                      <Button
+                        className={classes.actionButton}
+                        {...restButtonProps}
+                        onClick={action}>
+                        {title}
+                      </Button>
+                    </FormAction>
+                  );
+                })}
+              </div>
+            </FormAlertsContextProvider>
           )}
         </div>
       </div>
-      <div className={classes.column}>
-        {viewOptions != null && (
-          <div className={classes.viewOptionsContainer}>
-            <ToggleButton {...viewOptions} />
-          </div>
-        )}
-        {actionButtons != null && (
-          <FormAlertsContextProvider>
-            <div
-              className={classNames(
-                classes.actionButtons,
-                classes.collapsablePart,
-                {
-                  [classes.collapsed]: showMinimal,
-                },
-              )}>
-              {actionButtons.map((actionButton, index) => {
-                const {
-                  ignorePermissions,
-                  hideWhenDisabled,
-                  action,
-                  title,
-                  ...restButtonProps
-                } = actionButton;
-                return (
-                  <FormAction
-                    key={`viewHeaderAction${index}`}
-                    ignorePermissions={ignorePermissions}
-                    hideWhenDisabled={hideWhenDisabled}>
-                    <Button
-                      className={classes.actionButton}
-                      {...restButtonProps}
-                      onClick={action}>
-                      {title}
-                    </Button>
-                  </FormAction>
-                );
-              })}
-            </div>
-          </FormAlertsContextProvider>
-        )}
-      </div>
-    </div>
-  );
-};
+    );
+  },
+);
 
 export default ViewHeader;

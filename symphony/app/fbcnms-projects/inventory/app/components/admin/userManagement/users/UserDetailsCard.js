@@ -9,17 +9,18 @@
  */
 
 import type {TabProps} from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
-import type {User} from './TempTypes';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import TabsBar from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 import UserAccountPane from './UserAccountPane';
 import UserPermissionsPane from './UserPermissionsPane';
 import UserProfilePane from './UserProfilePane';
 import fbt from 'fbt';
-import {FormContextProvider} from '../../../common/FormContext';
+import {FormContextProvider} from '../../../../common/FormContext';
 import {makeStyles} from '@material-ui/styles';
-import {useMemo, useState} from 'react';
+import {useContext, useMemo, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -49,9 +50,12 @@ type ViewTab = {|
 
 export default function UserDetailsCard(props: Props) {
   const classes = useStyles();
+  const {isFeatureEnabled} = useContext(AppContext);
+  const userManagementDevMode = isFeatureEnabled('user_management_dev');
+
   const {user, onChange} = props;
-  const userDetailParts: Array<ViewTab> = useMemo(
-    () => [
+  const userDetailParts: Array<ViewTab> = useMemo(() => {
+    const parts = [
       {
         tab: {
           label: `${fbt('Profile', '')}`,
@@ -64,15 +68,17 @@ export default function UserDetailsCard(props: Props) {
         },
         view: <UserAccountPane user={user} onChange={onChange} />,
       },
-      {
+    ];
+    if (userManagementDevMode) {
+      parts.push({
         tab: {
           label: `${fbt('Permissions', '')}`,
         },
         view: <UserPermissionsPane user={user} />,
-      },
-    ],
-    [onChange, user],
-  );
+      });
+    }
+    return parts;
+  }, [onChange, user, userManagementDevMode]);
   const [activePart, setActivePart] = useState(0);
 
   return (

@@ -545,6 +545,7 @@ type PropertyInput struct {
 
 type PropertyTypeInput struct {
 	ID                 *int         `json:"id"`
+	ExternalID         *string      `json:"externalId"`
 	Name               string       `json:"name"`
 	Type               PropertyKind `json:"type"`
 	Index              *int         `json:"index"`
@@ -772,6 +773,18 @@ type TopologyLink struct {
 	Type   TopologyLinkType `json:"type"`
 	Source ent.Noder        `json:"source"`
 	Target ent.Noder        `json:"target"`
+}
+
+type UpdateUserGroupsInput struct {
+	ID             int   `json:"id"`
+	AddGroupIds    []int `json:"addGroupIds"`
+	RemoveGroupIds []int `json:"removeGroupIds"`
+}
+
+type UpdateUsersGroupMembersInput struct {
+	ID            int   `json:"id"`
+	AddUserIds    []int `json:"addUserIds"`
+	RemoveUserIds []int `json:"removeUserIds"`
 }
 
 type UserFilterInput struct {

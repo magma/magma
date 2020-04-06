@@ -16260,6 +16260,7 @@ type PropertyTypeMutation struct {
 	update_time                     *time.Time
 	_type                           *string
 	name                            *string
+	external_id                     *string
 	index                           *int
 	addindex                        *int
 	category                        *string
@@ -16414,6 +16415,38 @@ func (m *PropertyTypeMutation) Name() (r string, exists bool) {
 // ResetName reset all changes of the name field.
 func (m *PropertyTypeMutation) ResetName() {
 	m.name = nil
+}
+
+// SetExternalID sets the external_id field.
+func (m *PropertyTypeMutation) SetExternalID(s string) {
+	m.external_id = &s
+}
+
+// ExternalID returns the external_id value in the mutation.
+func (m *PropertyTypeMutation) ExternalID() (r string, exists bool) {
+	v := m.external_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearExternalID clears the value of external_id.
+func (m *PropertyTypeMutation) ClearExternalID() {
+	m.external_id = nil
+	m.clearedFields[propertytype.FieldExternalID] = struct{}{}
+}
+
+// ExternalIDCleared returns if the field external_id was cleared in this mutation.
+func (m *PropertyTypeMutation) ExternalIDCleared() bool {
+	_, ok := m.clearedFields[propertytype.FieldExternalID]
+	return ok
+}
+
+// ResetExternalID reset all changes of the external_id field.
+func (m *PropertyTypeMutation) ResetExternalID() {
+	m.external_id = nil
+	delete(m.clearedFields, propertytype.FieldExternalID)
 }
 
 // SetIndex sets the index field.
@@ -17288,7 +17321,7 @@ func (m *PropertyTypeMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *PropertyTypeMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.create_time != nil {
 		fields = append(fields, propertytype.FieldCreateTime)
 	}
@@ -17300,6 +17333,9 @@ func (m *PropertyTypeMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, propertytype.FieldName)
+	}
+	if m.external_id != nil {
+		fields = append(fields, propertytype.FieldExternalID)
 	}
 	if m.index != nil {
 		fields = append(fields, propertytype.FieldIndex)
@@ -17359,6 +17395,8 @@ func (m *PropertyTypeMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case propertytype.FieldName:
 		return m.Name()
+	case propertytype.FieldExternalID:
+		return m.ExternalID()
 	case propertytype.FieldIndex:
 		return m.Index()
 	case propertytype.FieldCategory:
@@ -17423,6 +17461,13 @@ func (m *PropertyTypeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case propertytype.FieldExternalID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExternalID(v)
 		return nil
 	case propertytype.FieldIndex:
 		v, ok := value.(int)
@@ -17639,6 +17684,9 @@ func (m *PropertyTypeMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *PropertyTypeMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(propertytype.FieldExternalID) {
+		fields = append(fields, propertytype.FieldExternalID)
+	}
 	if m.FieldCleared(propertytype.FieldIndex) {
 		fields = append(fields, propertytype.FieldIndex)
 	}
@@ -17683,6 +17731,9 @@ func (m *PropertyTypeMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *PropertyTypeMutation) ClearField(name string) error {
 	switch name {
+	case propertytype.FieldExternalID:
+		m.ClearExternalID()
+		return nil
 	case propertytype.FieldIndex:
 		m.ClearIndex()
 		return nil
@@ -17733,6 +17784,9 @@ func (m *PropertyTypeMutation) ResetField(name string) error {
 		return nil
 	case propertytype.FieldName:
 		m.ResetName()
+		return nil
+	case propertytype.FieldExternalID:
+		m.ResetExternalID()
 		return nil
 	case propertytype.FieldIndex:
 		m.ResetIndex()

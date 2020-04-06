@@ -168,8 +168,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         """
         if precedence >= self.ENFORCE_PRIORITY_RANGE:
             self.logger.warning(
-                "Flow precedence is higher than OF range using "
-                             "min priority %d",
+                "Flow precedence is higher than OF range using min priority %d",
                 self.MIN_ENFORCE_PROGRAMMED_FLOW)
             return self.MIN_ENFORCE_PROGRAMMED_FLOW
         return self.MAX_ENFORCE_PRIORITY - precedence

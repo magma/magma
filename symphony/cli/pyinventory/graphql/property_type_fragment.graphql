@@ -1,5 +1,6 @@
 fragment PropertyTypeFragment on PropertyType {
   id
+  externalId
   name
   type
   index

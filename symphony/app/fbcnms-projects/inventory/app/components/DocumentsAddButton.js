@@ -22,6 +22,7 @@ import AddImageMutation from '../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FileUploadButton from './FileUpload/FileUploadButton';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import React from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
@@ -76,7 +77,7 @@ class DocumentsAddButton extends React.Component<Props, State> {
     }
 
     return (
-      <>
+      <FormAction>
         {categoriesEnabled && Strings.documents.categories.length ? (
           <PopoverMenu
             skin="primary"
@@ -111,7 +112,7 @@ class DocumentsAddButton extends React.Component<Props, State> {
             )}
           </FileUploadButton>
         )}
-      </>
+      </FormAction>
     );
   }
 

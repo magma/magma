@@ -12,20 +12,23 @@ import type {
   TableRowDataType,
   TableRowId,
 } from '@fbcnms/ui/components/design-system/Table/Table';
-import type {User} from './TempTypes';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserDetailsCard from './UserDetailsCard';
+import UserViewer from './UserViewer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {USER_ROLES, USER_STATUSES} from './TempTypes';
-import {haveDifferentValues} from '../../../common/EntUtils';
+import {USER_ROLES, USER_STATUSES} from '../utils/UserManagementUtils';
+import {haveDifferentValues} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useContext} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useUserManagement} from './UserManagementContext';
+import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -42,16 +45,20 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type UserTableRow = TableRowDataType<User>;
+type UserTableRow = TableRowDataType<{|data: User|}>;
 type UserTableData = Array<UserTableRow>;
 
-const user2UserTableRow: (User | UserTableRow) => UserTableRow = user => ({
-  key: user.key || user.authID,
-  ...user,
+const user2UserTableRow: User => UserTableRow = user => ({
+  key: user.authID,
+  data: user,
 });
 
 export default function UsersTable() {
   const classes = useStyles();
+
+  const {isFeatureEnabled} = useContext(AppContext);
+  const userManagementDevMode = isFeatureEnabled('user_management_dev');
+
   const [usersTableData, setUsersTableData] = useState<UserTableData>([]);
   const {users, editUser} = useUserManagement();
   useEffect(() => setUsersTableData(users.map(user2UserTableRow)), [users]);
@@ -61,54 +68,27 @@ export default function UsersTable() {
   const columns = useMemo(() => {
     const isActiveUser = userId =>
       activeUserId != null && activeUserId === userId;
-    return [
+    const returnCols = [
       {
         key: 'name',
         title: <fbt desc="Name column header in users table">Name</fbt>,
         titleClassName: classes.nameColumn,
         className: classes.nameColumn,
         render: userRow => (
-          <>
-            <Text
-              variant="subtitle2"
-              color={isActiveUser(userRow.key) ? 'primary' : undefined}
-              useEllipsis={true}
-              className={classes.field}>
-              {userRow.firstName || userRow.lastName
-                ? `${userRow.firstName} ${userRow.lastName}`
-                : '_'}
-            </Text>
-            <Text
-              variant="caption"
-              color="gray"
-              useEllipsis={true}
-              className={classes.field}>
-              {userRow.authID}
-            </Text>
-          </>
+          <UserViewer
+            user={userRow.data}
+            highlightName={isActiveUser(userRow.key)}
+            className={classes.field}
+          />
         ),
       },
       {
         key: 'role',
         title: <fbt desc="Role column header in users table">Role</fbt>,
         render: userRow =>
-          userRow.status === USER_STATUSES.DEACTIVATED.key
+          userRow.data.status === USER_STATUSES.DEACTIVATED.key
             ? null
-            : USER_ROLES[userRow.role].value || userRow.role,
-      },
-      {
-        key: 'job_title',
-        title: (
-          <fbt desc="Job Title column header in users table">Job Title</fbt>
-        ),
-        render: userRow => userRow.jobTitle ?? '',
-      },
-      {
-        key: 'employment',
-        title: (
-          <fbt desc="Employment column header in users table">Employment</fbt>
-        ),
-        render: userRow => userRow.employmentType ?? '',
+            : USER_ROLES[userRow.data.role].value || userRow.data.role,
       },
       {
         key: 'status',
@@ -117,16 +97,39 @@ export default function UsersTable() {
           <Text
             useEllipsis={true}
             color={
-              userRow.status === USER_STATUSES.DEACTIVATED.key
+              userRow.data.status === USER_STATUSES.DEACTIVATED.key
                 ? 'error'
                 : undefined
             }>
-            {USER_STATUSES[userRow.status].value || userRow.status}
+            {USER_STATUSES[userRow.data.status].value || userRow.data.status}
           </Text>
         ),
       },
     ];
-  }, [classes.nameColumn, classes.field, activeUserId]);
+    if (userManagementDevMode) {
+      returnCols.push(
+        ...[
+          {
+            key: 'job_title',
+            title: (
+              <fbt desc="Job Title column header in users table">Job Title</fbt>
+            ),
+            render: userRow => userRow.data.jobTitle ?? '',
+          },
+          {
+            key: 'employment',
+            title: (
+              <fbt desc="Employment column header in users table">
+                Employment
+              </fbt>
+            ),
+            render: userRow => userRow.data.employmentType ?? '',
+          },
+        ],
+      );
+    }
+    return returnCols;
+  }, [classes.nameColumn, classes.field, userManagementDevMode, activeUserId]);
 
   const enqueueSnackbar = useEnqueueSnackbar();
   const handleError = useCallback(

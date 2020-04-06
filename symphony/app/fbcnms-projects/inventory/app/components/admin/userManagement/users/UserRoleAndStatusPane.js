@@ -9,7 +9,7 @@
  */
 
 import type {RadioOption} from '@fbcnms/ui/components/design-system/RadioGroup/RadioGroup';
-import type {User} from './TempTypes';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
@@ -18,7 +18,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {USER_ROLES, USER_STATUSES} from './TempTypes';
+import {USER_ROLES, USER_STATUSES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useMemo} from 'react';
 

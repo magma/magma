@@ -17,6 +17,7 @@ from .property_kind_enum import PropertyKind
 QUERY: str = """
 fragment PropertyTypeFragment on PropertyType {
   id
+  externalId
   name
   type
   index
@@ -42,6 +43,7 @@ class PropertyTypeFragment(DataClassJsonMixin):
     id: str
     name: str
     type: PropertyKind = enum_field(PropertyKind)
+    externalId: Optional[str]
     index: Optional[int]
     category: Optional[str]
     stringValue: Optional[str]

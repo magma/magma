@@ -58,6 +58,8 @@ spec:
                 names in the HACluster
               items:
                 type: string
+              maxItems: 2
+              minItems: 1
               type: array
           required:
           - gatewayResourceNames

@@ -7,31 +7,28 @@
 import os
 from datetime import datetime
 
+from pyinventory import InventoryClient
 from pyinventory.api.location import add_location
-from pyinventory.api.location_type import (
-    add_location_type,
-    delete_location_type_with_locations,
-)
+from pyinventory.api.location_type import add_location_type
 from pyinventory.site_survey import (
     delete_site_survey,
     get_site_surveys,
     upload_site_survey,
 )
 
+from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils.base_test import BaseTest
 
 
 class TestSiteSurvey(BaseTest):
+    def __init__(
+        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+    ) -> None:
+        super().__init__(testName, client, stub)
+
     def setUp(self) -> None:
         super().setUp()
-        self.location_types_created = []
-        self.location_types_created.append(
-            add_location_type(self.client, "City Center", [])
-        )
-
-    def tearDown(self) -> None:
-        for location_type in self.location_types_created:
-            delete_location_type_with_locations(self.client, location_type)
+        add_location_type(self.client, "City Center", [])
 
     def test_site_survey_created(self) -> None:
         location = add_location(

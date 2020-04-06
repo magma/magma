@@ -66,10 +66,20 @@ export type WorkOrderDetails_workOrder = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
-      +isEditable: ?boolean,
-      +isMandatory: ?boolean,
-      +isInstanceProperty: ?boolean,
+      +index: ?number,
       +stringValue: ?string,
+      +intValue: ?number,
+      +booleanValue: ?boolean,
+      +floatValue: ?number,
+      +latitudeValue: ?number,
+      +longitudeValue: ?number,
+      +rangeFromValue: ?number,
+      +rangeToValue: ?number,
+      +isEditable: ?boolean,
+      +isInstanceProperty: ?boolean,
+      +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
     |},
     +stringValue: ?string,
     +intValue: ?number,
@@ -194,22 +204,85 @@ v4 = {
 v5 = {
   "kind": "ScalarField",
   "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
+},
+v6 = {
+  "kind": "ScalarField",
+  "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v6 = [
+v7 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "intValue",
+  "args": null,
+  "storageKey": null
+},
+v8 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "booleanValue",
+  "args": null,
+  "storageKey": null
+},
+v9 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "floatValue",
+  "args": null,
+  "storageKey": null
+},
+v10 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "latitudeValue",
+  "args": null,
+  "storageKey": null
+},
+v11 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "longitudeValue",
+  "args": null,
+  "storageKey": null
+},
+v12 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "rangeFromValue",
+  "args": null,
+  "storageKey": null
+},
+v13 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "rangeToValue",
+  "args": null,
+  "storageKey": null
+},
+v14 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "category",
+  "args": null,
+  "storageKey": null
+},
+v15 = [
   (v0/*: any*/),
   (v1/*: any*/)
 ],
-v7 = [
+v16 = [
   {
     "kind": "FragmentSpread",
     "name": "EntityDocumentsTable_files",
     "args": null
   }
 ],
-v8 = {
+v17 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "title",
@@ -366,6 +439,15 @@ return {
             (v0/*: any*/),
             (v1/*: any*/),
             (v4/*: any*/),
+            (v5/*: any*/),
+            (v6/*: any*/),
+            (v7/*: any*/),
+            (v8/*: any*/),
+            (v9/*: any*/),
+            (v10/*: any*/),
+            (v11/*: any*/),
+            (v12/*: any*/),
+            (v13/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -376,70 +458,35 @@ return {
             {
               "kind": "ScalarField",
               "alias": null,
-              "name": "isMandatory",
+              "name": "isInstanceProperty",
               "args": null,
               "storageKey": null
             },
             {
               "kind": "ScalarField",
               "alias": null,
-              "name": "isInstanceProperty",
+              "name": "isMandatory",
               "args": null,
               "storageKey": null
             },
-            (v5/*: any*/)
+            (v14/*: any*/),
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "isDeleted",
+              "args": null,
+              "storageKey": null
+            }
           ]
         },
-        (v5/*: any*/),
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "intValue",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "floatValue",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "booleanValue",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "latitudeValue",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "longitudeValue",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "rangeFromValue",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "rangeToValue",
-          "args": null,
-          "storageKey": null
-        },
+        (v6/*: any*/),
+        (v7/*: any*/),
+        (v9/*: any*/),
+        (v8/*: any*/),
+        (v10/*: any*/),
+        (v11/*: any*/),
+        (v12/*: any*/),
+        (v13/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -448,7 +495,7 @@ return {
           "args": null,
           "concreteType": "Equipment",
           "plural": false,
-          "selections": (v6/*: any*/)
+          "selections": (v15/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -458,7 +505,7 @@ return {
           "args": null,
           "concreteType": "Location",
           "plural": false,
-          "selections": (v6/*: any*/)
+          "selections": (v15/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -468,7 +515,7 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": false,
-          "selections": (v6/*: any*/)
+          "selections": (v15/*: any*/)
         }
       ]
     },
@@ -480,7 +527,7 @@ return {
       "args": null,
       "concreteType": "File",
       "plural": true,
-      "selections": (v7/*: any*/)
+      "selections": (v16/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -490,7 +537,7 @@ return {
       "args": null,
       "concreteType": "File",
       "plural": true,
-      "selections": (v7/*: any*/)
+      "selections": (v16/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -543,7 +590,7 @@ return {
           "args": null,
           "concreteType": "ProjectType",
           "plural": false,
-          "selections": (v6/*: any*/)
+          "selections": (v15/*: any*/)
         }
       ]
     },
@@ -557,7 +604,7 @@ return {
       "plural": true,
       "selections": [
         (v0/*: any*/),
-        (v8/*: any*/),
+        (v17/*: any*/),
         (v2/*: any*/),
         {
           "kind": "LinkedField",
@@ -569,15 +616,9 @@ return {
           "plural": true,
           "selections": [
             (v0/*: any*/),
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "index",
-              "args": null,
-              "storageKey": null
-            },
+            (v5/*: any*/),
             (v4/*: any*/),
-            (v8/*: any*/),
+            (v17/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -599,7 +640,7 @@ return {
               "args": null,
               "storageKey": null
             },
-            (v5/*: any*/),
+            (v6/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -673,13 +714,7 @@ return {
                   "args": null,
                   "storageKey": null
                 },
-                {
-                  "kind": "ScalarField",
-                  "alias": null,
-                  "name": "category",
-                  "args": null,
-                  "storageKey": null
-                }
+                (v14/*: any*/)
               ]
             }
           ]

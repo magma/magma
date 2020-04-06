@@ -113,7 +113,7 @@ jobs:
           command: |
             sleep 10
             cd ${MAGMA_ROOT}/circleci
-            fab integ_test:branch=${CIRCLE_BRANCH},sha1=${CIRCLE_SHA1},build_package=False,deploy_artifacts=False
+            fab lte integ_test:branch=${CIRCLE_BRANCH},sha1=${CIRCLE_SHA1}
 
   feg-precommit:
     docker:

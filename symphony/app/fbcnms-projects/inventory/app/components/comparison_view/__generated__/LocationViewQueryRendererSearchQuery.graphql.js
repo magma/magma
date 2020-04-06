@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a323ea73d724af52e171808fb66ad0c5
+ * @relayHash 41527388297164bf7c8df91addf82c3c
  */
 
 /* eslint-disable */
@@ -31,6 +31,7 @@ export type LocationFilterInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
   index?: ?number,

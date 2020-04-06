@@ -71,6 +71,20 @@ func (ptc *PropertyTypeCreate) SetName(s string) *PropertyTypeCreate {
 	return ptc
 }
 
+// SetExternalID sets the external_id field.
+func (ptc *PropertyTypeCreate) SetExternalID(s string) *PropertyTypeCreate {
+	ptc.mutation.SetExternalID(s)
+	return ptc
+}
+
+// SetNillableExternalID sets the external_id field if the given value is not nil.
+func (ptc *PropertyTypeCreate) SetNillableExternalID(s *string) *PropertyTypeCreate {
+	if s != nil {
+		ptc.SetExternalID(*s)
+	}
+	return ptc
+}
+
 // SetIndex sets the index field.
 func (ptc *PropertyTypeCreate) SetIndex(i int) *PropertyTypeCreate {
 	ptc.mutation.SetIndex(i)
@@ -524,6 +538,14 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Column: propertytype.FieldName,
 		})
 		pt.Name = value
+	}
+	if value, ok := ptc.mutation.ExternalID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldExternalID,
+		})
+		pt.ExternalID = value
 	}
 	if value, ok := ptc.mutation.Index(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

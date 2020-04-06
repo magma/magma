@@ -6,10 +6,13 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+
+	"github.com/vektah/gqlparser/gqlerror"
 )
 
 type usersGroupResolver struct{}
@@ -45,4 +48,22 @@ func (r mutationResolver) EditUsersGroup(ctx context.Context, input models.EditU
 	}
 
 	return m.Save(ctx)
+}
+
+func (r mutationResolver) DeleteUsersGroup(ctx context.Context, id int) (bool, error) {
+	client := r.ClientFrom(ctx)
+	if err := client.UsersGroup.DeleteOneID(id).Exec(ctx); err != nil {
+		if ent.IsNotFound(err) {
+			return false, gqlerror.Errorf("users group doesn't exist")
+		}
+		return false, fmt.Errorf("deleting users group: %w", err)
+	}
+	return true, nil
+}
+
+func (r mutationResolver) UpdateUsersGroupMembers(ctx context.Context, input models.UpdateUsersGroupMembersInput) (*ent.UsersGroup, error) {
+	return r.ClientFrom(ctx).UsersGroup.UpdateOneID(input.ID).
+		AddMemberIDs(input.AddUserIds...).
+		RemoveMemberIDs(input.RemoveUserIds...).
+		Save(ctx)
 }
