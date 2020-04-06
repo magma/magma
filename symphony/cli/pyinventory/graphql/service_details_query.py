@@ -17,6 +17,54 @@ from gql.gql.enum_utils import enum_field
 from .service_endpoint_role_enum import ServiceEndpointRole
 
 
+QUERY: List[str] = CustomerFragmentQuery + PropertyFragmentQuery + ["""
+query ServiceDetailsQuery($id: ID!) {
+  service: node(id: $id) {
+    ... on Service {
+      id
+      name
+      externalId
+      customer {
+        ...CustomerFragment
+      }
+      endpoints {
+        id
+        port {
+          id
+          properties {
+            ...PropertyFragment
+          }
+          definition {
+            id
+            name
+          }
+          link {
+            id
+            properties {
+              ...PropertyFragment
+            }
+            services {
+              id
+            }
+          }
+        }
+        role
+      }
+      links {
+        id
+        properties {
+          ...PropertyFragment
+        }
+        services {
+          id
+        }
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class ServiceDetailsQuery(DataClassJsonMixin):
     @dataclass
@@ -88,58 +136,10 @@ class ServiceDetailsQuery(DataClassJsonMixin):
 
     data: ServiceDetailsQueryData
 
-    __QUERY__: str = CustomerFragmentQuery + PropertyFragmentQuery + """
-    query ServiceDetailsQuery($id: ID!) {
-  service: node(id: $id) {
-    ... on Service {
-      id
-      name
-      externalId
-      customer {
-        ...CustomerFragment
-      }
-      endpoints {
-        id
-        port {
-          id
-          properties {
-            ...PropertyFragment
-          }
-          definition {
-            id
-            name
-          }
-          link {
-            id
-            properties {
-              ...PropertyFragment
-            }
-            services {
-              id
-            }
-          }
-        }
-        role
-      }
-      links {
-        id
-        properties {
-          ...PropertyFragment
-        }
-        services {
-          id
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> ServiceDetailsQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

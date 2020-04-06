@@ -13,6 +13,17 @@ from dataclasses_json import DataClassJsonMixin
 
 from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
 
+QUERY: List[str] = LocationFragmentQuery + ["""
+query LocationDetailsQuery($id: ID!) {
+  location: node(id: $id) {
+    ... on Location {
+      ...LocationFragment
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class LocationDetailsQuery(DataClassJsonMixin):
     @dataclass
@@ -25,21 +36,10 @@ class LocationDetailsQuery(DataClassJsonMixin):
 
     data: LocationDetailsQueryData
 
-    __QUERY__: str = LocationFragmentQuery + """
-    query LocationDetailsQuery($id: ID!) {
-  location: node(id: $id) {
-    ... on Location {
-      ...LocationFragment
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> LocationDetailsQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

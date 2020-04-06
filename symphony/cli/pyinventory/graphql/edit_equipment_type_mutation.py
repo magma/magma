@@ -17,6 +17,26 @@ from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeF
 from .edit_equipment_type_input import EditEquipmentTypeInput
 
 
+QUERY: List[str] = EquipmentPortDefinitionFragmentQuery + EquipmentPositionDefinitionFragmentQuery + PropertyTypeFragmentQuery + ["""
+mutation EditEquipmentTypeMutation($input: EditEquipmentTypeInput!) {
+  editEquipmentType(input: $input) {
+    id
+    name
+    category
+    propertyTypes {
+      ...PropertyTypeFragment
+    }
+    positionDefinitions {
+      ...EquipmentPositionDefinitionFragment
+    }
+    portDefinitions {
+      ...EquipmentPortDefinitionFragment
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class EditEquipmentTypeMutation(DataClassJsonMixin):
     @dataclass
@@ -46,30 +66,10 @@ class EditEquipmentTypeMutation(DataClassJsonMixin):
 
     data: EditEquipmentTypeMutationData
 
-    __QUERY__: str = EquipmentPortDefinitionFragmentQuery + EquipmentPositionDefinitionFragmentQuery + PropertyTypeFragmentQuery + """
-    mutation EditEquipmentTypeMutation($input: EditEquipmentTypeInput!) {
-  editEquipmentType(input: $input) {
-    id
-    name
-    category
-    propertyTypes {
-      ...PropertyTypeFragment
-    }
-    positionDefinitions {
-      ...EquipmentPositionDefinitionFragment
-    }
-    portDefinitions {
-      ...EquipmentPortDefinitionFragment
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: EditEquipmentTypeInput) -> EditEquipmentTypeMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

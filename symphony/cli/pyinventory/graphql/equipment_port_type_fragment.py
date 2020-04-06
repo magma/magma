@@ -12,7 +12,7 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import DataClassJsonMixin
 
 from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
-QUERY: str = PropertyTypeFragmentQuery + """
+QUERY: List[str] = PropertyTypeFragmentQuery + ["""
 fragment EquipmentPortTypeFragment on EquipmentPortType {
   id
   name
@@ -24,7 +24,7 @@ fragment EquipmentPortTypeFragment on EquipmentPortType {
   }
 }
 
-"""
+"""]
 
 @dataclass
 class EquipmentPortTypeFragment(DataClassJsonMixin):

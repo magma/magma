@@ -15,6 +15,20 @@ from gql.gql.enum_utils import enum_field
 from .image_entity_enum import ImageEntity
 
 
+QUERY: List[str] = ["""
+mutation DeleteImageMutation(
+  $entityType: ImageEntity!
+  $entityId: ID!
+  $id: ID!
+) {
+  deleteImage(entityType: $entityType, entityId: $entityId, id: $id) {
+    id
+    fileName
+  }
+}
+
+"""]
+
 @dataclass
 class DeleteImageMutation(DataClassJsonMixin):
     @dataclass
@@ -28,24 +42,10 @@ class DeleteImageMutation(DataClassJsonMixin):
 
     data: DeleteImageMutationData
 
-    __QUERY__: str = """
-    mutation DeleteImageMutation(
-  $entityType: ImageEntity!
-  $entityId: ID!
-  $id: ID!
-) {
-  deleteImage(entityType: $entityType, entityId: $entityId, id: $id) {
-    id
-    fileName
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, entityType: ImageEntity, entityId: str, id: str) -> DeleteImageMutationData:
         # fmt: off
         variables = {"entityType": entityType, "entityId": entityId, "id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

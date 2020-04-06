@@ -18,6 +18,19 @@ from .user_status_enum import UserStatus
 from .edit_user_input import EditUserInput
 
 
+QUERY: List[str] = ["""
+mutation EditUserMutation($input: EditUserInput!) {
+  editUser(input: $input) {
+    id
+    authID
+    email
+    status
+    role
+  }
+}
+
+"""]
+
 @dataclass
 class EditUserMutation(DataClassJsonMixin):
     @dataclass
@@ -34,23 +47,10 @@ class EditUserMutation(DataClassJsonMixin):
 
     data: EditUserMutationData
 
-    __QUERY__: str = """
-    mutation EditUserMutation($input: EditUserInput!) {
-  editUser(input: $input) {
-    id
-    authID
-    email
-    status
-    role
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: EditUserInput) -> EditUserMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

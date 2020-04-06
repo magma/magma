@@ -15,6 +15,15 @@ from .equipment_fragment import EquipmentFragment, QUERY as EquipmentFragmentQue
 from .add_equipment_input import AddEquipmentInput
 
 
+QUERY: List[str] = EquipmentFragmentQuery + ["""
+mutation AddEquipmentMutation($input: AddEquipmentInput!) {
+  addEquipment(input: $input) {
+    ...EquipmentFragment
+  }
+}
+
+"""]
+
 @dataclass
 class AddEquipmentMutation(DataClassJsonMixin):
     @dataclass
@@ -27,19 +36,10 @@ class AddEquipmentMutation(DataClassJsonMixin):
 
     data: AddEquipmentMutationData
 
-    __QUERY__: str = EquipmentFragmentQuery + """
-    mutation AddEquipmentMutation($input: AddEquipmentInput!) {
-  addEquipment(input: $input) {
-    ...EquipmentFragment
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddEquipmentInput) -> AddEquipmentMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

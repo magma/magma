@@ -12,6 +12,13 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import DataClassJsonMixin
 
 
+QUERY: List[str] = ["""
+mutation RemoveServiceMutation($id: ID!) {
+  removeService(id: $id)
+}
+
+"""]
+
 @dataclass
 class RemoveServiceMutation(DataClassJsonMixin):
     @dataclass
@@ -20,17 +27,10 @@ class RemoveServiceMutation(DataClassJsonMixin):
 
     data: RemoveServiceMutationData
 
-    __QUERY__: str = """
-    mutation RemoveServiceMutation($id: ID!) {
-  removeService(id: $id)
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> RemoveServiceMutationData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

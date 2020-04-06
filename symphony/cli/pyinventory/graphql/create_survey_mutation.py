@@ -14,6 +14,13 @@ from dataclasses_json import DataClassJsonMixin
 from .survey_create_data_input import SurveyCreateData
 
 
+QUERY: List[str] = ["""
+mutation CreateSurveyMutation($data: SurveyCreateData!) {
+  createSurvey(data: $data)
+}
+
+"""]
+
 @dataclass
 class CreateSurveyMutation(DataClassJsonMixin):
     @dataclass
@@ -22,17 +29,10 @@ class CreateSurveyMutation(DataClassJsonMixin):
 
     data: CreateSurveyMutationData
 
-    __QUERY__: str = """
-    mutation CreateSurveyMutation($data: SurveyCreateData!) {
-  createSurvey(data: $data)
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, data: SurveyCreateData) -> CreateSurveyMutationData:
         # fmt: off
         variables = {"data": data}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data
