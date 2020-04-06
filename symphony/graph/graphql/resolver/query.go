@@ -7,6 +7,7 @@ package resolver
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -22,7 +23,6 @@ import (
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -46,18 +46,20 @@ func (r queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
 }
 
 func (r queryResolver) Location(ctx context.Context, id int) (*ent.Location, error) {
-	l, err := r.ClientFrom(ctx).Location.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying location: id=%q", id)
+	noder, err := r.Node(ctx, id)
+	if err != nil {
+		return nil, err
 	}
+	l, _ := noder.(*ent.Location)
 	return l, nil
 }
 
 func (r queryResolver) LocationType(ctx context.Context, id int) (*ent.LocationType, error) {
-	lt, err := r.ClientFrom(ctx).LocationType.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying location type: id=%q", id)
+	noder, err := r.Node(ctx, id)
+	if err != nil {
+		return nil, err
 	}
+	lt, _ := noder.(*ent.LocationType)
 	return lt, nil
 }
 
@@ -107,18 +109,20 @@ func (r queryResolver) NearestSites(ctx context.Context, latitude, longitude flo
 }
 
 func (r queryResolver) Equipment(ctx context.Context, id int) (*ent.Equipment, error) {
-	e, err := r.ClientFrom(ctx).Equipment.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying equipment: id=%q", id)
+	noder, err := r.Node(ctx, id)
+	if err != nil {
+		return nil, err
 	}
+	e, _ := noder.(*ent.Equipment)
 	return e, nil
 }
 
 func (r queryResolver) EquipmentType(ctx context.Context, id int) (*ent.EquipmentType, error) {
-	et, err := r.ClientFrom(ctx).EquipmentType.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying equipment type: id=%q", id)
+	noder, err := r.Node(ctx, id)
+	if err != nil {
+		return nil, err
 	}
+	et, _ := noder.(*ent.EquipmentType)
 	return et, nil
 }
 
@@ -132,11 +136,12 @@ func (r queryResolver) EquipmentTypes(
 }
 
 func (r queryResolver) EquipmentPortType(ctx context.Context, id int) (*ent.EquipmentPortType, error) {
-	e, err := r.ClientFrom(ctx).EquipmentPortType.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying equipment port type: id=%q", id)
+	noder, err := r.Node(ctx, id)
+	if err != nil {
+		return nil, err
 	}
-	return e, nil
+	ept, _ := noder.(*ent.EquipmentPortType)
+	return ept, nil
 }
 
 func (r queryResolver) EquipmentPortTypes(
@@ -210,7 +215,7 @@ func (r queryResolver) SearchForEntity(
 		Limit(*limit).
 		All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "error searching for locations")
+		return nil, fmt.Errorf("querying locations: %w", err)
 	}
 
 	edges := make([]*models.SearchEntryEdge, len(locations))
@@ -238,7 +243,7 @@ func (r queryResolver) SearchForEntity(
 		Limit(*limit - len(locations)).
 		All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "error searching for equipments")
+		return nil, fmt.Errorf("querying equipment: %w", err)
 	}
 	for _, e := range equipments {
 		et := e.QueryType().FirstX(ctx)
@@ -274,7 +279,7 @@ func (r queryResolver) SearchForNode(
 		Limit(*limit).
 		All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "error searching for locations")
+		return nil, fmt.Errorf("querying locations: %w", err)
 	}
 
 	edges := make([]*models.SearchNodeEdge, len(locations))
@@ -295,7 +300,7 @@ func (r queryResolver) SearchForNode(
 		Limit(*limit - len(locations)).
 		All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "error searching for equipments")
+		return nil, fmt.Errorf("querying equipment: %w", err)
 	}
 	for _, e := range equipments {
 		edges = append(edges, &models.SearchNodeEdge{
@@ -349,18 +354,20 @@ func (r queryResolver) Surveys(ctx context.Context) ([]*ent.Survey, error) {
 }
 
 func (r queryResolver) Service(ctx context.Context, id int) (*ent.Service, error) {
-	s, err := r.ClientFrom(ctx).Service.Get(ctx, id)
+	noder, err := r.Node(ctx, id)
 	if err != nil {
-		return nil, errors.Wrapf(err, "querying service: id=%q", id)
+		return nil, err
 	}
+	s, _ := noder.(*ent.Service)
 	return s, nil
 }
 
 func (r queryResolver) ServiceType(ctx context.Context, id int) (*ent.ServiceType, error) {
-	st, err := r.ClientFrom(ctx).ServiceType.Get(ctx, id)
+	noder, err := r.Node(ctx, id)
 	if err != nil {
-		return nil, errors.Wrapf(err, "querying service type: id=%q", id)
+		return nil, err
 	}
+	st, _ := noder.(*ent.ServiceType)
 	return st, nil
 }
 
@@ -437,7 +444,7 @@ func (r queryResolver) ReportFilters(ctx context.Context, entity models.FilterEn
 func (queryResolver) LatestPythonPackage(context.Context) (*models.LatestPythonPackageResult, error) {
 	var packages []models.PythonPackage
 	if err := json.Unmarshal([]byte(PyinventoryConsts), &packages); err != nil {
-		return nil, errors.Wrap(err, "decoding python packages")
+		return nil, fmt.Errorf("decoding python packages: %w", err)
 	}
 	if len(packages) == 0 {
 		return nil, nil
