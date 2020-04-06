@@ -8,7 +8,8 @@
  * @format
  */
 
-import type {ExpressRequest} from 'express';
+import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
+import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {FeatureID} from '@fbcnms/types/features';
 
 // A rule that gets evaluated when the featureflag is checked
@@ -237,6 +238,26 @@ export async function getEnabledFeatures(
   );
 
   return results.filter(Boolean);
+}
+
+export function insertFeatures(
+  req: FBCNMSRequest,
+  res: ExpressResponse,
+  next: NextFunction,
+) {
+  if (req.user.organization) {
+    getEnabledFeatures(req, req.user.organization)
+      .then(enabledFeatures => {
+        const features = Array.from(enabledFeatures, feature =>
+          String(feature),
+        ).join();
+        req.headers['x-auth-features'] = features;
+        next();
+      })
+      .catch(err => next(err));
+  } else {
+    next();
+  }
 }
 
 export default {...featureConfigs};
