@@ -564,7 +564,7 @@ func TestMoveEquipmentToPosition(t *testing.T) {
 
 	_, err = mr.MoveEquipmentToPosition(ctx, &childEquipment.ID, &posDefID, parentEquipment.ID)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "equipment position cycle")
+	require.Regexp(t, `equipment position \d+ cycle, parent \d+`, err.Error())
 }
 
 func TestDetachEquipmentFromPosition(t *testing.T) {
