@@ -141,10 +141,21 @@ func TestClient_DeleteReceiver(t *testing.T) {
 func TestClient_ModifyTenantRoute(t *testing.T) {
 	client, fsClient := newTestClient()
 	err := client.ModifyTenantRoute(testNID, &config.Route{
-		Receiver: "slack",
+		Receiver: "test_tenant_base_route",
+		Routes: []*config.Route{
+			{Receiver: "slack"},
+		},
 	})
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+
+	err = client.ModifyTenantRoute(testNID, &config.Route{
+		Receiver: "invalid_base_route",
+		Routes: []*config.Route{
+			{Receiver: "slack"},
+		},
+	})
+	assert.EqualError(t, err, "route base receiver is incorrect (should be \"test_tenant_base_route\"). The base node should match nothing, then add routes as children of the base node")
 
 	err = client.ModifyTenantRoute(testNID, &config.Route{
 		Receiver: "test",
