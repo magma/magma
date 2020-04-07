@@ -11,14 +11,13 @@ import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
 import Avatar from '@material-ui/core/Avatar';
-import Button from '@fbcnms/ui/components/design-system/Button';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
+import {DeleteIcon, EditIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
@@ -114,13 +113,12 @@ class ConfigureExpansionPanel extends React.Component<Props> {
             {this.deleteButton()}
             {onEdit && (
               <FormAction>
-                <Button
+                <IconButton
                   skin="primary"
-                  variant="text"
                   className={classes.iconButton}
-                  onClick={onEdit}>
-                  <EditIcon />
-                </Button>
+                  onClick={onEdit}
+                  icon={EditIcon}
+                />
               </FormAction>
             )}
           </div>
@@ -137,14 +135,13 @@ class ConfigureExpansionPanel extends React.Component<Props> {
         : instanceCount > 0;
     const deleteButton = (
       <FormAction>
-        <Button
+        <IconButton
           className={classes.iconButton}
           skin="primary"
-          variant="text"
           disabled={disabled}
-          onClick={this.props.onDelete}>
-          <DeleteIcon />
-        </Button>
+          onClick={this.props.onDelete}
+          icon={DeleteIcon}
+        />
       </FormAction>
     );
     const tooltip = `Cannot delete a type that is in use`;

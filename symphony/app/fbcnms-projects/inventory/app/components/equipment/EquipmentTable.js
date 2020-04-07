@@ -22,9 +22,9 @@ import type {WithStyles} from '@material-ui/core';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CommonStrings from '../../common/CommonStrings';
-import DeleteIcon from '@material-ui/icons/Delete';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import React from 'react';
 import RemoveEquipmentMutation from '../../mutations/RemoveEquipmentMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
@@ -36,6 +36,7 @@ import TableRow from '@material-ui/core/TableRow';
 import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {DeleteIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {capitalize} from '@fbcnms/util/strings';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -146,12 +147,11 @@ class EquipmentTable extends React.Component<Props> {
                   )}
                   <TableCell align="right">
                     <FormAction>
-                      <Button
-                        variant="text"
+                      <IconButton
                         skin="primary"
-                        onClick={() => this.onDelete(row)}>
-                        <DeleteIcon />
-                      </Button>
+                        onClick={() => this.onDelete(row)}
+                        icon={DeleteIcon}
+                      />
                     </FormAction>
                   </TableCell>
                 </TableRow>
