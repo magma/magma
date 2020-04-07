@@ -14,7 +14,6 @@ import type {EquipmentType} from '../../common/EquipmentType';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
-import EditIcon from '@material-ui/icons/Edit';
 import EquipmentBreadcrumbs from './EquipmentBreadcrumbs';
 import EquipmentDetails from './EquipmentDetails';
 import EquipmentDocumentsCard from './EquipmentDocumentsCard';
@@ -27,6 +26,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import React, {useContext, useState} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import fbt from 'fbt';
 import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'react-relay';
@@ -184,7 +184,7 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: '20px 20px 24px 20px',
+    padding: '0px 8px 16px 8px',
   },
   iconButton: {
     padding: '0px',
@@ -238,11 +238,8 @@ const EquipmentPropertiesCard = (props: Props) => {
                           equipment={equipment}
                         />
                         <FormAction>
-                          <Button
-                            variant="text"
-                            skin="primary"
-                            onClick={props.onEdit}>
-                            <EditIcon />
+                          <Button onClick={props.onEdit}>
+                            <fbt desc="">Edit Equipment</fbt>
                           </Button>
                         </FormAction>
                       </div>

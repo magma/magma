@@ -10,12 +10,11 @@
 
 import type {PositionDefinitionsAddEditTable_positionDefinition} from './__generated__/PositionDefinitionsAddEditTable_positionDefinition.graphql';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import CardSection from '../CardSection';
-import DeleteIcon from '@material-ui/icons/Delete';
 import DraggableTableRow from '../draggable/DraggableTableRow';
 import DroppableTableBody from '../draggable/DroppableTableBody';
-import IconButton from '@material-ui/core/IconButton';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import React, {useCallback} from 'react';
 import Table from '@material-ui/core/Table';
 import TableCell from '@material-ui/core/TableCell';
@@ -24,6 +23,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import inventoryTheme from '../../common/theme';
 import update from 'immutability-helper';
+import {DeleteIcon, PlusIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
 import {reorder} from '../draggable/DraggableUtils';
@@ -192,9 +192,9 @@ const PositionDefinitionsAddEditTable = (props: Props) => {
               <TableCell component="div" align="right">
                 <IconButton
                   onClick={onRemovePositionClicked.bind(this, i)}
-                  disabled={!definition.id.includes('@tmp')}>
-                  <DeleteIcon />
-                </IconButton>
+                  disabled={!definition.id.includes('@tmp')}
+                  icon={DeleteIcon}
+                />
               </TableCell>
             </DraggableTableRow>
           ))}
@@ -203,7 +203,8 @@ const PositionDefinitionsAddEditTable = (props: Props) => {
       <Button
         className={classes.addButton}
         color="primary"
-        variant="outlined"
+        variant="text"
+        leftIcon={PlusIcon}
         onClick={onAddPosition}>
         Add Position
       </Button>

@@ -12,15 +12,15 @@ import type {EquipmentPortType} from '../../common/EquipmentType';
 import type {PortDefinitionsAddEditTable_portDefinitions} from './__generated__/PortDefinitionsAddEditTable_portDefinitions.graphql';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import CardSection from '../CardSection';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import DeleteIcon from '@material-ui/icons/Delete';
 import DraggableTableRow from '../draggable/DraggableTableRow';
 import DroppableTableBody from '../draggable/DroppableTableBody';
-import IconButton from '@material-ui/core/IconButton';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
+import {DeleteIcon, PlusIcon} from '@fbcnms/ui/components/design-system/Icons';
 // $FlowFixMe - it exists
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
@@ -186,9 +186,9 @@ class PortDefinitionsAddEditTable extends React.Component<Props, State> {
                 <TableCell component="div" align="right">
                   <IconButton
                     onClick={this.onRemovePortClicked.bind(this, i)}
-                    disabled={!portDefinition.id.includes('@tmp')}>
-                    <DeleteIcon />
-                  </IconButton>
+                    disabled={!portDefinition.id.includes('@tmp')}
+                    icon={DeleteIcon}
+                  />
                 </TableCell>
               </DraggableTableRow>
             ))}
@@ -197,7 +197,8 @@ class PortDefinitionsAddEditTable extends React.Component<Props, State> {
         <Button
           className={classes.addButton}
           color="primary"
-          variant="outlined"
+          variant="text"
+          leftIcon={PlusIcon}
           onClick={this.onAddPort}>
           Add Port
         </Button>
