@@ -42,6 +42,9 @@ int sgw_handle_s11_create_session_request(
 int sgw_handle_sgi_endpoint_updated(
   const itti_sgi_update_end_point_response_t *const resp_p,
   imsi64_t imsi64);
+int sgw_handle_sgi_endpoint_deleted(
+    const itti_sgi_delete_end_point_request_t *const resp_pP,
+    imsi64_t imsi64);
 int sgw_handle_gtpv1uCreateTunnelResp(
   spgw_state_t* state,
   const Gtpv1uCreateTunnelResp *const endpoint_created_p, imsi64_t imsi64);
