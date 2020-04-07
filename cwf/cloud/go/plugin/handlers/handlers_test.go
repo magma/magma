@@ -337,6 +337,12 @@ func TestCwfGateways(t *testing.T) {
 			AllowedGrePeers: models2.AllowedGrePeers{
 				{IP: "1.1.1.1"},
 			},
+			GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+				GreProbeIntervalSecs: 3,
+				IcmpProbePktCount:    5,
+				CPUUtilThresholdPct:  0.6,
+				MemUtilThresholdPct:  0.6,
+			},
 		},
 		Magmad: &models.MagmadGatewayConfigs{
 			CheckinInterval:         15,
@@ -372,6 +378,12 @@ func TestCwfGateways(t *testing.T) {
 			CarrierWifi: &models2.GatewayCwfConfigs{
 				AllowedGrePeers: models2.AllowedGrePeers{
 					{IP: "1.1.1.1"},
+				},
+				GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+					GreProbeIntervalSecs: 3,
+					IcmpProbePktCount:    5,
+					CPUUtilThresholdPct:  0.6,
+					MemUtilThresholdPct:  0.6,
 				},
 			},
 			Tier: "t1",
@@ -409,6 +421,12 @@ func TestCwfGateways(t *testing.T) {
 			AllowedGrePeers: models2.AllowedGrePeers{
 				{IP: "1.1.1.1"},
 			},
+			GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+				GreProbeIntervalSecs: 3,
+				IcmpProbePktCount:    5,
+				CPUUtilThresholdPct:  0.6,
+				MemUtilThresholdPct:  0.6,
+			},
 		},
 		Tier: "t1",
 		Magmad: &models.MagmadGatewayConfigs{
@@ -443,7 +461,14 @@ func TestCwfGateways(t *testing.T) {
 		Description: "bar baz",
 		CarrierWifi: &models2.GatewayCwfConfigs{
 			AllowedGrePeers: models2.AllowedGrePeers{{IP: "1.1.1.1"}},
+			GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+				GreProbeIntervalSecs: 3,
+				IcmpProbePktCount:    5,
+				CPUUtilThresholdPct:  0.8,
+				MemUtilThresholdPct:  0.6,
+			},
 		},
+
 		Magmad: &models.MagmadGatewayConfigs{
 			AutoupgradeEnabled:      swag.Bool(true),
 			AutoupgradePollInterval: 300,
@@ -466,6 +491,7 @@ func TestCwfGateways(t *testing.T) {
 
 	expectedGet.Name = "newname"
 	expectedGet.Description = "bar baz"
+	expectedGet.CarrierWifi.GatewayHealthConfigs.CPUUtilThresholdPct = 0.8
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/cwf/n1/gateways/g1",
@@ -481,6 +507,12 @@ func TestCwfGateways(t *testing.T) {
 	expectedGwConfGet := &models2.GatewayCwfConfigs{
 		AllowedGrePeers: models2.AllowedGrePeers{
 			{IP: "1.1.1.1"},
+		},
+		GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+			GreProbeIntervalSecs: 3,
+			IcmpProbePktCount:    5,
+			CPUUtilThresholdPct:  0.8,
+			MemUtilThresholdPct:  0.6,
 		},
 	}
 	tc = tests.Test{
@@ -499,6 +531,12 @@ func TestCwfGateways(t *testing.T) {
 		AllowedGrePeers: models2.AllowedGrePeers{
 			{IP: "2.2.2.2/24", Key: swag.Uint32(444)},
 			{IP: "2.2.2.2/24", Key: swag.Uint32(444)},
+		},
+		GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+			GreProbeIntervalSecs: 3,
+			IcmpProbePktCount:    5,
+			CPUUtilThresholdPct:  0.6,
+			MemUtilThresholdPct:  0.6,
 		},
 	}
 	tc = tests.Test{
@@ -539,6 +577,12 @@ func TestCwfGateways(t *testing.T) {
 		AllowedGrePeers: models2.AllowedGrePeers{
 			{IP: "1.1.1.1"},
 		},
+		GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+			GreProbeIntervalSecs: 3,
+			IcmpProbePktCount:    5,
+			CPUUtilThresholdPct:  0.8,
+			MemUtilThresholdPct:  0.6,
+		},
 		LiImsis: []string{"IMSI001010000000009"},
 	}
 	tc = tests.Test{
@@ -557,6 +601,12 @@ func TestCwfGateways(t *testing.T) {
 		AllowedGrePeers: models2.AllowedGrePeers{
 			{IP: "2.2.2.2/24", Key: swag.Uint32(321)},
 			{IP: "2.2.2.3/24", Key: swag.Uint32(321)},
+		},
+		GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+			GreProbeIntervalSecs: 0,
+			IcmpProbePktCount:    0,
+			CPUUtilThresholdPct:  1,
+			MemUtilThresholdPct:  1,
 		},
 	}
 	tc = tests.Test{
@@ -692,6 +742,12 @@ func seedCwfGateway(t *testing.T) {
 		CarrierWifi: &models2.GatewayCwfConfigs{
 			AllowedGrePeers: models2.AllowedGrePeers{
 				{IP: "1.1.1.1/24"},
+			},
+			GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+				GreProbeIntervalSecs: 3,
+				IcmpProbePktCount:    5,
+				CPUUtilThresholdPct:  0.6,
+				MemUtilThresholdPct:  0.6,
 			},
 		},
 		Magmad: &models.MagmadGatewayConfigs{
