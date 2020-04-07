@@ -9,7 +9,7 @@
  */
 const express = require('express');
 const proxy = require('http-proxy-middleware');
-const {GRAPH_HOST} = require('../config');
+const {WORKFLOWS_HOST} = require('../config');
 import onProxyReq from '../utils/OnProxyRequest';
 
 const router = express.Router();
@@ -18,13 +18,13 @@ router.use(
   '/',
   proxy({
     // hostname to the target server
-    target: 'http://' + GRAPH_HOST,
+    target: 'http://' + WORKFLOWS_HOST,
 
     // enable websocket proxying
     ws: true,
 
     // rewrite paths
-    pathRewrite: (path: string): string => path.replace(/^\/graph/, ''),
+    pathRewrite: (path: string): string => path.replace(/^\/workflows/, ''),
 
     // subscribe to http-proxy's proxyReq event
     onProxyReq: onProxyReq,

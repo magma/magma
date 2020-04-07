@@ -19,6 +19,7 @@ const LOG_LEVEL = getValidLogLevel(process.env.LOG_LEVEL);
 const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || '';
 
 const GRAPH_HOST = process.env.GRAPH_HOST || 'graph';
+const WORKFLOWS_HOST = process.env.WORKFLOWS_HOST || 'workflows';
 const STORE_HOST = process.env.STORE_HOST || 'store';
 const DOCS_HOST = process.env.DOCS_HOST || 'docs';
 const ID_HOST = process.env.ID_HOST || 'id';
@@ -26,6 +27,7 @@ const ID_HOST = process.env.ID_HOST || 'id';
 module.exports = {
   DEV_MODE,
   GRAPH_HOST,
+  WORKFLOWS_HOST,
   LOG_FORMAT,
   LOG_LEVEL,
   MAPBOX_ACCESS_TOKEN,
