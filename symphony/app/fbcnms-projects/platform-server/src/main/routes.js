@@ -30,6 +30,7 @@ const handleReact = tab =>
     if (
       tab !== 'admin' &&
       tab !== 'id' &&
+      tab !== 'deactivated' &&
       organization &&
       organization.tabs &&
       organization.tabs.indexOf(tab) === -1
@@ -68,6 +69,11 @@ router.use(
   '/admin',
   access(AccessRoles.SUPERUSER),
   require('@fbcnms/platform-server/admin/routes').default,
+);
+router.get(
+  '/deactivated*',
+  access(AccessRoles.USER),
+  handleReact('deactivated'),
 );
 router.get('/admin*', access(AccessRoles.SUPERUSER), handleReact('admin'));
 router.get('/automation*', access(AccessRoles.USER), handleReact('automation'));

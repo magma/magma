@@ -16,8 +16,10 @@ import type {SessionUser} from '@fbcnms/magmalte/app/common/UserModel';
 
 import * as React from 'react';
 import RelayEnvironment from '../common/RelayEnvironment';
+import {DEACTIVATED_PAGE_PATH} from './DeactivatedPage';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {useContext, useEffect, useState} from 'react';
+import {useLocation} from 'react-router-dom';
 
 export type MainContextValue = {
   initializing: boolean,
@@ -73,7 +75,16 @@ type Props = $ReadOnly<{|
 
 export function MainContextProvider(props: Props) {
   const [value, setValue] = useState(DEFUALT_VALUE);
+  const location = useLocation();
   useEffect(() => {
+    if (location.pathname === DEACTIVATED_PAGE_PATH) {
+      setValue(currentValue => ({
+        ...currentValue,
+        initializing: false,
+      }));
+      return;
+    }
+
     getLoggedUserSettings()
       .then(meValue =>
         setValue(currentValue => ({
@@ -88,7 +99,7 @@ export function MainContextProvider(props: Props) {
           initializing: false,
         })),
       );
-  }, []);
+  }, [location.pathname]);
   return (
     <MainContext.Provider value={value}>{props.children}</MainContext.Provider>
   );

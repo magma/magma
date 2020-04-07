@@ -11,7 +11,22 @@
 import type {StoreUpdater as RelayStoreUpdater} from 'relay-runtime';
 
 import axios from 'axios';
+import {DEACTIVATED_PAGE_PATH} from '../components/DeactivatedPage';
 import {Environment, Network, RecordSource, Store} from 'relay-runtime';
+
+function handleDeactivatedUser(error) {
+  const errorResponse = error?.response;
+  if (
+    errorResponse != null &&
+    errorResponse.status === 403 &&
+    typeof errorResponse.data === 'string' &&
+    errorResponse.data.includes('user is deactivated')
+  ) {
+    window.location.replace(DEACTIVATED_PAGE_PATH);
+  }
+
+  throw error;
+}
 
 function fetchQuery(operation, variables) {
   return axios
@@ -21,7 +36,8 @@ function fetchQuery(operation, variables) {
     })
     .then(response => {
       return response.data;
-    });
+    })
+    .catch(handleDeactivatedUser);
 }
 
 const RelayEnvironment = new Environment({

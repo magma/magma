@@ -10,6 +10,7 @@
 
 import Admin from './admin/Admin';
 import Automation from './automation/Automation';
+import DeactivatedPage, {DEACTIVATED_PAGE_PATH} from './DeactivatedPage';
 import FilesUploadContextProvider from './context/FilesUploadContextProvider';
 import Hub from '@fbcnms/hub/app/components/Main';
 import IDToolMain from './id/IDToolMain';
@@ -32,6 +33,7 @@ export default () => (
         ) : (
           <FilesUploadContextProvider>
             <Switch>
+              <Route path={DEACTIVATED_PAGE_PATH} component={DeactivatedPage} />
               <Route path="/nms" component={MagmaMain} />
               <Route path="/hub" component={Hub} />
               <Route path="/inventory" component={Inventory} />
