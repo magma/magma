@@ -86,5 +86,10 @@ setup(
         "rfc3987>=1.3.0",
         "jsonpointer>=1.13",
         "webcolors>=1.11.0"
-    ]
+    ],
+    extras_require={
+        'dev': [
+            'mypy-protobuf>=1.20',
+        ],
+    },
 )
