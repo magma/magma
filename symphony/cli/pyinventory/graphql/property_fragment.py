@@ -12,7 +12,7 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import DataClassJsonMixin
 
 from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
-QUERY: str = PropertyTypeFragmentQuery + """
+QUERY: List[str] = PropertyTypeFragmentQuery + ["""
 fragment PropertyFragment on Property {
   id
   propertyType {
@@ -28,7 +28,7 @@ fragment PropertyFragment on Property {
   rangeToValue
 }
 
-"""
+"""]
 
 @dataclass
 class PropertyFragment(DataClassJsonMixin):

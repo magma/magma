@@ -71,6 +71,16 @@ services:
       USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
 
+  health:
+    <<: *feggoservice
+    image: ${DOCKER_REGISTRY}cwag_go:${IMAGE_VERSION}
+    container_name: health
+    # Needed in order to enable/disable ICMP
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
+
   magmad:
     <<: *pyservice
     container_name: magmad

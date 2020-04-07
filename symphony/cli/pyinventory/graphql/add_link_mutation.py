@@ -15,6 +15,21 @@ from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 from .add_link_input import AddLinkInput
 
 
+QUERY: List[str] = PropertyFragmentQuery + ["""
+mutation AddLinkMutation($input: AddLinkInput!) {
+  addLink(input: $input) {
+    id
+    properties {
+      ...PropertyFragment
+    }
+    services {
+      id
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class AddLinkMutation(DataClassJsonMixin):
     @dataclass
@@ -37,25 +52,10 @@ class AddLinkMutation(DataClassJsonMixin):
 
     data: AddLinkMutationData
 
-    __QUERY__: str = PropertyFragmentQuery + """
-    mutation AddLinkMutation($input: AddLinkInput!) {
-  addLink(input: $input) {
-    id
-    properties {
-      ...PropertyFragment
-    }
-    services {
-      id
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddLinkInput) -> AddLinkMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

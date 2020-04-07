@@ -9,7 +9,7 @@ from typing import List, Optional
 import dateutil.parser
 import requests
 from fabric.api import run
-from fabric.context_managers import cd, lcd
+from fabric.context_managers import cd, lcd, settings
 from fabric.contrib.files import exists
 from fabric.exceptions import CommandTimeout
 from fabric.operations import get, local, put
@@ -121,6 +121,12 @@ def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
               'with the job')
         raise e
     finally:
+        if env.stack == LTE_STACK:
+            _destroy_vms(repo, magma_root, 'lte/gateway',
+                         ['magma', 'magma_test', 'magma_trfserver'])
+        elif env.stack == CWF_STACK:
+            _destroy_vms(repo, magma_root, 'cwf/gateway',
+                         ['cwag', 'cwag_test'])
         _release_node_lease(api_url, lease.node_id, lease.lease_id,
                             cert_file, cert_key_file)
 
@@ -243,24 +249,23 @@ def _run_remote_lte_package(repo: str, magma_root: str,
                             destroy_vm: bool):
     repo_name = _get_repo_name(repo)
 
-    # We upload to the magma/fb directory on the CI node, but that maps to
-    # /home/vagrant/magma/fb on the magma VM
-    def secpath(user, file):
-        return f'/home/{user}/{repo_name}/{magma_root}/fb/{file}'
+    remote_secrets_dir = f'/home/magma/{repo_name}/{magma_root}/fb'
+    cert_file = f'{remote_secrets_dir}/rootCA.pem'
+    control_proxy_file = f'{remote_secrets_dir}/control_proxy.yml'
 
-    remote_secrets_dir = secpath('magma', '')
-    cert_file = secpath('magma', 'rootCA.pem')
-    control_proxy_file = secpath('magma', 'control_proxy.yml')
-
-    # Upload rootCA, control proxy config
+    # Upload rootCA, control proxy config to CI node
     run(f'mkdir -p {remote_secrets_dir}')
     put(package_cert, cert_file)
     put(package_control_proxy, control_proxy_file)
 
+    # These map to a different directory on the vagrant VM
+    vagrant_cert = '/home/vagrant/magma/fb/rootCA.pem'
+    vagrant_cp = '/home/vagrant/magma/fb/control_proxy.yml'
+
     with cd(f'{repo_name}/{magma_root}/lte/gateway'):
         fab_args = f'vcs=git,all_deps=False,' \
-                   f'cert_file={secpath("vagrant", "rootCA.pem")},' \
-                   f'proxy_config={secpath("vagrant", "control_proxy.yml")},' \
+                   f'cert_file={vagrant_cert},' \
+                   f'proxy_config={vagrant_cp},' \
                    f'destroy_vm={destroy_vm}'
         run(f'fab test package:{fab_args}')
         # This will create /tmp/packages.tar.gz, /tmp/packages.txt on the
@@ -307,7 +312,7 @@ def _deploy_cwf_images(repo: str, magma_root: str,
     with cd(f'{repo_name}/{magma_root}/cwf/gateway/docker'):
         for img in CWF_IMAGES:
             run(f'../../../orc8r/tools/docker/publish.sh '
-                f'-r {docker_registry} -i {img}'
+                f'-r {docker_registry} -i {img} '
                 f'-u {user} -p /tmp/jfrog_key -v {container_version}')
 
     if append_oss_hash:
@@ -369,6 +374,13 @@ def _do_newer_running_workflows_exist(repo: str,
                   f'current build, will stop this run now.')
             return True
     return False
+
+
+def _destroy_vms(repo: str, magma_root: str,
+                 path: str, vms: List[str]) -> None:
+    repo_name = _get_repo_name(repo)
+    with cd(f'{repo_name}/{magma_root}/{path}'), settings(warn_only=True):
+        run(f'vagrant destroy -f {" ".join(vms)}')
 
 
 def _release_node_lease(api_url: str, node_id: str, lease_id: str,

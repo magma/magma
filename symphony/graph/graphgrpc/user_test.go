@@ -90,3 +90,22 @@ func TestUserService_CreateAfterDelete(t *testing.T) {
 	require.Equal(t, user.StatusACTIVE, userObject.Status)
 	require.Equal(t, user.RoleOWNER, userObject.Role)
 }
+
+func TestUserService_CreateGroup(t *testing.T) {
+	client := newTestClient(t)
+	us := NewUserService(func(context.Context, string) (*ent.Client, error) { return client, nil })
+	ctx := context.Background()
+	exist, err := client.UsersGroup.Query().Exist(ctx)
+	require.NoError(t, err)
+	require.False(t, exist)
+	_, err = us.Create(ctx, &AddUserInput{Tenant: "XXX", Id: "YYY", IsOwner: false})
+	require.NoError(t, err)
+	count, err := client.UsersGroup.Query().Count(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, count)
+	_, err = us.Create(ctx, &AddUserInput{Tenant: "XXX", Id: "YYY2", IsOwner: false})
+	require.NoError(t, err)
+	count, err = client.UsersGroup.Query().Count(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, count)
+}

@@ -15,6 +15,20 @@ from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeF
 from .service_type_create_data_input import ServiceTypeCreateData
 
 
+QUERY: List[str] = PropertyTypeFragmentQuery + ["""
+mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {
+  addServiceType(data: $data) {
+    id
+    name
+    hasCustomer
+    propertyTypes {
+      ...PropertyTypeFragment
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class AddServiceTypeMutation(DataClassJsonMixin):
     @dataclass
@@ -34,24 +48,10 @@ class AddServiceTypeMutation(DataClassJsonMixin):
 
     data: AddServiceTypeMutationData
 
-    __QUERY__: str = PropertyTypeFragmentQuery + """
-    mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {
-  addServiceType(data: $data) {
-    id
-    name
-    hasCustomer
-    propertyTypes {
-      ...PropertyTypeFragment
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, data: ServiceTypeCreateData) -> AddServiceTypeMutationData:
         # fmt: off
         variables = {"data": data}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

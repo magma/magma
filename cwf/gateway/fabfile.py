@@ -7,10 +7,10 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import sys
 from distutils.util import strtobool
 from enum import Enum
 
+import sys
 from fabric.api import cd, env, execute, lcd, local, put, run, settings, sudo
 
 sys.path.append('../../orc8r')
@@ -39,7 +39,7 @@ class SubTests(Enum):
 
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
-               transfer_images=False,
+               transfer_images='False',
                destroy_vm="False", no_build="False", tests_to_run="integ_test"):
     """
     Run the integration tests. This defaults to running on local vagrant
@@ -68,6 +68,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         return
     destroy_vm = bool(strtobool(destroy_vm))
     no_build = bool(strtobool(no_build))
+    transfer_images = bool(strtobool(transfer_images))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine

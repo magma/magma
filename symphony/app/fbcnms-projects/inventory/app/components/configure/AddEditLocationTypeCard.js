@@ -308,21 +308,19 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
   };
 
   editLocationType = () => {
-    const onError = (error: Error) =>
-      this.setState({error: getGraphError(error), isSaving: false});
+    const onError = (error: Error) => {
+      this.setState({isSaving: false});
+      const errorMessage = getGraphError(error);
+      this.props.enqueueSnackbar(errorMessage, {
+        children: key => (
+          <SnackbarItem id={key} message={errorMessage} variant="error" />
+        ),
+      });
+    };
 
     const handleErrors = errors => {
       if (errors && errors[0]) {
-        this.setState({isSaving: false});
-        this.props.enqueueSnackbar(errors[0].message, {
-          children: key => (
-            <SnackbarItem
-              id={key}
-              message={errors[0].message}
-              variant="error"
-            />
-          ),
-        });
+        onError(errors[0]);
       }
     };
 

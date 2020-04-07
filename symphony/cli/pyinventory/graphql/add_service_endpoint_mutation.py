@@ -18,6 +18,30 @@ from .service_endpoint_role_enum import ServiceEndpointRole
 from .add_service_endpoint_input import AddServiceEndpointInput
 
 
+QUERY: List[str] = CustomerFragmentQuery + ["""
+mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
+  addServiceEndpoint(input: $input) {
+    id
+    name
+    externalId
+    customer {
+      ...CustomerFragment
+    }
+    endpoints {
+      id
+      port {
+        id
+      }
+      role
+    }
+    links {
+      id
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class AddServiceEndpointMutation(DataClassJsonMixin):
     @dataclass
@@ -53,34 +77,10 @@ class AddServiceEndpointMutation(DataClassJsonMixin):
 
     data: AddServiceEndpointMutationData
 
-    __QUERY__: str = CustomerFragmentQuery + """
-    mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
-  addServiceEndpoint(input: $input) {
-    id
-    name
-    externalId
-    customer {
-      ...CustomerFragment
-    }
-    endpoints {
-      id
-      port {
-        id
-      }
-      role
-    }
-    links {
-      id
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddServiceEndpointInput) -> AddServiceEndpointMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

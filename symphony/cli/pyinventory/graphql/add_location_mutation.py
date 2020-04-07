@@ -15,6 +15,15 @@ from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
 from .add_location_input import AddLocationInput
 
 
+QUERY: List[str] = LocationFragmentQuery + ["""
+mutation AddLocationMutation($input: AddLocationInput!) {
+  addLocation(input: $input) {
+    ...LocationFragment
+  }
+}
+
+"""]
+
 @dataclass
 class AddLocationMutation(DataClassJsonMixin):
     @dataclass
@@ -27,19 +36,10 @@ class AddLocationMutation(DataClassJsonMixin):
 
     data: AddLocationMutationData
 
-    __QUERY__: str = LocationFragmentQuery + """
-    mutation AddLocationMutation($input: AddLocationInput!) {
-  addLocation(input: $input) {
-    ...LocationFragment
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddLocationInput) -> AddLocationMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

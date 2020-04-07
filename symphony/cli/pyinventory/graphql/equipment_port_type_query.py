@@ -13,6 +13,17 @@ from dataclasses_json import DataClassJsonMixin
 
 from .equipment_port_type_fragment import EquipmentPortTypeFragment, QUERY as EquipmentPortTypeFragmentQuery
 
+QUERY: List[str] = EquipmentPortTypeFragmentQuery + ["""
+query EquipmentPortTypeQuery($id: ID!) {
+  port_type: node(id: $id) {
+    ... on EquipmentPortType {
+      ...EquipmentPortTypeFragment
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class EquipmentPortTypeQuery(DataClassJsonMixin):
     @dataclass
@@ -25,21 +36,10 @@ class EquipmentPortTypeQuery(DataClassJsonMixin):
 
     data: EquipmentPortTypeQueryData
 
-    __QUERY__: str = EquipmentPortTypeFragmentQuery + """
-    query EquipmentPortTypeQuery($id: ID!) {
-  port_type: node(id: $id) {
-    ... on EquipmentPortType {
-      ...EquipmentPortTypeFragment
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> EquipmentPortTypeQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

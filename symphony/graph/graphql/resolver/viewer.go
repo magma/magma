@@ -28,8 +28,13 @@ func (viewerResolver) Permissions(ctx context.Context, obj *viewer.Viewer) (*mod
 	adminPolicy := models.AdministrativePolicy{
 		CanRead: u.Role == user.RoleADMIN || u.Role == user.RoleOWNER,
 	}
+	readOnly, err := viewer.IsUserReadOnly(ctx, u)
+	if err != nil {
+		return nil, err
+	}
 	res := models.PermissionSettings{
-		CanWrite:    obj.Role != "readonly",
+		// TODO(T64743627): Deprecate CanWrite field
+		CanWrite:    !readOnly,
 		AdminPolicy: &adminPolicy,
 	}
 	return &res, nil
