@@ -154,8 +154,9 @@ static void* sgw_intertask_interface(void* args_p)
           imsi64,
           &failed_cause);
         if (rc != RETURNok) {
-          OAILOG_ERROR(
+          OAILOG_ERROR_UE(
             LOG_SPGW_APP,
+            imsi64,
             "Send Create Bearer Failure Response to PCRF with cause :%d \n",
             failed_cause);
           // Send Reject to PCRF
@@ -172,11 +173,11 @@ static void* sgw_intertask_interface(void* args_p)
           &received_message_p->ittiMsg.gx_nw_init_deactv_bearer_request,
           imsi64);
         if (rc != RETURNok) {
-          OAILOG_ERROR(
+          OAILOG_ERROR_UE(
             LOG_SPGW_APP,
-            "Failed to handle NW_INITIATED_DEACTIVATE_BEARER_REQ for imsi:%ld, "
-            "send bearer deactivation reject to SPGW service \n",
-            imsi64);
+            imsi64,
+            "Failed to handle NW_INITIATED_DEACTIVATE_BEARER_REQ, "
+            "send bearer deactivation reject to SPGW service \n");
           // TODO-Uncomment once implemented at PCRF
           /* rc = send_dedicated_bearer_deactv_rsp(invalid_bearer_id,REQUEST_REJECTED);
            */
