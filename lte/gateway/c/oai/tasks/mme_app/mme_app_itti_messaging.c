@@ -80,14 +80,17 @@ void mme_app_itti_ue_context_release(
   message_p =
     itti_alloc_new_message(TASK_MME_APP, S1AP_UE_CONTEXT_RELEASE_COMMAND);
   if (message_p == NULL) {
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_MME_APP,
+      ue_context_p->emm_context._imsi64,
       "Failed to allocate memory for S1AP_UE_CONTEXT_RELEASE_COMMAND \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  OAILOG_INFO(
-    LOG_MME_APP, "Sending UE Context Release Cmd to S1ap for (ue_id = %u)\n"
+  OAILOG_INFO_UE(
+    LOG_MME_APP,
+    ue_context_p->emm_context._imsi64,
+    "Sending UE Context Release Cmd to S1ap for (ue_id = %u)\n"
     "UE Context Release Cause = (%d)\n",
     ue_context_p->mme_ue_s1ap_id,
     cause);
@@ -137,8 +140,9 @@ int mme_app_send_s11_release_access_bearers_req(
   message_p =
     itti_alloc_new_message(TASK_MME_APP, S11_RELEASE_ACCESS_BEARERS_REQUEST);
   if (message_p == NULL) {
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_MME_APP,
+      ue_mm_context->emm_context._imsi64,
       "Failed to allocate memory for S11_RELEASE_ACCESS_BEARERS_REQUEST \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -190,17 +194,14 @@ int mme_app_send_s11_create_session_req(
     OAILOG_ERROR(LOG_MME_APP, "Invalid UE MM context received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  OAILOG_DEBUG(
-    LOG_MME_APP,
-    "Handling imsi " IMSI_64_FMT "\n",
-    ue_mm_context->emm_context._imsi64);
   if (ue_mm_context->subscriber_status != SS_SERVICE_GRANTED) {
     /*
      * HSS rejected the bearer creation or roaming is not allowed for this
      * UE. This result will trigger an ESM Failure message sent to UE.
      */
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_MME_APP,
+      ue_mm_context->emm_context._imsi64,
       "Not implemented: ACCESS NOT GRANTED, send ESM Failure to NAS\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -318,8 +319,9 @@ int mme_app_send_s11_create_session_req(
   /*
    * Set PDN type for pdn_type and PAA even if this IE is redundant
    */
-  OAILOG_DEBUG(
+  OAILOG_DEBUG_UE(
     LOG_MME_APP,
+    ue_mm_context->emm_context._imsi64,
     "selected apn config PDN Type = %d for (ue_id = %u)\n",
     selected_apn_config_p->pdn_type,
     ue_mm_context->mme_ue_s1ap_id);
@@ -376,16 +378,18 @@ int mme_app_send_s11_create_session_req(
     ue_mm_context->e_utran_cgi.plmn.mnc_digit3;
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
 
-  OAILOG_INFO(
-    TASK_MME_APP,
+  OAILOG_INFO_UE(
+    LOG_MME_APP,
+    ue_mm_context->emm_context._imsi64,
     "Sending S11 CREATE SESSION REQ message to SPGW for ue_id "
     MME_UE_S1AP_ID_FMT "\n",
     ue_mm_context->mme_ue_s1ap_id);
 
    if ((itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p)) !=
     RETURNok) {
-    OAILOG_ERROR(
-      TASK_MME_APP,
+    OAILOG_ERROR_UE(
+      LOG_MME_APP,
+      ue_mm_context->emm_context._imsi64,
       "Failed to send S11 CREATE SESSION REQ message to SPGW for ue_id "
       MME_UE_S1AP_ID_FMT "\n",
       ue_mm_context->mme_ue_s1ap_id);
@@ -492,16 +496,15 @@ void nas_itti_sgsap_uplink_unitdata(
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
     != RETURNok) {
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_MME_APP,
-      "Failed to send SGSAP Uplink Unitdata to SGS task for Imsi : "
-      "%s \n",
-      imsi);
+      message_p->ittiMsgHeader.imsi,
+      "Failed to send SGSAP Uplink Unitdata to SGS task\n");
   } else {
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_MME_APP,
-      "Sent SGSAP Uplink Unitdata to SGS task for Imsi :%s \n",
-      imsi);
+      message_p->ittiMsgHeader.imsi,
+      "Sent SGSAP Uplink Unitdata to SGS task\n");
   }
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -542,16 +545,15 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
     != RETURNok) {
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_MME_APP,
-      "Failed to send SGSAP Tmsi Reallocation Complete to SGS task for Imsi : "
-      "%s \n",
-      imsi);
+      message_p->ittiMsgHeader.imsi,
+      "Failed to send SGSAP Tmsi Reallocation Complete to SGS task\n");
   } else {
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_MME_APP,
-      "Sent SGSAP Tmsi Reallocation Complete to SGS task for Imsi :%s \n",
-      imsi);
+      message_p->ittiMsgHeader.imsi,
+      "Sent SGSAP Tmsi Reallocation Complete to SGS task\n");
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -591,13 +593,15 @@ void mme_app_itti_sgsap_ue_activity_ind(
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
     != RETURNok) {
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_MME_APP,
+      message_p->ittiMsgHeader.imsi,
       "Failed to send SGSAP UE ACTIVITY IND to SGS task for Imsi : %s \n",
       imsi);
   } else {
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_MME_APP,
+      message_p->ittiMsgHeader.imsi,
       "Sent SGSAP UE ACTIVITY IND to SGS task for Imsi :%s \n",
       imsi);
   }
