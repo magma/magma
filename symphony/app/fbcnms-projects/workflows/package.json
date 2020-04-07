@@ -1,0 +1,14 @@
+{
+  "name": "workflows",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Ken Garber <kengarber@fb.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@fbcnms/babel-register": "^0.1.0",
+    "express": "^4.16.3"
+  },
+  "scripts": {
+    "start": "node -r @fbcnms/babel-register src/index.js"
+  }
+}
