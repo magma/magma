@@ -319,39 +319,39 @@ def _build_magma():
     """ Builds magma """
 
     with cd(AGW_ROOT):
-        run('make')
+        run('make 2>&1 | tee magma_vagrant_make.log')
 
 
 def _oai_coverage():
     """ Get the code coverage statistic for OAI """
 
     with cd(AGW_ROOT):
-        run('make coverage_oai')
+        run('make coverage_oai 2>&1 | tee magma_vagrant_make_coverage_oai.log')
 
 
 def _run_unit_tests():
     """ Run the magma unit tests """
     with cd(AGW_ROOT):
         # Run the unit tests
-        run('make test')
+        run('make test 2>&1 | tee magma_vagrant_make_test.log')
 
 
 def _python_coverage():
     with cd(AGW_PYTHON_ROOT):
-        run('make coverage')
+        run('make coverage 2>&1 | tee ../magma_vagrant_make_coverage.log')
 
 
 def _start_gateway():
     """ Starts the gateway """
 
     with cd(AGW_ROOT):
-        run('make run')
+        run('make run 2>&1 | tee magma_vagrant_make_run.log')
 
 
 def _run_local_integ_tests():
     """ Execute integ tests that run on magma access gateway """
     with cd(AGW_INTEG_ROOT):
-        run('make local_integ_test')
+        run('make local_integ_test 2>&1 | tee ../../magma_vagrant_make_local_integ_test.log')
 
 
 def _set_service_config_var(service, var_name, value):
@@ -369,7 +369,7 @@ def _start_trfserver():
     key = env.key_filename
     local('ssh -i %s -o UserKnownHostsFile=/dev/null'
           ' -o StrictHostKeyChecking=no -tt %s -p %s'
-          ' \'sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
+          ' \'sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off 2>&1 | tee magma/lte/gateway/magma_vagrant_trfserve_disable_tcp_checksumming.log;'
           ' nohup sudo /usr/local/bin/traffic_server.py -d 192.168.60.144 62462\''
           % (key, host, port))
 
@@ -378,9 +378,9 @@ def _make_integ_tests():
     """ Build and run the integration tests """
 
     with cd(AGW_PYTHON_ROOT):
-        run('make')
+        run('make 2>&1 | tee ../magma_vagrant_test_make1.log')
     with cd(AGW_INTEG_ROOT):
-        run('make')
+        run('make 2>&1 | tee ../../magma_vagrant_test_make2.log')
 
 
 def _run_integ_tests(gateway_ip='192.168.60.142'):
@@ -410,8 +410,8 @@ def _run_integ_tests(gateway_ip='192.168.60.142'):
           ' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests; '
           # We don't have a proper shell, so the `magtivate` alias isn't
           # available. We instead directly source the activate file
-          ' sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
+          ' sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off 2>&1 | tee ../../magma_vagrant_test_disable_tcp_checksumming.log;'
           ' source ~/build/python/bin/activate;'
           ' export GATEWAY_IP=%s;'
-          ' make integ_test\''
+          ' make -i integ_test 2>&1 | tee ../../magma_run_s1ap_tester.log\''
           % (key, host, port, gateway_ip))
