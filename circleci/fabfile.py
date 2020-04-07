@@ -9,7 +9,7 @@ from typing import List, Optional
 import dateutil.parser
 import requests
 from fabric.api import run
-from fabric.context_managers import cd, lcd
+from fabric.context_managers import cd, lcd, settings
 from fabric.contrib.files import exists
 from fabric.exceptions import CommandTimeout
 from fabric.operations import get, local, put
@@ -378,12 +378,9 @@ def _do_newer_running_workflows_exist(repo: str,
 
 def _destroy_vms(repo: str, magma_root: str,
                  path: str, vms: List[str]) -> None:
-    try:
-        repo_name = _get_repo_name(repo)
-        with cd(f'{repo_name}/{magma_root}/{path}'):
-            run(f'vagrant destroy -f {" ".join(vms)}')
-    except Exception as e:
-        print(f'Caught exception from destroying VMs: {e}')
+    repo_name = _get_repo_name(repo)
+    with cd(f'{repo_name}/{magma_root}/{path}'), settings(warn_only=True):
+        run(f'vagrant destroy -f {" ".join(vms)}')
 
 
 def _release_node_lease(api_url: str, node_id: str, lease_id: str,
