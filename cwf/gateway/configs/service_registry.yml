@@ -49,6 +49,9 @@ services:
   eap_aka:
     ip_address: 127.0.0.1
     port: 9123
+  health:
+    ip_address: 127.0.0.1
+    port: 9107
   redis:
     ip_address: 127.0.0.1
     port: 6380

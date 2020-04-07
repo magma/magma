@@ -108,10 +108,10 @@ RUN make -C $MAGMA_ROOT/cwf/gateway build
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS uesim
+FROM ubuntu:xenial AS cwag_go
 
 # Install envdir.
-RUN apt-get -y update && apt-get -y install daemontools
+RUN apt-get -y update && apt-get -y install daemontools curl iptables
 
 # Copy the build artifacts.
 COPY --from=builder /var/opt/magma/bin /var/opt/magma/bin
