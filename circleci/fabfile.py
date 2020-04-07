@@ -313,7 +313,7 @@ def _deploy_cwf_images(repo: str, magma_root: str,
     with cd(f'{repo_name}/{magma_root}/cwf/gateway/docker'):
         for img in CWF_IMAGES:
             run(f'../../../orc8r/tools/docker/publish.sh '
-                f'-r {docker_registry} -i {img}'
+                f'-r {docker_registry} -i {img} '
                 f'-u {user} -p /tmp/jfrog_key -v {container_version}')
 
     if append_oss_hash:
