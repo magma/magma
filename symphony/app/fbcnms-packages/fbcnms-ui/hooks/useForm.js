@@ -12,7 +12,7 @@ import * as React from 'react';
 
 type InputChangeFunc<TFormState, TVal> = (
   formUpdate: FormUpdate<TFormState, TVal>,
-) => (event: SyntheticInputEvent<HTMLElement>) => void;
+) => (event: $Shape<SyntheticInputEvent<HTMLElement>>) => void;
 type FormUpdate<TFormState, TVal = string> = (
   val: TVal,
   event: SyntheticInputEvent<HTMLElement>,
@@ -22,7 +22,7 @@ export default function useForm<TFormState: {}>({
   initialState,
   onFormUpdated,
 }: {
-  initialState: TFormState,
+  initialState: $Shape<TFormState>,
   onFormUpdated?: (state: TFormState) => void,
 }): {|
   formState: TFormState,
@@ -31,7 +31,7 @@ export default function useForm<TFormState: {}>({
   updateListItem: (
     listName: $Keys<TFormState>,
     idx: number,
-    update: $Shape<TFormState> | TFormState,
+    update: $ElementType<TFormState, $Keys<TFormState>>,
   ) => void,
   addListItem: (listName: $Keys<TFormState>, item: {}) => void,
   removeListItem: (listName: $Keys<TFormState>, idx: number) => void,
@@ -68,7 +68,7 @@ export default function useForm<TFormState: {}>({
     (
       listName: $Keys<TFormState>,
       idx: number,
-      update: $Shape<TFormState> | TFormState,
+      update: $ElementType<TFormState, $Keys<TFormState>>,
     ) => {
       updateFormState({
         [listName]: immutablyUpdateArray(
