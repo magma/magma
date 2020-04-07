@@ -10,16 +10,17 @@
 
 import type {RowsSeparationTypes} from './TableContent';
 import type {SelectionType} from '../Checkbox/Checkbox';
-import type {TableContextValue} from './TableContext';
+import type {TableHeaderData} from './TableHeader';
+import type {TableSettings, TableSortSettings} from './TableContext';
 
 import * as React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
 import TableContent from './TableContent';
-import TableContext from './TableContext';
 import TableHeader from './TableHeader';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import useVerticalScrollingEffect from '../hooks/useVerticalScrollingEffect';
+import {TableContextProvider} from './TableContext';
 import {TableSelectionContextProvider} from './TableSelectionContext';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useRef, useState} from 'react';
@@ -86,16 +87,6 @@ const useStyles = makeStyles(() => ({
 
 export type TableRowDataType<T> = $ReadOnly<{|key?: string, ...T|}>;
 
-export type TableColumnType<T> = $ReadOnly<{|
-  key: string,
-  title: React.Node | string,
-  titleClassName?: ?string,
-  render: (rowData: TableRowDataType<T>) => React.Node | string,
-  className?: ?string,
-  sortable?: boolean,
-  sortDirection?: 'asc' | 'desc',
-|}>;
-
 export type TableSelectionType = 'all' | 'none' | 'single_item_toggled';
 
 export type TableRowId = string | number;
@@ -121,8 +112,9 @@ export type TableVariantTypes = $Keys<typeof TABLE_VARIANT_TYPES>;
     The card will cover 75% of the table width.
 */
 type Props<T> = $ReadOnly<{|
+  ...TableHeaderData<T>,
   data: Array<TableRowDataType<T>>,
-  columns: Array<TableColumnType<T>>,
+  sortSettings?: ?TableSortSettings,
   showSelection?: boolean,
   className?: string,
   variant?: TableVariantTypes,
@@ -132,7 +124,6 @@ type Props<T> = $ReadOnly<{|
   onSelectionChanged?: SelectionCallbackType,
   activeRowId?: NullableTableRowId,
   onActiveRowIdChanged?: ActiveCallbackType,
-  onSortClicked?: (colKey: string) => void,
   detailsCard?: ?React.Node,
 |}>;
 
@@ -147,13 +138,37 @@ const Table = <T>(props: Props<T>) => {
     selectedIds = [],
     onSelectionChanged,
     columns,
-    onSortClicked,
+    sortSettings: propSortSettings,
+    onSortChanged,
     dataRowClassName,
     dataRowsSeparator,
     detailsCard,
   } = props;
   const classes = useStyles();
   const [dataColumns, setDataColumns] = useState([]);
+  useEffect(() => {
+    if (detailsCard == null) {
+      setDataColumns(columns);
+      return;
+    }
+    let singleColumnToBeShown = columns.findIndex(col => !col.hidden);
+    if (singleColumnToBeShown == -1) {
+      singleColumnToBeShown = 0;
+    }
+    setDataColumns(
+      columns.map((col, index) => {
+        if (index === singleColumnToBeShown) {
+          return {
+            ...col,
+          };
+        }
+        return {
+          ...col,
+          hidden: true,
+        };
+      }),
+    );
+  }, [detailsCard, columns]);
 
   const [tableHeaderPaddingRight, setTableHeaderPaddingRight] = useState(0);
   const bodyRef = useRef(null);
@@ -162,10 +177,6 @@ const Table = <T>(props: Props<T>) => {
     scrollArgs => setTableHeaderPaddingRight(scrollArgs.scrollbarWidth),
     false,
   );
-
-  useEffect(() => {
-    setDataColumns(detailsCard == null ? columns : [columns[0]]);
-  }, [detailsCard, columns]);
 
   const renderChildren = () => (
     <div className={classNames(classes.root, classes[variant])}>
@@ -176,7 +187,7 @@ const Table = <T>(props: Props<T>) => {
         <table className={classNames(classes.table, className)}>
           <TableHeader
             columns={dataColumns}
-            onSortClicked={onSortClicked}
+            onSortChanged={onSortChanged}
             cellClassName={classes.cell}
             paddingRight={tableHeaderPaddingRight}
           />
@@ -197,16 +208,17 @@ const Table = <T>(props: Props<T>) => {
   );
 
   const allIds = useMemo(() => data.map((d, i) => d.key ?? i), [data]);
-  const contextValue: TableContextValue = useMemo(
+  const contextValue: TableSettings = useMemo(
     () => ({
       showSelection: showSelection ?? false,
       clickableRows: !!onActiveRowIdChanged,
+      sort: propSortSettings,
     }),
-    [onActiveRowIdChanged, showSelection],
+    [onActiveRowIdChanged, propSortSettings, showSelection],
   );
 
   return (
-    <TableContext.Provider value={contextValue}>
+    <TableContextProvider settings={contextValue}>
       {contextValue.showSelection || contextValue.clickableRows ? (
         <TableSelectionContextProvider
           allIds={allIds}
@@ -219,7 +231,7 @@ const Table = <T>(props: Props<T>) => {
       ) : (
         renderChildren()
       )}
-    </TableContext.Provider>
+    </TableContextProvider>
   );
 };
 

@@ -13,7 +13,7 @@ import type {ProjectsTableView_projects} from './__generated__/ProjectsTableView
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import LocationLink from '../location/LocationLink';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -26,20 +26,9 @@ type Props = {
 const ProjectsTableView = (props: Props) => {
   const {projects, onProjectSelected} = props;
 
-  const [sortDirection, setSortDirection] = useState('desc');
-  const [sortColumn, setSortColumn] = useState('name');
-
-  const sortedProjects = useMemo(
-    () =>
-      projects
-        .slice()
-        .sort(
-          (p1, p2) =>
-            p1[sortColumn].localeCompare(p2[sortColumn]) *
-            (sortDirection === 'asc' ? -1 : 1),
-        )
-        .map(project => ({...project, key: project.id})),
-    [projects, sortColumn, sortDirection],
+  const data = useMemo(
+    () => projects.map(project => ({...project, key: project.id})),
+    [projects],
   );
 
   if (projects.length === 0) {
@@ -48,15 +37,7 @@ const ProjectsTableView = (props: Props) => {
 
   return (
     <Table
-      data={sortedProjects}
-      onSortClicked={col => {
-        if (sortColumn === col) {
-          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-        } else {
-          setSortColumn(col);
-          setSortDirection('desc');
-        }
-      }}
+      data={data}
       columns={[
         {
           key: 'name',
@@ -66,17 +47,18 @@ const ProjectsTableView = (props: Props) => {
               {row.name}
             </Button>
           ),
-          sortable: true,
-          sortDirection: sortColumn === 'name' ? sortDirection : undefined,
+          getSortingValue: row => row.name,
         },
         {
           key: 'type',
           title: `${fbt('Template', '')}`,
+          getSortingValue: row => row.type?.name,
           render: row => row.type?.name ?? '',
         },
         {
           key: 'location',
           title: 'Location',
+          getSortingValue: row => row.location?.name,
           render: row =>
             row.location ? (
               <LocationLink title={row.location.name} id={row.location.id} />
@@ -87,6 +69,7 @@ const ProjectsTableView = (props: Props) => {
         {
           key: 'owner',
           title: 'Owner',
+          getSortingValue: row => row?.createdBy?.email,
           render: row => row?.createdBy?.email ?? '',
         },
       ]}
