@@ -121,6 +121,12 @@ def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
               'with the job')
         raise e
     finally:
+        if env.stack == LTE_STACK:
+            _destroy_vms(repo, magma_root, 'lte/gateway',
+                         ['magma', 'magma_test', 'magma_trfserver'])
+        elif env.stack == CWF_STACK:
+            _destroy_vms(repo, magma_root, 'cwf/gateway',
+                         ['cwag', 'cwag_test'])
         _release_node_lease(api_url, lease.node_id, lease.lease_id,
                             cert_file, cert_key_file)
 
@@ -369,6 +375,16 @@ def _do_newer_running_workflows_exist(repo: str,
                   f'current build, will stop this run now.')
             return True
     return False
+
+
+def _destroy_vms(repo: str, magma_root: str,
+                 path: str, vms: List[str]) -> None:
+    try:
+        repo_name = _get_repo_name(repo)
+        with cd(f'{repo_name}/{magma_root}/{path}'):
+            run(f'vagrant destroy -f {" ".join(vms)}')
+    except Exception as e:
+        print(f'Caught exception from destroying VMs: {e}')
 
 
 def _release_node_lease(api_url: str, node_id: str, lease_id: str,
