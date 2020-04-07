@@ -8,31 +8,25 @@
  * @format
  */
 
-import type {AppContextType} from '@fbcnms/ui/context/AppContext';
-import type {Equipment} from '../../common/Equipment';
+import type {EquipmentTable_equipment} from './__generated__/EquipmentTable_equipment.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {
   RemoveEquipmentMutationResponse,
   RemoveEquipmentMutationVariables,
 } from '../../mutations/__generated__/RemoveEquipmentMutation.graphql';
+import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
-import type {WithStyles} from '@material-ui/core';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CommonStrings from '../../common/CommonStrings';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
-import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
-import React from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import RemoveEquipmentMutation from '../../mutations/RemoveEquipmentMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
+import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -41,14 +35,14 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {capitalize} from '@fbcnms/util/strings';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {lowerCase} from 'lodash';
+import {makeStyles} from '@material-ui/styles';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
 import {withSnackbar} from 'notistack';
-import {withStyles} from '@material-ui/core/styles';
 
-const styles = theme => ({
+const useStyles = makeStyles(() => ({
   root: {
     width: '100%',
-    marginTop: theme.spacing(3),
+    marginTop: '24px',
     overflowX: 'auto',
   },
   table: {
@@ -63,186 +57,249 @@ const styles = theme => ({
     textTransform: 'capitalize',
     maxWidth: '50px',
   },
-  icon: {
-    padding: '0px',
-    marginLeft: theme.spacing(),
+  iconColumn: {
+    width: '36px',
   },
-});
+}));
 
-type Props = WithSnackbarProps &
-  WithAlert &
-  WithStyles<typeof styles> & {|
-    equipment: Array<Equipment>,
-    selectedWorkOrderId: ?string,
-    onEquipmentSelected: Equipment => void,
-    onWorkOrderSelected: (workOrderId: string) => void,
-  |};
+type Props = $ReadOnly<{|
+  equipment: EquipmentTable_equipment,
+  selectedWorkOrderId: ?string,
+  onEquipmentSelected: RelayEquipment => void,
+  onWorkOrderSelected: (workOrderId: string) => void,
+  ...WithSnackbarProps,
+  ...WithAlert,
+|}>;
 
-class EquipmentTable extends React.Component<Props> {
-  static contextType = AppContext;
-  context: AppContextType;
+export type RelayEquipment = $ElementType<EquipmentTable_equipment, number>;
 
-  render() {
-    const {classes, equipment} = this.props;
-    if (equipment.filter(Boolean).length === 0) {
-      return null;
-    }
-    const equipmetStatusEnabled = this.context.isFeatureEnabled(
-      'planned_equipment',
-    );
-    const equipmentLiveStatusEnabled = this.context.isFeatureEnabled(
-      'equipment_live_status',
-    );
-
-    return equipment.length > 0 ? (
-      <Table className={classes.table}>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {equipment
-            .slice()
-            .filter(Boolean)
-            .sort((x, y) => sortLexicographically(x.name ?? '', y.name ?? ''))
-            .map(row => {
-              return (
-                <TableRow key={row.id}>
-                  <TableCell component="th" scope="row">
-                    {equipmentLiveStatusEnabled ? (
-                      <DeviceStatusCircle
-                        isGrey={row.device?.up == null}
-                        isActive={row.device?.up ?? false}
-                      />
-                    ) : null}
-                    <Button
-                      variant="text"
-                      onClick={() => this.props.onEquipmentSelected(row)}>
-                      {row.name}
-                    </Button>
-                  </TableCell>
-                  <TableCell component="th" scope="row">
-                    {row.equipmentType.name}
-                  </TableCell>
-                  {equipmetStatusEnabled && (
-                    <TableCell>
-                      <Button
-                        variant="text"
-                        onClick={() =>
-                          this.props.onWorkOrderSelected(
-                            nullthrows(row?.workOrder?.id),
-                          )
-                        }>
-                        {row.futureState
-                          ? `${capitalize(
-                              lowerCase(row?.workOrder?.status),
-                            )} ${lowerCase(row.futureState)}`
-                          : ''}
-                      </Button>
-                    </TableCell>
-                  )}
-                  <TableCell align="right">
-                    <FormAction>
-                      <IconButton
-                        skin="primary"
-                        onClick={() => this.onDelete(row)}
-                        icon={DeleteIcon}
-                      />
-                    </FormAction>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-        </TableBody>
-      </Table>
-    ) : null;
+const getEquipmentStatus = eq =>
+  eq.futureState
+    ? `${capitalize(lowerCase(eq.workOrder?.status))} ${lowerCase(
+        eq.futureState,
+      )}`
+    : '';
+const getIsEquipmentDeviceActive = (eq: TableRowDataType<RelayEquipment>) =>
+  eq.device?.up;
+const getEquipmentType = eq => eq.equipmentType.name || '';
+const getEquipmentName = eq => eq.name || '';
+const getEquipmentColValue = (eq, col) => {
+  switch (col) {
+    case 'name':
+      return getEquipmentName(eq);
+    case 'status':
+      return getEquipmentStatus(eq);
+    case 'type':
+      return getEquipmentType(eq);
+    default:
+      return '';
   }
+};
+const ASCENDING = 'asc';
+const DESCENDING = 'desc';
+const compareEquipmentValues = (eq1, eq2, col, order) =>
+  sortLexicographically(
+    getEquipmentColValue(eq1, col),
+    getEquipmentColValue(eq2, col),
+  ) * (order === ASCENDING ? 1 : -1);
 
-  onDelete(equipment: Equipment) {
-    ServerLogger.info(LogEvents.DELETE_EQUIPMENT_CLICKED);
-    this.props
-      .confirm({
-        title: <fbt desc="">Delete Equipment?</fbt>,
-        message: (
-          <fbt desc="">
-            By removing{' '}
-            <fbt:param name="equipment name">{equipment.name}</fbt:param> from
-            this location, all information related to this equipment, like links
-            and sub-positions, will be deleted.
-          </fbt>
-        ),
-        checkboxLabel: <fbt desc="">I understand</fbt>,
-        cancelLabel: CommonStrings.common.cancelButton,
-        confirmLabel: CommonStrings.common.deleteButton,
-        skin: 'red',
-      })
-      .then(confirmed => {
-        if (confirmed) {
-          const variables: RemoveEquipmentMutationVariables = {
-            id: equipment.id,
-            work_order_id: this.props.selectedWorkOrderId,
-          };
+const handleDelete = (props: Props) => (
+  equipment: TableRowDataType<RelayEquipment>,
+) => {
+  const {alert, confirm, enqueueSnackbar, selectedWorkOrderId} = props;
+  ServerLogger.info(LogEvents.DELETE_EQUIPMENT_CLICKED);
+  confirm({
+    title: <fbt desc="">Delete Equipment?</fbt>,
+    message: (
+      <fbt desc="">
+        By removing{' '}
+        <fbt:param name="equipment name">{equipment.name}</fbt:param> from this
+        location, all information related to this equipment, like links and
+        sub-positions, will be deleted.
+      </fbt>
+    ),
+    checkboxLabel: <fbt desc="">I understand</fbt>,
+    cancelLabel: CommonStrings.common.cancelButton,
+    confirmLabel: CommonStrings.common.deleteButton,
+    skin: 'red',
+  }).then(confirmed => {
+    if (confirmed) {
+      const variables: RemoveEquipmentMutationVariables = {
+        id: equipment.id,
+        work_order_id: selectedWorkOrderId,
+      };
 
-          const callbacks: MutationCallbacks<RemoveEquipmentMutationResponse> = {
-            onCompleted: (_, errors) => {
-              if (errors && errors[0]) {
-                this.props.enqueueSnackbar(errors[0].message, {
-                  children: key => (
-                    <SnackbarItem
-                      id={key}
-                      message={errors[0].message}
-                      variant="error"
-                    />
-                  ),
-                });
-              }
-            },
-            onError: (error: any) => {
-              this.props.alert('Error: ' + error.source?.errors[0]?.message);
-            },
-          };
+      const cbs: MutationCallbacks<RemoveEquipmentMutationResponse> = {
+        onCompleted: (_, errors) => {
+          if (errors && errors[0]) {
+            enqueueSnackbar(errors[0].message, {
+              children: key => (
+                <SnackbarItem
+                  id={key}
+                  message={errors[0].message}
+                  variant="error"
+                />
+              ),
+            });
+          }
+        },
+        onError: e => {
+          alert(e);
+        },
+      };
 
-          RemoveEquipmentMutation(variables, callbacks, store => {
-            if (!this.props.selectedWorkOrderId) {
-              // $FlowFixMe (T62907961) Relay flow types
-              store.delete(equipment.id);
-            }
-          });
+      RemoveEquipmentMutation(variables, cbs, store => {
+        if (!selectedWorkOrderId) {
+          store.delete(equipment.id);
         }
       });
+    }
+  });
+};
+
+const EquipmentTable = (props: Props) => {
+  const {equipment, onEquipmentSelected, onWorkOrderSelected} = props;
+  const classes = useStyles();
+  const {isFeatureEnabled} = useContext(AppContext);
+
+  const onDelete = useCallback(handleDelete(props), [props]);
+
+  const [sortColumn, setSortColumn] = useState('name');
+  const [sortDirection, setSortDirection] = useState(ASCENDING);
+  const sortedData: Array<TableRowDataType<RelayEquipment>> = useMemo(
+    () =>
+      equipment
+        .filter(Boolean)
+        .sort((e1, e2) =>
+          compareEquipmentValues(e1, e2, sortColumn, sortDirection),
+        )
+        .map(e => ({
+          key: e.id,
+          ...e,
+        })),
+    [equipment, sortColumn, sortDirection],
+  );
+
+  const equipmetStatusEnabled = isFeatureEnabled('planned_equipment');
+  const equipmentLiveStatusEnabled = isFeatureEnabled('equipment_live_status');
+
+  const columns = useMemo(() => {
+    const colsToReturn = [
+      {
+        key: 'name',
+        title: <fbt desc="">Name</fbt>,
+        sortable: true,
+        sortDirection: sortColumn === 'name' ? sortDirection : undefined,
+        render: row => (
+          <Button
+            variant="text"
+            onClick={() => {
+              const {key: _, ...eq} = row;
+              onEquipmentSelected(eq);
+            }}>
+            {equipmentLiveStatusEnabled ? (
+              <DeviceStatusCircle
+                isGrey={!getIsEquipmentDeviceActive(row)}
+                isActive={!!getIsEquipmentDeviceActive(row)}
+              />
+            ) : null}
+            {getEquipmentName(row)}
+          </Button>
+        ),
+      },
+      {
+        key: 'type',
+        title: <fbt desc="">Type</fbt>,
+        sortable: true,
+        sortDirection: sortColumn === 'type' ? sortDirection : undefined,
+        render: getEquipmentType,
+      },
+    ];
+    if (equipmetStatusEnabled) {
+      colsToReturn.push({
+        key: 'status',
+        title: <fbt desc="">Status</fbt>,
+        sortable: true,
+        sortDirection: sortColumn === 'status' ? sortDirection : undefined,
+        render: row => (
+          <Button
+            variant="text"
+            onClick={() => onWorkOrderSelected(nullthrows(row?.workOrder?.id))}>
+            {getEquipmentStatus(row)}
+          </Button>
+        ),
+      });
+    }
+    colsToReturn.push({
+      key: 'delete_action',
+      title: null,
+      titleClassName: classes.iconColumn,
+      className: classes.iconColumn,
+      render: row => (
+        <IconButton icon={DeleteIcon} onClick={() => onDelete(row)} />
+      ),
+    });
+    return colsToReturn;
+  }, [
+    classes.iconColumn,
+    equipmentLiveStatusEnabled,
+    equipmetStatusEnabled,
+    onDelete,
+    onEquipmentSelected,
+    onWorkOrderSelected,
+    sortColumn,
+    sortDirection,
+  ]);
+
+  if (equipment.length === 0) {
+    return null;
   }
-}
+
+  return (
+    <Table
+      variant="embedded"
+      dataRowsSeparator="border"
+      className={classes.table}
+      columns={columns}
+      data={sortedData}
+      onSortClicked={col => {
+        if (sortColumn === col) {
+          setSortDirection(
+            sortDirection === ASCENDING ? DESCENDING : ASCENDING,
+          );
+        } else {
+          setSortColumn(col);
+          setSortDirection('desc');
+        }
+      }}
+    />
+  );
+};
 
 export default withAlert(
-  withStyles(styles)(
-    withSnackbar(
-      createFragmentContainer(EquipmentTable, {
-        equipment: graphql`
-          fragment EquipmentTable_equipment on Equipment @relay(plural: true) {
+  withSnackbar(
+    createFragmentContainer(EquipmentTable, {
+      equipment: graphql`
+        fragment EquipmentTable_equipment on Equipment @relay(plural: true) {
+          id
+          name
+          futureState
+          equipmentType {
             id
             name
-            futureState
-            equipmentType {
-              id
-              name
-            }
-            workOrder {
-              id
-              status
-            }
-            device {
-              up
-            }
-            services {
-              id
-            }
           }
-        `,
-      }),
-    ),
+          workOrder {
+            id
+            status
+          }
+          device {
+            up
+          }
+          services {
+            id
+          }
+        }
+      `,
+    }),
   ),
 );
