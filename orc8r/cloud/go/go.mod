@@ -64,6 +64,7 @@ require (
 	google.golang.org/grpc v1.27.1
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gopkg.in/yaml.v2 v2.2.8
+	honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc // indirect
 	magma/gateway v0.0.0
 	magma/orc8r/lib/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/lib/go/protos v0.0.0
