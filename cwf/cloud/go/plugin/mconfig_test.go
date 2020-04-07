@@ -14,6 +14,7 @@ import (
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/plugin"
 	"magma/cwf/cloud/go/plugin/models"
+	cwfmconfig "magma/cwf/cloud/go/protos/mconfig"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
@@ -111,6 +112,16 @@ func TestBuilder_Build(t *testing.T) {
 		"directoryd": &orcmconfig.DirectoryD{
 			LogLevel: protos.LogLevel_INFO,
 		},
+		"health": &cwfmconfig.CwfGatewayHealthConfig{
+			CpuUtilThresholdPct: 0.9,
+			MemUtilThresholdPct: 0.8,
+			GreProbeInterval:    5,
+			IcmpProbePktCount:   3,
+			GrePeers: []*cwfmconfig.CwfGatewayHealthConfigGrePeer{
+				{Ip: "1.2.3.4/24"},
+				{Ip: "1.1.1.1/24"},
+			},
+		},
 	}
 	err = builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
@@ -147,5 +158,11 @@ var defaultgwConfig = &models.GatewayCwfConfigs{
 	IPDRExportDst: &models.IPDRExportDst{
 		IP:   "192.168.128.88",
 		Port: 2040,
+	},
+	GatewayHealthConfigs: &models.GatewayHealthConfigs{
+		CPUUtilThresholdPct:  0.9,
+		MemUtilThresholdPct:  0.8,
+		GreProbeIntervalSecs: 5,
+		IcmpProbePktCount:    3,
 	},
 }

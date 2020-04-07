@@ -30,6 +30,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.27.1
 
 	magma/feg/cloud/go v0.0.0
