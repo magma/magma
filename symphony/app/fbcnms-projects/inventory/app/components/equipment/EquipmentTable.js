@@ -23,7 +23,7 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import CommonStrings from '../../common/CommonStrings';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import RemoveEquipmentMutation from '../../mutations/RemoveEquipmentMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
@@ -36,7 +36,6 @@ import {capitalize} from '@fbcnms/util/strings';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {lowerCase} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
 import {withSnackbar} from 'notistack';
 
 const useStyles = makeStyles(() => ({
@@ -83,25 +82,6 @@ const getIsEquipmentDeviceActive = (eq: TableRowDataType<RelayEquipment>) =>
   eq.device?.up;
 const getEquipmentType = eq => eq.equipmentType.name || '';
 const getEquipmentName = eq => eq.name || '';
-const getEquipmentColValue = (eq, col) => {
-  switch (col) {
-    case 'name':
-      return getEquipmentName(eq);
-    case 'status':
-      return getEquipmentStatus(eq);
-    case 'type':
-      return getEquipmentType(eq);
-    default:
-      return '';
-  }
-};
-const ASCENDING = 'asc';
-const DESCENDING = 'desc';
-const compareEquipmentValues = (eq1, eq2, col, order) =>
-  sortLexicographically(
-    getEquipmentColValue(eq1, col),
-    getEquipmentColValue(eq2, col),
-  ) * (order === ASCENDING ? 1 : -1);
 
 const handleDelete = (props: Props) => (
   equipment: TableRowDataType<RelayEquipment>,
@@ -164,20 +144,13 @@ const EquipmentTable = (props: Props) => {
 
   const onDelete = useCallback(handleDelete(props), [props]);
 
-  const [sortColumn, setSortColumn] = useState('name');
-  const [sortDirection, setSortDirection] = useState(ASCENDING);
-  const sortedData: Array<TableRowDataType<RelayEquipment>> = useMemo(
+  const data: Array<TableRowDataType<RelayEquipment>> = useMemo(
     () =>
-      equipment
-        .filter(Boolean)
-        .sort((e1, e2) =>
-          compareEquipmentValues(e1, e2, sortColumn, sortDirection),
-        )
-        .map(e => ({
-          key: e.id,
-          ...e,
-        })),
-    [equipment, sortColumn, sortDirection],
+      equipment.map(e => ({
+        key: e.id,
+        ...e,
+      })),
+    [equipment],
   );
 
   const equipmetStatusEnabled = isFeatureEnabled('planned_equipment');
@@ -188,8 +161,7 @@ const EquipmentTable = (props: Props) => {
       {
         key: 'name',
         title: <fbt desc="">Name</fbt>,
-        sortable: true,
-        sortDirection: sortColumn === 'name' ? sortDirection : undefined,
+        getSortingValue: getEquipmentName,
         render: row => (
           <Button
             variant="text"
@@ -210,8 +182,7 @@ const EquipmentTable = (props: Props) => {
       {
         key: 'type',
         title: <fbt desc="">Type</fbt>,
-        sortable: true,
-        sortDirection: sortColumn === 'type' ? sortDirection : undefined,
+        getSortingValue: getEquipmentType,
         render: getEquipmentType,
       },
     ];
@@ -219,8 +190,7 @@ const EquipmentTable = (props: Props) => {
       colsToReturn.push({
         key: 'status',
         title: <fbt desc="">Status</fbt>,
-        sortable: true,
-        sortDirection: sortColumn === 'status' ? sortDirection : undefined,
+        getSortingValue: getEquipmentStatus,
         render: row => (
           <Button
             variant="text"
@@ -247,8 +217,6 @@ const EquipmentTable = (props: Props) => {
     onDelete,
     onEquipmentSelected,
     onWorkOrderSelected,
-    sortColumn,
-    sortDirection,
   ]);
 
   if (equipment.length === 0) {
@@ -261,17 +229,7 @@ const EquipmentTable = (props: Props) => {
       dataRowsSeparator="border"
       className={classes.table}
       columns={columns}
-      data={sortedData}
-      onSortClicked={col => {
-        if (sortColumn === col) {
-          setSortDirection(
-            sortDirection === ASCENDING ? DESCENDING : ASCENDING,
-          );
-        } else {
-          setSortColumn(col);
-          setSortDirection('desc');
-        }
-      }}
+      data={data}
     />
   );
 };

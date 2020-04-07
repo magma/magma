@@ -8,17 +8,19 @@
  * @format
  */
 
-import type {TableColumnType} from './Table';
+import type {TableRowDataType} from './Table';
+import type {TableSortOrders, TableSortSettings} from './TableContext';
 
+import * as React from 'react';
 import ArrowDownIcon from '../Icons/ArrowDown';
 import ArrowUpIcon from '../Icons/ArrowUp';
-import React from 'react';
 import TableHeaderCheckbox from './TableHeaderCheckbox';
 import Text from '../Text';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
+import {TABLE_SORT_ORDER, useTable} from './TableContext';
 import {makeStyles} from '@material-ui/styles';
-import {useTable} from './TableContext';
+import {useCallback} from 'react';
 import {useTableCommonStyles} from './TableCommons';
 
 const useStyles = makeStyles(() => ({
@@ -62,68 +64,112 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props<T> = {
+export type TableColumnType<T> = $ReadOnly<{|
+  key: string,
+  title: React.Node,
+  titleClassName?: ?string,
+  render: (rowData: TableRowDataType<T>) => React.Node,
+  className?: ?string,
+  getSortingValue?: ?(rowData: TableRowDataType<T>) => ?(string | number),
+  hidden?: boolean,
+|}>;
+
+export type TableHeaderData<T> = $ReadOnly<{|
   columns: Array<TableColumnType<T>>,
-  onSortClicked?: (colKey: string) => void,
+  onSortChanged?: ?(newSortSettings: TableSortSettings) => void,
+|}>;
+
+type Props<T> = $ReadOnly<{|
+  ...TableHeaderData<T>,
   cellClassName?: string,
   paddingRight?: ?number,
-};
+|}>;
 
 const TableHeader = <T>({
-  onSortClicked,
   columns,
+  onSortChanged,
   cellClassName,
   paddingRight,
 }: Props<T>) => {
   const classes = useStyles();
   const commonClasses = useTableCommonStyles();
-  const {showSelection} = useTable();
+  const {settings, setSortSettings} = useTable();
 
-  const getSortIcon = col => {
-    if (!col.sortable) {
-      return null;
-    }
+  const getSortIcon = useCallback(
+    col => {
+      if (!col.getSortingValue) {
+        return null;
+      }
 
-    return (
-      <div
-        className={classNames(classes.sortIcon, {
-          [classes.hidden]: !Boolean(col.sortDirection),
-        })}>
-        {col.sortDirection === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />}
-      </div>
-    );
-  };
+      return (
+        <div
+          className={classNames(classes.sortIcon, {
+            [classes.hidden]: col.key != settings.sort?.columnKey,
+          })}>
+          {settings.sort?.order === TABLE_SORT_ORDER.descending ? (
+            <ArrowUpIcon />
+          ) : (
+            <ArrowDownIcon />
+          )}
+        </div>
+      );
+    },
+    [classes.hidden, classes.sortIcon, settings.sort],
+  );
+
+  const handleSortChange = useCallback(
+    newSortingColumnKey => {
+      const newSortingOrder: TableSortOrders =
+        settings.sort?.columnKey === newSortingColumnKey &&
+        settings.sort?.order === TABLE_SORT_ORDER.ascending
+          ? 'descending'
+          : TABLE_SORT_ORDER.ascending;
+      const newSortSettings = {
+        columnKey: newSortingColumnKey,
+        order: newSortingOrder,
+      };
+      setSortSettings(newSortSettings);
+      if (onSortChanged) {
+        onSortChanged(newSortSettings);
+      }
+    },
+    [onSortChanged, setSortSettings, settings.sort],
+  );
 
   return (
     <thead className={classes.root} style={{paddingRight: paddingRight || 0}}>
       <tr>
-        {showSelection && (
+        {settings.showSelection && (
           <th className={classes.checkBox}>
             <TableHeaderCheckbox />
           </th>
         )}
-        {columns.map(col => (
-          <th
-            key={col.key}
-            className={classNames(
-              commonClasses.cell,
-              col.titleClassName,
-              cellClassName,
-              {
-                [classes.sortableCell]: col.sortable,
-              },
-            )}
-            onClick={() =>
-              col.sortable && onSortClicked && onSortClicked(col.key)
-            }>
-            <div className={classes.cellContent}>
-              <Text className={classes.cellText} variant="body2">
-                {col.title}
-              </Text>
-              {getSortIcon(col)}
-            </div>
-          </th>
-        ))}
+        {columns
+          .filter(col => !col.hidden)
+          .map(col => (
+            <th
+              key={col.key}
+              className={classNames(
+                commonClasses.cell,
+                col.titleClassName,
+                cellClassName,
+                {
+                  [classes.sortableCell]: col.getSortingValue != null,
+                },
+              )}
+              onClick={
+                col.getSortingValue != null
+                  ? () => handleSortChange(col.key)
+                  : undefined
+              }>
+              <div className={classes.cellContent}>
+                <Text className={classes.cellText} variant="body2">
+                  {col.title}
+                </Text>
+                {getSortIcon(col)}
+              </div>
+            </th>
+          ))}
       </tr>
     </thead>
   );

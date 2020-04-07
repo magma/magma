@@ -16,20 +16,23 @@ import type {
 import Button from '../../components/design-system/Button';
 import Checkbox from '../../components/design-system/Checkbox/Checkbox';
 import RadioGroup from '../../components/design-system/RadioGroup/RadioGroup';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import Table from '../../components/design-system/Table/Table';
 import Text from '../../components/design-system/Text';
 import ThreeDotsVerticalIcon from '../../components/design-system/Icons/Actions/ThreeDotsVerticalIcon';
 import {ROW_SEPARATOR_TYPES} from '../../components/design-system/Table/TableContent';
 import {STORY_CATEGORIES} from '../storybookUtils';
+import {TABLE_SORT_ORDER} from '../../components/design-system/Table/TableContext';
 import {TABLE_VARIANT_TYPES} from '../../components/design-system/Table/Table';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
 
 type DataType = {|
+  title?: string,
   firstName: string,
   lastName: string,
-  birthDate: string,
+  startingDate: Date,
+  age: number,
   city: string,
 |};
 type RowDataType = TableRowDataType<DataType>;
@@ -39,28 +42,35 @@ const DATA: Array<RowDataType> = [
     key: '1',
     firstName: 'Meghan',
     lastName: 'Bishop',
-    birthDate: 'December 30, 2019',
+    age: 32,
+    startingDate: new Date('Febuary 13, 2020'),
     city: 'Tel Aviv',
   },
   {
     key: '2',
+    title: 'Dr.',
     firstName: 'Sara',
     lastName: 'Porter',
-    birthDate: 'June 28, 1990',
+    age: 21,
+    startingDate: new Date('Febuary 28, 1999'),
     city: 'Raanana',
   },
   {
     key: '3',
+    title: 'Don',
     firstName: 'Dolev',
     lastName: 'Hadar',
-    birthDate: 'Febuary 11, 1990',
+    age: 22,
+    startingDate: new Date('May 02, 1990'),
     city: 'Tel Aviv',
   },
   {
     key: '4',
+    title: 'Mr.',
     firstName: 'Walter',
     lastName: 'Jenning',
-    birthDate: 'July 11, 2001',
+    age: 76,
+    startingDate: new Date('July 11, 2001'),
     city: 'Ramat Gan',
   },
 ];
@@ -100,31 +110,41 @@ const TablesRoot = () => {
   const [showSelection, setShowSelection] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
 
-  const sortData = (col, sortDirection) =>
-    DATA.slice().sort(
-      (d1: RowDataType, d2: RowDataType) =>
-        d1[col].localeCompare(d2[col]) * (sortDirection === 'asc' ? -1 : 1),
-    );
   const [showSorting, setShowSorting] = useState(false);
-  const [sortDirection, setSortDirection] = useState('desc');
-  const [sortColumn, setSortColumn] = useState('firstName');
-  const sortedData = useMemo(
-    () => (showSorting ? sortData(sortColumn, sortDirection) : DATA),
-    [showSorting, sortColumn, sortDirection],
-  );
-  const sortableColumn = useCallback(
-    col => ({
-      sortable: true,
-      sortDirection: sortColumn === col.key ? sortDirection : undefined,
-      ...col,
-    }),
-    [sortColumn, sortDirection],
-  );
-  const columns = useMemo(() => {
-    let cols = [
-      {key: 'firstName', title: 'First Name', render: row => row.firstName},
-      {key: 'lastName', title: 'Last Name', render: row => row.lastName},
-      {key: 'birthDate', title: 'Birth Date', render: row => row.birthDate},
+
+  const columns = useMemo(
+    () => [
+      {
+        key: 'title',
+        title: 'Title',
+        render: row => row.title || '',
+        getSortingValue: showSorting ? row => row.title : undefined,
+      },
+      {
+        key: 'firstName',
+        title: 'First Name',
+        render: row => row.firstName,
+        getSortingValue: showSorting ? row => row.firstName : undefined,
+      },
+      {
+        key: 'lastName',
+        title: 'Last Name',
+        render: row => row.lastName,
+      },
+      {
+        key: 'age',
+        title: 'Age',
+        render: row => row.age,
+        getSortingValue: showSorting ? row => row.age : undefined,
+      },
+      {
+        key: 'startingDate',
+        title: 'Starting Date',
+        render: row => Intl.DateTimeFormat('default').format(row.startingDate),
+        getSortingValue: showSorting
+          ? row => row.startingDate.getTime()
+          : undefined,
+      },
       {
         key: 'city',
         title: 'City',
@@ -133,6 +153,7 @@ const TablesRoot = () => {
             {row.city}
           </Button>
         ),
+        getSortingValue: showSorting ? row => row.city : undefined,
       },
       {
         key: 'menu_icon',
@@ -145,12 +166,9 @@ const TablesRoot = () => {
           </Button>
         ),
       },
-    ];
-    if (showSorting) {
-      cols = cols.map(sortableColumn);
-    }
-    return cols;
-  }, [classes.iconColumn, showSorting, sortableColumn]);
+    ],
+    [classes.iconColumn, showSorting],
+  );
 
   const [rowsSeparator, setRowsSeparator] = useState<RowsSeparationTypes>(
     ROW_SEPARATOR_TYPES.bands,
@@ -166,18 +184,14 @@ const TablesRoot = () => {
 
   const tableProps = useMemo(
     () => ({
-      data: sortedData,
+      data: DATA,
       columns: columns,
       variant: tableVariant,
       dataRowsSeparator: rowsSeparator,
-      onSortClicked: showSorting
-        ? col => {
-            if (sortColumn === col) {
-              setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-            } else {
-              setSortColumn(col);
-              setSortDirection('desc');
-            }
+      sortSettings: showSorting
+        ? {
+            columnKey: 'title',
+            order: TABLE_SORT_ORDER.ascending,
           }
         : undefined,
       showSelection: showSelection,
@@ -207,9 +221,6 @@ const TablesRoot = () => {
       showDetailsCard,
       showSelection,
       showSorting,
-      sortColumn,
-      sortDirection,
-      sortedData,
       tableVariant,
     ],
   );
