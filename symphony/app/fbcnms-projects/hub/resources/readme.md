@@ -1,0 +1,1 @@
+Since we're using federation we don't have a single schema file. Later we can concatenate all schema files, but to make life easier, for now we're downloading the stitched schema from the federated server and placing it here.

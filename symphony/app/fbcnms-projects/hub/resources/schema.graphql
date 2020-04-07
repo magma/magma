@@ -1,0 +1,98 @@
+input AtrinetService {
+  serviceGlobalSettings: ServiceGlobalSettings!
+  customer: String!
+  operatorName: String!
+  modelName: String!
+  sites: [Site!]!
+}
+
+scalar Map
+
+type Mutation {
+  createService(serviceRequest: NetworkServiceRequest): String!
+  deleteService(service: NetworkServiceInput): String!
+}
+
+type NetworkDevice {
+  ID: Int!
+  Name: String!
+  DeviceType: String!
+  Host: String!
+  AccessMethod: String!
+}
+
+input NetworkDeviceInput {
+  ID: Int!
+  Name: String!
+  DeviceType: String!
+  Host: String!
+  AccessMethod: String!
+}
+
+type NetworkService {
+  ID: Int!
+  ExternalID: Int!
+  Name: String!
+  Model: NetworkServiceModel!
+  Devices: [NetworkDevice!]!
+  AdditionalParams: Map!
+  Status: String!
+}
+
+input NetworkServiceInput {
+  ID: Int!
+  ExternalID: Int!
+  Name: String!
+  Model: NetworkServiceModelInput!
+  Devices: [NetworkDeviceInput!]!
+  AdditionalParams: Map!
+  Status: String!
+}
+
+type NetworkServiceModel {
+  Name: String!
+}
+
+input NetworkServiceModelInput {
+  Name: String!
+}
+
+input NetworkServiceRequest {
+  Name: String!
+  Model: NetworkServiceModelInput!
+  Devices: [NetworkDeviceInput!]!
+  AdditionalParams: Map!
+}
+
+type Query {
+  version: Version!
+  getServiceStatus(serviceID: Int!): String!
+}
+
+input ServiceGlobalSettings {
+  name: String!
+  rollbackPolicy: String!
+  mode: String!
+}
+
+input Site {
+  siteNumber: Int!
+  siteModelName: String!
+  deviceName: String!
+  deviceId: Int!
+  parameters: Map
+  userPort: UserPort!
+  accessMethod: String!
+}
+
+input UserPort {
+  id: Int!
+  name: String!
+}
+
+type Version {
+  major: Int!
+  minor: Int!
+  patch: Int!
+  string: String!
+}
