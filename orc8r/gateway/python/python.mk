@@ -72,11 +72,10 @@ $(SWAGGER_LIST): %_swagger_specs:
 
 protos:: $(BIN)/grpcio-tools $(PROTO_LIST) prometheus_proto
 	@find $(PYTHON_BUILD)/gen -type d | tail -n +2 | sed '/__pycache__/d' | xargs -I % touch "%/__init__.py"
-$(PROTO_LIST): %_protos: build_list
+$(PROTO_LIST): %_protos:
 	@echo "Generating python code for $* .proto files"
 	@mkdir -p $(PYTHON_BUILD)/gen
 	@echo "$(PYTHON_BUILD)/gen" > $(SITE_PACKAGES_DIR)/magma_gen.pth
-	. $(PYTHON_BUILD)/bin/activate; \
 	$(BIN)/python $(SRC)/protos/gen_protos.py $(SRC)/$*/protos/ $(MAGMA_ROOT),$(MAGMA_ROOT)/orc8r/protos/prometheus $(SRC) $(PYTHON_BUILD)/gen/
 
 prometheus_proto:

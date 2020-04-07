@@ -6,15 +6,13 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-import os
-import shutil
 import sys
-from typing import Iterable, List
 
+import os
 from grpc.tools import protoc
 
 
-def find_all_proto_files_in_dir(input_dir: str) -> List[str]:
+def find_all_proto_files_in_dir(input_dir):
     """
     Returns a list of filenames of .proto files in the given directory
 
@@ -40,12 +38,7 @@ def find_all_proto_files_in_dir(input_dir: str) -> List[str]:
     return proto_files
 
 
-def gen_bindings(
-        input_dir: str,
-        include_paths: Iterable[str],
-        proto_path: str,
-        output_dir: str,
-) -> None:
+def gen_bindings(input_dir, include_paths, proto_path, output_dir):
     """
     Generates python and Go bindings for all .proto files in input dir
        @input_dir - input directory with .proto files to generate code for
@@ -53,20 +46,12 @@ def gen_bindings(
        @output_dir - output directory to put generated code in
     """
     protofiles = find_all_proto_files_in_dir(input_dir)
-
-    inouts = [
-        '--proto_path=' + proto_path,
-        '--python_out=' + output_dir,
-        '--grpc_python_out=' + output_dir,
-    ]
-    # Only run mypy (dev dependency) when the protoc-consumed executable exists
-    if shutil.which('protoc-gen-mypy') is not None:
-        inouts.append('--mypy_out=' + output_dir)
-
     protoc.main(
         ('',) +
         tuple('-I' + path for path in include_paths) +
-        tuple(inouts) +
+        ('--proto_path=' + proto_path,
+         '--python_out=' + output_dir,
+         '--grpc_python_out=' + output_dir) +
         tuple(f for f in protofiles),
     )
 
