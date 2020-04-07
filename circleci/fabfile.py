@@ -249,24 +249,23 @@ def _run_remote_lte_package(repo: str, magma_root: str,
                             destroy_vm: bool):
     repo_name = _get_repo_name(repo)
 
-    # We upload to the magma/fb directory on the CI node, but that maps to
-    # /home/vagrant/magma/fb on the magma VM
-    def secpath(user, file):
-        return f'/home/{user}/{repo_name}/{magma_root}/fb/{file}'
+    remote_secrets_dir = f'/home/magma/{repo_name}/{magma_root}/fb'
+    cert_file = f'{remote_secrets_dir}/rootCA.pem'
+    control_proxy_file = f'{remote_secrets_dir}/control_proxy.yml'
 
-    remote_secrets_dir = secpath('magma', '')
-    cert_file = secpath('magma', 'rootCA.pem')
-    control_proxy_file = secpath('magma', 'control_proxy.yml')
-
-    # Upload rootCA, control proxy config
+    # Upload rootCA, control proxy config to CI node
     run(f'mkdir -p {remote_secrets_dir}')
     put(package_cert, cert_file)
     put(package_control_proxy, control_proxy_file)
 
+    # These map to a different directory on the vagrant VM
+    vagrant_cert = '/home/vagrant/magma/fb/rootCA.pem'
+    vagrant_cp = '/home/vagrant/magma/fb/control_proxy.yml'
+
     with cd(f'{repo_name}/{magma_root}/lte/gateway'):
         fab_args = f'vcs=git,all_deps=False,' \
-                   f'cert_file={secpath("vagrant", "rootCA.pem")},' \
-                   f'proxy_config={secpath("vagrant", "control_proxy.yml")},' \
+                   f'cert_file={vagrant_cert},' \
+                   f'proxy_config={vagrant_cp},' \
                    f'destroy_vm={destroy_vm}'
         run(f'fab test package:{fab_args}')
         # This will create /tmp/packages.tar.gz, /tmp/packages.txt on the
