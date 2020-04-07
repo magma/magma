@@ -13,6 +13,11 @@ services:
       - controller.magma.test:10.0.2.2
       - bootstrapper-controller.magma.test:10.0.2.2
 
+  health:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: cwf/gateway/docker/go/Dockerfile
+
   magmad:
     build:
       context: ${BUILD_CONTEXT} # TODO: Move feg/gateway/docker/python to magma/orc8r/gateway/docker
