@@ -9,7 +9,7 @@
 ##################################
 # Set up dev environment variables
 ##################################
-
+#
 - name: Set Python environment variables
   lineinfile:
     dest: /etc/environment
