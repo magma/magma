@@ -84,9 +84,9 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export type TableRowDataType<T> = {key?: string, ...T};
+export type TableRowDataType<T> = $ReadOnly<{|key?: string, ...T|}>;
 
-export type TableColumnType<T> = {
+export type TableColumnType<T> = $ReadOnly<{|
   key: string,
   title: React.Node | string,
   titleClassName?: ?string,
@@ -94,7 +94,7 @@ export type TableColumnType<T> = {
   className?: ?string,
   sortable?: boolean,
   sortDirection?: 'asc' | 'desc',
-};
+|}>;
 
 export type TableSelectionType = 'all' | 'none' | 'single_item_toggled';
 
@@ -120,7 +120,7 @@ export type TableVariantTypes = $Keys<typeof TABLE_VARIANT_TYPES>;
     Excepts for the first column, all columns will get hidden.
     The card will cover 75% of the table width.
 */
-type Props<T> = {
+type Props<T> = $ReadOnly<{|
   data: Array<TableRowDataType<T>>,
   columns: Array<TableColumnType<T>>,
   showSelection?: boolean,
@@ -134,7 +134,7 @@ type Props<T> = {
   onActiveRowIdChanged?: ActiveCallbackType,
   onSortClicked?: (colKey: string) => void,
   detailsCard?: ?React.Node,
-};
+|}>;
 
 const Table = <T>(props: Props<T>) => {
   const {
