@@ -1,0 +1,30 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+package magma.mconfig;
+option go_package = "magma/cwf/cloud/go/protos/mconfig";
+
+//-----------------------------------------------------------------------------
+// Health configs
+//-----------------------------------------------------------------------------
+message CwfGatewayHealthConfig {
+    // cpu utilization threshold
+    float cpu_util_threshold_pct = 1;
+    // mem utilization threshold
+    float mem_util_threshold_pct = 2;
+    // interval between probes
+    uint32 gre_probe_interval = 3;
+    // packets sent for each icmp probe
+    uint32 icmp_probe_pkt_count = 4;
+    message grePeer {
+      string ip = 1;
+    }
+    // gre peers to probe
+    repeated grePeer gre_peers = 5;
+}
