@@ -272,7 +272,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 // - Sleep for Y seconds and check policy usage again. Assert that
 //   static-pass-all-2 is uninstalled.
 // Note: things might get weird if there are clock skews
-func TestGxRuleInstallTime(t *testing.T) {
+func testGxRuleInstallTime(t *testing.T) {
 	fmt.Println("\nRunning TestGxRuleInstallTime...")
 
 	tr := NewTestRunner(t)
