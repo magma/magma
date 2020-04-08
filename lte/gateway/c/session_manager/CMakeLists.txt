@@ -118,6 +118,8 @@ add_library(SESSION_MANAGER
     SessionStore.h
     MemoryStoreClient.cpp
     MemoryStoreClient.h
+    RedisStoreClient.cpp
+    RedisStoreClient.h
     StoreClient.h
     ${PROTO_SRCS}
     ${PROTO_HDRS}
