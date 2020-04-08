@@ -199,88 +199,88 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   const LocalCreateSessionRequest* request,
   std::function<void(Status, LocalCreateSessionResponse)> response_callback)
 {
-  auto imsi = request->sid().id();
-  auto sid = id_gen_.gen_session_id(imsi);
-  auto mac_addr = convert_mac_addr_to_str(request->hardware_addr());
-  MLOG(MDEBUG) << "PLMN_ID: " << request->plmn_id()
-              << " IMSI_PLMN_ID: " << request->imsi_plmn_id();
+  auto &request_cpy = *request;
+  enforcer_->get_event_base().runInEventBaseThread(
+      [this, context, response_callback, request_cpy]() {
+    auto imsi     = request_cpy.sid().id();
+    auto sid      = id_gen_.gen_session_id(imsi);
+    auto mac_addr = convert_mac_addr_to_str(request_cpy.hardware_addr());
+    MLOG(MDEBUG) << "PLMN_ID: " << request_cpy.plmn_id()
+                 << " IMSI_PLMN_ID: " << request_cpy.imsi_plmn_id();
 
-  SessionState::Config cfg = {.ue_ipv4 = request->ue_ipv4(),
-                              .spgw_ipv4 = request->spgw_ipv4(),
-                              .msisdn = request->msisdn(),
-                              .apn = request->apn(),
-                              .imei = request->imei(),
-                              .plmn_id = request->plmn_id(),
-                              .imsi_plmn_id = request->imsi_plmn_id(),
-                              .user_location = request->user_location(),
-                              .rat_type = request->rat_type(),
-                              .mac_addr = mac_addr,
-                              .hardware_addr = request->hardware_addr(),
-                              .radius_session_id = request->radius_session_id(),
-                              .bearer_id = request->bearer_id()};
+    SessionState::Config cfg = {
+        .ue_ipv4           = request_cpy.ue_ipv4(),
+        .spgw_ipv4         = request_cpy.spgw_ipv4(),
+        .msisdn            = request_cpy.msisdn(),
+        .apn               = request_cpy.apn(),
+        .imei              = request_cpy.imei(),
+        .plmn_id           = request_cpy.plmn_id(),
+        .imsi_plmn_id      = request_cpy.imsi_plmn_id(),
+        .user_location     = request_cpy.user_location(),
+        .rat_type          = request_cpy.rat_type(),
+        .mac_addr          = mac_addr,
+        .hardware_addr     = request_cpy.hardware_addr(),
+        .radius_session_id = request_cpy.radius_session_id(),
+        .bearer_id         = request_cpy.bearer_id()};
 
-  SessionState::QoSInfo qos_info = {.enabled = request->has_qos_info()};
-  if (request->has_qos_info()) {
-    qos_info.qci = request->qos_info().qos_class_id();
-  }
-  cfg.qos_info = qos_info;
+    SessionState::QoSInfo qos_info = {.enabled = request_cpy.has_qos_info()};
+    if (request_cpy.has_qos_info()) {
+      qos_info.qci = request_cpy.qos_info().qos_class_id();
+    }
+    cfg.qos_info = qos_info;
 
-  if (enforcer_->session_with_imsi_exists(session_map_, imsi)) {
-    std::string core_sid;
-    bool same_config = enforcer_->session_with_same_config_exists(
-      session_map_, imsi, cfg, &core_sid);
-    bool is_wifi = request->rat_type() == RATType::TGPP_WLAN;
-    if (same_config || is_wifi){
-      if (is_wifi) {
-        MLOG(MINFO) << "Found a session with the same IMSI " << imsi
-                    << " and RAT Type is WLAN, not creating a new session";
-        // Wifi only supports one session per subscriber, so update the config
-        // here
-        enforcer_->handle_cwf_roaming(session_map_, imsi, cfg);
-      } else {
-        MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
-                    << " and APN " << request->apn()
-                    << ", not creating session";
+    if (enforcer_->session_with_imsi_exists(session_map_, imsi)) {
+      std::string core_sid;
+      bool same_config = enforcer_->session_with_same_config_exists(
+          session_map_, imsi, cfg, &core_sid);
+      bool is_wifi = request_cpy.rat_type() == RATType::TGPP_WLAN;
+      if (same_config || is_wifi) {
+        if (is_wifi) {
+          MLOG(MINFO) << "Found a session with the same IMSI " << imsi
+                      << " and RAT Type is WLAN, not creating a new session";
+          // Wifi only supports one session per subscriber, so update the config
+          // here
+          enforcer_->handle_cwf_roaming(session_map_, imsi, cfg);
+        } else {
+          MLOG(MINFO) << "Found completely duplicated session with IMSI "
+                      << imsi << " and APN " << request_cpy.apn()
+                      << ", not creating session";
+        }
+        try {
+          LocalCreateSessionResponse resp;
+          resp.set_session_id(core_sid);
+          response_callback(grpc::Status::OK, resp);
+        } catch (...) {
+          std::exception_ptr ep = std::current_exception();
+          MLOG(MERROR) << "CreateSession response_callback exception: "
+                       << (ep ? ep.__cxa_exception_type()->name() : "<unknown");
+        }
+        // No new session created
+        return;
       }
-      enforcer_->get_event_base().runInEventBaseThread(
-          [response_callback, core_sid]() {
-            try {
-              LocalCreateSessionResponse resp;
-              resp.set_session_id(core_sid);
-              response_callback(grpc::Status::OK, resp);
-            } catch (...) {
-                std::exception_ptr ep = std::current_exception();
-                MLOG(MERROR) << "CreateSession response_callback exception: "
-                             << (ep ? ep.__cxa_exception_type()->name()
-                                  : "<unknown");
-            }
-          }
-      );
-      // No new session created
-      return;
+      if (enforcer_->session_with_apn_exists(
+              session_map_, imsi, request_cpy.apn())) {
+        MLOG(MINFO) << "Found session with the same IMSI " << imsi << " and APN "
+                    << request_cpy.apn() << ", but different configuration."
+                    << " Ending the existing session";
+        LocalEndSessionRequest end_session_req;
+        end_session_req.mutable_sid()->CopyFrom(request_cpy.sid());
+        end_session_req.set_apn(request_cpy.apn());
+        EndSession(
+            context, &end_session_req,
+            [&](grpc::Status status, LocalEndSessionResponse response) {
+              return;
+            });
+      } else {
+        MLOG(MINFO) << "Found session with the same IMSI " << imsi
+                    << " but different APN " << request_cpy.apn()
+                    << ", will request a new session from PCRF/PCF";
+      }
     }
-    if (enforcer_->session_with_apn_exists(
-          session_map_, imsi, request->apn())) {
-      MLOG(MINFO) << "Found session with the same IMSI " << imsi
-                  << " and APN " << request->apn()
-                  << ", but different configuration."
-                  << " Ending the existing session";
-      LocalEndSessionRequest end_session_req;
-      end_session_req.mutable_sid()->CopyFrom(request->sid());
-      end_session_req.set_apn(request->apn());
-      EndSession(
-        context,
-        &end_session_req,
-        [&](grpc::Status status, LocalEndSessionResponse response) { return; });
-    } else {
-      MLOG(MINFO) << "Found session with the same IMSI " << imsi
-                  << " but different APN " << request->apn()
-                  << ", will request a new session from PCRF/PCF";
-    }
-  }
-  send_create_session(
-    copy_session_info2create_req(*request, sid),
-    imsi, sid, cfg, response_callback);
+    send_create_session(
+        copy_session_info2create_req(request_cpy, sid),
+        imsi, sid, cfg, response_callback);
+  });
 }
 
 void LocalSessionManagerHandlerImpl::send_create_session(
@@ -375,29 +375,36 @@ void LocalSessionManagerHandlerImpl::EndSession(
   auto &request_cpy = *request;
   enforcer_->get_event_base().runInEventBaseThread(
     [this, request_cpy, response_callback]() {
-      try {
-        auto reporter = reporter_;
-        auto update = SessionStore::get_default_session_update(session_map_);
-        enforcer_->terminate_subscriber(
-          session_map_,
-          request_cpy.sid().id(),
-          request_cpy.apn(),
-          [reporter](SessionTerminateRequest term_req) {
-            // report to cloud
-            auto logging_cb =
-              SessionReporter::get_terminate_logging_cb(term_req);
-            reporter->report_terminate_session(term_req, logging_cb);
-          },
-          update);
-        // TODO: Write the delete back into the SessionStore
-        response_callback(grpc::Status::OK, LocalEndSessionResponse());
-      } catch (const SessionNotFound &ex) {
-        MLOG(MERROR) << "Failed to find session to terminate for subscriber "
-                     << request_cpy.sid().id();
-        Status status(grpc::FAILED_PRECONDITION, "Session not found");
-        response_callback(status, LocalEndSessionResponse());
-      }
+      end_session(request_cpy, response_callback);
     });
+}
+
+void LocalSessionManagerHandlerImpl::end_session(
+  const LocalEndSessionRequest& request,
+  std::function<void(Status, LocalEndSessionResponse)> response_callback)
+{
+  try {
+    auto reporter = reporter_;
+    auto update = SessionStore::get_default_session_update(session_map_);
+    enforcer_->terminate_subscriber(
+        session_map_,
+        request.sid().id(),
+        request.apn(),
+        [reporter](SessionTerminateRequest term_req) {
+          // report to cloud
+          auto logging_cb =
+              SessionReporter::get_terminate_logging_cb(term_req);
+          reporter->report_terminate_session(term_req, logging_cb);
+        },
+        update);
+    // TODO: Write the delete back into the SessionStore
+    response_callback(grpc::Status::OK, LocalEndSessionResponse());
+  } catch (const SessionNotFound &ex) {
+    MLOG(MERROR) << "Failed to find session to terminate for subscriber "
+                 << request.sid().id();
+    Status status(grpc::FAILED_PRECONDITION, "Session not found");
+    response_callback(status, LocalEndSessionResponse());
+  }
 }
 
 SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_creation(
