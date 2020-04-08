@@ -10,6 +10,10 @@
 
 #include <functional>
 
+#include <folly/Format.h>
+#include <folly/dynamic.h>
+#include <folly/json.h>
+
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
@@ -40,6 +44,11 @@ struct StoredSessionConfig {
 };
 
 // Session Credit
+
+struct StoredRedirectServer {
+  RedirectServer_RedirectAddressType redirect_address_type;
+  std::string redirect_server_address;
+};
 
 struct StoredFinalActionInfo {
   ChargingCredit_FinalAction final_action;
@@ -155,5 +164,54 @@ struct SessionStateUpdateCriteria {
 };
 
 SessionStateUpdateCriteria get_default_update_criteria();
+
+std::string serialize_stored_qos_info(const StoredQoSInfo& stored);
+
+StoredQoSInfo deserialize_stored_qos_info(const std::string& serialized);
+
+std::string serialize_stored_session_config(const StoredSessionConfig& stored);
+
+StoredSessionConfig deserialize_stored_session_config(
+    const std::string& serialized);
+
+std::string serialize_stored_redirect_server(
+    const StoredRedirectServer& stored);
+
+StoredRedirectServer deserialize_stored_redirect_server(
+    const std::string& serialized);
+
+std::string serialize_stored_final_action_info(
+    const StoredFinalActionInfo& stored);
+
+StoredFinalActionInfo deserialize_stored_final_action_info(
+    const std::string& serialized);
+
+std::string serialize_stored_session_credit(
+    StoredSessionCredit& stored);
+
+StoredSessionCredit deserialize_stored_session_credit(
+    const std::string& serialized);
+
+std::string serialize_stored_monitor(
+    StoredMonitor& stored);
+
+StoredMonitor deserialize_stored_monitor(
+    const std::string& serialized);
+
+std::string serialize_stored_charging_credit_pool(
+    StoredChargingCreditPool& stored);
+
+StoredChargingCreditPool deserialize_stored_charging_credit_pool(
+    std::string& serialized);
+
+std::string serialize_stored_usage_monitoring_pool(
+    StoredUsageMonitoringCreditPool& stored);
+
+StoredUsageMonitoringCreditPool deserialize_stored_usage_monitoring_pool(
+    std::string& serialized);
+
+std::string serialize_stored_session(StoredSessionState& stored);
+
+StoredSessionState deserialize_stored_session(std::string& serialized);
 
 } // namespace magma
