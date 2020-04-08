@@ -19,6 +19,7 @@ float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 std::string final_action_to_str(ChargingCredit_FinalAction final_action);
+std::string service_state_to_str(ServiceState state);
 
 std::unique_ptr<SessionCredit> SessionCredit::unmarshal(
   const StoredSessionCredit &marshaled,
@@ -145,8 +146,8 @@ void SessionCredit::add_used_credit(uint64_t used_tx, uint64_t used_rx, SessionC
 
   log_quota_and_usage();
   if (should_deactivate_service()) {
-    service_state_ = SERVICE_NEEDS_DEACTIVATION;
-    uc.service_state = SERVICE_NEEDS_DEACTIVATION;
+    MLOG(MDEBUG) << "Quota exhausted. Deactivating service";
+    set_service_state(SERVICE_NEEDS_DEACTIVATION, uc);
   }
 }
 
@@ -170,8 +171,7 @@ void SessionCredit::mark_failure(
   }
   reset_reporting_credit(update_criteria);
   if (should_deactivate_service()) {
-    service_state_ = SERVICE_NEEDS_DEACTIVATION;
-    update_criteria.service_state = SERVICE_NEEDS_DEACTIVATION;
+    set_service_state(SERVICE_NEEDS_DEACTIVATION, update_criteria);
   }
 }
 
@@ -233,7 +233,7 @@ void SessionCredit::receive_credit(
                              service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
     // if quota no longer exhausted, reenable services as needed
     MLOG(MINFO) << "Quota available. Activating service";
-    service_state_ = SERVICE_NEEDS_ACTIVATION;
+    set_service_state(SERVICE_NEEDS_ACTIVATION, update_criteria);
   }
   log_quota_and_usage();
 }
@@ -287,20 +287,20 @@ bool SessionCredit::is_quota_exhausted(
 
   bool is_exhausted = false;
   if (total_usage_since_report >= total_usage_reporting_threshold) {
-    is_exhausted = true;
+    MLOG(MDEBUG) << "Total Quota exhausted";
+    return true;
   } else if (
     (buckets_[ALLOWED_TX] > 0) &&
     (tx_usage_since_report >= tx_usage_reporting_threshold)) {
-    is_exhausted = true;
+    MLOG(MDEBUG) << "Tx Quota exhausted";
+    return true;
   } else if (
     (buckets_[ALLOWED_RX] > 0) &&
     (rx_usage_since_report >= rx_usage_reporting_threshold)) {
-    is_exhausted = true;
+    MLOG(MDEBUG) << "Rx Quota exhausted";
+    return true;
   }
-  if (is_exhausted) {
-    MLOG(MDEBUG) << "Quota exhausted ";
-  }
-  return is_exhausted;
+  return false;
 }
 
 bool SessionCredit::should_deactivate_service()
@@ -403,14 +403,10 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(
 ServiceActionType SessionCredit::get_action(SessionCreditUpdateCriteria& update_criteria)
 {
   if (service_state_ == SERVICE_NEEDS_DEACTIVATION) {
-    MLOG(MDEBUG) << "Service State: " << service_state_;
-    service_state_ = SERVICE_DISABLED;
-    update_criteria.service_state = SERVICE_DISABLED;
+    set_service_state(SERVICE_DISABLED, update_criteria);
     return get_action_for_deactivating_service();
   } else if (service_state_ == SERVICE_NEEDS_ACTIVATION) {
-    MLOG(MDEBUG) << "Service State: " << service_state_;
-    service_state_ = SERVICE_ENABLED;
-    update_criteria.service_state = SERVICE_ENABLED;
+    set_service_state(SERVICE_ENABLED, update_criteria);
     return ACTIVATE_SERVICE;
   }
   return CONTINUE_SERVICE;
@@ -450,13 +446,15 @@ void SessionCredit::reauth(SessionCreditUpdateCriteria& update_criteria)
   update_criteria.reauth_state = REAUTH_REQUIRED;
 }
 
-RedirectServer SessionCredit::get_redirect_server() {
+RedirectServer SessionCredit::get_redirect_server()
+{
   return final_action_info_.redirect_server;
 }
 
 void SessionCredit::set_is_final_grant(
   bool is_final_grant,
-  SessionCreditUpdateCriteria& update_criteria) {
+  SessionCreditUpdateCriteria& update_criteria)
+{
   is_final_grant_ = is_final_grant;
   update_criteria.is_final = is_final_grant;
 }
@@ -467,21 +465,27 @@ ReAuthState SessionCredit::get_reauth() {
 
 void SessionCredit::set_reauth(
   ReAuthState reauth_state,
-  SessionCreditUpdateCriteria& update_criteria) {
+  SessionCreditUpdateCriteria& update_criteria)
+{
   reauth_state_ = reauth_state;
   update_criteria.reauth_state = reauth_state;
 }
 
 void SessionCredit::set_service_state(
-  ServiceState service_state,
-  SessionCreditUpdateCriteria& update_criteria) {
-  service_state_ = service_state;
-  update_criteria.service_state = service_state;
+  ServiceState new_service_state,
+  SessionCreditUpdateCriteria& update_criteria)
+{
+  MLOG(MDEBUG) << "Service state change from "
+               << service_state_to_str(service_state_)
+               << " to " << service_state_to_str(new_service_state);
+  service_state_ = new_service_state;
+  update_criteria.service_state = new_service_state;
 }
 
 void SessionCredit::set_expiry_time(
   std::time_t expiry_time,
-  SessionCreditUpdateCriteria& update_criteria) {
+  SessionCreditUpdateCriteria& update_criteria)
+{
   expiry_time_ = expiry_time;
   update_criteria.expiry_time = expiry_time;
 }
@@ -489,7 +493,8 @@ void SessionCredit::set_expiry_time(
 void SessionCredit::add_credit(
   uint64_t credit,
   Bucket bucket,
-  SessionCreditUpdateCriteria& update_criteria) {
+  SessionCreditUpdateCriteria& update_criteria)
+{
   buckets_[bucket] += credit;
   update_criteria.bucket_deltas[bucket] += credit;
 }
@@ -508,4 +513,19 @@ std::string final_action_to_str(ChargingCredit_FinalAction final_action)
   }
 }
 
+std::string service_state_to_str(ServiceState state)
+{
+  switch (state) {
+    case SERVICE_ENABLED:
+      return "SERVICE_ENABLED";
+    case SERVICE_NEEDS_DEACTIVATION:
+      return "SERVICE_NEEDS_DEACTIVATION";
+    case SERVICE_DISABLED:
+      return "SERVICE_DISABLED";
+    case SERVICE_NEEDS_ACTIVATION:
+      return "SERVICE_NEEDS_ACTIVATION";
+    default:
+      return "INVALID SERVICE STATE";
+  }
+}
 } // namespace magma
