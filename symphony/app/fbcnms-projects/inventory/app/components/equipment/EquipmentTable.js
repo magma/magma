@@ -146,7 +146,7 @@ const EquipmentTable = (props: Props) => {
 
   const data: Array<TableRowDataType<RelayEquipment>> = useMemo(
     () =>
-      equipment.map(e => ({
+      equipment.filter(Boolean).map(e => ({
         key: e.id,
         ...e,
       })),
