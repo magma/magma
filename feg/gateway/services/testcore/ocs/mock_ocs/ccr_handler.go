@@ -68,7 +68,7 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 			return
 		}
 		srv.LastMessageReceived = &ccr
-		imsi := getIMSI(ccr)
+		imsi := ccr.GetIMSI()
 		if len(imsi) == 0 {
 			glog.Errorf("Could not find IMSI in CCR")
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
@@ -82,6 +82,19 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 		account.CurrentState = &SubscriberSessionState{
 			Connection: c,
 			SessionID:  string(ccr.SessionID),
+		}
+
+		if srv.ocsConfig.UseMockDriver {
+			srv.mockDriverLock.Lock()
+			iAnswer := srv.mockDriver.GetAnswerFromExpectations(ccr)
+			srv.mockDriverLock.Unlock()
+			if iAnswer == nil {
+				sendAnswer(ccr, c, m, diam.UnableToComply)
+				return
+			}
+			avps, resultCode := iAnswer.(GyAnswer).toAVPs()
+			sendAnswer(ccr, c, m, resultCode, avps...)
+			return
 		}
 
 		if credit_control.CreditRequestType(ccr.RequestType) == credit_control.CRTTerminate {
@@ -102,12 +115,8 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 				sendAnswer(ccr, c, m, DiameterCreditLimitReached)
 				return
 			}
-			creditAnswers = append(creditAnswers, toGrantedUnitsAVP(
-				mscc.RatingGroup,
-				srv.ocsConfig.ValidityTime,
-				returnOctets,
-				final,
-			))
+			//TODO support other FinalUnitActions
+			creditAnswers = append(creditAnswers, toGrantedUnitsAVP(diam.Success, srv.ocsConfig.ValidityTime, returnOctets, final, protos.FinalUnitAction_Terminate, mscc.RatingGroup))
 		}
 
 		sendAnswer(ccr, c, m, diam.Success, creditAnswers...)
@@ -160,7 +169,7 @@ func sendAnswer(
 }
 
 // getIMSI finds the account IMSI in a CCR message
-func getIMSI(message ccrMessage) string {
+func (message ccrMessage) GetIMSI() string {
 	for _, subID := range message.SubscriptionIDs {
 		if subID.IDType == credit_control.EndUserIMSI {
 			return subID.IDData
@@ -243,7 +252,7 @@ func getMin(first, second uint64) uint64 {
 	return first
 }
 
-func toGrantedUnitsAVP(ratingGroup uint32, validityTime uint32, quotaGrant *protos.Octets, isFinalUnit bool) *diam.AVP {
+func toGrantedUnitsAVP(resultCode uint32, validityTime uint32, quotaGrant *protos.Octets, isFinalUnit bool, finalUnitAction protos.FinalUnitAction, ratingGroup uint32) *diam.AVP {
 	creditGroup := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.GrantedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{
@@ -255,6 +264,7 @@ func toGrantedUnitsAVP(ratingGroup uint32, validityTime uint32, quotaGrant *prot
 			}),
 			diam.NewAVP(avp.ValidityTime, avp.Mbit, 0, datatype.Unsigned32(validityTime)),
 			diam.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(ratingGroup)),
+			diam.NewAVP(avp.ResultCode, avp.Mbit, 0, datatype.Unsigned32(resultCode)),
 		},
 	}
 	if isFinalUnit {
@@ -262,7 +272,7 @@ func toGrantedUnitsAVP(ratingGroup uint32, validityTime uint32, quotaGrant *prot
 			diam.NewAVP(avp.FinalUnitIndication, avp.Mbit, 0, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
 					// TODO support other final unit actions
-					diam.NewAVP(avp.FinalUnitAction, avp.Mbit, 0, datatype.Enumerated(TerminateAction)),
+					diam.NewAVP(avp.FinalUnitAction, avp.Mbit, 0, datatype.Enumerated(finalUnitAction)),
 				},
 			}),
 		)

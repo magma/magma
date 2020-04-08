@@ -12,11 +12,13 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
+	"magma/feg/gateway/services/testcore/mock_driver"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 
@@ -65,6 +67,8 @@ type OCSDiamServer struct {
 	accounts            map[string]*SubscriberAccount // map of IMSI to subscriber account
 	mux                 *sm.StateMachine
 	LastMessageReceived *ccrMessage
+	mockDriverLock      sync.Mutex
+	mockDriver          *mock_driver.MockDriver
 }
 
 // NewOCSDiamServer initializes an OCS with an empty account map
@@ -213,11 +217,23 @@ func (srv *OCSDiamServer) ClearSubscribers(ctx context.Context, void *orcprotos.
 }
 
 func (srv *OCSDiamServer) SetExpectations(ctx context.Context, req *protos.GyCreditControlExpectations) (*orcprotos.Void, error) {
+	srv.mockDriverLock.Lock()
+	defer srv.mockDriverLock.Unlock()
+
+	es := []mock_driver.Expectation{}
+	for _, e := range req.Expectations {
+		es = append(es, mock_driver.Expectation(GyExpectation{e}))
+	}
+	srv.mockDriver = mock_driver.NewMockDriver(es, req.UnexpectedRequestBehavior, GyAnswer{req.GyDefaultCca})
 	return &orcprotos.Void{}, nil
 }
 
 func (srv *OCSDiamServer) AssertExpectations(ctx context.Context, void *orcprotos.Void) (*protos.GyCreditControlResult, error) {
-	return nil, nil
+	srv.mockDriverLock.Lock()
+	defer srv.mockDriverLock.Unlock()
+
+	results, errs := srv.mockDriver.AggregateResults()
+	return &protos.GyCreditControlResult{Results: results, Errors: errs}, nil
 }
 
 // ReAuth initiates a reauth call for a subscriber and optional rating group.

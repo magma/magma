@@ -474,10 +474,10 @@ func startServer(
 }
 
 func getReAuthHandler() gy.ChargingReAuthHandler {
-	return gy.ChargingReAuthHandler(func(request *gy.ChargingReAuthRequest) *gy.ChargingReAuthAnswer {
+	return func(request *gy.ChargingReAuthRequest) *gy.ChargingReAuthAnswer {
 		return &gy.ChargingReAuthAnswer{
 			SessionID:  request.SessionID,
 			ResultCode: diam.Success,
 		}
-	})
+	}
 }
