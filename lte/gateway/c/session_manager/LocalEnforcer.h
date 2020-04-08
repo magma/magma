@@ -40,10 +40,6 @@ class SessionNotFound : public std::exception {
  */
 class LocalEnforcer {
  public:
-
-  static SessionUpdate UNUSED_SESSION_UPDATE;
-  static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
-
   LocalEnforcer();
 
   LocalEnforcer(
@@ -86,7 +82,7 @@ class LocalEnforcer {
   void aggregate_records(
     SessionMap& session_map,
     const RuleRecordTable& records,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   /**
    * reset_updates resets all of the charging keys being updated in
@@ -110,7 +106,7 @@ class LocalEnforcer {
   UpdateSessionRequest collect_updates(
     SessionMap& session_map,
     std::vector<std::unique_ptr<ServiceAction>>& actions,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE,
+    SessionUpdate& session_update,
     const bool force_update = false) const;
 
   /**
@@ -145,7 +141,7 @@ class LocalEnforcer {
   void update_session_credits_and_rules(
     SessionMap& session_map,
     const UpdateSessionResponse& response,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   /**
    * Starts the termination process for the session. When termination completes,
@@ -158,7 +154,7 @@ class LocalEnforcer {
     SessionMap& session_map,
     const std::string& imsi,
     const std::string& apn,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   uint64_t get_charging_credit(
     SessionMap& session_map,
@@ -179,7 +175,7 @@ class LocalEnforcer {
   ChargingReAuthAnswer::Result init_charging_reauth(
     SessionMap& session_map,
     ChargingReAuthRequest request,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   /**
    * Handles the equivalent of a RAR.
@@ -196,7 +192,7 @@ class LocalEnforcer {
     SessionMap& session_map,
     PolicyReAuthRequest request,
     PolicyReAuthAnswer& answer_out,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   bool session_with_imsi_exists(
     SessionMap& session_map,
@@ -222,7 +218,7 @@ class LocalEnforcer {
     SessionMap& session_map,
     const std::string& imsi,
     const magma::SessionState::Config& config,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   /**
    * Execute actions on subscriber's service, eg. terminate, redirect data, or
@@ -231,7 +227,7 @@ class LocalEnforcer {
   void execute_actions(
     SessionMap& session_map,
     const std::vector<std::unique_ptr<ServiceAction>>& actions,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   void set_termination_callback(
     SessionMap& session_map,
@@ -276,7 +272,7 @@ class LocalEnforcer {
    */
   void notify_finish_report_for_sessions(
     SessionMap& session_map,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   /**
    * Process the create session response to get rules to activate/deactivate
@@ -300,7 +296,7 @@ class LocalEnforcer {
     SessionMap& session_map,
     const UpdateSessionResponse& response,
     std::unordered_set<std::string>& subscribers_to_terminate,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   /**
    * Processes the monitoring component of UpdateSessionResponse.
@@ -313,7 +309,7 @@ class LocalEnforcer {
     SessionMap& session_map,
     const UpdateSessionResponse& response,
     std::unordered_set<std::string>& subscribers_to_terminate,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   /**
    * Process the list of rule names given and fill in rules_to_deactivate by
@@ -325,7 +321,8 @@ class LocalEnforcer {
     const std::unique_ptr<SessionState>& session,
     const google::protobuf::RepeatedPtrField<std::basic_string<char>>
       rules_to_remove,
-    RulesToProcess& rules_to_deactivate);
+    RulesToProcess& rules_to_deactivate,
+    SessionStateUpdateCriteria& update_criteria);
 
   /**
    * Populate existing rules from a specific session;
@@ -352,7 +349,8 @@ class LocalEnforcer {
     const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
       dynamic_rules_to_install,
     RulesToProcess& rules_to_activate,
-    RulesToProcess& rules_to_deactivate);
+    RulesToProcess& rules_to_deactivate,
+    SessionStateUpdateCriteria& update_criteria);
 
   /**
    * For the matching session ID, activate and/or deactivate the specified
@@ -365,7 +363,7 @@ class LocalEnforcer {
     const std::unique_ptr<SessionState>& session,
     bool& activate_success,
     bool& deactivate_success,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   /**
    * Completes the session termination and executes the callback function
@@ -382,7 +380,7 @@ class LocalEnforcer {
     SessionMap& session_map,
     const std::string& imsi,
     const std::string& session_id,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
 
   void schedule_static_rule_activation(
     SessionMap& session_map,
@@ -413,7 +411,7 @@ class LocalEnforcer {
   void receive_monitoring_credit_from_rar(
     const PolicyReAuthRequest& request,
     const std::unique_ptr<SessionState>& session,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
 
   /**
    * Send bearer creation request through the PGW client if rules were
@@ -437,7 +435,7 @@ class LocalEnforcer {
 
   void check_usage_for_reporting(
     SessionMap& session_map,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE,
+    SessionUpdate& session_update,
     const bool force_update = false);
 
   /**
@@ -449,7 +447,7 @@ class LocalEnforcer {
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
     const std::vector<PolicyRule>& dynamic_rules,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
 
   /**
@@ -459,7 +457,7 @@ class LocalEnforcer {
   void terminate_multiple_services(
     SessionMap& session_map,
     const std::unordered_set<std::string>& imsis,
-    SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
+    SessionUpdate& session_update);
 
   /**
     * Install flow for redirection through pipelined

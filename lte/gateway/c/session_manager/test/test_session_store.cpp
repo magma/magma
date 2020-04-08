@@ -213,17 +213,18 @@ TEST_F(SessionStoreTest, test_read_and_write)
 
   // 2) Create bare-bones session for IMSI1
   auto session = get_session(sid, rule_store);
-  session->activate_static_rule(rule_id_3);
+  auto uc = get_default_update_criteria();
+  session->activate_static_rule(rule_id_3, uc);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session->get_request_number(), 2);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_3),true);
 
   auto credit_update = get_monitoring_update();
   UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
-  session->get_monitor_pool().receive_credit(credit_update_ref);
+  session->get_monitor_pool().receive_credit(credit_update_ref, uc);
 
   // Add some used credit
-  session->get_monitor_pool().add_used_credit(monitoring_key, uint64_t(111), uint64_t(333));
+  session->get_monitor_pool().add_used_credit(monitoring_key, uint64_t(111), uint64_t(333), uc);
   EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_TX), 111);
   EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_RX), 333);
 
@@ -273,7 +274,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
 
   // Check for installation of new monitoring credit
   session_map[imsi].front()->get_monitor_pool().add_monitor(monitoring_key2,
-    UsageMonitoringCreditPool::unmarshal_monitor(update_criteria.monitor_credit_to_install[monitoring_key2]));
+    UsageMonitoringCreditPool::unmarshal_monitor(update_criteria.monitor_credit_to_install[monitoring_key2]), uc);
   EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key2, USED_TX), 100);
   EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key2, USED_RX), 200);
 

@@ -21,8 +21,6 @@
 
 namespace magma {
 
-SessionStateUpdateCriteria SessionState::UNUSED_UPDATE_CRITERIA = get_default_update_criteria();
-
 std::unique_ptr<SessionState> SessionState::unmarshal(
   const StoredSessionState &marshaled, StaticRuleStore &rule_store)
 {
@@ -347,8 +345,8 @@ void SessionState::complete_termination(
   termination.set_hardware_addr(config_.hardware_addr);
   termination.set_rat_type(config_.rat_type);
   fill_protos_tgpp_context(termination.mutable_tgpp_ctx());
-  monitor_pool_.get_termination_updates(&termination);
-  charging_pool_.get_termination_updates(&termination);
+  monitor_pool_.get_termination_updates(&termination, update_criteria);
+  charging_pool_.get_termination_updates(&termination, update_criteria);
   try {
     on_termination_callback_(termination);
   } catch (std::bad_function_call&) {
@@ -389,8 +387,8 @@ void SessionState::complete_termination(
   termination.set_hardware_addr(config_.hardware_addr);
   termination.set_rat_type(config_.rat_type);
   fill_protos_tgpp_context(termination.mutable_tgpp_ctx());
-  monitor_pool_.get_termination_updates(&termination);
-  charging_pool_.get_termination_updates(&termination);
+  monitor_pool_.get_termination_updates(&termination, update_criteria);
+  charging_pool_.get_termination_updates(&termination, update_criteria);
   try {
     on_termination_callback_(termination);
   } catch (std::bad_function_call&) {
@@ -624,8 +622,11 @@ bool SessionState::remove_dynamic_rule(
   PolicyRule *rule_out,
   SessionStateUpdateCriteria& update_criteria)
 {
-  update_criteria.dynamic_rules_to_uninstall.push_back(rule_id);
-  return dynamic_rules_.remove_rule(rule_id, rule_out);
+  bool removed = dynamic_rules_.remove_rule(rule_id, rule_out);
+  if (removed) {
+    update_criteria.dynamic_rules_to_uninstall.push_back(rule_id);
+  }
+  return removed;
 }
 
 bool SessionState::deactivate_static_rule(

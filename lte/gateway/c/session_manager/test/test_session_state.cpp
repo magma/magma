@@ -158,9 +158,9 @@ TEST_F(SessionStateTest, test_session_rules)
 
   // Test rule removals
   PolicyRule rule_out;
-  session_state->deactivate_static_rule("rule2");
+  session_state->deactivate_static_rule("rule2", update_criteria);
   EXPECT_EQ(1, session_state->total_monitored_rules_count());
-  EXPECT_EQ(true, session_state->remove_dynamic_rule("rule1", &rule_out));
+  EXPECT_EQ(true, session_state->remove_dynamic_rule("rule1", &rule_out, update_criteria));
   EXPECT_EQ("m1", rule_out.monitoring_key());
   EXPECT_EQ(0, session_state->total_monitored_rules_count());
 
@@ -233,12 +233,12 @@ TEST_F(SessionStateTest, test_insert_credit)
 TEST_F(SessionStateTest, test_termination)
 {
   std::promise<void> termination_promise;
-  session_state->start_termination();
+  session_state->start_termination(update_criteria);
   session_state->set_termination_callback(
     [&termination_promise](SessionTerminateRequest term_req) {
       termination_promise.set_value();
     });
-  session_state->complete_termination();
+  session_state->complete_termination(update_criteria);
   auto status =
     termination_promise.get_future().wait_for(std::chrono::seconds(0));
   EXPECT_EQ(status, std::future_status::ready);
@@ -254,7 +254,7 @@ TEST_F(SessionStateTest, test_can_complete_termination)
 
   EXPECT_EQ(session_state->can_complete_termination(), false);
 
-  session_state->start_termination();
+  session_state->start_termination(update_criteria);
   EXPECT_EQ(session_state->can_complete_termination(), false);
 
   // If the rule is still being reported, termination should not be completed.
@@ -273,7 +273,7 @@ TEST_F(SessionStateTest, test_can_complete_termination)
   EXPECT_EQ(session_state->can_complete_termination(), true);
 
   // Termination should only be completed once.
-  session_state->complete_termination();
+  session_state->complete_termination(update_criteria);
   EXPECT_EQ(session_state->can_complete_termination(), false);
 }
 
@@ -313,7 +313,7 @@ TEST_F(SessionStateTest, test_add_used_credit)
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(update, &actions);
+  session_state->get_updates(update, &actions, update_criteria);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.updates_size(), 2);
   EXPECT_EQ(update.usage_monitors_size(), 2);
@@ -365,7 +365,7 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules)
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(update, &actions);
+  session_state->get_updates(update, &actions, update_criteria);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.updates_size(), 2);
   EXPECT_EQ(update.usage_monitors_size(), 2);
@@ -389,7 +389,7 @@ TEST_F(SessionStateTest, test_session_level_key)
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(update, &actions);
+  session_state->get_updates(update, &actions, update_criteria);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.usage_monitors_size(), 1);
   auto& single_update = update.usage_monitors(0).update();
@@ -404,11 +404,11 @@ TEST_F(SessionStateTest, test_reauth_key)
 
   receive_credit_from_ocs(1, 1500);
 
-  session_state->add_used_credit("rule1", 1000, 500);
+  session_state->add_used_credit("rule1", 1000, 500, update_criteria);
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(update, &actions);
+  session_state->get_updates(update, &actions, update_criteria);
   EXPECT_EQ(update.updates_size(), 1);
   EXPECT_EQ(
     session_state->get_charging_pool().get_credit(1, REPORTING_TX), 1000);
@@ -418,17 +418,18 @@ TEST_F(SessionStateTest, test_reauth_key)
   EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[REPORTING_TX], 0);
   EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[REPORTING_RX], 0);
   // credit is already reporting, no update needed
-  auto reauth_res = session_state->get_charging_pool().reauth_key(1);
+  auto uc = get_default_update_criteria();
+  auto reauth_res = session_state->get_charging_pool().reauth_key(1, uc);
   EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_NOT_NEEDED);
   receive_credit_from_ocs(1, 1024);
   EXPECT_EQ(session_state->get_charging_pool().get_credit(1, REPORTING_TX), 0);
   EXPECT_EQ(session_state->get_charging_pool().get_credit(1, REPORTING_RX), 0);
-  reauth_res = session_state->get_charging_pool().reauth_key(1);
+  reauth_res = session_state->get_charging_pool().reauth_key(1, uc);
   EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_INITIATED);
 
-  session_state->add_used_credit("rule1", 2, 1);
+  session_state->add_used_credit("rule1", 2, 1, update_criteria);
   UpdateSessionRequest reauth_update;
-  session_state->get_updates(reauth_update, &actions);
+  session_state->get_updates(reauth_update, &actions, update_criteria);
   EXPECT_EQ(reauth_update.updates_size(), 1);
   auto& usage = reauth_update.updates(0).usage();
   EXPECT_EQ(usage.bytes_tx(), 2);
@@ -438,12 +439,12 @@ TEST_F(SessionStateTest, test_reauth_key)
 TEST_F(SessionStateTest, test_reauth_new_key)
 {
   // credit is already reporting, no update needed
-  auto reauth_res = session_state->get_charging_pool().reauth_key(1);
+  auto reauth_res = session_state->get_charging_pool().reauth_key(1, update_criteria);
   EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_INITIATED);
 
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(reauth_update, &actions);
+  session_state->get_updates(reauth_update, &actions, update_criteria);
   EXPECT_EQ(reauth_update.updates_size(), 1);
   auto& usage = reauth_update.updates(0).usage();
   EXPECT_EQ(usage.charging_key(), 1);
@@ -467,19 +468,20 @@ TEST_F(SessionStateTest, test_reauth_all)
   receive_credit_from_ocs(1, 1024);
   receive_credit_from_ocs(2, 1024);
 
-  session_state->add_used_credit("rule1", 10, 20);
-  session_state->add_used_credit("dyn_rule1", 30, 40);
+  session_state->add_used_credit("rule1", 10, 20, update_criteria);
+  session_state->add_used_credit("dyn_rule1", 30, 40, update_criteria);
   // If any charging key isn't reporting, an update is needed
-  auto reauth_res = session_state->get_charging_pool().reauth_all();
+  auto uc = get_default_update_criteria();
+  auto reauth_res = session_state->get_charging_pool().reauth_all(uc);
   EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_INITIATED);
 
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(reauth_update, &actions);
+  session_state->get_updates(reauth_update, &actions, update_criteria);
   EXPECT_EQ(reauth_update.updates_size(), 2);
 
   // All charging keys are reporting, no update needed
-  reauth_res = session_state->get_charging_pool().reauth_all();
+  reauth_res = session_state->get_charging_pool().reauth_all(uc);
   EXPECT_EQ(reauth_res, ChargingReAuthAnswer::UPDATE_NOT_NEEDED);
 }
 
@@ -488,7 +490,7 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update)
   receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
   receive_credit_from_ocs(1, 1024);
   insert_rule(1, "m1", "rule1", STATIC);
-  session_state->add_used_credit("rule1", 1024, 0);
+  session_state->add_used_credit("rule1", 1024, 0, update_criteria);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
 
   EXPECT_EQ(
@@ -500,7 +502,7 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update)
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(update,& actions);
+  session_state->get_updates(update,& actions, update_criteria);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.updates_size(), 1);
   EXPECT_EQ(update.updates().Get(0).tgpp_ctx().gx_dest_host(), "gx.dest.com");
@@ -513,7 +515,7 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update)
 TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_no_key)
 {
   insert_rule(0, "", "rule1", STATIC);
-  session_state->add_used_credit("rule1", 2000, 1000);
+  session_state->add_used_credit("rule1", 2000, 1000, update_criteria);
   SessionState::TotalCreditUsage actual = session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 0);
   EXPECT_EQ(actual.monitoring_rx, 0);
@@ -525,7 +527,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_single_key)
 {
   insert_rule(1, "", "rule1", STATIC);
   receive_credit_from_ocs(1, 3000);
-  session_state->add_used_credit("rule1", 2000, 1000);
+  session_state->add_used_credit("rule1", 2000, 1000, update_criteria);
   SessionState::TotalCreditUsage actual = session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 0);
   EXPECT_EQ(actual.monitoring_rx, 0);
@@ -538,7 +540,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_multiple_key)
   insert_rule(1, "m1", "rule1", STATIC);
   receive_credit_from_ocs(1, 3000);
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
-  session_state->add_used_credit("rule1", 2000, 1000);
+  session_state->add_used_credit("rule1", 2000, 1000, update_criteria);
   SessionState::TotalCreditUsage actual = session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 2000);
   EXPECT_EQ(actual.monitoring_rx, 1000);
@@ -555,8 +557,8 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_multiple_rule_shared_key)
   insert_rule(0, "m1", "rule2", DYNAMIC);
   receive_credit_from_ocs(1, 3000);
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
-  session_state->add_used_credit("rule1", 1000, 10);
-  session_state->add_used_credit("rule2", 500, 5);
+  session_state->add_used_credit("rule1", 1000, 10, update_criteria);
+  session_state->add_used_credit("rule2", 500, 5, update_criteria);
   SessionState::TotalCreditUsage actual = session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 1500);
   EXPECT_EQ(actual.monitoring_rx, 15);

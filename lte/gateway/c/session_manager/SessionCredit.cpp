@@ -15,7 +15,6 @@
 
 namespace magma {
 
-SessionCreditUpdateCriteria SessionCredit::UNUSED_UPDATE_CRITERIA{};
 float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
@@ -226,8 +225,8 @@ void SessionCredit::receive_credit(
     update_criteria.usage_reporting_limit = usage_reporting_limit_;
   }
 
-  set_expiry_time(validity_time);
-  reset_reporting_credit();
+  set_expiry_time(validity_time, update_criteria);
+  reset_reporting_credit(update_criteria);
 
   is_final_grant_ = is_final_grant;
   final_action_info_ = final_action_info;
