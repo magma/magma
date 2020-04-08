@@ -53,16 +53,9 @@ def main() -> None:
     args = _parse_args()
 
     # Create build context only if we're not mounting
-    # If we're building, we always need to build controller first because proxy
-    # copies metricsd binary and plugins from controller
     files_args = _get_docker_files_command_args(args)
     _create_build_context_if_necessary(args)
     _build_cache_if_necessary(args)
-    _build_controller_if_necessary(args)
-
-    # Return early if only building controller image
-    if args.controller:
-        return
 
     if args.mount:
         _run_docker(['up', '-d', 'postgres_test'])
@@ -135,27 +128,15 @@ def _build_cache_if_necessary(args: argparse.Namespace) -> None:
         _run_docker(['-f', 'docker-compose.cache.yml', 'build'])
 
 
-def _build_controller_if_necessary(args: argparse.Namespace) -> None:
-    # We don't build the controller container if we're running tests or
-    # generating code or just creating noncore containers
-    if args.mount or args.generate or args.tests or args.noncore:
-        return
-
-    # controller will always only use docker-compose.yml and override so we
-    # don't need to worry about file args (-f)
-    if args.nocache:
-        _run_docker(['build', 'controller'])
-    else:
-        _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache',
-                     'controller'])
-
-
 def _get_docker_build_args(args: argparse.Namespace) -> List[str]:
     # noncore containers don't need the orc8r cache
     if args.noncore or args.nocache:
-        return ['build']
+        ret = ['build']
     else:
-        return ['build', '--build-arg', 'baseImage=orc8r_cache']
+        ret = ['build', '--build-arg', 'baseImage=orc8r_cache']
+    if args.parallel:
+        ret.append('--parallel')
+    return ret
 
 
 def _run_docker(cmd: List[str]) -> None:
@@ -295,8 +276,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--noncore', '-nc', action='store_true',
                         help='Build only non-core containers '
                              '(i.e. no proxy, controller images)')
-    parser.add_argument('--controller', '-c', action='store_true',
-                        help='Build only the controller image')
+    parser.add_argument('--parallel', '-p', action='store_true',
+                        help='Build containers in parallel')
     args = parser.parse_args()
     return args
 
