@@ -127,6 +127,9 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
+	// Wait for CCR-T to propagate up
+	time.Sleep(3 * time.Second)
+
 	// Assert that we saw a Terminate request
 	resultByIndex, errByIndex, err = getAssertExpectationsResult()
 	assert.NoError(t, err)

@@ -138,10 +138,10 @@ struct SessionStateUpdateCriteria {
   bool is_session_ended;
   bool is_config_updated;
   StoredSessionConfig updated_config;
-  std::vector<std::string> static_rules_to_install;
-  std::vector<std::string> static_rules_to_uninstall;
+  std::set<std::string> static_rules_to_install;
+  std::set<std::string> static_rules_to_uninstall;
   std::vector<PolicyRule> dynamic_rules_to_install;
-  std::vector<std::string> dynamic_rules_to_uninstall;
+  std::set<std::string> dynamic_rules_to_uninstall;
   std::unordered_map<
     CreditKey, StoredSessionCredit,
     decltype(&ccHash), decltype(&ccEqual)> charging_credit_to_install;

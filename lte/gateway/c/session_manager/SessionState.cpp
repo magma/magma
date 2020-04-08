@@ -605,6 +605,9 @@ void SessionState::insert_dynamic_rule(
   const PolicyRule& rule,
   SessionStateUpdateCriteria& update_criteria)
 {
+  if (is_dynamic_rule_installed(rule.id())) {
+    return;
+  }
   update_criteria.dynamic_rules_to_install.push_back(rule);
   dynamic_rules_.insert_rule(rule);
 }
@@ -613,7 +616,7 @@ void SessionState::activate_static_rule(
   const std::string& rule_id,
   SessionStateUpdateCriteria& update_criteria)
 {
-  update_criteria.static_rules_to_install.push_back(rule_id);
+  update_criteria.static_rules_to_install.insert(rule_id);
   active_static_rules_.push_back(rule_id);
 }
 
@@ -624,7 +627,7 @@ bool SessionState::remove_dynamic_rule(
 {
   bool removed = dynamic_rules_.remove_rule(rule_id, rule_out);
   if (removed) {
-    update_criteria.dynamic_rules_to_uninstall.push_back(rule_id);
+    update_criteria.dynamic_rules_to_uninstall.insert(rule_id);
   }
   return removed;
 }
@@ -638,7 +641,7 @@ bool SessionState::deactivate_static_rule(
   if (it == active_static_rules_.end()) {
     return false;
   }
-  update_criteria.static_rules_to_uninstall.push_back(rule_id);
+  update_criteria.static_rules_to_uninstall.insert(rule_id);
   active_static_rules_.erase(it);
   return true;
 }

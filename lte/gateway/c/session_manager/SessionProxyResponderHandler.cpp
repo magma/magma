@@ -72,7 +72,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
       } else {
         auto status = Status(
             grpc::ABORTED,
-            "ChargingReAuth no longer valid due to another update that "
+            "PolicyReAuth no longer valid due to another update that "
             "updated the session first.");
         response_callback(status, ans);
       }

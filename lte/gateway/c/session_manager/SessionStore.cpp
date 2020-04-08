@@ -65,6 +65,7 @@ bool SessionStore::create_sessions(
 
 bool SessionStore::update_sessions(const SessionUpdate& update_criteria)
 {
+  MLOG(MERROR) << "Running update_sessions";
   // Read the current state
   auto subscriber_ids = std::set<std::string> {};
   for (const auto& it : update_criteria) {
@@ -109,12 +110,18 @@ bool SessionStore::merge_into_session(
   auto uc = get_default_update_criteria();
   for (const auto& rule_id : update_criteria.static_rules_to_install) {
     if (session->is_static_rule_installed(rule_id)) {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because static rule already installed: "
+                   << rule_id << std::endl;
       return false;
     }
     session->activate_static_rule(rule_id, uc);
   }
   for (const auto& rule_id : update_criteria.static_rules_to_uninstall) {
     if (!session->is_static_rule_installed(rule_id)) {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because static rule already uninstalled: "
+                   << rule_id << std::endl;
       return false;
     }
     session->deactivate_static_rule(rule_id, uc);
@@ -123,6 +130,9 @@ bool SessionStore::merge_into_session(
   // Dynamic rules
   for (const auto& rule : update_criteria.dynamic_rules_to_install) {
     if (session->is_dynamic_rule_installed(rule.id())) {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because dynamic rule already installed: "
+                   << rule.id() << std::endl;
       return false;
     }
     session->insert_dynamic_rule(rule, uc);
@@ -130,6 +140,9 @@ bool SessionStore::merge_into_session(
   PolicyRule* _ = {};
   for (const auto& rule_id : update_criteria.dynamic_rules_to_uninstall) {
     if (!session->is_dynamic_rule_installed(rule_id)) {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because dynamic rule already uninstalled: "
+                   << rule_id << std::endl;
       return false;
     }
     session->remove_dynamic_rule(rule_id, _, uc);

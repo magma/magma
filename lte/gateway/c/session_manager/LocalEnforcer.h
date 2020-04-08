@@ -383,24 +383,20 @@ class LocalEnforcer {
     SessionStateUpdateCriteria& update_criteria);
 
   void schedule_static_rule_activation(
-    SessionMap& session_map,
     const std::string& imsi,
     const std::string& ip_addr,
     const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_activation(
-    SessionMap& session_map,
     const std::string& imsi,
     const std::string& ip_addr,
     const DynamicRuleInstall& dynamic_rule);
 
   void schedule_static_rule_deactivation(
-    SessionMap& session_map,
     const std::string& imsi,
     const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
-    SessionMap& session_map,
     const std::string& imsi,
     const DynamicRuleInstall& dynamic_rule);
 
