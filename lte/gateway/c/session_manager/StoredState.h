@@ -136,6 +136,8 @@ struct SessionCreditUpdateCriteria {
 
 struct SessionStateUpdateCriteria {
   bool is_session_ended;
+  bool is_config_updated;
+  StoredSessionConfig updated_config;
   std::vector<std::string> static_rules_to_install;
   std::vector<std::string> static_rules_to_uninstall;
   std::vector<PolicyRule> dynamic_rules_to_install;

@@ -1639,12 +1639,16 @@ bool LocalEnforcer::session_with_same_config_exists(
 void LocalEnforcer::handle_cwf_roaming(
   SessionMap& session_map,
   const std::string& imsi,
-  const magma::SessionState::Config& config)
+  const magma::SessionState::Config& config,
+  SessionUpdate& session_update)
 {
   auto it = session_map.find(imsi);
   if (it != session_map.end()) {
     for (const auto &session : it->second) {
+      auto& update_criteria = session_update[imsi][session->get_session_id()];
       session->set_config(config);
+      update_criteria.is_config_updated = true;
+      update_criteria.updated_config = session->marshal_config();
       // TODO Check for event triggers and send updates to the core if needed
       MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
       SubscriberID sid;

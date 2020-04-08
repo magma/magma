@@ -144,8 +144,8 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
     // Assert the internal session config is updated to the new one
     req = {"IMSI1"};
     session_map = session_store->read_sessions(req);
-//    EXPECT_FALSE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
-//    EXPECT_TRUE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn2"));
+    EXPECT_FALSE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
+    EXPECT_TRUE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn2"));
 }
 
 TEST_F(SessionManagerHandlerTest, test_create_session)
