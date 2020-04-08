@@ -31,3 +31,9 @@ session_force_termination_timeout_ms: 5000
 
 # Set to true to enable sessiond support of carrier wifi
 support_carrier_wifi: false
+
+# Set to true to store session state in Redis for persistence.
+support_stateless: false
+
+# Redis table name for session state.
+sessions_table: sessiond:sessions

@@ -32,7 +32,7 @@ class RedisReadFailed : public std::exception {
 class RedisStoreClient final : public StoreClient {
  public:
   RedisStoreClient(
-      cpp_redis::client& client,
+      std::shared_ptr<cpp_redis::client> client,
       const std::string& redis_table,
       std::shared_ptr<StaticRuleStore> rule_store);
 
@@ -42,12 +42,12 @@ class RedisStoreClient final : public StoreClient {
 
   bool try_redis_connect();
 
-  SessionMap read_sessions(std::vector<std::string> subscriber_ids);
+  SessionMap read_sessions(std::set<std::string> subscriber_ids);
 
   bool write_sessions(SessionMap session_map);
 
  private:
-  cpp_redis::client& client_;
+  std::shared_ptr<cpp_redis::client> client_;
   std::string redis_table_;
   std::shared_ptr<StaticRuleStore> rule_store_;
 

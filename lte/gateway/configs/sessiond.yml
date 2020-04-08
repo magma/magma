@@ -36,3 +36,9 @@ support_carrier_wifi: false
 # Number of ms before sessiond terminates a session when it is started without
 # quota.
 cwf_quota_exhaustion_termination_on_init_ms: 30000
+
+# Set to true to store session state in Redis for persistence.
+support_stateless: false
+
+# Redis table name for session state.
+sessions_table: sessiond:sessions

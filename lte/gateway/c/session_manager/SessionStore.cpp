@@ -16,40 +16,47 @@ namespace magma {
 namespace lte {
 
 SessionStore::SessionStore(std::shared_ptr<StaticRuleStore> rule_store):
-  rule_store_(rule_store), store_client_(rule_store)
+    rule_store_(rule_store), store_client_(std::make_shared<MemoryStoreClient>(rule_store))
+{
+}
+
+SessionStore::SessionStore(
+  std::shared_ptr<StaticRuleStore> rule_store,
+  std::shared_ptr<RedisStoreClient> store_client):
+  rule_store_(rule_store), store_client_(store_client)
 {
 }
 
 SessionMap SessionStore::read_sessions(const SessionRead& req)
 {
-  return store_client_.read_sessions(req);
+  return store_client_->read_sessions(req);
 }
 
 SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req)
 {
-  auto session_map = store_client_.read_sessions(req);
-  auto session_map_2 = store_client_.read_sessions(req);
+  auto session_map = store_client_->read_sessions(req);
+  auto session_map_2 = store_client_->read_sessions(req);
   // For all sessions of the subscriber, increment the request numbers
   for (const std::string& imsi : req) {
     for (auto& session : session_map_2[imsi]) {
       session->increment_request_number(session->get_credit_key_count());
     }
   }
-  store_client_.write_sessions(std::move(session_map_2));
+  store_client_->write_sessions(std::move(session_map_2));
   return session_map;
 }
 
 SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req)
 {
-  auto session_map = store_client_.read_sessions(req);
-  auto session_map_2 = store_client_.read_sessions(req);
+  auto session_map = store_client_->read_sessions(req);
+  auto session_map_2 = store_client_->read_sessions(req);
   // For all sessions of the subscriber, increment the request numbers
   for (const std::string& imsi : req) {
     for (auto& session : session_map_2[imsi]) {
       session->increment_request_number(1);
     }
   }
-  store_client_.write_sessions(std::move(session_map_2));
+  store_client_->write_sessions(std::move(session_map_2));
   return session_map;
 }
 
@@ -59,7 +66,7 @@ bool SessionStore::create_sessions(
 {
   auto session_map = SessionMap {};
   session_map[subscriber_id] = std::move(sessions);
-  store_client_.write_sessions(std::move(session_map));
+  store_client_->write_sessions(std::move(session_map));
   return true;
 }
 
@@ -71,7 +78,7 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria)
   for (const auto& it : update_criteria) {
     subscriber_ids.insert(it.first);
   }
-  auto session_map = store_client_.read_sessions(subscriber_ids);
+  auto session_map = store_client_->read_sessions(subscriber_ids);
 
   // Now attempt to modify the state
   for (auto& it : session_map) {
@@ -94,7 +101,7 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria)
       ++it2;
     }
   }
-  return store_client_.write_sessions(std::move(session_map));
+  return store_client_->write_sessions(std::move(session_map));
 }
 
 bool SessionStore::merge_into_session(

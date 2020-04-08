@@ -15,6 +15,7 @@
 #include "LocalEnforcer.h"
 #include "SessionReporter.h"
 #include "MagmaService.h"
+#include "RedisStoreClient.h"
 #include "RestartHandler.h"
 #include "ServiceRegistrySingleton.h"
 #include "PolicyLoader.h"
@@ -213,7 +214,25 @@ int main(int argc, char *argv[])
   }
 
   magma::SessionMap session_map{};
-  auto session_store = new magma::SessionStore(rule_store);
+  magma::SessionStore* session_store;
+  bool is_stateless = config["support_stateless"].IsDefined()
+      && config["support_stateless"].as<bool>();
+  if (is_stateless) {
+    auto store_client = std::make_shared<magma::lte::RedisStoreClient>(
+        std::make_shared<cpp_redis::client>(),
+        config["sessions_table"].as<std::string>(),
+        rule_store);
+    bool connected;
+    do {
+      MLOG(MINFO) << "Attempting to connect to Redis";
+      connected = store_client->try_redis_connect();
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    } while (!connected);
+    session_store = new magma::SessionStore(rule_store, store_client);
+    MLOG(MINFO) << "Successfully connected to Redis";
+  } else {
+    session_store = new magma::SessionStore(rule_store);
+  }
   auto monitor = std::make_shared<magma::LocalEnforcer>(
     reporter,
     rule_store,
@@ -233,10 +252,12 @@ int main(int argc, char *argv[])
     monitor, session_map, *session_store);
 
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
-    directoryd_client, monitor, reporter.get(), session_map);
+      directoryd_client, monitor, reporter.get(), session_map);
   std::thread restart_handler_thread([&]() {
-    MLOG(MINFO) << "Started sessiond restart handler thread";
-    restart_handler->cleanup_previous_sessions();
+    if (is_stateless) {
+      MLOG(MINFO) << "Started sessiond restart handler thread";
+      restart_handler->cleanup_previous_sessions();
+    }
   });
 
   magma::LocalSessionManagerAsyncService local_service(

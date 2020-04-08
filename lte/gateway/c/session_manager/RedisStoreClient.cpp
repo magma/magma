@@ -15,7 +15,7 @@ namespace magma {
 namespace lte {
 
 RedisStoreClient::RedisStoreClient(
-    cpp_redis::client& client,
+    std::shared_ptr<cpp_redis::client> client,
     const std::string& redis_table,
     std::shared_ptr<StaticRuleStore> rule_store):
     client_(client),
@@ -28,7 +28,7 @@ bool RedisStoreClient::try_redis_connect()
   auto config = loader.load_service_config("redis");
   auto port = config["port"].as<uint32_t>();
   try {
-    client_.connect(
+    client_->connect(
         "127.0.0.1",
         port,
         [](
@@ -39,14 +39,14 @@ bool RedisStoreClient::try_redis_connect()
             MLOG(MERROR) << "Client disconnected from " << host << ":" << port;
           }
         });
-    return client_.is_connected();
+    return client_->is_connected();
   } catch (const cpp_redis::redis_error& e) {
     MLOG(MERROR) << "Could not connect to redis: " << e.what();
     return false;
   }
 }
 
-SessionMap RedisStoreClient::read_sessions(std::vector<std::string> subscriber_ids)
+SessionMap RedisStoreClient::read_sessions(std::set<std::string> subscriber_ids)
 {
   // The approach here is made assuming that the SessionStore only has one
   // call being processed at a time, and that the writes it makes are done
@@ -54,10 +54,10 @@ SessionMap RedisStoreClient::read_sessions(std::vector<std::string> subscriber_i
   // transactions, or EVAL.
   std::unordered_map<std::string, std::future<cpp_redis::reply>> futures;
   for (const std::string& key : subscriber_ids) {
-    futures[key] = client_.hget(redis_table_, key);
+    futures[key] = client_->hget(redis_table_, key);
   }
 
-  client_.sync_commit();
+  client_->sync_commit();
 
   SessionMap session_map;
   for (const std::string& key : subscriber_ids) {
@@ -89,22 +89,22 @@ bool RedisStoreClient::write_sessions(SessionMap session_map)
   for (auto& it : session_map) {
     keys.push_back(it.first);
   }
-  client_.watch(keys);
+  client_->watch(keys);
 
   // Now set the MULTI command.
   // Subsequent commands end up being queued for atomic execution with EXEC.
   // Together with WATCH, if one of the keys we intend to set are modified, then
   // the entire EXEC does not execute.
-  client_.multi();
+  client_->multi();
 
   // And now we queue up HSET commands after we've set up some sort of safety
   // guarantees.
   for (auto& it : session_map) {
-    client_.hset(redis_table_, it.first, serialize_session_vec(it.second));
+    client_->hset(redis_table_, it.first, serialize_session_vec(it.second));
   }
 
-  auto exec_future = client_.exec();
-  client_.sync_commit();
+  auto exec_future = client_->exec();
+  client_->sync_commit();
 
   auto reply = exec_future.get();
   if (!reply.ok()) {

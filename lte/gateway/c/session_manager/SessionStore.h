@@ -16,6 +16,7 @@
 #include "SessionState.h"
 #include "MemoryStoreClient.h"
 #include "StoredState.h"
+#include "RedisStoreClient.h"
 #include "RuleStore.h"
 
 namespace magma {
@@ -49,6 +50,10 @@ class SessionStore {
   static SessionUpdate get_default_session_update(SessionMap& session_map);
 
   SessionStore(std::shared_ptr<StaticRuleStore> rule_store);
+
+  SessionStore(
+    std::shared_ptr<StaticRuleStore> rule_store,
+    std::shared_ptr<RedisStoreClient> store_client);
 
   /**
    * Read the last written values for the requested sessions through the
@@ -114,7 +119,7 @@ class SessionStore {
     const SessionStateUpdateCriteria& update_criteria);
 
  private:
-  MemoryStoreClient store_client_;
+  std::shared_ptr<StoreClient> store_client_;
   std::shared_ptr<StaticRuleStore> rule_store_;
 };
 
