@@ -18,11 +18,11 @@ import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
-import DeleteIcon from '@material-ui/icons/Delete';
 import DraggableTableRow from '../draggable/DraggableTableRow';
 import DroppableTableBody from '../draggable/DroppableTableBody';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import PropertyValueInput from './PropertyValueInput';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Table from '@material-ui/core/Table';
@@ -31,12 +31,12 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import inventoryTheme from '../../common/theme';
-import symphony from '@fbcnms/ui/theme/symphony';
+import {DeleteIcon, PlusIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {removeItem, setItem, updateItem} from '@fbcnms/util/arrays';
 import {reorder} from '../draggable/DraggableUtils';
 import {withStyles} from '@material-ui/core/styles';
 
-const styles = _theme => ({
+const styles = () => ({
   container: {
     maxWidth: '1366px',
     overflowX: 'auto',
@@ -55,17 +55,6 @@ const styles = _theme => ({
     ...inventoryTheme.textField,
     paddingLeft: '0px',
     width: 'unset',
-  },
-  addButton: {
-    padding: '4px 18px',
-    height: '32px',
-    borderRadius: '4px',
-    border: '1px solid',
-    borderColor: symphony.palette.primary,
-    '&:hover': {
-      borderColor: symphony.palette.B800,
-      backgroundColor: symphony.palette.B50,
-    },
   },
   selectMenu: {
     height: '14px',
@@ -223,16 +212,15 @@ class PropertyTypeTable extends React.Component<Props> {
                     align="right"
                     component="div">
                     <FormAction>
-                      <Button
-                        variant="text"
+                      <IconButton
                         skin="primary"
                         onClick={this._onRemovePropertyClicked(i, property)}
                         disabled={
                           !this.props.supportDelete &&
                           !property.id.includes('@tmp')
-                        }>
-                        <DeleteIcon />
-                      </Button>
+                        }
+                        icon={DeleteIcon}
+                      />
                     </FormAction>
                   </TableCell>
                 </DraggableTableRow>
@@ -242,10 +230,10 @@ class PropertyTypeTable extends React.Component<Props> {
         </Table>
         <FormAction>
           <Button
-            className={classes.addButton}
             color="primary"
             variant="text"
-            onClick={this._onAddProperty}>
+            onClick={this._onAddProperty}
+            leftIcon={PlusIcon}>
             Add Property
           </Button>
         </FormAction>

@@ -111,7 +111,9 @@ describe('useForm hook', () => {
       text: val,
     }));
     hooksAct(() => {
-      textEventHandler({target: {value: 'test text'}});
+      textEventHandler({
+        target: ({value: 'test text'}: $Shape<HTMLInputElement>),
+      });
     });
     hooksAct(() => {
       result.current.addListItem('list', {test: 1});
@@ -122,8 +124,12 @@ describe('useForm hook', () => {
     });
   });
 
+  type TestState = {|
+    text: string,
+    list: Array<{}>,
+  |};
   test('editing a field calls onFormUpdated', () => {
-    const state = {
+    const state: TestState = {
       text: '',
       list: [],
     };
@@ -135,7 +141,9 @@ describe('useForm hook', () => {
       text: val,
     }));
     hooksAct(() => {
-      textEventHandler({target: {value: 'test text'}});
+      textEventHandler({
+        target: ({value: 'test text'}: $Shape<HTMLInputElement>),
+      });
     });
     expect(onFormUpdatedMock).toHaveBeenCalledWith({
       list: [],
