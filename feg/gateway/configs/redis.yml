@@ -8,6 +8,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 port: 6380
+bind: 127.0.0.1
 redis_loglevel: notice
 dir: /var/opt/magma
 # How frequently to save/dump to disk.

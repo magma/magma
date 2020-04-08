@@ -26,10 +26,6 @@
 #include <cpp_redis/cpp_redis>
 #include <google/protobuf/message.h>
 
-namespace {
-constexpr char LOCALHOST[] = "127.0.0.1";
-}
-
 namespace magma {
 namespace lte {
 
@@ -39,11 +35,10 @@ class RedisClient {
   ~RedisClient() = default;
 
   /**
-   * Initializes a connection to redis datastore.
-   * @param addr IP address on which redis db is running
+   * Initializes a connection to the redis datastore configured in redis.yml
    * @return response code of success / error with db connection
    */
-  void init_db_connection(const std::string& addr);
+  void init_db_connection();
 
   /**
    * Converts protobuf Message and parses it to string
