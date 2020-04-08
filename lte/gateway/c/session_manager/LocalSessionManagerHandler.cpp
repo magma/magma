@@ -84,8 +84,6 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(SessionUpdate& se
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
         enforcer_->update_session_credits_and_rules(session_map_, response, session_update);
-        // Check if we need to report more updates
-        check_usage_for_reporting(session_update);
       }
     });
 }
