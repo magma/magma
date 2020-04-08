@@ -106,17 +106,18 @@ bool SessionStore::merge_into_session(
   }
 
   // Static rules
+  auto uc = get_default_update_criteria();
   for (const auto& rule_id : update_criteria.static_rules_to_install) {
     if (session->is_static_rule_installed(rule_id)) {
       return false;
     }
-    session->activate_static_rule(rule_id);
+    session->activate_static_rule(rule_id, uc);
   }
   for (const auto& rule_id : update_criteria.static_rules_to_uninstall) {
     if (!session->is_static_rule_installed(rule_id)) {
       return false;
     }
-    session->deactivate_static_rule(rule_id);
+    session->deactivate_static_rule(rule_id, uc);
   }
 
   // Dynamic rules
@@ -124,14 +125,14 @@ bool SessionStore::merge_into_session(
     if (session->is_dynamic_rule_installed(rule.id())) {
       return false;
     }
-    session->insert_dynamic_rule(rule);
+    session->insert_dynamic_rule(rule, uc);
   }
   PolicyRule* _ = {};
   for (const auto& rule_id : update_criteria.dynamic_rules_to_uninstall) {
     if (!session->is_dynamic_rule_installed(rule_id)) {
       return false;
     }
-    session->remove_dynamic_rule(rule_id, _);
+    session->remove_dynamic_rule(rule_id, _, uc);
   }
 
   // Charging credit
@@ -143,8 +144,9 @@ bool SessionStore::merge_into_session(
   for (const auto& it : update_criteria.charging_credit_to_install) {
     auto key = it.first;
     auto stored_credit = it.second;
+    auto uc = get_default_update_criteria();
     session->get_charging_pool().add_credit(
-      key, SessionCredit::unmarshal(stored_credit, CHARGING));
+      key, SessionCredit::unmarshal(stored_credit, CHARGING), uc);
   }
 
   // Monitoring credit
@@ -156,8 +158,9 @@ bool SessionStore::merge_into_session(
   for (const auto& it : update_criteria.monitor_credit_to_install) {
     auto key = it.first;
     auto stored_monitor = it.second;
+    auto uc = get_default_update_criteria();
     session->get_monitor_pool().add_monitor(
-      key, UsageMonitoringCreditPool::unmarshal_monitor(stored_monitor));
+      key, UsageMonitoringCreditPool::unmarshal_monitor(stored_monitor), uc);
   }
   return true;
 }

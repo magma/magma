@@ -14,9 +14,6 @@
 
 namespace magma {
 
-SessionStateUpdateCriteria ChargingCreditPool::UNUSED_UPDATE_CRITERIA = get_default_update_criteria();
-SessionStateUpdateCriteria UsageMonitoringCreditPool::UNUSED_UPDATE_CRITERIA = get_default_update_criteria();
-
 std::unique_ptr<ChargingCreditPool> ChargingCreditPool::unmarshal(
   const StoredChargingCreditPool &marshaled)
 {
@@ -178,7 +175,7 @@ void ChargingCreditPool::get_updates(
                      << credit_pair.first << " updating due to type "
                      << update_type;
         updates_out->push_back(get_usage_proto_from_struct(
-          credit.get_usage_for_reporting(false /* no termination */),
+          credit.get_usage_for_reporting(false, *credit_uc /* no termination */),
           convert_update_type_to_proto(update_type),
           credit_pair.first));
       }
@@ -187,12 +184,14 @@ void ChargingCreditPool::get_updates(
 }
 
 bool ChargingCreditPool::get_termination_updates(
-  SessionTerminateRequest *termination_out) const
+  SessionTerminateRequest *termination_out,
+  SessionStateUpdateCriteria& update_criteria)
 {
   for (auto &credit_pair : credit_map_) {
+    auto credit_uc = get_credit_update(credit_pair.first, update_criteria);
     termination_out->mutable_credit_usages()->Add()->CopyFrom(
       get_usage_proto_from_struct(
-        credit_pair.second->get_usage_for_reporting(true /* termination */),
+        credit_pair.second->get_usage_for_reporting(true, *credit_uc /* termination */),
         CreditUsage::TERMINATED,
         credit_pair.first));
   }
@@ -289,10 +288,11 @@ bool ChargingCreditPool::receive_credit(
     // new credit
     return init_new_credit(update, update_criteria);
   }
+  auto credit_uc = get_credit_update(CreditKey(update), update_criteria);
   if (!update.success()) {
     // update unsuccessful, reset credit and return
     MLOG(MDEBUG) << "Rececive_Credit_Update: Unsuccessfull";
-    it->second->mark_failure(update.result_code());
+    it->second->mark_failure(update.result_code(), *credit_uc);
     return false;
   }
   const auto &gsu = update.credit().granted_units();
@@ -302,7 +302,6 @@ bool ChargingCreditPool::receive_credit(
                << "for subscriber " << imsi_ << " rating group "
                << update.charging_key();
   uint64_t default_volume = 0; // default to not increasing credit
-  auto credit_uc = get_credit_update(CreditKey(update), update_criteria);
   receive_charging_credit_with_default(
     *(it->second),
     gsu,
@@ -342,20 +341,20 @@ SessionCreditUpdateCriteria* ChargingCreditPool::get_credit_update(
 
 void ChargingCreditPool::merge_credit_update(
   const CreditKey &key,
-  const SessionCreditUpdateCriteria &credit_update)
+  SessionCreditUpdateCriteria &credit_update)
 {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
     return;
   }
-  it->second->set_is_final_grant(credit_update.is_final);
-  it->second->set_reauth(credit_update.reauth_state);
-  it->second->set_service_state(credit_update.service_state);
-  it->second->set_expiry_time(credit_update.expiry_time);
+  it->second->set_is_final_grant(credit_update.is_final, credit_update);
+  it->second->set_reauth(credit_update.reauth_state, credit_update);
+  it->second->set_service_state(credit_update.service_state, credit_update);
+  it->second->set_expiry_time(credit_update.expiry_time, credit_update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     it->second->add_credit(
-      credit_update.bucket_deltas.find(bucket)->second, bucket);
+      credit_update.bucket_deltas.find(bucket)->second, bucket, credit_update);
   }
 }
 
@@ -533,7 +532,8 @@ void UsageMonitoringCreditPool::get_updates(
 {
   for (auto &monitor_pair : monitor_map_) {
     auto &credit = monitor_pair.second->credit;
-    auto action_type = credit.get_action();
+    auto credit_uc = get_credit_update(monitor_pair.first, update_criteria);
+    auto action_type = credit.get_action(*credit_uc);
     if (action_type != CONTINUE_SERVICE) {
       auto action = std::make_unique<ServiceAction>(action_type);
       populate_output_actions(
@@ -551,7 +551,7 @@ void UsageMonitoringCreditPool::get_updates(
                    << monitor_pair.first << " updating due to type "
                    << update_type;
       updates_out->push_back(get_monitor_update_from_struct(
-        credit.get_usage_for_reporting(false /* no termination */),
+        credit.get_usage_for_reporting(false, *credit_uc /* no termination */),
         monitor_pair.first,
         monitor_pair.second->level));
     }
@@ -559,13 +559,15 @@ void UsageMonitoringCreditPool::get_updates(
 }
 
 bool UsageMonitoringCreditPool::get_termination_updates(
-  SessionTerminateRequest *termination_out) const
+  SessionTerminateRequest *termination_out,
+  SessionStateUpdateCriteria& update_criteria)
 {
   for (auto &credit_pair : monitor_map_) {
+    auto credit_uc = get_credit_update(credit_pair.first, update_criteria);
     termination_out->mutable_monitor_usages()->Add()->CopyFrom(
       get_monitor_update_from_struct(
         credit_pair.second->credit.get_usage_for_reporting(
-          true /* termination */),
+          true, *credit_uc /* termination */),
         credit_pair.first,
         credit_pair.second->level));
   }
@@ -626,7 +628,7 @@ bool UsageMonitoringCreditPool::receive_credit(
   SessionStateUpdateCriteria& update_criteria)
 {
   if (update.credit().level() == MonitoringLevel::SESSION_LEVEL) {
-    update_session_level_key(update);
+    update_session_level_key(update, update_criteria);
   }
   auto it = monitor_map_.find(update.credit().monitoring_key());
   if (it == monitor_map_.end()) {
@@ -688,20 +690,20 @@ SessionCreditUpdateCriteria* UsageMonitoringCreditPool::get_credit_update(
 
 void UsageMonitoringCreditPool::merge_credit_update(
   const std::string &key,
-  const SessionCreditUpdateCriteria &credit_update)
+  SessionCreditUpdateCriteria &credit_update)
 {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {
     return;
   }
-  it->second->credit.set_is_final_grant(credit_update.is_final);
-  it->second->credit.set_reauth(credit_update.reauth_state);
-  it->second->credit.set_service_state(credit_update.service_state);
-  it->second->credit.set_expiry_time(credit_update.expiry_time);
+  it->second->credit.set_is_final_grant(credit_update.is_final, credit_update);
+  it->second->credit.set_reauth(credit_update.reauth_state, credit_update);
+  it->second->credit.set_service_state(credit_update.service_state, credit_update);
+  it->second->credit.set_expiry_time(credit_update.expiry_time, credit_update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     it->second->credit.add_credit(
-      credit_update.bucket_deltas.find(bucket)->second, bucket);
+      credit_update.bucket_deltas.find(bucket)->second, bucket, credit_update);
   }
 }
 
