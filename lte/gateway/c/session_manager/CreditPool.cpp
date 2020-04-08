@@ -248,7 +248,7 @@ bool ChargingCreditPool::init_new_credit(
                  << " and charging key " << update.charging_key();
     return false;
   }
-  MLOG(MDEBUG) << "Initialized a charging credit for imsi" << imsi_
+  MLOG(MINFO) << "Initialized a charging credit for imsi " << imsi_
                << " and charging key " << update.charging_key();
   // unless defined, volume is defined as the maximum possible value
   // uint64_t default_volume = std::numeric_limits<uint64_t>::max();
