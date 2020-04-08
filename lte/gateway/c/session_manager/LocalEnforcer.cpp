@@ -320,14 +320,32 @@ void LocalEnforcer::terminate_service(
     }
 
     std::string session_id = session->get_session_id();
-   // The termination should be completed when aggregated usage record no longer
-   // includes the imsi. If this has not occurred after the timeout, force
-   // terminate the session.
-   evb_->runAfterDelay(
-     [this, imsi, session_id, &session_map, &update_criteria] {
+    // The termination should be completed when aggregated usage record no longer
+    // includes the imsi. If this has not occurred after the timeout, force
+    // terminate the session.
+    evb_->runAfterDelay(
+     [this, imsi, session_id] {
        MLOG(MDEBUG) << "Forced service termination for IMSI " << imsi;
-       complete_termination(session_map, imsi, session_id, update_criteria);
-      },
+       SessionRead req = {imsi};
+       auto session_map = session_store_.read_sessions_for_deletion(req);
+       auto session_update = SessionStore::get_default_session_update(session_map);
+       if (session_update[imsi].find(session_id) != session_update[imsi].end()) {
+         auto& update_criteria = session_update[imsi][session_id];
+         complete_termination(session_map, imsi, session_id, update_criteria);
+         bool end_success = session_store_.update_sessions(session_update);
+         if (end_success) {
+           MLOG(MDEBUG) << "Ended session " << imsi << " with session_id: "
+                        << session_id;
+         } else {
+           MLOG(MERROR) << "Failed to update SessionStore with ended session "
+                        << imsi << " and session_id: " << session_id;
+         }
+       } else {
+         MLOG(MDEBUG) << "Not forcing termination for session " << imsi
+                      << " and session_id: " << session_id
+                      << " as it has already terminated.";
+       }
+     },
      session_force_termination_timeout_ms_);
   }
 }
@@ -521,7 +539,6 @@ void LocalEnforcer::schedule_static_rule_activation(
             }
           }
           auto update_success = session_store_.update_sessions(session_update);
-          MLOG(MERROR) << "ANDREI - ran scheduled static rule activation: " << update_success << " " << imsi << " " << static_rule.rule_id() << std::endl;
         }
       }),
       delta);
@@ -560,7 +577,6 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
             }
           }
           auto update_success = session_store_.update_sessions(session_update);
-          MLOG(MERROR) << "ANDREI - ran scheduled dynamic rule activation: " << update_success << " " << imsi << " " << dynamic_rule.policy_rule().id() << std::endl;
         }
       }),
       delta);
@@ -581,10 +597,8 @@ void LocalEnforcer::schedule_static_rule_deactivation(
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
       std::move([=] {
-        MLOG(MERROR) << "ANDREI - running schedule static rule deactivation: " << imsi << " " << static_rule.rule_id() << std::endl;
         auto session_map = session_store_.read_sessions(SessionRead{imsi});
         auto session_update = session_store_.get_default_session_update(session_map);
-        MLOG(MERROR) << "ANDREI - running schedule static rule deactivation - got session_map and update" << std::endl;
         pipelined_client_->deactivate_flows_for_rules(
           imsi, static_rules, dynamic_rules);
         auto it = session_map.find(imsi);
@@ -601,7 +615,6 @@ void LocalEnforcer::schedule_static_rule_deactivation(
                              << " during static rule removal";
           }
           auto update_success = session_store_.update_sessions(session_update);
-          MLOG(MERROR) << "ANDREI - ran scheduled static rule deactivation: " << update_success << " " << imsi << " " << static_rule.rule_id() << std::endl;
         }
       }),
       delta);
@@ -639,7 +652,6 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
               dynamic_rule.policy_rule().id(), &rule_dont_care, uc);
           }
           auto update_success = session_store_.update_sessions(session_update);
-          MLOG(MERROR) << "ANDREI - ran scheduled dynamic rule deactivation: " << update_success << " " << imsi << " " << dynamic_rule.policy_rule().id() << std::endl;
         }
       }),
       delta);
@@ -884,22 +896,31 @@ void LocalEnforcer::handle_session_init_subscriber_quota_state(
                << "to be terminated in "
                << quota_exhaustion_termination_on_init_ms_ << " ms";
   evb_->runAfterDelay(
-    [this, imsi, &session_map] {
+    [this, imsi] {
       MLOG(MDEBUG) << "Starting termination due to quota exhaustion for"
                    << " IMSI " << imsi;
+      SessionRead req = {imsi};
+      auto session_map = session_store_.read_sessions_for_deletion(req);
       auto it = session_map.find(imsi);
       if (it == session_map.end()) {
           MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
           return;
       }
+      SessionUpdate session_update = SessionStore::get_default_session_update(session_map);
       for (const auto &session : it->second) {
         RulesToProcess rules;
         populate_rules_from_session_to_remove(imsi, session, rules);
         // terminate_service will properly propagate subscriber quota state
         // as terminated
-        SessionUpdate session_update = SessionStore::get_default_session_update(session_map);
         terminate_service(
           session_map, imsi, rules.static_rules, rules.dynamic_rules, session_update);
+      }
+      bool end_success = session_store_.update_sessions(session_update);
+      if (end_success) {
+        MLOG(MDEBUG) << "Ended session with imsi: " << imsi;
+      } else {
+        MLOG(MERROR) << "Failed to update SessionStore with ended sessions "
+                     << "with imsi: " << imsi;
       }
     },
     quota_exhaustion_termination_on_init_ms_);
@@ -1204,11 +1225,11 @@ void LocalEnforcer::terminate_subscriber(
 
           bool end_success = session_store_.update_sessions(session_update);
           if (end_success) {
-            MLOG(MERROR) << "Failed to update SessionStore with ended session "
-                         << imsi << " and session_id: " << session_id;
-          } else {
             MLOG(MDEBUG) << "Ended session " << imsi << " with session_id: "
                          << session_id;
+          } else {
+            MLOG(MERROR) << "Failed to update SessionStore with ended session "
+                         << imsi << " and session_id: " << session_id;
           }
         },
         session_force_termination_timeout_ms_);
