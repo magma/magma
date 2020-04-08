@@ -263,11 +263,14 @@ void SessionState::get_updates(
   get_updates_from_monitor_pool(update_request_out, actions_out, update_criteria, force_update);
 }
 
-void SessionState::start_termination(
-  std::function<void(SessionTerminateRequest)> on_termination_callback,
-  SessionStateUpdateCriteria& update_criteria)
+void SessionState::start_termination(SessionStateUpdateCriteria& update_criteria)
 {
   curr_state_ = SESSION_TERMINATING_FLOW_ACTIVE;
+}
+
+void SessionState::set_termination_callback(
+  std::function<void(SessionTerminateRequest)> on_termination_callback)
+{
   on_termination_callback_ = on_termination_callback;
 }
 
@@ -325,6 +328,52 @@ void SessionState::complete_termination(
     MLOG(MERROR) << "Missing termination callback function while terminating "
                     "session for IMSI "
                  << imsi_ << " and session id " << session_id_;
+  }
+}
+
+void SessionState::complete_termination(
+  SessionReporter& reporter,
+  SessionStateUpdateCriteria& update_criteria)
+{
+  if (curr_state_ == SESSION_TERMINATED) {
+    // session is already terminated. Do nothing.
+    return;
+  }
+  if (!can_complete_termination()) {
+    MLOG(MERROR) << "Encountered unexpected state(" << curr_state_
+                 << ") while terminating session for IMSI " << imsi_
+                 << " and session id " << session_id_
+                 << ". Forcefully terminating session.";
+  }
+  // mark entire session as terminated
+  curr_state_ = SESSION_TERMINATED;
+  SessionTerminateRequest termination;
+  termination.set_sid(imsi_);
+  termination.set_session_id(session_id_);
+  termination.set_request_number(request_number_);
+  termination.set_ue_ipv4(config_.ue_ipv4);
+  termination.set_msisdn(config_.msisdn);
+  termination.set_spgw_ipv4(config_.spgw_ipv4);
+  termination.set_apn(config_.apn);
+  termination.set_imei(config_.imei);
+  termination.set_plmn_id(config_.plmn_id);
+  termination.set_imsi_plmn_id(config_.imsi_plmn_id);
+  termination.set_user_location(config_.user_location);
+  termination.set_hardware_addr(config_.hardware_addr);
+  termination.set_rat_type(config_.rat_type);
+  fill_protos_tgpp_context(termination.mutable_tgpp_ctx());
+  monitor_pool_.get_termination_updates(&termination);
+  charging_pool_.get_termination_updates(&termination);
+  try {
+    on_termination_callback_(termination);
+  } catch (std::bad_function_call&) {
+    on_termination_callback_ = [&reporter](SessionTerminateRequest term_req) {
+      // report to cloud
+      auto logging_cb =
+          SessionReporter::get_terminate_logging_cb(term_req);
+      reporter.report_terminate_session(term_req, logging_cb);
+    };
+    on_termination_callback_(termination);
   }
 }
 

@@ -100,6 +100,22 @@ TEST_F(StoreClientTest, test_read_and_write)
   EXPECT_EQ(session_map_2[imsi].front()->is_static_rule_installed("rule1"), true);
 }
 
+TEST_F(StoreClientTest, test_lambdas)
+{
+  auto sm = std::make_unique<int>(1);
+
+  std::function<void(std::unique_ptr<int>&)> callback2 = [](std::unique_ptr<int>& inp) {
+    EXPECT_EQ(*inp, 2);
+  };
+
+  std::function<void()> callback = [=, shared = std::make_shared<decltype(sm)>(std::move(sm))]() mutable {
+    EXPECT_EQ(**shared, 1);
+    **shared = 2;
+    callback2(*shared);
+  };
+  callback();
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

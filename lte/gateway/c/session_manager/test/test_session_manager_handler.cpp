@@ -45,6 +45,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     local_enforcer = std::make_shared<LocalEnforcer>(
             reporter,
             rule_store,
+            *session_store,
             pipelined_client,
             directoryd_client,
             eventd_client,
@@ -54,10 +55,10 @@ class SessionManagerHandlerTest : public ::testing::Test {
             0);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
-    session_map = SessionMap{};
+    session_map_ = SessionMap{};
 
     session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
-      local_enforcer, reporter.get(), directoryd_client, session_map, *session_store);
+      local_enforcer, reporter.get(), directoryd_client, session_map_, *session_store);
   }
 
   void insert_static_rule(
@@ -83,7 +84,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
   std::shared_ptr <LocalEnforcer> local_enforcer;
   SessionIDGenerator id_gen_;
   folly::EventBase *evb;
-  SessionMap session_map;
+  SessionMap session_map_;
 };
 
 MATCHER_P(CheckCreateSession, imsi, "")
@@ -115,7 +116,11 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
             .hardware_addr = hardware_addr_bytes,
             .radius_session_id = radius_session_id};
 
+    SessionRead req = {"IMSI1"};
+    auto session_map = session_store->read_sessions(req);
     local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
+    bool write_success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+    EXPECT_TRUE(write_success);
 
     grpc::ServerContext create_context;
     request.mutable_sid()->set_id("IMSI1");
@@ -137,8 +142,10 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
     evb->loopOnce();
 
     // Assert the internal session config is updated to the new one
-    EXPECT_FALSE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
-    EXPECT_TRUE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn2"));
+    req = {"IMSI1"};
+    session_map = session_store->read_sessions(req);
+//    EXPECT_FALSE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
+//    EXPECT_TRUE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn2"));
 }
 
 TEST_F(SessionManagerHandlerTest, test_create_session)
@@ -210,7 +217,11 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats)
       .hardware_addr = hardware_addr_bytes,
       .radius_session_id = radius_session_id};
 
+  SessionRead req = {"IMSI1"};
+  auto session_map = session_store->read_sessions(req);
   local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
+  bool write_success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(write_success);
 
   // 2) ReportRuleStats
   grpc::ServerContext server_context;
@@ -254,20 +265,30 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
                               .hardware_addr     = hardware_addr_bytes,
                               .radius_session_id = radius_session_id};
 
+  SessionRead req = {"IMSI1"};
+  auto session_map = session_store->read_sessions(req);
   local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
+  bool write_success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(write_success);
 
   // 3) EndSession
+  session_map = session_store->read_sessions(req);
   EXPECT_EQ(session_map["IMSI1"].size(), 1);
   LocalEndSessionRequest end_request;
   end_request.mutable_sid()->set_id("IMSI1");
   end_request.set_apn("apn1");
-  EXPECT_CALL(*reporter, report_terminate_session(_, _)).Times(1);
   grpc::ServerContext server_context;
+
+  EXPECT_CALL(*reporter, report_terminate_session(_, _)).Times(1);
   session_manager->EndSession(&server_context, &end_request,
       [this] (grpc::Status status, LocalEndSessionResponse response_out) {});
   evb->loopOnce();
-  std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+  session_map = session_store->read_sessions(req);
+  EXPECT_EQ(session_map["IMSI1"].size(), 1);
+
   evb->loopOnce();
+
+  session_map = session_store->read_sessions(req);
   EXPECT_EQ(session_map["IMSI1"].size(), 0);
 }
 
