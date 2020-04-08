@@ -14,6 +14,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "RuleStore.h"
+#include "SessionReporter.h"
 #include "StoredState.h"
 #include "CreditPool.h"
 
@@ -123,12 +124,15 @@ class SessionState {
    * The session state transitions from SESSION_ACTIVE to
    * SESSION_TERMINATING_FLOW_ACTIVE.
    * When termination completes, the call back function is executed.
+   *
    * @param on_termination_callback - call back function to be executed after
    * termination
    */
   void start_termination(
-    std::function<void(SessionTerminateRequest)> on_termination_callback,
     SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+
+  void set_termination_callback(
+    std::function<void(SessionTerminateRequest)> on_termination_callback);
 
   /**
    * mark_as_awaiting_termination transitions the session state from
@@ -155,6 +159,19 @@ class SessionState {
    * can_complete_termination returns true.
    */
   void complete_termination(
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+
+  /**
+   * complete_termination collects final usages for all credits into a
+   * SessionTerminateRequest and calls the on termination callback with the
+   * request.
+   * Note that complete_termination will forcefully complete the termination
+   * no matter the current state of the session. To properly complete the
+   * termination, this function should only be called when
+   * can_complete_termination returns true.
+   */
+  void complete_termination(
+    SessionReporter& reporter,
     SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
   ChargingCreditPool& get_charging_pool();

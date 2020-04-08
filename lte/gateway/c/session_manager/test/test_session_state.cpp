@@ -233,7 +233,8 @@ TEST_F(SessionStateTest, test_insert_credit)
 TEST_F(SessionStateTest, test_termination)
 {
   std::promise<void> termination_promise;
-  session_state->start_termination(
+  session_state->start_termination();
+  session_state->set_termination_callback(
     [&termination_promise](SessionTerminateRequest term_req) {
       termination_promise.set_value();
     });
@@ -253,7 +254,7 @@ TEST_F(SessionStateTest, test_can_complete_termination)
 
   EXPECT_EQ(session_state->can_complete_termination(), false);
 
-  session_state->start_termination([](SessionTerminateRequest term_req) {});
+  session_state->start_termination();
   EXPECT_EQ(session_state->can_complete_termination(), false);
 
   // If the rule is still being reported, termination should not be completed.
