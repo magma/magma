@@ -18,6 +18,7 @@ namespace magma {
 float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
+std::string final_action_to_str(ChargingCredit_FinalAction final_action);
 
 std::unique_ptr<SessionCredit> SessionCredit::unmarshal(
   const StoredSessionCredit &marshaled,
@@ -183,14 +184,15 @@ void SessionCredit::receive_credit(
   FinalActionInfo final_action_info,
   SessionCreditUpdateCriteria& update_criteria)
 {
-  MLOG(MDEBUG) << "Received the following credit"
-               << " total_volume=" << total_volume
-               << " tx_volume=" << tx_volume
-               << " rx_volume=" << rx_volume
-               << " w/ validity time=" << validity_time;
+  MLOG(MINFO) << "Received the following credit"
+              << " total_volume=" << total_volume
+              << " tx_volume=" << tx_volume
+              << " rx_volume=" << rx_volume
+              << " w/ validity time=" << validity_time;
   if (is_final_grant) {
-    MLOG(MDEBUG) << "This credit received is the final grant, with final "
-                 << "action=" << final_action_info.final_action;
+    MLOG(MINFO) << "This credit received is the final grant, with final "
+                << "action="
+                << final_action_to_str(final_action_info.final_action);
   }
 
   buckets_[ALLOWED_TOTAL] += total_volume;
@@ -230,7 +232,7 @@ void SessionCredit::receive_credit(
   if (!is_quota_exhausted() && (service_state_ == SERVICE_DISABLED ||
                              service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
     // if quota no longer exhausted, reenable services as needed
-    MLOG(MDEBUG) << "Quota available. Activating service";
+    MLOG(MINFO) << "Quota available. Activating service";
     service_state_ = SERVICE_NEEDS_ACTIVATION;
   }
   log_quota_and_usage();
@@ -490,6 +492,20 @@ void SessionCredit::add_credit(
   SessionCreditUpdateCriteria& update_criteria) {
   buckets_[bucket] += credit;
   update_criteria.bucket_deltas[bucket] += credit;
+}
+
+std::string final_action_to_str(ChargingCredit_FinalAction final_action)
+{
+  switch (final_action) {
+    case ChargingCredit_FinalAction_TERMINATE:
+      return "TERMINATE";
+    case ChargingCredit_FinalAction_REDIRECT:
+      return "REDIRECT";
+    case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+      return "RESTRICT_ACCESS";
+    default:
+      return "";
+  }
 }
 
 } // namespace magma
