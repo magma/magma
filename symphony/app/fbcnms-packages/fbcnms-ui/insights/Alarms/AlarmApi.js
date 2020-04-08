@@ -10,7 +10,7 @@
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import type {ApiUtil} from '@fbcnms/alarms/components/AlarmsApi';
 

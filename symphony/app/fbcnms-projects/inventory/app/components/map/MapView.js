@@ -10,7 +10,7 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {LngLatLike} from 'mapbox-gl/src/geo/lng_lat';
-import type {MapType} from '@fbcnms/magmalte/app/components/map/styles';
+import type {MapType} from '@fbcnms/ui/insights/map/styles';
 import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
@@ -24,7 +24,7 @@ import mapboxgl from 'mapbox-gl';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {Router, withRouter} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
-import {getMapStyleForType} from '@fbcnms/magmalte/app/components/map/styles';
+import {getMapStyleForType} from '@fbcnms/ui/insights/map/styles';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({

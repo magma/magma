@@ -31,7 +31,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {Route} from 'react-router-dom';
 import {findIndex} from 'lodash';

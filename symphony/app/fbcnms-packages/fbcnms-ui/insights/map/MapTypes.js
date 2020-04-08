@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {MagmaGatewayFeature} from '../common/GeoJSON';
+import type {MagmaGatewayFeature} from './GeoJSON';
 
 import mapboxgl from 'mapbox-gl';
 

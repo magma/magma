@@ -10,8 +10,8 @@
 import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
-import Alarms from '@fbcnms/magmalte/app/components/insights/Alarms/Alarms';
-import CustomMetrics from '../insights/CustomMetrics';
+import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
+import CustomMetrics from '@fbcnms/ui/insights/CustomMetrics';
 import DeviceHub from '@material-ui/icons/DeviceHub';
 import DevicesAgents from './DevicesAgents';
 import DevicesStatusTable from './DevicesStatusTable';

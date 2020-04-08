@@ -19,7 +19,7 @@ import React from 'react';
 import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 
-import useMagmaAPI from '../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {sortBy} from 'lodash';
 import {useRouter} from '@fbcnms/ui/hooks';
 

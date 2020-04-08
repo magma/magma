@@ -16,7 +16,7 @@ import Metrics from './Metrics';
 import React from 'react';
 import {Route} from 'react-router-dom';
 
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useSnackbar} from '@fbcnms/ui/hooks';
 

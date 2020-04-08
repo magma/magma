@@ -9,7 +9,7 @@
  */
 
 import type {LineMapLayer} from './WifiMapLayers';
-import type {MagmaConnectionFeature} from '@fbcnms/magmalte/app/common/GeoJSON';
+import type {MagmaConnectionFeature} from '@fbcnms/ui/insights/map/GeoJSON';
 import type {WifiGateway} from './WifiUtils';
 
 import Checkbox from '@material-ui/core/Checkbox';
@@ -18,7 +18,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import MapView from '@fbcnms/magmalte/app/components/MapView';
+import MapView from '@fbcnms/ui/insights/map/MapView';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import TextField from '@material-ui/core/TextField';
@@ -31,7 +31,7 @@ import WifiSelectConnType from './WifiSelectConnType';
 import WifiSelectMesh from './WifiSelectMesh';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {Route, Switch} from 'react-router-dom';
 import {buildLayer, layerNameForFeature, searchDevices} from './WifiMapLayers';
 import {

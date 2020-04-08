@@ -13,17 +13,14 @@ import type {
   FilterSpecification,
   LayerSpecification,
 } from 'mapbox-gl/src/style-spec/types';
-import type {
-  MagmaConnectionFeature,
-  MagmaFeatureCollection,
-} from '../common/GeoJSON';
+import type {MagmaConnectionFeature, MagmaFeatureCollection} from './GeoJSON';
 import type {MapMarkerProps} from './MapTypes';
 import type {MapMouseEvent} from 'mapbox-gl/src/ui/events';
 import type {WithStyles} from '@material-ui/core';
 
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
-import {getDefaultMapStyle} from './map/styles';
+import {getDefaultMapStyle} from './styles';
 import {isEqual} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 

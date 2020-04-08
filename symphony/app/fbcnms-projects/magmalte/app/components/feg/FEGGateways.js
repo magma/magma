@@ -33,7 +33,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {Route} from 'react-router-dom';
 import {findIndex} from 'lodash';

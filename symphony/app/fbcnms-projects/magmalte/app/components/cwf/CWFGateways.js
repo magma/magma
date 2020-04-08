@@ -33,7 +33,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {Route} from 'react-router-dom';

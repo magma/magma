@@ -8,21 +8,21 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '@fbcnms/magmalte/app/components/insights/Metrics';
-import type {TimeRange} from '@fbcnms/magmalte/app/components/insights/AsyncMetric';
+import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
+import type {TimeRange} from '@fbcnms/ui/insights/AsyncMetric';
 
 import AppBar from '@material-ui/core/AppBar';
-import AsyncMetric from '@fbcnms/magmalte/app/components/insights/AsyncMetric';
+import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TimeRangeSelector from '@fbcnms/magmalte/app/components/insights/TimeRangeSelector';
+import TimeRangeSelector from '@fbcnms/ui/insights/TimeRangeSelector';
 
 import {makeStyles} from '@material-ui/styles';
-import {resolveQuery} from '@fbcnms/magmalte/app/components/insights/Metrics';
+import {resolveQuery} from '@fbcnms/ui/insights/Metrics';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({

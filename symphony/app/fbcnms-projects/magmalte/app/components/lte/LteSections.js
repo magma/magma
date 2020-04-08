@@ -11,13 +11,13 @@
 import type {SectionsConfigs} from '../layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
-import Alarms from '../insights/Alarms/Alarms';
+import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodebs from './Enodebs';
 import Gateways from '../Gateways';
-import Insights from '../insights/Insights';
+import Insights from '@fbcnms/ui/insights/Insights';
 import ListIcon from '@material-ui/icons/List';
-import Logs from '../insights/Logs/Logs';
+import Logs from '@fbcnms/ui/insights/Logs/Logs';
 import LteConfigure from '../LteConfigure';
 import LteMetrics from './LteMetrics';
 import PeopleIcon from '@material-ui/icons/People';

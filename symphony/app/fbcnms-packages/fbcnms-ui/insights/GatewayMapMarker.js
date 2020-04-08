@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {MapMarkerProps} from '../MapTypes';
+import type {MapMarkerProps} from './map/MapTypes';
 
 import GatewayMapMarkerPopup from './GatewayMapMarkerPopup';
 import PlaceIcon from '@material-ui/icons/Place';

@@ -8,10 +8,10 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '../insights/Metrics';
+import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
 
 import React from 'react';
-import SelectorMetrics from '../insights/SelectorMetrics';
+import SelectorMetrics from '@fbcnms/ui/insights/SelectorMetrics';
 
 const APN_CONFIGS: Array<MetricGraphConfig> = [
   {

@@ -22,7 +22,7 @@ import {cleanup, render} from '@testing-library/react';
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 const useSnackbar = require('@fbcnms/ui/hooks/useSnackbar');
 const useMagmaAPIMock = jest
-  .spyOn(require('../../../../common/useMagmaAPI'), 'default')
+  .spyOn(require('@fbcnms/ui/magma/useMagmaAPI'), 'default')
   .mockReturnValue({response: []});
 
 const Wrapper = (props: {route: string, children: React.Node}) => (

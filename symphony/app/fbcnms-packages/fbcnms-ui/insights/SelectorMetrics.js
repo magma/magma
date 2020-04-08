@@ -17,7 +17,7 @@ import React from 'react';
 import {Route} from 'react-router-dom';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useSnackbar} from '@fbcnms/ui/hooks';

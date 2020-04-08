@@ -23,7 +23,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';

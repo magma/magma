@@ -19,7 +19,7 @@ import type {
   MagmaConnectionFeature,
   MagmaFeatureCollection,
   MagmaGatewayFeature,
-} from '@fbcnms/magmalte/app/common/GeoJSON';
+} from '@fbcnms/ui/insights/map/GeoJSON';
 
 import {assign, flatMap, flatten, groupBy, partition} from 'lodash';
 

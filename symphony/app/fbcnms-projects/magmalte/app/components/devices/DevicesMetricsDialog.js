@@ -8,7 +8,7 @@
  * @format
  */
 
-import AsyncMetric from '../insights/AsyncMetric';
+import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -23,7 +23,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 type Props = {
