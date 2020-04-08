@@ -456,6 +456,10 @@ void SessionCredit::set_is_final_grant(
   update_criteria.is_final = is_final_grant;
 }
 
+ReAuthState SessionCredit::get_reauth() {
+  return reauth_state_;
+}
+
 void SessionCredit::set_reauth(
   ReAuthState reauth_state,
   SessionCreditUpdateCriteria& update_criteria) {
