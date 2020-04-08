@@ -112,6 +112,10 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   bool is_pipelined_restarted();
   bool restart_pipelined(const std::uint64_t& epoch);
 
+  void end_session(
+    const LocalEndSessionRequest& request,
+    std::function<void(Status, LocalEndSessionResponse)> response_callback);
+
   std::string convert_mac_addr_to_str(const std::string& mac_addr);
 
   void add_session_to_directory_record(
