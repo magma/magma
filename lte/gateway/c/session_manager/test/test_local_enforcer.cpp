@@ -44,14 +44,15 @@ class LocalEnforcerTest : public ::testing::Test {
   {
     reporter = std::make_shared<MockSessionReporter>();
     rule_store = std::make_shared<StaticRuleStore>();
+    session_store = std::make_shared<SessionStore>(rule_store);
     pipelined_client = std::make_shared<MockPipelinedClient>();
     directoryd_client = std::make_shared<MockDirectorydClient>();
     eventd_client = std::make_shared<MockEventdClient>();
     spgw_client = std::make_shared<MockSpgwServiceClient>();
     aaa_client = std::make_shared<MockAAAClient>();
     local_enforcer = std::make_unique<LocalEnforcer>(
-      reporter, rule_store, pipelined_client, directoryd_client, eventd_client, spgw_client,
-      aaa_client, 0, 0);
+      reporter, rule_store, *session_store, pipelined_client, directoryd_client,
+      eventd_client, spgw_client, aaa_client, 0, 0);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
     session_map = SessionMap{};
@@ -116,6 +117,7 @@ class LocalEnforcerTest : public ::testing::Test {
  protected:
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<StaticRuleStore> rule_store;
+  std::shared_ptr<SessionStore> session_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
   std::shared_ptr<MockDirectorydClient> directoryd_client;
@@ -265,9 +267,9 @@ TEST_F(LocalEnforcerTest, test_single_record)
     local_enforcer->get_charging_credit(session_map, "IMSI1", 1, ALLOWED_TOTAL), 1024);
 
   EXPECT_EQ(update.size(), 1);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map.size(), 1);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_RX], 16);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_TX], 32);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map.size(), 1);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_RX], 16);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_TX], 32);
 }
 
 TEST_F(LocalEnforcerTest, test_aggregate_records)
@@ -296,11 +298,11 @@ TEST_F(LocalEnforcerTest, test_aggregate_records)
   EXPECT_EQ(local_enforcer->get_charging_credit(session_map, "IMSI1", 2, USED_RX), 100);
   EXPECT_EQ(local_enforcer->get_charging_credit(session_map, "IMSI1", 2, USED_TX), 150);
 
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map.size(), 2);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_RX], 15);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_TX], 35);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[2].bucket_deltas[USED_RX], 100);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[2].bucket_deltas[USED_TX], 150);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map.size(), 2);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_RX], 15);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_TX], 35);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[2].bucket_deltas[USED_RX], 100);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[2].bucket_deltas[USED_TX], 150);
 }
 
 TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination)
@@ -319,15 +321,17 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination)
   std::promise<void> termination_promise;
   auto future = termination_promise.get_future();
   auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->terminate_subscriber(session_map,
-                                       "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest req) {
+  local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
+
+  local_enforcer->set_termination_callback(session_map, "IMSI1", "IMS",
+    [&termination_promise](SessionTerminateRequest req) {
       termination_promise.set_value();
 
       EXPECT_EQ(req.credit_usages_size(), 2);
-      for (const auto &usage : req.credit_usages()) {
+      for (const auto& usage : req.credit_usages()) {
         EXPECT_EQ(usage.type(), CreditUsage::TERMINATED);
       }
-    }, update);
+    });
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
@@ -377,10 +381,10 @@ TEST_F(LocalEnforcerTest, test_collect_updates)
     local_enforcer->get_charging_credit(session_map, "IMSI1", 1, REPORTING_RX), 1024);
   EXPECT_EQ(
     local_enforcer->get_charging_credit(session_map, "IMSI1", 1, REPORTING_TX), 2048);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map.size(), 1);
-//  // UpdateCriteria does not store REPORTING_RX / REPORTING_TX
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[REPORTING_RX], 0);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[REPORTING_TX], 0);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map.size(), 1);
+  // UpdateCriteria does not store REPORTING_RX / REPORTING_TX
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[REPORTING_RX], 0);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[REPORTING_TX], 0);
 }
 
 TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules)
@@ -403,6 +407,8 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules)
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
+  session_store->create_sessions("IMSI1", std::move(session_map["IMSI1"]));
+
   UpdateSessionResponse update_response;
   auto credit_updates_response = update_response.mutable_responses();
   create_credit_update_response("IMSI1", 1, 24, credit_updates_response->Add());
@@ -420,6 +426,7 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules)
     time(NULL),
     monitor_updates_response->Add());
   EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   local_enforcer->update_session_credits_and_rules(session_map, update_response, update);
   EXPECT_EQ(
     local_enforcer->get_charging_credit(session_map, "IMSI1", 1, ALLOWED_TOTAL), 2072);
@@ -487,26 +494,35 @@ TEST_F(LocalEnforcerTest, test_terminate_credit)
   CreateSessionResponse response2;
   create_credit_update_response(
     "IMSI2", 1, 4096, response2.mutable_credits()->Add());
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234", test_cfg, response);
+  session_store->create_sessions("IMSI1", std::move(session_map["IMSI1"]));
+  session_map = session_store->read_sessions(SessionRead{"IMSI2"});
   local_enforcer->init_session_credit(session_map, "IMSI2", "4321", test_cfg, response2);
+  session_store->create_sessions("IMSI2", std::move(session_map["IMSI2"]));
 
   std::promise<void> termination_promise;
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->terminate_subscriber(session_map,
-                                       "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest req) {
+  local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
+
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
+  local_enforcer->set_termination_callback(session_map, "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest req) {
       termination_promise.set_value();
 
       EXPECT_EQ(req.credit_usages_size(), 2);
-      for (const auto &usage : req.credit_usages()) {
+      for (const auto& usage : req.credit_usages()) {
         EXPECT_EQ(usage.type(), CreditUsage::TERMINATED);
       }
-    }, update);
+    });
+
   run_evb();
   auto status =
     termination_promise.get_future().wait_for(std::chrono::seconds(0));
-  EXPECT_EQ(status, std::future_status::ready);
+  EXPECT_EQ(status, std::future_status::timeout);
 
   // No longer in system
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   EXPECT_EQ(local_enforcer->get_charging_credit(session_map, "IMSI1", 1, ALLOWED_TOTAL), 0);
   EXPECT_EQ(local_enforcer->get_charging_credit(session_map, "IMSI1", 2, ALLOWED_TOTAL), 0);
 }
@@ -536,18 +552,21 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting)
   EXPECT_EQ(
     local_enforcer->get_charging_credit(session_map, "IMSI1", 1, REPORTING_RX), 1024);
 
+  session_store->create_sessions("IMSI1", std::move(session_map["IMSI1"]));
+
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   // Collecting terminations should key 1 anyways during reporting
   std::promise<void> termination_promise;
-  local_enforcer->terminate_subscriber(session_map,
-                                       "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest term_req) {
+  local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
+  local_enforcer->set_termination_callback(session_map, "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest term_req) {
       termination_promise.set_value();
 
       EXPECT_EQ(term_req.credit_usages_size(), 2);
-    }, update);
+    });
   run_evb();
   auto status =
     termination_promise.get_future().wait_for(std::chrono::seconds(0));
-  EXPECT_EQ(status, std::future_status::ready);
+  EXPECT_EQ(status, std::future_status::timeout);
 }
 
 MATCHER_P2(CheckDeactivateFlows, imsi, rule_count, "")
@@ -672,15 +691,15 @@ TEST_F(LocalEnforcerTest, test_all)
 
   EXPECT_EQ(update.size(), 2);
 
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map.size(), 1);
-//  // UpdateCriteria does not store REPORTING_RX / REPORTING_TX
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_RX], 15);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_TX], 35);
-//
-//  EXPECT_EQ(update["IMSI2"]["4321"].charging_credit_map.size(), 1);
-//  // UpdateCriteria does not store REPORTING_RX / REPORTING_TX
-//  EXPECT_EQ(update["IMSI2"]["4321"].charging_credit_map[2].bucket_deltas[USED_RX], 1024);
-//  EXPECT_EQ(update["IMSI2"]["4321"].charging_credit_map[2].bucket_deltas[USED_TX], 1024);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map.size(), 1);
+  // UpdateCriteria does not store REPORTING_RX / REPORTING_TX
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_RX], 15);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_TX], 35);
+
+  EXPECT_EQ(update["IMSI2"]["4321"].charging_credit_map.size(), 1);
+  // UpdateCriteria does not store REPORTING_RX / REPORTING_TX
+  EXPECT_EQ(update["IMSI2"]["4321"].charging_credit_map[2].bucket_deltas[USED_RX], 1024);
+  EXPECT_EQ(update["IMSI2"]["4321"].charging_credit_map[2].bucket_deltas[USED_TX], 1024);
 
   // Collect updates for reporting
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -708,22 +727,22 @@ TEST_F(LocalEnforcerTest, test_all)
   EXPECT_EQ(local_enforcer->get_charging_credit(session_map, "IMSI2", 2, REPORTED_TX), 1024);
   EXPECT_EQ(local_enforcer->get_charging_credit(session_map, "IMSI2", 2, REPORTED_RX), 1024);
 
-//  EXPECT_EQ(update["IMSI2"]["4321"].charging_credit_map[2].bucket_deltas[REPORTED_TX], 1024);
-//  EXPECT_EQ(update["IMSI2"]["4321"].charging_credit_map[2].bucket_deltas[REPORTED_RX], 1024);
+  EXPECT_EQ(update["IMSI2"]["4321"].charging_credit_map[2].bucket_deltas[REPORTED_TX], 1024);
+  EXPECT_EQ(update["IMSI2"]["4321"].charging_credit_map[2].bucket_deltas[REPORTED_RX], 1024);
 
   // Terminate IMSI1
   std::promise<void> termination_promise;
-  local_enforcer->terminate_subscriber(session_map,
-                                       "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest term_req) {
-      termination_promise.set_value();
+  local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
+  local_enforcer->set_termination_callback(session_map, "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest term_req) {
+    termination_promise.set_value();
 
-      EXPECT_EQ(term_req.sid(), "IMSI1");
-      EXPECT_EQ(term_req.credit_usages_size(), 1);
-    }, update);
+    EXPECT_EQ(term_req.sid(), "IMSI1");
+    EXPECT_EQ(term_req.credit_usages_size(), 1);
+  });
   run_evb();
   auto status =
     termination_promise.get_future().wait_for(std::chrono::seconds(0));
-  EXPECT_EQ(status, std::future_status::ready);
+  EXPECT_EQ(status, std::future_status::timeout);
 }
 
 TEST_F(LocalEnforcerTest, test_re_auth)
@@ -792,8 +811,8 @@ TEST_F(LocalEnforcerTest, test_dynamic_rules)
   EXPECT_EQ(
     local_enforcer->get_charging_credit(session_map, "IMSI1", 1, ALLOWED_TOTAL), 1024);
 
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_RX], 24);
-//  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_TX], 40);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_RX], 24);
+  EXPECT_EQ(update["IMSI1"]["1234"].charging_credit_map[1].bucket_deltas[USED_TX], 40);
 }
 
 TEST_F(LocalEnforcerTest, test_dynamic_rule_actions)
@@ -1149,10 +1168,10 @@ TEST_F(LocalEnforcerTest, test_rar_revalidation_timer)
   create_rule_record("IMSI1", "rule1", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
+  session_store->create_sessions("IMSI1", std::move(session_map["IMSI1"]));
 
   // only RAR with REVALIDATION_TIMEOUT as one of the event triggers
-  // will initiate an update
-  EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
 
   PolicyReAuthRequest rar;
   std::vector<std::string> rules_to_remove;
@@ -1172,8 +1191,14 @@ TEST_F(LocalEnforcerTest, test_rar_revalidation_timer)
     &rar);
   PolicyReAuthAnswer raa;
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);
+  evb->loopOnce();
   EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
 
+  UpdateSessionResponse resp;
+  EXPECT_CALL(*reporter, report_updates(_, _))
+    .Times(1)
+    .WillOnce(testing::InvokeArgument<1>(grpc::Status::OK, resp));
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   rar.add_event_triggers(EventTrigger::REVALIDATION_TIMEOUT);
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);
   EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);

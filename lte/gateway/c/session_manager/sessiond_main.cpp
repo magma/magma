@@ -217,6 +217,7 @@ int main(int argc, char *argv[])
   auto monitor = std::make_shared<magma::LocalEnforcer>(
     reporter,
     rule_store,
+    *session_store,
     pipelined_client,
     directoryd_client,
     eventd_client,
