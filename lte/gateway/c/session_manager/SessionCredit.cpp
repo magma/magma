@@ -20,6 +20,7 @@ uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 std::string final_action_to_str(ChargingCredit_FinalAction final_action);
 std::string service_state_to_str(ServiceState state);
+std::string reauth_state_to_str(ReAuthState state);
 
 std::unique_ptr<SessionCredit> SessionCredit::unmarshal(
   const StoredSessionCredit &marshaled,
@@ -227,7 +228,7 @@ void SessionCredit::receive_credit(
   final_action_info_ = final_action_info;
 
   if (reauth_state_ == REAUTH_PROCESSING) {
-    reauth_state_ = REAUTH_NOT_NEEDED; // done
+    set_reauth(REAUTH_NOT_NEEDED, update_criteria);
   }
   if (!is_quota_exhausted() && (service_state_ == SERVICE_DISABLED ||
                              service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
@@ -382,8 +383,7 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(
   }
 
   if (get_update_type() == CREDIT_REAUTH_REQUIRED) {
-    reauth_state_ = REAUTH_PROCESSING;
-    update_criteria.reauth_state = REAUTH_PROCESSING;
+    set_reauth(REAUTH_PROCESSING, update_criteria);
   }
 
   buckets_[REPORTING_TX] += tx;
@@ -442,8 +442,7 @@ bool SessionCredit::is_reauth_required()
 
 void SessionCredit::reauth(SessionCreditUpdateCriteria& update_criteria)
 {
-  reauth_state_ = REAUTH_REQUIRED;
-  update_criteria.reauth_state = REAUTH_REQUIRED;
+  set_reauth(REAUTH_REQUIRED, update_criteria);
 }
 
 RedirectServer SessionCredit::get_redirect_server()
@@ -464,11 +463,14 @@ ReAuthState SessionCredit::get_reauth() {
 }
 
 void SessionCredit::set_reauth(
-  ReAuthState reauth_state,
+  ReAuthState new_reauth_state,
   SessionCreditUpdateCriteria& update_criteria)
 {
-  reauth_state_ = reauth_state;
-  update_criteria.reauth_state = reauth_state;
+  MLOG(MDEBUG) << "ReAuth state change from "
+               << reauth_state_to_str(reauth_state_)
+               << " to " << reauth_state_to_str(new_reauth_state);
+  reauth_state_ = new_reauth_state;
+  update_criteria.reauth_state = new_reauth_state;
 }
 
 void SessionCredit::set_service_state(
@@ -526,6 +528,20 @@ std::string service_state_to_str(ServiceState state)
       return "SERVICE_NEEDS_ACTIVATION";
     default:
       return "INVALID SERVICE STATE";
+  }
+}
+
+std::string reauth_state_to_str(ReAuthState state)
+{
+  switch (state) {
+    case REAUTH_NOT_NEEDED:
+      return "REAUTH_NOT_NEEDED";
+    case REAUTH_REQUIRED:
+      return "REAUTH_REQUIRED";
+    case REAUTH_PROCESSING:
+      return "REAUTH_PROCESSING";
+    default:
+      return "INVALID REAUTH STATE";
   }
 }
 } // namespace magma
