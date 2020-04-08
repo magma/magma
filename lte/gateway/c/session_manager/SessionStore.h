@@ -73,6 +73,22 @@ class SessionStore {
   SessionMap read_sessions_for_reporting(const SessionRead& req);
 
   /**
+   * Read the last written values for the requested sessions through the
+   * storage interface. This also modifies the request_numbers stored before
+   * returning the SessionMap to the caller, incremented by one for each
+   * session.
+   * NOTE: It is assumed that the correct number of request_numbers are
+   *       reserved on each read_sessions call. If more requests are made to
+   *       the OCS/PCRF than are requested, this can cause undefined behavior.
+   * NOTE: Here, it is expected that the caller will use one additional
+   *       request_number for each session.
+   * @param req
+   * @return Last written values for requested sessions. Returns an empty vector
+   *         for subscribers that do not have active sessions.
+   */
+  SessionMap read_sessions_for_deletion(const SessionRead& req);
+
+  /**
    * Create sessions for a subscriber. Redundant creations will fail.
    * @param subscriber_id
    * @param sessions
