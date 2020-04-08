@@ -67,6 +67,7 @@ RUN printenv > /etc/environment
 # This step allows us to cache the downloads, and prevents reaching out to
 # the internet unless any of the go.mod or go.sum files are changed.
 COPY cwf/cloud/go/go.* $MAGMA_ROOT/cwf/cloud/go/
+COPY cwf/gateway/go.* $MAGMA_ROOT/cwf/gateway/
 COPY lte/cloud/go/go.* $MAGMA_ROOT/lte/cloud/go/
 COPY feg/cloud/go/go.* $MAGMA_ROOT/feg/cloud/go/
 COPY feg/cloud/go/protos/go.* $MAGMA_ROOT/feg/cloud/go/protos/
