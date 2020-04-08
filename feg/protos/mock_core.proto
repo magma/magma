@@ -100,14 +100,15 @@ service MockOCS {
     rpc ReAuth(ChargingReAuthTarget) returns (ChargingReAuthAnswer) {}
 
     // Todo
-    // rpc SetExpectations(Expectations) returns (magma.orc8r.Void) {}
-    // rpc AssertExpectations(magma.orc8r.Void) returns (AssertExpectationsResult) {}
+    rpc SetExpectations(GyCreditControlExpectations) returns (magma.orc8r.Void) {}
+    rpc AssertExpectations(magma.orc8r.Void) returns (GyCreditControlResult) {}
 }
 
 message OCSConfig {
     Octets max_usage_octets = 1;
     uint32 max_usage_time = 2;
     uint32 validity_time = 3;
+    bool use_mock_driver = 4;
 }
 
 message CreditInfo {
@@ -249,6 +250,17 @@ message GxCreditControlAnswer {
     google.protobuf.Timestamp revalidation_time = 15;
 }
 
+message GyCreditControlExpectations {
+    repeated GyCreditControlExpectation expectations = 1;
+    UnexpectedRequestBehavior unexpected_request_behavior = 2;
+    GyCreditControlAnswer gy_default_cca = 3;
+}
+
+message GyCreditControlResult {
+    repeated ExpectationResult results = 1;
+    repeated ErrorByIndex errors = 2;
+}
+
 message GyCreditControlExpectation {
     GyCreditControlRequest expected_request = 1;
     GyCreditControlAnswer answer = 2;
@@ -259,12 +271,40 @@ message GyCreditControlRequest {
     CCRequestType request_type = 2;
     uint32 request_number = 3;
     QosInfo qos_info = 21;
+    repeated MultipleServicesCreditControl mscc = 22;
+    // As long as we use real traffic for the test, usage reporting will differ
+    // each time. So this field will specify the acceptable range for the
+    // value. We will accept a request as matching if
+    // (expected report - delta) < actual report < (expected report + delta)
+    uint64 usage_report_delta = 12;
 }
 
 message GyCreditControlAnswer {
     CCRequestType request_type = 1;
     uint32 request_number = 2;
     uint32 result_code = 3;
+    repeated QuotaGrant quota_grants = 4;
+}
+
+enum FinalUnitAction {
+    Terminate = 0;
+    Redirect = 1;
+    Restrict = 2;
+}
+
+message RedirectServer {
+    string RedirectServerAddress = 1;
+}
+
+message QuotaGrant {
+    uint32 rating_group = 1;
+    Octets granted_service_unit = 2;
+    uint32 validity_time = 3;
+    uint32 result_code = 4;
+
+    bool is_final_credit = 11;
+    FinalUnitAction final_unit_action = 12;
+    RedirectServer redirect_server = 13;
 }
 
 // AVP: 1067
@@ -272,6 +312,11 @@ message UsageMonitoringInformation {
     bytes monitoring_key = 1;
     MonitoringLevel monitoring_level = 2;
     Octets octets = 3;
+}
+
+message MultipleServicesCreditControl {
+    uint32 rating_group = 1;
+    Octets used_service_unit = 2;
 }
 
 message QosInfo {
