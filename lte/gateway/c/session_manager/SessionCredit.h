@@ -171,7 +171,7 @@ class SessionCredit {
    * @param service_state
    */
   void set_service_state(
-    ServiceState service_state,
+    ServiceState new_service_state,
     SessionCreditUpdateCriteria& update_criteria);
 
   /**
