@@ -100,6 +100,11 @@ bool SessionStore::merge_into_session(
   std::unique_ptr<SessionState>& session,
   const SessionStateUpdateCriteria& update_criteria)
 {
+  // Config
+  if (update_criteria.is_config_updated) {
+    session->unmarshal_config(update_criteria.updated_config);
+  }
+
   // Static rules
   for (const auto& rule_id : update_criteria.static_rules_to_install) {
     if (session->is_static_rule_installed(rule_id)) {
