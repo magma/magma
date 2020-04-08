@@ -190,14 +190,14 @@ void SessionState::add_used_credit(
 
   CreditKey charging_key;
   if (get_charging_key_for_rule_id(rule_id, &charging_key)) {
-    MLOG(MDEBUG) << "Updating used charging credit for Rule=" << rule_id
+    MLOG(MINFO) << "Updating used charging credit for Rule=" << rule_id
                  << " Rating Group=" << charging_key.rating_group
                  << " Service Identifier=" << charging_key.service_identifier;
     charging_pool_.add_used_credit(charging_key, used_tx, used_rx, update_criteria);
   }
   std::string monitoring_key;
   if (get_monitoring_key_for_rule_id(rule_id, &monitoring_key)) {
-    MLOG(MDEBUG) << "Updating used monitoring credit for Rule=" << rule_id
+    MLOG(MINFO) << "Updating used monitoring credit for Rule=" << rule_id
                  << " Monitoring Key=" << monitoring_key;
     monitor_pool_.add_used_credit(monitoring_key, used_tx, used_rx, update_criteria);
   }
