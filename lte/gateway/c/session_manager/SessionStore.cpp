@@ -39,6 +39,20 @@ SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req)
   return session_map;
 }
 
+SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req)
+{
+  auto session_map = store_client_.read_sessions(req);
+  auto session_map_2 = store_client_.read_sessions(req);
+  // For all sessions of the subscriber, increment the request numbers
+  for (const std::string& imsi : req) {
+    for (auto& session : session_map_2[imsi]) {
+      session->increment_request_number(1);
+    }
+  }
+  store_client_.write_sessions(std::move(session_map_2));
+  return session_map;
+}
+
 bool SessionStore::create_sessions(
   const std::string& subscriber_id,
   std::vector<std::unique_ptr<SessionState>> sessions)
