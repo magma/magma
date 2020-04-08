@@ -33,6 +33,28 @@ StoredSessionState SessionState::marshal()
 {
   StoredSessionState marshaled{};
 
+  marshaled.config = marshal_config();
+  marshaled.charging_pool = charging_pool_.marshal();
+  marshaled.monitor_pool = monitor_pool_.marshal();
+  marshaled.imsi = imsi_;
+  marshaled.session_id = session_id_;
+  marshaled.core_session_id = core_session_id_;
+  marshaled.subscriber_quota_state = subscriber_quota_state_;
+  marshaled.tgpp_context = tgpp_context_;
+  marshaled.request_number = request_number_;
+
+  for (auto& rule_id : active_static_rules_) {
+    marshaled.static_rule_ids.push_back(rule_id);
+  }
+  std::vector<PolicyRule> dynamic_rules;
+  dynamic_rules_.get_rules(dynamic_rules);
+  marshaled.dynamic_rules = std::move(dynamic_rules);
+
+  return marshaled;
+}
+
+StoredSessionConfig SessionState::marshal_config()
+{
   StoredSessionConfig config{};
   config.ue_ipv4 = config_.ue_ipv4;
   config.spgw_ipv4 = config_.spgw_ipv4;
@@ -51,25 +73,30 @@ StoredSessionState SessionState::marshal()
   qos_info.enabled = config_.qos_info.enabled;
   qos_info.qci = config_.qos_info.qci;
   config.qos_info = qos_info;
+  return config;
+}
 
-  marshaled.config = config;
-  marshaled.charging_pool = charging_pool_.marshal();
-  marshaled.monitor_pool = monitor_pool_.marshal();
-  marshaled.imsi = imsi_;
-  marshaled.session_id = session_id_;
-  marshaled.core_session_id = core_session_id_;
-  marshaled.subscriber_quota_state = subscriber_quota_state_;
-  marshaled.tgpp_context = tgpp_context_;
-  marshaled.request_number = request_number_;
-
-  for (auto& rule_id : active_static_rules_) {
-    marshaled.static_rule_ids.push_back(rule_id);
-  }
-  std::vector<PolicyRule> dynamic_rules;
-  dynamic_rules_.get_rules(dynamic_rules);
-  marshaled.dynamic_rules = std::move(dynamic_rules);
-
-  return marshaled;
+void SessionState::unmarshal_config(const StoredSessionConfig& marshaled)
+{
+  SessionState::Config cfg{};
+  cfg.ue_ipv4 = marshaled.ue_ipv4;
+  cfg.spgw_ipv4 = marshaled.spgw_ipv4;
+  cfg.msisdn = marshaled.msisdn;
+  cfg.apn = marshaled.apn;
+  cfg.imei = marshaled.apn;
+  cfg.plmn_id = marshaled.plmn_id;
+  cfg.imsi_plmn_id = marshaled.imsi_plmn_id;
+  cfg.user_location = marshaled.user_location;
+  cfg.rat_type = marshaled.rat_type;
+  cfg.mac_addr = marshaled.mac_addr; // MAC Address for WLAN
+  cfg.hardware_addr = marshaled.hardware_addr; // MAC Address for WLAN (binary)
+  cfg.radius_session_id = marshaled.radius_session_id;
+  cfg.bearer_id = marshaled.bearer_id;
+  SessionState::QoSInfo qos_info{};
+  qos_info.enabled = marshaled.qos_info.enabled;
+  qos_info.qci = marshaled.qos_info.qci;
+  cfg.qos_info = qos_info;
+  config_ = cfg;
 }
 
 SessionState::SessionState(

@@ -248,21 +248,36 @@ void LocalSessionManagerHandlerImpl::CreateSession(
           session_map, imsi, cfg, &core_sid);
       bool is_wifi = request_cpy.rat_type() == RATType::TGPP_WLAN;
       if (same_config || is_wifi) {
+        Status status;
         if (is_wifi) {
           MLOG(MINFO) << "Found a session with the same IMSI " << imsi
                       << " and RAT Type is WLAN, not creating a new session";
           // Wifi only supports one session per subscriber, so update the config
           // here
-          enforcer_->handle_cwf_roaming(session_map_, imsi, cfg);
+          SessionUpdate session_update = SessionStore::get_default_session_update(session_map);
+          enforcer_->handle_cwf_roaming(session_map, imsi, cfg, session_update);
+          if (session_store_.update_sessions(session_update)) {
+            MLOG(MINFO) << "Successfully updated session " << sid
+                        << " in sessiond for subscriber " << imsi;
+            status = grpc::Status::OK;
+          } else {
+            MLOG(MINFO) << "Failed to initialize new session " << sid
+                        << " in sessiond for subscriber " << imsi
+                        << " with default bearer id " << cfg.bearer_id
+                        << " due to failure writing to SessionStore."
+                        << " An earlier update may have invalidated it.";
+            status = Status(grpc::ABORTED, "Failed to update SessionStore");
+          }
         } else {
           MLOG(MINFO) << "Found completely duplicated session with IMSI "
                       << imsi << " and APN " << request_cpy.apn()
                       << ", not creating session";
+          status = grpc::Status::OK;
         }
         try {
           LocalCreateSessionResponse resp;
           resp.set_session_id(core_sid);
-          response_callback(grpc::Status::OK, resp);
+          response_callback(status, resp);
         } catch (...) {
           std::exception_ptr ep = std::current_exception();
           MLOG(MERROR) << "CreateSession response_callback exception: "

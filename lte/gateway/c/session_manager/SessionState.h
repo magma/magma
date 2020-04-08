@@ -82,6 +82,10 @@ class SessionState {
 
   StoredSessionState marshal();
 
+  StoredSessionConfig marshal_config();
+
+  void unmarshal_config(const StoredSessionConfig& marshaled);
+
   /**
    * notify_new_report_for_sessions sets the state of terminating session to aggregating, to tell if
    * flows for the terminating session is in the latest report.
