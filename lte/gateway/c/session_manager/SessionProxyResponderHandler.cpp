@@ -34,12 +34,22 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
   auto &request_cpy = *request;
   enforcer_->get_event_base().runInEventBaseThread(
     [this, request_cpy, response_callback]() {
-      SessionUpdate update = SessionStore::get_default_session_update(session_map_);
-      auto result = enforcer_->init_charging_reauth(session_map_, request_cpy, update);
+      auto session_map = get_sessions_for_charging(request_cpy);
+      SessionUpdate update = SessionStore::get_default_session_update(session_map);
+      auto result = enforcer_->init_charging_reauth(session_map, request_cpy, update);
       ChargingReAuthAnswer ans;
       ans.set_result(result);
-      // TODO: write the update back into the SessionStore
-      response_callback(Status::OK, ans);
+
+      bool update_success = session_store_.update_sessions(update);
+      if (update_success) {
+        response_callback(Status::OK, ans);
+      } else {
+        auto status = Status(
+            grpc::ABORTED,
+            "ChargingReAuth no longer valid due to another update that "
+            "updated the session first.");
+        response_callback(status, ans);
+      }
     });
 }
 
@@ -52,10 +62,20 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
   enforcer_->get_event_base().runInEventBaseThread(
     [this, request_cpy, response_callback]() {
       PolicyReAuthAnswer ans;
-      SessionUpdate update = SessionStore::get_default_session_update(session_map_);
-      enforcer_->init_policy_reauth(session_map_, request_cpy, ans, update);
-      // TODO: write the update back into the SessionStore
-      response_callback(Status::OK, ans);
+      auto session_map = get_sessions_for_policy(request_cpy);
+      SessionUpdate update = SessionStore::get_default_session_update(session_map);
+      enforcer_->init_policy_reauth(session_map, request_cpy, ans, update);
+
+      bool update_success = session_store_.update_sessions(update);
+      if (update_success) {
+        response_callback(Status::OK, ans);
+      } else {
+        auto status = Status(
+            grpc::ABORTED,
+            "ChargingReAuth no longer valid due to another update that "
+            "updated the session first.");
+        response_callback(status, ans);
+      }
     });
 }
 
