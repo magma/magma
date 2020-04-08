@@ -156,6 +156,8 @@ class SessionCredit {
     bool is_final_grant,
     SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
+  ReAuthState get_reauth();
+
   /**
    * Set ReAuthState.
    * NOTE: Use only for merging updates into SessionStore
