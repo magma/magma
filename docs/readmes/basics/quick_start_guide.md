@@ -195,3 +195,9 @@ After this, you will be able to access the UI by visiting
 [https://localhost](https://localhost), and using the email `admin@magma.test`
 and password `password1234`. We recommend Firefox or Chrome. If you see Gateway Error 502, don't worry, the
 NMS can take upto 60 seconds to finish starting up.
+
+**Note**: If you want to test the access gateway VM with a physical eNB and UE,
+refer to
+the [Connecting a physical eNodeb and UE device to gateway
+VM](../lte/dev_notes.md#connecting-a-physical-enodeb-and-ue-device-to-gateway-vm)
+section.
