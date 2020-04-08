@@ -17,9 +17,14 @@ release_group: null
 imagePullSecrets: []
 # - name: orc8r-secrets-registry
 
+# secrets sub-chart configuration.
+secrets:
+  create: false
+
 # Define which secrets should be mounted by pods.
 secret:
   certs: orc8r-secrets-certs
+  gwinfo: cwf-secrets-gwinfo
 
 ## Key Values for docker inside VM
 cwf:
@@ -124,6 +129,4 @@ manifests:
   deployment: true
   service: true
   configmap_env: true
-  configmap_bin: true
-  secrets: true
   rbac: true

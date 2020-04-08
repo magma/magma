@@ -168,6 +168,16 @@ spec:
           tty: true
           stdin: true
           volumeMounts:
+            {{- if .Values.secret.gwinfo }}
+            - name: hwid
+              mountPath: /etc/snowflake
+              subPath: snowflake
+            {{- end }}
+            {{- if .Values.secret.gwinfo }}
+            - name: gw-challenge-key
+              mountPath: /var/opt/magma/certs/gw_challenge.key
+              subPath: gw_challenge.key
+            {{- end }}
             - name: cwf-env
               mountPath: /opt/magma
             - name: orc8r-secrets-certs
@@ -178,6 +188,18 @@ spec:
               mountPath: /var/opt/magma/configs
             {{- end }}
       volumes:
+        {{- if .Values.secret.gwinfo }}
+        - name: hwid
+          secret:
+            secretName: {{ required "secret.gwinfo must be provided" .Values.secret.gwinfo }}
+            defaultMode: 0755
+        {{- end}}
+        {{- if .Values.secret.gwinfo }}
+        - name: gw-challenge-key
+          secret:
+            secretName: {{ required "secret.gwinfo must be provided" .Values.secret.gwinfo }}
+            defaultMode: 0755
+        {{- end }}
         - name: cwf-env
           configMap:
             name: {{ $envAll.Release.Name}}-env
