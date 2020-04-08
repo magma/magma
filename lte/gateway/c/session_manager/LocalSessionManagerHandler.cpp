@@ -47,13 +47,14 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   auto &request_cpy = *request;
   if (request_cpy.records_size() > 0) {
     MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
+
+    enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+      auto session_map = get_sessions_for_reporting(request_cpy);
+      SessionUpdate update = SessionStore::get_default_session_update(session_map);
+      enforcer_->aggregate_records(session_map, request_cpy, update);
+      check_usage_for_reporting(std::move(session_map), update);
+    });
   }
-  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
-    auto session_map = get_sessions_for_reporting(request_cpy);
-    SessionUpdate update = SessionStore::get_default_session_update(session_map);
-    enforcer_->aggregate_records(session_map, request_cpy, update);
-    check_usage_for_reporting(std::move(session_map), update);
-  });
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
     MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows";
