@@ -12,6 +12,7 @@
     - user: "{{ ansible_user }}"
     - full_provision: true
   roles:
+    - role: gomod_cache
     - role: apt_cache
     - role: pkgrepo
       vars:
