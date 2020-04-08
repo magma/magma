@@ -103,6 +103,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
     EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
     session_manager->CreateSession(&create_context, &request, [this](
             grpc::Status status, LocalCreateSessionResponse response_out) {});
+    evb->loopOnce();
     // Assert the internal session config is updated to the new one
     EXPECT_FALSE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
     EXPECT_TRUE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn2"));
