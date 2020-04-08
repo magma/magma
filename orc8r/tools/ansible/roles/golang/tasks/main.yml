@@ -40,6 +40,7 @@
   with_items:
     - export GOPATH={{ gopath }}
     - export GOBIN={{ gobin }}
+    - export GOPROXY={{ goproxy }}
     - export PATH=$PATH:{{ go_bin_path }}:{{ makebin }}
 
 - name: Install protoc-gen-go

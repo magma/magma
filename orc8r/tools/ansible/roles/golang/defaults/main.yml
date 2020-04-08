@@ -12,3 +12,4 @@
   gobin: '/home/{{ user }}/go/bin'
   go_bin_path: '{{ go_install_path }}/go/bin:{{ gobin }}'
   makebin: '/home/{{ user }}/magma/feg/go/bin'
+  goproxy: "https://proxy.golang.org"
