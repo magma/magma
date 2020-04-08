@@ -208,7 +208,8 @@ void LocalEnforcer::aggregate_records(
       continue;
     }
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
-      MLOG(MDEBUG) << "Subscriber " << record.sid() << " used "
+      MLOG(MINFO) << "";
+      MLOG(MINFO) << "Subscriber " << record.sid() << " used "
                    << record.bytes_tx() << " tx bytes and " << record.bytes_rx()
                    << " rx bytes for rule " << record.rule_id();
     }
@@ -244,8 +245,8 @@ void LocalEnforcer::execute_actions(
     } else if (action_p->get_type() == REDIRECT) {
       install_redirect_flow(action_p);
     } else if (action_p->get_type() == RESTRICT_ACCESS) {
-      MLOG(MDEBUG) << "RESTRICT_ACCESS mode is unsupported"
-                   << ", will just terminate the service.";
+      MLOG(MWARNING) << "RESTRICT_ACCESS mode is unsupported"
+                     << ", will just terminate the service.";
       terminate_service(
         session_map,
         action_p->get_imsi(),

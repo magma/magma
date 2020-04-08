@@ -55,6 +55,9 @@ bool do_loop(
     MLOG(MERROR) << "Failed to get rules from map because map error " << result;
     return false;
   }
+  if (rules.size() > 0) {
+    MLOG(MDEBUG) << rules.size() << " rules synced";
+  }
   processor(rules);
   return true;
 }

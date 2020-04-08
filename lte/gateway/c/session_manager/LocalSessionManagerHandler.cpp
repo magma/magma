@@ -46,7 +46,7 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
 {
   auto &request_cpy = *request;
   if (request_cpy.records_size() > 0) {
-    MLOG(MDEBUG) << "\nAggregating " << request_cpy.records_size() << " records";
+    MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   }
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     auto session_map = get_sessions_for_reporting(request_cpy);
@@ -56,7 +56,7 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   });
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
-    MLOG(MDEBUG) << "Pipelined has been restarted, attempting to sync flows";
+    MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows";
     restart_pipelined(reported_epoch_);
     // Set the current epoch right away to prevent double setup call requests
     current_epoch_ = reported_epoch_;
@@ -80,7 +80,7 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
     }
     return; // nothing to report
   }
-  MLOG(MDEBUG) << "Sending " << request.updates_size()
+  MLOG(MINFO) << "Sending " << request.updates_size()
                << " charging updates and " << request.usage_monitors_size()
                << " monitor updates to OCS and PCRF";
 
@@ -97,7 +97,6 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
         MLOG(MERROR) << "Update of size " << request.updates_size()
                      << " to OCS failed entirely: " << status.error_message();
       } else {
-        MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
         enforcer_->update_session_credits_and_rules(*session_map_ptr, response, session_update);
         session_store_.update_sessions(session_update);
       }
@@ -330,7 +329,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         bool success = enforcer_->init_session_credit(
           *session_map_ptr, imsi, sid, cfg, response);
         if (!success) {
-          MLOG(MERROR) << "Failed to init session in for IMSI " << imsi;
+          MLOG(MERROR) << "Failed to initialize session for IMSI " << imsi;
           status =
             Status(
               grpc::FAILED_PRECONDITION, "Failed to initialize session");
