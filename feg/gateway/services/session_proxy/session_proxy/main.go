@@ -57,70 +57,96 @@ func main() {
 
 	initMethod := gy.GetInitMethod()
 
-	controllerCfg := &servicers.SessionControllerConfig{
-		OCSConfig:        gy.GetOCSConfiguration(),
-		PCRFConfig:       gx.GetPCRFConfiguration(),
-		RequestTimeout:   3 * time.Second,
-		InitMethod:       initMethod,
-		UseGyForAuthOnly: util.IsTruthyEnv(gy.UseGyForAuthOnlyEnv),
-	}
+	// Global config is shared by all the controllers
+	gyGlobalConfig := gy.GetGyGlobalConfig()
+	gxGlobalConfig := gx.GetGxGlobalConfig()
+
+	// Each controller will take one entry
+	OCSConfigurations := gy.GetOCSConfiguration()
+	PCRFConfgurations := gx.GetPCRFConfiguration()
+	gxCliConfigurations := gx.GetGxClientConfiguration()
+	gyCLiConfigurations := gy.GetGyClientConfiguration()
+
+	// TODO: To Deal with different OCSs and PCRF (will require CentralSessionControllers to support
+	// a controller created per each request
+	totalLen := maxLen(OCSConfigurations, PCRFConfgurations)
+
+	gyClnts := []gy.CreditClient{}
+	gxClnts := []gx.PolicyClient{}
+	controllerCfgs := []*servicers.SessionControllerConfig{}
+
 	cloudReg := registry.Get()
 	policyDBClient, err := policydb.NewRedisPolicyDBClient(cloudReg)
 	if err != nil {
 		glog.Fatalf("Error connecting to redis store: %s", err)
 	}
 
-	ocsDiamCfg := gy.GetOCSConfiguration()
-	pcrfDiamCfg := gx.GetPCRFConfiguration()
+	for i := 0; i < totalLen; i++ {
 
-	gyGlobalConfig := gy.GetGyGlobalConfig()
-	gxGlobalConfig := gx.GetGxGlobalConfig()
+		controllerCfg := &servicers.SessionControllerConfig{
+			OCSConfig:        OCSConfigurations[i],
+			PCRFConfig:       PCRFConfgurations[i],
+			RequestTimeout:   3 * time.Second,
+			InitMethod:       initMethod,
+			UseGyForAuthOnly: util.IsTruthyEnv(gy.UseGyForAuthOnlyEnv),
+		}
+		controllerCfgs = append(controllerCfgs, controllerCfg)
 
-	var gxClnt *gx.GxClient
-	var gyClnt *gy.GyClient
+		// new copy of the configuration needed
+		ocsDiamCfg := gy.GetOCSConfiguration()[i]
+		pcrfDiamCfg := gx.GetPCRFConfiguration()[i]
 
-	gxClntCfg := gx.GetGxClientConfiguration()
-	gyClntCfg := gy.GetGyClientConfiguration()
+		var gxClnt *gx.GxClient
+		var gyClnt *gy.GyClient
 
-	if ocsDiamCfg.DiameterServerConnConfig == pcrfDiamCfg.DiameterServerConnConfig &&
-		ocsDiamCfg != pcrfDiamCfg {
+		gxClntCfg := gxCliConfigurations[i]
+		gyClntCfg := gyCLiConfigurations[i]
 
-		glog.Infof("Using single Gy/Gx connection for server: %+v", ocsDiamCfg.DiameterServerConnConfig)
+		if ocsDiamCfg.DiameterServerConnConfig == pcrfDiamCfg.DiameterServerConnConfig &&
+			ocsDiamCfg != pcrfDiamCfg {
+			glog.Infof("Using single Gy/Gx connection for server: %+v",
+				ocsDiamCfg.DiameterServerConnConfig)
+			var clientCfg = *gxClntCfg
+			clientCfg.AuthAppID = gyClntCfg.AppID
+			diamClient := diameter.NewClient(&clientCfg)
+			diamClient.BeginConnection(ocsDiamCfg)
 
-		var clientCfg = *gxClntCfg
-		clientCfg.AuthAppID = gyClntCfg.AppID
-		diamClient := diameter.NewClient(&clientCfg)
-		diamClient.BeginConnection(ocsDiamCfg)
+			gyClnt = gy.NewConnectedGyClient(
+				diamClient,
+				ocsDiamCfg,
+				gy.GetGyReAuthHandler(cloudReg),
+				cloudReg,
+				gyGlobalConfig)
+			gxClnt = gx.NewConnectedGxClient(
+				diamClient,
+				ocsDiamCfg,
+				gx.GetGxReAuthHandler(cloudReg, policyDBClient),
+				cloudReg,
+				gxGlobalConfig)
+		} else {
+			glog.Infof("Using distinct Gy: %+v & Gx: %+v connection",
+				ocsDiamCfg.DiameterServerConnConfig, pcrfDiamCfg.DiameterServerConnConfig)
 
-		gyClnt = gy.NewConnectedGyClient(
-			diamClient,
-			ocsDiamCfg,
-			gy.GetGyReAuthHandler(cloudReg),
-			cloudReg,
-			gyGlobalConfig)
-		gxClnt = gx.NewConnectedGxClient(
-			diamClient,
-			ocsDiamCfg,
-			gx.GetGxReAuthHandler(cloudReg, policyDBClient),
-			cloudReg,
-			gxGlobalConfig)
-	} else {
-		glog.Infof("Using distinct Gy: %+v & Gx: %+v connection",
-			ocsDiamCfg.DiameterServerConnConfig, pcrfDiamCfg.DiameterServerConnConfig)
+			gyClnt = gy.NewGyClient(
+				gy.GetGyClientConfiguration()[i],
+				ocsDiamCfg,
+				gy.GetGyReAuthHandler(cloudReg),
+				cloudReg,
+				gyGlobalConfig)
+			gxClnt = gx.NewGxClient(
+				gx.GetGxClientConfiguration()[i],
+				pcrfDiamCfg,
+				gx.GetGxReAuthHandler(cloudReg, policyDBClient),
+				cloudReg,
+				gxGlobalConfig)
+		}
+		gyClnts = append(gyClnts, gyClnt)
+		gxClnts = append(gxClnts, gxClnt)
 
-		gyClnt = gy.NewGyClient(
-			gy.GetGyClientConfiguration(),
-			ocsDiamCfg,
-			gy.GetGyReAuthHandler(cloudReg), cloudReg, gyGlobalConfig)
-		gxClnt = gx.NewGxClient(
-			gx.GetGxClientConfiguration(),
-			pcrfDiamCfg,
-			gx.GetGxReAuthHandler(cloudReg, policyDBClient), cloudReg, gxGlobalConfig)
 	}
-	// Add servicers to the service
 
-	sessionManager := servicers.NewCentralSessionControllers_SingleServer(gyClnt,
-		gxClnt, policyDBClient, controllerCfg)
+	// Add servicers to the service
+	sessionManager := servicers.NewCentralSessionControllers(gyClnts, gxClnts, policyDBClient, controllerCfgs)
 	//sessionManager := servicers.NewCentralSessionController(gyClnt, gxClnt, policyDBClient, controllerCfg)
 	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessionManager)
 	protos.RegisterServiceHealthServer(srv.GrpcServer, sessionManager)
@@ -130,4 +156,11 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error running service: %s", err)
 	}
+}
+
+func maxLen(a []*diameter.DiameterServerConfig, b []*diameter.DiameterServerConfig) int {
+	if len(a) > len(b) {
+		return len(a)
+	}
+	return len(b)
 }

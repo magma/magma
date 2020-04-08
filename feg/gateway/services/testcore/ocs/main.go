@@ -37,10 +37,14 @@ func main() {
 		log.Fatalf("Error creating mock OCS service: %s", err)
 	}
 
+	// TODO: support multiple connections
+	gyCliConf := gy.GetGyClientConfiguration()[0]
+	gyServConf := gy.GetOCSConfiguration()[0]
+
 	diamServer := mock_ocs.NewOCSDiamServer(
-		gy.GetGyClientConfiguration(),
+		gyCliConf,
 		&mock_ocs.OCSConfig{
-			ServerConfig:   gy.GetOCSConfiguration(),
+			ServerConfig:   gyServConf,
 			MaxUsageOctets: &protos.Octets{TotalOctets: MaxUsageBytes},
 			MaxUsageTime:   MaxUsageTime,
 			ValidityTime:   ValidityTime,

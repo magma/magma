@@ -87,67 +87,110 @@ func GetInitMethod() InitMethod {
 }
 
 // GetOCSConfiguration returns the server configuration for the set OCS
-func GetOCSConfiguration() *diameter.DiameterServerConfig {
+func GetOCSConfiguration() []*diameter.DiameterServerConfig {
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	if err != nil || !validGyConfig(configsPtr) {
 		log.Printf("%s Managed Gy Server Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
-		return &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, "127.0.0.1:3869"),
-			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GyNetworkEnv, "tcp"),
-			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GyLocalAddr, "")},
-			DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, ""),
-			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, ""),
-			DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
-			OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, false),
+		return []*diameter.DiameterServerConfig{
+			&diameter.DiameterServerConfig{
+				DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+					Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, "127.0.0.1:3869"),
+					Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GyNetworkEnv, "tcp"),
+					LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GyLocalAddr, ""),
+				},
+				DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, ""),
+				DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, ""),
+				DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
+				OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, false),
+			},
 		}
 	}
-	gyCfg := configsPtr.GetGy().GetServer()
-	return &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, gyCfg.GetAddress()),
-		Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GyNetworkEnv, gyCfg.GetProtocol()),
-		LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GyLocalAddr, gyCfg.GetLocalAddress())},
-		DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, gyCfg.GetDestHost()),
-		DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, gyCfg.GetDestRealm()),
-		DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, gyCfg.GetDisableDestHost()),
-		OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gyCfg.GetOverwriteDestHost()),
+
+	gyConfigs := configsPtr.GetGy().GetServers()
+	//TODO: remove this once backwards compatibility is not needed for the field server
+	if len(gyConfigs) == 0 {
+		server := configsPtr.GetGy().GetServer()
+		if server == nil {
+			log.Print("Server configuration for Gy servers not found!!")
+		} else {
+			gyConfigs = append(gyConfigs, server)
+			log.Print("Gy Server configuration using legacy swagger attribute Server (not Servers)")
+		}
 	}
+
+	// Iterate over the slice of servers. VarEnv will apply only to index 0
+	diamServerConfigs := []*diameter.DiameterServerConfig{}
+	for i, gyCfg := range gyConfigs {
+		diamSrvCfg := &diameter.DiameterServerConfig{
+			DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+				Addr:      getValueOrEnvForIndexZero(i, diameter.AddrFlag, OCSAddrEnv, gyCfg.GetAddress()),
+				Protocol:  getValueOrEnvForIndexZero(i, diameter.NetworkFlag, GyNetworkEnv, gyCfg.GetProtocol()),
+				LocalAddr: getValueOrEnvForIndexZero(i, diameter.LocalAddrFlag, GyLocalAddr, gyCfg.GetLocalAddress()),
+			},
+			DestHost:          getValueOrEnvForIndexZero(i, diameter.DestHostFlag, OCSHostEnv, gyCfg.GetDestHost()),
+			DestRealm:         getValueOrEnvForIndexZero(i, diameter.DestRealmFlag, OCSRealmEnv, gyCfg.GetDestRealm()),
+			DisableDestHost:   getBoolValueOrEnvForIndexZero(i, diameter.DisableDestHostFlag, DisableDestHostEnv, gyCfg.GetDisableDestHost()),
+			OverwriteDestHost: getBoolValueOrEnvForIndexZero(i, diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gyCfg.GetOverwriteDestHost()),
+		}
+		diamServerConfigs = append(diamServerConfigs, diamSrvCfg)
+	}
+	return diamServerConfigs
 }
 
 // GetGyClientConfiguration returns the client diameter configuration
-func GetGyClientConfiguration() *diameter.DiameterClientConfig {
+func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 	var retries uint32 = 1
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	if err != nil {
 		log.Printf("%s Managed Gy Client Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
-		return &diameter.DiameterClientConfig{
-			Host:               diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, diameter.DiamHost),
-			Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, diameter.DiamRealm),
-			ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GyDiamProductEnv, diameter.DiamProductName),
+		return []*diameter.DiameterClientConfig{
+			&diameter.DiameterClientConfig{
+				Host:               diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, diameter.DiamHost),
+				Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, diameter.DiamRealm),
+				ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GyDiamProductEnv, diameter.DiamProductName),
+				AppID:              diam.CHARGING_CONTROL_APP_ID,
+				WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
+				RetryCount:         uint(retries),
+				SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, ""),
+				ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, ""),
+			},
+		}
+	}
+
+	diamClientsConfigs := []*diameter.DiameterClientConfig{}
+	gyConfigs := configsPtr.GetGy().GetServers()
+	//TODO: remove this once backwards compatibility is not needed for the field server
+	if len(gyConfigs) == 0 {
+		server := configsPtr.GetGy().GetServer()
+		if server == nil {
+			log.Print("Client configuration for Gy servers not found!!")
+		} else {
+			gyConfigs = append(gyConfigs, server)
+			log.Print("Gy Client configuration using legacy swagger attribute Server (not Servers)")
+		}
+	}
+	for i, gyCfg := range gyConfigs {
+		retries = gyCfg.GetRetryCount()
+		if retries < 1 {
+			log.Printf("Invalid Gy Server Retry Count for server (%s): %d, must be >0. Will be set to 1", gyCfg.GetAddress(), retries)
+			retries = 1
+		}
+
+		diamCliCfg := &diameter.DiameterClientConfig{
+			Host:               getValueOrEnvForIndexZero(i, diameter.HostFlag, GyDiamHostEnv, gyCfg.GetHost()),
+			Realm:              getValueOrEnvForIndexZero(i, diameter.RealmFlag, GyDiamRealmEnv, gyCfg.GetRealm()),
+			ProductName:        getValueOrEnvForIndexZero(i, diameter.ProductFlag, GyDiamProductEnv, gyCfg.GetProductName()),
 			AppID:              diam.CHARGING_CONTROL_APP_ID,
 			WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
 			RetryCount:         uint(retries),
-			SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, ""),
-			ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, ""),
+			SupportedVendorIDs: getValueOrEnvForIndexZero(i, "", GySupportedVendorIDsEnv, ""),
+			ServiceContextId:   getValueOrEnvForIndexZero(i, "", GyServiceContextIdEnv, ""),
 		}
+		diamClientsConfigs = append(diamClientsConfigs, diamCliCfg)
 	}
-	retries = configsPtr.GetGy().GetServer().GetRetryCount()
-	if retries < 1 {
-		log.Printf("Invalid Gy Server Retry Count: %d, must be >0. Will be set to 1", retries)
-		retries = 1
-	}
-	gyCfg := configsPtr.GetGy().GetServer()
-	return &diameter.DiameterClientConfig{
-		Host:               diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, gyCfg.GetHost()),
-		Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, gyCfg.GetRealm()),
-		ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GyDiamProductEnv, gyCfg.GetProductName()),
-		AppID:              diam.CHARGING_CONTROL_APP_ID,
-		WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
-		RetryCount:         uint(retries),
-		SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, ""),
-		ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, ""),
-	}
+	return diamClientsConfigs
 }
 
 func GetGyGlobalConfig() *GyGlobalConfig {
@@ -173,4 +216,20 @@ func validGyConfig(config *mconfig.SessionProxyConfig) bool {
 		return false
 	}
 	return true
+}
+
+// getValueOrEnvForIndexZero gets the Value or Env for the index 0, otherwise it returns Value(string)
+func getValueOrEnvForIndexZero(index int, flagName, envVariable, defaultValue string) string {
+	if index == 0 {
+		return diameter.GetValueOrEnv(flagName, envVariable, defaultValue)
+	}
+	return defaultValue
+}
+
+// getBoolValueOrEnvForIndexZero gets the Value or Env for the index 0, otherwise it returns Value(bool)
+func getBoolValueOrEnvForIndexZero(index int, flagName string, envVariable string, defaultValue bool) bool {
+	if index == 0 {
+		return diameter.GetBoolValueOrEnv(flagName, envVariable, defaultValue)
+	}
+	return defaultValue
 }

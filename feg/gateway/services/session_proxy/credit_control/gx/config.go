@@ -49,69 +49,112 @@ var (
 		DisableEUIIPv6IfNoIPFlag, false, "Don't use MAC based EUI-64 IPv6 address for Gx CCR if IP is not provided")
 )
 
-// GetPCRFConfiguration returns the server configuration for the set PCRF
-func GetPCRFConfiguration() *diameter.DiameterServerConfig {
+// GetPCRFConfiguration returns a slice containing all configuration for all known PCRF
+func GetPCRFConfiguration() []*diameter.DiameterServerConfig {
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	if err != nil || !validGxConfig(configsPtr) {
 		log.Printf("%s Managed Gx PCRF Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
-		return &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, PCRFAddrEnv, "127.0.0.1:3870"),
-			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GxNetworkEnv, "tcp"),
-			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GxLocalAddr, "")},
-			DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, PCRFHostEnv, ""),
-			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, PCRFRealmEnv, ""),
-			DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
-			OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, OverwriteDestHostEnv, false),
+		return []*diameter.DiameterServerConfig{
+			&diameter.DiameterServerConfig{
+				DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+					Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, PCRFAddrEnv, "127.0.0.1:3870"),
+					Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GxNetworkEnv, "tcp"),
+					LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GxLocalAddr, ""),
+				},
+				DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, PCRFHostEnv, ""),
+				DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, PCRFRealmEnv, ""),
+				DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
+				OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, OverwriteDestHostEnv, false),
+			},
 		}
 	}
-	gxCfg := configsPtr.GetGx().GetServer()
-	return &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr: diameter.GetValueOrEnv(
-			diameter.AddrFlag, PCRFAddrEnv, gxCfg.GetAddress()),
-		Protocol: diameter.GetValueOrEnv(
-			diameter.NetworkFlag, GxNetworkEnv, gxCfg.GetProtocol()),
-		LocalAddr: diameter.GetValueOrEnv(
-			diameter.LocalAddrFlag, GxLocalAddr, gxCfg.GetLocalAddress())},
-		DestHost:          diameter.GetValueOrEnv(diameter.DestHostFlag, PCRFHostEnv, gxCfg.GetDestHost()),
-		DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, PCRFRealmEnv, gxCfg.GetDestHost()),
-		DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, gxCfg.GetDisableDestHost()),
-		OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gxCfg.GetOverwriteDestHost()),
+
+	gxConfigs := configsPtr.GetGx().GetServers()
+	//TODO: remove this once backwards compatibility is not needed for the field server
+	if len(gxConfigs) == 0 {
+		server := configsPtr.GetGx().GetServer()
+		if server == nil {
+			log.Print("Server configuration for Gx servers not found!!")
+		} else {
+			gxConfigs = append(gxConfigs, server)
+			log.Print("Gx Server configuration using legacy swagger attribute Server (not Servers)")
+		}
 	}
+
+	// Iterate over the slice of servers. VarEnv will apply only to index 0
+	diamServerConfigs := []*diameter.DiameterServerConfig{}
+	for i, gxCfg := range gxConfigs {
+		diamSrvCfg := &diameter.DiameterServerConfig{
+			DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+				Addr:      getValueOrEnvForIndexZero(i, diameter.AddrFlag, PCRFAddrEnv, gxCfg.GetAddress()),
+				Protocol:  getValueOrEnvForIndexZero(i, diameter.NetworkFlag, GxNetworkEnv, gxCfg.GetProtocol()),
+				LocalAddr: getValueOrEnvForIndexZero(i, diameter.LocalAddrFlag, GxLocalAddr, gxCfg.GetLocalAddress()),
+			},
+			DestHost:          getValueOrEnvForIndexZero(i, diameter.DestHostFlag, PCRFHostEnv, gxCfg.GetDestHost()),
+			DestRealm:         getValueOrEnvForIndexZero(i, diameter.DestRealmFlag, PCRFRealmEnv, gxCfg.GetDestHost()),
+			DisableDestHost:   getBoolValueOrEnvForIndexZero(i, diameter.DisableDestHostFlag, DisableDestHostEnv, gxCfg.GetDisableDestHost()),
+			OverwriteDestHost: getBoolValueOrEnvForIndexZero(i, diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, gxCfg.GetOverwriteDestHost()),
+		}
+		diamServerConfigs = append(diamServerConfigs, diamSrvCfg)
+	}
+
+	return diamServerConfigs
+
 }
 
-// GetGxClientConfiguration returns the client diameter configuration
-func GetGxClientConfiguration() *diameter.DiameterClientConfig {
+// GetGxClientConfiguration returns a slice containing all client diameter configuration
+func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 	var retries uint32 = 1
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	if err != nil {
 		log.Printf("%s Managed Gx Client Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
-		return &diameter.DiameterClientConfig{
-			Host:               diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, diameter.DiamHost),
-			Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, diameter.DiamRealm),
-			ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, diameter.DiamProductName),
+		return []*diameter.DiameterClientConfig{
+			&diameter.DiameterClientConfig{
+				Host:               diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, diameter.DiamHost),
+				Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, diameter.DiamRealm),
+				ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, diameter.DiamProductName),
+				AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
+				WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
+				RetryCount:         uint(retries),
+				SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, ""),
+			},
+		}
+	}
+
+	diamClientsConfigs := []*diameter.DiameterClientConfig{}
+	gxConfigs := configsPtr.GetGx().GetServers()
+	//TODO: remove this once backwards compatibility is not needed for the field server
+	if len(gxConfigs) == 0 {
+		server := configsPtr.GetGx().GetServer()
+		if server == nil {
+			log.Print("Client configuration for Gx servers not found!!")
+		} else {
+			gxConfigs = append(gxConfigs, server)
+			log.Print("Gx Client configuration using legacy swagger attribute Server (not Servers)")
+		}
+	}
+
+	for i, gxCfg := range gxConfigs {
+		retries = gxCfg.GetRetryCount()
+		if retries < 1 {
+			log.Printf("Invalid Gx Server Retry Count for server (%s): %d, must be >0. Will be set to 1", gxCfg.GetAddress(), retries)
+			retries = 1
+		}
+		diamCliCfg := &diameter.DiameterClientConfig{
+			Host:               getValueOrEnvForIndexZero(i, diameter.HostFlag, GxDiamHostEnv, gxCfg.GetHost()),
+			Realm:              getValueOrEnvForIndexZero(i, diameter.RealmFlag, GxDiamRealmEnv, gxCfg.GetRealm()),
+			ProductName:        getValueOrEnvForIndexZero(i, diameter.ProductFlag, GxDiamProductEnv, gxCfg.GetProductName()),
 			AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
 			WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
 			RetryCount:         uint(retries),
-			SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, ""),
+			SupportedVendorIDs: getValueOrEnvForIndexZero(i, "", GxSupportedVendorIDsEnv, ""),
 		}
+		diamClientsConfigs = append(diamClientsConfigs, diamCliCfg)
 	}
-	retries = configsPtr.GetGx().GetServer().GetRetryCount()
-	if retries < 1 {
-		log.Printf("Invalid Gx Server Retry Count: %d, must be >0. Will be set to 1", retries)
-		retries = 1
-	}
-	gxCfg := configsPtr.GetGx().GetServer()
-	return &diameter.DiameterClientConfig{
-		Host:               diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, gxCfg.GetHost()),
-		Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, gxCfg.GetRealm()),
-		ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, gxCfg.GetProductName()),
-		AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
-		WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
-		RetryCount:         uint(retries),
-		SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, ""),
-	}
+	return diamClientsConfigs
+
 }
 
 func GetGxGlobalConfig() *GxGlobalConfig {
@@ -124,12 +167,29 @@ func GetGxGlobalConfig() *GxGlobalConfig {
 	return &GxGlobalConfig{
 		PCFROverwriteApn: configsPtr.GetGx().OverwriteApn,
 	}
+
 }
 
-// check if required fields related to Gx are valid in the config
+// validGxConfig check if required fields related to Gx are valid in the config
 func validGxConfig(config *mconfig.SessionProxyConfig) bool {
 	if config == nil || config.Gx == nil || config.Gx.Server == nil || config.Gx.Server.Address == "" {
 		return false
 	}
 	return true
+}
+
+// getValueOrEnvForIndexZero gets the Value or Env for the index 0, otherwise it returns Value(string)
+func getValueOrEnvForIndexZero(index int, flagName, envVariable, defaultValue string) string {
+	if index == 0 {
+		return diameter.GetValueOrEnv(flagName, envVariable, defaultValue)
+	}
+	return defaultValue
+}
+
+// getBoolValueOrEnvForIndexZero gets the Value or Env for the index 0, otherwise it returns Value(bool)
+func getBoolValueOrEnvForIndexZero(index int, flagName string, envVariable string, defaultValue bool) bool {
+	if index == 0 {
+		return diameter.GetBoolValueOrEnv(flagName, envVariable, defaultValue)
+	}
+	return defaultValue
 }
