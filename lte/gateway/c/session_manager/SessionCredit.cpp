@@ -142,8 +142,8 @@ void SessionCredit::add_used_credit(uint64_t used_tx, uint64_t used_rx, SessionC
   uc.bucket_deltas[USED_TX] += used_tx;
   uc.bucket_deltas[USED_RX] += used_rx;
 
+  log_quota_and_usage();
   if (should_deactivate_service()) {
-    MLOG(MDEBUG) << "Quota exhausted. Deactivating service";
     service_state_ = SERVICE_NEEDS_DEACTIVATION;
     uc.service_state = SERVICE_NEEDS_DEACTIVATION;
   }
@@ -199,17 +199,10 @@ void SessionCredit::receive_credit(
   update_criteria.bucket_deltas[ALLOWED_TOTAL] += total_volume;
   update_criteria.bucket_deltas[ALLOWED_TX] += tx_volume;
   update_criteria.bucket_deltas[ALLOWED_RX] += rx_volume;
-  MLOG(MDEBUG) << "Total amount received since start of session is "
-               << " total=" << buckets_[ALLOWED_TOTAL]
-               << " tx=" << buckets_[ALLOWED_TX]
-               << " rx=" << buckets_[ALLOWED_RX];
+
   // transfer reporting usage to reported
   buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
   buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
-  MLOG(MDEBUG) << "Total amount reported since start of session is "
-               << " total=" << buckets_[REPORTED_RX] + buckets_[REPORTED_TX]
-               << " rx=" << buckets_[REPORTED_RX]
-               << " tx=" << buckets_[REPORTED_TX];
 
   // Set the usage_reporting_limit so that we never report more than grant
   // we've received.
@@ -220,7 +213,7 @@ void SessionCredit::receive_credit(
     usage_reporting_limit_ = buckets_[ALLOWED_TOTAL] - reported_sum;
   } else if (usage_reporting_limit_ != 0) {
     MLOG(MINFO) << "We have reported data usage for all credit received, the "
-                 << "upper limit for reporting is now 0.";
+                 << "upper limit for reporting is now 0";
     usage_reporting_limit_ = 0;
     update_criteria.usage_reporting_limit = usage_reporting_limit_;
   }
@@ -240,6 +233,20 @@ void SessionCredit::receive_credit(
     MLOG(MDEBUG) << "Quota available. Activating service";
     service_state_ = SERVICE_NEEDS_ACTIVATION;
   }
+  log_quota_and_usage();
+}
+
+void SessionCredit::log_quota_and_usage() {
+   auto reported_sum = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
+   MLOG(MDEBUG) << "===> Used     Tx: " << buckets_[USED_TX]
+               << " Rx: " << buckets_[USED_RX]
+               << " Total: " << buckets_[USED_TX] + buckets_[USED_RX];
+   MLOG(MDEBUG) << "===> Allowed  Tx: " << buckets_[ALLOWED_TX]
+               << " Rx: " << buckets_[ALLOWED_RX]
+               << " Total: " << buckets_[ALLOWED_TOTAL];
+   MLOG(MDEBUG) << "===> Reported Tx: " << buckets_[REPORTED_TX]
+               << " Rx: " << buckets_[REPORTED_RX]
+               << " Total: " << buckets_[REPORTED_RX] + buckets_[REPORTED_TX];
 }
 
 bool SessionCredit::is_quota_exhausted(
@@ -276,11 +283,6 @@ bool SessionCredit::is_quota_exhausted(
                            (buckets_[ALLOWED_RX] - buckets_[REPORTED_RX]) *
                              usage_reporting_threshold);
 
-   MLOG(MDEBUG) << " Is Quota exhausted?"
-               << "\n Total used: " << buckets_[USED_TX] + buckets_[USED_RX]
-               << "\n Allowed total: " << buckets_[ALLOWED_TOTAL]
-               << "\n Reported total: " << total_reported_usage;
-
   bool is_exhausted = false;
   if (total_usage_since_report >= total_usage_reporting_threshold) {
     is_exhausted = true;
@@ -294,7 +296,7 @@ bool SessionCredit::is_quota_exhausted(
     is_exhausted = true;
   }
   if (is_exhausted) {
-    MLOG(MDEBUG) << " YES Quota exhausted ";
+    MLOG(MDEBUG) << "Quota exhausted ";
   }
   return is_exhausted;
 }
@@ -314,6 +316,8 @@ bool SessionCredit::should_deactivate_service()
   }
   if (is_final_grant_ && is_quota_exhausted()) {
     // If we've exhausted the last grant, we should terminate
+    MLOG(MINFO) << "Terminating service because we have exhausted the given "
+                << "quota and it is the final grant";
     return true;
   }
   if (is_quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN)) {

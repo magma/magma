@@ -45,7 +45,9 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   std::function<void(Status, Void)> response_callback)
 {
   auto &request_cpy = *request;
-  MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
+  if (request_cpy.records_size() > 0) {
+    MLOG(MDEBUG) << "\nAggregating " << request_cpy.records_size() << " records";
+  }
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     auto session_map = get_sessions_for_reporting(request_cpy);
     SessionUpdate update = SessionStore::get_default_session_update(session_map);

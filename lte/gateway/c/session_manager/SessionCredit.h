@@ -258,6 +258,8 @@ class SessionCredit {
   bool is_quota_exhausted(
     float usage_reporting_threshold = 1, uint64_t extra_quota_margin = 0);
 
+  void log_quota_and_usage();
+
   bool should_deactivate_service();
 
   bool validity_timer_expired();
