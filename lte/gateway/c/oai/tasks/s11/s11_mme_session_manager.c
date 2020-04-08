@@ -68,9 +68,11 @@ s11_mme_create_session_request (
   itti_s11_create_session_request_t * req_p)
 {
   nw_gtpv2c_ulp_api_t                         ulp_req;
-  nw_rc_t                                   rc;
-  uint8_t                                 restart_counter = 0;
+  nw_rc_t                                     rc;
+  uint8_t                                     restart_counter = 0;
+  
   OAILOG_FUNC_IN (LOG_S11);
+
 
   DevAssert (stack_p );
   DevAssert (req_p );
@@ -81,10 +83,16 @@ s11_mme_create_session_request (
    */
   rc = nwGtpv2cMsgNew (*stack_p, true, NW_GTP_CREATE_SESSION_REQ, req_p->teid, 0, &(ulp_req.hMsg));
   /** Will stay in stack until its copied into trx and sent to UE. */
+  
+  
   ulp_req.u_api_info.initialReqInfo.edns_peer_ip = (struct sockaddr*)&req_p->edns_peer_ip;
+  
+  //OAILOG_DEBUG(LOG_S11, "ends peer ip address %p\n", (struct sockaddr*)edns_peer_ip);
   ulp_req.u_api_info.initialReqInfo.teidLocal  = req_p->sender_fteid_for_cp.teid;
   ulp_req.u_api_info.initialReqInfo.hUlpTunnel = 0;
   ulp_req.u_api_info.initialReqInfo.hTunnel    = 0;
+  
+  
   /*
    * Add recovery if contacting the peer for the first time
    */

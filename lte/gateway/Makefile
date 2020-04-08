@@ -4,6 +4,15 @@ GATEWAY_C_DIR = $(MAGMA_ROOT)/lte/gateway/c
 GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
 
+
+FEATURES ?= mme
+# EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
+# together.
+EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
+# AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
+AVAILABLE_FEATURE_LIST =  mme  
+REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
+
 OAI_FLAGS = -DEMBEDDED_SGW=False 
 FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
 TEST_FLAG = -DBUILD_TESTS=1
