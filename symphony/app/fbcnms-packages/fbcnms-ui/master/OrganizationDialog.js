@@ -30,7 +30,7 @@ import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
 import renderList from '@fbcnms/util/renderList';
-import {getProjectTabs} from '@fbcnms/magmalte/app/common/projects';
+import {getProjectTabs} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '@fbcnms/ui/hooks';
 import {useState} from 'react';

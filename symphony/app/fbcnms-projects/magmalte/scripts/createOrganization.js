@@ -15,7 +15,7 @@ import type {Tab} from '@fbcnms/types/tabs';
 import {Organization} from '@fbcnms/sequelize-models';
 import {coerceToTab} from '@fbcnms/types/tabs';
 import {difference} from 'lodash';
-import {getProjectTabs} from '@fbcnms/magmalte/app/common/projects';
+import {getProjectTabs} from '@fbcnms/projects/projects';
 import {union} from 'lodash';
 
 type OrganizationObject = {

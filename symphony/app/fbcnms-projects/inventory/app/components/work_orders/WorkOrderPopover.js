@@ -20,7 +20,7 @@ import type {WorkOrderProperties} from '../map/MapUtil';
 import * as React from 'react';
 import DateTimeFormat from '../../common/DateTimeFormat';
 import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
-import Strings from '../../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import classNames from 'classnames';

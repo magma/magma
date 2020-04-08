@@ -39,7 +39,7 @@ import EditReportFilterMutation from '../mutations/EditReportFilterMutation';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import Popover from '@material-ui/core/Popover';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import Strings from '../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';

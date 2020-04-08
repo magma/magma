@@ -11,7 +11,11 @@
 'use strict';
 
 const webpackConfig = require('fbcnms-webpack-config/production-webpack');
+const paths = require('fbcnms-webpack-config/paths');
 
 module.exports = webpackConfig.createProductionWebpackConfig({
   projectName: 'nms',
+  entry: {
+    master: paths.resolveApp('app/master.js'),
+  },
 });

@@ -18,7 +18,7 @@ import WorkOrderComparisonView from './WorkOrderComparisonView';
 import WorkOrderConfigure from './WorkOrderConfigure';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {WorkOrdersNavListItems} from './WorkOrdersNavListItems';
-import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
+import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {useMainContext} from '../../components/MainContext';
 import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';

@@ -32,7 +32,7 @@ import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import axios from 'axios';
 import renderList from '@fbcnms/util/renderList';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {getProjectTabs} from '@fbcnms/magmalte/app/common/projects';
+import {getProjectTabs} from '@fbcnms/projects/projects';
 import {intersection} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios, useRouter} from '@fbcnms/ui/hooks';

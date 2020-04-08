@@ -16,7 +16,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormContext, {FormContextProvider} from '../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import Strings from '../common/CommonStrings';
+import InventoryStrings from '../common/InventoryStrings';
+import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
@@ -130,7 +131,7 @@ const AddHyperlinkDialog = (props: Props) => {
                   {Strings.common.cancelButton}
                 </Button>
                 <Button onClick={onSave} disabled={form.alerts.error.detected}>
-                  {Strings.documents.addLinkButton}
+                  {InventoryStrings.documents.addLinkButton}
                 </Button>
               </DialogActions>
             </Dialog>

@@ -24,7 +24,7 @@ import PeopleIcon from '@material-ui/icons/People';
 import React, {useContext} from 'react';
 import SecuritySettings from '@fbcnms/magmalte/app/components/SecuritySettings';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
-import UsersSettings from '@fbcnms/magmalte/app/components/UsersSettings';
+import UsersSettings from '@fbcnms/magmalte/app/components/admin/userManagement/UsersSettings';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';

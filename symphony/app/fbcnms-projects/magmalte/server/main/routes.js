@@ -11,6 +11,7 @@
 import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
+import asyncHandler from '@fbcnms/util/asyncHandler';
 import express from 'express';
 import staticDist from 'fbcnms-webpack-config/staticDist';
 import userMiddleware from '@fbcnms/auth/express';
@@ -19,6 +20,7 @@ import {MAPBOX_ACCESS_TOKEN} from '@fbcnms/platform-server/config';
 
 import {access} from '@fbcnms/auth/access';
 import {getEnabledFeatures} from '@fbcnms/platform-server/features';
+import {masterOrgMiddleware} from '@fbcnms/platform-server/master/middleware';
 
 const router = express.Router();
 
@@ -76,8 +78,50 @@ router.use(
 );
 router.get('/nms*', access(AccessRoles.USER), handleReact('nms'));
 
-router.get('/', (req: FBCNMSRequest, res) => {
-  res.redirect('/nms');
-});
+const masterRouter = require('@fbcnms/platform-server/master/routes');
+router.use('/master', masterOrgMiddleware, masterRouter.default);
+
+async function handleMaster(req: FBCNMSRequest, res) {
+  const appData: AppContextAppData = {
+    csrfToken: req.csrfToken(),
+    user: {
+      tenant: 'master',
+      email: req.user.email,
+      isSuperUser: req.user.isSuperUser,
+      isReadOnlyUser: req.user.isReadOnlyUser,
+    },
+    enabledFeatures: await getEnabledFeatures(req, 'master'),
+    tabs: [],
+    ssoEnabled: false,
+    ssoSelectedType: 'none',
+    csvCharset: null,
+  };
+  res.render('master', {
+    staticDist,
+    configJson: JSON.stringify({appData}),
+  });
+}
+
+router.get('/master*', masterOrgMiddleware, handleMaster);
+
+router.get(
+  '/*',
+  access(AccessRoles.USER),
+  asyncHandler(async (req: FBCNMSRequest, res) => {
+    const organization = await req.organization();
+    if (organization.isMasterOrg) {
+      res.redirect('/master');
+    } else if (req.user.tabs && req.user.tabs.length > 0) {
+      res.redirect(req.user.tabs[0]);
+    } else if (organization.tabs && organization.tabs.length > 0) {
+      res.redirect(organization.tabs[0]);
+    } else {
+      console.warn(
+        `no tabs for user ${req.user.email}, organization ${organization.name}`,
+      );
+      res.redirect('/nms');
+    }
+  }),
+);
 
 export default router;

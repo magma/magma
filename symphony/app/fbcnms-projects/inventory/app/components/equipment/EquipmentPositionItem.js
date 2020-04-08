@@ -22,7 +22,7 @@ import type {WithStyles} from '@material-ui/core';
 import ActionButton from '@fbcnms/ui/components/ActionButton';
 import AddToEquipmentDialog from './AddToEquipmentDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import CommonStrings from '../../common/CommonStrings';
+import CommonStrings from '@fbcnms/strings/Strings';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import React from 'react';
 import RemoveEquipmentFromPositionMutation from '../../mutations/RemoveEquipmentFromPositionMutation';

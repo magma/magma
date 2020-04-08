@@ -14,7 +14,7 @@ import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
-import Strings from '../../../../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';

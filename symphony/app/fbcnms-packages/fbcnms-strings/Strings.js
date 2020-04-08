@@ -72,26 +72,6 @@ const Strings = {
       )}`,
     },
   },
-  documents: {
-    viewHeader: `${fbt(
-      'Documents',
-      'Header text for a view showing documents',
-    )}`,
-    uploadButton: `${fbt('Upload File', 'Upload files button caption')}`,
-    addLinkButton: `${fbt('Add URL', 'Open Add URL dialog button caption')}`,
-    categories: [
-      'Archivos de Estudios Pre-instalación',
-      'Archivos de Contratos',
-      'Archivos de TSS',
-      'DataFills',
-      'ATP',
-      'Topología',
-      'Archivos Simulación',
-      'Reportes de Mantenimiento',
-      'Fotos',
-      'Site Folder',
-    ],
-  },
 };
 
 export default Strings;

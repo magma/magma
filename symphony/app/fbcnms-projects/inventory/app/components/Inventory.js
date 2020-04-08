@@ -25,7 +25,7 @@ import ServicesMain from './services/ServicesMain';
 import Settings from './Settings';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {RelayEnvironmentProvider} from 'react-relay/hooks';
-import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
+import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {setLoggerUser} from '../common/LoggingUtils';
 import {shouldShowSettings} from '@fbcnms/magmalte/app/components/Settings';

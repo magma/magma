@@ -18,7 +18,7 @@ import InventoryErrorBoundary from '../../../../common/InventoryErrorBoundary';
 import PermissionsGroupDetailsPane from './PermissionsGroupDetailsPane';
 import PermissionsGroupMembersPane from './PermissionsGroupMembersPane';
 import PermissionsGroupPoliciesPane from './PermissionsGroupPoliciesPane';
-import Strings from '../../../../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';

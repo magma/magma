@@ -14,7 +14,7 @@ import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CheckIcon from '@fbcnms/ui/components/design-system/Icons/Indications/CheckIcon';
 import PlusIcon from '@fbcnms/ui/components/design-system/Icons/Actions/PlusIcon';
-import Strings from '../../../../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import UserViewer from '../users/UserViewer';
 import classNames from 'classnames';
 import fbt from 'fbt';

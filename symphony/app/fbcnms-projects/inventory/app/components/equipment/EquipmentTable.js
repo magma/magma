@@ -20,7 +20,7 @@ import type {WithSnackbarProps} from 'notistack';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import CommonStrings from '../../common/CommonStrings';
+import CommonStrings from '@fbcnms/strings/Strings';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import IconButton from '@fbcnms/ui/components/design-system/IconButton';
 import React, {useCallback, useContext, useMemo} from 'react';

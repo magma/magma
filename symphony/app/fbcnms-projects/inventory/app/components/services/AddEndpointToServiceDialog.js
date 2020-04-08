@@ -21,7 +21,7 @@ import EquipmentComparisonViewQueryRenderer from '../comparison_view/EquipmentCo
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import PowerSearchLinkFirstEquipmentResultsTable from './PowerSearchLinkFirstEquipmentResultsTable';
 import React from 'react';
-import Strings from '../../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';

@@ -20,7 +20,7 @@ import SectionLinks from '../layout/SectionLinks';
 import SectionRoutes from '../layout/SectionRoutes';
 import VersionTooltip from '../VersionTooltip';
 
-import {getProjectLinks} from '../../common/projects';
+import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {shouldShowSettings} from '../Settings';
 import {useRouter} from '@fbcnms/ui/hooks';
