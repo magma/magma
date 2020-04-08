@@ -49,6 +49,7 @@ class LocalEnforcer {
   LocalEnforcer(
     std::shared_ptr<SessionReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store,
+    SessionStore& session_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
     std::shared_ptr<AsyncEventdClient> eventd_client,
@@ -157,7 +158,6 @@ class LocalEnforcer {
     SessionMap& session_map,
     const std::string& imsi,
     const std::string& apn,
-    std::function<void(SessionTerminateRequest)> on_termination_callback,
     SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
   uint64_t get_charging_credit(
@@ -229,6 +229,12 @@ class LocalEnforcer {
     const std::vector<std::unique_ptr<ServiceAction>>& actions,
     SessionUpdate& session_update = UNUSED_SESSION_UPDATE);
 
+  void set_termination_callback(
+    SessionMap& session_map,
+    const std::string& imsi,
+    const std::string& apn,
+    std::function<void(SessionTerminateRequest)> on_termination_callback);
+
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
  private:
@@ -245,6 +251,7 @@ class LocalEnforcer {
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string,
                      std::vector<std::unique_ptr<SessionState>>> session_map_;
+  SessionStore& session_store_;
   folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
   // [CWF-ONLY] This configures how long we should wait before terminating a

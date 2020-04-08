@@ -108,11 +108,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   static const std::string hex_digit_;
 
  private:
-  void check_usage_for_reporting(SessionUpdate& session_update);
+  void check_usage_for_reporting(
+      SessionMap session_map, SessionUpdate& session_update);
   bool is_pipelined_restarted();
   bool restart_pipelined(const std::uint64_t& epoch);
 
   void end_session(
+      SessionMap& session_map,
     const LocalEndSessionRequest& request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
@@ -122,7 +124,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
     const std::string& imsi,
     const std::string& session_id);
 
+  /**
+   * Send session creation request to the CentralSessionController.
+   * If it is successful, create a session in session_map, and respond to
+   * gRPC caller.
+   */
   void send_create_session(
+    SessionMap& session_map,
     const CreateSessionRequest& request,
     const std::string& imsi,
     const std::string& sid,
