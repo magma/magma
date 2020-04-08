@@ -427,7 +427,7 @@ union {
     struct sockaddr_in
         addr_v4;  ///< MME ipv4 address for S-GW or S-GW ipv4 address for MME
     struct sockaddr_in6
-        addr_v6;  ///< MME ipv4 address for S-GW or S-GW ipv4 address for MME
+        addr_v6;  ///< MME ipv6 address for S-GW or S-GW ipv6 address for MME
   } edns_peer_ip;
 
    //struct {

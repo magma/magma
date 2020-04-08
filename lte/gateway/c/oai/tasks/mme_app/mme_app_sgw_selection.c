@@ -31,6 +31,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "mme_config.h"
 #include "bstrlib.h"
 #include "log.h"
 #include "dynamic_memory_check.h"
@@ -41,7 +42,7 @@
 //------------------------------------------------------------------------------
 void mme_app_select_sgw(
   const tai_t *const tai,
-  struct in_addr *const sgw_in_addr)
+  struct sockaddr *const sgw_in_addr)
 {
   // see in 3GPP TS 29.303 version 10.5.0 Release 10:
   // 5.2 Procedures for Discovering and Selecting a SGW
@@ -49,6 +50,7 @@ void mme_app_select_sgw(
 
   // do it the simplest way for now
   //
+  /*
   char tmp[8];
   bstring application_unique_string = bfromcstr("tac-lb");
   if (0 < snprintf(tmp, 8, "%02x", tai->tac & 0x00FF)) {
@@ -84,31 +86,49 @@ void mme_app_select_sgw(
   }
   bcatcstr(application_unique_string, ".3gppnetwork.org");
 
-  struct in_addr *entry = mme_app_edns_get_sgw_entry(application_unique_string);
+  //struct in_addr *entry = mme_app_edns_get_sgw_entry(application_unique_string);
 
 //mme_app_edns_get_sgw_entry(application_unique_string, service_ip_addr);
 
-  if (entry) {
-    sgw_in_addr->s_addr = entry->s_addr;
-  
-}
+     
+  //if (entry) {
+  // sgw_in_addr->s_addr = entry->s_addr;
+//}
+
+ //e_dns_config_t e_dns_emulation; 
+
+//memset((void*)sgw_in_addr, 0, sizeof(struct in_addr sgw_ip_addr[0]));
+
+//sgw_in_addr->s_addr = NULL;
+*/
+
+
+extern mme_config_t mme_config;
+//config_pP = malloc(sizeof(mme_config_t));
+
+((struct sockaddr_in*)sgw_in_addr)->sin_addr.s_addr = mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
+((struct sockaddr_in*)sgw_in_addr)->sin_family = AF_INET ;
+
+
+printf("Received SGW IP Address %p\n" , (void*)sgw_in_addr);
+//OAILOG_DEBUG( LOG_MME_APP,"SGW  returned %p\n",(struct in_addr *const )sgw_in_addr); 
   OAILOG_DEBUG(
     LOG_MME_APP,
-    "SGW lookup %s returned %s\n",
-    application_unique_string->data,
-    inet_ntoa(*sgw_in_addr));
-  bdestroy_wrapper(&application_unique_string);
+    "SGW  returned %s\n",inet_ntoa(((struct sockaddr_in*)sgw_in_addr)->sin_addr));  
+  //bdestroy_wrapper(&application_unique_string);
   return;
+  
 
-lookup_error:
+ //printf("Received IP Address %p\n" , sgw_in_addr);
+ //sgw_in_addr->s_addr = config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr;
+
+//lookup_error:
   OAILOG_WARNING(
     LOG_MME_APP, "Failed SGW lookup for TAI " TAI_FMT "\n", TAI_ARG(tai));
-  sgw_in_addr->s_addr = 0;
-  bdestroy_wrapper(&application_unique_string);
+  ((struct sockaddr_in*)sgw_in_addr)->sin_addr.s_addr = 0;
+  //bdestroy_wrapper(&application_unique_string);
   return;
 }
-
-
 
  //if ((*service_ip_addr)->sa_family == AF_INET)
 
