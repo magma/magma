@@ -607,58 +607,45 @@ class SessionManagerUtil(object):
             get_rpc_channel("directoryd")
         )
 
-    def create_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
+    def get_flow_match(self, flow_list, flow_match_list):
         """
-        Sends Policy RAR message to session manager
+        Populates flow match list
         """
-        print("Sending Policy RAR message to session manager")
-        flow_match_list = []
-        ipv4_src_addr = None
-        ipv4_dst_addr = None
-        res = None
         for flow in flow_list:
-            if flow["direction"] == "UL":
-                flow_direction = FlowMatch.UPLINK
-            else:
-                flow_direction = FlowMatch.DOWNLINK
-
+            flow_direction = (
+                FlowMatch.UPLINK
+                if flow["direction"] == "UL"
+                else FlowMatch.DOWNLINK
+            )
             ip_protocol = flow["ip_proto"]
             if ip_protocol == "TCP":
                 ip_protocol = FlowMatch.IPPROTO_TCP
                 udp_src_port = 0
                 udp_dst_port = 0
-                if "tcp_src_port" in flow:
-                    tcp_src_port = int(flow["tcp_src_port"])
-                else:
-                    tcp_src_port = 0
-                if "tcp_dst_port" in flow:
-                    tcp_dst_port = flow["tcp_dst_port"]
-                else:
-                    tcp_dst_port = 0
+                tcp_src_port = (
+                    int(flow["tcp_src_port"]) if "tcp_src_port" in flow else 0
+                )
+                tcp_dst_port = (
+                    int(flow["tcp_dst_port"]) if "tcp_dst_port" in flow else 0
+                )
             elif ip_protocol == "UDP":
                 ip_protocol = FlowMatch.IPPROTO_UDP
                 tcp_src_port = 0
                 tcp_dst_port = 0
-                if "udp_src_port" in flow:
-                    udp_src_port = int(flow["udp_src_port"])
-                else:
-                    udp_src_port = 0
-
-                if "udp_dst_port" in flow:
-                    udp_dst_port = int(flow["udp_dst_port"])
-                else:
-                    udp_dst_port = 0
+                udp_src_port = (
+                    int(flow["udp_src_port"]) if "udp_src_port" in flow else 0
+                )
+                udp_dst_port = (
+                    int(flow["udp_dst_port"]) if "udp_dst_port" in flow else 0
+                )
             else:
                 udp_src_port = 0
                 udp_dst_port = 0
                 tcp_src_port = 0
                 tcp_dst_port = 0
 
-            if "ipv4_src" in flow:
-                ipv4_src_addr = flow["ipv4_src"]
-
-            if "ipv4_dst" in flow:
-                ipv4_dst_addr = flow["ipv4_dst"]
+            ipv4_src_addr = flow.get("ipv4_src", None)
+            ipv4_dst_addr = flow.get("ipv4_dst", None)
 
             flow_match_list.append(
                 FlowDescription(
@@ -675,6 +662,15 @@ class SessionManagerUtil(object):
                     action=FlowDescription.PERMIT,
                 )
             )
+
+    def create_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
+        """
+        Sends Policy RAR message to session manager
+        """
+        print("Sending Policy RAR message to session manager")
+        flow_match_list = []
+        res = None
+        self.get_flow_match(flow_list, flow_match_list)
 
         policy_qos = FlowQos(
             qci=qos["qci"],
