@@ -51,7 +51,7 @@ class SessiondTest : public ::testing::Test {
     eventd_client = std::make_shared<AsyncEventdClient>(test_channel);
     spgw_client = std::make_shared<AsyncSpgwServiceClient>(test_channel);
     auto rule_store = std::make_shared<StaticRuleStore>();
-    auto session_store = new SessionStore(rule_store);
+    session_store = std::make_shared<SessionStore>(rule_store);
     insert_static_rule(rule_store, 1, "rule1");
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
@@ -60,6 +60,7 @@ class SessiondTest : public ::testing::Test {
     monitor = std::make_shared<LocalEnforcer>(
       reporter,
       rule_store,
+      *session_store,
       pipelined_client,
       directoryd_client,
       eventd_client,
@@ -162,6 +163,7 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<AsyncDirectorydClient> directoryd_client;
   std::shared_ptr<AsyncEventdClient> eventd_client;
   std::shared_ptr<AsyncSpgwServiceClient> spgw_client;
+  std::shared_ptr<SessionStore> session_store;
   SessionMap session_map;
 };
 
@@ -330,7 +332,7 @@ TEST_F(SessiondTest, end_to_end_success)
   // The thread needs to be halted before proceeding to call EndSession()
   // because the call to FeG within ReportRuleStats() is an async call,
   // and the call to FeG, UpdateSession(), is assumed in this test
-  // to happend before the EndSession().
+  // to happened before the EndSession().
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   LocalEndSessionResponse update_resp;
@@ -394,7 +396,7 @@ TEST_F(SessiondTest, end_to_end_cloud_down)
     EXPECT_CALL(
       *controller_mock,
       UpdateSession(testing::_, CheckSingleUpdate(second_update), testing::_))
-      .Times(1)
+    .Times(1)
       .WillOnce(SetEndPromise(&end_promise, Status::OK));
   }
 
@@ -424,8 +426,8 @@ TEST_F(SessiondTest, end_to_end_cloud_down)
 
   RuleRecordTable table2;
   record_list = table2.mutable_records();
-  create_rule_record("IMSI1", "rule1", 1, 0, record_list->Add());
-  create_rule_record("IMSI1", "rule2", 0, 0, record_list->Add());
+  create_rule_record("IMSI1", "rule1", 1, 512, record_list->Add());
+  create_rule_record("IMSI1", "rule2", 512, 0, record_list->Add());
   grpc::ClientContext update_context2;
   stub->ReportRuleStats(&update_context2, table2, &void_resp);
 

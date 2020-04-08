@@ -75,6 +75,7 @@ static SubscriberQuotaUpdate make_subscriber_quota_update(
 LocalEnforcer::LocalEnforcer(
   std::shared_ptr<SessionReporter> reporter,
   std::shared_ptr<StaticRuleStore> rule_store,
+  SessionStore& session_store,
   std::shared_ptr<PipelinedClient> pipelined_client,
   std::shared_ptr<AsyncDirectorydClient> directoryd_client,
   std::shared_ptr<AsyncEventdClient> eventd_client,
@@ -84,6 +85,7 @@ LocalEnforcer::LocalEnforcer(
   long quota_exhaustion_termination_on_init_ms):
   reporter_(reporter),
   rule_store_(rule_store),
+  session_store_(session_store),
   pipelined_client_(pipelined_client),
   directoryd_client_(directoryd_client),
   eventd_client_(eventd_client),
@@ -119,7 +121,7 @@ void LocalEnforcer::notify_finish_report_for_sessions(
     }
   }
   for (const auto &imsi_sid_pair : imsi_to_terminate) {
-    auto update_criteria = get_default_update_criteria();
+    SessionStateUpdateCriteria& update_criteria = session_update[imsi_sid_pair.first][imsi_sid_pair.second];
     complete_termination(
       session_map, imsi_sid_pair.first, imsi_sid_pair.second, update_criteria);
   }
@@ -215,7 +217,7 @@ void LocalEnforcer::aggregate_records(
     }
     // Update sessions
     for (const auto &session : it->second) {
-      auto uc = get_default_update_criteria();
+      SessionStateUpdateCriteria& uc = session_update[record.sid()][session->get_session_id()];
       session->add_used_credit(
         record.rule_id(), record.bytes_tx(), record.bytes_rx(), uc);
     }
@@ -257,6 +259,23 @@ void LocalEnforcer::execute_actions(
   }
 }
 
+void LocalEnforcer::set_termination_callback(
+  SessionMap& session_map,
+  const std::string& imsi,
+  const std::string& apn,
+  std::function<void(SessionTerminateRequest)> on_termination_callback)
+{
+  auto it = session_map.find(imsi);
+  if (it == session_map.end()) {
+    MLOG(MERROR) << "Could not find session for IMSI " << imsi
+                 << " during termination";
+    throw SessionNotFound();
+  }
+  for (const auto &session : it->second) {
+    session->set_termination_callback(on_termination_callback);
+  }
+}
+
 // Terminates sessions that correspond to the given IMSI.
 // (For session termination triggered by sessiond)
 void LocalEnforcer::terminate_service(
@@ -276,14 +295,9 @@ void LocalEnforcer::terminate_service(
   }
 
   for (const auto &session : it->second) {
-    auto update_criteria = get_default_update_criteria();
+    auto update_criteria = session_update[imsi][session->get_session_id()];
 
-    session->start_termination([this](SessionTerminateRequest term_req) {
-      // report to cloud
-      auto logging_cb =
-        SessionReporter::get_terminate_logging_cb(term_req);
-      reporter_->report_terminate_session(term_req, logging_cb);
-    }, update_criteria);
+    session->start_termination(update_criteria);
 
     // tell AAA service to terminate radius session if necessary
     if (session->is_radius_cwf_session()) {
@@ -392,7 +406,7 @@ UpdateSessionRequest LocalEnforcer::collect_updates(
     for (const auto &session : session_pair.second) {
       std::string imsi = session_pair.first;
       std::string sid = session->get_session_id();
-      auto update_criteria = get_default_update_criteria();
+      auto update_criteria = session_update[imsi][sid];
       session->get_updates(request, &actions, update_criteria, force_update);
     }
   }
@@ -900,7 +914,7 @@ void LocalEnforcer::complete_termination(
             session_it != it->second.end(); ++session_it) {
     if ((*session_it)->get_session_id() == session_id) {
       // Complete session termination and remove session from session_map.
-      (*session_it)->complete_termination(update_criteria);
+      (*session_it)->complete_termination(*reporter_, update_criteria);
       // Send to eventd
         if ((*session_it)->is_radius_cwf_session() == false) {
           session_events::session_terminated(eventd_client_, *session_it);
@@ -972,7 +986,7 @@ void LocalEnforcer::update_charging_credits(
     }
     for (const auto &session : it->second) {
       std::string sid = session->get_session_id();
-      auto update_criteria = get_default_update_criteria();
+      SessionStateUpdateCriteria& update_criteria = session_update[imsi][sid];
       session->get_charging_pool().receive_credit(credit_update_resp, update_criteria);
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), update_criteria);
     }
@@ -1096,7 +1110,6 @@ void LocalEnforcer::terminate_subscriber(
   SessionMap& session_map,
   const std::string& imsi,
   const std::string& apn,
-  std::function<void(SessionTerminateRequest)> on_termination_callback,
   SessionUpdate& session_update)
 {
   auto it = session_map.find(imsi);
@@ -1108,7 +1121,7 @@ void LocalEnforcer::terminate_subscriber(
 
   for (const auto &session : it->second) {
     if (session->get_apn() == apn) {
-      auto update_criteria = get_default_update_criteria();
+      SessionStateUpdateCriteria& update_criteria = session_update[imsi][session->get_session_id()];
       RulesToProcess rules_to_deactivate;
       // The assumption here is that
       // mutually exclusive rule names are used for different apns
@@ -1146,16 +1159,27 @@ void LocalEnforcer::terminate_subscriber(
           imsi, session->get_mac_addr(), SubscriberQuotaUpdate_Type_TERMINATE);
       }
 
-      session->start_termination(on_termination_callback, update_criteria);
+      session->start_termination(update_criteria);
       std::string session_id = session->get_session_id();
       // The termination should be completed when aggregated usage record no
       // longer includes the imsi. If this has not occurred after the timeout,
       // force terminate the session.
-      evb_->runAfterDelay(
-        [this, imsi, session_id, &session_map, &update_criteria] {
-        MLOG(MDEBUG) << "Completing forced termination for IMSI " << imsi;
-        complete_termination(session_map, imsi, session_id, update_criteria);
-        // TODO: Write the UpdateCriteria back into SessionStore
+      evb_->runAfterDelay([this, imsi, session_id] {
+          SessionRead req = {imsi};
+          auto session_map = session_store_.read_sessions_for_deletion(req);
+          auto session_update = SessionStore::get_default_session_update(session_map);
+          SessionStateUpdateCriteria& update_criteria = session_update[imsi][session_id];
+          MLOG(MDEBUG) << "Completing forced termination for IMSI " << imsi;
+          complete_termination(session_map, imsi, session_id, update_criteria);
+
+          bool end_success = session_store_.update_sessions(session_update);
+          if (end_success) {
+            MLOG(MERROR) << "Failed to update SessionStore with ended session "
+                         << imsi << " and session_id: " << session_id;
+          } else {
+            MLOG(MDEBUG) << "Ended session " << imsi << " with session_id: "
+                         << session_id;
+          }
         },
         session_force_termination_timeout_ms_);
     }
@@ -1212,7 +1236,7 @@ ChargingReAuthAnswer::Result LocalEnforcer::init_charging_reauth(
                  << " during reauth";
     return ChargingReAuthAnswer::SESSION_NOT_FOUND;
   }
-  auto update_criteria = get_default_update_criteria();
+  SessionStateUpdateCriteria& update_criteria = session_update[request.sid()][request.session_id()];
   if (request.type() == ChargingReAuthRequest::SINGLE_SERVICE) {
     MLOG(MDEBUG) << "Initiating reauth of key " << request.charging_key()
                  << " for subscriber " << request.sid()
@@ -1301,7 +1325,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
   SessionUpdate& session_update)
 {
   std::string imsi = request.imsi();
-  auto update_criteria = get_default_update_criteria();
+  SessionStateUpdateCriteria& update_criteria = session_update[imsi][session->get_session_id()];
 
   activate_success = true;
   deactivate_success = true;
@@ -1496,10 +1520,15 @@ void LocalEnforcer::schedule_revalidation(
   SessionMap& session_map,
   const google::protobuf::Timestamp& revalidation_time)
 {
+  SessionRead req;
+  for (const auto& it : session_map) {
+    req.insert(it.first);
+  }
   auto delta = time_difference_from_now(revalidation_time);
-  evb_->runInEventBaseThread([=, &session_map] {
+  evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
-      std::move([=, &session_map] {
+      std::move([=] {
+        auto session_map = session_store_.read_sessions_for_reporting(req);
         MLOG(MDEBUG) << "Revalidation timeout!";
         // TODO: make a new SessionUpdate here and run with that
         SessionUpdate update = SessionStore::get_default_session_update(session_map);
@@ -1549,17 +1578,15 @@ void LocalEnforcer::check_usage_for_reporting(
 
   // report to cloud
   (*reporter_).report_updates(
-    request, [this, request, &session_map, &session_update](Status status, UpdateSessionResponse response) {
+    request, [this, request, session_map_ptr = std::make_shared<SessionMap>(std::move(session_map)), &session_update](Status status, UpdateSessionResponse response) {
       if (!status.ok()) {
-        reset_updates(session_map, request);
         MLOG(MERROR) << "Update of size " << request.updates_size()
                      << " to OCS and PCRF failed entirely: "
                      << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
-        update_session_credits_and_rules(session_map, response, session_update);
-        // Check if we need to report more updates
-        check_usage_for_reporting(session_map, session_update);
+        update_session_credits_and_rules(*session_map_ptr, response, session_update);
+        session_store_.update_sessions(session_update);
       }
     });
 }
@@ -1568,7 +1595,10 @@ bool LocalEnforcer::session_with_imsi_exists(
   SessionMap& session_map,
   const std::string& imsi) const
 {
-  return session_map.find(imsi) != session_map.end();
+  if (session_map.find(imsi) != session_map.end()) {
+    return session_map[imsi].size() > 0;
+  }
+  return false;
 }
 
 bool LocalEnforcer::session_with_apn_exists(

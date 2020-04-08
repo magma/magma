@@ -58,6 +58,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     local_enforcer = std::make_shared<LocalEnforcer>(
       reporter,
       rule_store,
+      *session_store,
       pipelined_client,
       directoryd_client,
       eventd_client,
