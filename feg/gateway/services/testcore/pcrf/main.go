@@ -31,9 +31,13 @@ func main() {
 		log.Fatalf("Error creating mock PCRF service: %s", err)
 	}
 
+	// TODO: support multiple connections
+	gxCliConf := gx.GetGxClientConfiguration()[0]
+	gxServConf := gx.GetPCRFConfiguration()[0]
+
 	pcrfServer := mock_pcrf.NewPCRFDiamServer(
-		gx.GetGxClientConfiguration(),
-		&mock_pcrf.PCRFConfig{ServerConfig: gx.GetPCRFConfiguration()},
+		gxCliConf,
+		&mock_pcrf.PCRFConfig{ServerConfig: gxServConf},
 	)
 
 	lis, err := pcrfServer.StartListener()
