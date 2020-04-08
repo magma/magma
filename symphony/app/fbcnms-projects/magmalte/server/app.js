@@ -25,6 +25,7 @@ logging.configure({
 const {
   appMiddleware,
   csrfMiddleware,
+  organizationMiddleware,
   sessionMiddleware,
   webpackSmartMiddleware,
 } = require('@fbcnms/express-middleware');
@@ -53,6 +54,7 @@ const sequelizeSessionStore = new SessionStore({db: sequelize});
 // FBC express initialization
 const app = express();
 app.set('trust proxy', 1);
+app.use(organizationMiddleware());
 app.use(appMiddleware());
 app.use(
   sessionMiddleware({
