@@ -7,12 +7,12 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
+sudo ovs-vsctl --may-exist add-port cwag_br0 li_port -- set Interface li_port type=internal
+sudo ifconfig li_port up
+
 # LI might not be enabled for all setups
 if [ -d "/sys/class/net/eth4" ]
 then
-  sudo ovs-vsctl --may-exist add-port cwag_br0 li_port -- set Interface li_port type=internal
-  sudo ifconfig li_port up
-
   sudo ovs-vsctl --may-exist add-port cwag_br0 eth4
 
   # Setup tc rules to mirror traffic to li mirror bridge
