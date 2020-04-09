@@ -520,14 +520,16 @@ static nw_rc_t nwGtpv2cCreateLocalTunnel (
     nw_gtpv2c_tunnel_t                        *pTunnel = NULL,
                                            *pCollision = NULL;
 
-    char                                    ip[INET6_ADDRSTRLEN];
+    char                                    ip[INET_ADDRSTRLEN];
+    //char                                    ipv6[INET6_ADDRSTRLEN];
 
     if (fa->sa_family == AF_INET) {
     	inet_ntop (AF_INET, &((struct sockaddr_in*)fa)->sin_addr, ip, INET_ADDRSTRLEN);
         OAILOG_DEBUG (LOG_GTPV2C, "Creating local tunnel with teid '0x%x' and peer IPv4 %s\n", teid, ip);
-    } else {
+    } else  {
     	inet_ntop (AF_INET6, &((struct sockaddr_in6*)fa)->sin6_addr, ip, INET6_ADDRSTRLEN);
         OAILOG_DEBUG (LOG_GTPV2C, "Creating local tunnel with teid '0x%x' and peer IPv6 %s\n", teid, ip);
+       
    }
 
     OAILOG_FUNC_IN (LOG_GTPV2C);
@@ -611,8 +613,12 @@ static nw_rc_t nwGtpv2cCreateLocalTunnel (
       if (!pUlpReq->u_api_info.initialReqInfo.hTunnel) {
         /** Check if a tunnel already exists depending on the flag. */
         keyTunnel.teid = pUlpReq->u_api_info.initialReqInfo.teidLocal;
+
         memcpy(((struct sockaddr*)&keyTunnel.ipAddrRemote), pUlpReq->u_api_info.initialReqInfo.edns_peer_ip,
         		pUlpReq->u_api_info.initialReqInfo.edns_peer_ip->sa_family==AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6));
+ 
+        //OAILOG_DEBUG (LOG_GTPV2C, "peer IP information %s\n", edns_peer_ip);
+ 
         pLocalTunnel = RB_FIND (NwGtpv2cTunnelMap, &(thiz->tunnelMap), &keyTunnel);
         if (!pLocalTunnel) {
           pLocalTunnel = RB_MIN (NwGtpv2cTunnelMap, &(thiz->tunnelMap));
@@ -627,6 +633,7 @@ static nw_rc_t nwGtpv2cCreateLocalTunnel (
       pTrxn->hTunnel   = pUlpReq->u_api_info.initialReqInfo.hTunnel;
       pTrxn->hUlpTrxn  = pUlpReq->u_api_info.initialReqInfo.hUlpTrxn;
       /** This will stay. */
+      
       memcpy((void*)&pTrxn->peer_ip, pUlpReq->u_api_info.initialReqInfo.edns_peer_ip,
     		  (pUlpReq->u_api_info.initialReqInfo.edns_peer_ip->sa_family == AF_INET) ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6));
 
@@ -641,12 +648,13 @@ static nw_rc_t nwGtpv2cCreateLocalTunnel (
         pTrxn->seqNum |= 0x00800000UL;
       }
 
-
       char peer_ip[INET_ADDRSTRLEN];
+      //char peer_ipv6[INET6_ADDRSTRLEN];
       inet_ntop(AF_INET, (void *)&pTrxn->peer_ip.addrv4.sin_addr, peer_ip, INET_ADDRSTRLEN);
       OAILOG_DEBUG (LOG_GTPV2C, "peer IP information %s\n", peer_ip);
 
       rc = nwGtpv2cCreateAndSendMsg (thiz, pTrxn->seqNum, 0, (struct sockaddr *)&pTrxn->peer_ip, pTrxn->peerPort, pTrxn->pMsg); /**< Send it from the socket with the high port. */
+      
       if (NW_OK == rc) {
         /*
          * Start guard timer

@@ -473,6 +473,8 @@ static void *udp_intertask_interface(void *args_p) {
                 udp_data_req_p->local_port, udp_data_req_p->peer_port,
                 AF_INET6);
 
+
+
             if (udp_sock_p == NULL) {
               OAILOG_ERROR(
                   LOG_UDP,
@@ -504,6 +506,12 @@ static void *udp_intertask_interface(void *args_p) {
                            errno, strerror(errno));
             }
           }
+
+          else
+          {
+            OAILOG_DEBUG (LOG_UDP, "Unknown address type");
+          }
+          
         } break;
 
         default: {

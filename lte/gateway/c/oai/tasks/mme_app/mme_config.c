@@ -1179,7 +1179,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
      if ((config_setting_lookup_string(setting,SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,(const char **) &sgw_ip_address_for_s11))) 
                            {
 
-          OAILOG_DEBUG (LOG_SPGW_APP, "sgw interface IP information %s\n", sgw_ip_address_for_s11);
+          OAILOG_DEBUG ( LOG_MME_APP, "sgw interface IP information %s\n", sgw_ip_address_for_s11);
           
           cidr = bfromcstr(sgw_ip_address_for_s11);
           struct bstrList *list = bsplit(cidr, '/');
@@ -1415,6 +1415,18 @@ void mme_config_display(mme_config_t *config_pP)
     LOG_CONFIG,
     "    s11 MME ip .......: %s\n",
     inet_ntoa(*((struct in_addr *) &config_pP->ip.s11_mme_v4)));
+
+  if (config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr == AF_INET) {
+    
+      OAILOG_INFO(LOG_CONFIG, " Address : %s\n", inet_ntoa(*((struct in_addr *) &config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr)));
+
+    } else if (config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr == AF_INET6) {
+      char strv6[16];
+      OAILOG_INFO(LOG_CONFIG, " Address : %s\n", inet_ntop(AF_INET6, &config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr, strv6, 16));
+    } else {  
+      OAILOG_INFO(LOG_CONFIG,"  Address : Unknown address family %d\n", config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr);
+    }
+
   OAILOG_INFO(LOG_CONFIG, "- ITTI:\n");
   OAILOG_INFO(
     LOG_CONFIG,
@@ -1706,6 +1718,7 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
    * Display the configuration
    */
   mme_config_display(config_pP);
+  
   return 0;
 }
 

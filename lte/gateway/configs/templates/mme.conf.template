@@ -220,6 +220,8 @@ MME :
         S1AP_LOG_LEVEL     = "{{ oai_log_level }}";
         NAS_LOG_LEVEL      = "{{ oai_log_level }}";
         MME_APP_LOG_LEVEL  = "{{ oai_log_level }}";
+        GTPV2C_LOG_LEVEL   = "{{ oai_log_level }}";
+        S11_LOG_LEVEL   = "{{ oai_log_level }}";
         S6A_LOG_LEVEL      = "{{ oai_log_level }}";
         UTIL_LOG_LEVEL     = "{{ oai_log_level }}";
         MSC_LOG_LEVEL      = "ERROR";
