@@ -72,12 +72,16 @@ function Subscribers() {
 
   const {isLoading: subProfilesLoading, response: epcConfigs} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdCellularEpc,
-    {networkId: nullthrows(match.params.networkId)},
+    {
+      networkId: nullthrows(match.params.networkId),
+    },
   );
 
   const {isLoading: apnsLoading, response: networkAPNs} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdApns,
-    {networkId: nullthrows(match.params.networkId)},
+    {
+      networkId: nullthrows(match.params.networkId),
+    },
   );
 
   if (isLoading || subProfilesLoading || apnsLoading) {

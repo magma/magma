@@ -278,7 +278,7 @@ class ProjectsMapView extends React.Component<Props, State> {
       const geometry = nullthrows(feature.geometry);
       const selectedFeatureId = feature.properties?.id;
       if (geometry.type === 'Point') {
-        const marker = new mapboxgl.Marker(<div />)
+        const marker = new mapboxgl.Marker((<div />))
           .setLngLat(geometry.coordinates)
           .addTo(map);
         ReactDOM.render(

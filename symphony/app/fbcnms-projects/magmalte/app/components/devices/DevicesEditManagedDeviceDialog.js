@@ -210,7 +210,10 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
   // TODO: separate out create from edit flow so we don't have extra api call
   const {isLoading, error: responseError, response} = useMagmaAPI(
     MagmaV1API.getSymphonyByNetworkIdDevicesByDeviceId,
-    {networkId: nullthrows(match.params.networkId), deviceId: initialDeviceID},
+    {
+      networkId: nullthrows(match.params.networkId),
+      deviceId: initialDeviceID,
+    },
   );
 
   useEffect(() => {

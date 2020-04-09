@@ -26,20 +26,14 @@ export {default as ReorderIcon} from './Actions/ReorderIcon';
 export {default as SearchIcon} from './Actions/SearchIcon';
 export {default as SortDownIcon} from './Actions/SortDownIcon';
 export {default as SortUpIcon} from './Actions/SortUpIcon';
-export {
-  default as ThreeDotsHorizontalIcon,
-} from './Actions/ThreeDotsHorizontalIcon';
-export {
-  default as ThreeDotsVerticalIcon,
-} from './Actions/ThreeDotsVerticalIcon';
+export {default as ThreeDotsHorizontalIcon} from './Actions/ThreeDotsHorizontalIcon';
+export {default as ThreeDotsVerticalIcon} from './Actions/ThreeDotsVerticalIcon';
 export {default as UploadIcon} from './Actions/UploadIcon';
 
 export {default as ActivityIcon} from './Communication/ActivityIcon';
 export {default as AttachmentIcon} from './Communication/AttachmentIcon';
 export {default as CommentIcon} from './Communication/CommentIcon';
-export {
-  default as DownloadAttachmentIcon,
-} from './Communication/DownloadAttachmentIcon';
+export {default as DownloadAttachmentIcon} from './Communication/DownloadAttachmentIcon';
 export {default as EmojiIcon} from './Communication/EmojiIcon';
 
 export {default as CalendarIcon} from './Indications/CalendarIcon';
@@ -49,29 +43,21 @@ export {default as ChecklistCheckIcon} from './Indications/ChecklistCheckIcon';
 export {default as DocumentIcon} from './Indications/DocumentIcon';
 export {default as EmailIcon} from './Indications/EmailIcon';
 export {default as FileIcon} from './Indications/FileIcon';
-export {
-  default as GeneralChecklistItemIcon,
-} from './Indications/GeneralChecklistItemIcon';
+export {default as GeneralChecklistItemIcon} from './Indications/GeneralChecklistItemIcon';
 export {default as GroupIcon} from './Indications/GroupIcon';
 export {default as HierarchyArrowIcon} from './Indications/HierarchyArrowIcon';
 export {default as InfoSmallIcon} from './Indications/InfoSmallIcon';
 export {default as InfoTinyIcon} from './Indications/InfoTinyIcon';
-export {
-  default as InstallEquipmentIcon,
-} from './Indications/InstallEquipmentIcon';
+export {default as InstallEquipmentIcon} from './Indications/InstallEquipmentIcon';
 export {default as LocationIcon} from './Indications/LocationIcon';
 export {default as MessageIcon} from './Indications/MessageIcon';
-export {
-  default as MultipleSelectionIcon,
-} from './Indications/MultipleSelectionIcon';
+export {default as MultipleSelectionIcon} from './Indications/MultipleSelectionIcon';
 export {default as NumbersIcon} from './Indications/NumbersIcon';
 export {default as PhoneIcon} from './Indications/PhoneIcon';
 export {default as PlannedIcon} from './Indications/PlannedIcon';
 export {default as ProfileIcon} from './Indications/ProfileIcon';
 export {default as RangeIcon} from './Indications/RangeIcon';
-export {
-  default as RemoveEquipmentIcon,
-} from './Indications/RemoveEquipmentIcon';
+export {default as RemoveEquipmentIcon} from './Indications/RemoveEquipmentIcon';
 export {default as TextIcon} from './Indications/TextIcon';
 export {default as WifiIcon} from './Indications/WifiIcon';
 export {default as WorkOrdersIcon} from './Indications/WorkOrdersIcon';

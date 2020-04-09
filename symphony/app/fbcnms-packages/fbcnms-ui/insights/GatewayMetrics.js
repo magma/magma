@@ -25,7 +25,9 @@ export default function(props: {configs: MetricGraphConfig[]}) {
 
   const {error, isLoading, response: selectors} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdGateways,
-    {networkId: match.params.networkId},
+    {
+      networkId: match.params.networkId,
+    },
   );
 
   useSnackbar('Error fetching devices', {variant: 'error'}, error);

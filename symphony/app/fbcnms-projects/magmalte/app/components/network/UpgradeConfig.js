@@ -173,9 +173,11 @@ function UpgradeConfig(props: WithAlert & {}) {
     async function fetchStableReleases() {
       let supportedVersions;
       try {
-        supportedVersions = (await MagmaV1API.getChannelsByChannelId({
-          channelId: 'stable',
-        })).supported_versions;
+        supportedVersions = (
+          await MagmaV1API.getChannelsByChannelId({
+            channelId: 'stable',
+          })
+        ).supported_versions;
       } catch (e) {
         enqueueSnackbar('Unable to fetch stable releases', {variant: 'error'});
       }

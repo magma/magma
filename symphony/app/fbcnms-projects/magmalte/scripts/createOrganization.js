@@ -86,7 +86,10 @@ function main() {
 
   const validTabs = getProjectTabs();
   const tabs = args[1].split(',').map(tab => coerceToTab(tab));
-  const invalidTabs = difference(tabs, validTabs.map(tab => tab.id)).join(', ');
+  const invalidTabs = difference(
+    tabs,
+    validTabs.map(tab => tab.id),
+  ).join(', ');
   if (invalidTabs) {
     console.log(
       `tab should be one of: ${validTabs

@@ -76,7 +76,9 @@ export default function() {
 
   const {response, error, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPrometheusSeries,
-    {networkId: nullthrows(match.params.networkId)},
+    {
+      networkId: nullthrows(match.params.networkId),
+    },
   );
   if (!response || error || isLoading) {
     return <LoadingFiller />;
@@ -116,7 +118,9 @@ function ImsiAndIPMenuItem(props: {imsi: string}) {
   const queryIMSI = props.imsi.startsWith('IMSI')
     ? props.imsi
     : 'IMSI' + props.imsi;
-  const {response} = useMagmaAPI(
+  const {
+    response,
+  } = useMagmaAPI(
     MagmaV1API.getCwfByNetworkIdSubscribersBySubscriberIdDirectoryRecord,
     {networkId: match.params.networkId, subscriberId: queryIMSI},
   );

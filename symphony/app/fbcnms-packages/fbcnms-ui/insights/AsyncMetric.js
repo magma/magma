@@ -191,80 +191,83 @@ function useDatasetsFetcher(props: Props) {
 
   const dbHelper = useMemo(() => new PrometheusHelper(), []);
 
-  useEffect(() => {
-    const queries = props.queries;
-    const requests = queries.map(async (query, index) => {
-      try {
-        const response = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
-          {
-            networkId: props.networkId || match.params.networkId,
-            start: startEnd.start,
-            end: startEnd.end,
-            step: startEnd.step,
-            query,
-          },
-        );
-        const label = props.legendLabels ? props.legendLabels[index] : null;
-        return {response, label};
-      } catch (error) {
-        enqueueSnackbar('Error getting metric ' + props.label, {
-          variant: 'error',
-        });
-      }
-      return null;
-    });
-
-    Promise.all(requests).then(allResponses => {
-      let index = 0;
-      const datasets = [];
-      allResponses.filter(Boolean).forEach(r => {
-        const response = r.response;
-        const label = r.label;
-        const result = response.data.result;
-        if (result) {
-          const tagSets = result.map(it => it.metric);
-          result.map(it =>
-            datasets.push({
-              label: label || dbHelper.getLegendLabel(it, tagSets),
-              unit: props.unit || '',
-              fill: false,
-              lineTension: 0,
-              pointHitRadius: 10,
-              pointRadius: 0,
-              borderWidth: 2,
-              backgroundColor: getColorForIndex(index),
-              borderColor: getColorForIndex(index++),
-              data: it[dbHelper.datapointFieldName].map(i => ({
-                t: parseInt(i[0]) * 1000,
-                y: parseFloat(i[1]),
-              })),
-            }),
+  useEffect(
+    () => {
+      const queries = props.queries;
+      const requests = queries.map(async (query, index) => {
+        try {
+          const response = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
+            {
+              networkId: props.networkId || match.params.networkId,
+              start: startEnd.start,
+              end: startEnd.end,
+              step: startEnd.step,
+              query,
+            },
           );
+          const label = props.legendLabels ? props.legendLabels[index] : null;
+          return {response, label};
+        } catch (error) {
+          enqueueSnackbar('Error getting metric ' + props.label, {
+            variant: 'error',
+          });
         }
+        return null;
       });
-      // Add "NaN" to the beginning/end of each dataset to force the chart to
-      // display the whole time frame requested
-      datasets.forEach(dataset => {
-        if (dataset.data[0].t > startEnd.startUnix) {
-          dataset.data.unshift({t: startEnd.startUnix, y: 'NaN'});
-        }
-        if (dataset.data[dataset.data.length - 1].t < startEnd.endUnix) {
-          dataset.data.push({t: startEnd.endUnix, y: 'NaN'});
-        }
+
+      Promise.all(requests).then(allResponses => {
+        let index = 0;
+        const datasets = [];
+        allResponses.filter(Boolean).forEach(r => {
+          const response = r.response;
+          const label = r.label;
+          const result = response.data.result;
+          if (result) {
+            const tagSets = result.map(it => it.metric);
+            result.map(it =>
+              datasets.push({
+                label: label || dbHelper.getLegendLabel(it, tagSets),
+                unit: props.unit || '',
+                fill: false,
+                lineTension: 0,
+                pointHitRadius: 10,
+                pointRadius: 0,
+                borderWidth: 2,
+                backgroundColor: getColorForIndex(index),
+                borderColor: getColorForIndex(index++),
+                data: it[dbHelper.datapointFieldName].map(i => ({
+                  t: parseInt(i[0]) * 1000,
+                  y: parseFloat(i[1]),
+                })),
+              }),
+            );
+          }
+        });
+        // Add "NaN" to the beginning/end of each dataset to force the chart to
+        // display the whole time frame requested
+        datasets.forEach(dataset => {
+          if (dataset.data[0].t > startEnd.startUnix) {
+            dataset.data.unshift({t: startEnd.startUnix, y: 'NaN'});
+          }
+          if (dataset.data[dataset.data.length - 1].t < startEnd.endUnix) {
+            dataset.data.push({t: startEnd.endUnix, y: 'NaN'});
+          }
+        });
+        setAllDatasets(datasets);
       });
-      setAllDatasets(datasets);
-    });
-  } /* eslint-disable react-hooks/exhaustive-deps */, [
-    stringedQueries,
-    match,
-    props.networkId,
-    props.unit,
-    startEnd,
-    props.label,
-    props.legendLabels,
-    enqueueSnackbar,
-    dbHelper,
-  ]);
+    } /* eslint-disable react-hooks/exhaustive-deps */,
+    [
+      stringedQueries,
+      match,
+      props.networkId,
+      props.unit,
+      startEnd,
+      props.label,
+      props.legendLabels,
+      enqueueSnackbar,
+      dbHelper,
+    ],
+  );
   /* eslint-enable react-hooks/exhaustive-deps */
 
   return allDatasets;
