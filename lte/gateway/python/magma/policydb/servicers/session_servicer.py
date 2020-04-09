@@ -71,6 +71,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             credits=self._get_credits(imsi),
             static_rules=self._get_rules_for_imsi(imsi),
             dynamic_rules=self._get_default_dynamic_rules(imsi),
+            session_id=request.session_id,
         )
 
     def UpdateSession(

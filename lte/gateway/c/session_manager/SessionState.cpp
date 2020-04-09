@@ -672,4 +672,7 @@ uint32_t SessionState::get_credit_key_count()
   return charging_pool_.get_credit_key_count() + monitor_pool_.get_credit_key_count();
 }
 
+bool SessionState::is_active() {
+  return (curr_state_ == SESSION_ACTIVE);
+}
 } // namespace magma

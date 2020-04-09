@@ -63,12 +63,14 @@ class SessionManagerHandlerTest : public ::testing::Test {
 
   void insert_static_rule(
     std::shared_ptr<StaticRuleStore> rule_store,
+    const std::string& m_key,
     uint32_t charging_key,
     const std::string &rule_id)
   {
     PolicyRule rule;
     rule.set_id(rule_id);
     rule.set_rating_group(charging_key);
+    rule.set_monitoring_key(m_key);
     rule.set_tracking_type(PolicyRule::ONLY_OCS);
     rule_store->insert_rule(rule);
   }
@@ -93,59 +95,72 @@ MATCHER_P(CheckCreateSession, imsi, "")
   return sid->subscriber().id() == imsi;
 }
 
-TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
-{
-    LocalCreateSessionRequest request;
-    CreateSessionResponse response;
-    std::string hardware_addr_bytes = {0x0f,0x10,0x2e,0x12,0x3a,0x55};
-    std::string imsi = "IMSI1";
-    std::string msisdn = "5100001234";
-    std::string radius_session_id = "AA-AA-AA-AA-AA-AA:TESTAP__"
-                                    "0F-10-2E-12-3A-55";
-    auto sid = id_gen_.gen_session_id(imsi);
-    SessionState::Config cfg = {.ue_ipv4 = "",
-            .spgw_ipv4 = "",
-            .msisdn = msisdn,
-            .apn = "apn1",
-            .imei = "",
-            .plmn_id = "",
-            .imsi_plmn_id = "",
-            .user_location = "",
-            .rat_type = RATType::TGPP_LTE,
-            .mac_addr = "0f:10:2e:12:3a:55",
-            .hardware_addr = hardware_addr_bytes,
-            .radius_session_id = radius_session_id};
+TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
+  // 1) Insert the entry for a rule
+  insert_static_rule(rule_store, monitoring_key, 1, "rule1");
+  std::vector<std::string> static_rules{"rule1"};
 
-    SessionRead req = {"IMSI1"};
-    auto session_map = session_store->read_sessions(req);
-    local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
-    bool write_success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
-    EXPECT_TRUE(write_success);
+  LocalCreateSessionRequest request;
+  CreateSessionResponse response;
+  std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
+  std::string imsi                = "IMSI1";
+  std::string msisdn              = "5100001234";
+  std::string radius_session_id =
+      "AA-AA-AA-AA-AA-AA:TESTAP__"
+      "0F-10-2E-12-3A-55";
+  auto sid                 = id_gen_.gen_session_id(imsi);
+  SessionState::Config cfg = {.ue_ipv4           = "",
+                              .spgw_ipv4         = "",
+                              .msisdn            = msisdn,
+                              .apn               = "apn1",
+                              .imei              = "",
+                              .plmn_id           = "",
+                              .imsi_plmn_id      = "",
+                              .user_location     = "",
+                              .rat_type          = RATType::TGPP_WLAN,
+                              .mac_addr          = "0f:10:2e:12:3a:55",
+                              .hardware_addr     = hardware_addr_bytes,
+                              .radius_session_id = radius_session_id};
 
-    grpc::ServerContext create_context;
-    request.mutable_sid()->set_id("IMSI1");
-    request.set_rat_type(RATType::TGPP_WLAN);
-    request.set_hardware_addr(hardware_addr_bytes);
-    request.set_msisdn(msisdn);
-    request.set_radius_session_id(radius_session_id);
-    request.set_apn("apn2"); // Update APN
+  response.set_session_id(sid);
+  // Only the active sessions are not recycled, to ensure that
+  // this session is not automatically scheduled for termination
+  // when RAT Type is WLAN, it needs monitoring keys...
+  create_cwf_session_create_response(imsi, monitoring_key, static_rules, &response);
+
+  SessionRead req  = {"IMSI1"};
+  auto session_map = session_store->read_sessions(req);
+  local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
+  bool write_success =
+      session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(write_success);
+  session_map = session_store->read_sessions(req);
+  EXPECT_TRUE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
+
+  grpc::ServerContext create_context;
+  request.mutable_sid()->set_id("IMSI1");
+  request.set_rat_type(RATType::TGPP_WLAN);
+  request.set_hardware_addr(hardware_addr_bytes);
+  request.set_msisdn(msisdn);
+  request.set_radius_session_id(radius_session_id);
+  request.set_apn("apn2");  // Update APN
 
   // Ensure session is not reported as its a duplicate
-    EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
-    session_manager->CreateSession(&create_context, &request, [this](
-            grpc::Status status, LocalCreateSessionResponse response_out) {});
+  EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
+  session_manager->CreateSession(
+      &create_context, &request,
+      [this](grpc::Status status, LocalCreateSessionResponse response_out) {});
 
-    // Run session creation in the EventBase loop
-    // It needs to loop twice here.
-    evb->loopOnce();
-    evb->loopOnce();
-    evb->loopOnce();
+  // Run session creation in the EventBase loop
+  // It needs to loop once here.
+  evb->loopOnce();
 
-    // Assert the internal session config is updated to the new one
-    req = {"IMSI1"};
-    session_map = session_store->read_sessions(req);
-    EXPECT_FALSE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
-    EXPECT_TRUE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn2"));
+  // Assert the internal session config is updated to the new one
+  session_map = session_store->read_sessions(req);
+  EXPECT_FALSE(
+      local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
+  EXPECT_TRUE(
+      local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn2"));
 }
 
 TEST_F(SessionManagerHandlerTest, test_create_session)
@@ -177,7 +192,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session)
   create_credit_update_response(
       "IMSI1", 2, 1024, create_response.mutable_credits()->Add());
 
-  // Ensure session is not reported as its a duplicate
+  // Ensure session is reported as it is not a duplicate
   EXPECT_CALL(*reporter, report_create_session(_, _)).Times(1);
   session_manager->CreateSession(&server_context, &request, [this](
       grpc::Status status, LocalCreateSessionResponse response_out) {});
@@ -191,7 +206,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session)
 TEST_F(SessionManagerHandlerTest, test_report_rule_stats)
 {
   // 1) Insert the entry for a rule
-  insert_static_rule(rule_store, 1, "rule1");
+  insert_static_rule(rule_store, monitoring_key, 1, "rule1");
 
   // 2) Create a session
   CreateSessionResponse response;
@@ -238,7 +253,7 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats)
 
 TEST_F(SessionManagerHandlerTest, test_end_session) {
   // 1) Insert the entry for a rule
-  insert_static_rule(rule_store, 1, "rule1");
+  insert_static_rule(rule_store, monitoring_key, 1, "rule1");
 
   // 2) Create a session
   CreateSessionResponse response;

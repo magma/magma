@@ -209,13 +209,12 @@ static CreateSessionRequest copy_session_info2create_req(
 }
 
 void LocalSessionManagerHandlerImpl::CreateSession(
-  ServerContext* context,
-  const LocalCreateSessionRequest* request,
-  std::function<void(Status, LocalCreateSessionResponse)> response_callback)
-{
-  auto &request_cpy = *request;
-  enforcer_->get_event_base().runInEventBaseThread(
-      [this, context, response_callback, request_cpy]() {
+    ServerContext* context, const LocalCreateSessionRequest* request,
+    std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
+  auto& request_cpy = *request;
+  enforcer_->get_event_base().runInEventBaseThread([this, context,
+                                                    response_callback,
+                                                    request_cpy]() {
     auto imsi     = request_cpy.sid().id();
     auto sid      = id_gen_.gen_session_id(imsi);
     auto mac_addr = convert_mac_addr_to_str(request_cpy.hardware_addr());
@@ -246,17 +245,31 @@ void LocalSessionManagerHandlerImpl::CreateSession(
     auto session_map = get_sessions_for_creation(request_cpy);
     if (enforcer_->session_with_imsi_exists(session_map, imsi)) {
       std::string core_sid;
-      bool same_config = enforcer_->session_with_same_config_exists(
-          session_map, imsi, cfg, &core_sid);
-      bool is_wifi = request_cpy.rat_type() == RATType::TGPP_WLAN;
-      if (same_config || is_wifi) {
+
+      // For LTE case, load session if and only if the configuration exactly
+      // matches. For CWF use case, we can recycle any active session
+      bool same_config = false;
+      bool is_active   = false;
+      bool is_wifi     = request_cpy.rat_type() == RATType::TGPP_WLAN;
+      if (is_wifi) {
+        is_active = enforcer_->has_active_session(session_map, imsi, &core_sid);
+      } else {
+        same_config = enforcer_->session_with_same_config_exists(
+            session_map, imsi, cfg, &core_sid);
+        is_active = enforcer_->is_session_active(session_map, imsi, core_sid);
+      }
+      // To recycle the session, it has to be active (i.e., not in transition
+      // for termination), it should have the exact same configuration or it
+      // should be CWF use case.
+      if ((same_config || is_wifi) && is_active) {
         Status status;
         if (is_wifi) {
-          MLOG(MINFO) << "Found a session with the same IMSI " << imsi
+          MLOG(MINFO) << "Found an active session with the same IMSI " << imsi
                       << " and RAT Type is WLAN, not creating a new session";
           // Wifi only supports one session per subscriber, so update the config
           // here
-          SessionUpdate session_update = SessionStore::get_default_session_update(session_map);
+          SessionUpdate session_update =
+              SessionStore::get_default_session_update(session_map);
           enforcer_->handle_cwf_roaming(session_map, imsi, cfg, session_update);
           if (session_store_.update_sessions(session_update)) {
             MLOG(MINFO) << "Successfully updated session " << sid
@@ -288,29 +301,33 @@ void LocalSessionManagerHandlerImpl::CreateSession(
         // No new session created
         return;
       }
-      if (enforcer_->session_with_apn_exists(
+
+      if (!enforcer_->session_with_apn_exists(
               session_map, imsi, request_cpy.apn())) {
         MLOG(MINFO) << "Found session with the same IMSI " << imsi
+                    << " but different APN " << request_cpy.apn()
+                    << ", will request a new session from PCRF/PCF";
+      } else if (is_active) {
+        MLOG(MINFO) << "Found an active session with the same IMSI " << imsi
                     << " and APN " << request_cpy.apn()
                     << ", but different configuration."
-                    << " Ending the existing session";
+                    << " Ending the existing session, "
+                    << "will request a new session from PCRF/PCF";
         LocalEndSessionRequest end_session_req;
         end_session_req.mutable_sid()->CopyFrom(request_cpy.sid());
         end_session_req.set_apn(request_cpy.apn());
         end_session(
-            session_map,
-            end_session_req,
+            session_map, end_session_req,
             [&](grpc::Status status, LocalEndSessionResponse response) {});
       } else {
-        MLOG(MINFO) << "Found session with the same IMSI " << imsi
-                    << " but different APN " << request_cpy.apn()
+        MLOG(MINFO) << "Found a session in termination with the same IMSI "
+                    << imsi << " and same APN " << request_cpy.apn()
                     << ", will request a new session from PCRF/PCF";
       }
     }
     send_create_session(
-        session_map,
-        copy_session_info2create_req(request_cpy, sid), imsi, sid, cfg,
-        response_callback);
+        session_map, copy_session_info2create_req(request_cpy, sid), imsi, sid,
+        cfg, response_callback);
   });
 }
 
@@ -449,7 +466,7 @@ void LocalSessionManagerHandlerImpl::end_session(
           "occurred to the session first.");
       response_callback(status, LocalEndSessionResponse());
     }
-  } catch (const SessionNotFound &ex) {
+  } catch (const SessionNotFound& ex) {
     MLOG(MERROR) << "Failed to find session to terminate for subscriber "
                  << request.sid().id();
     Status status(grpc::FAILED_PRECONDITION, "Session not found");
