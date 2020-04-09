@@ -119,7 +119,7 @@ no_quota_port: 51125
 # Configuration for LI mirroring
 li_local_iface: li_port
 li_mirror_all: false
-li_dst_iface: eth4
+#li_dst_iface: eth4
 
 # Configuration for IPFIX sampling
 ipfix:
