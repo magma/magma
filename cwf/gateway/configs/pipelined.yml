@@ -34,6 +34,7 @@ static_services: [
   'tunnel_learn',
   'vlan_learn',
   'ipfix',
+  'li_mirror',
   'ryu_rest_service',
   'startup_flows',
 #  'packet_tracer',
@@ -101,7 +102,7 @@ ipfix:
 
 # Configuration for LI mirroring
 li_local_iface: li_port
-li_mirror_all: true
+li_mirror_all: false
 li_dst_iface: eth4
 
 # Interface to NAT traffic to
