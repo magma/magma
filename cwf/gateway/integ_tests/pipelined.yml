@@ -118,7 +118,7 @@ no_quota_port: 51125
 # Configuration for IPFIX sampling
 ipfix:
   enabled: false
-  probability: 30000
+  probability: 650
   collector_set_id: 1
   cache_timeout: 60
   obs_domain_id: 1
