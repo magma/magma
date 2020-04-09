@@ -1,5 +1,5 @@
 FROM golang:alpine as builder
-RUN apk add git gcc musl-dev bash protobuf
+RUN apk add git gcc musl-dev bash protobuf netcat-openbsd
 
 RUN go get -d -u github.com/golang/protobuf/protoc-gen-go
 RUN git -C "$(go env GOPATH)"/src/github.com/golang/protobuf checkout v1.2.0

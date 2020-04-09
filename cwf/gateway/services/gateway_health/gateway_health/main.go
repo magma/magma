@@ -10,16 +10,17 @@ package main
 
 import (
 	"flag"
-	"os"
+	"net"
 	"strings"
-	"time"
 
+	mconfigprotos "magma/cwf/cloud/go/protos/mconfig"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/gateway_health/health/gre_probe"
 	"magma/cwf/gateway/services/gateway_health/health/service_health"
 	"magma/cwf/gateway/services/gateway_health/health/system_health"
 	"magma/cwf/gateway/services/gateway_health/servicers"
-	"magma/feg/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
+	"magma/gateway/mconfig"
 	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
@@ -32,7 +33,9 @@ func init() {
 const (
 	defaultMemUtilPct       = 0.75
 	defaultCpuUtilPct       = 0.75
-	defaultGREProbeInterval = 10 * time.Second
+	defaultGREProbeInterval = 10
+	defaultICMPPktCount     = 3
+	defaultICMPInterface    = "eth1"
 )
 
 func main() {
@@ -41,19 +44,18 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating %s service: %s", registry.GatewayHealth, err)
 	}
-	//TODO: Update with mconfig values
-	endpointStr := os.Getenv("GRE_ENDPOINTS")
-	greEndpoints := strings.Split(endpointStr, ",")
-	probe := &gre_probe.DummyGREProbe{}
-	systemHealth := &system_health.DummySystemStatsProvider{}
-	serviceHealth := &service_health.DummyServiceHealthProvider{}
-	cfg := &servicers.HealthConfig{
-		GrePeers:      greEndpoints,
-		MaxCpuUtilPct: defaultMemUtilPct,
-		MaxMemUtilPct: defaultCpuUtilPct,
+	cfg := getHealthMconfig()
+	probe := gre_probe.NewICMPProbe(cfg.GrePeers, cfg.GreProbeInterval, int(cfg.IcmpProbePktCount))
+	systemHealth, err := system_health.NewCWAGSystemHealthProvider(defaultICMPInterface)
+	if err != nil {
+		glog.Fatalf("Error creating CWAGServiceHealthProvider: %s", err)
 	}
-	servicer := servicers.NewGatewayHealthServicer(cfg, probe, serviceHealth, systemHealth)
-	protos.RegisterServiceHealthServer(srv.GrpcServer, servicer)
+	dockerHealth, err := service_health.NewDockerServiceHealthProvider()
+	if err != nil {
+		glog.Fatalf("Error creating DockerServiceHealthProvider: %s", err)
+	}
+	servicer := servicers.NewGatewayHealthServicer(cfg, probe, dockerHealth, systemHealth)
+	fegprotos.RegisterServiceHealthServer(srv.GrpcServer, servicer)
 
 	// Start GRE probe
 	err = probe.Start()
@@ -65,4 +67,44 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error running %s service: %s", registry.GatewayHealth, err)
 	}
+}
+
+func getHealthMconfig() *mconfigprotos.CwfGatewayHealthConfig {
+	ret := &mconfigprotos.CwfGatewayHealthConfig{}
+	err := mconfig.GetServiceConfigs(strings.ToLower(registry.GatewayHealth), ret)
+	if err != nil {
+		ret.CpuUtilThresholdPct = defaultCpuUtilPct
+		ret.MemUtilThresholdPct = defaultMemUtilPct
+		ret.GreProbeInterval = defaultGREProbeInterval
+		ret.IcmpProbePktCount = defaultICMPPktCount
+		glog.Errorf("Could not load mconfig. Using defaults: %v", ret)
+		return ret
+	}
+	if ret.CpuUtilThresholdPct == 0 {
+		ret.CpuUtilThresholdPct = defaultCpuUtilPct
+	}
+	if ret.MemUtilThresholdPct == 0 {
+		ret.MemUtilThresholdPct = defaultMemUtilPct
+	}
+	if ret.GreProbeInterval == 0 {
+		ret.GreProbeInterval = defaultGREProbeInterval
+	}
+	ret.GrePeers = removeCIDREndpoints(ret.GrePeers)
+	glog.Infof("Using config: %v", ret)
+	return ret
+}
+
+// For now, we don't support querying all endpoints defined in a CIDR
+// formatted endpoint.
+func removeCIDREndpoints(endpoints []*mconfigprotos.CwfGatewayHealthConfigGrePeer) []*mconfigprotos.CwfGatewayHealthConfigGrePeer {
+	ret := []*mconfigprotos.CwfGatewayHealthConfigGrePeer{}
+	for _, endpoint := range endpoints {
+		_, _, err := net.ParseCIDR(endpoint.Ip)
+		if err != nil {
+			ret = append(ret, endpoint)
+			continue
+		}
+		glog.Infof("Not monitoring CIDR formatted IP: %s. Health service only supports monitoring specific endpoints", endpoint.Ip)
+	}
+	return ret
 }

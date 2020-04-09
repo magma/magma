@@ -14,9 +14,14 @@ type GREProbe interface {
 	// Start begins the probe of the GRE endpoint(s).
 	Start() error
 
-	// GetStatus fetches the status of the GRE probe. The values returned are
-	// slices of reachable and unreachable endpoint IPs.
-	GetStatus() ([]string, []string)
+	// GetStatus fetches the status of the GRE probe. The GREProbeStatus
+	// returned contains slices of reachable and unreachable endpoint IPs.
+	GetStatus() *GREProbeStatus
+}
+
+type GREProbeStatus struct {
+	Reachable   []string
+	Unreachable []string
 }
 
 type GREEndpointStatus uint
@@ -32,6 +37,9 @@ func (d *DummyGREProbe) Start() error {
 	return nil
 }
 
-func (d *DummyGREProbe) GetStatus() ([]string, []string) {
-	return []string{}, []string{}
+func (d *DummyGREProbe) GetStatus() *GREProbeStatus {
+	return &GREProbeStatus{
+		Reachable:   []string{},
+		Unreachable: []string{},
+	}
 }
