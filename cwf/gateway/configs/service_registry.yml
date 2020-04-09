@@ -52,9 +52,6 @@ services:
   health:
     ip_address: 127.0.0.1
     port: 9107
-  redis:
-    ip_address: 127.0.0.1
-    port: 6380
   radiusd:
     ip_address: 127.0.0.1
     port: 9115

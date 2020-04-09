@@ -42,14 +42,15 @@ RedisClient::RedisClient():
   db_client_(std::make_unique<cpp_redis::client>()),
   is_connected_(false)
 {
-  init_db_connection(LOCALHOST);
+  init_db_connection();
 }
 
-void RedisClient::init_db_connection(const std::string& addr)
+void RedisClient::init_db_connection()
 {
   magma::ServiceConfigLoader loader;
 
   auto config = loader.load_service_config("redis");
+  auto addr = config["bind"].as<std::string>();
   auto port = config["port"].as<uint32_t>();
 
   // Make connection to db

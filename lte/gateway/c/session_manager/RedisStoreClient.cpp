@@ -27,9 +27,10 @@ bool RedisStoreClient::try_redis_connect()
   ServiceConfigLoader loader;
   auto config = loader.load_service_config("redis");
   auto port = config["port"].as<uint32_t>();
+  auto addr = config["bind"].as<std::string>();
   try {
     client_->connect(
-        "127.0.0.1",
+        addr,
         port,
         [](
             const std::string& host,
