@@ -100,6 +100,16 @@ int openflow_forward_data_on_tunnel(
     ue, i_tei, flow_dl, flow_precedence_dl);
 }
 
+int openflow_add_paging_rule(struct in_addr ue)
+{
+  return openflow_controller_add_paging_rule(ue);
+}
+
+int openflow_delete_paging_rule(struct in_addr ue)
+{
+  return openflow_controller_delete_paging_rule(ue);
+}
+
 static const struct gtp_tunnel_ops openflow_ops = {
   .init = openflow_init,
   .uninit = openflow_uninit,
@@ -108,6 +118,8 @@ static const struct gtp_tunnel_ops openflow_ops = {
   .del_tunnel = openflow_del_tunnel,
   .discard_data_on_tunnel = openflow_discard_data_on_tunnel,
   .forward_data_on_tunnel = openflow_forward_data_on_tunnel,
+  .add_paging_rule = openflow_add_paging_rule,
+  .delete_paging_rule = openflow_delete_paging_rule,
 };
 
 const struct gtp_tunnel_ops *gtp_tunnel_ops_init_openflow(void)
