@@ -203,6 +203,16 @@ class LocalEnforcer {
     const std::string& imsi,
     const std::string& apn) const;
 
+  bool is_session_active(
+    SessionMap& session_map,
+    const std::string& imsi,
+    const std::string& core_session_id) const;
+
+  bool has_active_session(
+    SessionMap& session_map,
+    const std::string& imsi,
+    std::string* core_session_id) const;
+
   bool session_with_same_config_exists(
     SessionMap& session_map,
     const std::string& imsi,

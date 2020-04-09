@@ -833,7 +833,7 @@ bool LocalEnforcer::init_session_credit(
     std::string apn_mac_addr;
     std::string apn_name;
     if (!parse_apn(cfg.apn, apn_mac_addr, apn_name)) {
-        MLOG(MWARNING) << "Failed mac/name parsiong for apn " << cfg.apn;
+        MLOG(MWARNING) << "Failed mac/name parsing for apn " << cfg.apn;
         apn_mac_addr = "";
         apn_name = cfg.apn;
     }
@@ -1658,16 +1658,45 @@ bool LocalEnforcer::session_with_imsi_exists(
 }
 
 bool LocalEnforcer::session_with_apn_exists(
-  SessionMap& session_map,
-  const std::string& imsi,
-  const std::string& apn) const
-{
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& apn) const {
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
     return false;
   }
-  for (const auto &session : it->second) {
+  for (const auto& session : it->second) {
     if (session->get_apn() == apn) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool LocalEnforcer::is_session_active(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& core_session_id) const {
+  auto it = session_map.find(imsi);
+  if (it == session_map.end()) {
+    return false;
+  }
+  for (const auto& session : it->second) {
+    if (session->get_core_session_id() == core_session_id) {
+      return session->is_active();
+    }
+  }
+  return false;
+}
+
+bool LocalEnforcer::has_active_session(
+    SessionMap& session_map, const std::string& imsi,
+    std::string* core_session_id) const {
+  auto it = session_map.find(imsi);
+  if (it == session_map.end()) {
+    return false;
+  }
+  for (const auto& session : it->second) {
+    if (session->is_active()) {
+      *core_session_id = session->get_core_session_id();
       return true;
     }
   }

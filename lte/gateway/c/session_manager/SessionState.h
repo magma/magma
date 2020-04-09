@@ -269,6 +269,7 @@ class SessionState {
   DynamicRuleStore& get_dynamic_rules();
 
   uint32_t total_monitored_rules_count();
+  bool is_active();
 
   uint32_t get_credit_key_count();
 
