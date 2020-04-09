@@ -3,9 +3,11 @@
 
 package test_protos
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -16,7 +18,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type Message1 struct {
 	Field                string   `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
@@ -29,16 +31,17 @@ func (m *Message1) Reset()         { *m = Message1{} }
 func (m *Message1) String() string { return proto.CompactTextString(m) }
 func (*Message1) ProtoMessage()    {}
 func (*Message1) Descriptor() ([]byte, []int) {
-	return fileDescriptor_test_protos_fc3a9d490046236a, []int{0}
+	return fileDescriptor_f0f0a5aa39d6d8f7, []int{0}
 }
+
 func (m *Message1) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Message1.Unmarshal(m, b)
 }
 func (m *Message1) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Message1.Marshal(b, m, deterministic)
 }
-func (dst *Message1) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Message1.Merge(dst, src)
+func (m *Message1) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Message1.Merge(m, src)
 }
 func (m *Message1) XXX_Size() int {
 	return xxx_messageInfo_Message1.Size(m)
@@ -68,16 +71,17 @@ func (m *Message2) Reset()         { *m = Message2{} }
 func (m *Message2) String() string { return proto.CompactTextString(m) }
 func (*Message2) ProtoMessage()    {}
 func (*Message2) Descriptor() ([]byte, []int) {
-	return fileDescriptor_test_protos_fc3a9d490046236a, []int{1}
+	return fileDescriptor_f0f0a5aa39d6d8f7, []int{1}
 }
+
 func (m *Message2) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Message2.Unmarshal(m, b)
 }
 func (m *Message2) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Message2.Marshal(b, m, deterministic)
 }
-func (dst *Message2) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Message2.Merge(dst, src)
+func (m *Message2) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Message2.Merge(m, src)
 }
 func (m *Message2) XXX_Size() int {
 	return xxx_messageInfo_Message2.Size(m)
@@ -107,9 +111,11 @@ func init() {
 	proto.RegisterType((*Message2)(nil), "magma.Message2")
 }
 
-func init() { proto.RegisterFile("test_protos.proto", fileDescriptor_test_protos_fc3a9d490046236a) }
+func init() {
+	proto.RegisterFile("test_protos.proto", fileDescriptor_f0f0a5aa39d6d8f7)
+}
 
-var fileDescriptor_test_protos_fc3a9d490046236a = []byte{
+var fileDescriptor_f0f0a5aa39d6d8f7 = []byte{
 	// 111 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2c, 0x49, 0x2d, 0x2e,
 	0x89, 0x2f, 0x28, 0xca, 0x2f, 0xc9, 0x2f, 0xd6, 0x03, 0x53, 0x42, 0xac, 0xb9, 0x89, 0xe9, 0xb9,

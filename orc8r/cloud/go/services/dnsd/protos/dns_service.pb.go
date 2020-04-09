@@ -3,9 +3,11 @@
 
 package protos
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -16,7 +18,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type NetworkDNSConfig struct {
 	EnableCaching        bool                            `protobuf:"varint,1,opt,name=EnableCaching,proto3" json:"EnableCaching,omitempty"`
@@ -31,16 +33,17 @@ func (m *NetworkDNSConfig) Reset()         { *m = NetworkDNSConfig{} }
 func (m *NetworkDNSConfig) String() string { return proto.CompactTextString(m) }
 func (*NetworkDNSConfig) ProtoMessage()    {}
 func (*NetworkDNSConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dns_service_5cc92fc6c809cff9, []int{0}
+	return fileDescriptor_fe05a31f8db72ebb, []int{0}
 }
+
 func (m *NetworkDNSConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkDNSConfig.Unmarshal(m, b)
 }
 func (m *NetworkDNSConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkDNSConfig.Marshal(b, m, deterministic)
 }
-func (dst *NetworkDNSConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkDNSConfig.Merge(dst, src)
+func (m *NetworkDNSConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkDNSConfig.Merge(m, src)
 }
 func (m *NetworkDNSConfig) XXX_Size() int {
 	return xxx_messageInfo_NetworkDNSConfig.Size(m)
@@ -86,16 +89,17 @@ func (m *NetworkDNSConfigRecordsItems) Reset()         { *m = NetworkDNSConfigRe
 func (m *NetworkDNSConfigRecordsItems) String() string { return proto.CompactTextString(m) }
 func (*NetworkDNSConfigRecordsItems) ProtoMessage()    {}
 func (*NetworkDNSConfigRecordsItems) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dns_service_5cc92fc6c809cff9, []int{1}
+	return fileDescriptor_fe05a31f8db72ebb, []int{1}
 }
+
 func (m *NetworkDNSConfigRecordsItems) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkDNSConfigRecordsItems.Unmarshal(m, b)
 }
 func (m *NetworkDNSConfigRecordsItems) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkDNSConfigRecordsItems.Marshal(b, m, deterministic)
 }
-func (dst *NetworkDNSConfigRecordsItems) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkDNSConfigRecordsItems.Merge(dst, src)
+func (m *NetworkDNSConfigRecordsItems) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkDNSConfigRecordsItems.Merge(m, src)
 }
 func (m *NetworkDNSConfigRecordsItems) XXX_Size() int {
 	return xxx_messageInfo_NetworkDNSConfigRecordsItems.Size(m)
@@ -139,9 +143,11 @@ func init() {
 	proto.RegisterType((*NetworkDNSConfigRecordsItems)(nil), "magma.orc8r.dnsd.NetworkDNSConfigRecordsItems")
 }
 
-func init() { proto.RegisterFile("dns_service.proto", fileDescriptor_dns_service_5cc92fc6c809cff9) }
+func init() {
+	proto.RegisterFile("dns_service.proto", fileDescriptor_fe05a31f8db72ebb)
+}
 
-var fileDescriptor_dns_service_5cc92fc6c809cff9 = []byte{
+var fileDescriptor_fe05a31f8db72ebb = []byte{
 	// 248 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x90, 0x41, 0x4b, 0x03, 0x31,
 	0x10, 0x85, 0x49, 0x57, 0xdb, 0xed, 0x14, 0xa1, 0xe6, 0x20, 0x41, 0x44, 0x42, 0xf1, 0x90, 0x53,

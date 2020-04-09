@@ -3,9 +3,11 @@
 
 package protos
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -16,7 +18,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type GyInitMethod int32
 
@@ -31,6 +33,7 @@ var GyInitMethod_name = map[int32]string{
 	1: "PER_SESSION",
 	2: "PER_KEY",
 }
+
 var GyInitMethod_value = map[string]int32{
 	"RESERVED":    0,
 	"PER_SESSION": 1,
@@ -40,8 +43,9 @@ var GyInitMethod_value = map[string]int32{
 func (x GyInitMethod) String() string {
 	return proto.EnumName(GyInitMethod_name, int32(x))
 }
+
 func (GyInitMethod) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{0}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{0}
 }
 
 type DiamClientConfig struct {
@@ -65,16 +69,17 @@ func (m *DiamClientConfig) Reset()         { *m = DiamClientConfig{} }
 func (m *DiamClientConfig) String() string { return proto.CompactTextString(m) }
 func (*DiamClientConfig) ProtoMessage()    {}
 func (*DiamClientConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{0}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{0}
 }
+
 func (m *DiamClientConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DiamClientConfig.Unmarshal(m, b)
 }
 func (m *DiamClientConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DiamClientConfig.Marshal(b, m, deterministic)
 }
-func (dst *DiamClientConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DiamClientConfig.Merge(dst, src)
+func (m *DiamClientConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DiamClientConfig.Merge(m, src)
 }
 func (m *DiamClientConfig) XXX_Size() int {
 	return xxx_messageInfo_DiamClientConfig.Size(m)
@@ -177,16 +182,17 @@ func (m *DiamServerConfig) Reset()         { *m = DiamServerConfig{} }
 func (m *DiamServerConfig) String() string { return proto.CompactTextString(m) }
 func (*DiamServerConfig) ProtoMessage()    {}
 func (*DiamServerConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{1}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{1}
 }
+
 func (m *DiamServerConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DiamServerConfig.Unmarshal(m, b)
 }
 func (m *DiamServerConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DiamServerConfig.Marshal(b, m, deterministic)
 }
-func (dst *DiamServerConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DiamServerConfig.Merge(dst, src)
+func (m *DiamServerConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DiamServerConfig.Merge(m, src)
 }
 func (m *DiamServerConfig) XXX_Size() int {
 	return xxx_messageInfo_DiamServerConfig.Size(m)
@@ -243,16 +249,17 @@ func (m *S6AConfig) Reset()         { *m = S6AConfig{} }
 func (m *S6AConfig) String() string { return proto.CompactTextString(m) }
 func (*S6AConfig) ProtoMessage()    {}
 func (*S6AConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{2}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{2}
 }
+
 func (m *S6AConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_S6AConfig.Unmarshal(m, b)
 }
 func (m *S6AConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_S6AConfig.Marshal(b, m, deterministic)
 }
-func (dst *S6AConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_S6AConfig.Merge(dst, src)
+func (m *S6AConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_S6AConfig.Merge(m, src)
 }
 func (m *S6AConfig) XXX_Size() int {
 	return xxx_messageInfo_S6AConfig.Size(m)
@@ -281,16 +288,17 @@ func (m *GxConfig) Reset()         { *m = GxConfig{} }
 func (m *GxConfig) String() string { return proto.CompactTextString(m) }
 func (*GxConfig) ProtoMessage()    {}
 func (*GxConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{3}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{3}
 }
+
 func (m *GxConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GxConfig.Unmarshal(m, b)
 }
 func (m *GxConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GxConfig.Marshal(b, m, deterministic)
 }
-func (dst *GxConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GxConfig.Merge(dst, src)
+func (m *GxConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GxConfig.Merge(m, src)
 }
 func (m *GxConfig) XXX_Size() int {
 	return xxx_messageInfo_GxConfig.Size(m)
@@ -320,16 +328,17 @@ func (m *GyConfig) Reset()         { *m = GyConfig{} }
 func (m *GyConfig) String() string { return proto.CompactTextString(m) }
 func (*GyConfig) ProtoMessage()    {}
 func (*GyConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{4}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{4}
 }
+
 func (m *GyConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GyConfig.Unmarshal(m, b)
 }
 func (m *GyConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GyConfig.Marshal(b, m, deterministic)
 }
-func (dst *GyConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GyConfig.Merge(dst, src)
+func (m *GyConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GyConfig.Merge(m, src)
 }
 func (m *GyConfig) XXX_Size() int {
 	return xxx_messageInfo_GyConfig.Size(m)
@@ -368,16 +377,17 @@ func (m *SwxConfig) Reset()         { *m = SwxConfig{} }
 func (m *SwxConfig) String() string { return proto.CompactTextString(m) }
 func (*SwxConfig) ProtoMessage()    {}
 func (*SwxConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{5}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{5}
 }
+
 func (m *SwxConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SwxConfig.Unmarshal(m, b)
 }
 func (m *SwxConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_SwxConfig.Marshal(b, m, deterministic)
 }
-func (dst *SwxConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SwxConfig.Merge(dst, src)
+func (m *SwxConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SwxConfig.Merge(m, src)
 }
 func (m *SwxConfig) XXX_Size() int {
 	return xxx_messageInfo_SwxConfig.Size(m)
@@ -430,16 +440,17 @@ func (m *HSSConfig) Reset()         { *m = HSSConfig{} }
 func (m *HSSConfig) String() string { return proto.CompactTextString(m) }
 func (*HSSConfig) ProtoMessage()    {}
 func (*HSSConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{6}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{6}
 }
+
 func (m *HSSConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HSSConfig.Unmarshal(m, b)
 }
 func (m *HSSConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_HSSConfig.Marshal(b, m, deterministic)
 }
-func (dst *HSSConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_HSSConfig.Merge(dst, src)
+func (m *HSSConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HSSConfig.Merge(m, src)
 }
 func (m *HSSConfig) XXX_Size() int {
 	return xxx_messageInfo_HSSConfig.Size(m)
@@ -506,16 +517,17 @@ func (m *HSSConfig_SubscriptionProfile) Reset()         { *m = HSSConfig_Subscri
 func (m *HSSConfig_SubscriptionProfile) String() string { return proto.CompactTextString(m) }
 func (*HSSConfig_SubscriptionProfile) ProtoMessage()    {}
 func (*HSSConfig_SubscriptionProfile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{6, 0}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{6, 0}
 }
+
 func (m *HSSConfig_SubscriptionProfile) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HSSConfig_SubscriptionProfile.Unmarshal(m, b)
 }
 func (m *HSSConfig_SubscriptionProfile) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_HSSConfig_SubscriptionProfile.Marshal(b, m, deterministic)
 }
-func (dst *HSSConfig_SubscriptionProfile) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_HSSConfig_SubscriptionProfile.Merge(dst, src)
+func (m *HSSConfig_SubscriptionProfile) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HSSConfig_SubscriptionProfile.Merge(m, src)
 }
 func (m *HSSConfig_SubscriptionProfile) XXX_Size() int {
 	return xxx_messageInfo_HSSConfig_SubscriptionProfile.Size(m)
@@ -568,16 +580,17 @@ func (m *HealthConfig) Reset()         { *m = HealthConfig{} }
 func (m *HealthConfig) String() string { return proto.CompactTextString(m) }
 func (*HealthConfig) ProtoMessage()    {}
 func (*HealthConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{7}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{7}
 }
+
 func (m *HealthConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HealthConfig.Unmarshal(m, b)
 }
 func (m *HealthConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_HealthConfig.Marshal(b, m, deterministic)
 }
-func (dst *HealthConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_HealthConfig.Merge(dst, src)
+func (m *HealthConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HealthConfig.Merge(m, src)
 }
 func (m *HealthConfig) XXX_Size() int {
 	return xxx_messageInfo_HealthConfig.Size(m)
@@ -663,16 +676,17 @@ func (m *EapAkaConfig) Reset()         { *m = EapAkaConfig{} }
 func (m *EapAkaConfig) String() string { return proto.CompactTextString(m) }
 func (*EapAkaConfig) ProtoMessage()    {}
 func (*EapAkaConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{8}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{8}
 }
+
 func (m *EapAkaConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EapAkaConfig.Unmarshal(m, b)
 }
 func (m *EapAkaConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_EapAkaConfig.Marshal(b, m, deterministic)
 }
-func (dst *EapAkaConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EapAkaConfig.Merge(dst, src)
+func (m *EapAkaConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EapAkaConfig.Merge(m, src)
 }
 func (m *EapAkaConfig) XXX_Size() int {
 	return xxx_messageInfo_EapAkaConfig.Size(m)
@@ -711,16 +725,17 @@ func (m *EapAkaConfig_Timeouts) Reset()         { *m = EapAkaConfig_Timeouts{} }
 func (m *EapAkaConfig_Timeouts) String() string { return proto.CompactTextString(m) }
 func (*EapAkaConfig_Timeouts) ProtoMessage()    {}
 func (*EapAkaConfig_Timeouts) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{8, 0}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{8, 0}
 }
+
 func (m *EapAkaConfig_Timeouts) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EapAkaConfig_Timeouts.Unmarshal(m, b)
 }
 func (m *EapAkaConfig_Timeouts) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_EapAkaConfig_Timeouts.Marshal(b, m, deterministic)
 }
-func (dst *EapAkaConfig_Timeouts) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EapAkaConfig_Timeouts.Merge(dst, src)
+func (m *EapAkaConfig_Timeouts) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EapAkaConfig_Timeouts.Merge(m, src)
 }
 func (m *EapAkaConfig_Timeouts) XXX_Size() int {
 	return xxx_messageInfo_EapAkaConfig_Timeouts.Size(m)
@@ -772,16 +787,17 @@ func (m *AAAConfig) Reset()         { *m = AAAConfig{} }
 func (m *AAAConfig) String() string { return proto.CompactTextString(m) }
 func (*AAAConfig) ProtoMessage()    {}
 func (*AAAConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{9}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{9}
 }
+
 func (m *AAAConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AAAConfig.Unmarshal(m, b)
 }
 func (m *AAAConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_AAAConfig.Marshal(b, m, deterministic)
 }
-func (dst *AAAConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AAAConfig.Merge(dst, src)
+func (m *AAAConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AAAConfig.Merge(m, src)
 }
 func (m *AAAConfig) XXX_Size() int {
 	return xxx_messageInfo_AAAConfig.Size(m)
@@ -833,16 +849,17 @@ func (m *Config) Reset()         { *m = Config{} }
 func (m *Config) String() string { return proto.CompactTextString(m) }
 func (*Config) ProtoMessage()    {}
 func (*Config) Descriptor() ([]byte, []int) {
-	return fileDescriptor_feg_config_5126292b86b6b2d5, []int{10}
+	return fileDescriptor_497bb2ed7dafa2c0, []int{10}
 }
+
 func (m *Config) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Config.Unmarshal(m, b)
 }
 func (m *Config) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Config.Marshal(b, m, deterministic)
 }
-func (dst *Config) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Config.Merge(dst, src)
+func (m *Config) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Config.Merge(m, src)
 }
 func (m *Config) XXX_Size() int {
 	return xxx_messageInfo_Config.Size(m)
@@ -917,6 +934,7 @@ func (m *Config) GetAaaServer() *AAAConfig {
 }
 
 func init() {
+	proto.RegisterEnum("feg.GyInitMethod", GyInitMethod_name, GyInitMethod_value)
 	proto.RegisterType((*DiamClientConfig)(nil), "feg.DiamClientConfig")
 	proto.RegisterType((*DiamServerConfig)(nil), "feg.DiamServerConfig")
 	proto.RegisterType((*S6AConfig)(nil), "feg.S6aConfig")
@@ -931,12 +949,13 @@ func init() {
 	proto.RegisterType((*EapAkaConfig_Timeouts)(nil), "feg.EapAkaConfig.Timeouts")
 	proto.RegisterType((*AAAConfig)(nil), "feg.AAAConfig")
 	proto.RegisterType((*Config)(nil), "feg.Config")
-	proto.RegisterEnum("feg.GyInitMethod", GyInitMethod_name, GyInitMethod_value)
 }
 
-func init() { proto.RegisterFile("feg_config.proto", fileDescriptor_feg_config_5126292b86b6b2d5) }
+func init() {
+	proto.RegisterFile("feg_config.proto", fileDescriptor_497bb2ed7dafa2c0)
+}
 
-var fileDescriptor_feg_config_5126292b86b6b2d5 = []byte{
+var fileDescriptor_497bb2ed7dafa2c0 = []byte{
 	// 1248 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0x5d, 0x6f, 0x1b, 0x45,
 	0x14, 0xc5, 0x1f, 0x89, 0xed, 0x6b, 0xa7, 0x71, 0x26, 0x21, 0xdd, 0x06, 0x4a, 0x8d, 0x11, 0x22,

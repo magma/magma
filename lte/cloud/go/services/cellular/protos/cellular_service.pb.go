@@ -3,9 +3,11 @@
 
 package protos
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -16,7 +18,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 // (0)Turning off NonEPS service, (1)Both CSFB and SMS, (2)only SMS
 type GatewayNonEPSConfig_NonEPSServiceControl int32
@@ -32,6 +34,7 @@ var GatewayNonEPSConfig_NonEPSServiceControl_name = map[int32]string{
 	1: "NON_EPS_SERVICE_CONTROL_CSFB_SMS",
 	2: "NON_EPS_SERVICE_CONTROL_SMS",
 }
+
 var GatewayNonEPSConfig_NonEPSServiceControl_value = map[string]int32{
 	"NON_EPS_SERVICE_CONTROL_OFF":      0,
 	"NON_EPS_SERVICE_CONTROL_CSFB_SMS": 1,
@@ -41,8 +44,9 @@ var GatewayNonEPSConfig_NonEPSServiceControl_value = map[string]int32{
 func (x GatewayNonEPSConfig_NonEPSServiceControl) String() string {
 	return proto.EnumName(GatewayNonEPSConfig_NonEPSServiceControl_name, int32(x))
 }
+
 func (GatewayNonEPSConfig_NonEPSServiceControl) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{3, 0}
+	return fileDescriptor_7419489971880e58, []int{3, 0}
 }
 
 type GatewayNonEPSConfig_CSFBRat int32
@@ -56,6 +60,7 @@ var GatewayNonEPSConfig_CSFBRat_name = map[int32]string{
 	0: "CSFBRAT_2G",
 	1: "CSFBRAT_3G",
 }
+
 var GatewayNonEPSConfig_CSFBRat_value = map[string]int32{
 	"CSFBRAT_2G": 0,
 	"CSFBRAT_3G": 1,
@@ -64,8 +69,9 @@ var GatewayNonEPSConfig_CSFBRat_value = map[string]int32{
 func (x GatewayNonEPSConfig_CSFBRat) String() string {
 	return proto.EnumName(GatewayNonEPSConfig_CSFBRat_name, int32(x))
 }
+
 func (GatewayNonEPSConfig_CSFBRat) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{3, 1}
+	return fileDescriptor_7419489971880e58, []int{3, 1}
 }
 
 type NetworkEPCConfig_NetworkServices int32
@@ -81,6 +87,7 @@ var NetworkEPCConfig_NetworkServices_name = map[int32]string{
 	1: "DPI",
 	2: "ENFORCEMENT",
 }
+
 var NetworkEPCConfig_NetworkServices_value = map[string]int32{
 	"METERING":    0,
 	"DPI":         1,
@@ -90,8 +97,9 @@ var NetworkEPCConfig_NetworkServices_value = map[string]int32{
 func (x NetworkEPCConfig_NetworkServices) String() string {
 	return proto.EnumName(NetworkEPCConfig_NetworkServices_name, int32(x))
 }
+
 func (NetworkEPCConfig_NetworkServices) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{6, 0}
+	return fileDescriptor_7419489971880e58, []int{6, 0}
 }
 
 type CellularGatewayConfig struct {
@@ -108,16 +116,17 @@ func (m *CellularGatewayConfig) Reset()         { *m = CellularGatewayConfig{} }
 func (m *CellularGatewayConfig) String() string { return proto.CompactTextString(m) }
 func (*CellularGatewayConfig) ProtoMessage()    {}
 func (*CellularGatewayConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{0}
+	return fileDescriptor_7419489971880e58, []int{0}
 }
+
 func (m *CellularGatewayConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CellularGatewayConfig.Unmarshal(m, b)
 }
 func (m *CellularGatewayConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CellularGatewayConfig.Marshal(b, m, deterministic)
 }
-func (dst *CellularGatewayConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CellularGatewayConfig.Merge(dst, src)
+func (m *CellularGatewayConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CellularGatewayConfig.Merge(m, src)
 }
 func (m *CellularGatewayConfig) XXX_Size() int {
 	return xxx_messageInfo_CellularGatewayConfig.Size(m)
@@ -170,16 +179,17 @@ func (m *GatewayRANConfig) Reset()         { *m = GatewayRANConfig{} }
 func (m *GatewayRANConfig) String() string { return proto.CompactTextString(m) }
 func (*GatewayRANConfig) ProtoMessage()    {}
 func (*GatewayRANConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{1}
+	return fileDescriptor_7419489971880e58, []int{1}
 }
+
 func (m *GatewayRANConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayRANConfig.Unmarshal(m, b)
 }
 func (m *GatewayRANConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GatewayRANConfig.Marshal(b, m, deterministic)
 }
-func (dst *GatewayRANConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GatewayRANConfig.Merge(dst, src)
+func (m *GatewayRANConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GatewayRANConfig.Merge(m, src)
 }
 func (m *GatewayRANConfig) XXX_Size() int {
 	return xxx_messageInfo_GatewayRANConfig.Size(m)
@@ -221,16 +231,17 @@ func (m *GatewayEPCConfig) Reset()         { *m = GatewayEPCConfig{} }
 func (m *GatewayEPCConfig) String() string { return proto.CompactTextString(m) }
 func (*GatewayEPCConfig) ProtoMessage()    {}
 func (*GatewayEPCConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{2}
+	return fileDescriptor_7419489971880e58, []int{2}
 }
+
 func (m *GatewayEPCConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayEPCConfig.Unmarshal(m, b)
 }
 func (m *GatewayEPCConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GatewayEPCConfig.Marshal(b, m, deterministic)
 }
-func (dst *GatewayEPCConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GatewayEPCConfig.Merge(dst, src)
+func (m *GatewayEPCConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GatewayEPCConfig.Merge(m, src)
 }
 func (m *GatewayEPCConfig) XXX_Size() int {
 	return xxx_messageInfo_GatewayEPCConfig.Size(m)
@@ -277,16 +288,17 @@ func (m *GatewayNonEPSConfig) Reset()         { *m = GatewayNonEPSConfig{} }
 func (m *GatewayNonEPSConfig) String() string { return proto.CompactTextString(m) }
 func (*GatewayNonEPSConfig) ProtoMessage()    {}
 func (*GatewayNonEPSConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{3}
+	return fileDescriptor_7419489971880e58, []int{3}
 }
+
 func (m *GatewayNonEPSConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayNonEPSConfig.Unmarshal(m, b)
 }
 func (m *GatewayNonEPSConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GatewayNonEPSConfig.Marshal(b, m, deterministic)
 }
-func (dst *GatewayNonEPSConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GatewayNonEPSConfig.Merge(dst, src)
+func (m *GatewayNonEPSConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GatewayNonEPSConfig.Merge(m, src)
 }
 func (m *GatewayNonEPSConfig) XXX_Size() int {
 	return xxx_messageInfo_GatewayNonEPSConfig.Size(m)
@@ -352,16 +364,17 @@ func (m *CellularNetworkConfig) Reset()         { *m = CellularNetworkConfig{} }
 func (m *CellularNetworkConfig) String() string { return proto.CompactTextString(m) }
 func (*CellularNetworkConfig) ProtoMessage()    {}
 func (*CellularNetworkConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{4}
+	return fileDescriptor_7419489971880e58, []int{4}
 }
+
 func (m *CellularNetworkConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CellularNetworkConfig.Unmarshal(m, b)
 }
 func (m *CellularNetworkConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CellularNetworkConfig.Marshal(b, m, deterministic)
 }
-func (dst *CellularNetworkConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CellularNetworkConfig.Merge(dst, src)
+func (m *CellularNetworkConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CellularNetworkConfig.Merge(m, src)
 }
 func (m *CellularNetworkConfig) XXX_Size() int {
 	return xxx_messageInfo_CellularNetworkConfig.Size(m)
@@ -410,16 +423,17 @@ func (m *NetworkRANConfig) Reset()         { *m = NetworkRANConfig{} }
 func (m *NetworkRANConfig) String() string { return proto.CompactTextString(m) }
 func (*NetworkRANConfig) ProtoMessage()    {}
 func (*NetworkRANConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{5}
+	return fileDescriptor_7419489971880e58, []int{5}
 }
+
 func (m *NetworkRANConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkRANConfig.Unmarshal(m, b)
 }
 func (m *NetworkRANConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkRANConfig.Marshal(b, m, deterministic)
 }
-func (dst *NetworkRANConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkRANConfig.Merge(dst, src)
+func (m *NetworkRANConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkRANConfig.Merge(m, src)
 }
 func (m *NetworkRANConfig) XXX_Size() int {
 	return xxx_messageInfo_NetworkRANConfig.Size(m)
@@ -484,16 +498,17 @@ func (m *NetworkRANConfig_FDDConfig) Reset()         { *m = NetworkRANConfig_FDD
 func (m *NetworkRANConfig_FDDConfig) String() string { return proto.CompactTextString(m) }
 func (*NetworkRANConfig_FDDConfig) ProtoMessage()    {}
 func (*NetworkRANConfig_FDDConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{5, 0}
+	return fileDescriptor_7419489971880e58, []int{5, 0}
 }
+
 func (m *NetworkRANConfig_FDDConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkRANConfig_FDDConfig.Unmarshal(m, b)
 }
 func (m *NetworkRANConfig_FDDConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkRANConfig_FDDConfig.Marshal(b, m, deterministic)
 }
-func (dst *NetworkRANConfig_FDDConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkRANConfig_FDDConfig.Merge(dst, src)
+func (m *NetworkRANConfig_FDDConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkRANConfig_FDDConfig.Merge(m, src)
 }
 func (m *NetworkRANConfig_FDDConfig) XXX_Size() int {
 	return xxx_messageInfo_NetworkRANConfig_FDDConfig.Size(m)
@@ -533,16 +548,17 @@ func (m *NetworkRANConfig_TDDConfig) Reset()         { *m = NetworkRANConfig_TDD
 func (m *NetworkRANConfig_TDDConfig) String() string { return proto.CompactTextString(m) }
 func (*NetworkRANConfig_TDDConfig) ProtoMessage()    {}
 func (*NetworkRANConfig_TDDConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{5, 1}
+	return fileDescriptor_7419489971880e58, []int{5, 1}
 }
+
 func (m *NetworkRANConfig_TDDConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkRANConfig_TDDConfig.Unmarshal(m, b)
 }
 func (m *NetworkRANConfig_TDDConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkRANConfig_TDDConfig.Marshal(b, m, deterministic)
 }
-func (dst *NetworkRANConfig_TDDConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkRANConfig_TDDConfig.Merge(dst, src)
+func (m *NetworkRANConfig_TDDConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkRANConfig_TDDConfig.Merge(m, src)
 }
 func (m *NetworkRANConfig_TDDConfig) XXX_Size() int {
 	return xxx_messageInfo_NetworkRANConfig_TDDConfig.Size(m)
@@ -605,16 +621,17 @@ func (m *NetworkEPCConfig) Reset()         { *m = NetworkEPCConfig{} }
 func (m *NetworkEPCConfig) String() string { return proto.CompactTextString(m) }
 func (*NetworkEPCConfig) ProtoMessage()    {}
 func (*NetworkEPCConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{6}
+	return fileDescriptor_7419489971880e58, []int{6}
 }
+
 func (m *NetworkEPCConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkEPCConfig.Unmarshal(m, b)
 }
 func (m *NetworkEPCConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkEPCConfig.Marshal(b, m, deterministic)
 }
-func (dst *NetworkEPCConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkEPCConfig.Merge(dst, src)
+func (m *NetworkEPCConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkEPCConfig.Merge(m, src)
 }
 func (m *NetworkEPCConfig) XXX_Size() int {
 	return xxx_messageInfo_NetworkEPCConfig.Size(m)
@@ -709,16 +726,17 @@ func (m *NetworkEPCConfig_SubscriptionProfile) Reset()         { *m = NetworkEPC
 func (m *NetworkEPCConfig_SubscriptionProfile) String() string { return proto.CompactTextString(m) }
 func (*NetworkEPCConfig_SubscriptionProfile) ProtoMessage()    {}
 func (*NetworkEPCConfig_SubscriptionProfile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{6, 0}
+	return fileDescriptor_7419489971880e58, []int{6, 0}
 }
+
 func (m *NetworkEPCConfig_SubscriptionProfile) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkEPCConfig_SubscriptionProfile.Unmarshal(m, b)
 }
 func (m *NetworkEPCConfig_SubscriptionProfile) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkEPCConfig_SubscriptionProfile.Marshal(b, m, deterministic)
 }
-func (dst *NetworkEPCConfig_SubscriptionProfile) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkEPCConfig_SubscriptionProfile.Merge(dst, src)
+func (m *NetworkEPCConfig_SubscriptionProfile) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkEPCConfig_SubscriptionProfile.Merge(m, src)
 }
 func (m *NetworkEPCConfig_SubscriptionProfile) XXX_Size() int {
 	return xxx_messageInfo_NetworkEPCConfig_SubscriptionProfile.Size(m)
@@ -771,16 +789,17 @@ func (m *CellularEnodebConfig) Reset()         { *m = CellularEnodebConfig{} }
 func (m *CellularEnodebConfig) String() string { return proto.CompactTextString(m) }
 func (*CellularEnodebConfig) ProtoMessage()    {}
 func (*CellularEnodebConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cellular_service_02a87d98bffe9c9e, []int{7}
+	return fileDescriptor_7419489971880e58, []int{7}
 }
+
 func (m *CellularEnodebConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CellularEnodebConfig.Unmarshal(m, b)
 }
 func (m *CellularEnodebConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CellularEnodebConfig.Marshal(b, m, deterministic)
 }
-func (dst *CellularEnodebConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CellularEnodebConfig.Merge(dst, src)
+func (m *CellularEnodebConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CellularEnodebConfig.Merge(m, src)
 }
 func (m *CellularEnodebConfig) XXX_Size() int {
 	return xxx_messageInfo_CellularEnodebConfig.Size(m)
@@ -855,6 +874,9 @@ func (m *CellularEnodebConfig) GetTac() int32 {
 }
 
 func init() {
+	proto.RegisterEnum("magma.cellular.GatewayNonEPSConfig_NonEPSServiceControl", GatewayNonEPSConfig_NonEPSServiceControl_name, GatewayNonEPSConfig_NonEPSServiceControl_value)
+	proto.RegisterEnum("magma.cellular.GatewayNonEPSConfig_CSFBRat", GatewayNonEPSConfig_CSFBRat_name, GatewayNonEPSConfig_CSFBRat_value)
+	proto.RegisterEnum("magma.cellular.NetworkEPCConfig_NetworkServices", NetworkEPCConfig_NetworkServices_name, NetworkEPCConfig_NetworkServices_value)
 	proto.RegisterType((*CellularGatewayConfig)(nil), "magma.cellular.CellularGatewayConfig")
 	proto.RegisterType((*GatewayRANConfig)(nil), "magma.cellular.GatewayRANConfig")
 	proto.RegisterType((*GatewayEPCConfig)(nil), "magma.cellular.GatewayEPCConfig")
@@ -867,16 +889,13 @@ func init() {
 	proto.RegisterMapType((map[string]*NetworkEPCConfig_SubscriptionProfile)(nil), "magma.cellular.NetworkEPCConfig.SubProfilesEntry")
 	proto.RegisterType((*NetworkEPCConfig_SubscriptionProfile)(nil), "magma.cellular.NetworkEPCConfig.SubscriptionProfile")
 	proto.RegisterType((*CellularEnodebConfig)(nil), "magma.cellular.CellularEnodebConfig")
-	proto.RegisterEnum("magma.cellular.GatewayNonEPSConfig_NonEPSServiceControl", GatewayNonEPSConfig_NonEPSServiceControl_name, GatewayNonEPSConfig_NonEPSServiceControl_value)
-	proto.RegisterEnum("magma.cellular.GatewayNonEPSConfig_CSFBRat", GatewayNonEPSConfig_CSFBRat_name, GatewayNonEPSConfig_CSFBRat_value)
-	proto.RegisterEnum("magma.cellular.NetworkEPCConfig_NetworkServices", NetworkEPCConfig_NetworkServices_name, NetworkEPCConfig_NetworkServices_value)
 }
 
 func init() {
-	proto.RegisterFile("cellular_service.proto", fileDescriptor_cellular_service_02a87d98bffe9c9e)
+	proto.RegisterFile("cellular_service.proto", fileDescriptor_7419489971880e58)
 }
 
-var fileDescriptor_cellular_service_02a87d98bffe9c9e = []byte{
+var fileDescriptor_7419489971880e58 = []byte{
 	// 1107 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x56, 0xcd, 0x8e, 0xe3, 0xc4,
 	0x13, 0xdf, 0x24, 0x93, 0x49, 0x52, 0xc9, 0x4e, 0xac, 0xde, 0x2f, 0xff, 0xf3, 0x97, 0xd8, 0x90,
