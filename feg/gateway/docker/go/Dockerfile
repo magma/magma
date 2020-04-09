@@ -116,7 +116,7 @@ COPY --from=builder /root/.cache /root/.cache
 FROM ubuntu:xenial AS gateway_go
 
 # Install envdir.
-RUN apt-get -y update && apt-get -y install daemontools
+RUN apt-get -y update && apt-get -y install daemontools netcat
 
 # Copy the build artifacts.
 COPY --from=builder /var/opt/magma/bin /var/opt/magma/bin

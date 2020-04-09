@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 
+	"magma/cwf/cloud/go/protos/mconfig"
 	"magma/cwf/gateway/services/gateway_health/health/gre_probe"
 	"magma/cwf/gateway/services/gateway_health/health/service_health"
 	"magma/cwf/gateway/services/gateway_health/health/system_health"
@@ -21,25 +22,24 @@ import (
 	"github.com/golang/glog"
 )
 
+const (
+	sessiondServiceName = "sessiond"
+)
+
 type GatewayHealthServicer struct {
-	config        *HealthConfig
+	config        *mconfig.CwfGatewayHealthConfig
 	greProbe      gre_probe.GREProbe
 	serviceHealth service_health.ServiceHealth
 	systemHealth  system_health.SystemHealth
 }
 
-type HealthConfig struct {
-	GrePeers      []string
-	MaxCpuUtilPct float64
-	MaxMemUtilPct float64
-}
-
-const (
-	sessiondServiceName = "sessiond"
-)
-
 // NewGatewayHealthServicer constructs a GatewayHealthServicer.
-func NewGatewayHealthServicer(cfg *HealthConfig, greProbe gre_probe.GREProbe, serviceHealth service_health.ServiceHealth, systemHealth system_health.SystemHealth) *GatewayHealthServicer {
+func NewGatewayHealthServicer(
+	cfg *mconfig.CwfGatewayHealthConfig,
+	greProbe gre_probe.GREProbe,
+	serviceHealth service_health.ServiceHealth,
+	systemHealth system_health.SystemHealth,
+) *GatewayHealthServicer {
 	return &GatewayHealthServicer{
 		config:        cfg,
 		greProbe:      greProbe,
@@ -78,19 +78,20 @@ func (s *GatewayHealthServicer) GetHealthStatus(ctx context.Context, req *orcpro
 }
 
 func (s *GatewayHealthServicer) getGREHealth() *protos.HealthStatus {
-	reachable, unreachable := s.greProbe.GetStatus()
-	glog.V(1).Infof("reachable GRE endpoints: %v; unreachable GRE endpoints: %v", reachable, unreachable)
+	probeStatus := s.greProbe.GetStatus()
+	glog.V(1).Infof("reachable GRE endpoints: %v; unreachable GRE endpoints: %v", probeStatus.Reachable, probeStatus.Unreachable)
+
 	// Current approach is to be conservative for GRE health. As long as we have
 	// a reachable peer, determine to be healthy
-	if len(reachable) == 0 && len(unreachable) > 0 {
+	if len(probeStatus.Reachable) == 0 && len(probeStatus.Unreachable) > 0 {
 		return &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: fmt.Sprintf("All GRE peers are detected as unreachable; unreachable: %v", unreachable),
+			HealthMessage: fmt.Sprintf("All GRE peers are detected as unreachable; unreachable: %v", probeStatus.Unreachable),
 		}
 	}
 	return &protos.HealthStatus{
 		Health:        protos.HealthStatus_HEALTHY,
-		HealthMessage: fmt.Sprintf("At least 1 configured GRE peers is reachable; reachable: %v, unreachable: %v", reachable, unreachable),
+		HealthMessage: fmt.Sprintf("GRE peers reachable; reachable: %v, unreachable: %v", probeStatus.Reachable, probeStatus.Unreachable),
 	}
 }
 
@@ -103,16 +104,16 @@ func (s *GatewayHealthServicer) getSystemHealth() *protos.HealthStatus {
 		}
 	}
 	glog.V(1).Infof("system stats: cpuUtilPct: %f, memUtilPct: %f", stats.CpuUtilPct, stats.MemUtilPct)
-	if stats.CpuUtilPct > s.config.MaxCpuUtilPct {
+	if stats.CpuUtilPct > s.config.CpuUtilThresholdPct {
 		return &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: fmt.Sprintf("current cpuUtilPct execeeds threshold: %f > %f", stats.CpuUtilPct, s.config.MaxCpuUtilPct),
+			HealthMessage: fmt.Sprintf("current cpuUtilPct execeeds threshold: %f > %f", stats.CpuUtilPct, s.config.CpuUtilThresholdPct),
 		}
 	}
-	if stats.MemUtilPct > s.config.MaxMemUtilPct {
+	if stats.MemUtilPct > s.config.MemUtilThresholdPct {
 		return &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: fmt.Sprintf("current memUtilPct execeeds threshold: %f > %f", stats.MemUtilPct, s.config.MaxMemUtilPct),
+			HealthMessage: fmt.Sprintf("current memUtilPct execeeds threshold: %f > %f", stats.MemUtilPct, s.config.MemUtilThresholdPct),
 		}
 	}
 	return &protos.HealthStatus{

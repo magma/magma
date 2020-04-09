@@ -12,6 +12,8 @@ import (
 	"context"
 	"testing"
 
+	"magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/gateway/services/gateway_health/health/gre_probe"
 	"magma/cwf/gateway/services/gateway_health/health/system_health"
 	"magma/feg/cloud/go/protos"
 	orc8rprotos "magma/orc8r/lib/go/protos"
@@ -25,10 +27,20 @@ func TestGetHealthStatus(t *testing.T) {
 	mockSystem := &mockSystemHealth{}
 	mockGREProbe := &mockGREProbe{}
 	req := &orc8rprotos.Void{}
-	hc := &HealthConfig{
-		GrePeers:      []string{"127.0.0.1"},
-		MaxCpuUtilPct: 0.75,
-		MaxMemUtilPct: 0.75,
+	hc := &mconfig.CwfGatewayHealthConfig{
+		GrePeers: []*mconfig.CwfGatewayHealthConfigGrePeer{
+			&mconfig.CwfGatewayHealthConfigGrePeer{Ip: "127.0.0.1"},
+		},
+		CpuUtilThresholdPct: 0.75,
+		MemUtilThresholdPct: 0.75,
+	}
+	healthyGRE := &gre_probe.GREProbeStatus{
+		Reachable:   []string{"127.0.0.1"},
+		Unreachable: []string{},
+	}
+	unhealthyGRE := &gre_probe.GREProbeStatus{
+		Reachable:   []string{},
+		Unreachable: []string{"127.0.0.1"},
 	}
 	servicer := NewGatewayHealthServicer(hc, mockGREProbe, mockService, mockSystem)
 	expectedStatus := &protos.HealthStatus{
@@ -36,7 +48,7 @@ func TestGetHealthStatus(t *testing.T) {
 		HealthMessage: "gateway status appears healthy",
 	}
 	// Simulate healthy status
-	mockGREProbe.On("GetStatus").Return([]string{"127.0.0.1"}, []string{}, nil).Once()
+	mockGREProbe.On("GetStatus").Return(healthyGRE).Once()
 	mockSystem.On("GetSystemStats").Return(&system_health.SystemStats{CpuUtilPct: 0.1, MemUtilPct: 0.1}, nil).Once()
 	mockService.On("GetUnhealthyServices").Return([]string{}, nil).Once()
 	health, err := servicer.GetHealthStatus(context.Background(), req)
@@ -54,7 +66,7 @@ func TestGetHealthStatus(t *testing.T) {
 	// Simulate GRE unhealthy
 	expectedStatus.Health = protos.HealthStatus_UNHEALTHY
 	expectedStatus.HealthMessage = "GRE status: All GRE peers are detected as unreachable; unreachable: [127.0.0.1]; "
-	mockGREProbe.On("GetStatus").Return([]string{}, []string{"127.0.0.1"}, nil).Once()
+	mockGREProbe.On("GetStatus").Return(unhealthyGRE).Once()
 	mockSystem.On("GetSystemStats").Return(&system_health.SystemStats{CpuUtilPct: 0.1, MemUtilPct: 0.1}, nil).Once()
 	mockService.On("GetUnhealthyServices").Return([]string{}, nil).Once()
 	health, err = servicer.GetHealthStatus(context.Background(), req)
@@ -70,7 +82,7 @@ func TestGetHealthStatus(t *testing.T) {
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
 
 	// Simulate unhealthy system status
-	mockGREProbe.On("GetStatus").Return([]string{"127.0.0.1"}, []string{}, nil).Once()
+	mockGREProbe.On("GetStatus").Return(healthyGRE).Once()
 	mockSystem.On("GetSystemStats").Return(&system_health.SystemStats{CpuUtilPct: 0.99, MemUtilPct: 0.5}, nil).Once()
 	mockService.On("GetUnhealthyServices").Return([]string{}, nil).Once()
 	expectedStatus.Health = protos.HealthStatus_UNHEALTHY
@@ -81,7 +93,7 @@ func TestGetHealthStatus(t *testing.T) {
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
 
 	// Simulate unhealthy services and GRE
-	mockGREProbe.On("GetStatus").Return([]string{}, []string{"127.0.0.1"}, nil).Once()
+	mockGREProbe.On("GetStatus").Return(unhealthyGRE).Once()
 	mockSystem.On("GetSystemStats").Return(&system_health.SystemStats{CpuUtilPct: 0.1, MemUtilPct: 0.1}, nil).Once()
 	mockService.On("GetUnhealthyServices").Return([]string{"sessiond"}, nil).Once()
 	expectedStatus.Health = protos.HealthStatus_UNHEALTHY
@@ -140,7 +152,7 @@ func (m *mockGREProbe) Start() error {
 	return args.Error(0)
 }
 
-func (m *mockGREProbe) GetStatus() ([]string, []string) {
+func (m *mockGREProbe) GetStatus() *gre_probe.GREProbeStatus {
 	args := m.Called()
-	return args.Get(0).([]string), args.Get(1).([]string)
+	return args.Get(0).(*gre_probe.GREProbeStatus)
 }

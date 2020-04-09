@@ -20,14 +20,3 @@ type ServiceHealth interface {
 	// the specific functionality.
 	Enable(service string) error
 }
-
-type DummyServiceHealthProvider struct {
-}
-
-func (d *DummyServiceHealthProvider) GetUnhealthyServices() ([]string, error) {
-	return []string{}, nil
-}
-
-func (d *DummyServiceHealthProvider) Enable(service string) error {
-	return nil
-}
