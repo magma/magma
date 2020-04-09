@@ -101,7 +101,6 @@ setup(
         'eventlet>=0.24',
         'h2>=3.2.0',
         'hpack>=3.0',
-        'webcolors>=1.11.0'
     ],
     extras_require={
         'dev': [
