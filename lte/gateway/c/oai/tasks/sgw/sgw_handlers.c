@@ -962,6 +962,16 @@ int sgw_handle_sgi_endpoint_deleted(
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
       }
 
+      char* ip_str = inet_ntoa(ue);
+      rv = gtp_tunnel_ops->delete_paging_rule(ue);
+      if (rv < 0) {
+        OAILOG_ERROR(
+            LOG_SPGW_APP, "ERROR in deleting paging rule for IP Addr: %s\n",
+            ip_str);
+      } else {
+        OAILOG_DEBUG(LOG_SPGW_APP, "Stopped paging for IP Addr: %s\n", ip_str);
+      }
+
       imsi = (char *)
           new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
       apn = (char *)
@@ -1455,15 +1465,14 @@ int sgw_handle_release_access_bearers_request(
      */
     // TODO iterator
     for (int ebx = 0; ebx < BEARERS_PER_UE; ebx++) {
-      sgw_eps_bearer_ctxt_t *eps_bearer_ctxt =
-        ctx_p->sgw_eps_bearer_context_information.pdn_connection
-          .sgw_eps_bearers_array[ebx];
+      sgw_eps_bearer_ctxt_t* eps_bearer_ctxt =
+          ctx_p->sgw_eps_bearer_context_information.pdn_connection
+              .sgw_eps_bearers_array[ebx];
       if (eps_bearer_ctxt) {
         rv = gtp_tunnel_ops->del_tunnel(
-          eps_bearer_ctxt->paa.ipv4_address,
-          eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
-          eps_bearer_ctxt->enb_teid_S1u,
-          NULL);
+            eps_bearer_ctxt->paa.ipv4_address,
+            eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
+            eps_bearer_ctxt->enb_teid_S1u, NULL);
         if (rv < 0) {
           OAILOG_ERROR_UE(
             LOG_SPGW_APP,
@@ -1473,11 +1482,24 @@ int sgw_handle_release_access_bearers_request(
             eps_bearer_ctxt->enb_teid_S1u,
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up);
         }
+        // Paging is performed without packet buffering
+        rv = gtp_tunnel_ops->add_paging_rule(eps_bearer_ctxt->paa.ipv4_address);
+        // Convert to string for logging
+        char* ip_str = inet_ntoa(eps_bearer_ctxt->paa.ipv4_address);
+        if (rv < 0) {
+          OAILOG_ERROR(
+              LOG_SPGW_APP, "ERROR in setting paging rule for IP Addr: %s\n",
+              ip_str);
+        } else {
+          OAILOG_DEBUG(
+              LOG_SPGW_APP, "Set the paging rule for IP Addr: %s\n",
+              ip_str);
+        }
+
         sgw_release_all_enb_related_information(eps_bearer_ctxt);
       }
     }
-    // TODO The S-GW starts buffering downlink packets received for the UE
-    // (set target on GTPUSP to order the buffering)
+
     rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
 
     OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64, "Release Access Bearer Response sent to MME\n");
