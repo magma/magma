@@ -10,15 +10,10 @@
 'use strict';
 
 import ExpressApplication from 'express';
+import workflowRouter from './routes';
 
 const app = ExpressApplication();
 
-app.get('/', (req, res) => {
-  res.send('hello world');
-});
-
-app.get('/echo/:str', (req, res) => {
-  res.send(req.params.str);
-});
+app.use('/', workflowRouter);
 
 app.listen(80);
