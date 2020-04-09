@@ -192,6 +192,6 @@ HOST [magma/symphony/app/fbcnms-projects/magmalte] $ ./scripts/dev_setup.sh
 ```
 
 After this, you will be able to access the UI by visiting
-[https://localhost](https://localhost), and using the email `admin@magma.test`
+[https://fb-test.localhost](https://fb-test.localhost), and using the email `admin@magma.test`
 and password `password1234`. We recommend Firefox or Chrome. If you see Gateway Error 502, don't worry, the
 NMS can take upto 60 seconds to finish starting up.
