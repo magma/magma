@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
     monitor, reporter.get(), directoryd_client, session_map, *session_store);
   auto proxy_handler =std::make_unique<magma::SessionProxyResponderHandlerImpl>(
-    monitor, session_map, *session_store);
+    monitor, *session_store);
 
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
       directoryd_client, monitor, reporter.get(), session_map);
