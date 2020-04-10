@@ -4,6 +4,7 @@
 #  This source code is licensed under the BSD-style license found in the
 #  LICENSE file in the root directory of this source tree.
 import re
+from time import sleep
 from typing import List, Optional
 
 import dateutil.parser
@@ -14,7 +15,6 @@ from fabric.contrib.files import exists
 from fabric.exceptions import CommandTimeout
 from fabric.operations import get, local, put
 from fabric.state import env
-from time import sleep
 
 LEASE_MAX_RETRIES = 5
 
@@ -97,6 +97,11 @@ def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
             elif env.stack == CWF_STACK:
                 _run_remote_cwf_integ_test(repo, magma_root)
 
+        # In case the job that leased this node last didn't clean up, destroy
+        # all the VMs so we don't OOM
+        _destroy_vms(repo, magma_root, 'lte/gateway', [])
+        _destroy_vms(repo, magma_root, 'cwf/gateway', [])
+
         if should_build and env.stack == LTE_STACK:
             # Destroy the VM if we didn't use it to run the integ tests in
             # this same job
@@ -121,14 +126,14 @@ def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
               'with the job')
         raise e
     finally:
+        _release_node_lease(api_url, lease.node_id, lease.lease_id,
+                            cert_file, cert_key_file)
         if env.stack == LTE_STACK:
             _destroy_vms(repo, magma_root, 'lte/gateway',
                          ['magma', 'magma_test', 'magma_trfserver'])
         elif env.stack == CWF_STACK:
             _destroy_vms(repo, magma_root, 'cwf/gateway',
                          ['cwag', 'cwag_test'])
-        _release_node_lease(api_url, lease.node_id, lease.lease_id,
-                            cert_file, cert_key_file)
 
 
 def _write_lease_to_disk(lease: NodeLease):
