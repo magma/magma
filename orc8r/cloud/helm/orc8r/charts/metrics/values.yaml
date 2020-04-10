@@ -269,6 +269,10 @@ grafana:
 userGrafana:
   # Enable/Disable chart
   create: true
+
+  # Reverse proxy setting, root url grafana will be accessed through
+  rootURL: /grafana
+
   # Service configuration.
   service:
     annotations: {}
