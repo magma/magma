@@ -35,6 +35,19 @@ SessionMap MemoryStoreClient::read_sessions(std::set<std::string> subscriber_ids
   return session_map;
 }
 
+SessionMap MemoryStoreClient::read_all_sessions() {
+  auto session_map = SessionMap{};
+  for (auto& it : session_map_) {
+    auto sessions = std::vector<std::unique_ptr<SessionState>>{};
+    for (auto& stored_session : it.second) {
+      auto session = SessionState::unmarshal(stored_session, *rule_store_);
+      sessions.push_back(std::move(session));
+    }
+    session_map[it.first] = std::move(sessions);
+  }
+  return session_map;
+}
+
 bool MemoryStoreClient::write_sessions(SessionMap session_map)
 {
   for (auto& it : session_map) {

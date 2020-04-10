@@ -35,6 +35,15 @@ class StoreClient {
   virtual SessionMap read_sessions(std::set<std::string> subscriber_ids) = 0;
 
   /**
+   * Directly read all subscriber sessions from storage
+   *
+   * If one or more of the subscribers have no sessions, empty entries will be
+   * returned.
+   * @return All sessions for the subscribers
+   */
+  virtual SessionMap read_all_sessions() = 0;
+
+  /**
    * Directly write the subscriber sessions into storage, overwriting previous
    * values.
    *
