@@ -32,84 +32,72 @@ namespace magma {
 
 class SessionProxyResponderHandlerTest : public ::testing::Test {
  protected:
-  virtual void SetUp()
-  {
+  virtual void SetUp() {
     evb = new folly::EventBase();
     std::thread([&]() {
       std::cout << "Started event loop thread\n";
       folly::EventBaseManager::get()->setEventBase(evb, 0);
     }).detach();
 
-    imsi = "IMSI1";
-    imsi2 = "IMSI2";
-    sid = id_gen_.gen_session_id(imsi);
-    sid2 = id_gen_.gen_session_id(imsi2);
-    sid3 = id_gen_.gen_session_id(imsi2);
-    monitoring_key = "mk1";
-    monitoring_key2 = "mk2";
-    rule_id_1 = "test_rule_1";
-    rule_id_2 = "test_rule_2";
-    rule_id_3 = "test_rule_3";
+    imsi              = "IMSI1";
+    imsi2             = "IMSI2";
+    sid               = id_gen_.gen_session_id(imsi);
+    sid2              = id_gen_.gen_session_id(imsi2);
+    sid3              = id_gen_.gen_session_id(imsi2);
+    monitoring_key    = "mk1";
+    monitoring_key2   = "mk2";
+    rule_id_1         = "test_rule_1";
+    rule_id_2         = "test_rule_2";
+    rule_id_3         = "test_rule_3";
     dynamic_rule_id_1 = "dynamic_rule_1";
     dynamic_rule_id_2 = "dynamic_rule_2";
 
-    reporter = std::make_shared<MockSessionReporter>();
-    auto rule_store = std::make_shared<StaticRuleStore>();
-    session_store = std::make_shared<SessionStore>(rule_store);
-    pipelined_client = std::make_shared<MockPipelinedClient>();
+    reporter               = std::make_shared<MockSessionReporter>();
+    auto rule_store        = std::make_shared<StaticRuleStore>();
+    session_store          = std::make_shared<SessionStore>(rule_store);
+    pipelined_client       = std::make_shared<MockPipelinedClient>();
     auto directoryd_client = std::make_shared<MockDirectorydClient>();
-    auto eventd_client = std::make_shared<MockEventdClient>();
-    auto spgw_client = std::make_shared<MockSpgwServiceClient>();
-    auto aaa_client = std::make_shared<MockAAAClient>();
-    local_enforcer = std::make_shared<LocalEnforcer>(
-      reporter,
-      rule_store,
-      *session_store,
-      pipelined_client,
-      directoryd_client,
-      eventd_client,
-      spgw_client,
-      aaa_client,
-      0,
-      0);
+    auto eventd_client     = std::make_shared<MockEventdClient>();
+    auto spgw_client       = std::make_shared<MockSpgwServiceClient>();
+    auto aaa_client        = std::make_shared<MockAAAClient>();
+    local_enforcer         = std::make_shared<LocalEnforcer>(
+        reporter, rule_store, *session_store, pipelined_client,
+        directoryd_client, eventd_client, spgw_client, aaa_client, 0, 0);
     session_map = SessionMap{};
 
     proxy_responder = std::make_shared<SessionProxyResponderHandlerImpl>(
-      local_enforcer, *session_store);
+        local_enforcer, *session_store);
 
     local_enforcer->attachEventBase(evb);
   }
 
   std::unique_ptr<SessionState> get_session(
-    std::string session_id,
-    std::shared_ptr<StaticRuleStore> rule_store)
-  {
+      std::string session_id, std::shared_ptr<StaticRuleStore> rule_store) {
     std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-    std::string msisdn = "5100001234";
+    std::string msisdn              = "5100001234";
     std::string radius_session_id =
-      "AA-AA-AA-AA-AA-AA:TESTAP__"
-      "0F-10-2E-12-3A-55";
+        "AA-AA-AA-AA-AA-AA:TESTAP__"
+        "0F-10-2E-12-3A-55";
     std::string core_session_id = "asdf";
-    SessionState::Config cfg = {.ue_ipv4 = "",
-      .spgw_ipv4 = "",
-      .msisdn = msisdn,
-      .apn = "",
-      .imei = "",
-      .plmn_id = "",
-      .imsi_plmn_id = "",
-      .user_location = "",
-      .rat_type = RATType::TGPP_WLAN,
-      .mac_addr = "0f:10:2e:12:3a:55",
-      .hardware_addr = hardware_addr_bytes,
-      .radius_session_id = radius_session_id};
-    auto tgpp_context = TgppContext{};
-    auto session = std::make_unique<SessionState>(
-      imsi, session_id, core_session_id, cfg, *rule_store, tgpp_context);
+    SessionState::Config cfg    = {.ue_ipv4           = "",
+                                .spgw_ipv4         = "",
+                                .msisdn            = msisdn,
+                                .apn               = "",
+                                .imei              = "",
+                                .plmn_id           = "",
+                                .imsi_plmn_id      = "",
+                                .user_location     = "",
+                                .rat_type          = RATType::TGPP_WLAN,
+                                .mac_addr          = "0f:10:2e:12:3a:55",
+                                .hardware_addr     = hardware_addr_bytes,
+                                .radius_session_id = radius_session_id};
+    auto tgpp_context           = TgppContext{};
+    auto session                = std::make_unique<SessionState>(
+        imsi, session_id, core_session_id, cfg, *rule_store, tgpp_context);
     return std::move(session);
   }
 
-  UsageMonitoringUpdateResponse* get_monitoring_update()
-  {
+  UsageMonitoringUpdateResponse* get_monitoring_update() {
     auto units = new GrantedUnits();
     auto total = new CreditUnit();
     total->set_is_valid(true);
@@ -141,8 +129,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     return credit_update;
   }
 
-  PolicyReAuthRequest* get_policy_reauth_request()
-  {
+  PolicyReAuthRequest* get_policy_reauth_request() {
     auto request = new PolicyReAuthRequest();
     request->set_session_id("");
     request->set_imsi("IMSI1");
@@ -170,35 +157,37 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   std::shared_ptr<MockPipelinedClient> pipelined_client;
   std::shared_ptr<SessionProxyResponderHandlerImpl> proxy_responder;
   std::shared_ptr<MockSessionReporter> reporter;
-  std::shared_ptr <LocalEnforcer> local_enforcer;
+  std::shared_ptr<LocalEnforcer> local_enforcer;
   SessionIDGenerator id_gen_;
-  folly::EventBase *evb;
+  folly::EventBase* evb;
   SessionMap session_map;
   std::shared_ptr<SessionStore> session_store;
   std::shared_ptr<StaticRuleStore> rule_store;
 };
 
-TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth)
-{
+TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   // 1) Create SessionStore
   auto rule_store = std::make_shared<StaticRuleStore>();
 
   // 2) Create bare-bones session for IMSI1
-  auto uc = get_default_update_criteria();
+  auto uc      = get_default_update_criteria();
   auto session = get_session(sid, rule_store);
   session->activate_static_rule(rule_id_3, uc);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session->get_request_number(), 2);
-  EXPECT_EQ(session->is_static_rule_installed(rule_id_3),true);
+  EXPECT_EQ(session->is_static_rule_installed(rule_id_3), true);
 
-  auto credit_update = get_monitoring_update();
+  auto credit_update                               = get_monitoring_update();
   UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
   session->get_monitor_pool().receive_credit(credit_update_ref, uc);
 
   // Add some used credit
-  session->get_monitor_pool().add_used_credit(monitoring_key, uint64_t(111), uint64_t(333), uc);
-  EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_TX), 111);
-  EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_RX), 333);
+  session->get_monitor_pool().add_used_credit(
+      monitoring_key, uint64_t(111), uint64_t(333), uc);
+  EXPECT_EQ(
+      session->get_monitor_pool().get_credit(monitoring_key, USED_TX), 111);
+  EXPECT_EQ(
+      session->get_monitor_pool().get_credit(monitoring_key, USED_RX), 333);
 
   // 3) Commit session for IMSI1 into SessionStore
   auto sessions = std::vector<std::unique_ptr<SessionState>>{};
@@ -214,14 +203,16 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth)
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 1);
   EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
-  EXPECT_EQ(session_map[imsi].front()->is_static_rule_installed("static_1"), false);
+  EXPECT_EQ(
+      session_map[imsi].front()->is_static_rule_installed("static_1"), false);
 
   // 4) Now call PolicyReAuth
   auto request = get_policy_reauth_request();
   grpc::ServerContext create_context;
   EXPECT_CALL(*pipelined_client, activate_flows_for_rules(_, _, _, _)).Times(1);
-  proxy_responder->PolicyReAuth(&create_context, request, [this](
-    grpc::Status status, PolicyReAuthAnswer response_out) {});
+  proxy_responder->PolicyReAuth(
+      &create_context, request,
+      [this](grpc::Status status, PolicyReAuthAnswer response_out) {});
 
   // run LocalEnforcer's init_policy_reauth which was scheduled by
   // proxy_responder
@@ -233,13 +224,13 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth)
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 1);
   EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
-  EXPECT_EQ(session_map[imsi].front()->is_static_rule_installed("static_1"), true);
+  EXPECT_EQ(
+      session_map[imsi].front()->is_static_rule_installed("static_1"), true);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
 
-} // namespace magma
+}  // namespace magma
