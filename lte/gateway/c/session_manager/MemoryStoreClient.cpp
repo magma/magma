@@ -15,12 +15,11 @@ namespace magma {
 namespace lte {
 
 MemoryStoreClient::MemoryStoreClient(
-  std::shared_ptr<StaticRuleStore> rule_store):
-  session_map_({}),
-  rule_store_(rule_store) {}
+    std::shared_ptr<StaticRuleStore> rule_store)
+    : session_map_({}), rule_store_(rule_store) {}
 
-SessionMap MemoryStoreClient::read_sessions(std::set<std::string> subscriber_ids)
-{
+SessionMap MemoryStoreClient::read_sessions(
+    std::set<std::string> subscriber_ids) {
   auto session_map = SessionMap{};
   for (const auto& subscriber_id : subscriber_ids) {
     auto sessions = std::vector<std::unique_ptr<SessionState>>{};
@@ -48,8 +47,7 @@ SessionMap MemoryStoreClient::read_all_sessions() {
   return session_map;
 }
 
-bool MemoryStoreClient::write_sessions(SessionMap session_map)
-{
+bool MemoryStoreClient::write_sessions(SessionMap session_map) {
   for (auto& it : session_map) {
     auto sessions = std::vector<StoredSessionState>{};
     for (auto const& session : it.second) {
@@ -61,5 +59,5 @@ bool MemoryStoreClient::write_sessions(SessionMap session_map)
   return true;
 }
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma
