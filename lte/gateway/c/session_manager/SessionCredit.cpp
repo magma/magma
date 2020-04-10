@@ -466,9 +466,11 @@ void SessionCredit::set_reauth(
   ReAuthState new_reauth_state,
   SessionCreditUpdateCriteria& update_criteria)
 {
-  MLOG(MDEBUG) << "ReAuth state change from "
-               << reauth_state_to_str(reauth_state_)
-               << " to " << reauth_state_to_str(new_reauth_state);
+  if (reauth_state_ != new_reauth_state) {
+    MLOG(MDEBUG) << "ReAuth state change from "
+                 << reauth_state_to_str(reauth_state_)
+                 << " to " << reauth_state_to_str(new_reauth_state);
+  }
   reauth_state_ = new_reauth_state;
   update_criteria.reauth_state = new_reauth_state;
 }
@@ -477,9 +479,11 @@ void SessionCredit::set_service_state(
   ServiceState new_service_state,
   SessionCreditUpdateCriteria& update_criteria)
 {
-  MLOG(MDEBUG) << "Service state change from "
-               << service_state_to_str(service_state_)
-               << " to " << service_state_to_str(new_service_state);
+  if (service_state_ != new_service_state) {
+    MLOG(MDEBUG) << "Service state change from "
+                 << service_state_to_str(service_state_)
+                 << " to " << service_state_to_str(new_service_state);
+  }
   service_state_ = new_service_state;
   update_criteria.service_state = new_service_state;
 }
