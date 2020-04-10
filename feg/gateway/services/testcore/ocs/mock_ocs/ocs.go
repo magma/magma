@@ -55,6 +55,7 @@ type OCSConfig struct {
 	ValidityTime   uint32
 	ServerConfig   *diameter.DiameterServerConfig
 	GyInitMethod   gy.InitMethod
+	UseMockDriver  bool
 }
 
 // OCSDiamServer wraps an OCS storing subscriber accounts and their credit
@@ -167,6 +168,7 @@ func (srv *OCSDiamServer) SetOCSSettings(
 	config.MaxUsageOctets = ocsConfig.MaxUsageOctets
 	config.MaxUsageTime = ocsConfig.MaxUsageTime
 	config.ValidityTime = ocsConfig.ValidityTime
+	config.UseMockDriver = ocsConfig.UseMockDriver
 	return &orcprotos.Void{}, nil
 }
 
@@ -208,6 +210,14 @@ func (srv *OCSDiamServer) ClearSubscribers(ctx context.Context, void *orcprotos.
 	srv.accounts = make(map[string]*SubscriberAccount)
 	glog.V(2).Info("All accounts deleted.")
 	return &orcprotos.Void{}, nil
+}
+
+func (srv *OCSDiamServer) SetExpectations(ctx context.Context, req *protos.GyCreditControlExpectations) (*orcprotos.Void, error) {
+	return &orcprotos.Void{}, nil
+}
+
+func (srv *OCSDiamServer) AssertExpectations(ctx context.Context, void *orcprotos.Void) (*protos.GyCreditControlResult, error) {
+	return nil, nil
 }
 
 // ReAuth initiates a reauth call for a subscriber and optional rating group.
