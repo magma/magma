@@ -32,6 +32,10 @@ SessionMap SessionStore::read_sessions(const SessionRead& req)
   return store_client_->read_sessions(req);
 }
 
+SessionMap SessionStore::read_all_sessions() {
+  return store_client_->read_all_sessions();
+}
+
 SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req)
 {
   auto session_map = store_client_->read_sessions(req);
