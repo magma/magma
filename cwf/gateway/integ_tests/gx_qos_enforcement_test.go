@@ -334,7 +334,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
-	time.Sleep(3 * time.Second)
+	time.Sleep(6 * time.Second)
 
 	// Assert that we saw a Terminate request
 	resultByIndex, errByIndex, err = getAssertExpectationsResult()

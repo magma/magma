@@ -40,8 +40,6 @@ enum CreditType {
  */
 class SessionCredit {
  public:
-  static SessionCreditUpdateCriteria UNUSED_UPDATE_CRITERIA;
-
   struct Usage {
     uint64_t bytes_tx;
     uint64_t bytes_rx;
@@ -76,21 +74,21 @@ class SessionCredit {
   void add_used_credit(
     uint64_t used_tx,
     uint64_t used_rx,
-    SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * reset_reporting_credit resets the REPORTING_* to 0
    * Also marks the session as not in reporting.
    */
-  void reset_reporting_credit(SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+  void reset_reporting_credit(SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * Credit update has failed to the OCS, so mark this credit as failed so it
    * can be cut off accordingly
    */
   void mark_failure(
-    uint32_t code = 0,
-    SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    uint32_t code,
+    SessionCreditUpdateCriteria& update_criteria);
   /**
    * receive_credit increments ALLOWED* and moves the REPORTING_* credit to
    * the REPORTED_* credit
@@ -102,7 +100,7 @@ class SessionCredit {
     uint32_t validity_time,
     bool is_final_grant,
     FinalActionInfo final_action_info,
-    SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * get_update_type returns the type of update required for the credit. If no
@@ -118,13 +116,13 @@ class SessionCredit {
    */
   SessionCredit::Usage get_usage_for_reporting(
     bool is_termination,
-    SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * get_action returns the action to take on the credit based on the last
    * update. If no action needs to take place, CONTINUE_SERVICE is returned.
    */
-  ServiceActionType get_action(SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+  ServiceActionType get_action(SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * Returns true if either of REPORTING_* buckets are more than 0
@@ -140,7 +138,7 @@ class SessionCredit {
    * Mark the credit to be in the REAUTH_REQUIRED state. The next time
    * get_update is called, this credit will report its usage.
    */
-  void reauth(SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+  void reauth(SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * Returns
@@ -154,7 +152,9 @@ class SessionCredit {
    */
   void set_is_final_grant(
     bool is_final_grant,
-    SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionCreditUpdateCriteria& update_criteria);
+
+  ReAuthState get_reauth();
 
   /**
    * Set ReAuthState.
@@ -163,7 +163,7 @@ class SessionCredit {
    */
   void set_reauth(
     ReAuthState reauth_state,
-    SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * Set ServiceState.
@@ -171,8 +171,8 @@ class SessionCredit {
    * @param service_state
    */
   void set_service_state(
-    ServiceState service_state,
-    SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    ServiceState new_service_state,
+    SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * Set expiry time of SessionCredit
@@ -181,7 +181,7 @@ class SessionCredit {
    */
   void set_expiry_time(
     std::time_t expiry_time,
-    SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * Add credit to the specified bucket. This does not necessarily correspond
@@ -193,7 +193,7 @@ class SessionCredit {
   void add_credit(
     uint64_t credit,
     Bucket bucket,
-    SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionCreditUpdateCriteria& update_criteria);
 
   /**
    * A threshold represented as a ratio for triggering usage update before
@@ -258,13 +258,15 @@ class SessionCredit {
   bool is_quota_exhausted(
     float usage_reporting_threshold = 1, uint64_t extra_quota_margin = 0);
 
+  void log_quota_and_usage();
+
   bool should_deactivate_service();
 
   bool validity_timer_expired();
 
   void set_expiry_time(
     uint32_t validity_time,
-    SessionCreditUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionCreditUpdateCriteria& update_criteria);
 
   bool is_reauth_required();
 

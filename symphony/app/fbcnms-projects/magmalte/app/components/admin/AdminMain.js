@@ -14,7 +14,7 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {getProjectLinks} from '../../common/projects';
+import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 

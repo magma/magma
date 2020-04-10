@@ -19,7 +19,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormContext, {FormContextProvider} from '../../../../common/FormContext';
 import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
-import Strings from '../../../../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserAccountDetailsPane, {
   ACCOUNT_DISPLAY_VARIANTS,

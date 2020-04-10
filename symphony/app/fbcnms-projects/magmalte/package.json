@@ -9,13 +9,15 @@
     "start:dev": "nodemon scripts/server",
     "start:prod": "NODE_ENV=production node -r @fbcnms/babel-register scripts/server",
     "migrate": "node -r @fbcnms/babel-register scripts/migrate.js",
-    "setAdminPassword": "node -r '@fbcnms/babel-register' scripts/setPassword.js"
+    "setAdminPassword": "node -r '@fbcnms/babel-register' scripts/setPassword.js",
+    "createOrganization": "node -r '@fbcnms/babel-register' scripts/createOrganization.js"
   },
   "dependencies": {
     "@fbcnms/auth": "^0.1.0",
     "@fbcnms/babel-register": "^0.1.0",
     "@fbcnms/magma-api": "^0.1.0",
     "@fbcnms/platform-server": "^0.1.0",
+    "@fbcnms/strings": "^0.1.0",
     "@fbcnms/ui": "^0.1.0",
     "@fbcnms/util": "^0.1.0",
     "@material-ui/core": "^4.0.0",

@@ -24,7 +24,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
-import Strings from '../../../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import TabsBar from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import fbt from 'fbt';

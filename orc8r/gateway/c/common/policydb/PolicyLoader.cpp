@@ -19,9 +19,10 @@ bool try_redis_connect(cpp_redis::client& client)
   ServiceConfigLoader loader;
   auto config = loader.load_service_config("redis");
   auto port = config["port"].as<uint32_t>();
+  auto addr = config["bind"].as<std::string>();
   try {
     client.connect(
-      "127.0.0.1",
+      addr,
       port,
       [](
         const std::string& host,
@@ -55,8 +56,10 @@ bool do_loop(
     MLOG(MERROR) << "Failed to get rules from map because map error " << result;
     return false;
   }
+  if (rules.size() > 0) {
+    MLOG(MDEBUG) << rules.size() << " rules synced";
+  }
   processor(rules);
-  MLOG(MDEBUG) << rules.size() << " rules synced";
   return true;
 }
 

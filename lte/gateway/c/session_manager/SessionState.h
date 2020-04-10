@@ -14,6 +14,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "RuleStore.h"
+#include "SessionReporter.h"
 #include "StoredState.h"
 #include "CreditPool.h"
 
@@ -25,8 +26,6 @@ namespace magma {
  */
 class SessionState {
  public:
-  static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
-
   struct QoSInfo {
     bool enabled;
     uint32_t qci;
@@ -81,6 +80,10 @@ class SessionState {
 
   StoredSessionState marshal();
 
+  StoredSessionConfig marshal_config();
+
+  void unmarshal_config(const StoredSessionConfig& marshaled);
+
   /**
    * notify_new_report_for_sessions sets the state of terminating session to aggregating, to tell if
    * flows for the terminating session is in the latest report.
@@ -102,7 +105,7 @@ class SessionState {
     const std::string& rule_id,
     uint64_t used_tx,
     uint64_t used_rx,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
 
   /**
    * get_updates collects updates and adds them to a UpdateSessionRequest
@@ -115,7 +118,7 @@ class SessionState {
   void get_updates(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    SessionStateUpdateCriteria& update_criteria,
     const bool force_update = false);
 
   /**
@@ -123,19 +126,22 @@ class SessionState {
    * The session state transitions from SESSION_ACTIVE to
    * SESSION_TERMINATING_FLOW_ACTIVE.
    * When termination completes, the call back function is executed.
+   *
    * @param on_termination_callback - call back function to be executed after
    * termination
    */
   void start_termination(
-    std::function<void(SessionTerminateRequest)> on_termination_callback,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
+
+  void set_termination_callback(
+    std::function<void(SessionTerminateRequest)> on_termination_callback);
 
   /**
    * mark_as_awaiting_termination transitions the session state from
    * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
    */
   void mark_as_awaiting_termination(
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
 
   /**
    * can_complete_termination returns whether the termination for the session
@@ -155,7 +161,20 @@ class SessionState {
    * can_complete_termination returns true.
    */
   void complete_termination(
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
+
+  /**
+   * complete_termination collects final usages for all credits into a
+   * SessionTerminateRequest and calls the on termination callback with the
+   * request.
+   * Note that complete_termination will forcefully complete the termination
+   * no matter the current state of the session. To properly complete the
+   * termination, this function should only be called when
+   * can_complete_termination returns true.
+   */
+  void complete_termination(
+    SessionReporter& reporter,
+    SessionStateUpdateCriteria& update_criteria);
 
   ChargingCreditPool& get_charging_pool();
 
@@ -201,7 +220,7 @@ class SessionState {
 
   void set_tgpp_context(
     const magma::lte::TgppContext& tgpp_context,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
 
   void set_config(const Config& config);
 
@@ -209,7 +228,7 @@ class SessionState {
 
   void set_subscriber_quota_state(
     const magma::lte::SubscriberQuotaUpdate_Type state,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
 
   bool active_monitored_rules_exist();
 
@@ -232,24 +251,25 @@ class SessionState {
 
   void insert_dynamic_rule(
     const PolicyRule& rule,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
 
   void activate_static_rule(
     const std::string& rule_id,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
 
   bool remove_dynamic_rule(
     const std::string& rule_id,
     PolicyRule *rule_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
 
   bool deactivate_static_rule(
     const std::string& rule_id,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria);
 
   DynamicRuleStore& get_dynamic_rules();
 
   uint32_t total_monitored_rules_count();
+  bool is_active();
 
   uint32_t get_credit_key_count();
 
@@ -323,7 +343,7 @@ class SessionState {
   void get_updates_from_charging_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    SessionStateUpdateCriteria& update_criteria,
     const bool force_update = false);
 
   /**
@@ -337,7 +357,7 @@ class SessionState {
   void get_updates_from_monitor_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    SessionStateUpdateCriteria& update_criteria,
     const bool force_update = false);
 };
 

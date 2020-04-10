@@ -54,7 +54,8 @@ class InOutController(MagmaController):
             self._mtr_service_enabled = False
         if (self.config.uplink_port_name):
             self._uplink_port = BridgeTools.get_ofport(self.config.uplink_port_name)
-        if (self.config.li_port_name):
+        if (self._service_manager.is_app_enabled(LIMirrorController.APP_NAME)
+                and self.config.li_port_name):
             self._li_port = BridgeTools.get_ofport(self.config.li_port_name)
             self._li_table = self._service_manager.get_table_num(
                 LIMirrorController.APP_NAME)

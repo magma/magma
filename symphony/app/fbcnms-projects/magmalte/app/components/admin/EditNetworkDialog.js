@@ -15,7 +15,7 @@ import GenericNetworkDialog from './GenericNetworkDialog';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {CWF, FEG} from '@fbcnms/types/network';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -31,7 +31,9 @@ export default function NetworkDialog(props: Props) {
 
   const {response: networkConfig, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkId,
-    {networkId: editingNetworkID},
+    {
+      networkId: editingNetworkID,
+    },
   );
 
   if (!networkConfig || isLoading) {

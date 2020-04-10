@@ -13,6 +13,7 @@
     - user: "{{ ansible_user }}"
     - full_provision: true
   roles:
+    - role: gomod_cache
     - role: distro_snapshot
       vars:
         distro: bionic

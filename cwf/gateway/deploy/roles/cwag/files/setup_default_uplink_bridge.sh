@@ -12,10 +12,10 @@ sudo ovs-vsctl --may-exist add-port uplink_br0 gw0 \
   -- set Interface gw0 type=internal \
   -- set interface gw0 ofport=1
 
-sudo ovs-vsctl --may-exist add-port uplink_br0 uplink_patch
-sudo ovs-vsctl --may-exist add-port cwag_br0 cwag_patch
-sudo ovs-vsctl set interface uplink_patch type=patch options:peer=cwag_patch
-sudo ovs-vsctl set interface cwag_patch type=patch options:peer=uplink_patch
+sudo ovs-vsctl --may-exist add-port uplink_br0 uplink_patch \
+  -- set Interface uplink_patch type=patch options:peer=cwag_patch \
+  -- --may-exist add-port cwag_br0 cwag_patch \
+  -- set Interface cwag_patch type=patch  options:peer=uplink_patch
 
 # Some setups might not have 2 nics. In that case just use eth2
 if [ ! -d "/sys/class/net/eth3" ]

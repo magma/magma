@@ -40,7 +40,11 @@ class LIMirrorController(MagmaController):
         self._li_local_port = kwargs['config'].get('li_local_iface', None)
         self._li_local_port_num = BridgeTools.get_ofport(self._li_local_port)
         self._li_dst_port = kwargs['config'].get('li_dst_iface', None)
-        self._li_dst_port_num = BridgeTools.get_ofport(self._li_dst_port)
+        self._li_dst_port_num = None
+        if self._li_dst_port:
+            self._li_dst_port_num = BridgeTools.get_ofport(self._li_dst_port)
+        else:
+            self.logger.warning("LI mirror port not setup, won't mirror pkts")
         self._datapath = None
         self._li_imsis = []
 
@@ -54,7 +58,8 @@ class LIMirrorController(MagmaController):
         self.delete_all_flows(datapath)
         self._install_default_flows(datapath)
         self._datapath = datapath
-        hub.spawn(self._monitor)
+        if self._li_dst_port_num:
+            hub.spawn(self._monitor)
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -84,7 +89,7 @@ class LIMirrorController(MagmaController):
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                     direction=Direction.OUT)
         actions = []
-        if self._mirror_all:
+        if self._mirror_all and self._li_dst_port_num:
             self.logger.warning("Mirroring all traffic to LI")
             actions = [parser.OFPActionOutput(self._li_dst_port_num)]
         flows.add_resubmit_next_service_flow(datapath, self.tbl_num,

@@ -18,7 +18,7 @@ import PermissionsGroupCard from './groups/PermissionsGroupCard';
 import PermissionsGroupsView, {
   PERMISSION_GROUPS_VIEW_NAME,
 } from './groups/PermissionsGroupsView';
-import Strings from '../../../common/CommonStrings';
+import Strings from '@fbcnms/strings/Strings';
 import UsersView from './users/UsersView';
 import fbt from 'fbt';
 import {NEW_GROUP_DIALOG_PARAM} from './utils/UserManagementUtils';

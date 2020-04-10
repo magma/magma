@@ -18,8 +18,8 @@ import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
 import DocumentsAddButton from '../DocumentsAddButton';
 import EntityDocumentsTable from '../EntityDocumentsTable';
+import InventoryStrings from '../../common/InventoryStrings';
 import React, {useMemo} from 'react';
-import Strings from '../../common/CommonStrings';
 import classNames from 'classnames';
 import {graphql, useFragment} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
@@ -79,7 +79,7 @@ const LocationDocumentsCard = (props: Props) => {
             <DocumentsAddButton entityType="LOCATION" entityId={data.id} />
           </div>
         }>
-        {Strings.documents.viewHeader}
+        {InventoryStrings.documents.viewHeader}
       </CardHeader>
       <EntityDocumentsTable
         entityType="LOCATION"

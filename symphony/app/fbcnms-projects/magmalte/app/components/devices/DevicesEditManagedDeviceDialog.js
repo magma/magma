@@ -25,7 +25,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
@@ -210,7 +210,10 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
   // TODO: separate out create from edit flow so we don't have extra api call
   const {isLoading, error: responseError, response} = useMagmaAPI(
     MagmaV1API.getSymphonyByNetworkIdDevicesByDeviceId,
-    {networkId: nullthrows(match.params.networkId), deviceId: initialDeviceID},
+    {
+      networkId: nullthrows(match.params.networkId),
+      deviceId: initialDeviceID,
+    },
   );
 
   useEffect(() => {

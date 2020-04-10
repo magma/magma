@@ -78,6 +78,7 @@ class UEMacAddressController(MagmaController):
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.handle_restart(ue_requests)
 
+        self.init_finished = True
         return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def delete_all_flows(self, datapath):
@@ -112,8 +113,8 @@ class UEMacAddressController(MagmaController):
                 self.arp_contoller = self.arpd_controller_fut.result()
             self.arp_contoller.add_ue_arp_flows(self._datapath,
                                                 yiaddr, chaddr)
-            self.logger.info("From DHCP learn: IMSI %s, has ip %s and mac %s",
-                             imsi, yiaddr, chaddr)
+            self.logger.debug("From DHCP learn: IMSI %s, has ip %s and mac %s",
+                              imsi, yiaddr, chaddr)
 
             # Associate IMSI to IPv4 addr in directory service
             threading.Thread(target=update_record, args=(str(imsi),

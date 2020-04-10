@@ -8,16 +8,16 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '../insights/Metrics';
+import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import Metrics from '../insights/Metrics';
+import Metrics from '@fbcnms/ui/insights/Metrics';
 import React from 'react';
 import {Route} from 'react-router-dom';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const IMSI_CONFIGS: Array<MetricGraphConfig> = [
@@ -76,7 +76,9 @@ export default function() {
 
   const {response, error, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPrometheusSeries,
-    {networkId: nullthrows(match.params.networkId)},
+    {
+      networkId: nullthrows(match.params.networkId),
+    },
   );
   if (!response || error || isLoading) {
     return <LoadingFiller />;
@@ -116,7 +118,9 @@ function ImsiAndIPMenuItem(props: {imsi: string}) {
   const queryIMSI = props.imsi.startsWith('IMSI')
     ? props.imsi
     : 'IMSI' + props.imsi;
-  const {response} = useMagmaAPI(
+  const {
+    response,
+  } = useMagmaAPI(
     MagmaV1API.getCwfByNetworkIdSubscribersBySubscriberIdDirectoryRecord,
     {networkId: match.params.networkId, subscriberId: queryIMSI},
   );

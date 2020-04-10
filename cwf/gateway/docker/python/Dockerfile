@@ -67,7 +67,8 @@ RUN apt-get -y update && apt-get -y install \
     gcc \
     libtool \
     libcap-ng-dev \
-    linux-headers-generic
+    linux-headers-generic \
+    netcat
     
 RUN pip3 install \
     Cython \

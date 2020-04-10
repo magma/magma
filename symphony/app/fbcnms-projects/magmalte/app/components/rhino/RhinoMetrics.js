@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '@fbcnms/magmalte/app/components/insights/Metrics';
+import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
 
 import AppBar from '@material-ui/core/AppBar';
 import MultiMetrics from './MultiMetrics';

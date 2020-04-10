@@ -30,7 +30,7 @@ class PagingApplication : public Application {
  private:
   static const int MID_PRIORITY = 5;
   // TODO: move to config file
-  static const int CLAMPING_TIMEOUT = 30; // seconds
+  static const int CLAMPING_TIMEOUT = 30;  // seconds
   /**
    * Main callback event required by inherited Application class. Whenever
    * the controller gets an event like packet in or switch up, it will pass
@@ -39,8 +39,7 @@ class PagingApplication : public Application {
    * @param ev (in) - pointer to some subclass of ControllerEvent that occurred
    */
   virtual void event_callback(
-    const ControllerEvent &ev,
-    const OpenflowMessenger &messenger);
+      const ControllerEvent& ev, const OpenflowMessenger& messenger);
 
   /**
    * Handles downlink data intended for a UE in idle mode, then forwards the
@@ -51,17 +50,28 @@ class PagingApplication : public Application {
    * @param data (in) - the ethernet packet received by the switch
    */
   void handle_paging_message(
-    fluid_base::OFConnection *ofconn,
-    uint8_t *data,
-    const OpenflowMessenger &messenger);
+      fluid_base::OFConnection* ofconn, uint8_t* data,
+      const OpenflowMessenger& messenger);
 
   /**
    * Creates the default paging flow, which sends a packet intended for an
    * idle UE to this application
    */
   void install_default_flow(
-    fluid_base::OFConnection *ofconn,
-    const OpenflowMessenger &messenger);
+      fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger);
+
+  /**
+   * Creates exact paging flow, which sends a packet intended for an
+   * idle UE to this application
+   */
+  void add_paging_flow(
+      const AddPagingRuleEvent& ev, const OpenflowMessenger& messenger);
+
+  /**
+   * Removes exact paging flow rule to stop paging UE
+   */
+  void delete_paging_flow(
+      const DeletePagingRuleEvent& ev, const OpenflowMessenger& messenger);
 };
 
-} // namespace openflow
+}  // namespace openflow

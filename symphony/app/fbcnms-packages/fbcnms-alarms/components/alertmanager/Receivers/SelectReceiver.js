@@ -29,7 +29,9 @@ export default function SelectReceiver({
   const {match} = useRouter();
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getReceivers,
-    {networkId: match.params.networkId},
+    {
+      networkId: match.params.networkId,
+    },
   );
   const handleChange = React.useCallback(
     (e: SyntheticInputEvent<HTMLInputElement>) => {

@@ -15,6 +15,22 @@ const GB = 1024 * 1024 * 1024;
 export const sortLexicographically = (a: string, b: string) =>
   a.localeCompare(b, 'en', {numeric: true});
 
+export const sortMixed = <T: string | number>(a: ?T, b: ?T) => {
+  if (a == null && b == null) {
+    return 0;
+  }
+  if (a == null) {
+    return -1;
+  }
+  if (b == null) {
+    return 1;
+  }
+  if (typeof a == 'number' && typeof b == 'number') {
+    return a - b;
+  }
+  return sortLexicographically(a.toString(), b.toString());
+};
+
 export const formatFileSize = (sizeInBytes: number) => {
   if (sizeInBytes === 0) {
     return '0MB';

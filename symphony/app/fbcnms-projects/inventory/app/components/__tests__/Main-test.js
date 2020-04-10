@@ -46,7 +46,7 @@ jest.mock('../map/MapView', () => () => <div>Im the Map!</div>);
 jest.mock('../projects/ProjectsMap', () => () => (
   <div>Im the ProjectsMap!</div>
 ));
-jest.mock('@fbcnms/magmalte/app/components/MapView', () => () => (
+jest.mock('@fbcnms/ui/insights/map/MapView', () => () => (
   <div>Im the Map!</div>
 ));
 

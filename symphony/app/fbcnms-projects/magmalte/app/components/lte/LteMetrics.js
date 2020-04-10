@@ -8,12 +8,12 @@
  * @format
  */
 
-import type {MetricGraphConfig} from '../insights/Metrics';
+import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
 
 import AppBar from '@material-ui/core/AppBar';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import GatewayMetrics from '../insights/GatewayMetrics';
-import Grafana from '../insights/Grafana';
+import GatewayMetrics from '@fbcnms/ui/insights/GatewayMetrics';
+import Grafana from '@fbcnms/ui/insights/Grafana';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';

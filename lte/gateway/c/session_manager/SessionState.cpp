@@ -21,8 +21,6 @@
 
 namespace magma {
 
-SessionStateUpdateCriteria SessionState::UNUSED_UPDATE_CRITERIA = get_default_update_criteria();
-
 std::unique_ptr<SessionState> SessionState::unmarshal(
   const StoredSessionState &marshaled, StaticRuleStore &rule_store)
 {
@@ -33,6 +31,28 @@ StoredSessionState SessionState::marshal()
 {
   StoredSessionState marshaled{};
 
+  marshaled.config = marshal_config();
+  marshaled.charging_pool = charging_pool_.marshal();
+  marshaled.monitor_pool = monitor_pool_.marshal();
+  marshaled.imsi = imsi_;
+  marshaled.session_id = session_id_;
+  marshaled.core_session_id = core_session_id_;
+  marshaled.subscriber_quota_state = subscriber_quota_state_;
+  marshaled.tgpp_context = tgpp_context_;
+  marshaled.request_number = request_number_;
+
+  for (auto& rule_id : active_static_rules_) {
+    marshaled.static_rule_ids.push_back(rule_id);
+  }
+  std::vector<PolicyRule> dynamic_rules;
+  dynamic_rules_.get_rules(dynamic_rules);
+  marshaled.dynamic_rules = std::move(dynamic_rules);
+
+  return marshaled;
+}
+
+StoredSessionConfig SessionState::marshal_config()
+{
   StoredSessionConfig config{};
   config.ue_ipv4 = config_.ue_ipv4;
   config.spgw_ipv4 = config_.spgw_ipv4;
@@ -51,25 +71,30 @@ StoredSessionState SessionState::marshal()
   qos_info.enabled = config_.qos_info.enabled;
   qos_info.qci = config_.qos_info.qci;
   config.qos_info = qos_info;
+  return config;
+}
 
-  marshaled.config = config;
-  marshaled.charging_pool = charging_pool_.marshal();
-  marshaled.monitor_pool = monitor_pool_.marshal();
-  marshaled.imsi = imsi_;
-  marshaled.session_id = session_id_;
-  marshaled.core_session_id = core_session_id_;
-  marshaled.subscriber_quota_state = subscriber_quota_state_;
-  marshaled.tgpp_context = tgpp_context_;
-  marshaled.request_number = request_number_;
-
-  for (auto& rule_id : active_static_rules_) {
-    marshaled.static_rule_ids.push_back(rule_id);
-  }
-  std::vector<PolicyRule> dynamic_rules;
-  dynamic_rules_.get_rules(dynamic_rules);
-  marshaled.dynamic_rules = std::move(dynamic_rules);
-
-  return marshaled;
+void SessionState::unmarshal_config(const StoredSessionConfig& marshaled)
+{
+  SessionState::Config cfg{};
+  cfg.ue_ipv4 = marshaled.ue_ipv4;
+  cfg.spgw_ipv4 = marshaled.spgw_ipv4;
+  cfg.msisdn = marshaled.msisdn;
+  cfg.apn = marshaled.apn;
+  cfg.imei = marshaled.apn;
+  cfg.plmn_id = marshaled.plmn_id;
+  cfg.imsi_plmn_id = marshaled.imsi_plmn_id;
+  cfg.user_location = marshaled.user_location;
+  cfg.rat_type = marshaled.rat_type;
+  cfg.mac_addr = marshaled.mac_addr; // MAC Address for WLAN
+  cfg.hardware_addr = marshaled.hardware_addr; // MAC Address for WLAN (binary)
+  cfg.radius_session_id = marshaled.radius_session_id;
+  cfg.bearer_id = marshaled.bearer_id;
+  SessionState::QoSInfo qos_info{};
+  qos_info.enabled = marshaled.qos_info.enabled;
+  qos_info.qci = marshaled.qos_info.qci;
+  cfg.qos_info = qos_info;
+  config_ = cfg;
 }
 
 SessionState::SessionState(
@@ -165,14 +190,14 @@ void SessionState::add_used_credit(
 
   CreditKey charging_key;
   if (get_charging_key_for_rule_id(rule_id, &charging_key)) {
-    MLOG(MDEBUG) << "Updating used charging credit for Rule=" << rule_id
+    MLOG(MINFO) << "Updating used charging credit for Rule=" << rule_id
                  << " Rating Group=" << charging_key.rating_group
                  << " Service Identifier=" << charging_key.service_identifier;
     charging_pool_.add_used_credit(charging_key, used_tx, used_rx, update_criteria);
   }
   std::string monitoring_key;
   if (get_monitoring_key_for_rule_id(rule_id, &monitoring_key)) {
-    MLOG(MDEBUG) << "Updating used monitoring credit for Rule=" << rule_id
+    MLOG(MINFO) << "Updating used monitoring credit for Rule=" << rule_id
                  << " Monitoring Key=" << monitoring_key;
     monitor_pool_.add_used_credit(monitoring_key, used_tx, used_rx, update_criteria);
   }
@@ -263,11 +288,14 @@ void SessionState::get_updates(
   get_updates_from_monitor_pool(update_request_out, actions_out, update_criteria, force_update);
 }
 
-void SessionState::start_termination(
-  std::function<void(SessionTerminateRequest)> on_termination_callback,
-  SessionStateUpdateCriteria& update_criteria)
+void SessionState::start_termination(SessionStateUpdateCriteria& update_criteria)
 {
   curr_state_ = SESSION_TERMINATING_FLOW_ACTIVE;
+}
+
+void SessionState::set_termination_callback(
+  std::function<void(SessionTerminateRequest)> on_termination_callback)
+{
   on_termination_callback_ = on_termination_callback;
 }
 
@@ -317,14 +345,60 @@ void SessionState::complete_termination(
   termination.set_hardware_addr(config_.hardware_addr);
   termination.set_rat_type(config_.rat_type);
   fill_protos_tgpp_context(termination.mutable_tgpp_ctx());
-  monitor_pool_.get_termination_updates(&termination);
-  charging_pool_.get_termination_updates(&termination);
+  monitor_pool_.get_termination_updates(&termination, update_criteria);
+  charging_pool_.get_termination_updates(&termination, update_criteria);
   try {
     on_termination_callback_(termination);
   } catch (std::bad_function_call&) {
     MLOG(MERROR) << "Missing termination callback function while terminating "
                     "session for IMSI "
                  << imsi_ << " and session id " << session_id_;
+  }
+}
+
+void SessionState::complete_termination(
+  SessionReporter& reporter,
+  SessionStateUpdateCriteria& update_criteria)
+{
+  if (curr_state_ == SESSION_TERMINATED) {
+    // session is already terminated. Do nothing.
+    return;
+  }
+  if (!can_complete_termination()) {
+    MLOG(MERROR) << "Encountered unexpected state(" << curr_state_
+                 << ") while terminating session for IMSI " << imsi_
+                 << " and session id " << session_id_
+                 << ". Forcefully terminating session.";
+  }
+  // mark entire session as terminated
+  curr_state_ = SESSION_TERMINATED;
+  SessionTerminateRequest termination;
+  termination.set_sid(imsi_);
+  termination.set_session_id(session_id_);
+  termination.set_request_number(request_number_);
+  termination.set_ue_ipv4(config_.ue_ipv4);
+  termination.set_msisdn(config_.msisdn);
+  termination.set_spgw_ipv4(config_.spgw_ipv4);
+  termination.set_apn(config_.apn);
+  termination.set_imei(config_.imei);
+  termination.set_plmn_id(config_.plmn_id);
+  termination.set_imsi_plmn_id(config_.imsi_plmn_id);
+  termination.set_user_location(config_.user_location);
+  termination.set_hardware_addr(config_.hardware_addr);
+  termination.set_rat_type(config_.rat_type);
+  fill_protos_tgpp_context(termination.mutable_tgpp_ctx());
+  monitor_pool_.get_termination_updates(&termination, update_criteria);
+  charging_pool_.get_termination_updates(&termination, update_criteria);
+  try {
+    on_termination_callback_(termination);
+  } catch (std::bad_function_call&) {
+    on_termination_callback_ = [&reporter](SessionTerminateRequest term_req) {
+      // report to cloud
+      auto logging_cb =
+          SessionReporter::get_terminate_logging_cb(term_req);
+      reporter.report_terminate_session(term_req, logging_cb);
+    };
+    on_termination_callback_(termination);
   }
 }
 
@@ -531,6 +605,9 @@ void SessionState::insert_dynamic_rule(
   const PolicyRule& rule,
   SessionStateUpdateCriteria& update_criteria)
 {
+  if (is_dynamic_rule_installed(rule.id())) {
+    return;
+  }
   update_criteria.dynamic_rules_to_install.push_back(rule);
   dynamic_rules_.insert_rule(rule);
 }
@@ -539,7 +616,7 @@ void SessionState::activate_static_rule(
   const std::string& rule_id,
   SessionStateUpdateCriteria& update_criteria)
 {
-  update_criteria.static_rules_to_install.push_back(rule_id);
+  update_criteria.static_rules_to_install.insert(rule_id);
   active_static_rules_.push_back(rule_id);
 }
 
@@ -548,8 +625,11 @@ bool SessionState::remove_dynamic_rule(
   PolicyRule *rule_out,
   SessionStateUpdateCriteria& update_criteria)
 {
-  update_criteria.dynamic_rules_to_uninstall.push_back(rule_id);
-  return dynamic_rules_.remove_rule(rule_id, rule_out);
+  bool removed = dynamic_rules_.remove_rule(rule_id, rule_out);
+  if (removed) {
+    update_criteria.dynamic_rules_to_uninstall.insert(rule_id);
+  }
+  return removed;
 }
 
 bool SessionState::deactivate_static_rule(
@@ -561,7 +641,7 @@ bool SessionState::deactivate_static_rule(
   if (it == active_static_rules_.end()) {
     return false;
   }
-  update_criteria.static_rules_to_uninstall.push_back(rule_id);
+  update_criteria.static_rules_to_uninstall.insert(rule_id);
   active_static_rules_.erase(it);
   return true;
 }
@@ -592,4 +672,7 @@ uint32_t SessionState::get_credit_key_count()
   return charging_pool_.get_credit_key_count() + monitor_pool_.get_credit_key_count();
 }
 
+bool SessionState::is_active() {
+  return (curr_state_ == SESSION_ACTIVE);
+}
 } // namespace magma

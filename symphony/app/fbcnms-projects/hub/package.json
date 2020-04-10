@@ -2,11 +2,18 @@
   "name": "@fbcnms/hub",
   "private": true,
   "version": "0.1.0",
+  "scripts": {
+    "relay": "fbcnms-relay-compiler --src ./app --schema ./resources/schema.graphql"
+  },
   "dependencies": {
     "@fbcnms/ui": "^0.1.0",
-    "classnames": "^2.2.5"
+    "classnames": "^2.2.5",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-relay": "0.0.0-experimental-5f1cb628"
   },
   "devDependencies": {
+    "@fbcnms/relay": "^0.1.0",
     "@fbcnms/test": "^0.1.0",
     "@testing-library/react": "^9.4.0",
     "@testing-library/react-hooks": "^3.2.1",

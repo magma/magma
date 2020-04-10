@@ -14,6 +14,7 @@ import os
 import threading
 import time
 from queue import Queue
+import grpc
 
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
@@ -24,9 +25,19 @@ from lte.protos.policydb_pb2 import (
     PolicyRule,
     QosArp,
 )
+from lte.protos.session_manager_pb2 import (
+    DynamicRuleInstall,
+    PolicyReAuthRequest,
+    QoSInformation,
+)
 from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
+from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
+from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
+from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
+
+DEFAULT_GRPC_TIMEOUT = 10
 
 
 class S1ApUtil(object):
@@ -578,3 +589,140 @@ class SpgwUtil(object):
             sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=[ebi]
         )
         self._stub.DeleteBearer(req)
+
+
+class SessionManagerUtil(object):
+    """
+    Helper class to communicate with session manager for the tests.
+    """
+
+    def __init__(self):
+        """
+        Initialize sessionManager util.
+        """
+        self._session_stub = SessionProxyResponderStub(
+            get_rpc_channel("sessiond")
+        )
+        self._directorydstub = GatewayDirectoryServiceStub(
+            get_rpc_channel("directoryd")
+        )
+
+    def get_flow_match(self, flow_list, flow_match_list):
+        """
+        Populates flow match list
+        """
+        for flow in flow_list:
+            flow_direction = (
+                FlowMatch.UPLINK
+                if flow["direction"] == "UL"
+                else FlowMatch.DOWNLINK
+            )
+            ip_protocol = flow["ip_proto"]
+            if ip_protocol == "TCP":
+                ip_protocol = FlowMatch.IPPROTO_TCP
+                udp_src_port = 0
+                udp_dst_port = 0
+                tcp_src_port = (
+                    int(flow["tcp_src_port"]) if "tcp_src_port" in flow else 0
+                )
+                tcp_dst_port = (
+                    int(flow["tcp_dst_port"]) if "tcp_dst_port" in flow else 0
+                )
+            elif ip_protocol == "UDP":
+                ip_protocol = FlowMatch.IPPROTO_UDP
+                tcp_src_port = 0
+                tcp_dst_port = 0
+                udp_src_port = (
+                    int(flow["udp_src_port"]) if "udp_src_port" in flow else 0
+                )
+                udp_dst_port = (
+                    int(flow["udp_dst_port"]) if "udp_dst_port" in flow else 0
+                )
+            else:
+                udp_src_port = 0
+                udp_dst_port = 0
+                tcp_src_port = 0
+                tcp_dst_port = 0
+
+            ipv4_src_addr = flow.get("ipv4_src", None)
+            ipv4_dst_addr = flow.get("ipv4_dst", None)
+
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        ipv4_dst=ipv4_dst_addr,
+                        ipv4_src=ipv4_src_addr,
+                        tcp_src=tcp_src_port,
+                        tcp_dst=tcp_dst_port,
+                        udp_src=udp_src_port,
+                        udp_dst=udp_dst_port,
+                        ip_proto=ip_protocol,
+                        direction=flow_direction,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+
+    def create_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
+        """
+        Sends Policy RAR message to session manager
+        """
+        print("Sending Policy RAR message to session manager")
+        flow_match_list = []
+        res = None
+        self.get_flow_match(flow_list, flow_match_list)
+
+        policy_qos = FlowQos(
+            qci=qos["qci"],
+            max_req_bw_ul=qos["max_req_bw_ul"],
+            max_req_bw_dl=qos["max_req_bw_dl"],
+            gbr_ul=qos["gbr_ul"],
+            gbr_dl=qos["gbr_dl"],
+            arp=QosArp(
+                priority_level=qos["arp_prio"],
+                pre_capability=qos["pre_cap"],
+                pre_vulnerability=qos["pre_vul"],
+            ),
+        )
+
+        policy_rule = PolicyRule(
+            id=policy_id,
+            priority=qos["priority"],
+            flow_list=flow_match_list,
+            tracking_type=PolicyRule.NO_TRACKING,
+            rating_group=1,
+            monitoring_key=None,
+            qos=policy_qos,
+        )
+
+        qos = QoSInformation(qci=qos["qci"])
+
+        # Get sessionid
+        req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
+        try:
+            res = self._directorydstub.GetDirectoryField(
+                req, DEFAULT_GRPC_TIMEOUT
+            )
+        except grpc.RpcError as err:
+            logging.error(
+                "GetDirectoryFieldRequest error for id: %s! [%s] %s",
+                imsi,
+                err.code(),
+                err.details(),
+            )
+
+        self._session_stub.PolicyReAuth(
+            PolicyReAuthRequest(
+                session_id=res.value,
+                imsi=imsi,
+                rules_to_remove=[],
+                rules_to_install=[],
+                dynamic_rules_to_install=[
+                    DynamicRuleInstall(policy_rule=policy_rule)
+                ],
+                event_triggers=[],
+                revalidation_time=None,
+                usage_monitoring_credits=[],
+                qos_info=qos,
+            )
+        )

@@ -9,6 +9,9 @@ services:
   # Example service name that contains dash: hello-world-blah
   # As we use "-" in nghttpx config to connect service name and hostname,
   # "-" is used as a delimiter in dispatcher to parse out service names.
+
+  # IMPORTANT: If you change a port in this file, ensure that the health checks
+  # at magma/cwf/gateway/docker/docker-compose.yml are updated.
   subscriberdb:
     ip_address: 127.0.0.1
     port: 50051
@@ -22,15 +25,23 @@ services:
   mobilityd:
     ip_address: 127.0.0.1
     port: 60051
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
   pipelined:
     ip_address: 127.0.0.1
     port: 50063
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
   sessiond:
     ip_address: 127.0.0.1
     port: 50065
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
   directoryd:
     ip_address: 127.0.0.1
     port: 50067
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
   policydb:
     ip_address: 127.0.0.1
     port: 50068
@@ -40,18 +51,22 @@ services:
   state:
     ip_address: 127.0.0.1
     port: 50074
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
   aaa_server:
     ip_address: 127.0.0.1
     port: 9109
   abort_session_service:
     ip_address: 127.0.0.1
     port: 9109
+  # If modifying the port, ensure the healthcheck at
+  # magma/cwf/gateway/docker/docker-compose.yml is updated
   eap_aka:
     ip_address: 127.0.0.1
     port: 9123
-  redis:
+  health:
     ip_address: 127.0.0.1
-    port: 6380
+    port: 9107
   radiusd:
     ip_address: 127.0.0.1
     port: 9115

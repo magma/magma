@@ -12,7 +12,7 @@ import type {CheckListItemFillingProps} from './CheckListItemFilling';
 import type {YesNoResponse} from '../../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
 
 import * as React from 'react';
-import CommonStrings from '../../../common/CommonStrings';
+import CommonStrings from '@fbcnms/strings/Strings';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';

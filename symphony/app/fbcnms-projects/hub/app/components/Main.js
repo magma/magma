@@ -13,6 +13,7 @@ import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import HubVersion from './HubVersion';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
 import React, {useContext} from 'react';
 import RouterIcon from '@material-ui/icons/Router';
@@ -20,7 +21,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
+import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {shouldShowSettings} from '@fbcnms/magmalte/app/components/Settings';
 import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
@@ -57,6 +58,8 @@ function CreateServiceForm() {
       <div className={classes.header}>
         <Text variant="h5">Create a Service</Text>
       </div>
+      <br />
+      <HubVersion />
       <br />
       <Text>Service Name</Text>
       <TextInput />

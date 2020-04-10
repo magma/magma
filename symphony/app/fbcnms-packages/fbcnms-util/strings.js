@@ -26,6 +26,10 @@ export function base64ToHex(base64String: string): string {
   return Buffer.from(base64String, 'base64').toString('hex');
 }
 
+export function decodeBase64(base64String: string): string {
+  return Buffer.from(base64String, 'base64').toString();
+}
+
 export function isValidHex(hexString: string): boolean {
   return hexString.match(/^[a-fA-F0-9]*$/) !== null;
 }

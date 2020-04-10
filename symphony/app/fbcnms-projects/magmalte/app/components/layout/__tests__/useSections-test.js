@@ -16,7 +16,7 @@ import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
 jest.mock('@fbcnms/magma-api');
 jest.mock('mapbox-gl', () => {});
-jest.mock('../../MapView', () => {});
+jest.mock('@fbcnms/ui/insights/map/MapView', () => {});
 
 import {AllNetworkTypes} from '@fbcnms/types/network';
 

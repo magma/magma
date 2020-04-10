@@ -26,7 +26,7 @@ import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import React from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import Strings from '../common/CommonStrings';
+import Strings from '../common/InventoryStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {withSnackbar} from 'notistack';

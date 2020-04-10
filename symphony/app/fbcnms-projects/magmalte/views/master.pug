@@ -1,0 +1,19 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+doctype html
+html
+  head
+    title Magma
+    meta(charset="utf-8")
+    meta(http-equiv="x-ua-compatible" content="ie=edge")
+    meta(name="description", content="Magma NMS")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    link(rel="shortcut icon" type="image/png" href="/nms/static/images/favicon.png")
+    script(src=staticDist("vendor.js", "nms"))
+    script.
+      var CONFIG = !{configJson};
+  body
+    div(id="root")
+    script(src=staticDist("master.js", "nms"))

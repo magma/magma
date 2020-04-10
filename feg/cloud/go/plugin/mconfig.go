@@ -70,17 +70,26 @@ func (*Builder) Build(
 			RequestFailureThreshold: healthc.RequestFailureThreshold,
 			MinimumRequestThreshold: healthc.MinimumRequestThreshold,
 		}
+		// Servers include the content of server
 		if gxc != nil {
 			mc.Gx = &mconfig.GxConfig{
 				OverwriteApn: gxc.OverwriteApn,
-				Server:       gxc.Server.ToMconfig(),
+				Servers:      models.ToMultipleServersMconfig(gxc.Server, gxc.Servers),
+			}
+			// TODO: once backwards compatibility is not needed, remove server from swagger, remove server from mconfg
+			if len(mc.Gx.Servers) > 0 {
+				mc.Gx.Server = mc.Gx.Servers[0]
 			}
 		}
 		if gyc != nil {
 			mc.Gy = &mconfig.GyConfig{
 				InitMethod:   getGyInitMethod(gyc.InitMethod),
 				OverwriteApn: gyc.OverwriteApn,
-				Server:       gyc.Server.ToMconfig(),
+				Servers:      models.ToMultipleServersMconfig(gyc.Server, gyc.Servers),
+			}
+			// TODO: once backwards compatibility is not needed, remove server from swagger, remove server from mconfg
+			if len(mc.Gy.Servers) > 0 {
+				mc.Gy.Server = mc.Gy.Servers[0]
 			}
 		}
 		mconfigOut["session_proxy"] = mc

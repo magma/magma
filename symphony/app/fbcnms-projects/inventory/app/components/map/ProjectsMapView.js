@@ -9,7 +9,7 @@
  */
 
 import type {LngLatLike} from 'mapbox-gl/src/geo/lng_lat';
-import type {MapType} from '@fbcnms/magmalte/app/components/map/styles';
+import type {MapType} from '@fbcnms/ui/insights/map/styles';
 import type {ProjectGeoJSONFeatureCollection} from './ProjectsMapUtils';
 import type {WithStyles} from '@material-ui/core';
 
@@ -24,7 +24,7 @@ import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {black, blue70, white} from '@fbcnms/ui/theme/colors';
-import {getMapStyleForType} from '@fbcnms/magmalte/app/components/map/styles';
+import {getMapStyleForType} from '@fbcnms/ui/insights/map/styles';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = () => ({
@@ -278,7 +278,7 @@ class ProjectsMapView extends React.Component<Props, State> {
       const geometry = nullthrows(feature.geometry);
       const selectedFeatureId = feature.properties?.id;
       if (geometry.type === 'Point') {
-        const marker = new mapboxgl.Marker(<div />)
+        const marker = new mapboxgl.Marker((<div />))
           .setLngLat(geometry.coordinates)
           .addTo(map);
         ReactDOM.render(

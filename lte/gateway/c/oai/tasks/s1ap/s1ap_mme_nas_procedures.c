@@ -375,19 +375,20 @@ int s1ap_mme_handle_nas_non_delivery(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) nasNonDeliveryIndication_p->mme_ue_s1ap_id,
+      &imsi64);
+
   if (ue_ref->s1_ue_state != S1AP_UE_CONNECTED) {
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_S1AP,
+      imsi64,
       "Received S1AP NAS_NON_DELIVERY_INDICATION while UE in state != "
       "S1AP_UE_CONNECTED\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(
-    imsi_map->mme_ue_id_imsi_htbl,
-    (const hash_key_t) nasNonDeliveryIndication_p->mme_ue_s1ap_id,
-    &imsi64);
 
   //TODO: forward NAS PDU to NAS
   s1ap_mme_itti_nas_non_delivery_ind(
@@ -462,8 +463,9 @@ int s1ap_generate_downlink_nas_transport(
     message.procedureCode = S1ap_ProcedureCode_id_downlinkNASTransport;
     message.direction = S1AP_PDU_PR_initiatingMessage;
     if (ue_ref->s1_ue_state == S1AP_UE_WAITING_CRR) {
-      OAILOG_ERROR(
-        LOG_S1AP, "Already triggred UE Context Release Command and UE is"
+      OAILOG_ERROR_UE(
+        LOG_S1AP, imsi64,
+        "Already triggred UE Context Release Command and UE is"
         "in S1AP_UE_WAITING_CRR, so dropping the DownlinkNASTransport \n");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     } else {
@@ -489,8 +491,9 @@ int s1ap_generate_downlink_nas_transport(
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
 
-    OAILOG_NOTICE(
+    OAILOG_NOTICE_UE(
       LOG_S1AP,
+      imsi64,
       "Send S1AP DOWNLINK_NAS_TRANSPORT message ue_id = " MME_UE_S1AP_ID_FMT
       " MME_UE_S1AP_ID = " MME_UE_S1AP_ID_FMT
       " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
@@ -750,6 +753,10 @@ void s1ap_handle_conn_est_cnf(
     OAILOG_FUNC_OUT(LOG_S1AP);
   }
 
+  imsi64_t imsi64;
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) conn_est_cnf_pP->ue_id, &imsi64);
+
   /*
    * Start the outcome response timer.
    * * * * When time is reached, MME consider that procedure outcome has failed.
@@ -775,7 +782,8 @@ void s1ap_handle_conn_est_cnf(
    * Only add capability information if it's not empty.
    */
   if (conn_est_cnf_pP->ue_radio_capability) {
-    OAILOG_DEBUG(LOG_S1AP, "UE radio capability found, adding to message\n");
+    OAILOG_DEBUG_UE(LOG_S1AP, imsi64,
+        "UE radio capability found, adding to message\n");
     initialContextSetupRequest_p->presenceMask |=
       S1AP_INITIALCONTEXTSETUPREQUESTIES_UERADIOCAPABILITY_PRESENT;
     OCTET_STRING_fromBuf(
@@ -879,12 +887,14 @@ void s1ap_handle_conn_est_cnf(
     .integrityProtectionAlgorithms.size = 2;
   initialContextSetupRequest_p->ueSecurityCapabilities
     .integrityProtectionAlgorithms.bits_unused = 0;
-  OAILOG_DEBUG(
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
+    imsi64,
     "security_capabilities_encryption_algorithms 0x%04X\n",
     conn_est_cnf_pP->ue_security_capabilities_encryption_algorithms);
-  OAILOG_DEBUG(
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
+    imsi64,
     "security_capabilities_integrity_algorithms 0x%04X\n",
     conn_est_cnf_pP->ue_security_capabilities_integrity_algorithms);
 
@@ -907,15 +917,16 @@ void s1ap_handle_conn_est_cnf(
   if (s1ap_mme_encode_pdu(&message, &buffer_p, &length) < 0) {
     free_s1ap_initialcontextsetuprequest(initialContextSetupRequest_p);
     // TODO: handle something
-    OAILOG_ERROR(
-      LOG_S1AP, "Failed to encode initial context setup request message for "
+    OAILOG_ERROR_UE(
+      LOG_S1AP, imsi64,
+      "Failed to encode initial context setup request message for "
       "ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_ref->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_S1AP);
   }
 
-  OAILOG_NOTICE(
-    LOG_S1AP,
+  OAILOG_NOTICE_UE(
+    LOG_S1AP, imsi64,
     "Send S1AP_INITIAL_CONTEXT_SETUP_REQUEST message MME_UE_S1AP_ID "
     "= " MME_UE_S1AP_ID_FMT " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
     (mme_ue_s1ap_id_t) initialContextSetupRequest_p->mme_ue_s1ap_id,

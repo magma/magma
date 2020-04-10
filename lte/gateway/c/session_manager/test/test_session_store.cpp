@@ -119,8 +119,8 @@ class SessionStoreTest : public ::testing::Test {
     auto update_criteria = SessionStateUpdateCriteria{};
 
     // Rule installation
-    update_criteria.static_rules_to_install = std::vector<std::string>{};
-    update_criteria.static_rules_to_install.push_back(rule_id_1);
+    update_criteria.static_rules_to_install = std::set<std::string>{};
+    update_criteria.static_rules_to_install.insert(rule_id_1);
     update_criteria.dynamic_rules_to_install = std::vector<PolicyRule>{};
     update_criteria.dynamic_rules_to_install.push_back(get_dynamic_rule());
 
@@ -213,17 +213,18 @@ TEST_F(SessionStoreTest, test_read_and_write)
 
   // 2) Create bare-bones session for IMSI1
   auto session = get_session(sid, rule_store);
-  session->activate_static_rule(rule_id_3);
+  auto uc = get_default_update_criteria();
+  session->activate_static_rule(rule_id_3, uc);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session->get_request_number(), 2);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_3),true);
 
   auto credit_update = get_monitoring_update();
   UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
-  session->get_monitor_pool().receive_credit(credit_update_ref);
+  session->get_monitor_pool().receive_credit(credit_update_ref, uc);
 
   // Add some used credit
-  session->get_monitor_pool().add_used_credit(monitoring_key, uint64_t(111), uint64_t(333));
+  session->get_monitor_pool().add_used_credit(monitoring_key, uint64_t(111), uint64_t(333), uc);
   EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_TX), 111);
   EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_RX), 333);
 
@@ -273,7 +274,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
 
   // Check for installation of new monitoring credit
   session_map[imsi].front()->get_monitor_pool().add_monitor(monitoring_key2,
-    UsageMonitoringCreditPool::unmarshal_monitor(update_criteria.monitor_credit_to_install[monitoring_key2]));
+    UsageMonitoringCreditPool::unmarshal_monitor(update_criteria.monitor_credit_to_install[monitoring_key2]), uc);
   EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key2, USED_TX), 100);
   EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key2, USED_RX), 200);
 
@@ -338,6 +339,30 @@ TEST_F(SessionStoreTest, test_get_default_session_update)
   EXPECT_EQ(update.size(), 2);
   EXPECT_EQ(update[imsi].size(), 1);
   EXPECT_EQ(update[imsi2].size(), 2);
+}
+
+TEST_F(SessionStoreTest, test_update_session_rules)
+{
+  // 1) Create SessionStore
+  auto rule_store = std::make_shared<StaticRuleStore>();
+  auto session_store = new SessionStore(rule_store);
+
+  // 2) Create a single session and write it into the store
+  auto session1 = get_session(sid, rule_store);
+  auto session_vec = std::vector<std::unique_ptr<SessionState>>{};
+  session_vec.push_back(std::move(session1));
+  session_store->create_sessions(imsi, std::move(session_vec));
+
+  // 3) Try to update the session in SessionStore with a rule installation
+  auto session_map = session_store->read_sessions(SessionRead{imsi});
+  auto session_update = SessionStore::get_default_session_update(session_map);
+
+  auto uc = get_default_update_criteria();
+  uc.static_rules_to_install.insert("RULE_asdf");
+  session_update[imsi][sid] = uc;
+
+  auto update_success = session_store->update_sessions(session_update);
+  EXPECT_TRUE(update_success);
 }
 
 int main(int argc, char **argv)

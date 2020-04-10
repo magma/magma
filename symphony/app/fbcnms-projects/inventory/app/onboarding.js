@@ -32,7 +32,7 @@ import axios from 'axios';
 import {} from './common/axiosConfig';
 import nullthrows from '@fbcnms/util/nullthrows';
 import renderList from '@fbcnms/util/renderList';
-import {getProjectTabs} from '@fbcnms/magmalte/app/common/projects';
+import {getProjectTabs} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 

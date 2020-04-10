@@ -102,7 +102,8 @@ RUN apt-get -y update && apt-get -y install \
   magma-cpp-redis \
   grpc-dev \
   protobuf-compiler \
-  libprotoc-dev
+  libprotoc-dev \
+  netcat
 
 # Copy the build artifacts.
 COPY --from=builder /build/c/session_manager/sessiond /usr/local/bin/sessiond

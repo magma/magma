@@ -34,6 +34,7 @@ static_services: [
   'tunnel_learn',
   'vlan_learn',
   'ipfix',
+  'li_mirror',
   'ryu_rest_service',
   'startup_flows',
 #  'packet_tracer',
@@ -93,7 +94,7 @@ allow_unknown_arps: False
 # Configuration for IPFIX sampling
 ipfix:
   enabled: true
-  probability: 30000
+  probability: 650
   collector_set_id: 1
   cache_timeout: 60
   obs_domain_id: 1
@@ -101,8 +102,8 @@ ipfix:
 
 # Configuration for LI mirroring
 li_local_iface: li_port
-li_mirror_all: true
-li_dst_iface: eth4
+li_mirror_all: false
+#li_dst_iface: eth4
 
 # Interface to NAT traffic to
 nat_iface: eth2

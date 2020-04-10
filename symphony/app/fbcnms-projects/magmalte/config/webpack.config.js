@@ -11,8 +11,12 @@
 'use strict';
 
 const webpackConfig = require('fbcnms-webpack-config/dev-webpack');
+const paths = require('fbcnms-webpack-config/paths');
 
 module.exports = webpackConfig.createDevWebpackConfig({
   hot: true,
   projectName: 'nms',
+  entry: {
+    master: paths.resolveApp('app/master.js'),
+  },
 });
