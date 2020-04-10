@@ -14,7 +14,7 @@ BUILD_TYPE ?= Debug
 # s6a with fd (freeDiameter)
 
 # Default is agw with OpenFlow, gRPC over S6a , (no freeDiameter over s6a).
-FEATURES ?= agw_of
+FEATURES ?= mme
 # EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.
 EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
@@ -43,7 +43,7 @@ endif
 
 ifeq ($(MAIN_FEATURE),mme)
 # Here force S6A to use freeDiameter
-OAI_FLAGS = -DS6A_OVER_GRPC=False
+OAI_FLAGS = -DS6A_OVER_GRPC=True
 else ifeq ($(MAIN_FEATURE),agw_gtpnl)
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=False -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=False
 else ifeq ($(MAIN_FEATURE),agw_of)
