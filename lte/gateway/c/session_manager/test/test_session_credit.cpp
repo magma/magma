@@ -95,7 +95,7 @@ TEST_P(SessionCreditParameterizedTest, test_collect_updates)
     default_final_action_info, uc);
   credit.add_used_credit(500, 524, uc);
   EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
-  auto update = credit.get_usage_for_reporting(false, uc);
+  auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 500);
   EXPECT_EQ(update.bytes_rx, 524);
 
@@ -124,7 +124,7 @@ TEST_P(SessionCreditParameterizedTest,
     default_final_action_info, uc);
   credit.add_used_credit(300, 500, uc);
   EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
-  auto update = credit.get_usage_for_reporting(false, uc);
+  auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 300);
   EXPECT_EQ(update.bytes_rx, 500);
 
@@ -150,7 +150,7 @@ TEST_P(SessionCreditParameterizedTest, test_collect_updates_timer_expiries)
 
   std::this_thread::sleep_for(std::chrono::milliseconds(1001));
   EXPECT_EQ(credit.get_update_type(), CREDIT_VALIDITY_TIMER_EXPIRED);
-  auto update = credit.get_usage_for_reporting(false, uc);
+  auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 20);
   EXPECT_EQ(update.bytes_rx, 30);
 }
@@ -181,7 +181,7 @@ TEST_P(SessionCreditParameterizedTest, test_collect_updates_when_overusing)
     default_final_action_info, uc);
   credit.add_used_credit(510, 500, uc);
   EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
-  auto update = credit.get_usage_for_reporting(false, uc);
+  auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 510);
   EXPECT_EQ(update.bytes_rx, 490);
 
@@ -206,7 +206,7 @@ TEST_P(SessionCreditParameterizedTest, test_add_rx_tx_credit)
     default_final_action_info, uc);
   credit.add_used_credit(1000, 0, uc);
   EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
-  auto update = credit.get_usage_for_reporting(false, uc);
+  auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 1000);
   EXPECT_EQ(update.bytes_rx, 0);
 
@@ -215,7 +215,7 @@ TEST_P(SessionCreditParameterizedTest, test_add_rx_tx_credit)
     default_final_action_info, uc);
   credit.add_used_credit(0, 1000, uc);
   EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
-  auto update2 = credit.get_usage_for_reporting(false, uc);
+  auto update2 = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update2.bytes_tx, 0);
   EXPECT_EQ(update2.bytes_rx, 1000);
 
