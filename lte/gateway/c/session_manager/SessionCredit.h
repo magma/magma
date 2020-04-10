@@ -9,15 +9,15 @@
 #pragma once
 
 #include <ctime>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
-#include <memory>
 
 #include <lte/protos/session_manager.grpc.pb.h>
 
+#include "CreditKey.h"
 #include "ServiceAction.h"
 #include "StoredState.h"
-#include "CreditKey.h"
 
 namespace magma {
 
@@ -39,7 +39,7 @@ enum CreditType {
  * there is an update (quota exhausted, etc)
  */
 class SessionCredit {
- public:
+public:
   struct Usage {
     uint64_t bytes_tx;
     uint64_t bytes_rx;
@@ -50,9 +50,8 @@ class SessionCredit {
     RedirectServer redirect_server;
   };
 
-  static std::unique_ptr<SessionCredit> unmarshal(
-    const StoredSessionCredit &marshaled,
-    CreditType credit_type);
+  static std::unique_ptr<SessionCredit>
+  unmarshal(const StoredSessionCredit &marshaled, CreditType credit_type);
 
   StoredSessionCredit marshal();
 
@@ -62,45 +61,36 @@ class SessionCredit {
 
   SessionCredit(CreditType credit_type, ServiceState start_state);
 
-  SessionCredit(
-    CreditType credit_type,
-    ServiceState start_state,
-    bool unlimited_quota);
+  SessionCredit(CreditType credit_type, ServiceState start_state,
+                bool unlimited_quota);
 
   /**
    * add_used_credit increments USED_TX and USED_RX
    * as being recently updated
    */
-  void add_used_credit(
-    uint64_t used_tx,
-    uint64_t used_rx,
-    SessionCreditUpdateCriteria& update_criteria);
+  void add_used_credit(uint64_t used_tx, uint64_t used_rx,
+                       SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * reset_reporting_credit resets the REPORTING_* to 0
    * Also marks the session as not in reporting.
    */
-  void reset_reporting_credit(SessionCreditUpdateCriteria& update_criteria);
+  void reset_reporting_credit(SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * Credit update has failed to the OCS, so mark this credit as failed so it
    * can be cut off accordingly
    */
-  void mark_failure(
-    uint32_t code,
-    SessionCreditUpdateCriteria& update_criteria);
+  void mark_failure(uint32_t code,
+                    SessionCreditUpdateCriteria &update_criteria);
   /**
    * receive_credit increments ALLOWED* and moves the REPORTING_* credit to
    * the REPORTED_* credit
    */
-  void receive_credit(
-    uint64_t total_volume,
-    uint64_t tx_volume,
-    uint64_t rx_volume,
-    uint32_t validity_time,
-    bool is_final_grant,
-    FinalActionInfo final_action_info,
-    SessionCreditUpdateCriteria& update_criteria);
+  void receive_credit(uint64_t total_volume, uint64_t tx_volume,
+                      uint64_t rx_volume, uint32_t validity_time,
+                      bool is_final_grant, FinalActionInfo final_action_info,
+                      SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * get_update_type returns the type of update required for the credit. If no
@@ -114,15 +104,15 @@ class SessionCredit {
    * one if no update exists. Check has_update before calling.
    * This method also sets the REPORTING_* credit buckets
    */
-  SessionCredit::Usage get_usage_for_reporting(
-    bool is_termination,
-    SessionCreditUpdateCriteria& update_criteria);
+  SessionCredit::Usage
+  get_usage_for_reporting(bool is_termination,
+                          SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * get_action returns the action to take on the credit based on the last
    * update. If no action needs to take place, CONTINUE_SERVICE is returned.
    */
-  ServiceActionType get_action(SessionCreditUpdateCriteria& update_criteria);
+  ServiceActionType get_action(SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * Returns true if either of REPORTING_* buckets are more than 0
@@ -138,7 +128,7 @@ class SessionCredit {
    * Mark the credit to be in the REAUTH_REQUIRED state. The next time
    * get_update is called, this credit will report its usage.
    */
-  void reauth(SessionCreditUpdateCriteria& update_criteria);
+  void reauth(SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * Returns
@@ -150,36 +140,32 @@ class SessionCredit {
    * NOTE: Use only for merging updates into SessionStore
    * @param is_final_grant
    */
-  void set_is_final_grant(
-    bool is_final_grant,
-    SessionCreditUpdateCriteria& update_criteria);
+  void set_is_final_grant(bool is_final_grant,
+                          SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * Set ReAuthState.
    * NOTE: Use only for merging updates into SessionStore
    * @param reauth_state
    */
-  void set_reauth(
-    ReAuthState reauth_state,
-    SessionCreditUpdateCriteria& update_criteria);
+  void set_reauth(ReAuthState reauth_state,
+                  SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * Set ServiceState.
    * NOTE: Use only for merging updates into SessionStore
    * @param service_state
    */
-  void set_service_state(
-    ServiceState new_service_state,
-    SessionCreditUpdateCriteria& update_criteria);
+  void set_service_state(ServiceState new_service_state,
+                         SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * Set expiry time of SessionCredit
    * NOTE: Use only for merging updates into SessionStore
    * @param expiry_time
    */
-  void set_expiry_time(
-    std::time_t expiry_time,
-    SessionCreditUpdateCriteria& update_criteria);
+  void set_expiry_time(std::time_t expiry_time,
+                       SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * Add credit to the specified bucket. This does not necessarily correspond
@@ -188,10 +174,8 @@ class SessionCredit {
    * @param credit
    * @param bucket
    */
-  void add_credit(
-    uint64_t credit,
-    Bucket bucket,
-    SessionCreditUpdateCriteria& update_criteria);
+  void add_credit(uint64_t credit, Bucket bucket,
+                  SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * A threshold represented as a ratio for triggering usage update before
@@ -216,7 +200,7 @@ class SessionCredit {
    */
   static bool TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
 
- private:
+private:
   bool reporting_;
   bool is_final_grant_;
   bool unlimited_quota_;
@@ -233,7 +217,7 @@ class SessionCredit {
   static const std::set<uint32_t> transient_result_codes_;
   CreditType credit_type_;
 
- private:
+private:
   /**
    * is_quota_exhausted checks if any of the tx, rx, or combined tx+rx are
    * exhausted. The exception to this is if ALLOWED_RX or ALLOWED_TX are 0,
@@ -253,18 +237,17 @@ class SessionCredit {
    *        is exhausted.
    * @return true if quota is exhausted for the session
    */
-  bool is_quota_exhausted(
-    float usage_reporting_threshold = 1, uint64_t extra_quota_margin = 0) const;
+  bool is_quota_exhausted(float usage_reporting_threshold = 1,
+                          uint64_t extra_quota_margin = 0) const;
 
   void log_quota_and_usage() const;
 
-  bool should_deactivate_service()const;
+  bool should_deactivate_service() const;
 
   bool validity_timer_expired() const;
 
-  void set_expiry_time(
-    uint32_t validity_time,
-    SessionCreditUpdateCriteria& update_criteria);
+  void set_expiry_time(uint32_t validity_time,
+                       SessionCreditUpdateCriteria &update_criteria);
 
   bool is_reauth_required() const;
 
