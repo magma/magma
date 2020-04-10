@@ -15,27 +15,20 @@ namespace magma {
 namespace lte {
 
 RedisStoreClient::RedisStoreClient(
-    std::shared_ptr<cpp_redis::client> client,
-    const std::string& redis_table,
-    std::shared_ptr<StaticRuleStore> rule_store):
-    client_(client),
-    redis_table_(redis_table),
-    rule_store_(rule_store) {}
+    std::shared_ptr<cpp_redis::client> client, const std::string& redis_table,
+    std::shared_ptr<StaticRuleStore> rule_store)
+    : client_(client), redis_table_(redis_table), rule_store_(rule_store) {}
 
-bool RedisStoreClient::try_redis_connect()
-{
+bool RedisStoreClient::try_redis_connect() {
   ServiceConfigLoader loader;
   auto config = loader.load_service_config("redis");
-  auto port = config["port"].as<uint32_t>();
-  auto addr = config["bind"].as<std::string>();
+  auto port   = config["port"].as<uint32_t>();
+  auto addr   = config["bind"].as<std::string>();
   try {
     client_->connect(
-        addr,
-        port,
-        [](
-            const std::string& host,
-            std::size_t port,
-            cpp_redis::client::connect_state status) {
+        addr, port,
+        [](const std::string& host, std::size_t port,
+           cpp_redis::client::connect_state status) {
           if (status == cpp_redis::client::connect_state::dropped) {
             MLOG(MERROR) << "Client disconnected from " << host << ":" << port;
           }
@@ -47,8 +40,8 @@ bool RedisStoreClient::try_redis_connect()
   }
 }
 
-SessionMap RedisStoreClient::read_sessions(std::set<std::string> subscriber_ids)
-{
+SessionMap RedisStoreClient::read_sessions(
+    std::set<std::string> subscriber_ids) {
   // The approach here is made assuming that the SessionStore only has one
   // call being processed at a time, and that the writes it makes are done
   // atomically. Based on that, reads can be done without using Redis
@@ -108,9 +101,7 @@ SessionMap RedisStoreClient::read_all_sessions() {
   return session_map;
 }
 
-
-bool RedisStoreClient::write_sessions(SessionMap session_map)
-{
+bool RedisStoreClient::write_sessions(SessionMap session_map) {
   // Writes should happen via a transaction, otherwise the state inside in
   // Redis may not be recoverable or consistent.
   // For reference, see https://redis.io/topics/transactions
@@ -146,8 +137,7 @@ bool RedisStoreClient::write_sessions(SessionMap session_map)
 }
 
 std::string RedisStoreClient::serialize_session_vec(
-  std::vector<std::unique_ptr<SessionState>>& session_vec)
-{
+    std::vector<std::unique_ptr<SessionState>>& session_vec) {
   folly::dynamic marshaled = folly::dynamic::array;
   for (auto& session_ptr : session_vec) {
     auto stored_session = session_ptr->marshal();
@@ -157,18 +147,18 @@ std::string RedisStoreClient::serialize_session_vec(
   return serialized;
 }
 
-std::vector<std::unique_ptr<SessionState>> RedisStoreClient::deserialize_session_vec(
-  std::string serialized)
-{
+std::vector<std::unique_ptr<SessionState>>
+RedisStoreClient::deserialize_session_vec(std::string serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
   std::vector<std::unique_ptr<SessionState>> session_vec;
   for (auto& it : marshaled) {
     auto stored_session = deserialize_stored_session(it.getString());
-    session_vec.push_back(SessionState::unmarshal(stored_session, *rule_store_));
+    session_vec.push_back(
+        SessionState::unmarshal(stored_session, *rule_store_));
   }
   return session_vec;
 }
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

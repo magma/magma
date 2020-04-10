@@ -25,8 +25,8 @@ class MemoryStoreClient final : public StoreClient {
  public:
   MemoryStoreClient(std::shared_ptr<StaticRuleStore> rule_store);
   MemoryStoreClient(MemoryStoreClient const&) = delete;
-  MemoryStoreClient(MemoryStoreClient&&) = default;
-  ~MemoryStoreClient() = default;
+  MemoryStoreClient(MemoryStoreClient&&)      = default;
+  ~MemoryStoreClient()                        = default;
 
   SessionMap read_sessions(std::set<std::string> subscriber_ids);
 
@@ -39,5 +39,5 @@ class MemoryStoreClient final : public StoreClient {
   std::shared_ptr<StaticRuleStore> rule_store_;
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma
