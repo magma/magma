@@ -18,10 +18,8 @@ namespace magma {
 
 SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
   std::shared_ptr<LocalEnforcer> enforcer,
-  SessionMap& session_map,
   SessionStore& session_store):
   enforcer_(enforcer),
-  session_map_(session_map),
   session_store_(session_store)
 {
 }

@@ -70,7 +70,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     session_map = SessionMap{};
 
     proxy_responder = std::make_shared<SessionProxyResponderHandlerImpl>(
-      local_enforcer, session_map, *session_store);
+      local_enforcer, *session_store);
 
     local_enforcer->attachEventBase(evb);
   }

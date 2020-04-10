@@ -49,7 +49,6 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
  public:
   SessionProxyResponderHandlerImpl(
     std::shared_ptr<LocalEnforcer> monitor,
-    SessionMap& session_map,
     SessionStore& session_store);
 
   ~SessionProxyResponderHandlerImpl() {}
@@ -72,7 +71,6 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
     std::function<void(Status, PolicyReAuthAnswer)> response_callback);
 
  private:
-   SessionMap& session_map_;
    SessionStore& session_store_;
    std::shared_ptr<LocalEnforcer> enforcer_;
 

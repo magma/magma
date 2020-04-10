@@ -80,7 +80,7 @@ class SessiondTest : public ::testing::Test {
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
       local_service->GetNewCompletionQueue(),
       std::make_unique<SessionProxyResponderHandlerImpl>(
-        monitor, session_map, *session_store));
+        monitor, *session_store));
 
     local_service->AddServiceToServer(session_manager.get());
     local_service->AddServiceToServer(proxy_responder.get());
