@@ -105,8 +105,10 @@ public:
    * This method also sets the REPORTING_* credit buckets
    */
   SessionCredit::Usage
-  get_usage_for_reporting(bool is_termination,
-                          SessionCreditUpdateCriteria &update_criteria);
+  get_usage_for_reporting(SessionCreditUpdateCriteria &update_criteria);
+
+  SessionCredit::Usage get_all_unreported_usage_for_reporting(
+      SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * get_action returns the action to take on the credit based on the last
@@ -252,6 +254,10 @@ private:
   bool is_reauth_required() const;
 
   ServiceActionType get_action_for_deactivating_service() const;
+
+  SessionCredit::Usage get_unreported_usage() const;
+
+  void log_usage_report(SessionCredit::Usage) const;
 };
 
 } // namespace magma

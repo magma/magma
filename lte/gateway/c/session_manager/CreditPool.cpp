@@ -148,8 +148,7 @@ void ChargingCreditPool::get_updates(
                      << credit_pair.first << " updating due to type "
                      << update_type;
         updates_out->push_back(get_usage_proto_from_struct(
-            credit.get_usage_for_reporting(false,
-                                           *credit_uc /* no termination */),
+            credit.get_usage_for_reporting(*credit_uc),
             convert_update_type_to_proto(update_type), credit_pair.first));
       }
     }
@@ -162,10 +161,10 @@ bool ChargingCreditPool::get_termination_updates(
   for (auto &credit_pair : credit_map_) {
     auto credit_uc = get_credit_update(credit_pair.first, update_criteria);
     termination_out->mutable_credit_usages()->Add()->CopyFrom(
-        get_usage_proto_from_struct(credit_pair.second->get_usage_for_reporting(
-                                        true, *credit_uc /* termination */),
-                                    CreditUsage::TERMINATED,
-                                    credit_pair.first));
+        get_usage_proto_from_struct(
+            credit_pair.second->get_all_unreported_usage_for_reporting(
+                *credit_uc),
+            CreditUsage::TERMINATED, credit_pair.first));
   }
   return true;
 }
@@ -472,9 +471,8 @@ void UsageMonitoringCreditPool::get_updates(
                    << monitor_pair.first << " updating due to type "
                    << update_type;
       updates_out->push_back(get_monitor_update_from_struct(
-          credit.get_usage_for_reporting(false,
-                                         *credit_uc /* no termination */),
-          monitor_pair.first, monitor_pair.second->level));
+          credit.get_usage_for_reporting(*credit_uc), monitor_pair.first,
+          monitor_pair.second->level));
     }
   }
 }
@@ -486,8 +484,8 @@ bool UsageMonitoringCreditPool::get_termination_updates(
     auto credit_uc = get_credit_update(credit_pair.first, update_criteria);
     termination_out->mutable_monitor_usages()->Add()->CopyFrom(
         get_monitor_update_from_struct(
-            credit_pair.second->credit.get_usage_for_reporting(
-                true, *credit_uc /* termination */),
+            credit_pair.second->credit.get_all_unreported_usage_for_reporting(
+                *credit_uc),
             credit_pair.first, credit_pair.second->level));
   }
 }

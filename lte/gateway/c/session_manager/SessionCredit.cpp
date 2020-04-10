@@ -324,41 +324,61 @@ CreditUpdateType SessionCredit::get_update_type() const {
   }
 }
 
-SessionCredit::Usage SessionCredit::get_usage_for_reporting(
-    bool is_termination, SessionCreditUpdateCriteria &update_criteria) {
-  // Send delta. If bytes are reporting, don't resend them
-  auto report = buckets_[REPORTED_TX] + buckets_[REPORTING_TX];
-  uint64_t tx = buckets_[USED_TX] > report ? buckets_[USED_TX] - report : 0;
-  report = buckets_[REPORTED_RX] - buckets_[REPORTING_RX];
-  uint64_t rx = buckets_[USED_RX] > report ? buckets_[USED_RX] - report : 0;
-
-  MLOG(MDEBUG) << "Data usage since last report is tx=" << tx << " rx=" << rx;
-  if (!is_termination && !is_final_grant_) {
-    // Apply reporting limits since the user is not getting terminated.
-    // The limits are applied on total usage (ie. tx + rx)
-    tx = std::min(tx, usage_reporting_limit_);
-    rx = std::min(rx, usage_reporting_limit_ - tx);
-    MLOG(MDEBUG) << "Since this is not the last report, we will only report "
-                 << "min(usage, usage_reporting_limit="
-                 << usage_reporting_limit_ << ")";
-  }
-
-  if (get_update_type() == CREDIT_REAUTH_REQUIRED) {
-    set_reauth(REAUTH_PROCESSING, update_criteria);
-  }
-
-  buckets_[REPORTING_TX] += tx;
-  buckets_[REPORTING_RX] += rx;
+SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
+    SessionCreditUpdateCriteria &update_criteria) {
+  auto usage = get_unreported_usage();
+  buckets_[REPORTING_TX] += usage.bytes_tx;
+  buckets_[REPORTING_RX] += usage.bytes_rx;
   reporting_ = true;
   update_criteria.reporting = true;
 
-  MLOG(MDEBUG) << "Amount reporting for this report:"
-               << " tx=" << tx << " rx=" << rx;
-  MLOG(MDEBUG) << "The total amount currently being reported:"
-               << " tx=" << buckets_[REPORTING_TX]
-               << " rx=" << buckets_[REPORTING_RX];
+  log_usage_report(usage);
+  return usage;
+}
 
-  return SessionCredit::Usage{.bytes_tx = tx, .bytes_rx = rx};
+SessionCredit::Usage SessionCredit::get_usage_for_reporting(
+    SessionCreditUpdateCriteria &update_criteria) {
+  if (is_final_grant_) {
+    return get_all_unreported_usage_for_reporting(update_criteria);
+  }
+
+  if (reauth_state_ == REAUTH_REQUIRED) {
+    set_reauth(REAUTH_PROCESSING, update_criteria);
+  }
+
+  auto usage = get_unreported_usage();
+
+  // Apply reporting limits since the user is not getting terminated.
+  // The limits are applied on total usage (ie. tx + rx)
+  usage.bytes_tx = std::min(usage.bytes_tx, usage_reporting_limit_);
+  usage.bytes_rx =
+      std::min(usage.bytes_rx, usage_reporting_limit_ - usage.bytes_tx);
+  MLOG(MDEBUG) << "Since this is not the last report, we will only report "
+               << "min(usage, usage_reporting_limit=" << usage_reporting_limit_
+               << ")";
+
+  buckets_[REPORTING_TX] += usage.bytes_tx;
+  buckets_[REPORTING_RX] += usage.bytes_rx;
+  reporting_ = true;
+  update_criteria.reporting = true;
+
+  log_usage_report(usage);
+  return usage;
+}
+
+SessionCredit::Usage SessionCredit::get_unreported_usage() const {
+  SessionCredit::Usage usage = {bytes_tx : 0, bytes_rx : 0};
+  auto report = buckets_[REPORTED_TX] + buckets_[REPORTING_TX];
+  if (buckets_[USED_TX] > report) {
+    usage.bytes_tx = buckets_[USED_TX] - report;
+  }
+  report = buckets_[REPORTED_RX] - buckets_[REPORTING_RX];
+  if (buckets_[USED_RX] > report) {
+    usage.bytes_rx = buckets_[USED_RX] - report;
+  }
+  MLOG(MDEBUG) << "Data usage since last report is tx=" << usage.bytes_tx
+               << " rx=" << usage.bytes_rx;
+  return usage;
 }
 
 ServiceActionType
@@ -443,6 +463,14 @@ void SessionCredit::add_credit(uint64_t credit, Bucket bucket,
                                SessionCreditUpdateCriteria &update_criteria) {
   buckets_[bucket] += credit;
   update_criteria.bucket_deltas[bucket] += credit;
+}
+
+void SessionCredit::log_usage_report(SessionCredit::Usage usage) const {
+  MLOG(MDEBUG) << "Amount reporting for this report:"
+               << " tx=" << usage.bytes_tx << " rx=" << usage.bytes_rx;
+  MLOG(MDEBUG) << "The total amount currently being reported:"
+               << " tx=" << buckets_[REPORTING_TX]
+               << " rx=" << buckets_[REPORTING_RX];
 }
 
 std::string final_action_to_str(ChargingCredit_FinalAction final_action) {
