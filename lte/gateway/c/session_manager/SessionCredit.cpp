@@ -239,7 +239,7 @@ void SessionCredit::receive_credit(
   log_quota_and_usage();
 }
 
-void SessionCredit::log_quota_and_usage() {
+void SessionCredit::log_quota_and_usage() const {
    auto reported_sum = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
    MLOG(MDEBUG) << "===> Used     Tx: " << buckets_[USED_TX]
                << " Rx: " << buckets_[USED_RX]
@@ -254,7 +254,7 @@ void SessionCredit::log_quota_and_usage() {
 
 bool SessionCredit::is_quota_exhausted(
   float usage_reporting_threshold,
-  uint64_t extra_quota_margin)
+  uint64_t extra_quota_margin) const
 {
   // used quota since last report
   uint64_t total_reported_usage = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
@@ -304,7 +304,7 @@ bool SessionCredit::is_quota_exhausted(
   return false;
 }
 
-bool SessionCredit::should_deactivate_service()
+bool SessionCredit::should_deactivate_service() const
 {
   if (credit_type_ != CreditType::CHARGING) {
     // we only terminate on charging quota exhaustion
@@ -337,12 +337,12 @@ bool SessionCredit::should_deactivate_service()
   return false;
 }
 
-bool SessionCredit::validity_timer_expired()
+bool SessionCredit::validity_timer_expired() const
 {
   return time(NULL) >= expiry_time_;
 }
 
-CreditUpdateType SessionCredit::get_update_type()
+CreditUpdateType SessionCredit::get_update_type() const
 {
   if (is_reporting()) {
     return CREDIT_NO_UPDATE;
@@ -412,7 +412,7 @@ ServiceActionType SessionCredit::get_action(SessionCreditUpdateCriteria& update_
   return CONTINUE_SERVICE;
 }
 
-ServiceActionType SessionCredit::get_action_for_deactivating_service()
+ServiceActionType SessionCredit::get_action_for_deactivating_service() const
 {
   if (is_final_grant_ &&
     final_action_info_.final_action == ChargingCredit_FinalAction_REDIRECT) {
@@ -425,7 +425,7 @@ ServiceActionType SessionCredit::get_action_for_deactivating_service()
   }
 }
 
-bool SessionCredit::is_reporting()
+bool SessionCredit::is_reporting() const
 {
   return reporting_;
 }
@@ -435,7 +435,7 @@ uint64_t SessionCredit::get_credit(Bucket bucket) const
   return buckets_[bucket];
 }
 
-bool SessionCredit::is_reauth_required()
+bool SessionCredit::is_reauth_required() const
 {
   return reauth_state_ == REAUTH_REQUIRED;
 }
@@ -445,7 +445,7 @@ void SessionCredit::reauth(SessionCreditUpdateCriteria& update_criteria)
   set_reauth(REAUTH_REQUIRED, update_criteria);
 }
 
-RedirectServer SessionCredit::get_redirect_server()
+RedirectServer SessionCredit::get_redirect_server() const
 {
   return final_action_info_.redirect_server;
 }
@@ -456,10 +456,6 @@ void SessionCredit::set_is_final_grant(
 {
   is_final_grant_ = is_final_grant;
   update_criteria.is_final = is_final_grant;
-}
-
-ReAuthState SessionCredit::get_reauth() {
-  return reauth_state_;
 }
 
 void SessionCredit::set_reauth(

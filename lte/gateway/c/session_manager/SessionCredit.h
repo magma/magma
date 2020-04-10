@@ -107,7 +107,7 @@ class SessionCredit {
    * update is required, it returns CREDIT_NO_UPDATE. Else, it returns an update
    * type
    */
-  CreditUpdateType get_update_type();
+  CreditUpdateType get_update_type() const;
 
   /**
    * get_update returns a filled-in CreditUsage if an update exists, and a blank
@@ -127,7 +127,7 @@ class SessionCredit {
   /**
    * Returns true if either of REPORTING_* buckets are more than 0
    */
-  bool is_reporting();
+  bool is_reporting() const;
 
   /**
    * Helper function to get the credit in a particular bucket
@@ -143,7 +143,7 @@ class SessionCredit {
   /**
    * Returns
    */
-  RedirectServer get_redirect_server();
+  RedirectServer get_redirect_server() const;
 
   /**
    * Mark SessionCredit as having been given the final grant.
@@ -153,8 +153,6 @@ class SessionCredit {
   void set_is_final_grant(
     bool is_final_grant,
     SessionCreditUpdateCriteria& update_criteria);
-
-  ReAuthState get_reauth();
 
   /**
    * Set ReAuthState.
@@ -256,21 +254,21 @@ class SessionCredit {
    * @return true if quota is exhausted for the session
    */
   bool is_quota_exhausted(
-    float usage_reporting_threshold = 1, uint64_t extra_quota_margin = 0);
+    float usage_reporting_threshold = 1, uint64_t extra_quota_margin = 0) const;
 
-  void log_quota_and_usage();
+  void log_quota_and_usage() const;
 
-  bool should_deactivate_service();
+  bool should_deactivate_service()const;
 
-  bool validity_timer_expired();
+  bool validity_timer_expired() const;
 
   void set_expiry_time(
     uint32_t validity_time,
     SessionCreditUpdateCriteria& update_criteria);
 
-  bool is_reauth_required();
+  bool is_reauth_required() const;
 
-  ServiceActionType get_action_for_deactivating_service();
+  ServiceActionType get_action_for_deactivating_service() const;
 };
 
 } // namespace magma
