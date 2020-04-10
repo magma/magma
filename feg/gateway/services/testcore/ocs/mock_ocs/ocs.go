@@ -17,6 +17,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
+	"magma/feg/gateway/services/testcore/mock_driver"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 
@@ -29,10 +30,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const (
-	TerminateAction            = 0
-	DiameterCreditLimitReached = 4012
-)
+const DiameterCreditLimitReached = 4012
 
 type CreditBucket struct {
 	Unit   protos.CreditInfo_UnitType
@@ -65,6 +63,7 @@ type OCSDiamServer struct {
 	accounts            map[string]*SubscriberAccount // map of IMSI to subscriber account
 	mux                 *sm.StateMachine
 	LastMessageReceived *ccrMessage
+	mockDriver          *mock_driver.MockDriver
 }
 
 // NewOCSDiamServer initializes an OCS with an empty account map
@@ -87,7 +86,7 @@ func NewOCSDiamServer(
 // Reset is an GRPC procedure which resets the server to its default state.
 // It will be called from the gateway.
 func (srv *OCSDiamServer) Reset(
-	ctx context.Context,
+	_ context.Context,
 	req *orcprotos.Void,
 ) (*orcprotos.Void, error) {
 	return nil, errors.New("Not implemented")
@@ -96,7 +95,7 @@ func (srv *OCSDiamServer) Reset(
 // ConfigServer is an GRPC procedure which configure the server to respond
 // to requests. It will be called from the gateway
 func (srv *OCSDiamServer) ConfigServer(
-	ctx context.Context,
+	_ context.Context,
 	config *protos.ServerConfiguration,
 ) (*orcprotos.Void, error) {
 	return nil, errors.New("Not implemented")
@@ -145,7 +144,7 @@ func (srv *OCSDiamServer) StartListener() (net.Listener, error) {
 // NewAccount adds a subscriber to the OCS to be tracked
 // Input: string containing the subscriber IMSI (can be in any form)
 func (srv *OCSDiamServer) CreateAccount(
-	ctx context.Context,
+	_ context.Context,
 	subscriberID *lteprotos.SubscriberID,
 ) (*orcprotos.Void, error) {
 	srv.accounts[subscriberID.Id] = &SubscriberAccount{
@@ -161,7 +160,7 @@ func (srv *OCSDiamServer) CreateAccount(
 //			  *uint32 optional maximum time to return in a CCA
 //			  *uint32 optional credit validity time to return in a CCA
 func (srv *OCSDiamServer) SetOCSSettings(
-	ctx context.Context,
+	_ context.Context,
 	ocsConfig *protos.OCSConfig,
 ) (*orcprotos.Void, error) {
 	config := srv.ocsConfig
@@ -179,7 +178,7 @@ func (srv *OCSDiamServer) SetOCSSettings(
 //		    UnitType dictating which unit the volume represents
 // Output: error if account could not be found
 func (srv *OCSDiamServer) SetCredit(
-	ctx context.Context,
+	_ context.Context,
 	creditInfo *protos.CreditInfo,
 ) (*orcprotos.Void, error) {
 	account, ok := srv.accounts[creditInfo.Imsi]
@@ -206,18 +205,27 @@ func (srv *OCSDiamServer) GetCredits(imsi string) (map[uint32]*CreditBucket, err
 }
 
 // Reset eliminates all the accounts allocated for the system.
-func (srv *OCSDiamServer) ClearSubscribers(ctx context.Context, void *orcprotos.Void) (*orcprotos.Void, error) {
+func (srv *OCSDiamServer) ClearSubscribers(_ context.Context, void *orcprotos.Void) (*orcprotos.Void, error) {
 	srv.accounts = make(map[string]*SubscriberAccount)
 	glog.V(2).Info("All accounts deleted.")
 	return &orcprotos.Void{}, nil
 }
 
-func (srv *OCSDiamServer) SetExpectations(ctx context.Context, req *protos.GyCreditControlExpectations) (*orcprotos.Void, error) {
+func (srv *OCSDiamServer) SetExpectations(_ context.Context, req *protos.GyCreditControlExpectations) (*orcprotos.Void, error) {
+	es := []mock_driver.Expectation{}
+	for _, e := range req.Expectations {
+		es = append(es, mock_driver.Expectation(GyExpectation{e}))
+	}
+	srv.mockDriver = mock_driver.NewMockDriver(es, req.UnexpectedRequestBehavior, GyAnswer{req.GyDefaultCca})
 	return &orcprotos.Void{}, nil
 }
 
-func (srv *OCSDiamServer) AssertExpectations(ctx context.Context, void *orcprotos.Void) (*protos.GyCreditControlResult, error) {
-	return nil, nil
+func (srv *OCSDiamServer) AssertExpectations(_ context.Context, void *orcprotos.Void) (*protos.GyCreditControlResult, error) {
+	srv.mockDriver.Lock()
+	defer srv.mockDriver.Unlock()
+
+	results, errs := srv.mockDriver.AggregateResults()
+	return &protos.GyCreditControlResult{Results: results, Errors: errs}, nil
 }
 
 // ReAuth initiates a reauth call for a subscriber and optional rating group.

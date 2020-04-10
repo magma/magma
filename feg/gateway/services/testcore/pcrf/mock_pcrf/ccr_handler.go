@@ -84,9 +84,9 @@ func getCCRHandler(srv *PCRFDiamServer) diam.HandlerFunc {
 		}
 
 		if srv.serviceConfig.UseMockDriver {
-			srv.mockDriverLock.Lock()
+			srv.mockDriver.Lock()
 			iAnswer := srv.mockDriver.GetAnswerFromExpectations(ccr)
-			srv.mockDriverLock.Unlock()
+			srv.mockDriver.Unlock()
 			if iAnswer == nil {
 				sendAnswer(ccr, c, m, diam.UnableToComply)
 				return

@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"sync"
 	"time"
 
 	"magma/feg/cloud/go/protos"
@@ -66,7 +65,6 @@ type PCRFDiamServer struct {
 	subscribers         map[string]*subscriberAccount // map of imsi to to rules
 	mux                 *sm.StateMachine
 	LastMessageReceived *ccrMessage
-	mockDriverLock      sync.Mutex
 	mockDriver          *mock_driver.MockDriver
 }
 
@@ -151,7 +149,7 @@ func logErrors(ec <-chan *diam.ErrorReport) {
 }
 
 func (srv *PCRFDiamServer) SetPCRFConfigs(
-	ctx context.Context,
+	_ context.Context,
 	configs *protos.PCRFConfigs,
 ) (*orcprotos.Void, error) {
 	srv.serviceConfig = configs
@@ -161,7 +159,7 @@ func (srv *PCRFDiamServer) SetPCRFConfigs(
 // NewSubscriber adds a subscriber to the PCRF to be tracked
 // Input: string containing the subscriber IMSI (can be in any form)
 func (srv *PCRFDiamServer) CreateAccount(
-	ctx context.Context,
+	_ context.Context,
 	subscriberID *lteprotos.SubscriberID,
 ) (*orcprotos.Void, error) {
 	srv.subscribers[subscriberID.Id] = &subscriberAccount{
@@ -179,7 +177,7 @@ func (srv *PCRFDiamServer) CreateAccount(
 //			  ruleDefinitions []*RuleDefinition containing all dynamic rules to apply
 // Output: error if subscriber could not be found
 func (srv *PCRFDiamServer) SetRules(
-	ctx context.Context,
+	_ context.Context,
 	accountRules *protos.AccountRules,
 ) (*orcprotos.Void, error) {
 	account, ok := srv.subscribers[accountRules.Imsi]
@@ -193,7 +191,7 @@ func (srv *PCRFDiamServer) SetRules(
 }
 
 func (srv *PCRFDiamServer) SetUsageMonitors(
-	ctx context.Context,
+	_ context.Context,
 	usageMonitorInfo *protos.UsageMonitorConfiguration,
 ) (*orcprotos.Void, error) {
 	account, ok := srv.subscribers[usageMonitorInfo.Imsi]
@@ -246,16 +244,13 @@ func (srv *PCRFDiamServer) GetRuleDefinitions(
 }
 
 // Reset eliminates all the subscribers allocated for the system.
-func (srv *PCRFDiamServer) ClearSubscribers(ctx context.Context, void *orcprotos.Void) (*orcprotos.Void, error) {
+func (srv *PCRFDiamServer) ClearSubscribers(_ context.Context, void *orcprotos.Void) (*orcprotos.Void, error) {
 	srv.subscribers = map[string]*subscriberAccount{}
 	glog.V(2).Info("All accounts deleted.")
 	return &orcprotos.Void{}, nil
 }
 
-func (srv *PCRFDiamServer) SetExpectations(ctx context.Context, req *protos.GxCreditControlExpectations) (*orcprotos.Void, error) {
-	srv.mockDriverLock.Lock()
-	defer srv.mockDriverLock.Unlock()
-
+func (srv *PCRFDiamServer) SetExpectations(_ context.Context, req *protos.GxCreditControlExpectations) (*orcprotos.Void, error) {
 	es := []mock_driver.Expectation{}
 	for _, e := range req.Expectations {
 		es = append(es, mock_driver.Expectation(GxExpectation{e}))
@@ -264,9 +259,9 @@ func (srv *PCRFDiamServer) SetExpectations(ctx context.Context, req *protos.GxCr
 	return &orcprotos.Void{}, nil
 }
 
-func (srv *PCRFDiamServer) AssertExpectations(ctx context.Context, void *orcprotos.Void) (*protos.GxCreditControlResult, error) {
-	srv.mockDriverLock.Lock()
-	defer srv.mockDriverLock.Unlock()
+func (srv *PCRFDiamServer) AssertExpectations(_ context.Context, void *orcprotos.Void) (*protos.GxCreditControlResult, error) {
+	srv.mockDriver.Lock()
+	defer srv.mockDriver.Unlock()
 
 	results, errs := srv.mockDriver.AggregateResults()
 	return &protos.GxCreditControlResult{Results: results, Errors: errs}, nil
