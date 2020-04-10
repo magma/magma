@@ -22,15 +22,14 @@
 namespace magma {
 namespace lte {
 
-typedef std::
-  unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
+typedef std::unordered_map<
+    std::string, std::vector<std::unique_ptr<SessionState>>>
     SessionMap;
 // Value int represents the request numbers needed for requests to PCRF
 typedef std::set<std::string> SessionRead;
 typedef std::unordered_map<
-  std::string,
-  std::unordered_map<std::string, SessionStateUpdateCriteria>>
-  SessionUpdate;
+    std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>
+    SessionUpdate;
 
 /**
  * SessionStore acts as a broker to storage of sessiond state.
@@ -52,8 +51,8 @@ class SessionStore {
   SessionStore(std::shared_ptr<StaticRuleStore> rule_store);
 
   SessionStore(
-    std::shared_ptr<StaticRuleStore> rule_store,
-    std::shared_ptr<RedisStoreClient> store_client);
+      std::shared_ptr<StaticRuleStore> rule_store,
+      std::shared_ptr<RedisStoreClient> store_client);
 
   /**
    * Read the last written values for the requested sessions through the
@@ -108,8 +107,8 @@ class SessionStore {
    * @return true if successful, otherwise the update to storage is discarded.
    */
   bool create_sessions(
-    const std::string& subscriber_id,
-    std::vector<std::unique_ptr<SessionState>> sessions);
+      const std::string& subscriber_id,
+      std::vector<std::unique_ptr<SessionState>> sessions);
 
   /**
    * Attempt to update sessions with update criteria. If any update to any of
@@ -120,16 +119,15 @@ class SessionStore {
    */
   bool update_sessions(const SessionUpdate& update_criteria);
 
-
  private:
   static bool merge_into_session(
-    std::unique_ptr<SessionState>& session,
-    const SessionStateUpdateCriteria& update_criteria);
+      std::unique_ptr<SessionState>& session,
+      const SessionStateUpdateCriteria& update_criteria);
 
  private:
   std::shared_ptr<StoreClient> store_client_;
   std::shared_ptr<StaticRuleStore> rule_store_;
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

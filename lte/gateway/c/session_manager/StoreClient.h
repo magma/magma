@@ -17,7 +17,9 @@
 namespace magma {
 namespace lte {
 
-typedef std::unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>> SessionMap;
+typedef std::unordered_map<
+    std::string, std::vector<std::unique_ptr<SessionState>>>
+    SessionMap;
 
 /**
  * StoreClient is responsible for reading/writing sessions to/from storage.
@@ -53,5 +55,5 @@ class StoreClient {
   virtual bool write_sessions(SessionMap sessions) = 0;
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma
