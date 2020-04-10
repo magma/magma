@@ -78,6 +78,37 @@ SessionMap RedisStoreClient::read_sessions(std::set<std::string> subscriber_ids)
   return session_map;
 }
 
+SessionMap RedisStoreClient::read_all_sessions() {
+  SessionMap session_map;
+  auto hgetall_future = client_->hgetall(redis_table_);
+  client_->sync_commit();
+
+  auto reply = hgetall_future.get();
+  if (reply.is_error()) {
+    MLOG(MERROR) << "unable to read all sessions from redis";
+    return session_map;
+  }
+  auto array = reply.as_array();
+  for (int i = 0; i < array.size(); i += 2) {
+    auto key_reply = array[i];
+    if (!key_reply.is_string()) {
+      MLOG(MERROR) << "Non string key found in sessions from redis";
+      continue;
+    }
+    auto key         = key_reply.as_string();
+    auto value_reply = array[i + 1];
+    if (!value_reply.is_string()) {
+      MLOG(MERROR) << "RedisStoreClient: Unable to get value for key " << key;
+      session_map[key] = std::vector<std::unique_ptr<SessionState>>{};
+    } else {
+      session_map[key] =
+          std::move(deserialize_session_vec(value_reply.as_string()));
+    }
+  }
+  return session_map;
+}
+
+
 bool RedisStoreClient::write_sessions(SessionMap session_map)
 {
   // Writes should happen via a transaction, otherwise the state inside in

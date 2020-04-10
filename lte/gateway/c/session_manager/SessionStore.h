@@ -65,6 +65,14 @@ class SessionStore {
   SessionMap read_sessions(const SessionRead& req);
 
   /**
+   * Read the last written values for all existing sessions through the
+   * storage interface.
+   * @return Last written values for all sessions. Returns an empty vector
+   *         for subscribers that do not have active sessions.
+   */
+  SessionMap read_all_sessions();
+
+  /**
    * Read the last written values for the requested sessions through the
    * storage interface. This also modifies the request_numbers stored before
    * returning the SessionMap to the caller.
