@@ -421,6 +421,40 @@ def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
                                          tofile='current snapshot'))))
 
 
+def wait_for_snapshots(bridge_name: str,
+                       service_manager: ServiceManager,
+                       wait_time: int = 1, max_sleep_time: int = 20):
+    """
+    Wait after checking ovs snapshot as new changes might still come in,
+
+    Args:
+        wait_time (int): wait time between ovs stat queries
+        max_sleep_time (int): max wait time, if exceeded return
+
+    Returns when waiting is done
+
+    Throws a WaitTimeExceeded Exception if max_sleep_time exceeded
+    """
+    sleep_time = 0
+    old_snapshot = _get_current_bridge_snapshot(bridge_name, service_manager)
+    while True:
+        hub.sleep(wait_time)
+
+        new_snapshot = _get_current_bridge_snapshot(bridge_name,
+                                                    service_manager)
+        if new_snapshot == old_snapshot:
+            return
+        else:
+            old_snapshot = new_snapshot
+
+        sleep_time = sleep_time + wait_time
+        if (sleep_time >= max_sleep_time):
+            raise WaitTimeExceeded(
+                "Waiting on pkts exceeded the max({}) sleep time".
+                format(max_sleep_time)
+            )
+
+
 class SnapshotVerifier:
     """
     SnapshotVerifier is a context wrapper for verifying bridge snapshots.
@@ -452,6 +486,10 @@ class SnapshotVerifier:
         """
         Runs after finishing 'with' (Verify snapshot)
         """
+        try:
+            wait_for_snapshots(self._bridge_name, self._service_manager)
+        except WaitTimeExceeded as e:
+            TestCase().fail(e)
         assert_bridge_snapshot_match(self._test_case, self._bridge_name,
                                      self._service_manager,
                                      self._snapshot_name)
