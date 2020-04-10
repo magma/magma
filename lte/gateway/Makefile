@@ -14,13 +14,13 @@ BUILD_TYPE ?= Debug
 # s6a with fd (freeDiameter)
 
 # Default is agw with OpenFlow, gRPC over S6a , (no freeDiameter over s6a).
-FEATURES ?= agw_of mme
+FEATURES ?=  mme 
 
 # EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.
 EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
 # AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
-AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of
+AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of 
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
 ifneq ($(words $(strip $(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
@@ -36,7 +36,7 @@ endif
 MAIN_FEATURE = $(strip $(filter $(EXCLUSIVE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))
 
 ifneq ($(words $(strip $(filter $(REQUESTED_FEATURE_LIST),s6a_fd))), 0)
-S6A_FLAGS = -DS6A_OVER_GRPC=False
+S6A_FLAGS = -DS6A_OVER_GRPC=False 
 else
 #default
 S6A_FLAGS = -DS6A_OVER_GRPC=True
@@ -44,7 +44,7 @@ endif
 
 ifeq ($(MAIN_FEATURE),mme)
 # Here force S6A to use freeDiameter
-OAI_FLAGS = -DS6A_OVER_GRPC=False
+OAI_FLAGS = -DS6A_OVER_GRPC=True
 else ifeq ($(MAIN_FEATURE),agw_gtpnl)
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=False -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=False
 else ifeq ($(MAIN_FEATURE),agw_of)
@@ -54,7 +54,7 @@ else
 # default
 #OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
 # 2020/04/06 : do we need S6A_FLAGS?
-OAI_FLAGS = -DEMBEDDED_SGW=False 
+OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=True
 endif
 
 $(info OAI_FLAGS $(OAI_FLAGS))
