@@ -167,6 +167,10 @@ class IPFIXController(MagmaController):
             apn_mac_addr (string): AP mac address string
             apn_name (string): AP name
         """
+        if self._datapath is None:
+            self.logger.error('Datapath not initialized for adding flows')
+            return
+
         imsi_hex = hex(encode_imsi(imsi))
         pdp_start_epoch = int(time.time())
         action_str = (

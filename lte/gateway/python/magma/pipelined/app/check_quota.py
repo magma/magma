@@ -99,6 +99,10 @@ class CheckQuotaController(MagmaController):
 
     def update_subscriber_quota_state(self,
                                       updates: List[SubscriberQuotaUpdate]):
+        if self._datapath is None:
+            self.logger.error('Datapath not initialized for adding flows')
+            return
+
         for update in updates:
             imsi = update.sid.id
             if update.update_type == SubscriberQuotaUpdate.VALID_QUOTA:
