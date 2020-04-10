@@ -138,6 +138,17 @@ func (os *mockObjectStore) GetAll() (map[string]interface{}, error) {
 	return returnVals, nil
 }
 
+func (os *mockObjectStore) DeleteAll() error {
+	valsByKey, err := os.GetAll()
+	if err != nil {
+		return err
+	}
+	for key := range valsByKey {
+		os.Delete(key)
+	}
+	return nil
+}
+
 func initOnce(t *testing.T) {
 	streamer_test_init.StartTestService(t)
 }

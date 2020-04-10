@@ -128,13 +128,9 @@ func (manager *RuleManager) RemoveInstalledRules() error {
 		if err != nil {
 			return err
 		}
-		for _, ruleID := range ruleIDs {
-			manager.policyDBWrapper.policyMap.Delete(ruleID)
-		}
 	}
-	for _, baseNameRecord := range manager.baseNameMappings {
-		manager.policyDBWrapper.baseNameMap.Delete(baseNameRecord.Name)
-	}
+	manager.policyDBWrapper.policyMap.DeleteAll()
+	manager.policyDBWrapper.baseNameMap.DeleteAll()
 	return nil
 }
 
