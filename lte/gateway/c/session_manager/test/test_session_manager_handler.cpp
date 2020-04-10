@@ -53,7 +53,12 @@ class SessionManagerHandlerTest : public ::testing::Test {
             aaa_client,
             0,
             0);
-    evb = folly::EventBaseManager::get()->getEventBase();
+    evb = new folly::EventBase();
+    std::thread([&]() {
+      std::cout << "Started event loop thread\n";
+      folly::EventBaseManager::get()->setEventBase(evb, 0);
+    }).detach();
+
     local_enforcer->attachEventBase(evb);
     session_map_ = SessionMap{};
 
