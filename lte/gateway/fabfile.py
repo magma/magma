@@ -166,8 +166,9 @@ def s1ap_setup_cloud():
     run("sudo systemctl restart magma@magmad")
 
 
-def integ_test(gateway_host=None, test_host=None, trf_host=None,
-               destroy_vm="True"):
+def integ_test(
+    gateway_host=None, test_host=None, trf_host=None, destroy_vm="True"
+):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -190,12 +191,12 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
-    gateway_ip = '192.168.60.142'
+    gateway_ip = "192.168.60.142"
     if not gateway_host:
         gateway_host = vagrant_setup("magma", destroy_vm)
     else:
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
-        gateway_ip = gateway_host.split('@')[1].split(':')[0]
+        gateway_ip = gateway_host.split("@")[1].split(":")[0]
 
     execute(_dist_upgrade)
     execute(_build_magma)
@@ -203,13 +204,13 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_python_coverage)
     execute(_start_gateway)
 
-    # Run suite of integ tests that are required to be run on the access gateway
-    # instead of the test VM
+    # Run suite of integ tests that are required to be run on the
+    # access gateway instead of the test VM
     # TODO: fix the integration test T38069907
     # execute(_run_local_integ_tests)
 
-    # Setup the trfserver: use the provided trfserver if given, else default to the
-    # vagrant machine
+    # Setup the trfserver: use the provided trfserver if given,
+    # else default to the vagrant machine
     if not trf_host:
         trf_host = vagrant_setup("magma_trfserver", destroy_vm)
     else:
@@ -234,7 +235,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
 
 def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
-    '''
+    """
     Downloads the relevant magma logs from the given gateway and test machines.
     Places the logs in /tmp/build_logs.zip
 
@@ -249,16 +250,16 @@ def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
         on. Formatted as "host:port". If not specified, defaults to the
         `magma_trfserver` vagrant box.
 
-    '''
+    """
     # Grab the build logs from the machines and bring them to the host
-    local('rm -rf /tmp/build_logs')
-    local('mkdir /tmp/build_logs')
-    local('mkdir /tmp/build_logs/dev')
-    local('mkdir /tmp/build_logs/test')
-    local('mkdir /tmp/build_logs/trfserver')
-    dev_files = ['/var/log/mme.log', '/var/log/syslog']
-    test_files = ['/var/log/syslog', '/tmp/fw/']
-    trf_files = ['/home/admin/nohup.out']
+    local("rm -rf /tmp/build_logs")
+    local("mkdir /tmp/build_logs")
+    local("mkdir /tmp/build_logs/dev")
+    local("mkdir /tmp/build_logs/test")
+    local("mkdir /tmp/build_logs/trfserver")
+    dev_files = ["/var/log/mme.log", "/var/log/syslog"]
+    test_files = ["/var/log/syslog", "/tmp/fw/"]
+    trf_files = ["/home/admin/nohup.out"]
 
     # Set up to enter the gateway host
     env.host_string = gateway_host
@@ -270,8 +271,9 @@ def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
     # Don't fail if the logs don't exists
     for p in dev_files:
         with settings(warn_only=True):
-            get(remote_path=p, local_path='/tmp/build_logs/dev/',
-                use_sudo=True)
+            get(
+                remote_path=p, local_path="/tmp/build_logs/dev/", use_sudo=True
+            )
 
     # Set up to enter the trfserver host
     env.host_string = trf_host
@@ -283,8 +285,11 @@ def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
     # Don't fail if the logs don't exists
     for p in trf_files:
         with settings(warn_only=True):
-            get(remote_path=p, local_path='/tmp/build_logs/trfserver/',
-                use_sudo=True)
+            get(
+                remote_path=p,
+                local_path="/tmp/build_logs/trfserver/",
+                use_sudo=True,
+            )
 
     # Set up to enter the test host
     env.host_string = test_host
@@ -296,101 +301,113 @@ def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
     # Fix the permissions on the fw directory -- it has permissions 000
     # otherwise
     with settings(warn_only=True):
-        run('sudo chmod 755 /tmp/fw')
+        run("sudo chmod 755 /tmp/fw")
 
     # Don't fail if the logs don't exists
     for p in test_files:
         with settings(warn_only=True):
-            get(remote_path=p, local_path='/tmp/build_logs/test/',
-                use_sudo=True)
+            get(
+                remote_path=p,
+                local_path="/tmp/build_logs/test/",
+                use_sudo=True,
+            )
 
-    local('rm -rf /tmp/build_logs.zip')
-    local('zip -r /tmp/build_logs.zip /tmp/build_logs')
-    local('rm -rf /tmp/build_logs')
+    local("rm -rf /tmp/build_logs.zip")
+    local("zip -r /tmp/build_logs.zip /tmp/build_logs")
+    local("rm -rf /tmp/build_logs")
 
 
 def _dist_upgrade():
     """ Upgrades OS packages on dev box """
-    run('sudo apt-get update')
-    run('sudo apt-get -y dist-upgrade')
+    run("sudo apt-get update")
+    run("sudo apt-get -y dist-upgrade")
 
 
 def _build_magma():
     """ Builds magma """
 
     with cd(AGW_ROOT):
-        run('make 2>&1 | tee magma_vagrant_make.log')
+        run("make 2>&1 | tee magma_vagrant_make.log")
 
 
 def _oai_coverage():
     """ Get the code coverage statistic for OAI """
 
     with cd(AGW_ROOT):
-        run('make coverage_oai 2>&1 | tee magma_vagrant_make_coverage_oai.log')
+        run("make coverage_oai 2>&1 | tee magma_vagrant_make_coverage_oai.log")
 
 
 def _run_unit_tests():
     """ Run the magma unit tests """
     with cd(AGW_ROOT):
         # Run the unit tests
-        run('make test 2>&1 | tee magma_vagrant_make_test.log')
+        run("make test 2>&1 | tee magma_vagrant_make_test.log")
 
 
 def _python_coverage():
     with cd(AGW_PYTHON_ROOT):
-        run('make coverage 2>&1 | tee ../magma_vagrant_make_coverage.log')
+        run("make coverage 2>&1 | tee ../magma_vagrant_make_coverage.log")
 
 
 def _start_gateway():
     """ Starts the gateway """
 
     with cd(AGW_ROOT):
-        run('make run 2>&1 | tee magma_vagrant_make_run.log')
+        run("make run 2>&1 | tee magma_vagrant_make_run.log")
 
 
 def _run_local_integ_tests():
     """ Execute integ tests that run on magma access gateway """
     with cd(AGW_INTEG_ROOT):
-        run('make local_integ_test 2>&1 | tee ../../magma_vagrant_make_local_integ_test.log')
+        run(
+            "make local_integ_test 2>&1 |"
+            " tee ../../magma_vagrant_make_local_integ_test.log"
+        )
 
 
 def _set_service_config_var(service, var_name, value):
     """ Sets variable in config file by value """
-    run("echo '%s: %s' | sudo tee -a /var/opt/magma/configs/%s.yml" % (
-        var_name, str(value), service))
+    run(
+        "echo '%s: %s' | sudo tee -a /var/opt/magma/configs/%s.yml"
+        % (var_name, str(value), service)
+    )
 
 
 def _start_trfserver():
     """ Starts the traffic gen server"""
     # disable-tcp-checksumming
     # trfgen-server daemon
-    host = env.hosts[0].split(':')[0]
-    port = env.hosts[0].split(':')[1]
+    host = env.hosts[0].split(":")[0]
+    port = env.hosts[0].split(":")[1]
     key = env.key_filename
-    local('ssh -i %s -o UserKnownHostsFile=/dev/null'
-          ' -o StrictHostKeyChecking=no -tt %s -p %s'
-          ' \'sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off 2>&1 | tee magma/lte/gateway/magma_vagrant_trfserve_disable_tcp_checksumming.log;'
-          ' nohup sudo /usr/local/bin/traffic_server.py -d 192.168.60.144 62462\''
-          % (key, host, port))
+    local(
+        "ssh -i %s -o UserKnownHostsFile=/dev/null"
+        " -o StrictHostKeyChecking=no -tt %s -p %s"
+        " 'sudo ethtool --offload eth1 rx off tx off &&"
+        " sudo ethtool --offload eth2 rx off tx off 2>&1 | tee magma/lte/"
+        "gateway/magma_vagrant_trfserve_disable_tcp_checksumming.log;"
+        " nohup sudo /usr/local/bin/traffic_server.py"
+        " -d 192.168.60.144 62462'" % (key, host, port)
+    )
 
 
 def _make_integ_tests():
     """ Build and run the integration tests """
 
     with cd(AGW_PYTHON_ROOT):
-        run('make 2>&1 | tee ../magma_vagrant_test_make1.log')
+        run("make 2>&1 | tee ../magma_vagrant_test_make1.log")
     with cd(AGW_INTEG_ROOT):
-        run('make 2>&1 | tee ../../magma_vagrant_test_make2.log')
+        run("make 2>&1 | tee ../../magma_vagrant_test_make2.log")
 
 
-def _run_integ_tests(gateway_ip='192.168.60.142'):
+def _run_integ_tests(gateway_ip="192.168.60.142"):
     """ Run the integration tests
 
     For now, just run a single basic test
     """
 
-    host = env.hosts[0].split(':')[0]
-    port = env.hosts[0].split(':')[1]
+    host = env.hosts[0].split(":")[0]
+    port = env.hosts[0].split(":")[1]
     key = env.key_filename
     """
     NOTE: the s1aptester produces a bunch of output which the python ssh
@@ -405,13 +422,17 @@ def _run_integ_tests(gateway_ip='192.168.60.142'):
         -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no: have ssh
          never prompt to confirm the host fingerprints
     """
-    local('ssh -i %s -o UserKnownHostsFile=/dev/null'
-          ' -o StrictHostKeyChecking=no -tt %s -p %s'
-          ' \'cd $MAGMA_ROOT/lte/gateway/python/integ_tests; '
-          # We don't have a proper shell, so the `magtivate` alias isn't
-          # available. We instead directly source the activate file
-          ' sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off 2>&1 | tee ../../magma_vagrant_test_disable_tcp_checksumming.log;'
-          ' source ~/build/python/bin/activate;'
-          ' export GATEWAY_IP=%s;'
-          ' make -i integ_test 2>&1 | tee ../../magma_run_s1ap_tester.log\''
-          % (key, host, port, gateway_ip))
+    local(
+        "ssh -i %s -o UserKnownHostsFile=/dev/null"
+        " -o StrictHostKeyChecking=no -tt %s -p %s"
+        " 'cd $MAGMA_ROOT/lte/gateway/python/integ_tests; "
+        # We don't have a proper shell, so the `magtivate` alias isn't
+        # available. We instead directly source the activate file
+        " sudo ethtool --offload eth1 rx off tx off &&"
+        " sudo ethtool --offload eth2 rx off tx off 2>&1 |"
+        " tee ../../magma_vagrant_test_disable_tcp_checksumming.log;"
+        " source ~/build/python/bin/activate;"
+        " export GATEWAY_IP=%s;"
+        " make -i integ_test 2>&1 | tee ../../magma_run_s1ap_tester.log'"
+        % (key, host, port, gateway_ip)
+    )
