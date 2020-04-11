@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-    monitor, reporter.get(), directoryd_client, session_map, *session_store);
+    monitor, reporter.get(), directoryd_client, *session_store);
   auto proxy_handler =std::make_unique<magma::SessionProxyResponderHandlerImpl>(
     monitor, *session_store);
 

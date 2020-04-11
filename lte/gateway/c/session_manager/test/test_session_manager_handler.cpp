@@ -63,7 +63,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     session_map_ = SessionMap{};
 
     session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
-      local_enforcer, reporter.get(), directoryd_client, session_map_, *session_store);
+      local_enforcer, reporter.get(), directoryd_client, *session_store);
   }
 
   void insert_static_rule(
