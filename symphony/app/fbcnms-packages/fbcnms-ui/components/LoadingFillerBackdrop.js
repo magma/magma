@@ -8,14 +8,12 @@
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
-
 import LoadingFiller from './LoadingFiller';
 import React from 'react';
 
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
 
-const styles = {
+const useStyles = makeStyles(() => ({
   backdrop: {
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -28,18 +26,13 @@ const styles = {
     top: 0,
     zIndex: '13000',
   },
-};
+}));
 
-type Props = WithStyles<typeof styles> & {};
-
-class LoadingFillerBackdrop extends React.Component<Props> {
-  render() {
-    return (
-      <div className={this.props.classes.backdrop}>
-        <LoadingFiller />
-      </div>
-    );
-  }
+export default function LoadingFillerBackdrop() {
+  const classes = useStyles();
+  return (
+    <div className={classes.backdrop}>
+      <LoadingFiller />
+    </div>
+  );
 }
-
-export default withStyles(styles)(LoadingFillerBackdrop);

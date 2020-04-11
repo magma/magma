@@ -91,8 +91,46 @@ func (m *GxCreditControlRequest) SetUsageReportDelta(delta uint64) *GxCreditCont
 	return m
 }
 
+func NewGyCreditControlExpectation() *GyCreditControlExpectation {
+	return &GyCreditControlExpectation{}
+}
+
+func (m *GyCreditControlExpectation) Expect(ccr *GyCreditControlRequest) *GyCreditControlExpectation {
+	m.ExpectedRequest = ccr
+	return m
+}
+
+func (m *GyCreditControlExpectation) Return(cca *GyCreditControlAnswer) *GyCreditControlExpectation {
+	m.Answer = cca
+	return m
+}
+
+func NewGyCCRequest(imsi string, requestType CCRequestType, requestNumber uint32) *GyCreditControlRequest {
+	return &GyCreditControlRequest{Imsi: imsi, RequestType: requestType, RequestNumber: requestNumber}
+}
+
+func NewGyCCAnswer(resultCode uint32) *GyCreditControlAnswer {
+	return &GyCreditControlAnswer{ResultCode: resultCode}
+}
+
+func (m *GyCreditControlAnswer) SetQuotaGrant(grant *QuotaGrant) *GyCreditControlAnswer {
+	if m.QuotaGrants == nil {
+		m.QuotaGrants = []*QuotaGrant{}
+	}
+	m.QuotaGrants = append(m.QuotaGrants, grant)
+	return m
+}
+
 func (m *GxCreditControlAnswer) initializeRuleInstallsIfNil() {
 	if m.RuleInstalls == nil {
 		m.RuleInstalls = &RuleInstalls{}
 	}
+}
+
+func (m *GyCreditControlRequest) SetMSCC(mscc *MultipleServicesCreditControl) *GyCreditControlRequest {
+	if m.Mscc == nil {
+		m.Mscc = []*MultipleServicesCreditControl{}
+	}
+	m.Mscc = append(m.Mscc, mscc)
+	return m
 }

@@ -32,17 +32,18 @@ class RedisReadFailed : public std::exception {
 class RedisStoreClient final : public StoreClient {
  public:
   RedisStoreClient(
-      std::shared_ptr<cpp_redis::client> client,
-      const std::string& redis_table,
+      std::shared_ptr<cpp_redis::client> client, const std::string& redis_table,
       std::shared_ptr<StaticRuleStore> rule_store);
 
   RedisStoreClient(RedisStoreClient const&) = delete;
-  RedisStoreClient(RedisStoreClient&&) = default;
-  ~RedisStoreClient() = default;
+  RedisStoreClient(RedisStoreClient&&)      = default;
+  ~RedisStoreClient()                       = default;
 
   bool try_redis_connect();
 
   SessionMap read_sessions(std::set<std::string> subscriber_ids);
+
+  SessionMap read_all_sessions();
 
   bool write_sessions(SessionMap session_map);
 
@@ -59,5 +60,5 @@ class RedisStoreClient final : public StoreClient {
       std::string serialized);
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

@@ -111,4 +111,7 @@ data:
     header_name = X-WEBAUTH-USER
     header_property = username
     auto_sign_up = false
+
+    [server]
+    root_url = {{ .Values.userGrafana.rootURL }
 {{- end}}

@@ -15,26 +15,25 @@
 namespace magma {
 namespace lte {
 
-SessionStore::SessionStore(std::shared_ptr<StaticRuleStore> rule_store):
-    rule_store_(rule_store), store_client_(std::make_shared<MemoryStoreClient>(rule_store))
-{
-}
+SessionStore::SessionStore(std::shared_ptr<StaticRuleStore> rule_store)
+    : rule_store_(rule_store),
+      store_client_(std::make_shared<MemoryStoreClient>(rule_store)) {}
 
 SessionStore::SessionStore(
-  std::shared_ptr<StaticRuleStore> rule_store,
-  std::shared_ptr<RedisStoreClient> store_client):
-  rule_store_(rule_store), store_client_(store_client)
-{
-}
+    std::shared_ptr<StaticRuleStore> rule_store,
+    std::shared_ptr<RedisStoreClient> store_client)
+    : rule_store_(rule_store), store_client_(store_client) {}
 
-SessionMap SessionStore::read_sessions(const SessionRead& req)
-{
+SessionMap SessionStore::read_sessions(const SessionRead& req) {
   return store_client_->read_sessions(req);
 }
 
-SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req)
-{
-  auto session_map = store_client_->read_sessions(req);
+SessionMap SessionStore::read_all_sessions() {
+  return store_client_->read_all_sessions();
+}
+
+SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req) {
+  auto session_map   = store_client_->read_sessions(req);
   auto session_map_2 = store_client_->read_sessions(req);
   // For all sessions of the subscriber, increment the request numbers
   for (const std::string& imsi : req) {
@@ -46,9 +45,8 @@ SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req)
   return session_map;
 }
 
-SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req)
-{
-  auto session_map = store_client_->read_sessions(req);
+SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req) {
+  auto session_map   = store_client_->read_sessions(req);
   auto session_map_2 = store_client_->read_sessions(req);
   // For all sessions of the subscriber, increment the request numbers
   for (const std::string& imsi : req) {
@@ -61,20 +59,18 @@ SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req)
 }
 
 bool SessionStore::create_sessions(
-  const std::string& subscriber_id,
-  std::vector<std::unique_ptr<SessionState>> sessions)
-{
-  auto session_map = SessionMap {};
+    const std::string& subscriber_id,
+    std::vector<std::unique_ptr<SessionState>> sessions) {
+  auto session_map           = SessionMap{};
   session_map[subscriber_id] = std::move(sessions);
   store_client_->write_sessions(std::move(session_map));
   return true;
 }
 
-bool SessionStore::update_sessions(const SessionUpdate& update_criteria)
-{
+bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
   MLOG(MERROR) << "Running update_sessions";
   // Read the current state
-  auto subscriber_ids = std::set<std::string> {};
+  auto subscriber_ids = std::set<std::string>{};
   for (const auto& it : update_criteria) {
     subscriber_ids.insert(it.first);
   }
@@ -83,8 +79,7 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria)
   // Now attempt to modify the state
   for (auto& it : session_map) {
     auto it2 = it.second.begin();
-    while (it2 != it.second.end())
-    {
+    while (it2 != it.second.end()) {
       auto updates = update_criteria.find(it.first)->second;
       if (updates.find((*it2)->get_session_id()) != updates.end()) {
         auto update = updates[(*it2)->get_session_id()];
@@ -105,9 +100,8 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria)
 }
 
 bool SessionStore::merge_into_session(
-  std::unique_ptr<SessionState>& session,
-  const SessionStateUpdateCriteria& update_criteria)
-{
+    std::unique_ptr<SessionState>& session,
+    const SessionStateUpdateCriteria& update_criteria) {
   // Config
   if (update_criteria.is_config_updated) {
     session->unmarshal_config(update_criteria.updated_config);
@@ -118,8 +112,8 @@ bool SessionStore::merge_into_session(
   for (const auto& rule_id : update_criteria.static_rules_to_install) {
     if (session->is_static_rule_installed(rule_id)) {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because static rule already installed: "
-                   << rule_id << std::endl;
+                   << " because static rule already installed: " << rule_id
+                   << std::endl;
       return false;
     }
     session->activate_static_rule(rule_id, uc);
@@ -127,8 +121,8 @@ bool SessionStore::merge_into_session(
   for (const auto& rule_id : update_criteria.static_rules_to_uninstall) {
     if (!session->is_static_rule_installed(rule_id)) {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because static rule already uninstalled: "
-                   << rule_id << std::endl;
+                   << " because static rule already uninstalled: " << rule_id
+                   << std::endl;
       return false;
     }
     session->deactivate_static_rule(rule_id, uc);
@@ -138,8 +132,8 @@ bool SessionStore::merge_into_session(
   for (const auto& rule : update_criteria.dynamic_rules_to_install) {
     if (session->is_dynamic_rule_installed(rule.id())) {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because dynamic rule already installed: "
-                   << rule.id() << std::endl;
+                   << " because dynamic rule already installed: " << rule.id()
+                   << std::endl;
       return false;
     }
     session->insert_dynamic_rule(rule, uc);
@@ -148,8 +142,8 @@ bool SessionStore::merge_into_session(
   for (const auto& rule_id : update_criteria.dynamic_rules_to_uninstall) {
     if (!session->is_dynamic_rule_installed(rule_id)) {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because dynamic rule already uninstalled: "
-                   << rule_id << std::endl;
+                   << " because dynamic rule already uninstalled: " << rule_id
+                   << std::endl;
       return false;
     }
     session->remove_dynamic_rule(rule_id, _, uc);
@@ -157,44 +151,45 @@ bool SessionStore::merge_into_session(
 
   // Charging credit
   for (const auto& it : update_criteria.charging_credit_map) {
-    auto key = it.first;
+    auto key           = it.first;
     auto credit_update = it.second;
     session->get_charging_pool().merge_credit_update(key, credit_update);
   }
   for (const auto& it : update_criteria.charging_credit_to_install) {
-    auto key = it.first;
+    auto key           = it.first;
     auto stored_credit = it.second;
-    auto uc = get_default_update_criteria();
+    auto uc            = get_default_update_criteria();
     session->get_charging_pool().add_credit(
-      key, SessionCredit::unmarshal(stored_credit, CHARGING), uc);
+        key, SessionCredit::unmarshal(stored_credit, CHARGING), uc);
   }
 
   // Monitoring credit
   for (const auto& it : update_criteria.monitor_credit_map) {
-    auto key = it.first;
+    auto key           = it.first;
     auto credit_update = it.second;
     session->get_monitor_pool().merge_credit_update(key, credit_update);
   }
   for (const auto& it : update_criteria.monitor_credit_to_install) {
-    auto key = it.first;
+    auto key            = it.first;
     auto stored_monitor = it.second;
-    auto uc = get_default_update_criteria();
+    auto uc             = get_default_update_criteria();
     session->get_monitor_pool().add_monitor(
-      key, UsageMonitoringCreditPool::unmarshal_monitor(stored_monitor), uc);
+        key, UsageMonitoringCreditPool::unmarshal_monitor(stored_monitor), uc);
   }
   return true;
 }
 
-SessionUpdate SessionStore::get_default_session_update(SessionMap& session_map)
-{
+SessionUpdate SessionStore::get_default_session_update(
+    SessionMap& session_map) {
   SessionUpdate update = {};
-  for (const auto &session_pair : session_map) {
-    for (const auto &session : session_pair.second) {
-      update[session_pair.first][session->get_session_id()] = get_default_update_criteria();
+  for (const auto& session_pair : session_map) {
+    for (const auto& session : session_pair.second) {
+      update[session_pair.first][session->get_session_id()] =
+          get_default_update_criteria();
     }
   }
   return update;
 }
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

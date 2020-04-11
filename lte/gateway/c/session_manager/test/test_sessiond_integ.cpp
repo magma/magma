@@ -41,7 +41,7 @@ class SessiondTest : public ::testing::Test {
   {
     auto test_channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "test_service", ServiceRegistrySingleton::LOCAL);
-    folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
+    evb = new folly::EventBase();
 
     controller_mock = std::make_shared<MockCentralController>();
     pipelined_mock = std::make_shared<MockPipelined>();
@@ -80,7 +80,7 @@ class SessiondTest : public ::testing::Test {
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
       local_service->GetNewCompletionQueue(),
       std::make_unique<SessionProxyResponderHandlerImpl>(
-        monitor, session_map, *session_store));
+        monitor, *session_store));
 
     local_service->AddServiceToServer(session_manager.get());
     local_service->AddServiceToServer(proxy_responder.get());
@@ -101,6 +101,7 @@ class SessiondTest : public ::testing::Test {
     std::thread([&]() { spgw_client->rpc_response_loop(); }).detach();
     std::thread([&]() {
       std::cout << "Started monitor thread\n";
+      folly::EventBaseManager::get()->setEventBase(evb, 0);
       monitor->attachEventBase(evb);
       monitor->start();
     }).detach();
@@ -116,6 +117,7 @@ class SessiondTest : public ::testing::Test {
       std::cout << "Started local grpc thread\n";
       proxy_responder->wait_for_requests();
     }).detach();
+    evb->waitUntilRunning();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
@@ -126,6 +128,24 @@ class SessiondTest : public ::testing::Test {
     reporter->stop();
     test_service->Stop();
     pipelined_client->stop();
+    // This is a failsafe in case callbacks keep running on the event loop
+    // longer than intended for the unit test
+    evb->terminateLoopSoon();
+    bool has_exited = !evb->isRunning();
+    for (int i = 0; i < 10; i++) {
+      if (has_exited) {
+        break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(250));
+      has_exited = !evb->isRunning();
+    }
+    if (!has_exited) {
+      std::cout << "EventBase eventloop is still running and should not be. "
+                << "You might see a segfault as everything scheduled to run "
+                << "is not guaranteed to have access to the things they should."
+                << std::endl;
+      EXPECT_TRUE(false);
+    }
   }
 
   void insert_static_rule(
@@ -151,6 +171,7 @@ class SessiondTest : public ::testing::Test {
   }
 
  protected:
+  folly::EventBase *evb;
   std::shared_ptr<MockCentralController> controller_mock;
   std::shared_ptr<MockPipelined> pipelined_mock;
   std::shared_ptr<LocalEnforcer> monitor;
