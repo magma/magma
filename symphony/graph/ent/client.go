@@ -628,6 +628,38 @@ func (c *CheckListItemClient) QueryFiles(cli *CheckListItem) *FileQuery {
 	return query
 }
 
+// QueryWifiScan queries the wifi_scan edge of a CheckListItem.
+func (c *CheckListItemClient) QueryWifiScan(cli *CheckListItem) *SurveyWiFiScanQuery {
+	query := &SurveyWiFiScanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := cli.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
+			sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, checklistitem.WifiScanTable, checklistitem.WifiScanColumn),
+		)
+		fromV = sqlgraph.Neighbors(cli.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCellScan queries the cell_scan edge of a CheckListItem.
+func (c *CheckListItemClient) QueryCellScan(cli *CheckListItem) *SurveyCellScanQuery {
+	query := &SurveyCellScanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := cli.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
+			sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, checklistitem.CellScanTable, checklistitem.CellScanColumn),
+		)
+		fromV = sqlgraph.Neighbors(cli.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryWorkOrder queries the work_order edge of a CheckListItem.
 func (c *CheckListItemClient) QueryWorkOrder(cli *CheckListItem) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
@@ -4635,6 +4667,22 @@ func (c *SurveyCellScanClient) GetX(ctx context.Context, id int) *SurveyCellScan
 	return scs
 }
 
+// QueryChecklistItem queries the checklist_item edge of a SurveyCellScan.
+func (c *SurveyCellScanClient) QueryChecklistItem(scs *SurveyCellScan) *CheckListItemQuery {
+	query := &CheckListItemQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := scs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, id),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.ChecklistItemTable, surveycellscan.ChecklistItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(scs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QuerySurveyQuestion queries the survey_question edge of a SurveyCellScan.
 func (c *SurveyCellScanClient) QuerySurveyQuestion(scs *SurveyCellScan) *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: c.config}
@@ -5109,6 +5157,22 @@ func (c *SurveyWiFiScanClient) GetX(ctx context.Context, id int) *SurveyWiFiScan
 		panic(err)
 	}
 	return swfs
+}
+
+// QueryChecklistItem queries the checklist_item edge of a SurveyWiFiScan.
+func (c *SurveyWiFiScanClient) QueryChecklistItem(swfs *SurveyWiFiScan) *CheckListItemQuery {
+	query := &CheckListItemQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := swfs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, id),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.ChecklistItemTable, surveywifiscan.ChecklistItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(swfs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QuerySurveyQuestion queries the survey_question edge of a SurveyWiFiScan.

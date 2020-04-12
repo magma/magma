@@ -40,6 +40,14 @@ func (checkListItemResolver) YesNoResponse(ctx context.Context, item *ent.CheckL
 	return nil, nil
 }
 
+func (checkListItemResolver) WifiData(ctx context.Context, item *ent.CheckListItem) ([]*ent.SurveyWiFiScan, error) {
+	return item.QueryWifiScan().All(ctx)
+}
+
+func (checkListItemResolver) CellData(ctx context.Context, item *ent.CheckListItem) ([]*ent.SurveyCellScan, error) {
+	return item.QueryCellScan().All(ctx)
+}
+
 type checkListItemDefinitionResolver struct{}
 
 func (checkListItemDefinitionResolver) Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error) {

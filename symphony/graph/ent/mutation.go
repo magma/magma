@@ -962,6 +962,10 @@ type CheckListItemMutation struct {
 	clearedFields        map[string]struct{}
 	files                map[int]struct{}
 	removedfiles         map[int]struct{}
+	wifi_scan            map[int]struct{}
+	removedwifi_scan     map[int]struct{}
+	cell_scan            map[int]struct{}
+	removedcell_scan     map[int]struct{}
 	work_order           *int
 	clearedwork_order    bool
 }
@@ -1363,6 +1367,90 @@ func (m *CheckListItemMutation) ResetFiles() {
 	m.removedfiles = nil
 }
 
+// AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
+func (m *CheckListItemMutation) AddWifiScanIDs(ids ...int) {
+	if m.wifi_scan == nil {
+		m.wifi_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.wifi_scan[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveWifiScanIDs removes the wifi_scan edge to SurveyWiFiScan by ids.
+func (m *CheckListItemMutation) RemoveWifiScanIDs(ids ...int) {
+	if m.removedwifi_scan == nil {
+		m.removedwifi_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedwifi_scan[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWifiScan returns the removed ids of wifi_scan.
+func (m *CheckListItemMutation) RemovedWifiScanIDs() (ids []int) {
+	for id := range m.removedwifi_scan {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WifiScanIDs returns the wifi_scan ids in the mutation.
+func (m *CheckListItemMutation) WifiScanIDs() (ids []int) {
+	for id := range m.wifi_scan {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWifiScan reset all changes of the wifi_scan edge.
+func (m *CheckListItemMutation) ResetWifiScan() {
+	m.wifi_scan = nil
+	m.removedwifi_scan = nil
+}
+
+// AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
+func (m *CheckListItemMutation) AddCellScanIDs(ids ...int) {
+	if m.cell_scan == nil {
+		m.cell_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.cell_scan[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveCellScanIDs removes the cell_scan edge to SurveyCellScan by ids.
+func (m *CheckListItemMutation) RemoveCellScanIDs(ids ...int) {
+	if m.removedcell_scan == nil {
+		m.removedcell_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedcell_scan[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCellScan returns the removed ids of cell_scan.
+func (m *CheckListItemMutation) RemovedCellScanIDs() (ids []int) {
+	for id := range m.removedcell_scan {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CellScanIDs returns the cell_scan ids in the mutation.
+func (m *CheckListItemMutation) CellScanIDs() (ids []int) {
+	for id := range m.cell_scan {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCellScan reset all changes of the cell_scan edge.
+func (m *CheckListItemMutation) ResetCellScan() {
+	m.cell_scan = nil
+	m.removedcell_scan = nil
+}
+
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (m *CheckListItemMutation) SetWorkOrderID(id int) {
 	m.work_order = &id
@@ -1707,9 +1795,15 @@ func (m *CheckListItemMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *CheckListItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.files != nil {
 		edges = append(edges, checklistitem.EdgeFiles)
+	}
+	if m.wifi_scan != nil {
+		edges = append(edges, checklistitem.EdgeWifiScan)
+	}
+	if m.cell_scan != nil {
+		edges = append(edges, checklistitem.EdgeCellScan)
 	}
 	if m.work_order != nil {
 		edges = append(edges, checklistitem.EdgeWorkOrder)
@@ -1727,6 +1821,18 @@ func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case checklistitem.EdgeWifiScan:
+		ids := make([]ent.Value, 0, len(m.wifi_scan))
+		for id := range m.wifi_scan {
+			ids = append(ids, id)
+		}
+		return ids
+	case checklistitem.EdgeCellScan:
+		ids := make([]ent.Value, 0, len(m.cell_scan))
+		for id := range m.cell_scan {
+			ids = append(ids, id)
+		}
+		return ids
 	case checklistitem.EdgeWorkOrder:
 		if id := m.work_order; id != nil {
 			return []ent.Value{*id}
@@ -1738,9 +1844,15 @@ func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *CheckListItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.removedfiles != nil {
 		edges = append(edges, checklistitem.EdgeFiles)
+	}
+	if m.removedwifi_scan != nil {
+		edges = append(edges, checklistitem.EdgeWifiScan)
+	}
+	if m.removedcell_scan != nil {
+		edges = append(edges, checklistitem.EdgeCellScan)
 	}
 	return edges
 }
@@ -1755,6 +1867,18 @@ func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case checklistitem.EdgeWifiScan:
+		ids := make([]ent.Value, 0, len(m.removedwifi_scan))
+		for id := range m.removedwifi_scan {
+			ids = append(ids, id)
+		}
+		return ids
+	case checklistitem.EdgeCellScan:
+		ids := make([]ent.Value, 0, len(m.removedcell_scan))
+		for id := range m.removedcell_scan {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1762,7 +1886,7 @@ func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *CheckListItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.clearedwork_order {
 		edges = append(edges, checklistitem.EdgeWorkOrder)
 	}
@@ -1797,6 +1921,12 @@ func (m *CheckListItemMutation) ResetEdge(name string) error {
 	switch name {
 	case checklistitem.EdgeFiles:
 		m.ResetFiles()
+		return nil
+	case checklistitem.EdgeWifiScan:
+		m.ResetWifiScan()
+		return nil
+	case checklistitem.EdgeCellScan:
+		m.ResetCellScan()
 		return nil
 	case checklistitem.EdgeWorkOrder:
 		m.ResetWorkOrder()
@@ -20816,6 +20946,8 @@ type SurveyCellScanMutation struct {
 	longitude               *float64
 	addlongitude            *float64
 	clearedFields           map[string]struct{}
+	checklist_item          *int
+	clearedchecklist_item   bool
 	survey_question         *int
 	clearedsurvey_question  bool
 	location                *int
@@ -21660,6 +21792,45 @@ func (m *SurveyCellScanMutation) ResetLongitude() {
 	delete(m.clearedFields, surveycellscan.FieldLongitude)
 }
 
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (m *SurveyCellScanMutation) SetChecklistItemID(id int) {
+	m.checklist_item = &id
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (m *SurveyCellScanMutation) ClearChecklistItem() {
+	m.clearedchecklist_item = true
+}
+
+// ChecklistItemCleared returns if the edge checklist_item was cleared.
+func (m *SurveyCellScanMutation) ChecklistItemCleared() bool {
+	return m.clearedchecklist_item
+}
+
+// ChecklistItemID returns the checklist_item id in the mutation.
+func (m *SurveyCellScanMutation) ChecklistItemID() (id int, exists bool) {
+	if m.checklist_item != nil {
+		return *m.checklist_item, true
+	}
+	return
+}
+
+// ChecklistItemIDs returns the checklist_item ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// ChecklistItemID instead. It exists only for internal usage by the builders.
+func (m *SurveyCellScanMutation) ChecklistItemIDs() (ids []int) {
+	if id := m.checklist_item; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetChecklistItem reset all changes of the checklist_item edge.
+func (m *SurveyCellScanMutation) ResetChecklistItem() {
+	m.checklist_item = nil
+	m.clearedchecklist_item = false
+}
+
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (m *SurveyCellScanMutation) SetSurveyQuestionID(id int) {
 	m.survey_question = &id
@@ -22355,7 +22526,10 @@ func (m *SurveyCellScanMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *SurveyCellScanMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.checklist_item != nil {
+		edges = append(edges, surveycellscan.EdgeChecklistItem)
+	}
 	if m.survey_question != nil {
 		edges = append(edges, surveycellscan.EdgeSurveyQuestion)
 	}
@@ -22369,6 +22543,10 @@ func (m *SurveyCellScanMutation) AddedEdges() []string {
 // the given edge name.
 func (m *SurveyCellScanMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case surveycellscan.EdgeChecklistItem:
+		if id := m.checklist_item; id != nil {
+			return []ent.Value{*id}
+		}
 	case surveycellscan.EdgeSurveyQuestion:
 		if id := m.survey_question; id != nil {
 			return []ent.Value{*id}
@@ -22384,7 +22562,7 @@ func (m *SurveyCellScanMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *SurveyCellScanMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -22399,7 +22577,10 @@ func (m *SurveyCellScanMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *SurveyCellScanMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedchecklist_item {
+		edges = append(edges, surveycellscan.EdgeChecklistItem)
+	}
 	if m.clearedsurvey_question {
 		edges = append(edges, surveycellscan.EdgeSurveyQuestion)
 	}
@@ -22413,6 +22594,8 @@ func (m *SurveyCellScanMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *SurveyCellScanMutation) EdgeCleared(name string) bool {
 	switch name {
+	case surveycellscan.EdgeChecklistItem:
+		return m.clearedchecklist_item
 	case surveycellscan.EdgeSurveyQuestion:
 		return m.clearedsurvey_question
 	case surveycellscan.EdgeLocation:
@@ -22425,6 +22608,9 @@ func (m *SurveyCellScanMutation) EdgeCleared(name string) bool {
 // error if the edge name is not defined in the schema.
 func (m *SurveyCellScanMutation) ClearEdge(name string) error {
 	switch name {
+	case surveycellscan.EdgeChecklistItem:
+		m.ClearChecklistItem()
+		return nil
 	case surveycellscan.EdgeSurveyQuestion:
 		m.ClearSurveyQuestion()
 		return nil
@@ -22440,6 +22626,9 @@ func (m *SurveyCellScanMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *SurveyCellScanMutation) ResetEdge(name string) error {
 	switch name {
+	case surveycellscan.EdgeChecklistItem:
+		m.ResetChecklistItem()
+		return nil
 	case surveycellscan.EdgeSurveyQuestion:
 		m.ResetSurveyQuestion()
 		return nil
@@ -25180,6 +25369,8 @@ type SurveyWiFiScanMutation struct {
 	longitude              *float64
 	addlongitude           *float64
 	clearedFields          map[string]struct{}
+	checklist_item         *int
+	clearedchecklist_item  bool
 	survey_question        *int
 	clearedsurvey_question bool
 	location               *int
@@ -25674,6 +25865,45 @@ func (m *SurveyWiFiScanMutation) ResetLongitude() {
 	delete(m.clearedFields, surveywifiscan.FieldLongitude)
 }
 
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (m *SurveyWiFiScanMutation) SetChecklistItemID(id int) {
+	m.checklist_item = &id
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (m *SurveyWiFiScanMutation) ClearChecklistItem() {
+	m.clearedchecklist_item = true
+}
+
+// ChecklistItemCleared returns if the edge checklist_item was cleared.
+func (m *SurveyWiFiScanMutation) ChecklistItemCleared() bool {
+	return m.clearedchecklist_item
+}
+
+// ChecklistItemID returns the checklist_item id in the mutation.
+func (m *SurveyWiFiScanMutation) ChecklistItemID() (id int, exists bool) {
+	if m.checklist_item != nil {
+		return *m.checklist_item, true
+	}
+	return
+}
+
+// ChecklistItemIDs returns the checklist_item ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// ChecklistItemID instead. It exists only for internal usage by the builders.
+func (m *SurveyWiFiScanMutation) ChecklistItemIDs() (ids []int) {
+	if id := m.checklist_item; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetChecklistItem reset all changes of the checklist_item edge.
+func (m *SurveyWiFiScanMutation) ResetChecklistItem() {
+	m.checklist_item = nil
+	m.clearedchecklist_item = false
+}
+
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (m *SurveyWiFiScanMutation) SetSurveyQuestionID(id int) {
 	m.survey_question = &id
@@ -26150,7 +26380,10 @@ func (m *SurveyWiFiScanMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *SurveyWiFiScanMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.checklist_item != nil {
+		edges = append(edges, surveywifiscan.EdgeChecklistItem)
+	}
 	if m.survey_question != nil {
 		edges = append(edges, surveywifiscan.EdgeSurveyQuestion)
 	}
@@ -26164,6 +26397,10 @@ func (m *SurveyWiFiScanMutation) AddedEdges() []string {
 // the given edge name.
 func (m *SurveyWiFiScanMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case surveywifiscan.EdgeChecklistItem:
+		if id := m.checklist_item; id != nil {
+			return []ent.Value{*id}
+		}
 	case surveywifiscan.EdgeSurveyQuestion:
 		if id := m.survey_question; id != nil {
 			return []ent.Value{*id}
@@ -26179,7 +26416,7 @@ func (m *SurveyWiFiScanMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *SurveyWiFiScanMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -26194,7 +26431,10 @@ func (m *SurveyWiFiScanMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *SurveyWiFiScanMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedchecklist_item {
+		edges = append(edges, surveywifiscan.EdgeChecklistItem)
+	}
 	if m.clearedsurvey_question {
 		edges = append(edges, surveywifiscan.EdgeSurveyQuestion)
 	}
@@ -26208,6 +26448,8 @@ func (m *SurveyWiFiScanMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *SurveyWiFiScanMutation) EdgeCleared(name string) bool {
 	switch name {
+	case surveywifiscan.EdgeChecklistItem:
+		return m.clearedchecklist_item
 	case surveywifiscan.EdgeSurveyQuestion:
 		return m.clearedsurvey_question
 	case surveywifiscan.EdgeLocation:
@@ -26220,6 +26462,9 @@ func (m *SurveyWiFiScanMutation) EdgeCleared(name string) bool {
 // error if the edge name is not defined in the schema.
 func (m *SurveyWiFiScanMutation) ClearEdge(name string) error {
 	switch name {
+	case surveywifiscan.EdgeChecklistItem:
+		m.ClearChecklistItem()
+		return nil
 	case surveywifiscan.EdgeSurveyQuestion:
 		m.ClearSurveyQuestion()
 		return nil
@@ -26235,6 +26480,9 @@ func (m *SurveyWiFiScanMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *SurveyWiFiScanMutation) ResetEdge(name string) error {
 	switch name {
+	case surveywifiscan.EdgeChecklistItem:
+		m.ResetChecklistItem()
+		return nil
 	case surveywifiscan.EdgeSurveyQuestion:
 		m.ResetSurveyQuestion()
 		return nil

@@ -752,11 +752,13 @@ type SurveyWiFiScanData struct {
 }
 
 type TechnicianCheckListItemInput struct {
-	ID                 int            `json:"id"`
-	SelectedEnumValues *string        `json:"selectedEnumValues"`
-	StringValue        *string        `json:"stringValue"`
-	Checked            *bool          `json:"checked"`
-	YesNoResponse      *YesNoResponse `json:"yesNoResponse"`
+	ID                 int                   `json:"id"`
+	SelectedEnumValues *string               `json:"selectedEnumValues"`
+	StringValue        *string               `json:"stringValue"`
+	Checked            *bool                 `json:"checked"`
+	YesNoResponse      *YesNoResponse        `json:"yesNoResponse"`
+	WifiData           []*SurveyWiFiScanData `json:"wifiData"`
+	CellData           []*SurveyCellScanData `json:"cellData"`
 }
 
 type TechnicianInput struct {
@@ -921,11 +923,13 @@ func (e CheckListItemEnumSelectionMode) MarshalGQL(w io.Writer) {
 type CheckListItemType string
 
 const (
-	CheckListItemTypeSimple CheckListItemType = "simple"
-	CheckListItemTypeString CheckListItemType = "string"
-	CheckListItemTypeEnum   CheckListItemType = "enum"
-	CheckListItemTypeFiles  CheckListItemType = "files"
-	CheckListItemTypeYesNo  CheckListItemType = "yes_no"
+	CheckListItemTypeSimple   CheckListItemType = "simple"
+	CheckListItemTypeString   CheckListItemType = "string"
+	CheckListItemTypeEnum     CheckListItemType = "enum"
+	CheckListItemTypeFiles    CheckListItemType = "files"
+	CheckListItemTypeYesNo    CheckListItemType = "yes_no"
+	CheckListItemTypeCellScan CheckListItemType = "cell_scan"
+	CheckListItemTypeWifiScan CheckListItemType = "wifi_scan"
 )
 
 var AllCheckListItemType = []CheckListItemType{
@@ -934,11 +938,13 @@ var AllCheckListItemType = []CheckListItemType{
 	CheckListItemTypeEnum,
 	CheckListItemTypeFiles,
 	CheckListItemTypeYesNo,
+	CheckListItemTypeCellScan,
+	CheckListItemTypeWifiScan,
 }
 
 func (e CheckListItemType) IsValid() bool {
 	switch e {
-	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum, CheckListItemTypeFiles, CheckListItemTypeYesNo:
+	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum, CheckListItemTypeFiles, CheckListItemTypeYesNo, CheckListItemTypeCellScan, CheckListItemTypeWifiScan:
 		return true
 	}
 	return false

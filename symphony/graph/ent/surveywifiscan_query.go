@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
@@ -30,6 +31,7 @@ type SurveyWiFiScanQuery struct {
 	unique     []string
 	predicates []predicate.SurveyWiFiScan
 	// eager-loading edges.
+	withChecklistItem  *CheckListItemQuery
 	withSurveyQuestion *SurveyQuestionQuery
 	withLocation       *LocationQuery
 	withFKs            bool
@@ -60,6 +62,24 @@ func (swfsq *SurveyWiFiScanQuery) Offset(offset int) *SurveyWiFiScanQuery {
 func (swfsq *SurveyWiFiScanQuery) Order(o ...Order) *SurveyWiFiScanQuery {
 	swfsq.order = append(swfsq.order, o...)
 	return swfsq
+}
+
+// QueryChecklistItem chains the current query on the checklist_item edge.
+func (swfsq *SurveyWiFiScanQuery) QueryChecklistItem() *CheckListItemQuery {
+	query := &CheckListItemQuery{config: swfsq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := swfsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.ChecklistItemTable, surveywifiscan.ChecklistItemColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(swfsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QuerySurveyQuestion chains the current query on the survey_question edge.
@@ -277,6 +297,17 @@ func (swfsq *SurveyWiFiScanQuery) Clone() *SurveyWiFiScanQuery {
 	}
 }
 
+//  WithChecklistItem tells the query-builder to eager-loads the nodes that are connected to
+// the "checklist_item" edge. The optional arguments used to configure the query builder of the edge.
+func (swfsq *SurveyWiFiScanQuery) WithChecklistItem(opts ...func(*CheckListItemQuery)) *SurveyWiFiScanQuery {
+	query := &CheckListItemQuery{config: swfsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	swfsq.withChecklistItem = query
+	return swfsq
+}
+
 //  WithSurveyQuestion tells the query-builder to eager-loads the nodes that are connected to
 // the "survey_question" edge. The optional arguments used to configure the query builder of the edge.
 func (swfsq *SurveyWiFiScanQuery) WithSurveyQuestion(opts ...func(*SurveyQuestionQuery)) *SurveyWiFiScanQuery {
@@ -366,12 +397,13 @@ func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan
 		nodes       = []*SurveyWiFiScan{}
 		withFKs     = swfsq.withFKs
 		_spec       = swfsq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
+			swfsq.withChecklistItem != nil,
 			swfsq.withSurveyQuestion != nil,
 			swfsq.withLocation != nil,
 		}
 	)
-	if swfsq.withSurveyQuestion != nil || swfsq.withLocation != nil {
+	if swfsq.withChecklistItem != nil || swfsq.withSurveyQuestion != nil || swfsq.withLocation != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -399,6 +431,31 @@ func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
+	}
+
+	if query := swfsq.withChecklistItem; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*SurveyWiFiScan)
+		for i := range nodes {
+			if fk := nodes[i].survey_wi_fi_scan_checklist_item; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(checklistitem.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_wi_fi_scan_checklist_item" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.ChecklistItem = n
+			}
+		}
 	}
 
 	if query := swfsq.withSurveyQuestion; query != nil {

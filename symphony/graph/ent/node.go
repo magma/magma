@@ -207,7 +207,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		ID:     cli.ID,
 		Type:   "CheckListItem",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 4),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(cli.Title); err != nil {
@@ -302,13 +302,35 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		Type: "File",
 		Name: "Files",
 	}
+	ids, err = cli.QueryWifiScan().
+		Select(surveywifiscan.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "SurveyWiFiScan",
+		Name: "WifiScan",
+	}
+	ids, err = cli.QueryCellScan().
+		Select(surveycellscan.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "SurveyCellScan",
+		Name: "CellScan",
+	}
 	ids, err = cli.QueryWorkOrder().
 		Select(workorder.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
+	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
 		Name: "WorkOrder",
@@ -2957,7 +2979,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 		ID:     scs.ID,
 		Type:   "SurveyCellScan",
 		Fields: make([]*Field, 22),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(scs.CreateTime); err != nil {
@@ -3137,13 +3159,24 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 		Value: string(buf),
 	}
 	var ids []int
+	ids, err = scs.QueryChecklistItem().
+		Select(checklistitem.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "CheckListItem",
+		Name: "ChecklistItem",
+	}
 	ids, err = scs.QuerySurveyQuestion().
 		Select(surveyquestion.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[0] = &Edge{
+	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "SurveyQuestion",
 		Name: "SurveyQuestion",
@@ -3154,7 +3187,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
+	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Location",
 		Name: "Location",
@@ -3520,7 +3553,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 		ID:     swfs.ID,
 		Type:   "SurveyWiFiScan",
 		Fields: make([]*Field, 13),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(swfs.CreateTime); err != nil {
@@ -3628,13 +3661,24 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 		Value: string(buf),
 	}
 	var ids []int
+	ids, err = swfs.QueryChecklistItem().
+		Select(checklistitem.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "CheckListItem",
+		Name: "ChecklistItem",
+	}
 	ids, err = swfs.QuerySurveyQuestion().
 		Select(surveyquestion.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[0] = &Edge{
+	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "SurveyQuestion",
 		Name: "SurveyQuestion",
@@ -3645,7 +3689,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
+	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Location",
 		Name: "Location",

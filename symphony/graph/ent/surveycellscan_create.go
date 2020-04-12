@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
@@ -318,6 +319,25 @@ func (scsc *SurveyCellScanCreate) SetNillableLongitude(f *float64) *SurveyCellSc
 	return scsc
 }
 
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (scsc *SurveyCellScanCreate) SetChecklistItemID(id int) *SurveyCellScanCreate {
+	scsc.mutation.SetChecklistItemID(id)
+	return scsc
+}
+
+// SetNillableChecklistItemID sets the checklist_item edge to CheckListItem by id if the given value is not nil.
+func (scsc *SurveyCellScanCreate) SetNillableChecklistItemID(id *int) *SurveyCellScanCreate {
+	if id != nil {
+		scsc = scsc.SetChecklistItemID(*id)
+	}
+	return scsc
+}
+
+// SetChecklistItem sets the checklist_item edge to CheckListItem.
+func (scsc *SurveyCellScanCreate) SetChecklistItem(c *CheckListItem) *SurveyCellScanCreate {
+	return scsc.SetChecklistItemID(c.ID)
+}
+
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (scsc *SurveyCellScanCreate) SetSurveyQuestionID(id int) *SurveyCellScanCreate {
 	scsc.mutation.SetSurveyQuestionID(id)
@@ -593,6 +613,25 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 			Column: surveycellscan.FieldLongitude,
 		})
 		scs.Longitude = value
+	}
+	if nodes := scsc.mutation.ChecklistItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.ChecklistItemTable,
+			Columns: []string{surveycellscan.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := scsc.mutation.SurveyQuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

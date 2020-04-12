@@ -1213,6 +1213,62 @@ func HasFilesWith(preds ...predicate.File) predicate.CheckListItem {
 	})
 }
 
+// HasWifiScan applies the HasEdge predicate on the "wifi_scan" edge.
+func HasWifiScan() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WifiScanTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, WifiScanTable, WifiScanColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWifiScanWith applies the HasEdge predicate on the "wifi_scan" edge with a given conditions (other predicates).
+func HasWifiScanWith(preds ...predicate.SurveyWiFiScan) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WifiScanInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, WifiScanTable, WifiScanColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCellScan applies the HasEdge predicate on the "cell_scan" edge.
+func HasCellScan() predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CellScanTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CellScanTable, CellScanColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCellScanWith applies the HasEdge predicate on the "cell_scan" edge with a given conditions (other predicates).
+func HasCellScanWith(preds ...predicate.SurveyCellScan) predicate.CheckListItem {
+	return predicate.CheckListItem(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(CellScanInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, CellScanTable, CellScanColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasWorkOrder applies the HasEdge predicate on the "work_order" edge.
 func HasWorkOrder() predicate.CheckListItem {
 	return predicate.CheckListItem(func(s *sql.Selector) {

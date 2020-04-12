@@ -15,6 +15,8 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
+	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -162,6 +164,36 @@ func (clic *CheckListItemCreate) AddFiles(f ...*File) *CheckListItemCreate {
 		ids[i] = f[i].ID
 	}
 	return clic.AddFileIDs(ids...)
+}
+
+// AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
+func (clic *CheckListItemCreate) AddWifiScanIDs(ids ...int) *CheckListItemCreate {
+	clic.mutation.AddWifiScanIDs(ids...)
+	return clic
+}
+
+// AddWifiScan adds the wifi_scan edges to SurveyWiFiScan.
+func (clic *CheckListItemCreate) AddWifiScan(s ...*SurveyWiFiScan) *CheckListItemCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return clic.AddWifiScanIDs(ids...)
+}
+
+// AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
+func (clic *CheckListItemCreate) AddCellScanIDs(ids ...int) *CheckListItemCreate {
+	clic.mutation.AddCellScanIDs(ids...)
+	return clic
+}
+
+// AddCellScan adds the cell_scan edges to SurveyCellScan.
+func (clic *CheckListItemCreate) AddCellScan(s ...*SurveyCellScan) *CheckListItemCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return clic.AddCellScanIDs(ids...)
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
@@ -333,6 +365,44 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := clic.mutation.WifiScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.WifiScanTable,
+			Columns: []string{checklistitem.WifiScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveywifiscan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := clic.mutation.CellScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.CellScanTable,
+			Columns: []string{checklistitem.CellScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveycellscan.FieldID,
 				},
 			},
 		}

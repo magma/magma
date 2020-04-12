@@ -172,6 +172,7 @@ type ComplexityRoot struct {
 	}
 
 	CheckListItem struct {
+		CellData           func(childComplexity int) int
 		Checked            func(childComplexity int) int
 		EnumSelectionMode  func(childComplexity int) int
 		EnumValues         func(childComplexity int) int
@@ -183,6 +184,7 @@ type ComplexityRoot struct {
 		StringVal          func(childComplexity int) int
 		Title              func(childComplexity int) int
 		Type               func(childComplexity int) int
+		WifiData           func(childComplexity int) int
 		YesNoResponse      func(childComplexity int) int
 	}
 
@@ -1057,6 +1059,8 @@ type CheckListItemResolver interface {
 
 	Files(ctx context.Context, obj *ent.CheckListItem) ([]*ent.File, error)
 	YesNoResponse(ctx context.Context, obj *ent.CheckListItem) (*models.YesNoResponse, error)
+	WifiData(ctx context.Context, obj *ent.CheckListItem) ([]*ent.SurveyWiFiScan, error)
+	CellData(ctx context.Context, obj *ent.CheckListItem) ([]*ent.SurveyCellScan, error)
 }
 type CheckListItemDefinitionResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error)
@@ -1674,6 +1678,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CheckListCategory.Title(childComplexity), true
 
+	case "CheckListItem.cellData":
+		if e.complexity.CheckListItem.CellData == nil {
+			break
+		}
+
+		return e.complexity.CheckListItem.CellData(childComplexity), true
+
 	case "CheckListItem.checked":
 		if e.complexity.CheckListItem.Checked == nil {
 			break
@@ -1750,6 +1761,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CheckListItem.Type(childComplexity), true
+
+	case "CheckListItem.wifiData":
+		if e.complexity.CheckListItem.WifiData == nil {
+			break
+		}
+
+		return e.complexity.CheckListItem.WifiData(childComplexity), true
 
 	case "CheckListItem.yesNoResponse":
 		if e.complexity.CheckListItem.YesNoResponse == nil {
@@ -6988,6 +7006,8 @@ input TechnicianCheckListItemInput {
   stringValue: String
   checked: Boolean
   yesNoResponse: YesNoResponse
+  wifiData: [SurveyWiFiScanData!]
+  cellData: [SurveyCellScanData!]
 }
 
 input TechnicianWorkOrderUploadInput {
@@ -7515,6 +7535,8 @@ enum CheckListItemType {
   enum
   files
   yes_no
+  cell_scan
+  wifi_scan
 }
 
 enum CheckListItemEnumSelectionMode {
@@ -7560,6 +7582,8 @@ type CheckListItem implements Node {
   checked: Boolean
   files: [File!]!
   yesNoResponse: YesNoResponse
+  wifiData: [SurveyWiFiScan!]
+  cellData: [SurveyCellScan!]
 }
 
 input CheckListCategoryInput {
@@ -13158,6 +13182,74 @@ func (ec *executionContext) _CheckListItem_yesNoResponse(ctx context.Context, fi
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListItem_wifiData(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CheckListItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CheckListItem().WifiData(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.SurveyWiFiScan)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOSurveyWiFiScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScanᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListItem_cellData(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CheckListItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CheckListItem().CellData(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.SurveyCellScan)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScanᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListItemDefinition_id(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItemDefinition) (ret graphql.Marshaler) {
@@ -39938,6 +40030,18 @@ func (ec *executionContext) unmarshalInputTechnicianCheckListItemInput(ctx conte
 			if err != nil {
 				return it, err
 			}
+		case "wifiData":
+			var err error
+			it.WifiData, err = ec.unmarshalOSurveyWiFiScanData2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyWiFiScanDataᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "cellData":
+			var err error
+			it.CellData, err = ec.unmarshalOSurveyCellScanData2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyCellScanDataᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -40957,6 +41061,28 @@ func (ec *executionContext) _CheckListItem(ctx context.Context, sel ast.Selectio
 					}
 				}()
 				res = ec._CheckListItem_yesNoResponse(ctx, field, obj)
+				return res
+			})
+		case "wifiData":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CheckListItem_wifiData(ctx, field, obj)
+				return res
+			})
+		case "cellData":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CheckListItem_cellData(ctx, field, obj)
 				return res
 			})
 		default:
@@ -50794,6 +50920,10 @@ func (ec *executionContext) marshalNSurvey2ᚖgithubᚗcomᚋfacebookincubator�
 	return ec._Survey(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNSurveyCellScan2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx context.Context, sel ast.SelectionSet, v ent.SurveyCellScan) graphql.Marshaler {
+	return ec._SurveyCellScan(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx context.Context, sel ast.SelectionSet, v []*ent.SurveyCellScan) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -50829,6 +50959,16 @@ func (ec *executionContext) marshalNSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebook
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNSurveyCellScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx context.Context, sel ast.SelectionSet, v *ent.SurveyCellScan) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SurveyCellScan(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNSurveyCellScanData2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyCellScanData(ctx context.Context, v interface{}) (models.SurveyCellScanData, error) {
@@ -50991,6 +51131,10 @@ func (ec *executionContext) unmarshalNSurveyTemplateCategoryInput2ᚖgithubᚗco
 	return &res, err
 }
 
+func (ec *executionContext) marshalNSurveyWiFiScan2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScan(ctx context.Context, sel ast.SelectionSet, v ent.SurveyWiFiScan) graphql.Marshaler {
+	return ec._SurveyWiFiScan(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNSurveyWiFiScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScan(ctx context.Context, sel ast.SelectionSet, v []*ent.SurveyWiFiScan) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -51026,6 +51170,16 @@ func (ec *executionContext) marshalNSurveyWiFiScan2ᚕᚖgithubᚗcomᚋfacebook
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNSurveyWiFiScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScan(ctx context.Context, sel ast.SelectionSet, v *ent.SurveyWiFiScan) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SurveyWiFiScan(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNSurveyWiFiScanData2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyWiFiScanData(ctx context.Context, v interface{}) (models.SurveyWiFiScanData, error) {
@@ -53414,6 +53568,46 @@ func (ec *executionContext) marshalOSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebook
 	return ret
 }
 
+func (ec *executionContext) marshalOSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScanᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.SurveyCellScan) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSurveyCellScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalOSurveyCellScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx context.Context, sel ast.SelectionSet, v *ent.SurveyCellScan) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -53738,6 +53932,46 @@ func (ec *executionContext) marshalOSurveyWiFiScan2ᚕᚖgithubᚗcomᚋfacebook
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalOSurveyWiFiScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScan(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOSurveyWiFiScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScanᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.SurveyWiFiScan) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSurveyWiFiScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScan(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

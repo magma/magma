@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a4d09cba88571f9471c6c91cdcee652c
+ * @relayHash f8c01e560da6d09dfd894659328b2b30
  */
 
 /* eslint-disable */
@@ -18,7 +18,7 @@ import type { ConcreteRequest } from 'relay-runtime';
 type WorkOrderDetails_workOrder$ref = any;
 type WorkOrdersView_workOrder$ref = any;
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
-export type CheckListItemType = "enum" | "files" | "simple" | "string" | "yes_no" | "%future added value";
+export type CheckListItemType = "cell_scan" | "enum" | "files" | "simple" | "string" | "wifi_scan" | "yes_no" | "%future added value";
 export type FileType = "FILE" | "IMAGE" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";

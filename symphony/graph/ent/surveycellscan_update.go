@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -455,6 +456,25 @@ func (scsu *SurveyCellScanUpdate) ClearLongitude() *SurveyCellScanUpdate {
 	return scsu
 }
 
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (scsu *SurveyCellScanUpdate) SetChecklistItemID(id int) *SurveyCellScanUpdate {
+	scsu.mutation.SetChecklistItemID(id)
+	return scsu
+}
+
+// SetNillableChecklistItemID sets the checklist_item edge to CheckListItem by id if the given value is not nil.
+func (scsu *SurveyCellScanUpdate) SetNillableChecklistItemID(id *int) *SurveyCellScanUpdate {
+	if id != nil {
+		scsu = scsu.SetChecklistItemID(*id)
+	}
+	return scsu
+}
+
+// SetChecklistItem sets the checklist_item edge to CheckListItem.
+func (scsu *SurveyCellScanUpdate) SetChecklistItem(c *CheckListItem) *SurveyCellScanUpdate {
+	return scsu.SetChecklistItemID(c.ID)
+}
+
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (scsu *SurveyCellScanUpdate) SetSurveyQuestionID(id int) *SurveyCellScanUpdate {
 	scsu.mutation.SetSurveyQuestionID(id)
@@ -491,6 +511,12 @@ func (scsu *SurveyCellScanUpdate) SetNillableLocationID(id *int) *SurveyCellScan
 // SetLocation sets the location edge to Location.
 func (scsu *SurveyCellScanUpdate) SetLocation(l *Location) *SurveyCellScanUpdate {
 	return scsu.SetLocationID(l.ID)
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (scsu *SurveyCellScanUpdate) ClearChecklistItem() *SurveyCellScanUpdate {
+	scsu.mutation.ClearChecklistItem()
+	return scsu
 }
 
 // ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
@@ -881,6 +907,41 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 			Type:   field.TypeFloat64,
 			Column: surveycellscan.FieldLongitude,
 		})
+	}
+	if scsu.mutation.ChecklistItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.ChecklistItemTable,
+			Columns: []string{surveycellscan.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := scsu.mutation.ChecklistItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.ChecklistItemTable,
+			Columns: []string{surveycellscan.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if scsu.mutation.SurveyQuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1391,6 +1452,25 @@ func (scsuo *SurveyCellScanUpdateOne) ClearLongitude() *SurveyCellScanUpdateOne 
 	return scsuo
 }
 
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (scsuo *SurveyCellScanUpdateOne) SetChecklistItemID(id int) *SurveyCellScanUpdateOne {
+	scsuo.mutation.SetChecklistItemID(id)
+	return scsuo
+}
+
+// SetNillableChecklistItemID sets the checklist_item edge to CheckListItem by id if the given value is not nil.
+func (scsuo *SurveyCellScanUpdateOne) SetNillableChecklistItemID(id *int) *SurveyCellScanUpdateOne {
+	if id != nil {
+		scsuo = scsuo.SetChecklistItemID(*id)
+	}
+	return scsuo
+}
+
+// SetChecklistItem sets the checklist_item edge to CheckListItem.
+func (scsuo *SurveyCellScanUpdateOne) SetChecklistItem(c *CheckListItem) *SurveyCellScanUpdateOne {
+	return scsuo.SetChecklistItemID(c.ID)
+}
+
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (scsuo *SurveyCellScanUpdateOne) SetSurveyQuestionID(id int) *SurveyCellScanUpdateOne {
 	scsuo.mutation.SetSurveyQuestionID(id)
@@ -1427,6 +1507,12 @@ func (scsuo *SurveyCellScanUpdateOne) SetNillableLocationID(id *int) *SurveyCell
 // SetLocation sets the location edge to Location.
 func (scsuo *SurveyCellScanUpdateOne) SetLocation(l *Location) *SurveyCellScanUpdateOne {
 	return scsuo.SetLocationID(l.ID)
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (scsuo *SurveyCellScanUpdateOne) ClearChecklistItem() *SurveyCellScanUpdateOne {
+	scsuo.mutation.ClearChecklistItem()
+	return scsuo
 }
 
 // ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
@@ -1815,6 +1901,41 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 			Type:   field.TypeFloat64,
 			Column: surveycellscan.FieldLongitude,
 		})
+	}
+	if scsuo.mutation.ChecklistItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.ChecklistItemTable,
+			Columns: []string{surveycellscan.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := scsuo.mutation.ChecklistItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveycellscan.ChecklistItemTable,
+			Columns: []string{surveycellscan.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if scsuo.mutation.SurveyQuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{

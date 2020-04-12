@@ -515,6 +515,8 @@ input TechnicianCheckListItemInput {
   stringValue: String
   checked: Boolean
   yesNoResponse: YesNoResponse
+  wifiData: [SurveyWiFiScanData!]
+  cellData: [SurveyCellScanData!]
 }
 
 input TechnicianWorkOrderUploadInput {
@@ -1042,6 +1044,8 @@ enum CheckListItemType {
   enum
   files
   yes_no
+  cell_scan
+  wifi_scan
 }
 
 enum CheckListItemEnumSelectionMode {
@@ -1087,6 +1091,8 @@ type CheckListItem implements Node {
   checked: Boolean
   files: [File!]!
   yesNoResponse: YesNoResponse
+  wifiData: [SurveyWiFiScan!]
+  cellData: [SurveyCellScan!]
 }
 
 input CheckListCategoryInput {

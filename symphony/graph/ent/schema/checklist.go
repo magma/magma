@@ -113,6 +113,10 @@ func (CheckListItem) Fields() []ent.Field {
 func (CheckListItem) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("files", File.Type),
+		edge.From("wifi_scan", SurveyWiFiScan.Type).
+			Ref("checklist_item"),
+		edge.From("cell_scan", SurveyCellScan.Type).
+			Ref("checklist_item"),
 		edge.From("work_order", WorkOrder.Type).
 			Unique().
 			Ref("check_list_items"),
