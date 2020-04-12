@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -32,6 +33,7 @@ type ServiceEndpointQuery struct {
 	predicates []predicate.ServiceEndpoint
 	// eager-loading edges.
 	withPort       *EquipmentPortQuery
+	withEquipment  *EquipmentQuery
 	withService    *ServiceQuery
 	withDefinition *ServiceEndpointDefinitionQuery
 	withFKs        bool
@@ -75,6 +77,24 @@ func (seq *ServiceEndpointQuery) QueryPort() *EquipmentPortQuery {
 			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, seq.sqlQuery()),
 			sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.PortTable, serviceendpoint.PortColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(seq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEquipment chains the current query on the equipment edge.
+func (seq *ServiceEndpointQuery) QueryEquipment() *EquipmentQuery {
+	query := &EquipmentQuery{config: seq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := seq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, seq.sqlQuery()),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.EquipmentTable, serviceendpoint.EquipmentColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(seq.driver.Dialect(), step)
 		return fromU, nil
@@ -308,6 +328,17 @@ func (seq *ServiceEndpointQuery) WithPort(opts ...func(*EquipmentPortQuery)) *Se
 	return seq
 }
 
+//  WithEquipment tells the query-builder to eager-loads the nodes that are connected to
+// the "equipment" edge. The optional arguments used to configure the query builder of the edge.
+func (seq *ServiceEndpointQuery) WithEquipment(opts ...func(*EquipmentQuery)) *ServiceEndpointQuery {
+	query := &EquipmentQuery{config: seq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	seq.withEquipment = query
+	return seq
+}
+
 //  WithService tells the query-builder to eager-loads the nodes that are connected to
 // the "service" edge. The optional arguments used to configure the query builder of the edge.
 func (seq *ServiceEndpointQuery) WithService(opts ...func(*ServiceQuery)) *ServiceEndpointQuery {
@@ -397,13 +428,14 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 		nodes       = []*ServiceEndpoint{}
 		withFKs     = seq.withFKs
 		_spec       = seq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			seq.withPort != nil,
+			seq.withEquipment != nil,
 			seq.withService != nil,
 			seq.withDefinition != nil,
 		}
 	)
-	if seq.withPort != nil || seq.withService != nil || seq.withDefinition != nil {
+	if seq.withPort != nil || seq.withEquipment != nil || seq.withService != nil || seq.withDefinition != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -454,6 +486,31 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 			}
 			for i := range nodes {
 				nodes[i].Edges.Port = n
+			}
+		}
+	}
+
+	if query := seq.withEquipment; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*ServiceEndpoint)
+		for i := range nodes {
+			if fk := nodes[i].service_endpoint_equipment; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(equipment.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoint_equipment" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Equipment = n
 			}
 		}
 	}

@@ -111,8 +111,8 @@ class ServiceDetailsQuery(DataClassJsonMixin):
                     role: str
 
                 id: str
-                port: EquipmentPort
                 definition: ServiceEndpointDefinition
+                port: Optional[EquipmentPort]
 
             @dataclass
             class Link(DataClassJsonMixin):

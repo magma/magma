@@ -3355,6 +3355,8 @@ type EquipmentMutation struct {
 	removedfiles           map[int]struct{}
 	hyperlinks             map[int]struct{}
 	removedhyperlinks      map[int]struct{}
+	endpoints              map[int]struct{}
+	removedendpoints       map[int]struct{}
 }
 
 var _ ent.Mutation = (*EquipmentMutation)(nil)
@@ -3916,6 +3918,48 @@ func (m *EquipmentMutation) ResetHyperlinks() {
 	m.removedhyperlinks = nil
 }
 
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (m *EquipmentMutation) AddEndpointIDs(ids ...int) {
+	if m.endpoints == nil {
+		m.endpoints = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.endpoints[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
+func (m *EquipmentMutation) RemoveEndpointIDs(ids ...int) {
+	if m.removedendpoints == nil {
+		m.removedendpoints = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedendpoints[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEndpoints returns the removed ids of endpoints.
+func (m *EquipmentMutation) RemovedEndpointsIDs() (ids []int) {
+	for id := range m.removedendpoints {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EndpointsIDs returns the endpoints ids in the mutation.
+func (m *EquipmentMutation) EndpointsIDs() (ids []int) {
+	for id := range m.endpoints {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEndpoints reset all changes of the endpoints edge.
+func (m *EquipmentMutation) ResetEndpoints() {
+	m.endpoints = nil
+	m.removedendpoints = nil
+}
+
 // Op returns the operation name.
 func (m *EquipmentMutation) Op() Op {
 	return m.op
@@ -4116,7 +4160,7 @@ func (m *EquipmentMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *EquipmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m._type != nil {
 		edges = append(edges, equipment.EdgeType)
 	}
@@ -4143,6 +4187,9 @@ func (m *EquipmentMutation) AddedEdges() []string {
 	}
 	if m.hyperlinks != nil {
 		edges = append(edges, equipment.EdgeHyperlinks)
+	}
+	if m.endpoints != nil {
+		edges = append(edges, equipment.EdgeEndpoints)
 	}
 	return edges
 }
@@ -4197,6 +4244,12 @@ func (m *EquipmentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case equipment.EdgeEndpoints:
+		ids := make([]ent.Value, 0, len(m.endpoints))
+		for id := range m.endpoints {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -4204,7 +4257,7 @@ func (m *EquipmentMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *EquipmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.removedpositions != nil {
 		edges = append(edges, equipment.EdgePositions)
 	}
@@ -4219,6 +4272,9 @@ func (m *EquipmentMutation) RemovedEdges() []string {
 	}
 	if m.removedhyperlinks != nil {
 		edges = append(edges, equipment.EdgeHyperlinks)
+	}
+	if m.removedendpoints != nil {
+		edges = append(edges, equipment.EdgeEndpoints)
 	}
 	return edges
 }
@@ -4257,6 +4313,12 @@ func (m *EquipmentMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case equipment.EdgeEndpoints:
+		ids := make([]ent.Value, 0, len(m.removedendpoints))
+		for id := range m.removedendpoints {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -4264,7 +4326,7 @@ func (m *EquipmentMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *EquipmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.cleared_type {
 		edges = append(edges, equipment.EdgeType)
 	}
@@ -4347,6 +4409,9 @@ func (m *EquipmentMutation) ResetEdge(name string) error {
 		return nil
 	case equipment.EdgeHyperlinks:
 		m.ResetHyperlinks()
+		return nil
+	case equipment.EdgeEndpoints:
+		m.ResetEndpoints()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment edge %s", name)
@@ -19467,6 +19532,8 @@ type ServiceEndpointMutation struct {
 	clearedFields     map[string]struct{}
 	port              *int
 	clearedport       bool
+	equipment         *int
+	clearedequipment  bool
 	service           *int
 	clearedservice    bool
 	definition        *int
@@ -19588,6 +19655,45 @@ func (m *ServiceEndpointMutation) PortIDs() (ids []int) {
 func (m *ServiceEndpointMutation) ResetPort() {
 	m.port = nil
 	m.clearedport = false
+}
+
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (m *ServiceEndpointMutation) SetEquipmentID(id int) {
+	m.equipment = &id
+}
+
+// ClearEquipment clears the equipment edge to Equipment.
+func (m *ServiceEndpointMutation) ClearEquipment() {
+	m.clearedequipment = true
+}
+
+// EquipmentCleared returns if the edge equipment was cleared.
+func (m *ServiceEndpointMutation) EquipmentCleared() bool {
+	return m.clearedequipment
+}
+
+// EquipmentID returns the equipment id in the mutation.
+func (m *ServiceEndpointMutation) EquipmentID() (id int, exists bool) {
+	if m.equipment != nil {
+		return *m.equipment, true
+	}
+	return
+}
+
+// EquipmentIDs returns the equipment ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// EquipmentID instead. It exists only for internal usage by the builders.
+func (m *ServiceEndpointMutation) EquipmentIDs() (ids []int) {
+	if id := m.equipment; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEquipment reset all changes of the equipment edge.
+func (m *ServiceEndpointMutation) ResetEquipment() {
+	m.equipment = nil
+	m.clearedequipment = false
 }
 
 // SetServiceID sets the service edge to Service by id.
@@ -19787,9 +19893,12 @@ func (m *ServiceEndpointMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *ServiceEndpointMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.port != nil {
 		edges = append(edges, serviceendpoint.EdgePort)
+	}
+	if m.equipment != nil {
+		edges = append(edges, serviceendpoint.EdgeEquipment)
 	}
 	if m.service != nil {
 		edges = append(edges, serviceendpoint.EdgeService)
@@ -19808,6 +19917,10 @@ func (m *ServiceEndpointMutation) AddedIDs(name string) []ent.Value {
 		if id := m.port; id != nil {
 			return []ent.Value{*id}
 		}
+	case serviceendpoint.EdgeEquipment:
+		if id := m.equipment; id != nil {
+			return []ent.Value{*id}
+		}
 	case serviceendpoint.EdgeService:
 		if id := m.service; id != nil {
 			return []ent.Value{*id}
@@ -19823,7 +19936,7 @@ func (m *ServiceEndpointMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *ServiceEndpointMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	return edges
 }
 
@@ -19838,9 +19951,12 @@ func (m *ServiceEndpointMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *ServiceEndpointMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedport {
 		edges = append(edges, serviceendpoint.EdgePort)
+	}
+	if m.clearedequipment {
+		edges = append(edges, serviceendpoint.EdgeEquipment)
 	}
 	if m.clearedservice {
 		edges = append(edges, serviceendpoint.EdgeService)
@@ -19857,6 +19973,8 @@ func (m *ServiceEndpointMutation) EdgeCleared(name string) bool {
 	switch name {
 	case serviceendpoint.EdgePort:
 		return m.clearedport
+	case serviceendpoint.EdgeEquipment:
+		return m.clearedequipment
 	case serviceendpoint.EdgeService:
 		return m.clearedservice
 	case serviceendpoint.EdgeDefinition:
@@ -19871,6 +19989,9 @@ func (m *ServiceEndpointMutation) ClearEdge(name string) error {
 	switch name {
 	case serviceendpoint.EdgePort:
 		m.ClearPort()
+		return nil
+	case serviceendpoint.EdgeEquipment:
+		m.ClearEquipment()
 		return nil
 	case serviceendpoint.EdgeService:
 		m.ClearService()
@@ -19889,6 +20010,9 @@ func (m *ServiceEndpointMutation) ResetEdge(name string) error {
 	switch name {
 	case serviceendpoint.EdgePort:
 		m.ResetPort()
+		return nil
+	case serviceendpoint.EdgeEquipment:
+		m.ResetEquipment()
 		return nil
 	case serviceendpoint.EdgeService:
 		m.ResetService()

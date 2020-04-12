@@ -1053,6 +1053,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "service_endpoints", Type: field.TypeInt, Nullable: true},
 		{Name: "service_endpoint_port", Type: field.TypeInt, Nullable: true},
+		{Name: "service_endpoint_equipment", Type: field.TypeInt, Nullable: true},
 		{Name: "service_endpoint_definition_endpoints", Type: field.TypeInt, Nullable: true},
 	}
 	// ServiceEndpointsTable holds the schema information for the "service_endpoints" table.
@@ -1076,8 +1077,15 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "service_endpoints_service_endpoint_definitions_endpoints",
+				Symbol:  "service_endpoints_equipment_equipment",
 				Columns: []*schema.Column{ServiceEndpointsColumns[5]},
+
+				RefColumns: []*schema.Column{EquipmentColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "service_endpoints_service_endpoint_definitions_endpoints",
+				Columns: []*schema.Column{ServiceEndpointsColumns[6]},
 
 				RefColumns: []*schema.Column{ServiceEndpointDefinitionsColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1787,7 +1795,8 @@ func init() {
 	ServicesTable.ForeignKeys[0].RefTable = ServiceTypesTable
 	ServiceEndpointsTable.ForeignKeys[0].RefTable = ServicesTable
 	ServiceEndpointsTable.ForeignKeys[1].RefTable = EquipmentPortsTable
-	ServiceEndpointsTable.ForeignKeys[2].RefTable = ServiceEndpointDefinitionsTable
+	ServiceEndpointsTable.ForeignKeys[2].RefTable = EquipmentTable
+	ServiceEndpointsTable.ForeignKeys[3].RefTable = ServiceEndpointDefinitionsTable
 	ServiceEndpointDefinitionsTable.ForeignKeys[0].RefTable = EquipmentTypesTable
 	ServiceEndpointDefinitionsTable.ForeignKeys[1].RefTable = ServiceTypesTable
 	ServiceEndpointDefinitionsTable.ForeignKeys[2].RefTable = ServiceTypesTable

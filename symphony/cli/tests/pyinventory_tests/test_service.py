@@ -4,6 +4,8 @@
 # license that can be found in the LICENSE file.
 
 
+import unittest
+
 from pyinventory import InventoryClient
 from pyinventory.api.customer import add_customer
 from pyinventory.api.equipment import add_equipment
@@ -89,6 +91,7 @@ class TestService(BaseTest):
         fetch_service = get_service(client=self.client, id=service.id)
         self.assertEqual(service, fetch_service)
 
+    @unittest.skip("Will be restored once new endpoint schema is finalized")
     def test_service_with_topology_created(self) -> None:
         location = add_location(
             client=self.client,
@@ -147,9 +150,13 @@ class TestService(BaseTest):
         # TODO add service_endpoint_type api
         add_service_endpoint(client=self.client, service=service, port=endpoint_port)
 
-        service = get_service(client=self.client, id=service.id)
-
-        self.assertEqual([endpoint_port.id], [e.port.id for e in service.endpoints])
+        service = get_service(
+            client=self.client, id=service.id if service is not None else ""
+        )
+        ports = [e.port for e in service.endpoints]
+        self.assertEqual(
+            [endpoint_port.id], [p.id if p is not None else None for p in ports]
+        )
         self.assertEqual([link1.id, link2.id], [s.id for s in service.links])
 
     def test_service_with_customer_created(self) -> None:

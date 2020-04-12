@@ -274,5 +274,7 @@ func (Equipment) Edges() []ent.Edge {
 			StructTag(`gqlgen:"files"`),
 		edge.To("hyperlinks", Hyperlink.Type).
 			StructTag(`gqlgen:"hyperlinks"`),
+		edge.From("endpoints", ServiceEndpoint.Type).
+			Ref("equipment"),
 	}
 }

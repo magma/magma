@@ -100,15 +100,16 @@ def add_service(
     returned_customer = result.customer
     endpoints = []
     for e in result.endpoints:
-        link = e.port.link
+        port = e.port
+        link = port.link if port is not None else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
                 port=EquipmentPort(
-                    id=e.port.id,
-                    properties=e.port.properties,
+                    id=port.id,
+                    properties=port.properties,
                     definition=EquipmentPortDefinition(
-                        id=e.port.definition.id, name=e.port.definition.name
+                        id=port.definition.id, name=port.definition.name
                     ),
                     link=Link(
                         link.id,
@@ -117,7 +118,9 @@ def add_service(
                     )
                     if link
                     else None,
-                ),
+                )
+                if port
+                else None,
                 # TODO add service_endpoint_type api
                 type="1",
             )
@@ -147,7 +150,10 @@ def add_service_endpoint(
     client: SymphonyClient, service: Service, port: EquipmentPort
 ) -> None:
     AddServiceEndpointMutation.execute(
-        client, input=AddServiceEndpointInput(id=service.id, portId=port.id, definition="1")
+        client,
+        input=AddServiceEndpointInput(
+            id=service.id, portId=port.id, definition="1", equipmentID="1"
+        ),
     )
 
 
@@ -158,15 +164,16 @@ def get_service(client: SymphonyClient, id: str) -> Service:
     customer = result.customer
     endpoints = []
     for e in result.endpoints:
-        link = e.port.link
+        port = e.port
+        link = port.link if port is not None else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
                 port=EquipmentPort(
-                    id=e.port.id,
-                    properties=e.port.properties,
+                    id=port.id,
+                    properties=port.properties,
                     definition=EquipmentPortDefinition(
-                        id=e.port.definition.id, name=e.port.definition.name
+                        id=port.definition.id, name=port.definition.name
                     ),
                     link=Link(
                         id=link.id,
@@ -175,7 +182,9 @@ def get_service(client: SymphonyClient, id: str) -> Service:
                     )
                     if link
                     else None,
-                ),
+                )
+                if port is not None
+                else None,
                 # TODO add service_endpoint_type api
                 type="1",
             )

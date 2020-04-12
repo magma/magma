@@ -8,11 +8,13 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
@@ -73,17 +75,20 @@ func (sec *ServiceEndpointCreate) SetPort(e *EquipmentPort) *ServiceEndpointCrea
 	return sec.SetPortID(e.ID)
 }
 
-// SetServiceID sets the service edge to Service by id.
-func (sec *ServiceEndpointCreate) SetServiceID(id int) *ServiceEndpointCreate {
-	sec.mutation.SetServiceID(id)
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (sec *ServiceEndpointCreate) SetEquipmentID(id int) *ServiceEndpointCreate {
+	sec.mutation.SetEquipmentID(id)
 	return sec
 }
 
-// SetNillableServiceID sets the service edge to Service by id if the given value is not nil.
-func (sec *ServiceEndpointCreate) SetNillableServiceID(id *int) *ServiceEndpointCreate {
-	if id != nil {
-		sec = sec.SetServiceID(*id)
-	}
+// SetEquipment sets the equipment edge to Equipment.
+func (sec *ServiceEndpointCreate) SetEquipment(e *Equipment) *ServiceEndpointCreate {
+	return sec.SetEquipmentID(e.ID)
+}
+
+// SetServiceID sets the service edge to Service by id.
+func (sec *ServiceEndpointCreate) SetServiceID(id int) *ServiceEndpointCreate {
+	sec.mutation.SetServiceID(id)
 	return sec
 }
 
@@ -120,6 +125,12 @@ func (sec *ServiceEndpointCreate) Save(ctx context.Context) (*ServiceEndpoint, e
 	if _, ok := sec.mutation.UpdateTime(); !ok {
 		v := serviceendpoint.DefaultUpdateTime()
 		sec.mutation.SetUpdateTime(v)
+	}
+	if _, ok := sec.mutation.EquipmentID(); !ok {
+		return nil, errors.New("ent: missing required edge \"equipment\"")
+	}
+	if _, ok := sec.mutation.ServiceID(); !ok {
+		return nil, errors.New("ent: missing required edge \"service\"")
 	}
 	var (
 		err  error
@@ -194,6 +205,25 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sec.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   serviceendpoint.EquipmentTable,
+			Columns: []string{serviceendpoint.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
 				},
 			},
 		}

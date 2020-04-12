@@ -763,6 +763,7 @@ type ComplexityRoot struct {
 
 	ServiceEndpoint struct {
 		Definition func(childComplexity int) int
+		Equipment  func(childComplexity int) int
 		ID         func(childComplexity int) int
 		Port       func(childComplexity int) int
 		Service    func(childComplexity int) int
@@ -1336,6 +1337,7 @@ type ServiceResolver interface {
 }
 type ServiceEndpointResolver interface {
 	Port(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.EquipmentPort, error)
+	Equipment(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.Equipment, error)
 	Service(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.Service, error)
 	Definition(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.ServiceEndpointDefinition, error)
 }
@@ -5183,6 +5185,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceEndpoint.Definition(childComplexity), true
 
+	case "ServiceEndpoint.equipment":
+		if e.complexity.ServiceEndpoint.Equipment == nil {
+			break
+		}
+
+		return e.complexity.ServiceEndpoint.Equipment(childComplexity), true
+
 	case "ServiceEndpoint.id":
 		if e.complexity.ServiceEndpoint.ID == nil {
 			break
@@ -8278,7 +8287,8 @@ type Customer implements Node {
 
 type ServiceEndpoint implements Node {
   id: ID!
-  port: EquipmentPort!
+  port: EquipmentPort
+  equipment: Equipment!
   service: Service!
   definition: ServiceEndpointDefinition!
 }
@@ -8365,12 +8375,13 @@ input ServiceEditData {
   status: ServiceStatus
   customerId: ID
   upstreamServiceIds: [ID!]
-    properties: [PropertyInput]
-  }
+  properties: [PropertyInput]
+}
 
 input AddServiceEndpointInput {
   id: ID!
-  portId: ID!
+  portId: ID
+  equipmentID: ID!
   definition: ID!
 }
 
@@ -8988,7 +8999,8 @@ type Mutation {
   ): ServiceEndpointDefinition!
   removeServiceEndpoint(serviceEndpointId: ID!): Service!
   addServiceType(
-    """AddServiceEndpointInput
+    """
+    AddServiceEndpointInput
     data to edit service type
     """
     data: ServiceTypeCreateData!
@@ -28750,15 +28762,49 @@ func (ec *executionContext) _ServiceEndpoint_port(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.EquipmentPort)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEquipmentPort2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPort(ctx, field.Selections, res)
+	return ec.marshalOEquipmentPort2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPort(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEndpoint_equipment(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpoint) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceEndpoint",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ServiceEndpoint().Equipment(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Equipment)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceEndpoint_service(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpoint) (ret graphql.Marshaler) {
@@ -37515,7 +37561,13 @@ func (ec *executionContext) unmarshalInputAddServiceEndpointInput(ctx context.Co
 			}
 		case "portId":
 			var err error
-			it.PortID, err = ec.unmarshalNID2int(ctx, v)
+			it.PortID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "equipmentID":
+			var err error
+			it.EquipmentID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -45735,6 +45787,17 @@ func (ec *executionContext) _ServiceEndpoint(ctx context.Context, sel ast.Select
 					}
 				}()
 				res = ec._ServiceEndpoint_port(ctx, field, obj)
+				return res
+			})
+		case "equipment":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ServiceEndpoint_equipment(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

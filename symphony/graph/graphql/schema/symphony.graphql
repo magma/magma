@@ -1707,7 +1707,8 @@ type Customer implements Node {
 
 type ServiceEndpoint implements Node {
   id: ID!
-  port: EquipmentPort!
+  port: EquipmentPort
+  equipment: Equipment!
   service: Service!
   definition: ServiceEndpointDefinition!
 }
@@ -1794,12 +1795,13 @@ input ServiceEditData {
   status: ServiceStatus
   customerId: ID
   upstreamServiceIds: [ID!]
-    properties: [PropertyInput]
-  }
+  properties: [PropertyInput]
+}
 
 input AddServiceEndpointInput {
   id: ID!
-  portId: ID!
+  portId: ID
+  equipmentID: ID!
   definition: ID!
 }
 
@@ -2417,7 +2419,8 @@ type Mutation {
   ): ServiceEndpointDefinition!
   removeServiceEndpoint(serviceEndpointId: ID!): Service!
   addServiceType(
-    """AddServiceEndpointInput
+    """
+    AddServiceEndpointInput
     data to edit service type
     """
     data: ServiceTypeCreateData!

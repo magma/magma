@@ -71,7 +71,8 @@ type ServiceEndpoint struct {
 func (ServiceEndpoint) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("port", EquipmentPort.Type).Unique(),
-		edge.From("service", Service.Type).Ref("endpoints").Unique(),
+		edge.To("equipment", Equipment.Type).Unique().Required(),
+		edge.From("service", Service.Type).Ref("endpoints").Unique().Required(),
 		edge.From("definition", ServiceEndpointDefinition.Type).Ref("endpoints").Unique(),
 	}
 }

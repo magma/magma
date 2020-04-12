@@ -331,14 +331,16 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	require.NoError(t, err)
 
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s1.ID,
-		PortID:     portID1,
-		Definition: ept.ID,
+		ID:          s1.ID,
+		EquipmentID: parentEquipment.ID,
+		PortID:      pointer.ToInt(portID1),
+		Definition:  ept.ID,
 	})
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s2.ID,
-		PortID:     portID1,
-		Definition: ept.ID,
+		ID:          s2.ID,
+		EquipmentID: parentEquipment.ID,
+		PortID:      pointer.ToInt(portID1),
+		Definition:  ept.ID,
 	})
 
 	ept2, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
@@ -351,9 +353,10 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	require.NoError(t, err)
 
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s1.ID,
-		PortID:     portID2,
-		Definition: ept2.ID,
+		ID:          s1.ID,
+		EquipmentID: childEquip.ID,
+		PortID:      pointer.ToInt(portID2),
+		Definition:  ept2.ID,
 	})
 	/*
 		helper: data now is of type:

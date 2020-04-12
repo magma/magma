@@ -8,11 +8,13 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -53,17 +55,20 @@ func (seu *ServiceEndpointUpdate) SetPort(e *EquipmentPort) *ServiceEndpointUpda
 	return seu.SetPortID(e.ID)
 }
 
-// SetServiceID sets the service edge to Service by id.
-func (seu *ServiceEndpointUpdate) SetServiceID(id int) *ServiceEndpointUpdate {
-	seu.mutation.SetServiceID(id)
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (seu *ServiceEndpointUpdate) SetEquipmentID(id int) *ServiceEndpointUpdate {
+	seu.mutation.SetEquipmentID(id)
 	return seu
 }
 
-// SetNillableServiceID sets the service edge to Service by id if the given value is not nil.
-func (seu *ServiceEndpointUpdate) SetNillableServiceID(id *int) *ServiceEndpointUpdate {
-	if id != nil {
-		seu = seu.SetServiceID(*id)
-	}
+// SetEquipment sets the equipment edge to Equipment.
+func (seu *ServiceEndpointUpdate) SetEquipment(e *Equipment) *ServiceEndpointUpdate {
+	return seu.SetEquipmentID(e.ID)
+}
+
+// SetServiceID sets the service edge to Service by id.
+func (seu *ServiceEndpointUpdate) SetServiceID(id int) *ServiceEndpointUpdate {
+	seu.mutation.SetServiceID(id)
 	return seu
 }
 
@@ -97,6 +102,12 @@ func (seu *ServiceEndpointUpdate) ClearPort() *ServiceEndpointUpdate {
 	return seu
 }
 
+// ClearEquipment clears the equipment edge to Equipment.
+func (seu *ServiceEndpointUpdate) ClearEquipment() *ServiceEndpointUpdate {
+	seu.mutation.ClearEquipment()
+	return seu
+}
+
 // ClearService clears the service edge to Service.
 func (seu *ServiceEndpointUpdate) ClearService() *ServiceEndpointUpdate {
 	seu.mutation.ClearService()
@@ -114,6 +125,14 @@ func (seu *ServiceEndpointUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := seu.mutation.UpdateTime(); !ok {
 		v := serviceendpoint.UpdateDefaultUpdateTime()
 		seu.mutation.SetUpdateTime(v)
+	}
+
+	if _, ok := seu.mutation.EquipmentID(); seu.mutation.EquipmentCleared() && !ok {
+		return 0, errors.New("ent: clearing a unique edge \"equipment\"")
+	}
+
+	if _, ok := seu.mutation.ServiceID(); seu.mutation.ServiceCleared() && !ok {
+		return 0, errors.New("ent: clearing a unique edge \"service\"")
 	}
 
 	var (
@@ -216,6 +235,41 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if seu.mutation.EquipmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   serviceendpoint.EquipmentTable,
+			Columns: []string{serviceendpoint.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := seu.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   serviceendpoint.EquipmentTable,
+			Columns: []string{serviceendpoint.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
 				},
 			},
 		}
@@ -331,17 +385,20 @@ func (seuo *ServiceEndpointUpdateOne) SetPort(e *EquipmentPort) *ServiceEndpoint
 	return seuo.SetPortID(e.ID)
 }
 
-// SetServiceID sets the service edge to Service by id.
-func (seuo *ServiceEndpointUpdateOne) SetServiceID(id int) *ServiceEndpointUpdateOne {
-	seuo.mutation.SetServiceID(id)
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (seuo *ServiceEndpointUpdateOne) SetEquipmentID(id int) *ServiceEndpointUpdateOne {
+	seuo.mutation.SetEquipmentID(id)
 	return seuo
 }
 
-// SetNillableServiceID sets the service edge to Service by id if the given value is not nil.
-func (seuo *ServiceEndpointUpdateOne) SetNillableServiceID(id *int) *ServiceEndpointUpdateOne {
-	if id != nil {
-		seuo = seuo.SetServiceID(*id)
-	}
+// SetEquipment sets the equipment edge to Equipment.
+func (seuo *ServiceEndpointUpdateOne) SetEquipment(e *Equipment) *ServiceEndpointUpdateOne {
+	return seuo.SetEquipmentID(e.ID)
+}
+
+// SetServiceID sets the service edge to Service by id.
+func (seuo *ServiceEndpointUpdateOne) SetServiceID(id int) *ServiceEndpointUpdateOne {
+	seuo.mutation.SetServiceID(id)
 	return seuo
 }
 
@@ -375,6 +432,12 @@ func (seuo *ServiceEndpointUpdateOne) ClearPort() *ServiceEndpointUpdateOne {
 	return seuo
 }
 
+// ClearEquipment clears the equipment edge to Equipment.
+func (seuo *ServiceEndpointUpdateOne) ClearEquipment() *ServiceEndpointUpdateOne {
+	seuo.mutation.ClearEquipment()
+	return seuo
+}
+
 // ClearService clears the service edge to Service.
 func (seuo *ServiceEndpointUpdateOne) ClearService() *ServiceEndpointUpdateOne {
 	seuo.mutation.ClearService()
@@ -392,6 +455,14 @@ func (seuo *ServiceEndpointUpdateOne) Save(ctx context.Context) (*ServiceEndpoin
 	if _, ok := seuo.mutation.UpdateTime(); !ok {
 		v := serviceendpoint.UpdateDefaultUpdateTime()
 		seuo.mutation.SetUpdateTime(v)
+	}
+
+	if _, ok := seuo.mutation.EquipmentID(); seuo.mutation.EquipmentCleared() && !ok {
+		return nil, errors.New("ent: clearing a unique edge \"equipment\"")
+	}
+
+	if _, ok := seuo.mutation.ServiceID(); seuo.mutation.ServiceCleared() && !ok {
+		return nil, errors.New("ent: clearing a unique edge \"service\"")
 	}
 
 	var (
@@ -492,6 +563,41 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: equipmentport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if seuo.mutation.EquipmentCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   serviceendpoint.EquipmentTable,
+			Columns: []string{serviceendpoint.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := seuo.mutation.EquipmentIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   serviceendpoint.EquipmentTable,
+			Columns: []string{serviceendpoint.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: equipment.FieldID,
 				},
 			},
 		}

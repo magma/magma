@@ -525,7 +525,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 		ID:     e.ID,
 		Type:   "Equipment",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 9),
+		Edges:  make([]*Edge, 10),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(e.CreateTime); err != nil {
@@ -675,6 +675,17 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "Hyperlink",
 		Name: "Hyperlinks",
+	}
+	ids, err = e.QueryEndpoints().
+		Select(serviceendpoint.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[9] = &Edge{
+		IDs:  ids,
+		Type: "ServiceEndpoint",
+		Name: "Endpoints",
 	}
 	return node, nil
 }
@@ -2774,7 +2785,7 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 		ID:     se.ID,
 		Type:   "ServiceEndpoint",
 		Fields: make([]*Field, 2),
-		Edges:  make([]*Edge, 3),
+		Edges:  make([]*Edge, 4),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(se.CreateTime); err != nil {
@@ -2805,13 +2816,24 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 		Type: "EquipmentPort",
 		Name: "Port",
 	}
+	ids, err = se.QueryEquipment().
+		Select(equipment.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "Equipment",
+		Name: "Equipment",
+	}
 	ids, err = se.QueryService().
 		Select(service.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
+	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Service",
 		Name: "Service",
@@ -2822,7 +2844,7 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[2] = &Edge{
+	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "ServiceEndpointDefinition",
 		Name: "Definition",

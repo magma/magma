@@ -1206,6 +1206,22 @@ func (c *EquipmentClient) QueryHyperlinks(e *Equipment) *HyperlinkQuery {
 	return query
 }
 
+// QueryEndpoints queries the endpoints edge of a Equipment.
+func (c *EquipmentClient) QueryEndpoints(e *Equipment) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, id),
+			sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, equipment.EndpointsTable, equipment.EndpointsColumn),
+		)
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *EquipmentClient) Hooks() []Hook {
 	return c.hooks.Equipment
@@ -4337,6 +4353,22 @@ func (c *ServiceEndpointClient) QueryPort(se *ServiceEndpoint) *EquipmentPortQue
 			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
 			sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.PortTable, serviceendpoint.PortColumn),
+		)
+		fromV = sqlgraph.Neighbors(se.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEquipment queries the equipment edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryEquipment(se *ServiceEndpoint) *EquipmentQuery {
+	query := &EquipmentQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := se.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.EquipmentTable, serviceendpoint.EquipmentColumn),
 		)
 		fromV = sqlgraph.Neighbors(se.driver.Dialect(), step)
 		return fromV, nil

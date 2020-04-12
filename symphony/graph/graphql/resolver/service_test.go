@@ -226,9 +226,10 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s.ID,
-		PortID:     ep1.ID,
-		Definition: ept.ID,
+		ID:          s.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -330,9 +331,10 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s.ID,
-		PortID:     ep1.ID,
-		Definition: ept.ID,
+		ID:          s.ID,
+		EquipmentID: card1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -623,16 +625,18 @@ func TestAddEndpointsToService(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         service.ID,
-		PortID:     ep1.ID,
-		Definition: ept.ID,
+		ID:          service.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         service.ID,
-		PortID:     ep2.ID,
-		Definition: ept.ID,
+		ID:          service.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep2.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -644,9 +648,10 @@ func TestAddEndpointsToService(t *testing.T) {
 	e1 := fetchedService.QueryEndpoints().Where(serviceendpoint.HasPortWith(equipmentport.ID(ep1.ID))).OnlyX(ctx)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         service.ID,
-		PortID:     ep3.ID,
-		Definition: ept.ID,
+		ID:          service.ID,
+		EquipmentID: eq3.ID,
+		PortID:      pointer.ToInt(ep3.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -740,9 +745,10 @@ func TestServicesOfEquipment(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s1.ID,
-		PortID:     ep1.ID,
-		Definition: ept.ID,
+		ID:          s1.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -757,9 +763,10 @@ func TestServicesOfEquipment(t *testing.T) {
 	_, err = mr.AddServiceLink(ctx, s2.ID, l2.ID)
 	require.NoError(t, err)
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s2.ID,
-		PortID:     ep1.ID,
-		Definition: ept.ID,
+		ID:          s2.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -898,16 +905,18 @@ func TestAddServiceEndpointType(t *testing.T) {
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         service1.ID,
-		PortID:     ep1.ID,
-		Definition: ept1.ID,
+		ID:          service1.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept1.ID,
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         service1.ID,
-		PortID:     ep2.ID,
-		Definition: ept1.ID,
+		ID:          service1.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep2.ID),
+		Definition:  ept1.ID,
 	})
 	require.Error(t, err, "port equipment is of different type than service type")
 
@@ -923,9 +932,10 @@ func TestAddServiceEndpointType(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         service2.ID,
-		PortID:     ep1.ID,
-		Definition: ept1.ID,
+		ID:          service2.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept1.ID,
 	})
 	require.Error(t, err, "service is of different type than service endpoint type")
 }

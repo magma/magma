@@ -37,12 +37,12 @@ const ServiceEquipmentTopology = (props: Props) => {
   const {topology, endpoints, classes} = props;
 
   const getEndpointTopLevelEquipment = endpoint => {
-    const port = endpoint.port;
-    const positionHierarchySize = port.parentEquipment.positionHierarchy.length;
+    const {equipment} = endpoint;
+    const positionHierarchySize = equipment.positionHierarchy.length;
     if (positionHierarchySize > 0) {
-      return port.parentEquipment.positionHierarchy[0].parentEquipment.id;
+      return equipment.positionHierarchy[0].parentEquipment.id;
     }
-    return port.parentEquipment.id;
+    return equipment.id;
   };
 
   const renderNode = useCallback(
@@ -104,13 +104,11 @@ export default withStyles(styles)(
         definition {
           role
         }
-        port {
-          parentEquipment {
-            id
-            positionHierarchy {
-              parentEquipment {
-                id
-              }
+        equipment {
+          id
+          positionHierarchy {
+            parentEquipment {
+              id
             }
           }
         }

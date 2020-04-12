@@ -13,6 +13,7 @@ from dataclasses_json import DataClassJsonMixin
 @dataclass
 class AddServiceEndpointInput(DataClassJsonMixin):
     id: str
-    portId: str
+    equipmentID: str
     definition: str
+    portId: Optional[str] = None
 

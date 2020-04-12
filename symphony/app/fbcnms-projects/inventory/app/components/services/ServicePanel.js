@@ -143,6 +143,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
       input: {
         id: service.id,
         portId: port.id,
+        equipmentID: port.parentEquipment.id,
         definition: '0' + role, //TODO - AddServiceEndpointType Flow
       },
     };

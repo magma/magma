@@ -199,7 +199,7 @@ class Customer(NamedTuple):
 
 class ServiceEndpoint(NamedTuple):
     id: str
-    port: EquipmentPort
+    port: Optional[EquipmentPort]
     type: str
 
 

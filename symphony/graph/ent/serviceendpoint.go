@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
@@ -32,6 +33,7 @@ type ServiceEndpoint struct {
 	Edges                                 ServiceEndpointEdges `json:"edges"`
 	service_endpoints                     *int
 	service_endpoint_port                 *int
+	service_endpoint_equipment            *int
 	service_endpoint_definition_endpoints *int
 }
 
@@ -39,13 +41,15 @@ type ServiceEndpoint struct {
 type ServiceEndpointEdges struct {
 	// Port holds the value of the port edge.
 	Port *EquipmentPort
+	// Equipment holds the value of the equipment edge.
+	Equipment *Equipment
 	// Service holds the value of the service edge.
 	Service *Service
 	// Definition holds the value of the definition edge.
 	Definition *ServiceEndpointDefinition
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // PortOrErr returns the Port value or an error if the edge
@@ -62,10 +66,24 @@ func (e ServiceEndpointEdges) PortOrErr() (*EquipmentPort, error) {
 	return nil, &NotLoadedError{edge: "port"}
 }
 
+// EquipmentOrErr returns the Equipment value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ServiceEndpointEdges) EquipmentOrErr() (*Equipment, error) {
+	if e.loadedTypes[1] {
+		if e.Equipment == nil {
+			// The edge equipment was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: equipment.Label}
+		}
+		return e.Equipment, nil
+	}
+	return nil, &NotLoadedError{edge: "equipment"}
+}
+
 // ServiceOrErr returns the Service value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceEndpointEdges) ServiceOrErr() (*Service, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.Service == nil {
 			// The edge service was loaded in eager-loading,
 			// but was not found.
@@ -79,7 +97,7 @@ func (e ServiceEndpointEdges) ServiceOrErr() (*Service, error) {
 // DefinitionOrErr returns the Definition value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ServiceEndpointEdges) DefinitionOrErr() (*ServiceEndpointDefinition, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		if e.Definition == nil {
 			// The edge definition was loaded in eager-loading,
 			// but was not found.
@@ -104,6 +122,7 @@ func (*ServiceEndpoint) fkValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{}, // service_endpoints
 		&sql.NullInt64{}, // service_endpoint_port
+		&sql.NullInt64{}, // service_endpoint_equipment
 		&sql.NullInt64{}, // service_endpoint_definition_endpoints
 	}
 }
@@ -145,6 +164,12 @@ func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
 			*se.service_endpoint_port = int(value.Int64)
 		}
 		if value, ok := values[2].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field service_endpoint_equipment", value)
+		} else if value.Valid {
+			se.service_endpoint_equipment = new(int)
+			*se.service_endpoint_equipment = int(value.Int64)
+		}
+		if value, ok := values[3].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field service_endpoint_definition_endpoints", value)
 		} else if value.Valid {
 			se.service_endpoint_definition_endpoints = new(int)
@@ -157,6 +182,11 @@ func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
 // QueryPort queries the port edge of the ServiceEndpoint.
 func (se *ServiceEndpoint) QueryPort() *EquipmentPortQuery {
 	return (&ServiceEndpointClient{config: se.config}).QueryPort(se)
+}
+
+// QueryEquipment queries the equipment edge of the ServiceEndpoint.
+func (se *ServiceEndpoint) QueryEquipment() *EquipmentQuery {
+	return (&ServiceEndpointClient{config: se.config}).QueryEquipment(se)
 }
 
 // QueryService queries the service edge of the ServiceEndpoint.

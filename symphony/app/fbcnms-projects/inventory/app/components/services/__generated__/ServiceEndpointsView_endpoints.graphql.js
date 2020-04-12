@@ -20,7 +20,7 @@ declare export opaque type ServiceEndpointsView_endpoints$ref: FragmentReference
 declare export opaque type ServiceEndpointsView_endpoints$fragmentType: ServiceEndpointsView_endpoints$ref;
 export type ServiceEndpointsView_endpoints = $ReadOnlyArray<{|
   +id: string,
-  +port: {|
+  +port: ?{|
     +parentEquipment: {|
       +name: string,
       +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,

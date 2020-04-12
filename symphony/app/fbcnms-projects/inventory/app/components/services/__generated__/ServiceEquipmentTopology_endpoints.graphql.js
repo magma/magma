@@ -21,15 +21,13 @@ export type ServiceEquipmentTopology_endpoints = $ReadOnlyArray<{|
   +definition: {|
     +role: string
   |},
-  +port: {|
-    +parentEquipment: {|
-      +id: string,
-      +positionHierarchy: $ReadOnlyArray<{|
-        +parentEquipment: {|
-          +id: string
-        |}
-      |}>,
-    |}
+  +equipment: {|
+    +id: string,
+    +positionHierarchy: $ReadOnlyArray<{|
+      +parentEquipment: {|
+        +id: string
+      |}
+    |}>,
   |},
   +$refType: ServiceEquipmentTopology_endpoints$ref,
 |}>;
@@ -80,43 +78,32 @@ return {
     {
       "kind": "LinkedField",
       "alias": null,
-      "name": "port",
+      "name": "equipment",
       "storageKey": null,
       "args": null,
-      "concreteType": "EquipmentPort",
+      "concreteType": "Equipment",
       "plural": false,
       "selections": [
+        (v0/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
-          "name": "parentEquipment",
+          "name": "positionHierarchy",
           "storageKey": null,
           "args": null,
-          "concreteType": "Equipment",
-          "plural": false,
+          "concreteType": "EquipmentPosition",
+          "plural": true,
           "selections": [
-            (v0/*: any*/),
             {
               "kind": "LinkedField",
               "alias": null,
-              "name": "positionHierarchy",
+              "name": "parentEquipment",
               "storageKey": null,
               "args": null,
-              "concreteType": "EquipmentPosition",
-              "plural": true,
+              "concreteType": "Equipment",
+              "plural": false,
               "selections": [
-                {
-                  "kind": "LinkedField",
-                  "alias": null,
-                  "name": "parentEquipment",
-                  "storageKey": null,
-                  "args": null,
-                  "concreteType": "Equipment",
-                  "plural": false,
-                  "selections": [
-                    (v0/*: any*/)
-                  ]
-                }
+                (v0/*: any*/)
               ]
             }
           ]
@@ -127,5 +114,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'bea464cf79c533620c09e4bbdd2ca002';
+(node/*: any*/).hash = '085a9519bd88793b015ab955f716fb5f';
 module.exports = node;

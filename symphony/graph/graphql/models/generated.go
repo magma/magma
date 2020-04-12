@@ -188,9 +188,10 @@ type AddServiceEndpointDefinitionInput struct {
 }
 
 type AddServiceEndpointInput struct {
-	ID         int `json:"id"`
-	PortID     int `json:"portId"`
-	Definition int `json:"definition"`
+	ID          int  `json:"id"`
+	PortID      *int `json:"portId"`
+	EquipmentID int  `json:"equipmentID"`
+	Definition  int  `json:"definition"`
 }
 
 type AddUsersGroupInput struct {

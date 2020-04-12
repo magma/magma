@@ -478,9 +478,10 @@ func TestSearchServicesByLocations(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s1.ID,
-		PortID:     ep1.ID,
-		Definition: ept.ID,
+		ID:          s1.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -494,9 +495,10 @@ func TestSearchServicesByLocations(t *testing.T) {
 	ep2 := eq2.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s2.ID,
-		PortID:     ep2.ID,
-		Definition: ept.ID,
+		ID:          s2.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep2.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -508,16 +510,18 @@ func TestSearchServicesByLocations(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s3.ID,
-		PortID:     ep1.ID,
-		Definition: ept.ID,
+		ID:          s3.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s3.ID,
-		PortID:     ep2.ID,
-		Definition: ept.ID,
+		ID:          s3.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep2.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -616,9 +620,10 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s1.ID,
-		PortID:     ep1.ID,
-		Definition: ept.ID,
+		ID:          s1.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -629,9 +634,10 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 	})
 	_, _ = mr.AddServiceLink(ctx, s2.ID, l1.ID)
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s2.ID,
-		PortID:     ep1.ID,
-		Definition: ept.ID,
+		ID:          s2.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -641,9 +647,10 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:         s3.ID,
-		PortID:     ep1.ID,
-		Definition: ept.ID,
+		ID:          s3.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
