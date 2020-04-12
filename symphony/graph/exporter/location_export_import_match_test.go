@@ -89,7 +89,6 @@ func importLocationsFile(t *testing.T, client *ent.Client, r io.Reader, method m
 	h, _ := importer.NewHandler(
 		importer.Config{
 			Logger:     logtest.NewTestLogger(t),
-			Emitter:    event.NewNopEmitter(),
 			Subscriber: event.NewNopSubscriber(),
 		},
 	)

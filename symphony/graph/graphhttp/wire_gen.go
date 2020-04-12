@@ -39,8 +39,7 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	}
 	logger := cfg.Logger
 	zapLogger := xserver.NewRequestLogger(logger)
-	mySQLTenancy := cfg.Tenancy
-	v := newHealthChecker(mySQLTenancy)
+	v := cfg.HealthChecks
 	v2 := provideViews()
 	exporter, err := xserver.NewPrometheusExporter(logger)
 	if err != nil {
@@ -85,17 +84,13 @@ var (
 
 // Config defines the http server config.
 type Config struct {
-	Tenancy    *viewer.MySQLTenancy
-	AuthURL    *url.URL
-	Emitter    event.Emitter
-	Subscriber event.Subscriber
-	Logger     log.Logger
-	Census     oc.Options
-	Orc8r      orc8r.Config
-}
-
-func newHealthChecker(tenancy *viewer.MySQLTenancy) []health.Checker {
-	return []health.Checker{tenancy}
+	Tenancy      viewer.Tenancy
+	AuthURL      *url.URL
+	Subscriber   event.Subscriber
+	Logger       log.Logger
+	Census       oc.Options
+	HealthChecks []health.Checker
+	Orc8r        orc8r.Config
 }
 
 func newRouterConfig(config Config) (cfg routerConfig, err error) {
@@ -110,7 +105,6 @@ func newRouterConfig(config Config) (cfg routerConfig, err error) {
 	cfg = routerConfig{logger: config.Logger}
 	cfg.viewer.tenancy = config.Tenancy
 	cfg.viewer.authurl = config.AuthURL.String()
-	cfg.events.emitter = config.Emitter
 	cfg.events.subscriber = config.Subscriber
 	cfg.orc8r.client = client
 	cfg.actions.registry = registry

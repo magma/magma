@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -74,6 +75,22 @@ func NewFeatureSet(features ...string) FeatureSet {
 	return set
 }
 
+// String returns the textual representation of a feature set.
+func (f FeatureSet) String() string {
+	features := make([]string, 0, len(f))
+	for feature := range f {
+		features = append(features, feature)
+	}
+	sort.Strings(features)
+	return strings.Join(features, ",")
+}
+
+// Enabled check if feature is in FeatureSet.
+func (f FeatureSet) Enabled(feature string) bool {
+	_, ok := f[feature]
+	return ok
+}
+
 // MarshalLogObject implements zapcore.ObjectMarshaler interface.
 func (v *Viewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("tenant", v.Tenant)
@@ -101,12 +118,6 @@ func (v *Viewer) tags(r *http.Request) []tag.Mutator {
 		tag.Upsert(KeyRole, v.Role),
 		tag.Upsert(KeyUserAgent, userAgent),
 	}
-}
-
-// Enabled check if feature is in FeatureSet.
-func (f FeatureSet) Enabled(feature string) bool {
-	_, ok := f[feature]
-	return ok
 }
 
 // WebSocketUpgradeHandler authenticates websocket upgrade requests.

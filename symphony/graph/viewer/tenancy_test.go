@@ -7,15 +7,16 @@ package viewer
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent"
-
 	"github.com/cenkalti/backoff"
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"gocloud.dev/server/health"
 )
@@ -33,6 +34,48 @@ func TestFixedTenancy(t *testing.T) {
 		got := tenancy.Client()
 		assert.True(t, want == got)
 	})
+}
+
+type testTenancy struct {
+	mock.Mock
+}
+
+func (t *testTenancy) ClientFor(ctx context.Context, name string) (*ent.Client, error) {
+	args := t.Called(ctx, name)
+	client, _ := args.Get(0).(*ent.Client)
+	return client, args.Error(1)
+}
+
+func TestCacheTenancy(t *testing.T) {
+	var m testTenancy
+	m.On("ClientFor", mock.Anything, "bar").
+		Return(&ent.Client{}, nil).
+		Once()
+	m.On("ClientFor", mock.Anything, "baz").
+		Return(nil, errors.New("try again")).
+		Once()
+	m.On("ClientFor", mock.Anything, "baz").
+		Return(&ent.Client{}, nil).
+		Once()
+	defer m.AssertExpectations(t)
+
+	var count int
+	tenancy := NewCacheTenancy(&m, func(*ent.Client) { count++ })
+	assert.Implements(t, (*health.Checker)(nil), tenancy)
+
+	client, err := tenancy.ClientFor(context.Background(), "bar")
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+	cached, err := tenancy.ClientFor(context.Background(), "bar")
+	assert.NoError(t, err)
+	assert.True(t, client == cached)
+	client, err = tenancy.ClientFor(context.Background(), "baz")
+	assert.Error(t, err)
+	assert.Nil(t, client)
+	client, err = tenancy.ClientFor(context.Background(), "baz")
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+	assert.Equal(t, 2, count)
 }
 
 func createMySQLDatabase(db *sql.DB) (string, func() error, error) {
@@ -78,10 +121,7 @@ func TestMySQLTenancy(t *testing.T) {
 	c1, err := tenancy.ClientFor(context.Background(), n1)
 	assert.NotNil(t, c1)
 	assert.NoError(t, err)
-	c2, err := tenancy.ClientFor(context.Background(), n1)
+	c2, err := tenancy.ClientFor(context.Background(), n2)
 	assert.NoError(t, err)
-	assert.True(t, c1 == c2)
-	c2, err = tenancy.ClientFor(context.Background(), n2)
-	assert.NoError(t, err)
-	assert.False(t, c1 == c2)
+	assert.True(t, c1 != c2)
 }

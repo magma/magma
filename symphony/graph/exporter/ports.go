@@ -70,7 +70,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	allrows := make([][]string, len(portsList)+1)
 
 	var orderedLocTypes, propertyTypes []string
-	cg.Go(func(ctx context.Context) error {
+	cg.Go(func(ctx context.Context) (err error) {
 		orderedLocTypes, err = locationTypeHierarchy(ctx, client)
 		if err != nil {
 			logger.Error("cannot query location types", zap.Error(err))
@@ -78,7 +78,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		}
 		return nil
 	})
-	cg.Go(func(ctx context.Context) error {
+	cg.Go(func(ctx context.Context) (err error) {
 		portIDs := make([]int, len(portsList))
 		for i, p := range portsList {
 			portIDs[i] = p.ID
@@ -136,11 +136,11 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 	portDefinition := port.QueryDefinition().OnlyX(ctx)
 	g := ctxgroup.WithContext(ctx)
 
-	g.Go(func(ctx context.Context) error {
+	g.Go(func(ctx context.Context) (err error) {
 		lParents, err = locationHierarchyForEquipment(ctx, parentEquip, orderedLocTypes)
 		return err
 	})
-	g.Go(func(ctx context.Context) error {
+	g.Go(func(ctx context.Context) (err error) {
 		properties, err = propertiesSlice(ctx, port, propertyTypes, models.PropertyEntityPort)
 		return err
 	})

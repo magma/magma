@@ -91,7 +91,6 @@ func main() {
 		r := resolver.New(
 			resolver.Config{
 				Logger:     logger,
-				Emitter:    event.NewNopEmitter(),
 				Subscriber: event.NewNopSubscriber(),
 			},
 			resolver.WithTransaction(false),

@@ -98,12 +98,10 @@ func importEquipmentFile(t *testing.T, client *ent.Client, r io.Reader, method m
 	readr := csv.NewReader(r)
 	buf, contentType := writeModifiedCSV(t, readr, method, withVerify)
 
-	emitter, subscriber := event.Pipe()
 	h, _ := importer.NewHandler(
 		importer.Config{
 			Logger:     logtest.NewTestLogger(t),
-			Emitter:    emitter,
-			Subscriber: subscriber,
+			Subscriber: event.NewNopSubscriber(),
 		},
 	)
 	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))

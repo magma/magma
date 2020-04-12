@@ -106,11 +106,9 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestExporterResolver {
 	require.NoError(t, err)
 
 	logger := logtest.NewTestLogger(t)
-	emitter, subscriber := event.Pipe()
 	r := resolver.New(resolver.Config{
 		Logger:     logger,
-		Emitter:    emitter,
-		Subscriber: subscriber,
+		Subscriber: event.NewNopSubscriber(),
 	})
 
 	e := exporter{logger, equipmentRower{logger}}
@@ -383,12 +381,10 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 		buf, contentType = writeModifiedPortsCSV(t, readr, skipLines, withVerify)
 	}
 
-	emitter, subscriber := event.Pipe()
 	h, _ := importer.NewHandler(
 		importer.Config{
 			Logger:     logtest.NewTestLogger(t),
-			Emitter:    emitter,
-			Subscriber: subscriber,
+			Subscriber: event.NewNopSubscriber(),
 		},
 	)
 	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
