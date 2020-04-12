@@ -237,3 +237,7 @@ func (r resolver) ReportFilter() generated.ReportFilterResolver {
 func (r resolver) Comment() generated.CommentResolver {
 	return commentResolver{}
 }
+
+func (r resolver) ServiceEndpointDefinition() generated.ServiceEndpointDefinitionResolver {
+	return serviceEndpointTypeResolver{}
+}

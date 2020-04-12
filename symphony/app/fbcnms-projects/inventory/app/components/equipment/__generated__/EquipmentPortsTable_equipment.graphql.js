@@ -17,7 +17,6 @@ import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
-export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_equipment$ref: FragmentReference;
@@ -197,7 +196,9 @@ export type EquipmentPortsTable_equipment = {|
           +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
         |},
         +serviceEndpoints: $ReadOnlyArray<{|
-          +role: ServiceEndpointRole,
+          +definition: {|
+            +role: string
+          |},
           +service: {|
             +name: string
           |},
@@ -297,7 +298,9 @@ export type EquipmentPortsTable_equipment = {|
       |},
     |}>,
     +serviceEndpoints: $ReadOnlyArray<{|
-      +role: ServiceEndpointRole,
+      +definition: {|
+        +role: string
+      |},
       +service: {|
         +name: string
       |},
@@ -427,7 +430,9 @@ export type EquipmentPortsTable_equipment = {|
               +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
             |},
             +serviceEndpoints: $ReadOnlyArray<{|
-              +role: ServiceEndpointRole,
+              +definition: {|
+                +role: string
+              |},
               +service: {|
                 +name: string
               |},
@@ -527,7 +532,9 @@ export type EquipmentPortsTable_equipment = {|
           |},
         |}>,
         +serviceEndpoints: $ReadOnlyArray<{|
-          +role: ServiceEndpointRole,
+          +definition: {|
+            +role: string
+          |},
           +service: {|
             +name: string
           |},
@@ -665,7 +672,9 @@ export type EquipmentPortsTable_equipment = {|
                   +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
                 |},
                 +serviceEndpoints: $ReadOnlyArray<{|
-                  +role: ServiceEndpointRole,
+                  +definition: {|
+                    +role: string
+                  |},
                   +service: {|
                     +name: string
                   |},
@@ -765,7 +774,9 @@ export type EquipmentPortsTable_equipment = {|
               |},
             |}>,
             +serviceEndpoints: $ReadOnlyArray<{|
-              +role: ServiceEndpointRole,
+              +definition: {|
+                +role: string
+              |},
               +service: {|
                 +name: string
               |},
@@ -903,7 +914,9 @@ export type EquipmentPortsTable_equipment = {|
                       +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
                     |},
                     +serviceEndpoints: $ReadOnlyArray<{|
-                      +role: ServiceEndpointRole,
+                      +definition: {|
+                        +role: string
+                      |},
                       +service: {|
                         +name: string
                       |},
@@ -1003,7 +1016,9 @@ export type EquipmentPortsTable_equipment = {|
                   |},
                 |}>,
                 +serviceEndpoints: $ReadOnlyArray<{|
-                  +role: ServiceEndpointRole,
+                  +definition: {|
+                    +role: string
+                  |},
                   +service: {|
                     +name: string
                   |},
@@ -1141,7 +1156,9 @@ export type EquipmentPortsTable_equipment = {|
                           +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
                         |},
                         +serviceEndpoints: $ReadOnlyArray<{|
-                          +role: ServiceEndpointRole,
+                          +definition: {|
+                            +role: string
+                          |},
                           +service: {|
                             +name: string
                           |},
@@ -1241,7 +1258,9 @@ export type EquipmentPortsTable_equipment = {|
                       |},
                     |}>,
                     +serviceEndpoints: $ReadOnlyArray<{|
-                      +role: ServiceEndpointRole,
+                      +definition: {|
+                        +role: string
+                      |},
                       +service: {|
                         +name: string
                       |},
@@ -1492,11 +1511,22 @@ v19 = {
   "plural": true,
   "selections": [
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "role",
+      "name": "definition",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "ServiceEndpointDefinition",
+      "plural": false,
+      "selections": [
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "role",
+          "args": null,
+          "storageKey": null
+        }
+      ]
     },
     {
       "kind": "LinkedField",

@@ -28,7 +28,9 @@ query ServiceDetailsQuery($id: ID!) {
             }
           }
         }
-        role
+        definition {
+          role
+        }
       }
       links {
         id

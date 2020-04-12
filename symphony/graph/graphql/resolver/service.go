@@ -18,6 +18,10 @@ import (
 
 type serviceTypeResolver struct{}
 
+func (r serviceTypeResolver) EndpointDefinitions(ctx context.Context, obj *ent.ServiceType) ([]*ent.ServiceEndpointDefinition, error) {
+	return obj.QueryEndpointDefinitions().All(ctx)
+}
+
 func (serviceTypeResolver) PropertyTypes(ctx context.Context, obj *ent.ServiceType) ([]*ent.PropertyType, error) {
 	return obj.QueryPropertyTypes().All(ctx)
 }
@@ -141,12 +145,13 @@ func (r serviceResolver) Topology(ctx context.Context, obj *ent.Service) (*model
 
 type serviceEndpointResolver struct{}
 
-func (r serviceEndpointResolver) Port(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.EquipmentPort, error) {
-	return obj.QueryPort().Only(ctx)
+func (r serviceEndpointResolver) Definition(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.ServiceEndpointDefinition, error) {
+	return obj.QueryDefinition().Only(ctx)
 }
 
-func (r serviceEndpointResolver) Role(_ context.Context, obj *ent.ServiceEndpoint) (models.ServiceEndpointRole, error) {
-	return models.ServiceEndpointRole(obj.Role), nil
+func (r serviceEndpointResolver) Port(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.EquipmentPort, error) {
+	p, err := obj.QueryPort().Only(ctx)
+	return p, ent.MaskNotFound(err)
 }
 
 func (serviceEndpointResolver) Service(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.Service, error) {
@@ -172,6 +177,57 @@ func (r mutationResolver) RemoveService(ctx context.Context, id int) (int, error
 	return id, nil
 }
 
+func (r mutationResolver) verifyEquipmentTypeMatch(ctx context.Context, portID, serviceEndpointTypeID int) error {
+	client := r.ClientFrom(ctx)
+	port, err := client.EquipmentPort.Get(ctx, portID)
+	if err != nil {
+		return errors.Wrapf(err, "querying port: id=%v", portID)
+	}
+
+	sept, err := client.ServiceEndpointDefinition.Get(ctx, serviceEndpointTypeID)
+	if err != nil {
+		return errors.Wrapf(err, "querying service endpoint type: id=%v", serviceEndpointTypeID)
+	}
+	serviceEquipmentTypeID, err := sept.QueryEquipmentType().OnlyID(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "querying equipment type from service endpoint type: id=%v", serviceEndpointTypeID)
+	}
+	portEquipmentTypeID, err := port.QueryParent().QueryType().OnlyID(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "querying equipment type from port: id=%v", portID)
+	}
+	if serviceEquipmentTypeID != portEquipmentTypeID {
+		return errors.Errorf("equipment type from service type (%v) and from port (%v) does not match", serviceEquipmentTypeID, portEquipmentTypeID)
+	}
+	return nil
+}
+
+func (r mutationResolver) verifyServiceMatch(ctx context.Context, serviceID, serviceEndpointTypeID int) error {
+	client := r.ClientFrom(ctx)
+	s, err := client.Service.Get(ctx, serviceID)
+	if err != nil {
+		return errors.Wrapf(err, "querying service: id=%v", serviceID)
+	}
+
+	sept, err := client.ServiceEndpointDefinition.Get(ctx, serviceEndpointTypeID)
+	if err != nil {
+		return errors.Wrapf(err, "querying service endpoint type: id=%v", serviceEndpointTypeID)
+	}
+
+	serviceTypeIDFromEndpoint, err := sept.QueryServiceType().OnlyID(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "querying service type from service endpoint type: id=%v", serviceEndpointTypeID)
+	}
+
+	serviceTypeIDFromService, err := s.QueryType().OnlyID(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "querying service type from service: id=%v", serviceID)
+	}
+	if serviceTypeIDFromEndpoint != serviceTypeIDFromService {
+		return errors.Errorf("service type from service endpoint (%v) and from service (%v) does not match", serviceTypeIDFromEndpoint, serviceTypeIDFromService)
+	}
+	return nil
+}
 func (r mutationResolver) AddServiceEndpoint(ctx context.Context, input models.AddServiceEndpointInput) (*ent.Service, error) {
 	client := r.ClientFrom(ctx)
 	s, err := client.Service.Get(ctx, input.ID)
@@ -179,9 +235,19 @@ func (r mutationResolver) AddServiceEndpoint(ctx context.Context, input models.A
 		return nil, errors.Wrapf(err, "querying service: id=%q", input.ID)
 	}
 
+	err = r.verifyEquipmentTypeMatch(ctx, input.PortID, input.Definition)
+	if err != nil {
+		return nil, errors.Wrapf(err, "validating equipment type for portZ: id=%v", input.PortID)
+	}
+
+	err = r.verifyServiceMatch(ctx, input.ID, input.Definition)
+	if err != nil {
+		return nil, errors.Wrapf(err, "validating equipment type for portZ: id=%v", input.PortID)
+	}
+
 	if _, err := client.ServiceEndpoint.
 		Create().
-		SetRole(input.Role.String()).
+		SetDefinitionID(input.Definition).
 		SetServiceID(input.ID).
 		SetPortID(input.PortID).Save(ctx); err != nil {
 		return nil, errors.Wrapf(err, "Creating service endpoint: service id=%q", input.ID)
@@ -203,4 +269,21 @@ func (r mutationResolver) RemoveServiceEndpoint(ctx context.Context, serviceEndp
 	}
 
 	return s, nil
+}
+
+func (r mutationResolver) AddServiceEndpointDefinition(ctx context.Context, input models.AddServiceEndpointDefinitionInput) (*ent.ServiceEndpointDefinition, error) {
+	client := r.ClientFrom(ctx)
+	ept, err := client.ServiceEndpointDefinition.
+		Create().
+		SetName(input.Name).
+		SetIndex(input.Index).
+		SetNillableRole(input.Role).
+		SetEquipmentTypeID(input.EquipmentTypeID).
+		SetServiceTypeID(input.ServiceTypeID).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "creating service endpoint type %v: service definition id=%v", input.Name, input.ServiceTypeID)
+	}
+
+	return ept, nil
 }

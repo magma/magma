@@ -9,7 +9,6 @@
  */
 
 import type {EquipmentPort} from '../../common/Equipment';
-import type {ServiceEndpointRole} from '../../mutations/__generated__/AddServiceEndpointMutation.graphql';
 
 import AddEndpointToServiceDialog from './AddEndpointToServiceDialog';
 import React, {useState} from 'react';
@@ -19,14 +18,12 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 
 type Props = {
   service: {id: string, name: string},
-  onAddEndpoint: (port: EquipmentPort, role: ServiceEndpointRole) => void,
+  onAddEndpoint: (port: EquipmentPort, role: string) => void,
 };
 
 const ServiceEndpointsMenu = (props: Props) => {
   const {service, onAddEndpoint} = props;
-  const [addingEndpoint, setAddingEndpoint] = useState<?ServiceEndpointRole>(
-    null,
-  );
+  const [addingEndpoint, setAddingEndpoint] = useState<?string>(null);
 
   return (
     <ServiceMenu

@@ -8,6 +8,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/ent/schema/index"
 )
 
 // Customer holds the schema definition for the ServiceType entity.
@@ -57,6 +58,7 @@ func (ServiceType) Edges() []ent.Edge {
 		edge.From("services", Service.Type).
 			Ref("type"),
 		edge.To("property_types", PropertyType.Type),
+		edge.To("endpoint_definitions", ServiceEndpointDefinition.Type),
 	}
 }
 
@@ -65,18 +67,51 @@ type ServiceEndpoint struct {
 	schema
 }
 
-// Fields of the ServiceType.
-func (ServiceEndpoint) Fields() []ent.Field {
-	return []ent.Field{
-		field.String("role"),
-	}
-}
-
-// Edges of the ServiceType.
+// Edges of the ServiceEndpoint.
 func (ServiceEndpoint) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("port", EquipmentPort.Type).Unique(),
 		edge.From("service", Service.Type).Ref("endpoints").Unique(),
+		edge.From("definition", ServiceEndpointDefinition.Type).Ref("endpoints").Unique(),
+	}
+}
+
+// ServiceEndpointDefinition holds the schema definition for the ServiceEndpointDefinition entity.
+type ServiceEndpointDefinition struct {
+	schema
+}
+
+// Fields of the ServiceEndpointDefinition.
+func (ServiceEndpointDefinition) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("role").
+			Optional(),
+		field.String("name").NotEmpty(),
+		field.Int("index"),
+	}
+}
+
+// Edges of the ServiceEndpointDefinition.
+func (ServiceEndpointDefinition) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("endpoints", ServiceEndpoint.Type),
+		edge.To("service_type", ServiceType.Type).
+			Unique(),
+		edge.From("equipment_type", EquipmentType.Type).
+			Unique().
+			Ref("service_endpoint_definitions"),
+	}
+}
+
+// Indexes returns ServiceEndpointDefinition indexes.
+func (ServiceEndpointDefinition) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("index").
+			Edges("service_type").
+			Unique(),
+		index.Fields("name").
+			Edges("service_type").
+			Unique(),
 	}
 }
 

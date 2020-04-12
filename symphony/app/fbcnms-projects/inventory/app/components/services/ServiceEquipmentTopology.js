@@ -49,10 +49,10 @@ const ServiceEquipmentTopology = (props: Props) => {
     (id: string) => {
       const node = topology.nodes.find(node => node.id === id);
       const consumerIds = endpoints
-        .filter(endpoint => endpoint.role == 'CONSUMER')
+        .filter(endpoint => endpoint.definition.role == 'CONSUMER')
         .map(getEndpointTopLevelEquipment);
       const providerIds = endpoints
-        .filter(endpoint => endpoint.role == 'PROVIDER')
+        .filter(endpoint => endpoint.definition.role == 'PROVIDER')
         .map(getEndpointTopLevelEquipment);
       return consumerIds.includes(id) ? (
         <g transform="translate(-18 -18)">
@@ -101,7 +101,9 @@ export default withStyles(styles)(
     endpoints: graphql`
       fragment ServiceEquipmentTopology_endpoints on ServiceEndpoint
         @relay(plural: true) {
-        role
+        definition {
+          role
+        }
         port {
           parentEquipment {
             id

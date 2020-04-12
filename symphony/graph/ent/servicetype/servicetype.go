@@ -24,6 +24,8 @@ const (
 	EdgeServices = "services"
 	// EdgePropertyTypes holds the string denoting the property_types edge name in mutations.
 	EdgePropertyTypes = "property_types"
+	// EdgeEndpointDefinitions holds the string denoting the endpoint_definitions edge name in mutations.
+	EdgeEndpointDefinitions = "endpoint_definitions"
 
 	// Table holds the table name of the servicetype in the database.
 	Table = "service_types"
@@ -41,6 +43,13 @@ const (
 	PropertyTypesInverseTable = "property_types"
 	// PropertyTypesColumn is the table column denoting the property_types relation/edge.
 	PropertyTypesColumn = "service_type_property_types"
+	// EndpointDefinitionsTable is the table the holds the endpoint_definitions relation/edge.
+	EndpointDefinitionsTable = "service_endpoint_definitions"
+	// EndpointDefinitionsInverseTable is the table name for the ServiceEndpointDefinition entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceendpointdefinition" package.
+	EndpointDefinitionsInverseTable = "service_endpoint_definitions"
+	// EndpointDefinitionsColumn is the table column denoting the endpoint_definitions relation/edge.
+	EndpointDefinitionsColumn = "service_type_endpoint_definitions"
 )
 
 // Columns holds all SQL columns for servicetype fields.

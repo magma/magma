@@ -844,6 +844,30 @@ func (f ServiceEndpointMutationRuleFunc) EvalMutation(ctx context.Context, m ent
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ServiceEndpointMutation", m)
 }
 
+// The ServiceEndpointDefinitionQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ServiceEndpointDefinitionQueryRuleFunc func(context.Context, *ent.ServiceEndpointDefinitionQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f ServiceEndpointDefinitionQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ServiceEndpointDefinitionQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ServiceEndpointDefinitionQuery", q)
+}
+
+// The ServiceEndpointDefinitionMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ServiceEndpointDefinitionMutationRuleFunc func(context.Context, *ent.ServiceEndpointDefinitionMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f ServiceEndpointDefinitionMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.ServiceEndpointDefinitionMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ServiceEndpointDefinitionMutation", m)
+}
+
 // The ServiceTypeQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type ServiceTypeQueryRuleFunc func(context.Context, *ent.ServiceTypeQuery) error

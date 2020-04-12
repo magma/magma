@@ -12,9 +12,6 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import DataClassJsonMixin
 
 from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
-from gql.gql.enum_utils import enum_field
-from .service_endpoint_role_enum import ServiceEndpointRole
-
 from .add_service_endpoint_input import AddServiceEndpointInput
 
 
@@ -32,7 +29,9 @@ mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
       port {
         id
       }
-      role
+      definition {
+        role
+      }
     }
     links {
       id
@@ -58,9 +57,13 @@ class AddServiceEndpointMutation(DataClassJsonMixin):
                 class EquipmentPort(DataClassJsonMixin):
                     id: str
 
+                @dataclass
+                class ServiceEndpointDefinition(DataClassJsonMixin):
+                    role: str
+
                 id: str
                 port: EquipmentPort
-                role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
+                definition: ServiceEndpointDefinition
 
             @dataclass
             class Link(DataClassJsonMixin):

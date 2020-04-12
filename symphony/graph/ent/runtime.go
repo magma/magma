@@ -38,6 +38,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/schema"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -599,6 +600,26 @@ func init() {
 	serviceendpoint.DefaultUpdateTime = serviceendpointDescUpdateTime.Default.(func() time.Time)
 	// serviceendpoint.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	serviceendpoint.UpdateDefaultUpdateTime = serviceendpointDescUpdateTime.UpdateDefault.(func() time.Time)
+	serviceendpointdefinitionMixin := schema.ServiceEndpointDefinition{}.Mixin()
+	serviceendpointdefinitionMixinFields := [...][]ent.Field{
+		serviceendpointdefinitionMixin[0].Fields(),
+	}
+	serviceendpointdefinitionFields := schema.ServiceEndpointDefinition{}.Fields()
+	_ = serviceendpointdefinitionFields
+	// serviceendpointdefinitionDescCreateTime is the schema descriptor for create_time field.
+	serviceendpointdefinitionDescCreateTime := serviceendpointdefinitionMixinFields[0][0].Descriptor()
+	// serviceendpointdefinition.DefaultCreateTime holds the default value on creation for the create_time field.
+	serviceendpointdefinition.DefaultCreateTime = serviceendpointdefinitionDescCreateTime.Default.(func() time.Time)
+	// serviceendpointdefinitionDescUpdateTime is the schema descriptor for update_time field.
+	serviceendpointdefinitionDescUpdateTime := serviceendpointdefinitionMixinFields[0][1].Descriptor()
+	// serviceendpointdefinition.DefaultUpdateTime holds the default value on creation for the update_time field.
+	serviceendpointdefinition.DefaultUpdateTime = serviceendpointdefinitionDescUpdateTime.Default.(func() time.Time)
+	// serviceendpointdefinition.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	serviceendpointdefinition.UpdateDefaultUpdateTime = serviceendpointdefinitionDescUpdateTime.UpdateDefault.(func() time.Time)
+	// serviceendpointdefinitionDescName is the schema descriptor for name field.
+	serviceendpointdefinitionDescName := serviceendpointdefinitionFields[1].Descriptor()
+	// serviceendpointdefinition.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	serviceendpointdefinition.NameValidator = serviceendpointdefinitionDescName.Validators[0].(func(string) error)
 	servicetypeMixin := schema.ServiceType{}.Mixin()
 	servicetypeMixinFields := [...][]ent.Field{
 		servicetypeMixin[0].Fields(),

@@ -390,6 +390,19 @@ func (f ServiceEndpointFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	return f(ctx, mv)
 }
 
+// The ServiceEndpointDefinitionFunc type is an adapter to allow the use of ordinary
+// function as ServiceEndpointDefinition mutator.
+type ServiceEndpointDefinitionFunc func(context.Context, *ent.ServiceEndpointDefinitionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ServiceEndpointDefinitionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.ServiceEndpointDefinitionMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ServiceEndpointDefinitionMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The ServiceTypeFunc type is an adapter to allow the use of ordinary
 // function as ServiceType mutator.
 type ServiceTypeFunc func(context.Context, *ent.ServiceTypeMutation) (ent.Value, error)

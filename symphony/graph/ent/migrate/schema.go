@@ -1051,9 +1051,9 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "role", Type: field.TypeString},
 		{Name: "service_endpoints", Type: field.TypeInt, Nullable: true},
 		{Name: "service_endpoint_port", Type: field.TypeInt, Nullable: true},
+		{Name: "service_endpoint_definition_endpoints", Type: field.TypeInt, Nullable: true},
 	}
 	// ServiceEndpointsTable holds the schema information for the "service_endpoints" table.
 	ServiceEndpointsTable = &schema.Table{
@@ -1063,17 +1063,77 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "service_endpoints_services_endpoints",
-				Columns: []*schema.Column{ServiceEndpointsColumns[4]},
+				Columns: []*schema.Column{ServiceEndpointsColumns[3]},
 
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "service_endpoints_equipment_ports_port",
-				Columns: []*schema.Column{ServiceEndpointsColumns[5]},
+				Columns: []*schema.Column{ServiceEndpointsColumns[4]},
 
 				RefColumns: []*schema.Column{EquipmentPortsColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "service_endpoints_service_endpoint_definitions_endpoints",
+				Columns: []*schema.Column{ServiceEndpointsColumns[5]},
+
+				RefColumns: []*schema.Column{ServiceEndpointDefinitionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// ServiceEndpointDefinitionsColumns holds the columns for the "service_endpoint_definitions" table.
+	ServiceEndpointDefinitionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "role", Type: field.TypeString, Nullable: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "index", Type: field.TypeInt},
+		{Name: "equipment_type_service_endpoint_definitions", Type: field.TypeInt, Nullable: true},
+		{Name: "service_endpoint_definition_service_type", Type: field.TypeInt, Nullable: true},
+		{Name: "service_type_endpoint_definitions", Type: field.TypeInt, Nullable: true},
+	}
+	// ServiceEndpointDefinitionsTable holds the schema information for the "service_endpoint_definitions" table.
+	ServiceEndpointDefinitionsTable = &schema.Table{
+		Name:       "service_endpoint_definitions",
+		Columns:    ServiceEndpointDefinitionsColumns,
+		PrimaryKey: []*schema.Column{ServiceEndpointDefinitionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "service_endpoint_definitions_equipment_types_service_endpoint_definitions",
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[6]},
+
+				RefColumns: []*schema.Column{EquipmentTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "service_endpoint_definitions_service_types_service_type",
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[7]},
+
+				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "service_endpoint_definitions_service_types_endpoint_definitions",
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[8]},
+
+				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "serviceendpointdefinition_index_service_endpoint_definition_service_type",
+				Unique:  true,
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[5], ServiceEndpointDefinitionsColumns[7]},
+			},
+			{
+				Name:    "serviceendpointdefinition_name_service_endpoint_definition_service_type",
+				Unique:  true,
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[4], ServiceEndpointDefinitionsColumns[7]},
 			},
 		},
 	}
@@ -1644,6 +1704,7 @@ var (
 		ReportFiltersTable,
 		ServicesTable,
 		ServiceEndpointsTable,
+		ServiceEndpointDefinitionsTable,
 		ServiceTypesTable,
 		SurveysTable,
 		SurveyCellScansTable,
@@ -1726,6 +1787,10 @@ func init() {
 	ServicesTable.ForeignKeys[0].RefTable = ServiceTypesTable
 	ServiceEndpointsTable.ForeignKeys[0].RefTable = ServicesTable
 	ServiceEndpointsTable.ForeignKeys[1].RefTable = EquipmentPortsTable
+	ServiceEndpointsTable.ForeignKeys[2].RefTable = ServiceEndpointDefinitionsTable
+	ServiceEndpointDefinitionsTable.ForeignKeys[0].RefTable = EquipmentTypesTable
+	ServiceEndpointDefinitionsTable.ForeignKeys[1].RefTable = ServiceTypesTable
+	ServiceEndpointDefinitionsTable.ForeignKeys[2].RefTable = ServiceTypesTable
 	SurveysTable.ForeignKeys[0].RefTable = LocationsTable
 	SurveysTable.ForeignKeys[1].RefTable = FilesTable
 	SurveyCellScansTable.ForeignKeys[0].RefTable = CheckListItemsTable

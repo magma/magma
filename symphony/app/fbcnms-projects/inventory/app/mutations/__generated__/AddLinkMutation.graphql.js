@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 73710b64b9e22599f35d810c2e78e0ea
+ * @relayHash 79d26ed4e202509905b2e132600e481a
  */
 
 /* eslint-disable */
@@ -18,7 +18,6 @@ import type { ConcreteRequest } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
-export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 export type AddLinkInput = {|
   sides: $ReadOnlyArray<LinkSide>,
@@ -103,7 +102,9 @@ export type AddLinkMutationResponse = {|
         +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
       |},
       +serviceEndpoints: $ReadOnlyArray<{|
-        +role: ServiceEndpointRole,
+        +definition: {|
+          +role: string
+        |},
         +service: {|
           +name: string
         |},
@@ -225,7 +226,10 @@ mutation AddLinkMutation(
         ...EquipmentBreadcrumbs_equipment
       }
       serviceEndpoints {
-        role
+        definition {
+          role
+          id
+        }
         service {
           name
           id
@@ -724,7 +728,18 @@ return {
                 "concreteType": "ServiceEndpoint",
                 "plural": true,
                 "selections": [
-                  (v18/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "definition",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "ServiceEndpointDefinition",
+                    "plural": false,
+                    "selections": [
+                      (v18/*: any*/)
+                    ]
+                  },
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -897,7 +912,19 @@ return {
                 "concreteType": "ServiceEndpoint",
                 "plural": true,
                 "selections": [
-                  (v18/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "definition",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "ServiceEndpointDefinition",
+                    "plural": false,
+                    "selections": [
+                      (v18/*: any*/),
+                      (v2/*: any*/)
+                    ]
+                  },
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -924,7 +951,7 @@ return {
     "operationKind": "mutation",
     "name": "AddLinkMutation",
     "id": null,
-    "text": "mutation AddLinkMutation(\n  $input: AddLinkInput!\n) {\n  addLink(input: $input) {\n    id\n    futureState\n    ports {\n      id\n      definition {\n        id\n        name\n        visibleLabel\n        portType {\n          linkPropertyTypes {\n            id\n            name\n            type\n            index\n            stringValue\n            intValue\n            booleanValue\n            floatValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            isEditable\n            isInstanceProperty\n            isMandatory\n            category\n            isDeleted\n          }\n          id\n        }\n      }\n      parentEquipment {\n        id\n        name\n        futureState\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n            visibleLabel\n            bandwidth\n            portType {\n              id\n              name\n            }\n          }\n        }\n        ...EquipmentBreadcrumbs_equipment\n      }\n      serviceEndpoints {\n        role\n        service {\n          name\n          id\n        }\n        id\n      }\n    }\n    workOrder {\n      id\n      status\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n        category\n        isDeleted\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n      serviceValue {\n        id\n        name\n      }\n    }\n    services {\n      id\n      name\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "mutation AddLinkMutation(\n  $input: AddLinkInput!\n) {\n  addLink(input: $input) {\n    id\n    futureState\n    ports {\n      id\n      definition {\n        id\n        name\n        visibleLabel\n        portType {\n          linkPropertyTypes {\n            id\n            name\n            type\n            index\n            stringValue\n            intValue\n            booleanValue\n            floatValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            isEditable\n            isInstanceProperty\n            isMandatory\n            category\n            isDeleted\n          }\n          id\n        }\n      }\n      parentEquipment {\n        id\n        name\n        futureState\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n            visibleLabel\n            bandwidth\n            portType {\n              id\n              name\n            }\n          }\n        }\n        ...EquipmentBreadcrumbs_equipment\n      }\n      serviceEndpoints {\n        definition {\n          role\n          id\n        }\n        service {\n          name\n          id\n        }\n        id\n      }\n    }\n    workOrder {\n      id\n      status\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n        category\n        isDeleted\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n      serviceValue {\n        id\n        name\n      }\n    }\n    services {\n      id\n      name\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

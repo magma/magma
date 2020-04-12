@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
@@ -83,6 +84,21 @@ func (stu *ServiceTypeUpdate) AddPropertyTypes(p ...*PropertyType) *ServiceTypeU
 	return stu.AddPropertyTypeIDs(ids...)
 }
 
+// AddEndpointDefinitionIDs adds the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (stu *ServiceTypeUpdate) AddEndpointDefinitionIDs(ids ...int) *ServiceTypeUpdate {
+	stu.mutation.AddEndpointDefinitionIDs(ids...)
+	return stu
+}
+
+// AddEndpointDefinitions adds the endpoint_definitions edges to ServiceEndpointDefinition.
+func (stu *ServiceTypeUpdate) AddEndpointDefinitions(s ...*ServiceEndpointDefinition) *ServiceTypeUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return stu.AddEndpointDefinitionIDs(ids...)
+}
+
 // RemoveServiceIDs removes the services edge to Service by ids.
 func (stu *ServiceTypeUpdate) RemoveServiceIDs(ids ...int) *ServiceTypeUpdate {
 	stu.mutation.RemoveServiceIDs(ids...)
@@ -111,6 +127,21 @@ func (stu *ServiceTypeUpdate) RemovePropertyTypes(p ...*PropertyType) *ServiceTy
 		ids[i] = p[i].ID
 	}
 	return stu.RemovePropertyTypeIDs(ids...)
+}
+
+// RemoveEndpointDefinitionIDs removes the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (stu *ServiceTypeUpdate) RemoveEndpointDefinitionIDs(ids ...int) *ServiceTypeUpdate {
+	stu.mutation.RemoveEndpointDefinitionIDs(ids...)
+	return stu
+}
+
+// RemoveEndpointDefinitions removes endpoint_definitions edges to ServiceEndpointDefinition.
+func (stu *ServiceTypeUpdate) RemoveEndpointDefinitions(s ...*ServiceEndpointDefinition) *ServiceTypeUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return stu.RemoveEndpointDefinitionIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -283,6 +314,44 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if nodes := stu.mutation.RemovedEndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.EndpointDefinitionsTable,
+			Columns: []string{servicetype.EndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := stu.mutation.EndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.EndpointDefinitionsTable,
+			Columns: []string{servicetype.EndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, stu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{servicetype.Label}
@@ -351,6 +420,21 @@ func (stuo *ServiceTypeUpdateOne) AddPropertyTypes(p ...*PropertyType) *ServiceT
 	return stuo.AddPropertyTypeIDs(ids...)
 }
 
+// AddEndpointDefinitionIDs adds the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (stuo *ServiceTypeUpdateOne) AddEndpointDefinitionIDs(ids ...int) *ServiceTypeUpdateOne {
+	stuo.mutation.AddEndpointDefinitionIDs(ids...)
+	return stuo
+}
+
+// AddEndpointDefinitions adds the endpoint_definitions edges to ServiceEndpointDefinition.
+func (stuo *ServiceTypeUpdateOne) AddEndpointDefinitions(s ...*ServiceEndpointDefinition) *ServiceTypeUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return stuo.AddEndpointDefinitionIDs(ids...)
+}
+
 // RemoveServiceIDs removes the services edge to Service by ids.
 func (stuo *ServiceTypeUpdateOne) RemoveServiceIDs(ids ...int) *ServiceTypeUpdateOne {
 	stuo.mutation.RemoveServiceIDs(ids...)
@@ -379,6 +463,21 @@ func (stuo *ServiceTypeUpdateOne) RemovePropertyTypes(p ...*PropertyType) *Servi
 		ids[i] = p[i].ID
 	}
 	return stuo.RemovePropertyTypeIDs(ids...)
+}
+
+// RemoveEndpointDefinitionIDs removes the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (stuo *ServiceTypeUpdateOne) RemoveEndpointDefinitionIDs(ids ...int) *ServiceTypeUpdateOne {
+	stuo.mutation.RemoveEndpointDefinitionIDs(ids...)
+	return stuo
+}
+
+// RemoveEndpointDefinitions removes endpoint_definitions edges to ServiceEndpointDefinition.
+func (stuo *ServiceTypeUpdateOne) RemoveEndpointDefinitions(s ...*ServiceEndpointDefinition) *ServiceTypeUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return stuo.RemoveEndpointDefinitionIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -541,6 +640,44 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := stuo.mutation.RemovedEndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.EndpointDefinitionsTable,
+			Columns: []string{servicetype.EndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := stuo.mutation.EndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.EndpointDefinitionsTable,
+			Columns: []string{servicetype.EndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
 				},
 			},
 		}

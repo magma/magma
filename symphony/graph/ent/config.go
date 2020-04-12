@@ -57,6 +57,7 @@ type hooks struct {
 	ReportFilter                []ent.Hook
 	Service                     []ent.Hook
 	ServiceEndpoint             []ent.Hook
+	ServiceEndpointDefinition   []ent.Hook
 	ServiceType                 []ent.Hook
 	Survey                      []ent.Hook
 	SurveyCellScan              []ent.Hook

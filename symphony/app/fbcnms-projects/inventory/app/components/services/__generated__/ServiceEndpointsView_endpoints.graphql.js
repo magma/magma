@@ -15,7 +15,6 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
-export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServiceEndpointsView_endpoints$ref: FragmentReference;
 declare export opaque type ServiceEndpointsView_endpoints$fragmentType: ServiceEndpointsView_endpoints$ref;
@@ -31,7 +30,9 @@ export type ServiceEndpointsView_endpoints = $ReadOnlyArray<{|
       +name: string,
     |},
   |},
-  +role: ServiceEndpointRole,
+  +definition: {|
+    +role: string
+  |},
   +$refType: ServiceEndpointsView_endpoints$ref,
 |}>;
 export type ServiceEndpointsView_endpoints$data = ServiceEndpointsView_endpoints;
@@ -110,15 +111,26 @@ return {
       ]
     },
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "role",
+      "name": "definition",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "ServiceEndpointDefinition",
+      "plural": false,
+      "selections": [
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "role",
+          "args": null,
+          "storageKey": null
+        }
+      ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '6434214b1d518a116cccc1aa3dd9c192';
+(node/*: any*/).hash = 'c1e178d35659723511d1358d7d5dd87c';
 module.exports = node;

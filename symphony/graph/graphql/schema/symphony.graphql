@@ -1705,16 +1705,11 @@ type Customer implements Node {
   externalId: String
 }
 
-enum ServiceEndpointRole {
-  CONSUMER
-  PROVIDER
-}
-
 type ServiceEndpoint implements Node {
   id: ID!
   port: EquipmentPort!
-  role: ServiceEndpointRole!
   service: Service!
+  definition: ServiceEndpointDefinition!
 }
 
 """
@@ -1735,6 +1730,15 @@ type Service implements Node {
   topology: NetworkTopology!
 }
 
+type ServiceEndpointDefinition implements Node {
+  id: ID!
+  index: Int!
+  role: String!
+  endpoints: [ServiceEndpoint]!
+  equipmentType: EquipmentType!
+  serviceType: ServiceType!
+}
+
 """
 Service type schema: e.g. L2 VPN.
 """
@@ -1745,6 +1749,7 @@ type ServiceType implements Node {
   propertyTypes: [PropertyType]!
   services: [Service]!
   numberOfServices: Int!
+  endpointDefinitions: [ServiceEndpointDefinition]!
 }
 
 directive @uniqueField(
@@ -1789,13 +1794,21 @@ input ServiceEditData {
   status: ServiceStatus
   customerId: ID
   upstreamServiceIds: [ID!]
-  properties: [PropertyInput]
-}
+    properties: [PropertyInput]
+  }
 
 input AddServiceEndpointInput {
   id: ID!
   portId: ID!
-  role: ServiceEndpointRole!
+  definition: ID!
+}
+
+input AddServiceEndpointDefinitionInput {
+  name: String!
+  role: String
+  Index: Int!
+  serviceTypeID: ID!
+  equipmentTypeID: ID!
 }
 
 input SurveyCreateData {
@@ -2399,9 +2412,12 @@ type Mutation {
   addServiceLink(id: ID!, linkId: ID!): Service!
   removeServiceLink(id: ID!, linkId: ID!): Service!
   addServiceEndpoint(input: AddServiceEndpointInput!): Service!
+  addServiceEndpointDefinition(
+    input: AddServiceEndpointDefinitionInput!
+  ): ServiceEndpointDefinition!
   removeServiceEndpoint(serviceEndpointId: ID!): Service!
   addServiceType(
-    """
+    """AddServiceEndpointInput
     data to edit service type
     """
     data: ServiceTypeCreateData!

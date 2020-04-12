@@ -16,13 +16,14 @@ const (
 	// FieldID holds the string denoting the id field in the database.
 	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
 	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldRole holds the string denoting the role vertex property in the database.
-	FieldRole       = "role"
+	FieldUpdateTime = "update_time"
 
 	// EdgePort holds the string denoting the port edge name in mutations.
 	EdgePort = "port"
 	// EdgeService holds the string denoting the service edge name in mutations.
 	EdgeService = "service"
+	// EdgeDefinition holds the string denoting the definition edge name in mutations.
+	EdgeDefinition = "definition"
 
 	// Table holds the table name of the serviceendpoint in the database.
 	Table = "service_endpoints"
@@ -40,6 +41,13 @@ const (
 	ServiceInverseTable = "services"
 	// ServiceColumn is the table column denoting the service relation/edge.
 	ServiceColumn = "service_endpoints"
+	// DefinitionTable is the table the holds the definition relation/edge.
+	DefinitionTable = "service_endpoints"
+	// DefinitionInverseTable is the table name for the ServiceEndpointDefinition entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceendpointdefinition" package.
+	DefinitionInverseTable = "service_endpoint_definitions"
+	// DefinitionColumn is the table column denoting the definition relation/edge.
+	DefinitionColumn = "service_endpoint_definition_endpoints"
 )
 
 // Columns holds all SQL columns for serviceendpoint fields.
@@ -47,13 +55,13 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldRole,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the ServiceEndpoint type.
 var ForeignKeys = []string{
 	"service_endpoints",
 	"service_endpoint_port",
+	"service_endpoint_definition_endpoints",
 }
 
 var (

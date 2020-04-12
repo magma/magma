@@ -25,7 +25,6 @@ const (
 	svcName  = "serviceName"
 	svc2Name = "serviceName2"
 	svc3Name = "serviceName3"
-	svc4Name = "serviceName4"
 )
 
 type TestImporterResolver struct {

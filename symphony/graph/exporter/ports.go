@@ -14,7 +14,6 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
@@ -47,7 +46,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		portDataHeader = [...]string{bom + "Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
 		linkHeader     = [...]string{"Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}
-		serviceHeader  = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
+		serviceHeader  = [...]string{"Service Names"}
 	)
 	filtersParam := url.Query().Get("filters")
 	if filtersParam != "" {
@@ -187,15 +186,12 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 		return nil
 	})
 	g.Go(func(ctx context.Context) error {
-		consumerServicesStr, err := getServicesOfPortAsEndpoint(ctx, port, models.ServiceEndpointRoleConsumer)
+		servicesStr, err := getServicesOfPortAsEndpoint(ctx, port)
 		if err != nil {
 			return err
 		}
-		providerServicesStr, err := getServicesOfPortAsEndpoint(ctx, port, models.ServiceEndpointRoleProvider)
-		if err != nil {
-			return err
-		}
-		serviceData = []string{consumerServicesStr, providerServicesStr}
+		// TODO T64283840: support editing services for ports (by endpoint type role)
+		serviceData = []string{servicesStr}
 		return nil
 	})
 	if err := g.Wait(); err != nil {
@@ -218,10 +214,9 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 	return row, nil
 }
 
-func getServicesOfPortAsEndpoint(ctx context.Context, port *ent.EquipmentPort, role models.ServiceEndpointRole) (string, error) {
+func getServicesOfPortAsEndpoint(ctx context.Context, port *ent.EquipmentPort) (string, error) {
 	services, err := port.
 		QueryEndpoints().
-		Where(serviceendpoint.Role(role.String())).
 		QueryService().
 		All(ctx)
 	if err != nil {

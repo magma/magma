@@ -18,8 +18,6 @@ export type ServiceStatus =
   | 'MAINTENANCE'
   | 'DISCONNECTED';
 
-export type ServiceEndpointRole = 'CONSUMER' | 'PROVIDER';
-
 export const serviceStatusToVisibleNames = {
   PENDING: 'Pending',
   IN_SERVICE: 'In Service',
@@ -39,10 +37,14 @@ export type Customer = {
   name: string,
 };
 
+export type ServiceEndpointType = {
+  role: string,
+};
+
 export type ServiceEndpoint = {
   id: string,
   port: EquipmentPort,
-  role: ServiceEndpointRole,
+  type: ServiceEndpointType,
   service: Service,
 };
 

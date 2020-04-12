@@ -74,6 +74,8 @@ type Tx struct {
 	Service *ServiceClient
 	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
 	ServiceEndpoint *ServiceEndpointClient
+	// ServiceEndpointDefinition is the client for interacting with the ServiceEndpointDefinition builders.
+	ServiceEndpointDefinition *ServiceEndpointDefinitionClient
 	// ServiceType is the client for interacting with the ServiceType builders.
 	ServiceType *ServiceTypeClient
 	// Survey is the client for interacting with the Survey builders.
@@ -186,6 +188,7 @@ func (tx *Tx) init() {
 	tx.ReportFilter = NewReportFilterClient(tx.config)
 	tx.Service = NewServiceClient(tx.config)
 	tx.ServiceEndpoint = NewServiceEndpointClient(tx.config)
+	tx.ServiceEndpointDefinition = NewServiceEndpointDefinitionClient(tx.config)
 	tx.ServiceType = NewServiceTypeClient(tx.config)
 	tx.Survey = NewSurveyClient(tx.config)
 	tx.SurveyCellScan = NewSurveyCellScanClient(tx.config)

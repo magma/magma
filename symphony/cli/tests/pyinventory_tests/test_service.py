@@ -20,7 +20,6 @@ from pyinventory.api.service import (
 )
 from pyinventory.consts import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
-from pyinventory.graphql.service_endpoint_role_enum import ServiceEndpointRole
 
 from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils.base_test import BaseTest
@@ -145,12 +144,9 @@ class TestService(BaseTest):
             properties_dict={"Address Family": "v4"},
             links=[link1, link2],
         )
-        add_service_endpoint(
-            client=self.client,
-            service=service,
-            port=endpoint_port,
-            role=ServiceEndpointRole.CONSUMER,
-        )
+        # TODO add service_endpoint_type api
+        add_service_endpoint(client=self.client, service=service, port=endpoint_port)
+
         service = get_service(client=self.client, id=service.id)
 
         self.assertEqual([endpoint_port.id], [e.port.id for e in service.endpoints])

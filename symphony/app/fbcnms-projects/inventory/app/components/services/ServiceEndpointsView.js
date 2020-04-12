@@ -60,7 +60,9 @@ export default createFragmentContainer(ServiceEndpointsView, {
           name
         }
       }
-      role
+      definition {
+        role
+      }
     }
   `,
 });

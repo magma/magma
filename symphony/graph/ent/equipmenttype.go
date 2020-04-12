@@ -45,9 +45,11 @@ type EquipmentTypeEdges struct {
 	Equipment []*Equipment `gqlgen:"equipments"`
 	// Category holds the value of the category edge.
 	Category *EquipmentCategory `gqlgen:"category"`
+	// ServiceEndpointDefinitions holds the value of the service_endpoint_definitions edge.
+	ServiceEndpointDefinitions []*ServiceEndpointDefinition `gqlgen:"serviceEndpointDefinitions"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // PortDefinitionsOrErr returns the PortDefinitions value or an error if the edge
@@ -98,6 +100,15 @@ func (e EquipmentTypeEdges) CategoryOrErr() (*EquipmentCategory, error) {
 		return e.Category, nil
 	}
 	return nil, &NotLoadedError{edge: "category"}
+}
+
+// ServiceEndpointDefinitionsOrErr returns the ServiceEndpointDefinitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e EquipmentTypeEdges) ServiceEndpointDefinitionsOrErr() ([]*ServiceEndpointDefinition, error) {
+	if e.loadedTypes[5] {
+		return e.ServiceEndpointDefinitions, nil
+	}
+	return nil, &NotLoadedError{edge: "service_endpoint_definitions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -179,6 +190,11 @@ func (et *EquipmentType) QueryEquipment() *EquipmentQuery {
 // QueryCategory queries the category edge of the EquipmentType.
 func (et *EquipmentType) QueryCategory() *EquipmentCategoryQuery {
 	return (&EquipmentTypeClient{config: et.config}).QueryCategory(et)
+}
+
+// QueryServiceEndpointDefinitions queries the service_endpoint_definitions edge of the EquipmentType.
+func (et *EquipmentType) QueryServiceEndpointDefinitions() *ServiceEndpointDefinitionQuery {
+	return (&EquipmentTypeClient{config: et.config}).QueryServiceEndpointDefinitions(et)
 }
 
 // Update returns a builder for updating this EquipmentType.

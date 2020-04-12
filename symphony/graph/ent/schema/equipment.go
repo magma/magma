@@ -215,6 +215,8 @@ func (EquipmentType) Edges() []ent.Edge {
 		edge.To("category", EquipmentCategory.Type).
 			Unique().
 			StructTag(`gqlgen:"category"`),
+		edge.To("service_endpoint_definitions", ServiceEndpointDefinition.Type).
+			StructTag(`gqlgen:"serviceEndpointDefinitions"`),
 	}
 }
 

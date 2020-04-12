@@ -10,12 +10,9 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from gql.gql.enum_utils import enum_field
-from .service_endpoint_role_enum import ServiceEndpointRole
-
 @dataclass
 class AddServiceEndpointInput(DataClassJsonMixin):
     id: str
     portId: str
-    role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
+    definition: str
 

@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 )
 
 // ServiceEndpointQuery is the builder for querying ServiceEndpoint entities.
@@ -30,9 +31,10 @@ type ServiceEndpointQuery struct {
 	unique     []string
 	predicates []predicate.ServiceEndpoint
 	// eager-loading edges.
-	withPort    *EquipmentPortQuery
-	withService *ServiceQuery
-	withFKs     bool
+	withPort       *EquipmentPortQuery
+	withService    *ServiceQuery
+	withDefinition *ServiceEndpointDefinitionQuery
+	withFKs        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -91,6 +93,24 @@ func (seq *ServiceEndpointQuery) QueryService() *ServiceQuery {
 			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, seq.sqlQuery()),
 			sqlgraph.To(service.Table, service.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, serviceendpoint.ServiceTable, serviceendpoint.ServiceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(seq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDefinition chains the current query on the definition edge.
+func (seq *ServiceEndpointQuery) QueryDefinition() *ServiceEndpointDefinitionQuery {
+	query := &ServiceEndpointDefinitionQuery{config: seq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := seq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, seq.sqlQuery()),
+			sqlgraph.To(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceendpoint.DefinitionTable, serviceendpoint.DefinitionColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(seq.driver.Dialect(), step)
 		return fromU, nil
@@ -299,6 +319,17 @@ func (seq *ServiceEndpointQuery) WithService(opts ...func(*ServiceQuery)) *Servi
 	return seq
 }
 
+//  WithDefinition tells the query-builder to eager-loads the nodes that are connected to
+// the "definition" edge. The optional arguments used to configure the query builder of the edge.
+func (seq *ServiceEndpointQuery) WithDefinition(opts ...func(*ServiceEndpointDefinitionQuery)) *ServiceEndpointQuery {
+	query := &ServiceEndpointDefinitionQuery{config: seq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	seq.withDefinition = query
+	return seq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -366,12 +397,13 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 		nodes       = []*ServiceEndpoint{}
 		withFKs     = seq.withFKs
 		_spec       = seq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			seq.withPort != nil,
 			seq.withService != nil,
+			seq.withDefinition != nil,
 		}
 	)
-	if seq.withPort != nil || seq.withService != nil {
+	if seq.withPort != nil || seq.withService != nil || seq.withDefinition != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -447,6 +479,31 @@ func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint
 			}
 			for i := range nodes {
 				nodes[i].Edges.Service = n
+			}
+		}
+	}
+
+	if query := seq.withDefinition; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*ServiceEndpoint)
+		for i := range nodes {
+			if fk := nodes[i].service_endpoint_definition_endpoints; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(serviceendpointdefinition.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoint_definition_endpoints" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Definition = n
 			}
 		}
 	}

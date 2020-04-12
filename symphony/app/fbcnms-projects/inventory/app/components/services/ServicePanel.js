@@ -11,7 +11,6 @@
 import type {
   AddServiceEndpointMutationResponse,
   AddServiceEndpointMutationVariables,
-  ServiceEndpointRole,
 } from '../../mutations/__generated__/AddServiceEndpointMutation.graphql';
 import type {
   AddServiceLinkMutationResponse,
@@ -139,12 +138,12 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   const [endpointsExpanded, setEndpointsExpanded] = useState(false);
   const [linksExpanded, setLinksExpanded] = useState(false);
 
-  const onAddEndpoint = (port: EquipmentPort, role: ServiceEndpointRole) => {
+  const onAddEndpoint = (port: EquipmentPort, role: string) => {
     const variables: AddServiceEndpointMutationVariables = {
       input: {
         id: service.id,
         portId: port.id,
-        role: role,
+        definition: '0' + role, //TODO - AddServiceEndpointType Flow
       },
     };
     const callbacks: MutationCallbacks<AddServiceEndpointMutationResponse> = {

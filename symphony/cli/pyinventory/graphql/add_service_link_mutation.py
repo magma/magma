@@ -13,9 +13,6 @@ from dataclasses_json import DataClassJsonMixin
 
 from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
 from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
-from gql.gql.enum_utils import enum_field
-from .service_endpoint_role_enum import ServiceEndpointRole
-
 
 QUERY: List[str] = CustomerFragmentQuery + PropertyFragmentQuery + ["""
 mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
@@ -51,7 +48,9 @@ mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
           }
         }
       }
-      role
+      definition {
+        role
+      }
     }
     links {
       id
@@ -115,9 +114,13 @@ class AddServiceLinkMutation(DataClassJsonMixin):
                     definition: EquipmentPortDefinition
                     link: Optional[Link]
 
+                @dataclass
+                class ServiceEndpointDefinition(DataClassJsonMixin):
+                    role: str
+
                 id: str
                 port: EquipmentPort
-                role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
+                definition: ServiceEndpointDefinition
 
             @dataclass
             class Link(DataClassJsonMixin):

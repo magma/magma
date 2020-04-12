@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 2fa6d21f872c80bb7fea04e24d8ff0a9
+ * @relayHash b5929c8a4be1bc013320887053371225
  */
 
 /* eslint-disable */
@@ -16,11 +16,10 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type ServiceCard_service$ref = any;
-export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 export type AddServiceEndpointInput = {|
   id: string,
   portId: string,
-  role: ServiceEndpointRole,
+  definition: string,
 |};
 export type AddServiceEndpointMutationVariables = {|
   input: AddServiceEndpointInput
@@ -187,11 +186,17 @@ fragment ServiceEndpointsView_endpoints on ServiceEndpoint {
     }
     id
   }
-  role
+  definition {
+    role
+    id
+  }
 }
 
 fragment ServiceEquipmentTopology_endpoints on ServiceEndpoint {
-  role
+  definition {
+    role
+    id
+  }
   port {
     parentEquipment {
       id
@@ -730,11 +735,23 @@ return {
                 ]
               },
               {
-                "kind": "ScalarField",
+                "kind": "LinkedField",
                 "alias": null,
-                "name": "role",
+                "name": "definition",
+                "storageKey": null,
                 "args": null,
-                "storageKey": null
+                "concreteType": "ServiceEndpointDefinition",
+                "plural": false,
+                "selections": [
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "role",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  (v2/*: any*/)
+                ]
               }
             ]
           },
@@ -808,7 +825,7 @@ return {
     "operationKind": "mutation",
     "name": "AddServiceEndpointMutation",
     "id": null,
-    "text": "mutation AddServiceEndpointMutation(\n  $input: AddServiceEndpointInput!\n) {\n  addServiceEndpoint(input: $input) {\n    ...ServiceCard_service\n    id\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment ForceNetworkTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    id\n  }\n  links {\n    source {\n      __typename\n      id\n    }\n    target {\n      __typename\n      id\n    }\n  }\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  ...ServiceDetailsPanel_service\n  ...ServicePanel_service\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n  endpoints {\n    ...ServiceEquipmentTopology_endpoints\n    id\n  }\n}\n\nfragment ServiceDetailsPanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      index\n      isInstanceProperty\n      type\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isMandatory\n    }\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      isMandatory\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n}\n\nfragment ServiceEndpointsView_endpoints on ServiceEndpoint {\n  id\n  port {\n    parentEquipment {\n      name\n      ...EquipmentBreadcrumbs_equipment\n      id\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n  role\n}\n\nfragment ServiceEquipmentTopology_endpoints on ServiceEndpoint {\n  role\n  port {\n    parentEquipment {\n      id\n      positionHierarchy {\n        parentEquipment {\n          id\n        }\n        id\n      }\n    }\n    id\n  }\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    ... on Equipment {\n      id\n      name\n    }\n    id\n  }\n  ...ForceNetworkTopology_topology\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n\nfragment ServicePanel_service on Service {\n  id\n  name\n  externalId\n  status\n  customer {\n    name\n    id\n  }\n  serviceType {\n    name\n    id\n  }\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n  endpoints {\n    ...ServiceEndpointsView_endpoints\n    id\n  }\n}\n",
+    "text": "mutation AddServiceEndpointMutation(\n  $input: AddServiceEndpointInput!\n) {\n  addServiceEndpoint(input: $input) {\n    ...ServiceCard_service\n    id\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment ForceNetworkTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    id\n  }\n  links {\n    source {\n      __typename\n      id\n    }\n    target {\n      __typename\n      id\n    }\n  }\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  ...ServiceDetailsPanel_service\n  ...ServicePanel_service\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n  endpoints {\n    ...ServiceEquipmentTopology_endpoints\n    id\n  }\n}\n\nfragment ServiceDetailsPanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      index\n      isInstanceProperty\n      type\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isMandatory\n    }\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      isMandatory\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n}\n\nfragment ServiceEndpointsView_endpoints on ServiceEndpoint {\n  id\n  port {\n    parentEquipment {\n      name\n      ...EquipmentBreadcrumbs_equipment\n      id\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n  definition {\n    role\n    id\n  }\n}\n\nfragment ServiceEquipmentTopology_endpoints on ServiceEndpoint {\n  definition {\n    role\n    id\n  }\n  port {\n    parentEquipment {\n      id\n      positionHierarchy {\n        parentEquipment {\n          id\n        }\n        id\n      }\n    }\n    id\n  }\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    ... on Equipment {\n      id\n      name\n    }\n    id\n  }\n  ...ForceNetworkTopology_topology\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n\nfragment ServicePanel_service on Service {\n  id\n  name\n  externalId\n  status\n  customer {\n    name\n    id\n  }\n  serviceType {\n    name\n    id\n  }\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n  endpoints {\n    ...ServiceEndpointsView_endpoints\n    id\n  }\n}\n",
     "metadata": {}
   }
 };

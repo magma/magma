@@ -8,7 +8,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 )
 
 // ServiceEndpointCreate is the builder for creating a ServiceEndpoint entity.
@@ -51,12 +51,6 @@ func (sec *ServiceEndpointCreate) SetNillableUpdateTime(t *time.Time) *ServiceEn
 	if t != nil {
 		sec.SetUpdateTime(*t)
 	}
-	return sec
-}
-
-// SetRole sets the role field.
-func (sec *ServiceEndpointCreate) SetRole(s string) *ServiceEndpointCreate {
-	sec.mutation.SetRole(s)
 	return sec
 }
 
@@ -98,6 +92,25 @@ func (sec *ServiceEndpointCreate) SetService(s *Service) *ServiceEndpointCreate 
 	return sec.SetServiceID(s.ID)
 }
 
+// SetDefinitionID sets the definition edge to ServiceEndpointDefinition by id.
+func (sec *ServiceEndpointCreate) SetDefinitionID(id int) *ServiceEndpointCreate {
+	sec.mutation.SetDefinitionID(id)
+	return sec
+}
+
+// SetNillableDefinitionID sets the definition edge to ServiceEndpointDefinition by id if the given value is not nil.
+func (sec *ServiceEndpointCreate) SetNillableDefinitionID(id *int) *ServiceEndpointCreate {
+	if id != nil {
+		sec = sec.SetDefinitionID(*id)
+	}
+	return sec
+}
+
+// SetDefinition sets the definition edge to ServiceEndpointDefinition.
+func (sec *ServiceEndpointCreate) SetDefinition(s *ServiceEndpointDefinition) *ServiceEndpointCreate {
+	return sec.SetDefinitionID(s.ID)
+}
+
 // Save creates the ServiceEndpoint in the database.
 func (sec *ServiceEndpointCreate) Save(ctx context.Context) (*ServiceEndpoint, error) {
 	if _, ok := sec.mutation.CreateTime(); !ok {
@@ -107,9 +120,6 @@ func (sec *ServiceEndpointCreate) Save(ctx context.Context) (*ServiceEndpoint, e
 	if _, ok := sec.mutation.UpdateTime(); !ok {
 		v := serviceendpoint.DefaultUpdateTime()
 		sec.mutation.SetUpdateTime(v)
-	}
-	if _, ok := sec.mutation.Role(); !ok {
-		return nil, errors.New("ent: missing required field \"role\"")
 	}
 	var (
 		err  error
@@ -173,14 +183,6 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 		})
 		se.UpdateTime = value
 	}
-	if value, ok := sec.mutation.Role(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: serviceendpoint.FieldRole,
-		})
-		se.Role = value
-	}
 	if nodes := sec.mutation.PortIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -211,6 +213,25 @@ func (sec *ServiceEndpointCreate) sqlSave(ctx context.Context) (*ServiceEndpoint
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: service.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sec.mutation.DefinitionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceendpoint.DefinitionTable,
+			Columns: []string{serviceendpoint.DefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
 				},
 			},
 		}

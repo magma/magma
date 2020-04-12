@@ -17,6 +17,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 )
 
 // ServiceEndpointUpdate is the builder for updating ServiceEndpoint entities.
@@ -30,12 +31,6 @@ type ServiceEndpointUpdate struct {
 // Where adds a new predicate for the builder.
 func (seu *ServiceEndpointUpdate) Where(ps ...predicate.ServiceEndpoint) *ServiceEndpointUpdate {
 	seu.predicates = append(seu.predicates, ps...)
-	return seu
-}
-
-// SetRole sets the role field.
-func (seu *ServiceEndpointUpdate) SetRole(s string) *ServiceEndpointUpdate {
-	seu.mutation.SetRole(s)
 	return seu
 }
 
@@ -77,6 +72,25 @@ func (seu *ServiceEndpointUpdate) SetService(s *Service) *ServiceEndpointUpdate 
 	return seu.SetServiceID(s.ID)
 }
 
+// SetDefinitionID sets the definition edge to ServiceEndpointDefinition by id.
+func (seu *ServiceEndpointUpdate) SetDefinitionID(id int) *ServiceEndpointUpdate {
+	seu.mutation.SetDefinitionID(id)
+	return seu
+}
+
+// SetNillableDefinitionID sets the definition edge to ServiceEndpointDefinition by id if the given value is not nil.
+func (seu *ServiceEndpointUpdate) SetNillableDefinitionID(id *int) *ServiceEndpointUpdate {
+	if id != nil {
+		seu = seu.SetDefinitionID(*id)
+	}
+	return seu
+}
+
+// SetDefinition sets the definition edge to ServiceEndpointDefinition.
+func (seu *ServiceEndpointUpdate) SetDefinition(s *ServiceEndpointDefinition) *ServiceEndpointUpdate {
+	return seu.SetDefinitionID(s.ID)
+}
+
 // ClearPort clears the port edge to EquipmentPort.
 func (seu *ServiceEndpointUpdate) ClearPort() *ServiceEndpointUpdate {
 	seu.mutation.ClearPort()
@@ -86,6 +100,12 @@ func (seu *ServiceEndpointUpdate) ClearPort() *ServiceEndpointUpdate {
 // ClearService clears the service edge to Service.
 func (seu *ServiceEndpointUpdate) ClearService() *ServiceEndpointUpdate {
 	seu.mutation.ClearService()
+	return seu
+}
+
+// ClearDefinition clears the definition edge to ServiceEndpointDefinition.
+func (seu *ServiceEndpointUpdate) ClearDefinition() *ServiceEndpointUpdate {
+	seu.mutation.ClearDefinition()
 	return seu
 }
 
@@ -169,13 +189,6 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 			Column: serviceendpoint.FieldUpdateTime,
 		})
 	}
-	if value, ok := seu.mutation.Role(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: serviceendpoint.FieldRole,
-		})
-	}
 	if seu.mutation.PortCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -246,6 +259,41 @@ func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if seu.mutation.DefinitionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceendpoint.DefinitionTable,
+			Columns: []string{serviceendpoint.DefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := seu.mutation.DefinitionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceendpoint.DefinitionTable,
+			Columns: []string{serviceendpoint.DefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, seu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{serviceendpoint.Label}
@@ -262,12 +310,6 @@ type ServiceEndpointUpdateOne struct {
 	config
 	hooks    []Hook
 	mutation *ServiceEndpointMutation
-}
-
-// SetRole sets the role field.
-func (seuo *ServiceEndpointUpdateOne) SetRole(s string) *ServiceEndpointUpdateOne {
-	seuo.mutation.SetRole(s)
-	return seuo
 }
 
 // SetPortID sets the port edge to EquipmentPort by id.
@@ -308,6 +350,25 @@ func (seuo *ServiceEndpointUpdateOne) SetService(s *Service) *ServiceEndpointUpd
 	return seuo.SetServiceID(s.ID)
 }
 
+// SetDefinitionID sets the definition edge to ServiceEndpointDefinition by id.
+func (seuo *ServiceEndpointUpdateOne) SetDefinitionID(id int) *ServiceEndpointUpdateOne {
+	seuo.mutation.SetDefinitionID(id)
+	return seuo
+}
+
+// SetNillableDefinitionID sets the definition edge to ServiceEndpointDefinition by id if the given value is not nil.
+func (seuo *ServiceEndpointUpdateOne) SetNillableDefinitionID(id *int) *ServiceEndpointUpdateOne {
+	if id != nil {
+		seuo = seuo.SetDefinitionID(*id)
+	}
+	return seuo
+}
+
+// SetDefinition sets the definition edge to ServiceEndpointDefinition.
+func (seuo *ServiceEndpointUpdateOne) SetDefinition(s *ServiceEndpointDefinition) *ServiceEndpointUpdateOne {
+	return seuo.SetDefinitionID(s.ID)
+}
+
 // ClearPort clears the port edge to EquipmentPort.
 func (seuo *ServiceEndpointUpdateOne) ClearPort() *ServiceEndpointUpdateOne {
 	seuo.mutation.ClearPort()
@@ -317,6 +378,12 @@ func (seuo *ServiceEndpointUpdateOne) ClearPort() *ServiceEndpointUpdateOne {
 // ClearService clears the service edge to Service.
 func (seuo *ServiceEndpointUpdateOne) ClearService() *ServiceEndpointUpdateOne {
 	seuo.mutation.ClearService()
+	return seuo
+}
+
+// ClearDefinition clears the definition edge to ServiceEndpointDefinition.
+func (seuo *ServiceEndpointUpdateOne) ClearDefinition() *ServiceEndpointUpdateOne {
+	seuo.mutation.ClearDefinition()
 	return seuo
 }
 
@@ -398,13 +465,6 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 			Column: serviceendpoint.FieldUpdateTime,
 		})
 	}
-	if value, ok := seuo.mutation.Role(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: serviceendpoint.FieldRole,
-		})
-	}
 	if seuo.mutation.PortCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -467,6 +527,41 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: service.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if seuo.mutation.DefinitionCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceendpoint.DefinitionTable,
+			Columns: []string{serviceendpoint.DefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := seuo.mutation.DefinitionIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceendpoint.DefinitionTable,
+			Columns: []string{serviceendpoint.DefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
 				},
 			},
 		}

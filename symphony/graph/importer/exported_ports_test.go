@@ -228,7 +228,7 @@ func TestPortTitleInputValidation(t *testing.T) {
 		portDataHeader = [...]string{"Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
 		linkDataHeader = [...]string{"Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}
-		servicesHeader = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
+		servicesHeader = [...]string{"Service Names"}
 	)
 	prepareBasicData(ctx, t, *r)
 	header, _ := NewImportHeader([]string{"aa"}, ImportEntityPort)
@@ -275,12 +275,12 @@ func TestGeneralPortsImport(t *testing.T) {
 		portDataHeader = [...]string{"Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
 		linkDataHeader = [...]string{"Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}
-		servicesHeader = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
-		row1           = []string{strconv.Itoa(ids.parentPortInst1), def1.Name, typ1.Name, equip1.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", "", "", strings.Join([]string{svcName, svc2Name}, ";"), svc3Name, "updateVal", "54"}
+		servicesHeader = [...]string{"Service Names"}
+		row1           = []string{strconv.Itoa(ids.parentPortInst1), def1.Name, typ1.Name, equip1.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", "", "", strings.Join([]string{svcName, svc2Name}, ";"), "updateVal", "54"}
 		row2           = []string{strconv.Itoa(ids.parentPortInst2), def1.Name, typ1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", strconv.Itoa(ids.childPortInst1), def2.Name, strconv.Itoa(childEquip.ID), childEquip.Name,
-			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc3Name, svc4Name}, ";"), "updateVal2", "55", "", ""}
+			strings.Join([]string{svcName, svc2Name}, ";"), "updateVal2", "55", "", ""}
 		row3 = []string{strconv.Itoa(ids.childPortInst1), def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, posName, strconv.Itoa(ids.parentPortInst2), def1.Name, strconv.Itoa(equip2.ID), equip2.Name,
-			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc2Name, svc3Name}, ";"), "", "", "1988-01-01", "true"}
+			strings.Join([]string{svcName, svc2Name}, ";"), "", "", "1988-01-01", "true"}
 	)
 
 	locationTypeInOrder := append(append(append(append(portDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...), linkDataHeader[:]...), servicesHeader[:]...)
@@ -310,10 +310,6 @@ func TestGeneralPortsImport(t *testing.T) {
 			require.Fail(t, "property type name should be one of the two")
 		}
 	}
-	consumers, providers, err := importer.validateServicesForPortEndpoints(ctx, r1)
-	require.NoError(t, err)
-	require.Len(t, consumers, 2)
-	require.Len(t, providers, 1)
 
 	r2, _ := NewImportRecord(row2, fl)
 
@@ -336,8 +332,6 @@ func TestGeneralPortsImport(t *testing.T) {
 			require.Fail(t, "property type name should be one of the two")
 		}
 	}
-	_, _, err = importer.validateServicesForPortEndpoints(ctx, r2)
-	require.Error(t, err)
 
 	r3, _ := NewImportRecord(row3, fl)
 
@@ -360,6 +354,4 @@ func TestGeneralPortsImport(t *testing.T) {
 			require.Fail(t, "property type name should be one of the two")
 		}
 	}
-	_, _, err = importer.validateServicesForPortEndpoints(ctx, r3)
-	require.Error(t, err)
 }

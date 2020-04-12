@@ -458,6 +458,34 @@ func HasPropertyTypesWith(preds ...predicate.PropertyType) predicate.ServiceType
 	})
 }
 
+// HasEndpointDefinitions applies the HasEdge predicate on the "endpoint_definitions" edge.
+func HasEndpointDefinitions() predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EndpointDefinitionsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EndpointDefinitionsTable, EndpointDefinitionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEndpointDefinitionsWith applies the HasEdge predicate on the "endpoint_definitions" edge with a given conditions (other predicates).
+func HasEndpointDefinitionsWith(preds ...predicate.ServiceEndpointDefinition) predicate.ServiceType {
+	return predicate.ServiceType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EndpointDefinitionsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EndpointDefinitionsTable, EndpointDefinitionsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.ServiceType) predicate.ServiceType {
 	return predicate.ServiceType(func(s *sql.Selector) {

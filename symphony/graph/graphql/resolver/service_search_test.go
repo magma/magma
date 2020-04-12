@@ -469,10 +469,18 @@ func TestSearchServicesByLocations(t *testing.T) {
 
 	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
 
+	ept, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
+		Name:            "endpoint type1",
+		Role:            pointer.ToString("CONSUMER"),
+		ServiceTypeID:   data.st1,
+		EquipmentTypeID: data.eqt,
+	})
+	require.NoError(t, err)
+
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s1.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:         s1.ID,
+		PortID:     ep1.ID,
+		Definition: ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -486,9 +494,9 @@ func TestSearchServicesByLocations(t *testing.T) {
 	ep2 := eq2.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s2.ID,
-		PortID: ep2.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:         s2.ID,
+		PortID:     ep2.ID,
+		Definition: ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -500,16 +508,16 @@ func TestSearchServicesByLocations(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s3.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:         s3.ID,
+		PortID:     ep1.ID,
+		Definition: ept.ID,
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s3.ID,
-		PortID: ep2.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:         s3.ID,
+		PortID:     ep2.ID,
+		Definition: ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -599,10 +607,18 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 
 	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
 
-	_, err := mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s1.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+	ept, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
+		Name:            "endpoint type1",
+		Role:            pointer.ToString("Consumer"),
+		ServiceTypeID:   data.st1,
+		EquipmentTypeID: data.eqt,
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:         s1.ID,
+		PortID:     ep1.ID,
+		Definition: ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -613,9 +629,9 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 	})
 	_, _ = mr.AddServiceLink(ctx, s2.ID, l1.ID)
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s2.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:         s2.ID,
+		PortID:     ep1.ID,
+		Definition: ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -625,9 +641,9 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s3.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:         s3.ID,
+		PortID:     ep1.ID,
+		Definition: ept.ID,
 	})
 	require.NoError(t, err)
 
