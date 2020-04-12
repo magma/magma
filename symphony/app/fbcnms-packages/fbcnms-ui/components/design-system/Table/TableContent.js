@@ -31,7 +31,7 @@ const useStyles = makeStyles(() => ({
     '&$bands:nth-child(odd)': {
       backgroundColor: symphony.palette.background,
     },
-    '&$border': {
+    '&$border:not(:last-child)': {
       borderBottom: `1px solid ${symphony.palette.separatorLight}`,
     },
     '&$hoverHighlighting:hover': {

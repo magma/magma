@@ -674,6 +674,43 @@ export default withRouter(
                 storeKey
                 category
               }
+              cellData {
+                id
+                networkType
+                signalStrength
+                timestamp
+                baseStationID
+                networkID
+                systemID
+                cellID
+                locationAreaCode
+                mobileCountryCode
+                mobileNetworkCode
+                primaryScramblingCode
+                operator
+                arfcn
+                physicalCellID
+                trackingAreaCode
+                timingAdvance
+                earfcn
+                uarfcn
+                latitude
+                longitude
+              }
+              wifiData {
+                id
+                timestamp
+                frequency
+                channel
+                bssid
+                strength
+                ssid
+                band
+                channelWidth
+                capabilities
+                latitude
+                longitude
+              }
             }
           }
         }

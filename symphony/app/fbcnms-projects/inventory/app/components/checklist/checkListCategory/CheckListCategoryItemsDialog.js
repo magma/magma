@@ -105,7 +105,7 @@ const CheckListCategoryItemsDialog = ({
 
   const [pickedView, setPickedView] = useState<number>(DESIGN_VIEW.value);
   return (
-    <Dialog fullWidth={true} maxWidth="md" open={true}>
+    <Dialog fullWidth={true} maxWidth="lg" open={true}>
       <DialogTitle disableTypography={true}>
         <Text variant="h6">
           <fbt desc="">Checklist</fbt>

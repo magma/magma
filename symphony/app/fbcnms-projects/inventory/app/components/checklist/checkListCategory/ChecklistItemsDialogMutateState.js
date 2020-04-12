@@ -11,6 +11,7 @@
 import type {
   CheckListItemEnumSelectionMode,
   CheckListItemType,
+  WorkOrderDetails_workOrder,
   YesNoResponse,
 } from '../../work_orders/__generated__/WorkOrderDetails_workOrder.graphql';
 
@@ -53,6 +54,38 @@ export type YesNoCheckListItemData = {|
   yesNoResponse?: ?YesNoResponse,
 |};
 
+export type CellScanCheckListItemData = {|
+  +cellData?: ?$ElementType<
+    $ElementType<
+      $ElementType<
+        $ElementType<
+          $ElementType<WorkOrderDetails_workOrder, 'checkListCategories'>,
+          number,
+        >,
+        'checkList',
+      >,
+      number,
+    >,
+    'cellData',
+  >,
+|};
+
+export type WifiScanCheckListItemData = {|
+  +wifiData?: ?$ElementType<
+    $ElementType<
+      $ElementType<
+        $ElementType<
+          $ElementType<WorkOrderDetails_workOrder, 'checkListCategories'>,
+          number,
+        >,
+        'checkList',
+      >,
+      number,
+    >,
+    'wifiData',
+  >,
+|};
+
 export type CheckListItem = {|
   ...CheckListItemBase,
   ...BasicCheckListItemData,
@@ -60,6 +93,8 @@ export type CheckListItem = {|
   ...FreeTextCheckListItemData,
   ...FilesCheckListItemData,
   ...YesNoCheckListItemData,
+  ...CellScanCheckListItemData,
+  ...WifiScanCheckListItemData,
 |};
 
 export type ChecklistItemsDialogStateType = {
