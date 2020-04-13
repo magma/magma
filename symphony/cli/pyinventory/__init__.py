@@ -65,6 +65,9 @@ class InventoryClient(SymphonyClient):
         get_or_create_equipment_type,
         _edit_equipment_type,
         edit_equipment_type,
+        get_equipment_type_property_type,
+        get_equipment_type_property_type_by_external_id,
+        edit_equipment_type_property_type,
     )
     from .api.equipment import (
         add_equipment,
@@ -124,6 +127,7 @@ class InventoryClient(SymphonyClient):
         get_users,
         get_active_users,
     )
+    from .api.property_type import get_property_type_id
 
     def __init__(
         self,

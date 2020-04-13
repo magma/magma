@@ -54,6 +54,7 @@ class PropertyDefinition(NamedTuple):
             "email", "gps_location", "equipment", "location", "service", "datetime_local"]
         default_value (PropertyValue): default property value
         is_fixed (bool): fixed value flag
+        external_id (str): property type external ID
     """
 
     property_name: str
