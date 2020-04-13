@@ -132,7 +132,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
     const CreateSessionRequest& request,
     const std::string& imsi,
     const std::string& sid,
-    const SessionState::Config& cfg,
+    const SessionConfig& cfg,
     std::function<void(grpc::Status, LocalCreateSessionResponse)> response_callback);
 
   void handle_setup_callback(

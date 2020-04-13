@@ -222,7 +222,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
     MLOG(MDEBUG) << "PLMN_ID: " << request_cpy.plmn_id()
                  << " IMSI_PLMN_ID: " << request_cpy.imsi_plmn_id();
 
-    SessionState::Config cfg = {
+    SessionConfig cfg = {
         .ue_ipv4           = request_cpy.ue_ipv4(),
         .spgw_ipv4         = request_cpy.spgw_ipv4(),
         .msisdn            = request_cpy.msisdn(),
@@ -237,7 +237,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
         .radius_session_id = request_cpy.radius_session_id(),
         .bearer_id         = request_cpy.bearer_id()};
 
-    SessionState::QoSInfo qos_info = {.enabled = request_cpy.has_qos_info()};
+    QoSInfo qos_info = {.enabled = request_cpy.has_qos_info()};
     if (request_cpy.has_qos_info()) {
       qos_info.qci = request_cpy.qos_info().qos_class_id();
     }
@@ -337,7 +337,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
   const CreateSessionRequest& request,
   const std::string& imsi,
   const std::string& sid,
-  const SessionState::Config& cfg,
+  const SessionConfig& cfg,
   std::function<void(grpc::Status, LocalCreateSessionResponse)> response_callback)
 {
     reporter_->report_create_session(

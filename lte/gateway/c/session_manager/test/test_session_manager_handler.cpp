@@ -114,7 +114,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
       "AA-AA-AA-AA-AA-AA:TESTAP__"
       "0F-10-2E-12-3A-55";
   auto sid                 = id_gen_.gen_session_id(imsi);
-  SessionState::Config cfg = {.ue_ipv4           = "",
+  SessionConfig cfg = {.ue_ipv4           = "",
                               .spgw_ipv4         = "",
                               .msisdn            = msisdn,
                               .apn               = "apn1",
@@ -224,7 +224,7 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats)
   std::string radius_session_id = "AA-AA-AA-AA-AA-AA:TESTAP__"
                                   "0F-10-2E-12-3A-55";
   auto sid = id_gen_.gen_session_id(imsi);
-  SessionState::Config cfg = {.ue_ipv4 = "",
+  SessionConfig cfg = {.ue_ipv4 = "",
       .spgw_ipv4 = "",
       .msisdn = msisdn,
       .apn = "apn1",
@@ -272,7 +272,7 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
       "AA-AA-AA-AA-AA-AA:TESTAP__"
       "0F-10-2E-12-3A-55";
   auto sid                 = id_gen_.gen_session_id(imsi);
-  SessionState::Config cfg = {.ue_ipv4           = "",
+  SessionConfig cfg = {.ue_ipv4           = "",
                               .spgw_ipv4         = "",
                               .msisdn            = msisdn,
                               .apn               = "apn1",

@@ -799,7 +799,7 @@ bool LocalEnforcer::init_session_credit(
   SessionMap& session_map,
   const std::string& imsi,
   const std::string& session_id,
-  const SessionState::Config& cfg,
+  const SessionConfig& cfg,
   const CreateSessionResponse& response)
 {
   auto session_state = new SessionState(imsi, session_id,
@@ -1706,7 +1706,7 @@ bool LocalEnforcer::has_active_session(
 bool LocalEnforcer::session_with_same_config_exists(
   SessionMap& session_map,
   const std::string& imsi,
-  const magma::SessionState::Config& config,
+  const SessionConfig& config,
   std::string* core_session_id) const
 {
   auto it = session_map.find(imsi);
@@ -1724,7 +1724,7 @@ bool LocalEnforcer::session_with_same_config_exists(
 void LocalEnforcer::handle_cwf_roaming(
   SessionMap& session_map,
   const std::string& imsi,
-  const magma::SessionState::Config& config,
+  const SessionConfig& config,
   SessionUpdate& session_update)
 {
   auto it = session_map.find(imsi);

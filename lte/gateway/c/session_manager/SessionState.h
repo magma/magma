@@ -26,27 +26,6 @@ namespace magma {
  */
 class SessionState {
  public:
-  struct QoSInfo {
-    bool enabled;
-    uint32_t qci;
-  };
-
-  struct Config {
-    std::string ue_ipv4;
-    std::string spgw_ipv4;
-    std::string msisdn;
-    std::string apn;
-    std::string imei;
-    std::string plmn_id;
-    std::string imsi_plmn_id;
-    std::string user_location;
-    RATType rat_type;
-    std::string mac_addr; // MAC Address for WLAN
-    std::string hardware_addr; // MAC Address for WLAN (binary)
-    std::string radius_session_id;
-    uint32_t bearer_id;
-    QoSInfo qos_info;
-  };
   struct SessionInfo {
     std::string imsi;
     std::string ip_addr;
@@ -66,7 +45,7 @@ class SessionState {
     const std::string& imsi,
     const std::string& session_id,
     const std::string& core_session_id,
-    const SessionState::Config& cfg,
+    const SessionConfig& cfg,
     StaticRuleStore& rule_store,
     const magma::lte::TgppContext& tgpp_context);
 
@@ -80,9 +59,9 @@ class SessionState {
 
   StoredSessionState marshal();
 
-  StoredSessionConfig marshal_config();
+  SessionConfig marshal_config();
 
-  void unmarshal_config(const StoredSessionConfig& marshaled);
+  void unmarshal_config(const SessionConfig& marshaled);
 
   /**
    * notify_new_report_for_sessions sets the state of terminating session to aggregating, to tell if
@@ -212,7 +191,7 @@ class SessionState {
 
   bool is_radius_cwf_session() const;
 
-  bool is_same_config(const Config& new_config) const;
+  bool is_same_config(const SessionConfig& new_config) const;
 
   void get_session_info(SessionState::SessionInfo& info);
 
@@ -222,7 +201,7 @@ class SessionState {
     const magma::lte::TgppContext& tgpp_context,
     SessionStateUpdateCriteria& update_criteria);
 
-  void set_config(const Config& config);
+  void set_config(const SessionConfig& config);
 
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
@@ -317,7 +296,7 @@ class SessionState {
   ChargingCreditPool charging_pool_;
   UsageMonitoringCreditPool monitor_pool_;
   SessionState::State curr_state_;
-  SessionState::Config config_;
+  SessionConfig config_;
   // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;

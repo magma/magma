@@ -51,50 +51,14 @@ StoredSessionState SessionState::marshal()
   return marshaled;
 }
 
-StoredSessionConfig SessionState::marshal_config()
+SessionConfig SessionState::marshal_config()
 {
-  StoredSessionConfig config{};
-  config.ue_ipv4 = config_.ue_ipv4;
-  config.spgw_ipv4 = config_.spgw_ipv4;
-  config.msisdn = config_.msisdn;
-  config.apn = config_.apn;
-  config.imei = config_.apn;
-  config.plmn_id = config_.plmn_id;
-  config.imsi_plmn_id = config_.imsi_plmn_id;
-  config.user_location = config_.user_location;
-  config.rat_type = config_.rat_type;
-  config.mac_addr = config_.mac_addr; // MAC Address for WLAN
-  config.hardware_addr = config_.hardware_addr; // MAC Address for WLAN (binary)
-  config.radius_session_id = config_.radius_session_id;
-  config.bearer_id = config_.bearer_id;
-  StoredQoSInfo qos_info{};
-  qos_info.enabled = config_.qos_info.enabled;
-  qos_info.qci = config_.qos_info.qci;
-  config.qos_info = qos_info;
-  return config;
+  return config_;
 }
 
-void SessionState::unmarshal_config(const StoredSessionConfig& marshaled)
+void SessionState::unmarshal_config(const SessionConfig& marshaled)
 {
-  SessionState::Config cfg{};
-  cfg.ue_ipv4 = marshaled.ue_ipv4;
-  cfg.spgw_ipv4 = marshaled.spgw_ipv4;
-  cfg.msisdn = marshaled.msisdn;
-  cfg.apn = marshaled.apn;
-  cfg.imei = marshaled.apn;
-  cfg.plmn_id = marshaled.plmn_id;
-  cfg.imsi_plmn_id = marshaled.imsi_plmn_id;
-  cfg.user_location = marshaled.user_location;
-  cfg.rat_type = marshaled.rat_type;
-  cfg.mac_addr = marshaled.mac_addr; // MAC Address for WLAN
-  cfg.hardware_addr = marshaled.hardware_addr; // MAC Address for WLAN (binary)
-  cfg.radius_session_id = marshaled.radius_session_id;
-  cfg.bearer_id = marshaled.bearer_id;
-  SessionState::QoSInfo qos_info{};
-  qos_info.enabled = marshaled.qos_info.enabled;
-  qos_info.qci = marshaled.qos_info.qci;
-  cfg.qos_info = qos_info;
-  config_ = cfg;
+  config_ = marshaled;
 }
 
 SessionState::SessionState(
@@ -106,26 +70,7 @@ SessionState::SessionState(
   monitor_pool_(std::move(*UsageMonitoringCreditPool::unmarshal(marshaled.monitor_pool))),
   static_rules_(rule_store)
 {
-SessionState::Config cfg{};
-  StoredSessionConfig marshaled_cfg = marshaled.config;
-  cfg.ue_ipv4 = marshaled_cfg.ue_ipv4;
-  cfg.spgw_ipv4 = marshaled_cfg.spgw_ipv4;
-  cfg.msisdn = marshaled_cfg.msisdn;
-  cfg.apn = marshaled_cfg.apn;
-  cfg.imei = marshaled_cfg.apn;
-  cfg.plmn_id = marshaled_cfg.plmn_id;
-  cfg.imsi_plmn_id = marshaled_cfg.imsi_plmn_id;
-  cfg.user_location = marshaled_cfg.user_location;
-  cfg.rat_type = marshaled_cfg.rat_type;
-  cfg.mac_addr = marshaled_cfg.mac_addr; // MAC Address for WLAN
-  cfg.hardware_addr = marshaled_cfg.hardware_addr; // MAC Address for WLAN (binary)
-  cfg.radius_session_id = marshaled_cfg.radius_session_id;
-  cfg.bearer_id = marshaled_cfg.bearer_id;
-  SessionState::QoSInfo qos_info{};
-  qos_info.enabled = marshaled_cfg.qos_info.enabled;
-  qos_info.qci = marshaled_cfg.qos_info.qci;
-  cfg.qos_info = qos_info;
-  config_ = cfg;
+  config_ = marshaled.config;
 
   imsi_ = marshaled.imsi;
   session_id_ = marshaled.session_id;
@@ -147,7 +92,7 @@ SessionState::SessionState(
   const std::string& imsi,
   const std::string& session_id,
   const std::string& core_session_id,
-  const SessionState::Config& cfg,
+  const SessionConfig& cfg,
   StaticRuleStore& rule_store,
   const magma::lte::TgppContext& tgpp_context):
   imsi_(imsi),
@@ -461,7 +406,7 @@ SessionState::TotalCreditUsage SessionState::get_total_credit_usage()
 }
 
 
-bool SessionState::is_same_config(const Config& new_config) const
+bool SessionState::is_same_config(const SessionConfig& new_config) const
 {
   return config_.ue_ipv4.compare(new_config.ue_ipv4) == 0 &&
          config_.spgw_ipv4.compare(new_config.spgw_ipv4) == 0 &&
@@ -502,7 +447,7 @@ std::string SessionState::get_apn() const
   return config_.apn;
 }
 
-void SessionState::set_config(const Config& config) {
+void SessionState::set_config(const SessionConfig& config) {
   config_ = config;
 }
 
