@@ -174,8 +174,7 @@ static uint64_t get_granted_units(const CreditUnit &unit,
   return unit.is_valid() ? unit.volume() : default_val;
 }
 
-static FinalActionInfo
-get_final_action_info(const ChargingCredit &credit) {
+static FinalActionInfo get_final_action_info(const ChargingCredit &credit) {
   FinalActionInfo final_action_info;
   if (credit.is_final()) {
     final_action_info.final_action = credit.final_action();

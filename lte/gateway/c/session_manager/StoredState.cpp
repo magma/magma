@@ -7,81 +7,80 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#include "CreditKey.h"
 #include "StoredState.h"
+#include "CreditKey.h"
 
 namespace magma {
 
-SessionStateUpdateCriteria get_default_update_criteria()
-{
+SessionStateUpdateCriteria get_default_update_criteria() {
   SessionStateUpdateCriteria uc{};
   uc.is_config_updated = false;
-  uc.charging_credit_to_install = std::unordered_map<
-      CreditKey, StoredSessionCredit, decltype(&ccHash), decltype(&ccEqual)>(
-      4, &ccHash, &ccEqual);
-  uc.charging_credit_map = std::unordered_map<
-      CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
-      decltype(&ccEqual)>(4, &ccHash, &ccEqual);
+  uc.charging_credit_to_install =
+      std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
+                         decltype(&ccEqual)>(4, &ccHash, &ccEqual);
+  uc.charging_credit_map =
+      std::unordered_map<CreditKey, SessionCreditUpdateCriteria,
+                         decltype(&ccHash), decltype(&ccEqual)>(4, &ccHash,
+                                                                &ccEqual);
   return uc;
 }
 
-std::string serialize_stored_qos_info(const QoSInfo& stored) {
+std::string serialize_stored_qos_info(const QoSInfo &stored) {
   folly::dynamic marshaled = folly::dynamic::object;
-  marshaled["enabled"]     = stored.enabled;
-  marshaled["qci"]         = std::to_string(stored.qci);
+  marshaled["enabled"] = stored.enabled;
+  marshaled["qci"] = std::to_string(stored.qci);
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
 
-QoSInfo deserialize_stored_qos_info(const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+QoSInfo deserialize_stored_qos_info(const std::string &serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored    = QoSInfo{};
+  auto stored = QoSInfo{};
   stored.enabled = marshaled["enabled"].getBool();
   stored.qci = static_cast<uint32_t>(std::stoul(marshaled["qci"].getString()));
 
   return stored;
 }
 
-std::string serialize_stored_session_config(const SessionConfig& stored) {
-  folly::dynamic marshaled       = folly::dynamic::object;
-  marshaled["ue_ipv4"]           = stored.ue_ipv4;
-  marshaled["spgw_ipv4"]         = stored.spgw_ipv4;
-  marshaled["msisdn"]            = stored.msisdn;
-  marshaled["apn"]               = stored.apn;
-  marshaled["imei"]              = stored.imei;
-  marshaled["plmn_id"]           = stored.plmn_id;
-  marshaled["imsi_plmn_id"]      = stored.imsi_plmn_id;
-  marshaled["user_location"]     = stored.user_location;
-  marshaled["rat_type"]          = static_cast<int>(stored.rat_type);
-  marshaled["mac_addr"]          = stored.mac_addr;
-  marshaled["hardware_addr"]     = stored.hardware_addr;
+std::string serialize_stored_session_config(const SessionConfig &stored) {
+  folly::dynamic marshaled = folly::dynamic::object;
+  marshaled["ue_ipv4"] = stored.ue_ipv4;
+  marshaled["spgw_ipv4"] = stored.spgw_ipv4;
+  marshaled["msisdn"] = stored.msisdn;
+  marshaled["apn"] = stored.apn;
+  marshaled["imei"] = stored.imei;
+  marshaled["plmn_id"] = stored.plmn_id;
+  marshaled["imsi_plmn_id"] = stored.imsi_plmn_id;
+  marshaled["user_location"] = stored.user_location;
+  marshaled["rat_type"] = static_cast<int>(stored.rat_type);
+  marshaled["mac_addr"] = stored.mac_addr;
+  marshaled["hardware_addr"] = stored.hardware_addr;
   marshaled["radius_session_id"] = stored.radius_session_id;
-  marshaled["bearer_id"]         = std::to_string(stored.bearer_id);
-  marshaled["qos_info"]          = serialize_stored_qos_info(stored.qos_info);
+  marshaled["bearer_id"] = std::to_string(stored.bearer_id);
+  marshaled["qos_info"] = serialize_stored_qos_info(stored.qos_info);
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
 
-SessionConfig deserialize_stored_session_config(
-    const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+SessionConfig deserialize_stored_session_config(const std::string &serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored          = SessionConfig{};
-  stored.ue_ipv4       = marshaled["ue_ipv4"].getString();
-  stored.spgw_ipv4     = marshaled["spgw_ipv4"].getString();
-  stored.msisdn        = marshaled["msisdn"].getString();
-  stored.apn           = marshaled["apn"].getString();
-  stored.imei          = marshaled["imei"].getString();
-  stored.plmn_id       = marshaled["plmn_id"].getString();
-  stored.imsi_plmn_id  = marshaled["imsi_plmn_id"].getString();
+  auto stored = SessionConfig{};
+  stored.ue_ipv4 = marshaled["ue_ipv4"].getString();
+  stored.spgw_ipv4 = marshaled["spgw_ipv4"].getString();
+  stored.msisdn = marshaled["msisdn"].getString();
+  stored.apn = marshaled["apn"].getString();
+  stored.imei = marshaled["imei"].getString();
+  stored.plmn_id = marshaled["plmn_id"].getString();
+  stored.imsi_plmn_id = marshaled["imsi_plmn_id"].getString();
   stored.user_location = marshaled["user_location"].getString();
-  stored.rat_type      = static_cast<RATType>(marshaled["rat_type"].getInt());
-  stored.mac_addr      = marshaled["mac_addr"].getString();
+  stored.rat_type = static_cast<RATType>(marshaled["rat_type"].getInt());
+  stored.mac_addr = marshaled["mac_addr"].getString();
   stored.hardware_addr = marshaled["hardware_addr"].getString();
   stored.radius_session_id = marshaled["radius_session_id"].getString();
   stored.bearer_id =
@@ -92,8 +91,8 @@ SessionConfig deserialize_stored_session_config(
   return stored;
 }
 
-std::string serialize_stored_redirect_server(
-    const StoredRedirectServer& stored) {
+std::string
+serialize_stored_redirect_server(const StoredRedirectServer &stored) {
   folly::dynamic marshaled = folly::dynamic::object;
   marshaled["redirect_address_type"] =
       static_cast<int>(stored.redirect_address_type);
@@ -103,9 +102,9 @@ std::string serialize_stored_redirect_server(
   return serialized;
 }
 
-StoredRedirectServer deserialize_stored_redirect_server(
-    const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+StoredRedirectServer
+deserialize_stored_redirect_server(const std::string &serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = StoredRedirectServer{};
@@ -118,9 +117,8 @@ StoredRedirectServer deserialize_stored_redirect_server(
   return stored;
 }
 
-std::string serialize_stored_final_action_info(
-    const FinalActionInfo& stored) {
-  folly::dynamic marshaled  = folly::dynamic::object;
+std::string serialize_stored_final_action_info(const FinalActionInfo &stored) {
+  folly::dynamic marshaled = folly::dynamic::object;
   marshaled["final_action"] = static_cast<int>(stored.final_action);
   StoredRedirectServer stored_redirect_server;
   stored_redirect_server.redirect_address_type =
@@ -134,12 +132,12 @@ std::string serialize_stored_final_action_info(
   return serialized;
 }
 
-FinalActionInfo deserialize_stored_final_action_info(
-    const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+FinalActionInfo
+deserialize_stored_final_action_info(const std::string &serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored         = FinalActionInfo{};
+  auto stored = FinalActionInfo{};
   stored.final_action = static_cast<ChargingCredit_FinalAction>(
       marshaled["final_action"].getInt());
   StoredRedirectServer stored_redirect_server =
@@ -153,17 +151,17 @@ FinalActionInfo deserialize_stored_final_action_info(
   return stored;
 }
 
-std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
-  folly::dynamic marshaled     = folly::dynamic::object;
-  marshaled["reporting"]       = stored.reporting;
-  marshaled["is_final"]        = stored.is_final;
+std::string serialize_stored_session_credit(StoredSessionCredit &stored) {
+  folly::dynamic marshaled = folly::dynamic::object;
+  marshaled["reporting"] = stored.reporting;
+  marshaled["is_final"] = stored.is_final;
   marshaled["unlimited_quota"] = stored.unlimited_quota;
   marshaled["final_action_info"] =
       serialize_stored_final_action_info(stored.final_action_info);
-  marshaled["reauth_state"]  = static_cast<int>(stored.reauth_state);
+  marshaled["reauth_state"] = static_cast<int>(stored.reauth_state);
   marshaled["service_state"] = static_cast<int>(stored.service_state);
-  marshaled["expiry_time"]   = std::to_string(stored.expiry_time);
-  marshaled["buckets"]       = folly::dynamic::object();
+  marshaled["expiry_time"] = std::to_string(stored.expiry_time);
+  marshaled["buckets"] = folly::dynamic::object();
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     marshaled["buckets"][std::to_string(bucket_int)] =
@@ -176,15 +174,15 @@ std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
   return serialized;
 }
 
-StoredSessionCredit deserialize_stored_session_credit(
-    const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+StoredSessionCredit
+deserialize_stored_session_credit(const std::string &serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored              = StoredSessionCredit{};
-  stored.reporting         = marshaled["reporting"].getBool();
-  stored.is_final          = marshaled["is_final"].getBool();
-  stored.unlimited_quota   = marshaled["unlimited_quota"].getBool();
+  auto stored = StoredSessionCredit{};
+  stored.reporting = marshaled["reporting"].getBool();
+  stored.is_final = marshaled["is_final"].getBool();
+  stored.unlimited_quota = marshaled["unlimited_quota"].getBool();
   stored.final_action_info = deserialize_stored_final_action_info(
       marshaled["final_action_info"].getString());
   stored.reauth_state =
@@ -194,7 +192,7 @@ StoredSessionCredit deserialize_stored_session_credit(
   stored.expiry_time = static_cast<std::time_t>(
       std::stoul(marshaled["expiry_time"].getString()));
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
-    Bucket bucket          = static_cast<Bucket>(bucket_int);
+    Bucket bucket = static_cast<Bucket>(bucket_int);
     stored.buckets[bucket] = static_cast<uint64_t>(std::stoul(
         marshaled["buckets"][std::to_string(bucket_int)].getString()));
   }
@@ -204,18 +202,18 @@ StoredSessionCredit deserialize_stored_session_credit(
   return stored;
 }
 
-std::string serialize_stored_monitor(StoredMonitor& stored) {
+std::string serialize_stored_monitor(StoredMonitor &stored) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   marshaled["credit"] = serialize_stored_session_credit(stored.credit);
-  marshaled["level"]  = static_cast<int>(stored.level);
+  marshaled["level"] = static_cast<int>(stored.level);
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
 
-StoredMonitor deserialize_stored_monitor(const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+StoredMonitor deserialize_stored_monitor(const std::string &serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = StoredMonitor{};
@@ -226,18 +224,18 @@ StoredMonitor deserialize_stored_monitor(const std::string& serialized) {
   return stored;
 }
 
-std::string serialize_stored_charging_credit_pool(
-    StoredChargingCreditPool& stored) {
+std::string
+serialize_stored_charging_credit_pool(StoredChargingCreditPool &stored) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   marshaled["imsi"] = stored.imsi;
 
   folly::dynamic credit_keys = folly::dynamic::array;
-  folly::dynamic credit_map  = folly::dynamic::object;
-  for (auto& credit_pair : stored.credit_map) {
-    CreditKey credit_key       = credit_pair.first;
-    folly::dynamic key2        = folly::dynamic::object;
-    key2["rating_group"]       = std::to_string(credit_key.rating_group);
+  folly::dynamic credit_map = folly::dynamic::object;
+  for (auto &credit_pair : stored.credit_map) {
+    CreditKey credit_key = credit_pair.first;
+    folly::dynamic key2 = folly::dynamic::object;
+    key2["rating_group"] = std::to_string(credit_key.rating_group);
     key2["service_identifier"] = std::to_string(credit_key.service_identifier);
     credit_keys.push_back(key2);
 
@@ -246,24 +244,24 @@ std::string serialize_stored_charging_credit_pool(
     credit_map[key] = serialize_stored_session_credit(credit_pair.second);
   }
   marshaled["credit_keys"] = credit_keys;
-  marshaled["credit_map"]  = credit_map;
+  marshaled["credit_map"] = credit_map;
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
 
-StoredChargingCreditPool deserialize_stored_charging_credit_pool(
-    std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+StoredChargingCreditPool
+deserialize_stored_charging_credit_pool(std::string &serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored     = StoredChargingCreditPool{};
-  stored.imsi     = marshaled["imsi"].getString();
-  auto credit_map = std::unordered_map<
-      CreditKey, StoredSessionCredit, decltype(&ccHash), decltype(&ccEqual)>(
-      4, &ccHash, &ccEqual);
+  auto stored = StoredChargingCreditPool{};
+  stored.imsi = marshaled["imsi"].getString();
+  auto credit_map =
+      std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
+                         decltype(&ccEqual)>(4, &ccHash, &ccEqual);
 
-  for (auto& key : marshaled["credit_keys"]) {
+  for (auto &key : marshaled["credit_keys"]) {
     auto credit_key = CreditKey(
         static_cast<uint32_t>(std::stoul(key["rating_group"].getString())),
         static_cast<uint32_t>(
@@ -281,35 +279,35 @@ StoredChargingCreditPool deserialize_stored_charging_credit_pool(
 }
 
 std::string serialize_stored_usage_monitoring_pool(
-    StoredUsageMonitoringCreditPool& stored) {
+    StoredUsageMonitoringCreditPool &stored) {
   folly::dynamic marshaled = folly::dynamic::object;
 
-  marshaled["imsi"]              = stored.imsi;
+  marshaled["imsi"] = stored.imsi;
   marshaled["session_level_key"] = stored.session_level_key;
 
   folly::dynamic monitor_keys = folly::dynamic::array;
-  folly::dynamic monitor_map  = folly::dynamic::object;
-  for (auto& monitor_pair : stored.monitor_map) {
+  folly::dynamic monitor_map = folly::dynamic::object;
+  for (auto &monitor_pair : stored.monitor_map) {
     monitor_keys.push_back(monitor_pair.first);
     monitor_map[monitor_pair.first] =
         serialize_stored_monitor(monitor_pair.second);
   }
   marshaled["monitor_keys"] = monitor_keys;
-  marshaled["monitor_map"]  = monitor_map;
+  marshaled["monitor_map"] = monitor_map;
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
 
-StoredUsageMonitoringCreditPool deserialize_stored_usage_monitoring_pool(
-    std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
+StoredUsageMonitoringCreditPool
+deserialize_stored_usage_monitoring_pool(std::string &serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored              = StoredUsageMonitoringCreditPool{};
-  stored.imsi              = marshaled["imsi"].getString();
+  auto stored = StoredUsageMonitoringCreditPool{};
+  stored.imsi = marshaled["imsi"].getString();
   stored.session_level_key = marshaled["session_level_key"].getString();
-  for (auto& key : marshaled["monitor_keys"]) {
+  for (auto &key : marshaled["monitor_keys"]) {
     std::string monitor_key = key.getString();
     stored.monitor_map[monitor_key] =
         deserialize_stored_monitor(marshaled["monitor_map"][key].getString());
@@ -318,7 +316,7 @@ StoredUsageMonitoringCreditPool deserialize_stored_usage_monitoring_pool(
   return stored;
 }
 
-std::string serialize_stored_session(StoredSessionState& stored) {
+std::string serialize_stored_session(StoredSessionState &stored) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   marshaled["config"] = serialize_stored_session_config(stored.config);
@@ -326,8 +324,8 @@ std::string serialize_stored_session(StoredSessionState& stored) {
       serialize_stored_charging_credit_pool(stored.charging_pool);
   marshaled["monitor_pool"] =
       serialize_stored_usage_monitoring_pool(stored.monitor_pool);
-  marshaled["imsi"]            = stored.imsi;
-  marshaled["session_id"]      = stored.session_id;
+  marshaled["imsi"] = stored.imsi;
+  marshaled["session_id"] = stored.session_id;
   marshaled["core_session_id"] = stored.core_session_id;
   marshaled["subscriber_quota_state"] =
       static_cast<int>(stored.subscriber_quota_state);
@@ -337,13 +335,13 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   marshaled["tgpp_context"] = tgpp_context;
 
   folly::dynamic static_rule_ids = folly::dynamic::array;
-  for (const auto& rule_id : stored.static_rule_ids) {
+  for (const auto &rule_id : stored.static_rule_ids) {
     static_rule_ids.push_back(rule_id);
   }
   marshaled["static_rule_ids"] = static_rule_ids;
 
   folly::dynamic dynamic_rules = folly::dynamic::array;
-  for (const auto& rule : stored.dynamic_rules) {
+  for (const auto &rule : stored.dynamic_rules) {
     std::string dynamic_rule;
     rule.SerializeToString(&dynamic_rule);
     dynamic_rules.push_back(dynamic_rule);
@@ -356,36 +354,41 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   return serialized;
 }
 
-StoredSessionState deserialize_stored_session(std::string& serialized)
-{
-  auto folly_serialized    = folly::StringPiece(serialized);
+StoredSessionState deserialize_stored_session(std::string &serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored = StoredSessionState{};
 
-  stored.config = deserialize_stored_session_config(marshaled["config"].getString());
-  stored.charging_pool = deserialize_stored_charging_credit_pool(marshaled["charging_pool"].getString());
-  stored.monitor_pool = deserialize_stored_usage_monitoring_pool(marshaled["monitor_pool"].getString());
+  stored.config =
+      deserialize_stored_session_config(marshaled["config"].getString());
+  stored.charging_pool = deserialize_stored_charging_credit_pool(
+      marshaled["charging_pool"].getString());
+  stored.monitor_pool = deserialize_stored_usage_monitoring_pool(
+      marshaled["monitor_pool"].getString());
   stored.imsi = marshaled["imsi"].getString();
   stored.session_id = marshaled["session_id"].getString();
   stored.core_session_id = marshaled["core_session_id"].getString();
-  stored.subscriber_quota_state = static_cast<magma::lte::SubscriberQuotaUpdate_Type>(marshaled["subscriber_quota_state"].getInt());
+  stored.subscriber_quota_state =
+      static_cast<magma::lte::SubscriberQuotaUpdate_Type>(
+          marshaled["subscriber_quota_state"].getInt());
 
   magma::lte::TgppContext tgpp_context;
   tgpp_context.ParseFromString(marshaled["tgpp_context"].getString());
   stored.tgpp_context = tgpp_context;
 
-  for (auto& rule_id : marshaled["static_rule_ids"]) {
+  for (auto &rule_id : marshaled["static_rule_ids"]) {
     stored.static_rule_ids.push_back(rule_id.getString());
   }
 
-  for (auto& policy : marshaled["dynamic_rules"]) {
+  for (auto &policy : marshaled["dynamic_rules"]) {
     PolicyRule policy_rule;
     policy_rule.ParseFromString(policy.getString());
     stored.dynamic_rules.push_back(policy_rule);
   }
 
-  stored.request_number = static_cast<uint32_t>(std::stoul(marshaled["request_number"].getString()));
+  stored.request_number = static_cast<uint32_t>(
+      std::stoul(marshaled["request_number"].getString()));
 
   return stored;
 }
