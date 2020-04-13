@@ -75,19 +75,19 @@ def get_graphql_property_type_inputs(
     properties_dict: Dict[str, PropertyValue],
 ) -> List[PropertyTypeInput]:
     """This function gets existing property types and dictionary, where key - are type names, and keys - new values
-    formats data, validates existence of keys from properties_dict in property_types and returns list of PropertyTypeInput
+    formats data, validates existence of keys from `properties_dict` in `property_types` and returns list of PropertyTypeInput
 
         Args:
-            property_types (List[pyinventory.graphql.property_type_fragment.PropertyTypeFragment]): list of existing property types
-            properties_dict (Dict[str, pyinventory.consts.PropertyValue]): dictionary of properties, where
-                str: name of existing property
-                PropertyValue: new value of existing type for this property
+            property_types (List[ `pyinventory.graphql.property_type_fragment.PropertyTypeFragment` ]): list of existing property types
+            properties_dict (Dict[str, PropertyValue]): dictionary of properties, where
+            - str - name of existing property
+            - PropertyValue - new value of existing type for this property
 
         Returns:
-            List[pyinventory.graphql.property_type_input.PropertyTypeInput]
+            List['pyinventory.graphql.property_type_input.PropertyTypeInput']
 
         Raises:
-            EntityNotFoundError if there any unknown property name in properties_dict keys
+            `pyinventory.exceptions.EntityNotFoundError`: if there any unknown property name in `properties_dict` keys
     """
     properties = []
     property_type_names = {}
@@ -127,25 +127,25 @@ def get_graphql_property_inputs(
     properties_dict: Mapping[str, PropertyValue],
 ) -> List[PropertyInput]:
     """This function gets existing property types and dictionary, where key - are type names, and keys - new values
-    formats data, validates existence of keys from properties_dict in property_types and returns list of PropertyInput
+    formats data, validates existence of keys from `properties_dict` in `property_types` and returns list of PropertyInput
 
         Args:
-            property_types (Sequence[pyinventory.graphql.property_type_fragment.PropertyTypeFragment]): list of existing property types
-            properties_dict (Mapping[str, pyinventory.consts.PropertyValue]): dictionary of properties, where
+            property_types (Sequence[ `pyinventory.graphql.property_type_fragment.PropertyTypeFragment` ]): list of existing property types
+            properties_dict (Mapping[str, PropertyValue]): dictionary of properties, where
                 str: name of existing property
                 PropertyValue: new value of existing type for this property
 
         Returns:
-            List[pyinventory.graphql.property_input.PropertyInput]
+            List[ `pyinventory.graphql.property_input.PropertyInput` ]
 
         Raises:
-            EntityNotFoundError if there any unknown property name in properties_dict keys
+            `pyinventory.exceptions.EntityNotFoundError`: if there any unknown property name in properties_dict keys
 
         Example:
-        ```
+            ```
             property_types = client.locationTypes[location_type].property_types
             properties = get_graphql_property_inputs(property_types, properties_dict)
-        ```
+            ```
     """
     properties = []
     property_type_names = {}

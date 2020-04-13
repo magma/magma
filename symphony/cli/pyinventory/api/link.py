@@ -31,26 +31,26 @@ def get_all_links_and_port_names_of_equipment(
     """Returns all links and port names in equipment.
 
         Args:
-            equipment (pyinventory.consts.Equipment object): could be retrieved from 
+            equipment ( `pyinventory.consts.Equipment` ): could be retrieved from
             - `pyinventory.api.equipment.get_equipment`
             - `pyinventory.api.equipment.get_equipment_in_position`
             - `pyinventory.api.equipment.add_equipment`
             - `pyinventory.api.equipment.add_equipment_to_position`
 
         Returns:
-            List[Tuple[ `pyinventory.consts.Link` , str]]: 
+            List[Tuple[ `pyinventory.consts.Link` , str]]:
 
             - `pyinventory.consts.Link` - link object
             - str - port definition name
-            
+
         Raises:
-            LinkNotFoundException: if link not found
+            `pyinventory.exceptions.EntityNotFoundError`: if link not found
             FailedOperationException: for internal inventory error
 
         Example:
             ```
             location = client.get_location({("Country", "LS_IND_Prod_Copy")})
-            equipment = client.get_equipment("indProdCpy1_AIO", location1) 
+            equipment = client.get_equipment(name="indProdCpy1_AIO", location=location1)
             client.get_all_links_and_port_names_of_equipment(equipment=equipment)
             ```
     """
@@ -84,39 +84,39 @@ def add_link(
     """Connects a link between two ports of two equipments.
 
         Args:
-            equipment_a (pyinventory.consts.Equipment object): could be retrieved from 
+            equipment_a ( `pyinventory.consts.Equipment` ): could be retrieved from
             - `pyinventory.api.equipment.get_equipment`
             - `pyinventory.api.equipment.get_equipment_in_position`
             - `pyinventory.api.equipment.add_equipment`
             - `pyinventory.api.equipment.add_equipment_to_position`
 
             port_name_a (str): The name of port in equipment type
-            equipment_b (pyinventory.consts.Equipment object): could be retrieved from the following apis:
+            equipment_b ( `pyinventory.consts.Equipment` ): could be retrieved from the following apis:
             - `pyinventory.api.equipment.get_equipment`
             - `pyinventory.api.equipment.get_equipment_in_position`
             - `pyinventory.api.equipment.add_equipment`
             - `pyinventory.api.equipment.add_equipment_to_position`
-            
+
             port_name_b (str): The name of port in equipment type
 
         Returns:
-            pyinventory.consts.Link object    
-            
+            `pyinventory.consts.Link` object
+
         Raises:
-            AssertionError: if portName in any of the equipment does not exist, match more than one port
+            AssertionError: if port_name in any of the equipment does not exist, or match more than one port
                                     or is already occupied by link
             FailedOperationException: for internal inventory error
 
         Example:
             ```
             location1 = client.get_location({("Country", "LS_IND_Prod_Copy")})
-            equipment1 = client.get_equipment("indProdCpy1_AIO", location1) 
+            equipment1 = client.get_equipment(name="indProdCpy1_AIO", location=location1)
             location2 = client.get_location({("Country", "LS_IND_Prod")})
-            equipment2 = client.get_equipment("indProd1_AIO", location2) 
+            equipment2 = client.get_equipment(name="indProd1_AIO", location=location2)
             client.add_link(
-                equipment_a=equipment1, 
-                port_name_a="Port A", 
-                equipment_b=equipment2, 
+                equipment_a=equipment1,
+                port_name_a="Port A",
+                equipment_b=equipment2,
                 port_name_b="Port B"
             )
             ```
@@ -166,7 +166,7 @@ def get_link_in_port_of_equipment(
     """Returns link in specific port by name in equipment.
 
         Args:
-            equipment (pyinventory.consts.Equipment object): could be retrieved from 
+            equipment ( `pyinventory.consts.Equipment` ): could be retrieved from
             - `pyinventory.api.equipment.get_equipment`
             - `pyinventory.api.equipment.get_equipment_in_position`
             - `pyinventory.api.equipment.add_equipment`
@@ -175,8 +175,8 @@ def get_link_in_port_of_equipment(
             port_name (str): The name of port in equipment type
 
         Returns:
-            pyinventory.consts.Link object    
-            
+            `pyinventory.consts.Link` object
+
         Raises:
             LinkNotFoundException: if link not found
             FailedOperationException: for internal inventory error
@@ -184,9 +184,9 @@ def get_link_in_port_of_equipment(
         Example:
             ```
             location = client.get_location({("Country", "LS_IND_Prod_Copy")})
-            equipment = client.get_equipment("indProdCpy1_AIO", location1) 
+            equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
             client.get_link_in_port_of_equipment(
-                equipment=equipment, 
+                equipment=equipment,
                 port_name="Port A"
             )
             ```

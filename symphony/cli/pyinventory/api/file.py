@@ -63,19 +63,19 @@ def add_file(
             local_file_path (str): local system path to the file
             entity_type (str): one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
             entity_id (string): valid entity ID
-            category (Optional[string]): file category name 
+            category (Optional[string]): file category name
 
         Raises:
-            FailedOperationException: on operation failure 
+            FailedOperationException: on operation failure
 
         Example:
             ```
             location = client.get_location({("Country", "LS_IND_Prod_Copy")})
             client.add_file(
-                local_file_path='./document.pdf', 
-                entity_type='LOCATION', 
-                entity_id=location.id, 
-                category='category_name'
+                local_file_path="./document.pdf",
+                entity_type="LOCATION",
+                entity_id=location.id,
+                category="category_name",
             )
             ```
     """
@@ -98,7 +98,7 @@ def add_files(
     """This function adds all files located in folder to an entity of a given type.
 
         Args:
-            local_file_path (str): local system path to the file
+            local_directory_path (str): local system path to the directory
             entity_type (str): one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
             entity_id (string): valid entity ID
             category (Optional[string]): file category name
@@ -107,10 +107,11 @@ def add_files(
             ```
             location = client.get_location({("Country", "LS_IND_Prod_Copy")})
             client.add_files(
-                local_directory_path='./documents_folder/', 
-                entity_type='LOCATION', 
-                entity_id=location.id, 
-                category='category_name')
+                local_directory_path="./documents_folder/",
+                entity_type="LOCATION",
+                entity_id=location.id,
+                category="category_name",
+            )
             ```
     """
     for file in list_dir(local_directory_path):
@@ -123,18 +124,18 @@ def add_location_image(
     """This function adds image to existing location.
 
         Args:
-            local_file_path (str): existing port name
-            location (pyinventory.consts.Location): existing location object
+            local_file_path (str): local system path to the file
+            location ( `pyinventory.consts.Location` ): existing location object
 
         Raises:
-            FailedOperationException: on operation failure 
+            FailedOperationException: on operation failure
 
         Example:
             ```
             location = client.get_location({("Country", "LS_IND_Prod_Copy")})
             client.add_location_image(
-                local_file_path='./document.pdf',
-                location=location
+                local_file_path="./document.pdf",
+                location=location,
             )
             ```
     """
@@ -147,16 +148,16 @@ def add_site_survey_image(
     """This function adds image to existing site survey.
 
         Args:
-            local_file_path (str): existing port name
+            local_file_path (str): local system path to the file
             id (str): site survey ID
 
         Raises:
-            FailedOperationException: on operation failure 
+            FailedOperationException: on operation failure
 
         Example:
             ```
             client.add_site_survey_image(
-                local_file_path='./document.pdf',
+                local_file_path="./document.pdf",
                 id="123456"
             )
             ```
@@ -176,10 +177,10 @@ def delete_site_survey_image(client: SymphonyClient, survey: SiteSurvey) -> None
     """This function deletes image from existing site survey.
 
         Args:
-            survey (pyinventory.consts.SiteSurvey): site survey object
+            survey ( `pyinventory.consts.SiteSurvey` ): site survey object
 
         Raises:
-            FailedOperationException: on operation failure 
+            FailedOperationException: on operation failure
 
         Example:
             ```
@@ -198,10 +199,10 @@ def delete_document(client: SymphonyClient, document: Document) -> None:
     """This function deletes existing document.
 
         Args:
-            document (pyinventory.consts.Document): document object
+            document ( `pyinventory.consts.Document` ): document object
 
         Raises:
-            FailedOperationException: on operation failure 
+            FailedOperationException: on operation failure
 
         Example:
             ```

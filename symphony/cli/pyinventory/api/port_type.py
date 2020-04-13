@@ -39,26 +39,34 @@ def add_equipment_port_type(
     """This function creates an equipment port type.
 
         Args:
-            name (str): 
-            properties: (List[PropertyDefinition]): list of PropertyDefinitions
-            link_properties: (List[PropertyDefinition]): list of PropertyDefinitions
+            name (str): equipment port type name
+            properties: (List[ `pyinventory.consts.PropertyDefinition` ]): list of property definitions
+            link_properties: (List[ `pyinventory.consts.PropertyDefinition` ]): list of property definitions
 
-        Returns: 
-            EquipmentPortType object
+        Returns:
+            `pyinventory.consts.EquipmentPortType` object
 
-        Raises: 
-            FailedOperationException
+        Raises:
+            FailedOperationException: internal inventory error
 
         Example:
-        ```
-        from pyinventory.consts import PropertyDefinition
-        from pyinventory.graphql.property_kind_enum import PropertyKind
-        port_type1 = client.add_equipment_port_type(
-            "port type 1",
-            [PropertyDefinition("port property", PropertyKind.string, None, True)],
-            [PropertyDefinition("link port property", PropertyKind.string, None, True)],
-        )
-        ```
+            ```
+            from pyinventory.consts import PropertyDefinition
+            from pyinventory.graphql.property_kind_enum import PropertyKind
+            port_type1 = client.add_equipment_port_type(
+                name="port type 1",
+                properties=[PropertyDefinition(
+                    property_name="port property",
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=True)],
+                link_properties=[PropertyDefinition(
+                    property_name="link port property",
+                    property_kind=PropertyKind.string,
+                    default_value=None,
+                    is_fixed=True)],
+            )
+            ```
     """
 
     formated_property_types = format_property_definitions(properties)
@@ -109,16 +117,16 @@ def get_equipment_port_type(
         Args:
             equipment_port_type_id (str): equipment port type ID
 
-        Returns: 
-            pyinventory.consts.EquipmentPortType object
+        Returns:
+            `pyinventory.consts.EquipmentPortType` object
 
-        Raises: 
-            EntityNotFoundError for not found entity
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: equipment port type does not found
 
         Example:
-        ```
-        port_type = client.get_equipment_port_type(self.port_type1.id)
-        ```
+            ```
+            port_type = client.get_equipment_port_type(equipment_port_type_id=port_type1.id)
+            ```
     """
     result = EquipmentPortTypeQuery.execute(client, id=equipment_port_type_id).port_type
     if not result:
@@ -144,27 +152,31 @@ def edit_equipment_port_type(
     """This function edits an existing equipment port type.
 
         Args:
-            port_type (EquipmentPortType object): existing eqipment port type object
+            port_type ( `pyinventory.consts.EquipmentPortType` ): existing eqipment port type object
             new_name (str): new name
-            new_properties: (Dict[str, PropertyValue]): list of tuples, where
-                str - property type name
-                PropertyValue - new value of the same type for this property
-            new_link_properties: (Dict[str, PropertyValue]): list of tuples, where
-                str - link property type name
-                PropertyValue - new value of the same type for this link property
-        Returns: 
-            EquipmentPortType object
+            new_properties: (Dict[str, PropertyValue]): dictionary
+            - str - property type name
+            - PropertyValue - new value of the same type for this property
 
-        Raises: 
-            FailedOperationException
+            new_link_properties: (Dict[str, PropertyValue]): dictionary
+            - str - link property type name
+            - PropertyValue - new value of the same type for this link property
+
+        Returns:
+            `pyinventory.consts.EquipmentPortType` object
+
+        Raises:
+            FailedOperationException: internal inventory error
 
         Example:
-            port_type1 = self.client.edit_equipment_port_type(
-                equipment_port_type,
-                "new port type name",
-                {"existing property name": "new value"},
-                {"existing link property name": "new value"},
+            ```
+            port_type1 = client.edit_equipment_port_type(
+                port_type=equipment_port_type,
+                new_name="new port type name",
+                new_properties={"existing property name": "new value"},
+                new_link_properties={"existing link property name": "new value"},
             )
+            ```
     """
     new_name = port_type.name if new_name is None else new_name
 
@@ -227,8 +239,8 @@ def delete_equipment_port_type(
             equipment_port_type_id (str): equipment port type ID
 
         Example:
-        ```
-        client.delete_equipment_port_type(self.port_type1.id)
-        ```
+            ```
+            client.delete_equipment_port_type(equipment_port_type_id=port_type1.id)
+            ```
     """
     RemoveEquipmentPortTypeMutation.execute(client, id=equipment_port_type_id)

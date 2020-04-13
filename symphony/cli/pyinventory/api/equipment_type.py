@@ -126,7 +126,7 @@ def get_or_create_equipment_type(
             position_list (List[str]): list of positions names
 
         Returns:
-            pyinventory.consts.EquipmentType object
+            `pyinventory.consts.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -242,14 +242,14 @@ def add_equipment_type(
             - PropertyValue - default property value
             - bool - fixed value flag
 
-            ports_dict (Dict[str, str]): dict of property name to property value
+            ports_dict (Dict[str, str]): dictionary of port name to port type name
             - str - port name
             - str - port type name
 
             position_list (List[str]): list of positions names
 
         Returns:
-            pyinventory.consts.EquipmentType object
+            `pyinventory.consts.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -326,16 +326,24 @@ def edit_equipment_type(
         Args:
             name (str): equipment type name
             new_positions_list (List[str]): new position list
-            new_ports_dict (Dict[str, str]): ports dictionary, where key is a port name and value is port type name
+            new_ports_dict (Dict[str, str]): dictionary of port name to port type name
+            - str - port name
+            - str - port type name
 
         Returns:
-            EquipmentType object
+            `pyinventory.consts.EquipmentType` object
 
         Raises:
-            FailedOperationException for internal inventory error
+            FailedOperationException: internal inventory error
 
         Example:
-            edited_equipment = client.edit_equipment_type("Card", [], {"Port 5": "Z Cards Only (LS - DND)"})
+            ```
+            edited_equipment = client.edit_equipment_type(
+                name="Card",
+                new_positions_list=[],
+                new_ports_dict={"Port 5": "Z Cards Only (LS - DND)"}
+            )
+            ```
     """
     if name not in client.equipmentTypes:
         raise EquipmentTypeNotFoundException
@@ -377,7 +385,7 @@ def copy_equipment_type(
             new_equipment_type_name (str): new equipment type name
 
         Returns:
-            pyinventory.consts.EquipmentType object
+            `pyinventory.consts.EquipmentType` object
 
         Raises:
             FailedOperationException: internal inventory error
@@ -444,14 +452,14 @@ def get_equipment_type_property_type(
             property_type_id (str): property type ID
 
         Returns:
-            pyinventory.graphql.property_type_fragment.PropertyTypeFragment  object
+            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment`  object
 
         Raises:
-            EntityNotFounError: if property type with id=`property_type_id` is not found
+            `pyinventory.exceptions.EntityNotFoundError`: property type with id=`property_type_id` is not found
 
         Example:
             ```
-            property_type = client.get_equipment_type_property_type_by_id(
+            property_type = client.get_equipment_type_property_type(
                 equipment_type_name="Card",
                 property_type_id="12345",
             )
@@ -475,10 +483,10 @@ def get_equipment_type_property_type_by_external_id(
             property_type_external_id (str): property type external ID
 
         Returns:
-            pyinventory.graphql.property_type_fragment.PropertyTypeFragment  object
+            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment`  object
 
         Raises:
-            EntityNotFounError: property type with external_id=`property_type_external_id` is not found
+            `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found
 
         Example:
             ```
@@ -507,13 +515,13 @@ def edit_equipment_type_property_type(
         Args:
             equipment_type_name (str): existing equipment type name
             property_type_name (str): existing property type name
-            new_property_definition (pyinventory.consts.PropertyDefinition): new property definition
+            new_property_definition ( `pyinventory.consts.PropertyDefinition` ): new property definition
 
         Returns:
             pyinventory.consts.EquipmentType object
 
         Raises:
-            EntityNotFounError: if property type name is not found
+            `pyinventory.exceptions.EntityNotFoundError`: if property type name is not found
             FailedOperationException: internal inventory error
 
         Example:
@@ -558,6 +566,26 @@ def edit_equipment_type_property_type(
 def delete_equipment_type_with_equipments(
     client: SymphonyClient, equipment_type: EquipmentType
 ) -> None:
+    """Delete equipment type with existing equipments.
+
+        Args:
+            equipment_type ( `pyinventory.consts.EquipmentType` ): equipment type object
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: if equipment_type does not exist
+
+        Example:
+            ```
+            equipment_type = client.get_or_create_equipment_type(
+                name="Tp-Link T1600G",
+                category="Router",
+                properties=[("IP", "string", None, True)],
+                ports_dict={"Port 1": "eth port", "port 2": "eth port"},
+                position_list=[],
+            )
+            client.delete_equipment_type_with_equipments(equipment_type=equipment_type)
+            ```
+    """
     equipment_type_with_equipments = EquipmentTypeEquipmentQuery.execute(
         client, id=equipment_type.id
     ).equipmentType

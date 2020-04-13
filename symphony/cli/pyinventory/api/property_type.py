@@ -20,14 +20,14 @@ def get_property_types(
     `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
-            entity_type (pyinventory.consts.Entity): existing entity type
+            entity_type ( `pyinventory.consts.Entity` ): existing entity type
             entity_name (str): existing entity name
 
         Returns:
-            Sequence [pyinventory.graphql.property_type_input.PropertyTypeFragment ]
+            Sequence[ `pyinventory.graphql.property_type_input.PropertyTypeFragment` ]
 
         Raises:
-            EntityNotFoundError: if entity type does not found or does not have property types
+            `pyinventory.exceptions.EntityNotFoundError`: if entity type does not found or does not have property types
 
         Example:
             ```
@@ -62,15 +62,15 @@ def get_property_type(
     `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
-            entity_type (pyinventory.consts.Entity): existing entity type
+            entity_type ( `pyinventory.consts.Entity` ): existing entity type
             entity_name (str): existing entity name
             property_type_id (str): property type ID
 
         Returns:
-            pyinventory.graphql.property_type_fragment.PropertyTypeFragment object
+            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment` object
 
         Raises:
-            EntityNotFounError: if property type with id=`property_type_id` does not found
+            `pyinventory.exceptions.EntityNotFoundError`: if property type with id=`property_type_id` does not found
 
         Example:
             ```
@@ -101,7 +101,7 @@ def get_property_type_id(
     `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
-            entity_type (pyinventory.consts.Entity): existing entity type
+            entity_type ( `pyinventory.consts.Entity` ): existing entity type
             entity_name (str): existing entity name
             property_type_name (str): property type ID
 
@@ -109,7 +109,7 @@ def get_property_type_id(
             property type ID (str): property type ID
 
         Raises:
-            EntityNotFounError: if property type with id=`property_type_id` does not found
+            `pyinventory.exceptions.EntityNotFoundError`: if property type with id=`property_type_id` does not found
 
         Example:
             ```
@@ -142,15 +142,15 @@ def get_property_type_by_external_id(
     `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
-            entity_type (pyinventory.consts.Entity): existing entity type
+            entity_type ( `pyinventory.consts.Entity` ): existing entity type
             entity_name (str): existing entity name
             property_type_external_id (str): property type external ID
 
         Returns:
-            pyinventory.graphql.property_type_fragment.PropertyTypeFragment object
+            `pyinventory.graphql.property_type_fragment.PropertyTypeFragment` object
 
         Raises:
-            EntityNotFounError: property type with external_id=`property_type_external_id` is not found
+            `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found
 
         Example:
             ```
@@ -184,16 +184,16 @@ def edit_property_type(
     `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
-            entity_type (pyinventory.consts.Entity): existing entity type
+            entity_type ( `pyinventory.consts.Entity` ): existing entity type
             entity_name (str): existing entity name
             property_type_id (str): existing property type ID
-            new_property_definition (pyinventory.consts.PropertyDefinition): new property definition
+            new_property_definition ( `pyinventory.consts.PropertyDefinition` ): new property definition
 
         Returns:
-            List[ pyinventory.graphql.property_type_input.PropertyTypeInput ]
+            List[ `pyinventory.graphql.property_type_input.PropertyTypeInput` ]
 
         Raises:
-            EntityNotFounError: property type with external_id=`property_type_external_id` is not found
+            `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found
 
         Example:
             ```

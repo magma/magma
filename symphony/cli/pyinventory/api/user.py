@@ -24,18 +24,18 @@ def get_user(client: SymphonyClient, email: str) -> User:
     """Returns `pyinventory.consts.User` object by its email
 
         Args:
-            email: the email address the user registered with
+            email (str): the email address the user registered with
 
         Returns:
-            pyinventory.consts.User object
-            
+            `pyinventory.consts.User` object
+
         Raises:
-            EntityNotFoundError: the user was not found
+            `pyinventory.exceptions.EntityNotFoundError`: the user was not found
             FailedOperationException: internal inventory error
 
         Example:
             ```
-            user = client.get_user("user@test.com")
+            user = client.get_user(email="user@test.com")
             ```
     """
     result = UserQuery.execute(client, email)
@@ -55,21 +55,21 @@ def add_user(client: SymphonyClient, email: str, password: str) -> User:
     """Adds new user to inventory with its email and password
 
         Args:
-            email: the email address of the user
-            password: password the user would connect with
+            email (str): the email address of the user
+            password (str): password the user would connect with
 
         Returns:
-            pyinventory.consts.User object
-            
+            `pyinventory.consts.User` object
+
         Raises:
-            EntityNotFoundError: the user was not created properly
+            `pyinventory.exceptions.EntityNotFoundError`: the user was not created properly
             FailedOperationException: internal inventory error
             AssertionError: The user was not created for some known reason
             HTTPError: Error with connection
 
         Example:
             ```
-            user = client.add_user("user@test.com", "P0ssW!rd0f43")
+            user = client.add_user(email="user@test.com", password="P0ssW!rd0f43")
             ```
     """
     resp = client.post(
@@ -95,19 +95,19 @@ def edit_user(
     """Edit user password and role
 
         Args:
-            user: user to edit
-            new_password: new password the user would connect with
-            new_role: new role of the user
-            
+            user ( `pyinventory.consts.User` ): user to edit
+            new_password (Optional[str]): new password the user would connect with
+            new_role ( `pyinventory.graphql.user_role_enum.UserRole` ): user new role
+
         Raises:
             FailedOperationException: internal inventory error
             AssertionError: The user was not edited for some known reason
             HTTPError: Error with connection
 
         Example:
-    
-            user = client.add_user("user@test.com", "P0ssW!rd0f43")
-            client.edit_user(user, "New_Password4Ever", UserRole.ADMIN)
+            ```
+            user = client.add_user(email="user@test.com", password="P0ssW!rd0f43")
+            client.edit_user(user=user, new_password="New_Password4Ever", new_role=UserRole.ADMIN)
             ```
     """
     params = {}
@@ -133,16 +133,18 @@ def deactivate_user(client: SymphonyClient, user: User) -> None:
     """Deactivate the user which would prevent the user from login in to symphony
        Users in symphony are never deleted. Only de-activated.
 
+
         Args:
-            user: user to deactivate
-            
+            user ( `pyinventory.consts.User` ): user to deactivate
+
+
         Raises:
             FailedOperationException: internal inventory error
 
         Example:
             ```
-            user = client.get_user("user@test.com")
-            client.deactivate_user(user)
+            user = client.get_user(email="user@test.com")
+            client.deactivate_user(user=user)
             ```
     """
     EditUserMutation.execute(
@@ -154,15 +156,15 @@ def activate_user(client: SymphonyClient, user: User) -> None:
     """Activate the user which would allow the user to login again to symphony
 
         Args:
-            user: user to activate
-            
+            user ( `pyinventory.consts.User` ): user to activate
+
         Raises:
             FailedOperationException: internal inventory error
 
         Example:
             ```
-            user = client.get_user("user@test.com")
-            client.activate_user(user)
+            user = client.get_user(email="user@test.com")
+            client.activate_user(user=user)
             ```
     """
     EditUserMutation.execute(
@@ -174,8 +176,8 @@ def get_users(client: SymphonyClient) -> List[User]:
     """Get the list of users in the system (both active and deactivate)
 
         Returns:
-            list of `pyinventory.consts.User` objects
-        
+            List[ `pyinventory.consts.User` ]
+
         Raises:
             FailedOperationException: internal inventory error
 
@@ -209,8 +211,8 @@ def get_active_users(client: SymphonyClient) -> List[User]:
     """Get the list of the active users in the system
 
         Returns:
-            list of `pyinventory.consts.User` objects
-        
+            List[ `pyinventory.consts.User` ]
+
         Raises:
             FailedOperationException: internal inventory error
 

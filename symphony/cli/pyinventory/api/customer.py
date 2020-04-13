@@ -20,15 +20,15 @@ def add_customer(
             external_id (Optional[str]): external ID for the Customer
 
         Returns:
-            pyinventory.consts.Customer object
+            `pyinventory.consts.Customer` object
 
         Example:
             ```
-            new_customers = client.add_customer(name="new_customer") 
+            new_customers = client.add_customer(name="new_customer")
             ```
             or
             ```
-            new_customers = client.add_customer(name="new_customer", external_id="12345678") 
+            new_customers = client.add_customer(name="new_customer", external_id="12345678")
             ```
     """
     customer_input = AddCustomerInput(name=name, externalId=external_id)
@@ -45,7 +45,7 @@ def get_all_customers(client: SymphonyClient) -> List[Customer]:
 
         Example:
             ```
-            customers = client.get_all_customers() 
+            customers = client.get_all_customers()
             ```
     """
     customers = CustomersQuery.execute(client).customers
@@ -63,13 +63,13 @@ def get_all_customers(client: SymphonyClient) -> List[Customer]:
 
 def delete_customer(client: SymphonyClient, customer: Customer) -> None:
     """This function delete Customer.
-        
+
         Args:
-            customer (pyinventory.consts.Customer object): customer object
-        
+            customer ( `pyinventory.consts.Customer` ): customer object
+
         Example:
             ```
-            client.delete_customer(customer) 
+            client.delete_customer(customer)
             ```
     """
     RemoveCustomerMutation.execute(client, id=customer.id)

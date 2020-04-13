@@ -39,7 +39,34 @@ def add_location_type(
     properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
     map_zoom_level: int = 8,
 ) -> LocationType:
+    """This function creates new location type.
 
+        Args:
+            name (str): location type name
+            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
+            - str - type name
+            - str - enum["string", "int", "bool", "float", "date", "enum", "range",
+            "email", "gps_location", "equipment", "location", "service", "datetime_local"]
+            - PropertyValue - default property value
+            - bool - fixed value flag
+
+            map_zoom_level (int): map zoom level
+
+        Returns:
+            `pyinventory.consts.LocationType` object
+
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Example:
+            ```
+            location_type = client.add_location_type(
+                name="city",
+                properties=[("Contact", "email", None, True)],
+                map_zoom_level=5,
+            )
+            ```
+    """
     new_property_types = format_properties(properties)
     add_location_type_variables = {
         "name": name,
@@ -79,6 +106,19 @@ def add_location_type(
 def delete_locations_by_location_type(
     client: SymphonyClient, location_type: LocationType
 ) -> None:
+    """Delete locatons by location type.
+
+        Args:
+            location_type ( `pyinventory.consts.LocationType` ): location type object
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: if location_type does not exist
+
+        Example:
+            ```
+            client.delete_locations_by_location_type(location_type=location_type)
+            ```
+    """
     location_type_with_locations = LocationTypeLocationsQuery.execute(
         client, id=location_type.id
     ).locationType
@@ -108,5 +148,18 @@ def delete_locations_by_location_type(
 def delete_location_type_with_locations(
     client: SymphonyClient, location_type: LocationType
 ) -> None:
+    """Delete locaton type with existing locations.
+
+        Args:
+            location_type (`pyinventory.consts.LocationType`): location type object
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: if location_type does not exist
+
+        Example:
+            ```
+            client.delete_location_type_with_locations(location_type=location_type)
+            ```
+    """
     delete_locations_by_location_type(client, location_type)
     RemoveLocationTypeMutation.execute(client, id=location_type.id)
