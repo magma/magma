@@ -67,12 +67,12 @@ The following table list the configurable parameters of the orchestrator chart a
 
 | Parameter        | Description     | Default   |
 | ---              | ---             | ---       |
-| `manifests.configmap_bin` | Enable feg configmap bin. | `True` |
 | `manifests.configmap_env` | Enable feg configmap env. | `True` |
-| `manifests.secrets` | Enable feg secrets. | `True` |
 | `manifests.deployment` | Enable feg deployment. | `True` |
 | `manifests.service` | Enable feg service. | `True` |
 | `manifests.rbac` | Enable feg rbac. | `True` |
+| `secrets.create` | Enable feg secret creation | `False` |
+| `secret.gwinfo`   | Secret name containing feg gwinfo | `feg-secrets-gwinfo` |
 | `feg.type` | Gateway type agrument. | `feg` |
 | `feg.image.docker_registry` | FeG docker registry host. | `docker.io` |
 | `feg.image.tag` | FeG docker images tag. | `latest` |
@@ -117,15 +117,43 @@ The following table list the configurable parameters of the orchestrator chart a
 
 ## Installation steps
 
-1. Install FeG 
+1. Create persistent gateway info (optional)
+
+    If you want your gateway pod to have the same gwinfo on pod 
+    recreation, first follow the steps below.
+    
+    #### Creating Gateway Info
+    If creating a gateway for the first time, you'll need to create a snowflake
+    and challenge key before installing the gateway. To do so:
+
+    ```
+    $ docker login <DOCKER REGISTRY>
+    $ docker pull <DOCKER REGISTRY>/gateway_python:<IMAGE_VERSION>
+    $ docker run -d <DOCKER_REGISTRY>/gateway_python:<IMAGE_VERSION> python3.5 -m magma.magmad.main
+
+    This will output a container ID such as
+    f3bc383a95db16f2e448fdf67cac133a5f9019375720b59477aebc96bacd05a9
+
+    Run the following, substituting your container ID:
+    $ docker cp <container ID>:/etc/snowflake charts/secrets/.secrets
+    $ docker cp <container ID>:/var/opt/magma/certs/gw_challenge.key /charts/secrets/.secrets 
+    ```
+   
+    If you're instead upgrading your gateway to have persistent gwinfo,
+    copy the `etc/snowflake` and `/var/opt/magma/certs/gw_challenge.key` from 
+    your gateway to `charts/secrets/.secrets` of where this chart is stored.
+
+    Ensure that `secrets.create` is set to true in your vals.yaml override
+
+2. Install FeG 
 
 	helm upgrade --install feg --namespace magma orc8r --values=vals.yaml
 
-2. Register the gateway with the orchestrator
+3. Register the gateway with the orchestrator
 
-login to feg VM and execute below command
+    Login to the Feg VM and execute below command:
 
-```shell
+    ```shell
    
    a. Get IP of FeG VM:
    
@@ -147,8 +175,8 @@ login to feg VM and execute below command
       -----------
       MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE2lAV8Dj1ZQEeQlJ/M9/iYXmiVLC7l5QU7IvrNe+lLsu2MuGz4hjNwFPLmG      /x055Zqzh++8LsXQSKJ0mgV9AUB87xyFGt1wGjvaUa8Jea1ZMRMd1lJ+IsKA606HeaQfVq
 
-```
+    ```
 
-3. Login to NMS Dahsboard and register New Gateway
+4. Login to NMS Dahsboard and register New Gateway
 
 
