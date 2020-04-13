@@ -174,9 +174,9 @@ static uint64_t get_granted_units(const CreditUnit &unit,
   return unit.is_valid() ? unit.volume() : default_val;
 }
 
-static SessionCredit::FinalActionInfo
+static FinalActionInfo
 get_final_action_info(const ChargingCredit &credit) {
-  SessionCredit::FinalActionInfo final_action_info;
+  FinalActionInfo final_action_info;
   if (credit.is_final()) {
     final_action_info.final_action = credit.final_action();
     if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
@@ -407,7 +407,7 @@ static void receive_monitoring_credit_with_default(
   uint64_t tx = get_granted_units(gsu.tx(), default_volume);
   uint64_t rx = get_granted_units(gsu.rx(), default_volume);
 
-  SessionCredit::FinalActionInfo final_action_info;
+  FinalActionInfo final_action_info;
 
   credit.receive_credit(total, tx, rx, 0, false, final_action_info,
                         update_criteria);

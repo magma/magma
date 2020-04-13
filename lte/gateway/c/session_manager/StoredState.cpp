@@ -119,7 +119,7 @@ StoredRedirectServer deserialize_stored_redirect_server(
 }
 
 std::string serialize_stored_final_action_info(
-    const StoredFinalActionInfo& stored) {
+    const FinalActionInfo& stored) {
   folly::dynamic marshaled  = folly::dynamic::object;
   marshaled["final_action"] = static_cast<int>(stored.final_action);
   StoredRedirectServer stored_redirect_server;
@@ -134,12 +134,12 @@ std::string serialize_stored_final_action_info(
   return serialized;
 }
 
-StoredFinalActionInfo deserialize_stored_final_action_info(
+FinalActionInfo deserialize_stored_final_action_info(
     const std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored         = StoredFinalActionInfo{};
+  auto stored         = FinalActionInfo{};
   stored.final_action = static_cast<ChargingCredit_FinalAction>(
       marshaled["final_action"].getInt());
   StoredRedirectServer stored_redirect_server =
