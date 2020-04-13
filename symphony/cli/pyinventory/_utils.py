@@ -242,6 +242,7 @@ def get_property_type_input(
         name=property_type.name,
         type=property_type.type,
         id=property_type.id if not is_new else None,
+        externalId=property_type.externalId if not is_new else None,
         index=property_type.index,
         category=property_type.category,
         stringValue=property_type.stringValue,
@@ -291,6 +292,7 @@ def format_property_definitions(
                 "name": prop.property_name,
                 "type": PropertyKind(prop.property_kind),
                 "index": i,
+                "externalId": prop.external_id,
                 **_get_property_default_value(
                     prop.property_name, prop.property_kind.value, prop.default_value
                 ),

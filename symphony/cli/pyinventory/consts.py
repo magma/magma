@@ -60,6 +60,7 @@ class PropertyDefinition(NamedTuple):
     property_kind: PropertyKind
     default_value: Optional[PropertyValue]
     is_fixed: Optional[bool] = False
+    external_id: Optional[str] = None
 
 
 class DataTypeName(NamedTuple):
