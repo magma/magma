@@ -82,6 +82,8 @@ class TestTauPeriodicInactive(unittest.TestCase):
             self.assertEqual(
                 response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
 
+        # Delay to ensure that last TAU finishes up
+        time.sleep(0.5)
         print("************************* Running UE detach (switch-off) for ",
               "UE id ", ue_id)
         # Now detach the UE
