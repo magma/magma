@@ -394,6 +394,13 @@ ebi_t esm_ebr_context_release(
           /* Delete only dedicated bearer. Default bearer will be deleted
            * outside this function
            */
+          /* If ue_mm_context->bearer_contexts[idx] is NULL, move to
+           * the next index
+           */
+          if (!ue_mm_context->bearer_contexts[idx]) {
+            continue;
+          }
+
           if (
             ue_mm_context->bearer_contexts[idx]->ebi ==
             ue_mm_context->pdn_contexts[*pid]->default_ebi) {
