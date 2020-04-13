@@ -50,7 +50,7 @@ struct StoredRedirectServer {
   std::string redirect_server_address;
 };
 
-struct StoredFinalActionInfo {
+struct FinalActionInfo {
   ChargingCredit_FinalAction final_action;
   RedirectServer redirect_server;
 };
@@ -90,7 +90,7 @@ struct StoredSessionCredit {
   bool reporting;
   bool is_final;
   bool unlimited_quota;
-  StoredFinalActionInfo final_action_info;
+  FinalActionInfo final_action_info;
   ReAuthState reauth_state;
   ServiceState service_state;
   std::time_t  expiry_time;
@@ -181,9 +181,9 @@ StoredRedirectServer deserialize_stored_redirect_server(
     const std::string& serialized);
 
 std::string serialize_stored_final_action_info(
-    const StoredFinalActionInfo& stored);
+    const FinalActionInfo& stored);
 
-StoredFinalActionInfo deserialize_stored_final_action_info(
+FinalActionInfo deserialize_stored_final_action_info(
     const std::string& serialized);
 
 std::string serialize_stored_session_credit(

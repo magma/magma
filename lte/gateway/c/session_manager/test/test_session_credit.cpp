@@ -17,7 +17,7 @@ using ::testing::Test;
 #define HIGH_CREDIT 1000000
 
 namespace magma {
-const SessionCredit::FinalActionInfo default_final_action_info = {
+const FinalActionInfo default_final_action_info = {
     .final_action = ChargingCredit_FinalAction_TERMINATE};
 
 class SessionCreditParameterizedTest
@@ -279,7 +279,7 @@ TEST(test_last_grant_exhausted_for_monitoring, test_session_credit) {
 }
 
 TEST(test_final_unit_action_restrict_access, test_session_credit) {
-  SessionCredit::FinalActionInfo final_action_info;
+  FinalActionInfo final_action_info;
   final_action_info.final_action = ChargingCredit_FinalAction_RESTRICT_ACCESS;
 
   SessionCredit charging_credit(CreditType::CHARGING);
@@ -291,7 +291,7 @@ TEST(test_final_unit_action_restrict_access, test_session_credit) {
 }
 
 TEST(test_final_unit_action_redirect, test_session_credit) {
-  SessionCredit::FinalActionInfo final_action_info;
+  FinalActionInfo final_action_info;
   final_action_info.final_action = ChargingCredit_FinalAction_REDIRECT;
 
   SessionCredit charging_credit(CreditType::CHARGING);

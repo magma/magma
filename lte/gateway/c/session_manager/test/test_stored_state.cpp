@@ -54,8 +54,8 @@ class StoredStateTest : public ::testing::Test {
     return stored;
   }
 
-  StoredFinalActionInfo get_stored_final_action_info() {
-    StoredFinalActionInfo stored;
+  FinalActionInfo get_stored_final_action_info() {
+    FinalActionInfo stored;
     stored.final_action = ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT;
     stored.redirect_server.set_redirect_address_type(RedirectServer_RedirectAddressType::RedirectServer_RedirectAddressType_IPV6);
     stored.redirect_server.set_redirect_server_address("redirect_server_address");
