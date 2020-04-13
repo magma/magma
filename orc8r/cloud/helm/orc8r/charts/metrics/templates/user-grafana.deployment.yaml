@@ -113,5 +113,5 @@ data:
     auto_sign_up = false
 
     [server]
-    root_url = {{ .Values.userGrafana.rootURL }
+    root_url = {{ .Values.userGrafana.rootURL }}
 {{- end}}
