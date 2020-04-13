@@ -152,26 +152,28 @@ const TableContent = <T>(props: Props<T>) => {
                 <TableRowCheckbox id={rowId} />
               </td>
             )}
-            {columns.map((col, colIndex) => {
-              const renderedCol = col.render(d);
-              return (
-                <td
-                  key={`col_${colIndex}_${d.key ?? rowIndex}`}
-                  id={`column${colIndex}`}
-                  className={classNames(
-                    commonClasses.cell,
-                    col.className,
-                    cellClassName,
-                  )}>
-                  <Text
-                    className={classes.textualCell}
-                    useEllipsis={true}
-                    variant="body2">
-                    {renderedCol}
-                  </Text>
-                </td>
-              );
-            })}
+            {columns
+              .filter(col => !col.hidden)
+              .map((col, colIndex) => {
+                const renderedCol = col.render(d);
+                return (
+                  <td
+                    key={`col_${colIndex}_${d.key ?? rowIndex}`}
+                    id={`column${colIndex}`}
+                    className={classNames(
+                      commonClasses.cell,
+                      col.className,
+                      cellClassName,
+                    )}>
+                    <Text
+                      className={classes.textualCell}
+                      useEllipsis={true}
+                      variant="body2">
+                      {renderedCol}
+                    </Text>
+                  </td>
+                );
+              })}
           </tr>
         );
       })}
