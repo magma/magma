@@ -19,7 +19,7 @@ declare export opaque type ServiceEquipmentTopology_endpoints$ref: FragmentRefer
 declare export opaque type ServiceEquipmentTopology_endpoints$fragmentType: ServiceEquipmentTopology_endpoints$ref;
 export type ServiceEquipmentTopology_endpoints = $ReadOnlyArray<{|
   +definition: {|
-    +role: string
+    +role: ?string
   |},
   +equipment: {|
     +id: string,

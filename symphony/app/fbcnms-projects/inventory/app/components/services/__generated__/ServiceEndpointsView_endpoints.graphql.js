@@ -31,7 +31,7 @@ export type ServiceEndpointsView_endpoints = $ReadOnlyArray<{|
     |},
   |},
   +definition: {|
-    +role: string
+    +role: ?string
   |},
   +$refType: ServiceEndpointsView_endpoints$ref,
 |}>;

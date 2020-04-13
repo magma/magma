@@ -70,7 +70,7 @@ export type EquipmentPortsTable_link_port = {|
   |},
   +serviceEndpoints: $ReadOnlyArray<{|
     +definition: {|
-      +role: string
+      +role: ?string
     |},
     +service: {|
       +name: string

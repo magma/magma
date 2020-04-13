@@ -118,7 +118,7 @@ class AddServiceMutation(DataClassJsonMixin):
 
                 @dataclass
                 class ServiceEndpointDefinition(DataClassJsonMixin):
-                    role: str
+                    role: Optional[str]
 
                 id: str
                 definition: ServiceEndpointDefinition

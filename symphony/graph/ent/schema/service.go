@@ -96,8 +96,9 @@ func (ServiceEndpointDefinition) Fields() []ent.Field {
 func (ServiceEndpointDefinition) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("endpoints", ServiceEndpoint.Type),
-		edge.To("service_type", ServiceType.Type).
-			Unique(),
+		edge.From("service_type", ServiceType.Type).
+			Unique().
+			Ref("endpoint_definitions"),
 		edge.From("equipment_type", EquipmentType.Type).
 			Unique().
 			Ref("service_endpoint_definitions"),

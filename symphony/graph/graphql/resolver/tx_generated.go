@@ -444,20 +444,6 @@ func (tr txResolver) AddServiceEndpoint(ctx context.Context, input models.AddSer
 	return result, nil
 }
 
-func (tr txResolver) AddServiceEndpointDefinition(ctx context.Context, input models.AddServiceEndpointDefinitionInput) (*ent.ServiceEndpointDefinition, error) {
-	var result, zero *ent.ServiceEndpointDefinition
-	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
-		result, err = mr.AddServiceEndpointDefinition(ctx, input)
-		return
-	}); err != nil {
-		return zero, err
-	}
-	if result != nil {
-		result = result.Unwrap()
-	}
-	return result, nil
-}
-
 func (tr txResolver) RemoveServiceEndpoint(ctx context.Context, serviceEndpointID int) (*ent.Service, error) {
 	var result, zero *ent.Service
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {

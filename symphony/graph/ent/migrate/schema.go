@@ -1101,7 +1101,6 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "index", Type: field.TypeInt},
 		{Name: "equipment_type_service_endpoint_definitions", Type: field.TypeInt, Nullable: true},
-		{Name: "service_endpoint_definition_service_type", Type: field.TypeInt, Nullable: true},
 		{Name: "service_type_endpoint_definitions", Type: field.TypeInt, Nullable: true},
 	}
 	// ServiceEndpointDefinitionsTable holds the schema information for the "service_endpoint_definitions" table.
@@ -1118,15 +1117,8 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "service_endpoint_definitions_service_types_service_type",
-				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[7]},
-
-				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
 				Symbol:  "service_endpoint_definitions_service_types_endpoint_definitions",
-				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[8]},
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[7]},
 
 				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1134,12 +1126,12 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "serviceendpointdefinition_index_service_endpoint_definition_service_type",
+				Name:    "serviceendpointdefinition_index_service_type_endpoint_definitions",
 				Unique:  true,
 				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[5], ServiceEndpointDefinitionsColumns[7]},
 			},
 			{
-				Name:    "serviceendpointdefinition_name_service_endpoint_definition_service_type",
+				Name:    "serviceendpointdefinition_name_service_type_endpoint_definitions",
 				Unique:  true,
 				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[4], ServiceEndpointDefinitionsColumns[7]},
 			},
@@ -1799,7 +1791,6 @@ func init() {
 	ServiceEndpointsTable.ForeignKeys[3].RefTable = ServiceEndpointDefinitionsTable
 	ServiceEndpointDefinitionsTable.ForeignKeys[0].RefTable = EquipmentTypesTable
 	ServiceEndpointDefinitionsTable.ForeignKeys[1].RefTable = ServiceTypesTable
-	ServiceEndpointDefinitionsTable.ForeignKeys[2].RefTable = ServiceTypesTable
 	SurveysTable.ForeignKeys[0].RefTable = LocationsTable
 	SurveysTable.ForeignKeys[1].RefTable = FilesTable
 	SurveyCellScansTable.ForeignKeys[0].RefTable = CheckListItemsTable

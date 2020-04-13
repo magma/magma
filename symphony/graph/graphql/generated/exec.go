@@ -502,7 +502,6 @@ type ComplexityRoot struct {
 		AddReportFilter                          func(childComplexity int, input models.ReportFilterInput) int
 		AddService                               func(childComplexity int, data models.ServiceCreateData) int
 		AddServiceEndpoint                       func(childComplexity int, input models.AddServiceEndpointInput) int
-		AddServiceEndpointDefinition             func(childComplexity int, input models.AddServiceEndpointDefinitionInput) int
 		AddServiceLink                           func(childComplexity int, id int, linkID int) int
 		AddServiceType                           func(childComplexity int, data models.ServiceTypeCreateData) int
 		AddTechnician                            func(childComplexity int, input models.TechnicianInput) int
@@ -774,6 +773,7 @@ type ComplexityRoot struct {
 		EquipmentType func(childComplexity int) int
 		ID            func(childComplexity int) int
 		Index         func(childComplexity int) int
+		Name          func(childComplexity int) int
 		Role          func(childComplexity int) int
 		ServiceType   func(childComplexity int) int
 	}
@@ -1201,7 +1201,6 @@ type MutationResolver interface {
 	AddServiceLink(ctx context.Context, id int, linkID int) (*ent.Service, error)
 	RemoveServiceLink(ctx context.Context, id int, linkID int) (*ent.Service, error)
 	AddServiceEndpoint(ctx context.Context, input models.AddServiceEndpointInput) (*ent.Service, error)
-	AddServiceEndpointDefinition(ctx context.Context, input models.AddServiceEndpointDefinitionInput) (*ent.ServiceEndpointDefinition, error)
 	RemoveServiceEndpoint(ctx context.Context, serviceEndpointID int) (*ent.Service, error)
 	AddServiceType(ctx context.Context, data models.ServiceTypeCreateData) (*ent.ServiceType, error)
 	EditServiceType(ctx context.Context, data models.ServiceTypeEditData) (*ent.ServiceType, error)
@@ -3283,18 +3282,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddServiceEndpoint(childComplexity, args["input"].(models.AddServiceEndpointInput)), true
 
-	case "Mutation.addServiceEndpointDefinition":
-		if e.complexity.Mutation.AddServiceEndpointDefinition == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addServiceEndpointDefinition_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddServiceEndpointDefinition(childComplexity, args["input"].(models.AddServiceEndpointDefinitionInput)), true
-
 	case "Mutation.addServiceLink":
 		if e.complexity.Mutation.AddServiceLink == nil {
 			break
@@ -5240,6 +5227,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceEndpointDefinition.Index(childComplexity), true
+
+	case "ServiceEndpointDefinition.name":
+		if e.complexity.ServiceEndpointDefinition.Name == nil {
+			break
+		}
+
+		return e.complexity.ServiceEndpointDefinition.Name(childComplexity), true
 
 	case "ServiceEndpointDefinition.role":
 		if e.complexity.ServiceEndpointDefinition.Role == nil {
@@ -8314,7 +8308,8 @@ type Service implements Node {
 type ServiceEndpointDefinition implements Node {
   id: ID!
   index: Int!
-  role: String!
+  role: String
+  name: String!
   endpoints: [ServiceEndpoint]!
   equipmentType: EquipmentType!
   serviceType: ServiceType!
@@ -8348,6 +8343,7 @@ input ServiceTypeCreateData {
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
+  endpoints: [ServiceEndpointDefinitionInput]
 }
 
 input ServiceTypeEditData {
@@ -8356,6 +8352,7 @@ input ServiceTypeEditData {
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
+  endpoints: [ServiceEndpointDefinitionInput]
 }
 
 input ServiceCreateData {
@@ -8385,11 +8382,11 @@ input AddServiceEndpointInput {
   definition: ID!
 }
 
-input AddServiceEndpointDefinitionInput {
+input ServiceEndpointDefinitionInput {
+  id: ID
   name: String!
   role: String
-  Index: Int!
-  serviceTypeID: ID!
+  index: Int!
   equipmentTypeID: ID!
 }
 
@@ -8994,9 +8991,6 @@ type Mutation {
   addServiceLink(id: ID!, linkId: ID!): Service!
   removeServiceLink(id: ID!, linkId: ID!): Service!
   addServiceEndpoint(input: AddServiceEndpointInput!): Service!
-  addServiceEndpointDefinition(
-    input: AddServiceEndpointDefinitionInput!
-  ): ServiceEndpointDefinition!
   removeServiceEndpoint(serviceEndpointId: ID!): Service!
   addServiceType(
     """
@@ -9507,20 +9501,6 @@ func (ec *executionContext) field_Mutation_addReportFilter_args(ctx context.Cont
 	var arg0 models.ReportFilterInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNReportFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐReportFilterInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_addServiceEndpointDefinition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 models.AddServiceEndpointDefinitionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNAddServiceEndpointDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddServiceEndpointDefinitionInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -21303,50 +21283,6 @@ func (ec *executionContext) _Mutation_addServiceEndpoint(ctx context.Context, fi
 	return ec.marshalNService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addServiceEndpointDefinition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addServiceEndpointDefinition_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddServiceEndpointDefinition(rctx, args["input"].(models.AddServiceEndpointDefinitionInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.ServiceEndpointDefinition)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNServiceEndpointDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_removeServiceEndpoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -28975,6 +28911,40 @@ func (ec *executionContext) _ServiceEndpointDefinition_role(ctx context.Context,
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEndpointDefinition_name(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpointDefinition) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceEndpointDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -37505,48 +37475,6 @@ func (ec *executionContext) unmarshalInputAddProjectTypeInput(ctx context.Contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputAddServiceEndpointDefinitionInput(ctx context.Context, obj interface{}) (models.AddServiceEndpointDefinitionInput, error) {
-	var it models.AddServiceEndpointDefinitionInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "name":
-			var err error
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "role":
-			var err error
-			it.Role, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "Index":
-			var err error
-			it.Index, err = ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "serviceTypeID":
-			var err error
-			it.ServiceTypeID, err = ec.unmarshalNID2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "equipmentTypeID":
-			var err error
-			it.EquipmentTypeID, err = ec.unmarshalNID2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputAddServiceEndpointInput(ctx context.Context, obj interface{}) (models.AddServiceEndpointInput, error) {
 	var it models.AddServiceEndpointInput
 	var asMap = obj.(map[string]interface{})
@@ -39851,6 +39779,48 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputServiceEndpointDefinitionInput(ctx context.Context, obj interface{}) (models.ServiceEndpointDefinitionInput, error) {
+	var it models.ServiceEndpointDefinitionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "role":
+			var err error
+			it.Role, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "index":
+			var err error
+			it.Index, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "equipmentTypeID":
+			var err error
+			it.EquipmentTypeID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputServiceFilterInput(ctx context.Context, obj interface{}) (models.ServiceFilterInput, error) {
 	var it models.ServiceFilterInput
 	var asMap = obj.(map[string]interface{})
@@ -39956,6 +39926,12 @@ func (ec *executionContext) unmarshalInputServiceTypeCreateData(ctx context.Cont
 			} else {
 				return it, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/facebookincubator/symphony/graph/graphql/models.PropertyTypeInput`, tmp)
 			}
+		case "endpoints":
+			var err error
+			it.Endpoints, err = ec.unmarshalOServiceEndpointDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointDefinitionInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -40014,6 +39990,12 @@ func (ec *executionContext) unmarshalInputServiceTypeEditData(ctx context.Contex
 				it.Properties = data
 			} else {
 				return it, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/facebookincubator/symphony/graph/graphql/models.PropertyTypeInput`, tmp)
+			}
+		case "endpoints":
+			var err error
+			it.Endpoints, err = ec.unmarshalOServiceEndpointDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointDefinitionInput(ctx, v)
+			if err != nil {
+				return it, err
 			}
 		}
 	}
@@ -43969,11 +43951,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "addServiceEndpointDefinition":
-			out.Values[i] = ec._Mutation_addServiceEndpointDefinition(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "removeServiceEndpoint":
 			out.Values[i] = ec._Mutation_removeServiceEndpoint(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -45865,6 +45842,8 @@ func (ec *executionContext) _ServiceEndpointDefinition(ctx context.Context, sel 
 			}
 		case "role":
 			out.Values[i] = ec._ServiceEndpointDefinition_role(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._ServiceEndpointDefinition_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -48418,10 +48397,6 @@ func (ec *executionContext) unmarshalNAddProjectInput2githubᚗcomᚋfacebookinc
 
 func (ec *executionContext) unmarshalNAddProjectTypeInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddProjectTypeInput(ctx context.Context, v interface{}) (models.AddProjectTypeInput, error) {
 	return ec.unmarshalInputAddProjectTypeInput(ctx, v)
-}
-
-func (ec *executionContext) unmarshalNAddServiceEndpointDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddServiceEndpointDefinitionInput(ctx context.Context, v interface{}) (models.AddServiceEndpointDefinitionInput, error) {
-	return ec.unmarshalInputAddServiceEndpointDefinitionInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNAddServiceEndpointInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddServiceEndpointInput(ctx context.Context, v interface{}) (models.AddServiceEndpointInput, error) {
@@ -54088,6 +54063,38 @@ func (ec *executionContext) marshalOServiceEndpointDefinition2ᚖgithubᚗcomᚋ
 		return graphql.Null
 	}
 	return ec._ServiceEndpointDefinition(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOServiceEndpointDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointDefinitionInput(ctx context.Context, v interface{}) (models.ServiceEndpointDefinitionInput, error) {
+	return ec.unmarshalInputServiceEndpointDefinitionInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOServiceEndpointDefinitionInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointDefinitionInput(ctx context.Context, v interface{}) ([]*models.ServiceEndpointDefinitionInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.ServiceEndpointDefinitionInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalOServiceEndpointDefinitionInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointDefinitionInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOServiceEndpointDefinitionInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointDefinitionInput(ctx context.Context, v interface{}) (*models.ServiceEndpointDefinitionInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOServiceEndpointDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointDefinitionInput(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalOServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, v interface{}) (models.ServiceStatus, error) {

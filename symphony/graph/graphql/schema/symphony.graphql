@@ -1734,7 +1734,8 @@ type Service implements Node {
 type ServiceEndpointDefinition implements Node {
   id: ID!
   index: Int!
-  role: String!
+  role: String
+  name: String!
   endpoints: [ServiceEndpoint]!
   equipmentType: EquipmentType!
   serviceType: ServiceType!
@@ -1768,6 +1769,7 @@ input ServiceTypeCreateData {
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
+  endpoints: [ServiceEndpointDefinitionInput]
 }
 
 input ServiceTypeEditData {
@@ -1776,6 +1778,7 @@ input ServiceTypeEditData {
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
     @uniqueField(typ: "property type", field: "Name")
+  endpoints: [ServiceEndpointDefinitionInput]
 }
 
 input ServiceCreateData {
@@ -1805,11 +1808,11 @@ input AddServiceEndpointInput {
   definition: ID!
 }
 
-input AddServiceEndpointDefinitionInput {
+input ServiceEndpointDefinitionInput {
+  id: ID
   name: String!
   role: String
-  Index: Int!
-  serviceTypeID: ID!
+  index: Int!
   equipmentTypeID: ID!
 }
 
@@ -2414,9 +2417,6 @@ type Mutation {
   addServiceLink(id: ID!, linkId: ID!): Service!
   removeServiceLink(id: ID!, linkId: ID!): Service!
   addServiceEndpoint(input: AddServiceEndpointInput!): Service!
-  addServiceEndpointDefinition(
-    input: AddServiceEndpointDefinitionInput!
-  ): ServiceEndpointDefinition!
   removeServiceEndpoint(serviceEndpointId: ID!): Service!
   addServiceType(
     """

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 33682cc02dff29d68c54b76d7ea69f68
+ * @relayHash a98e4bbfb94a12c38bb4479acc52763b
  */
 
 /* eslint-disable */
@@ -98,7 +98,7 @@ export type EditLinkMutationResponse = {|
       |},
       +serviceEndpoints: $ReadOnlyArray<{|
         +definition: {|
-          +role: string
+          +role: ?string
         |},
         +service: {|
           +name: string

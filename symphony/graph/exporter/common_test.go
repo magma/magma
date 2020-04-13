@@ -24,6 +24,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/event"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -307,7 +308,25 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	portID2, err := childEquip.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef2.ID))).OnlyID(ctx)
 	require.NoError(t, err)
 
-	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
+	serviceType, _ := mr.AddServiceType(ctx,
+		models.ServiceTypeCreateData{
+			Name:        "L2 Service",
+			HasCustomer: false,
+			Endpoints: []*models.ServiceEndpointDefinitionInput{
+				{
+					Name:            "endpoint type1",
+					Role:            pointer.ToString("CONSUMER"),
+					Index:           0,
+					EquipmentTypeID: equipmentType.ID,
+				},
+				{
+					Index:           1,
+					Name:            "endpoint type2",
+					Role:            pointer.ToString("PROVIDER"),
+					EquipmentTypeID: equipmentType2.ID,
+				},
+			},
+		})
 	s1, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          firstServiceName,
 		ServiceTypeID: serviceType.ID,
@@ -321,42 +340,29 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	})
 	require.NoError(t, err)
 
-	ept, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
-		Name:            "endpoint type1",
-		Role:            pointer.ToString("CONSUMER"),
-		EquipmentTypeID: equipmentType.ID,
-		ServiceTypeID:   serviceType.ID,
-		Index:           1,
-	})
-	require.NoError(t, err)
+	ept0 := serviceType.QueryEndpointDefinitions().Where(serviceendpointdefinition.Index(0)).OnlyX(ctx)
 
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
 		ID:          s1.ID,
 		EquipmentID: parentEquipment.ID,
 		PortID:      pointer.ToInt(portID1),
-		Definition:  ept.ID,
+		Definition:  ept0.ID,
 	})
+
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
 		ID:          s2.ID,
 		EquipmentID: parentEquipment.ID,
 		PortID:      pointer.ToInt(portID1),
-		Definition:  ept.ID,
+		Definition:  ept0.ID,
 	})
 
-	ept2, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
-		Name:            "endpoint type2",
-		Role:            pointer.ToString("PROVIDER"),
-		EquipmentTypeID: equipmentType2.ID,
-		ServiceTypeID:   serviceType.ID,
-		Index:           2,
-	})
-	require.NoError(t, err)
+	ept1 := serviceType.QueryEndpointDefinitions().Where(serviceendpointdefinition.Index(1)).OnlyX(ctx)
 
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
 		ID:          s1.ID,
 		EquipmentID: childEquip.ID,
 		PortID:      pointer.ToInt(portID2),
-		Definition:  ept2.ID,
+		Definition:  ept1.ID,
 	})
 	/*
 		helper: data now is of type:

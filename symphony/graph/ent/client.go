@@ -4515,7 +4515,7 @@ func (c *ServiceEndpointDefinitionClient) QueryServiceType(sed *ServiceEndpointD
 		step := sqlgraph.NewStep(
 			sqlgraph.From(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID, id),
 			sqlgraph.To(servicetype.Table, servicetype.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, serviceendpointdefinition.ServiceTypeTable, serviceendpointdefinition.ServiceTypeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceendpointdefinition.ServiceTypeTable, serviceendpointdefinition.ServiceTypeColumn),
 		)
 		fromV = sqlgraph.Neighbors(sed.driver.Dialect(), step)
 		return fromV, nil

@@ -93,7 +93,7 @@ func (sedq *ServiceEndpointDefinitionQuery) QueryServiceType() *ServiceTypeQuery
 		step := sqlgraph.NewStep(
 			sqlgraph.From(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID, sedq.sqlQuery()),
 			sqlgraph.To(servicetype.Table, servicetype.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, serviceendpointdefinition.ServiceTypeTable, serviceendpointdefinition.ServiceTypeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceendpointdefinition.ServiceTypeTable, serviceendpointdefinition.ServiceTypeColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(sedq.driver.Dialect(), step)
 		return fromU, nil
@@ -466,7 +466,7 @@ func (sedq *ServiceEndpointDefinitionQuery) sqlAll(ctx context.Context) ([]*Serv
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*ServiceEndpointDefinition)
 		for i := range nodes {
-			if fk := nodes[i].service_endpoint_definition_service_type; fk != nil {
+			if fk := nodes[i].service_type_endpoint_definitions; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -479,7 +479,7 @@ func (sedq *ServiceEndpointDefinitionQuery) sqlAll(ctx context.Context) ([]*Serv
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoint_definition_service_type" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "service_type_endpoint_definitions" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.ServiceType = n

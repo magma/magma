@@ -190,11 +190,11 @@ func (r mutationResolver) verifyEquipmentTypeMatch(ctx context.Context, equipmen
 
 	sept, err := client.ServiceEndpointDefinition.Get(ctx, serviceEndpointTypeID)
 	if err != nil {
-		return errors.Wrapf(err, "querying service endpoint type: id=%v", serviceEndpointTypeID)
+		return errors.Wrapf(err, "querying service endpoint definition: id=%v", serviceEndpointTypeID)
 	}
 	serviceEquipmentTypeID, err := sept.QueryEquipmentType().OnlyID(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "querying equipment type from service endpoint type: id=%v", serviceEndpointTypeID)
+		return errors.Wrapf(err, "querying equipment type from service endpoint definition: id=%v", serviceEndpointTypeID)
 	}
 	portEquipmentTypeID, err := equip.QueryType().OnlyID(ctx)
 	if err != nil {
@@ -215,12 +215,12 @@ func (r mutationResolver) verifyServiceMatch(ctx context.Context, serviceID, ser
 
 	sept, err := client.ServiceEndpointDefinition.Get(ctx, serviceEndpointTypeID)
 	if err != nil {
-		return errors.Wrapf(err, "querying service endpoint type: id=%v", serviceEndpointTypeID)
+		return errors.Wrapf(err, "querying service endpoint definition: id=%v", serviceEndpointTypeID)
 	}
 
 	serviceTypeIDFromEndpoint, err := sept.QueryServiceType().OnlyID(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "querying service type from service endpoint type: id=%v", serviceEndpointTypeID)
+		return errors.Wrapf(err, "querying service type from service endpoint definition: id=%v", serviceEndpointTypeID)
 	}
 
 	serviceTypeIDFromService, err := s.QueryType().OnlyID(ctx)
@@ -300,7 +300,7 @@ func (r mutationResolver) RemoveServiceEndpoint(ctx context.Context, serviceEndp
 	return s, nil
 }
 
-func (r mutationResolver) AddServiceEndpointDefinition(ctx context.Context, input models.AddServiceEndpointDefinitionInput) (*ent.ServiceEndpointDefinition, error) {
+func (r mutationResolver) addServiceEndpointDefinition(ctx context.Context, input models.ServiceEndpointDefinitionInput, serviceTypeID int) (*ent.ServiceEndpointDefinition, error) {
 	client := r.ClientFrom(ctx)
 	ept, err := client.ServiceEndpointDefinition.
 		Create().
@@ -308,11 +308,31 @@ func (r mutationResolver) AddServiceEndpointDefinition(ctx context.Context, inpu
 		SetIndex(input.Index).
 		SetNillableRole(input.Role).
 		SetEquipmentTypeID(input.EquipmentTypeID).
-		SetServiceTypeID(input.ServiceTypeID).
+		SetServiceTypeID(serviceTypeID).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "creating service endpoint type %v: service definition id=%v", input.Name, input.ServiceTypeID)
+		return nil, errors.Wrapf(err, "creating service endpoint definition %v: service definition id=%v", input.Name, serviceTypeID)
 	}
+	return ept, err
+}
 
-	return ept, nil
+func (r mutationResolver) addServiceEndpointDefinitions(
+	ctx context.Context, inputs ...*models.ServiceEndpointDefinitionInput,
+) ([]*ent.ServiceEndpointDefinition, error) {
+	var (
+		client = r.ClientFrom(ctx).ServiceEndpointDefinition
+		types  = make([]*ent.ServiceEndpointDefinition, len(inputs))
+		err    error
+	)
+	for i, input := range inputs {
+		if types[i], err = client.Create().
+			SetName(input.Name).
+			SetNillableRole(input.Role).
+			SetIndex(input.Index).
+			SetEquipmentTypeID(input.EquipmentTypeID).
+			Save(ctx); err != nil {
+			return nil, errors.Wrapf(err, "creating service endpoint definition: %v", input.Name)
+		}
+	}
+	return types, nil
 }

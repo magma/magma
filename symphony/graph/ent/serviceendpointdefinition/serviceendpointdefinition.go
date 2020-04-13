@@ -43,7 +43,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "servicetype" package.
 	ServiceTypeInverseTable = "service_types"
 	// ServiceTypeColumn is the table column denoting the service_type relation/edge.
-	ServiceTypeColumn = "service_endpoint_definition_service_type"
+	ServiceTypeColumn = "service_type_endpoint_definitions"
 	// EquipmentTypeTable is the table the holds the equipment_type relation/edge.
 	EquipmentTypeTable = "service_endpoint_definitions"
 	// EquipmentTypeInverseTable is the table name for the EquipmentType entity.
@@ -66,7 +66,6 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the ServiceEndpointDefinition type.
 var ForeignKeys = []string{
 	"equipment_type_service_endpoint_definitions",
-	"service_endpoint_definition_service_type",
 	"service_type_endpoint_definitions",
 }
 

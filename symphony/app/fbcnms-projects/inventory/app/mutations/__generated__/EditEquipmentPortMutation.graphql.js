@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 994fbf9bc7d73bf350b244a341ef67f5
+ * @relayHash b9979b1bc860ff012e6f6b0715ce3f20
  */
 
 /* eslint-disable */
@@ -169,7 +169,7 @@ export type EditEquipmentPortMutationResponse = {|
         |},
         +serviceEndpoints: $ReadOnlyArray<{|
           +definition: {|
-            +role: string
+            +role: ?string
           |},
           +service: {|
             +name: string
@@ -271,7 +271,7 @@ export type EditEquipmentPortMutationResponse = {|
     |}>,
     +serviceEndpoints: $ReadOnlyArray<{|
       +definition: {|
-        +role: string
+        +role: ?string
       |},
       +service: {|
         +name: string
