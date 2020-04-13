@@ -181,6 +181,12 @@ func (c *ServiceEndpointClient) Instantiate(se *ServiceEndpoint) *ServiceEndpoin
 }
 
 // Instantiate entity configuration.
+func (c *ServiceEndpointDefinitionClient) Instantiate(sed *ServiceEndpointDefinition) *ServiceEndpointDefinition {
+	sed.config = c.config
+	return sed
+}
+
+// Instantiate entity configuration.
 func (c *ServiceTypeClient) Instantiate(st *ServiceType) *ServiceType {
 	st.config = c.config
 	return st

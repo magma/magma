@@ -303,6 +303,10 @@ func (et *EquipmentTypeQuery) collectField(reqctx *graphql.RequestContext, field
 			et = et.WithPropertyTypes(func(query *PropertyTypeQuery) {
 				query.collectField(reqctx, field)
 			})
+		case "serviceEndpointDefinitions":
+			et = et.WithServiceEndpointDefinitions(func(query *ServiceEndpointDefinitionQuery) {
+				query.collectField(reqctx, field)
+			})
 		}
 	}
 	return et
@@ -574,6 +578,18 @@ func (se *ServiceEndpointQuery) CollectFields(ctx context.Context, satisfies ...
 
 func (se *ServiceEndpointQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *ServiceEndpointQuery {
 	return se
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (sed *ServiceEndpointDefinitionQuery) CollectFields(ctx context.Context, satisfies ...string) *ServiceEndpointDefinitionQuery {
+	if resctx := graphql.GetResolverContext(ctx); resctx != nil {
+		sed = sed.collectField(graphql.GetRequestContext(ctx), resctx.Field, satisfies...)
+	}
+	return sed
+}
+
+func (sed *ServiceEndpointDefinitionQuery) collectField(reqctx *graphql.RequestContext, field graphql.CollectedField, satisfies ...string) *ServiceEndpointDefinitionQuery {
+	return sed
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.

@@ -19,8 +19,9 @@ type EntityDocumentsTable_files$ref = any;
 type EntityDocumentsTable_hyperlinks$ref = any;
 type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type WorkOrderDetailsPane_workOrder$ref = any;
+export type CellularNetworkType = "CDMA" | "GSM" | "LTE" | "WCDMA" | "%future added value";
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
-export type CheckListItemType = "enum" | "files" | "simple" | "string" | "yes_no" | "%future added value";
+export type CheckListItemType = "cell_scan" | "enum" | "files" | "simple" | "string" | "wifi_scan" | "yes_no" | "%future added value";
 export type FileType = "FILE" | "IMAGE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
@@ -148,6 +149,43 @@ export type WorkOrderDetails_workOrder = {|
         +storeKey: ?string,
         +category: ?string,
       |}>,
+      +cellData: ?$ReadOnlyArray<{|
+        +id: string,
+        +networkType: CellularNetworkType,
+        +signalStrength: number,
+        +timestamp: ?number,
+        +baseStationID: ?string,
+        +networkID: ?string,
+        +systemID: ?string,
+        +cellID: ?string,
+        +locationAreaCode: ?string,
+        +mobileCountryCode: ?string,
+        +mobileNetworkCode: ?string,
+        +primaryScramblingCode: ?string,
+        +operator: ?string,
+        +arfcn: ?number,
+        +physicalCellID: ?string,
+        +trackingAreaCode: ?string,
+        +timingAdvance: ?number,
+        +earfcn: ?number,
+        +uarfcn: ?number,
+        +latitude: ?number,
+        +longitude: ?number,
+      |}>,
+      +wifiData: ?$ReadOnlyArray<{|
+        +id: string,
+        +timestamp: number,
+        +frequency: number,
+        +channel: number,
+        +bssid: string,
+        +strength: number,
+        +ssid: ?string,
+        +band: ?string,
+        +channelWidth: ?number,
+        +capabilities: ?string,
+        +latitude: ?number,
+        +longitude: ?number,
+      |}>,
     |}>,
   |}>,
   +$fragmentRefs: WorkOrderDetailsPane_workOrder$ref,
@@ -184,7 +222,21 @@ v2 = {
   "args": null,
   "storageKey": null
 },
-v3 = [
+v3 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "latitude",
+  "args": null,
+  "storageKey": null
+},
+v4 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "longitude",
+  "args": null,
+  "storageKey": null
+},
+v5 = [
   (v0/*: any*/),
   {
     "kind": "ScalarField",
@@ -194,98 +246,105 @@ v3 = [
     "storageKey": null
   }
 ],
-v4 = {
+v6 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "type",
   "args": null,
   "storageKey": null
 },
-v5 = {
+v7 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "index",
   "args": null,
   "storageKey": null
 },
-v6 = {
+v8 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v7 = {
+v9 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "intValue",
   "args": null,
   "storageKey": null
 },
-v8 = {
+v10 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
-v9 = {
+v11 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "floatValue",
   "args": null,
   "storageKey": null
 },
-v10 = {
+v12 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
-v11 = {
+v13 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
-v12 = {
+v14 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
-v13 = {
+v15 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
-v14 = {
+v16 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "category",
   "args": null,
   "storageKey": null
 },
-v15 = [
+v17 = [
   (v0/*: any*/),
   (v1/*: any*/)
 ],
-v16 = [
+v18 = [
   {
     "kind": "FragmentSpread",
     "name": "EntityDocumentsTable_files",
     "args": null
   }
 ],
-v17 = {
+v19 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "title",
+  "args": null,
+  "storageKey": null
+},
+v20 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "timestamp",
   "args": null,
   "storageKey": null
 };
@@ -323,20 +382,8 @@ return {
       "selections": [
         (v1/*: any*/),
         (v0/*: any*/),
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "latitude",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "longitude",
-          "args": null,
-          "storageKey": null
-        },
+        (v3/*: any*/),
+        (v4/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -377,7 +424,7 @@ return {
       "args": null,
       "concreteType": "User",
       "plural": false,
-      "selections": (v3/*: any*/)
+      "selections": (v5/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -387,7 +434,7 @@ return {
       "args": null,
       "concreteType": "User",
       "plural": false,
-      "selections": (v3/*: any*/)
+      "selections": (v5/*: any*/)
     },
     {
       "kind": "ScalarField",
@@ -438,8 +485,6 @@ return {
           "selections": [
             (v0/*: any*/),
             (v1/*: any*/),
-            (v4/*: any*/),
-            (v5/*: any*/),
             (v6/*: any*/),
             (v7/*: any*/),
             (v8/*: any*/),
@@ -448,6 +493,8 @@ return {
             (v11/*: any*/),
             (v12/*: any*/),
             (v13/*: any*/),
+            (v14/*: any*/),
+            (v15/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -469,7 +516,7 @@ return {
               "args": null,
               "storageKey": null
             },
-            (v14/*: any*/),
+            (v16/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -479,14 +526,14 @@ return {
             }
           ]
         },
-        (v6/*: any*/),
-        (v7/*: any*/),
-        (v9/*: any*/),
         (v8/*: any*/),
-        (v10/*: any*/),
+        (v9/*: any*/),
         (v11/*: any*/),
+        (v10/*: any*/),
         (v12/*: any*/),
         (v13/*: any*/),
+        (v14/*: any*/),
+        (v15/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -495,7 +542,7 @@ return {
           "args": null,
           "concreteType": "Equipment",
           "plural": false,
-          "selections": (v15/*: any*/)
+          "selections": (v17/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -505,7 +552,7 @@ return {
           "args": null,
           "concreteType": "Location",
           "plural": false,
-          "selections": (v15/*: any*/)
+          "selections": (v17/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -515,7 +562,7 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": false,
-          "selections": (v15/*: any*/)
+          "selections": (v17/*: any*/)
         }
       ]
     },
@@ -527,7 +574,7 @@ return {
       "args": null,
       "concreteType": "File",
       "plural": true,
-      "selections": (v16/*: any*/)
+      "selections": (v18/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -537,7 +584,7 @@ return {
       "args": null,
       "concreteType": "File",
       "plural": true,
-      "selections": (v16/*: any*/)
+      "selections": (v18/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -590,7 +637,7 @@ return {
           "args": null,
           "concreteType": "ProjectType",
           "plural": false,
-          "selections": (v15/*: any*/)
+          "selections": (v17/*: any*/)
         }
       ]
     },
@@ -604,7 +651,7 @@ return {
       "plural": true,
       "selections": [
         (v0/*: any*/),
-        (v17/*: any*/),
+        (v19/*: any*/),
         (v2/*: any*/),
         {
           "kind": "LinkedField",
@@ -616,9 +663,9 @@ return {
           "plural": true,
           "selections": [
             (v0/*: any*/),
-            (v5/*: any*/),
-            (v4/*: any*/),
-            (v17/*: any*/),
+            (v7/*: any*/),
+            (v6/*: any*/),
+            (v19/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -640,7 +687,7 @@ return {
               "args": null,
               "storageKey": null
             },
-            (v6/*: any*/),
+            (v8/*: any*/),
             {
               "kind": "ScalarField",
               "alias": null,
@@ -714,7 +761,212 @@ return {
                   "args": null,
                   "storageKey": null
                 },
-                (v14/*: any*/)
+                (v16/*: any*/)
+              ]
+            },
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "cellData",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "SurveyCellScan",
+              "plural": true,
+              "selections": [
+                (v0/*: any*/),
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "networkType",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "signalStrength",
+                  "args": null,
+                  "storageKey": null
+                },
+                (v20/*: any*/),
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "baseStationID",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "networkID",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "systemID",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "cellID",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "locationAreaCode",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "mobileCountryCode",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "mobileNetworkCode",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "primaryScramblingCode",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "operator",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "arfcn",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "physicalCellID",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "trackingAreaCode",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "timingAdvance",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "earfcn",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "uarfcn",
+                  "args": null,
+                  "storageKey": null
+                },
+                (v3/*: any*/),
+                (v4/*: any*/)
+              ]
+            },
+            {
+              "kind": "LinkedField",
+              "alias": null,
+              "name": "wifiData",
+              "storageKey": null,
+              "args": null,
+              "concreteType": "SurveyWiFiScan",
+              "plural": true,
+              "selections": [
+                (v0/*: any*/),
+                (v20/*: any*/),
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "frequency",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "channel",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "bssid",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "strength",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "ssid",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "band",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "channelWidth",
+                  "args": null,
+                  "storageKey": null
+                },
+                {
+                  "kind": "ScalarField",
+                  "alias": null,
+                  "name": "capabilities",
+                  "args": null,
+                  "storageKey": null
+                },
+                (v3/*: any*/),
+                (v4/*: any*/)
               ]
             }
           ]
@@ -730,5 +982,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'ed2bcf62c8cbbe6ea36c28f2f71d1b29';
+(node/*: any*/).hash = 'fb370fac5f00650bdabe4198889bd759';
 module.exports = node;

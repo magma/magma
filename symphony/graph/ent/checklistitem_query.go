@@ -19,6 +19,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
+	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -32,6 +34,8 @@ type CheckListItemQuery struct {
 	predicates []predicate.CheckListItem
 	// eager-loading edges.
 	withFiles     *FileQuery
+	withWifiScan  *SurveyWiFiScanQuery
+	withCellScan  *SurveyCellScanQuery
 	withWorkOrder *WorkOrderQuery
 	withFKs       bool
 	// intermediate query (i.e. traversal path).
@@ -74,6 +78,42 @@ func (cliq *CheckListItemQuery) QueryFiles() *FileQuery {
 			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, cliq.sqlQuery()),
 			sqlgraph.To(file.Table, file.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, checklistitem.FilesTable, checklistitem.FilesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cliq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWifiScan chains the current query on the wifi_scan edge.
+func (cliq *CheckListItemQuery) QueryWifiScan() *SurveyWiFiScanQuery {
+	query := &SurveyWiFiScanQuery{config: cliq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cliq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, cliq.sqlQuery()),
+			sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, checklistitem.WifiScanTable, checklistitem.WifiScanColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cliq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCellScan chains the current query on the cell_scan edge.
+func (cliq *CheckListItemQuery) QueryCellScan() *SurveyCellScanQuery {
+	query := &SurveyCellScanQuery{config: cliq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cliq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, cliq.sqlQuery()),
+			sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, checklistitem.CellScanTable, checklistitem.CellScanColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(cliq.driver.Dialect(), step)
 		return fromU, nil
@@ -289,6 +329,28 @@ func (cliq *CheckListItemQuery) WithFiles(opts ...func(*FileQuery)) *CheckListIt
 	return cliq
 }
 
+//  WithWifiScan tells the query-builder to eager-loads the nodes that are connected to
+// the "wifi_scan" edge. The optional arguments used to configure the query builder of the edge.
+func (cliq *CheckListItemQuery) WithWifiScan(opts ...func(*SurveyWiFiScanQuery)) *CheckListItemQuery {
+	query := &SurveyWiFiScanQuery{config: cliq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cliq.withWifiScan = query
+	return cliq
+}
+
+//  WithCellScan tells the query-builder to eager-loads the nodes that are connected to
+// the "cell_scan" edge. The optional arguments used to configure the query builder of the edge.
+func (cliq *CheckListItemQuery) WithCellScan(opts ...func(*SurveyCellScanQuery)) *CheckListItemQuery {
+	query := &SurveyCellScanQuery{config: cliq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cliq.withCellScan = query
+	return cliq
+}
+
 //  WithWorkOrder tells the query-builder to eager-loads the nodes that are connected to
 // the "work_order" edge. The optional arguments used to configure the query builder of the edge.
 func (cliq *CheckListItemQuery) WithWorkOrder(opts ...func(*WorkOrderQuery)) *CheckListItemQuery {
@@ -367,8 +429,10 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 		nodes       = []*CheckListItem{}
 		withFKs     = cliq.withFKs
 		_spec       = cliq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			cliq.withFiles != nil,
+			cliq.withWifiScan != nil,
+			cliq.withCellScan != nil,
 			cliq.withWorkOrder != nil,
 		}
 	)
@@ -427,6 +491,62 @@ func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, e
 				return nil, fmt.Errorf(`unexpected foreign-key "check_list_item_files" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Files = append(node.Edges.Files, n)
+		}
+	}
+
+	if query := cliq.withWifiScan; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*CheckListItem)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.SurveyWiFiScan(func(s *sql.Selector) {
+			s.Where(sql.InValues(checklistitem.WifiScanColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.survey_wi_fi_scan_checklist_item
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "survey_wi_fi_scan_checklist_item" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_wi_fi_scan_checklist_item" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.WifiScan = append(node.Edges.WifiScan, n)
+		}
+	}
+
+	if query := cliq.withCellScan; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*CheckListItem)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.SurveyCellScan(func(s *sql.Selector) {
+			s.Where(sql.InValues(checklistitem.CellScanColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.survey_cell_scan_checklist_item
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "survey_cell_scan_checklist_item" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_cell_scan_checklist_item" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.CellScan = append(node.Edges.CellScan, n)
 		}
 	}
 

@@ -88,6 +88,8 @@ func (SurveyCellScan) Fields() []ent.Field {
 // Edges of the SurveyCellScan.
 func (SurveyCellScan) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.To("checklist_item", CheckListItem.Type).
+			Unique(),
 		edge.To("survey_question", SurveyQuestion.Type).
 			Unique(),
 		edge.To("location", Location.Type).

@@ -34,14 +34,17 @@ import (
 
 // HandlerConfig configures graphql handler.
 type HandlerConfig struct {
+	Client      *ent.Client
 	Logger      log.Logger
-	Emitter     event.Emitter
 	Subscriber  event.Subscriber
 	Orc8rClient *http.Client
 }
 
 func init() {
-	views := append(ocgql.DefaultServerViews, directive.ServerDeprecatedCountByObjectInputField)
+	views := append(
+		ocgql.DefaultServerViews,
+		directive.ServerDeprecatedCountByObjectInputField,
+	)
 	for _, v := range views {
 		v.TagKeys = append(v.TagKeys,
 			viewer.KeyTenant,
@@ -55,8 +58,8 @@ func init() {
 func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 	rsv := resolver.New(
 		resolver.Config{
+			Client:     cfg.Client,
 			Logger:     cfg.Logger,
-			Emitter:    cfg.Emitter,
 			Subscriber: cfg.Subscriber,
 		},
 		resolver.WithOrc8rClient(
@@ -64,8 +67,10 @@ func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 		),
 	)
 
-	views := append(ocgql.DefaultServerViews, directive.ServerDeprecatedCountByObjectInputField)
-
+	views := append(
+		ocgql.DefaultServerViews,
+		directive.ServerDeprecatedCountByObjectInputField,
+	)
 	if err := view.Register(views...); err != nil {
 		return nil, nil, fmt.Errorf("registering views: %w", err)
 	}

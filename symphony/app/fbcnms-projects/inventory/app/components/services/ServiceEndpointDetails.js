@@ -99,7 +99,7 @@ const ServiceEndpointDetails = (props: Props) => {
       <div className={classes.linkRow}>
         <div className={classes.detail}>
           <EndpointIcon className={classes.icon} />
-          {endpoint.role == 'CONSUMER' ? (
+          {endpoint.type.role == 'CONSUMER' ? (
             <ActiveConsumerEndpointIcon
               variant="small"
               className={classes.activeIcon}
@@ -113,7 +113,7 @@ const ServiceEndpointDetails = (props: Props) => {
           <div>
             <Text variant="subtitle2" className={classes.componentName}>
               {`${endpoint.port.parentEquipment.name} (${camelCase(
-                endpoint.role,
+                endpoint.type.role,
               )})`}
             </Text>
             <Text

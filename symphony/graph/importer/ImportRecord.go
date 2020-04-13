@@ -288,16 +288,6 @@ func (l ImportRecord) PortData() (*PortData, error) {
 	return nil, errors.New("unsupported entity for link port Data")
 }
 
-// ConsumerPortsServices is the list of services where the port is their consumer endpoint
-func (l ImportRecord) ConsumerPortsServices() string {
-	return l.line[l.title.ConsumerPortsServicesIdx()]
-}
-
-// ProviderPortsServices is the list of services where the port is their provider endpoint
-func (l ImportRecord) ProviderPortsServices() string {
-	return l.line[l.title.ProviderPortsServicesIdx()]
-}
-
 func (l ImportRecord) ServiceNames() string {
 	return l.line[l.title.ServiceNamesIdx()]
 }

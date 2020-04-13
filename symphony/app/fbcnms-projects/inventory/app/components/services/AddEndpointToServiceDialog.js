@@ -9,7 +9,6 @@
  */
 
 import type {Equipment, EquipmentPort} from '../../common/Equipment';
-import type {ServiceEndpointRole} from '../../mutations/__generated__/AddServiceEndpointMutation.graphql';
 import type {WithStyles} from '@material-ui/core';
 
 import AvailablePortsTable from '../AvailablePortsTable';
@@ -65,7 +64,7 @@ type Props = {
   service: {id: string, name: string},
   onClose: () => void,
   onAddEndpoint: (port: EquipmentPort) => void,
-  endpointRole: ServiceEndpointRole,
+  endpointRole: string,
 } & WithStyles<typeof styles>;
 
 type State = {

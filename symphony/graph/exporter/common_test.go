@@ -106,11 +106,9 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestExporterResolver {
 	require.NoError(t, err)
 
 	logger := logtest.NewTestLogger(t)
-	emitter, subscriber := event.Pipe()
 	r := resolver.New(resolver.Config{
 		Logger:     logger,
-		Emitter:    emitter,
-		Subscriber: subscriber,
+		Subscriber: event.NewNopSubscriber(),
 	})
 
 	e := exporter{logger, equipmentRower{logger}}
@@ -323,20 +321,42 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	})
 	require.NoError(t, err)
 
+	ept, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
+		Name:            "endpoint type1",
+		Role:            pointer.ToString("CONSUMER"),
+		EquipmentTypeID: equipmentType.ID,
+		ServiceTypeID:   serviceType.ID,
+		Index:           1,
+	})
+	require.NoError(t, err)
+
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s1.ID,
-		PortID: portID1,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s1.ID,
+		EquipmentID: parentEquipment.ID,
+		PortID:      pointer.ToInt(portID1),
+		Definition:  ept.ID,
 	})
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s2.ID,
-		PortID: portID1,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s2.ID,
+		EquipmentID: parentEquipment.ID,
+		PortID:      pointer.ToInt(portID1),
+		Definition:  ept.ID,
 	})
+
+	ept2, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
+		Name:            "endpoint type2",
+		Role:            pointer.ToString("PROVIDER"),
+		EquipmentTypeID: equipmentType2.ID,
+		ServiceTypeID:   serviceType.ID,
+		Index:           2,
+	})
+	require.NoError(t, err)
+
 	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s1.ID,
-		PortID: portID2,
-		Role:   models.ServiceEndpointRoleProvider,
+		ID:          s1.ID,
+		EquipmentID: childEquip.ID,
+		PortID:      pointer.ToInt(portID2),
+		Definition:  ept2.ID,
 	})
 	/*
 		helper: data now is of type:
@@ -383,12 +403,10 @@ func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity 
 		buf, contentType = writeModifiedPortsCSV(t, readr, skipLines, withVerify)
 	}
 
-	emitter, subscriber := event.Pipe()
 	h, _ := importer.NewHandler(
 		importer.Config{
 			Logger:     logtest.NewTestLogger(t),
-			Emitter:    emitter,
-			Subscriber: subscriber,
+			Subscriber: event.NewNopSubscriber(),
 		},
 	)
 	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))

@@ -179,10 +179,19 @@ type AddProjectTypeInput struct {
 	WorkOrders  []*WorkOrderDefinitionInput `json:"workOrders"`
 }
 
+type AddServiceEndpointDefinitionInput struct {
+	Name            string  `json:"name"`
+	Role            *string `json:"role"`
+	Index           int     `json:"Index"`
+	ServiceTypeID   int     `json:"serviceTypeID"`
+	EquipmentTypeID int     `json:"equipmentTypeID"`
+}
+
 type AddServiceEndpointInput struct {
-	ID     int                 `json:"id"`
-	PortID int                 `json:"portId"`
-	Role   ServiceEndpointRole `json:"role"`
+	ID          int  `json:"id"`
+	PortID      *int `json:"portId"`
+	EquipmentID int  `json:"equipmentID"`
+	Definition  int  `json:"definition"`
 }
 
 type AddUsersGroupInput struct {
@@ -752,11 +761,13 @@ type SurveyWiFiScanData struct {
 }
 
 type TechnicianCheckListItemInput struct {
-	ID                 int            `json:"id"`
-	SelectedEnumValues *string        `json:"selectedEnumValues"`
-	StringValue        *string        `json:"stringValue"`
-	Checked            *bool          `json:"checked"`
-	YesNoResponse      *YesNoResponse `json:"yesNoResponse"`
+	ID                 int                   `json:"id"`
+	SelectedEnumValues *string               `json:"selectedEnumValues"`
+	StringValue        *string               `json:"stringValue"`
+	Checked            *bool                 `json:"checked"`
+	YesNoResponse      *YesNoResponse        `json:"yesNoResponse"`
+	WifiData           []*SurveyWiFiScanData `json:"wifiData"`
+	CellData           []*SurveyCellScanData `json:"cellData"`
 }
 
 type TechnicianInput struct {
@@ -921,11 +932,13 @@ func (e CheckListItemEnumSelectionMode) MarshalGQL(w io.Writer) {
 type CheckListItemType string
 
 const (
-	CheckListItemTypeSimple CheckListItemType = "simple"
-	CheckListItemTypeString CheckListItemType = "string"
-	CheckListItemTypeEnum   CheckListItemType = "enum"
-	CheckListItemTypeFiles  CheckListItemType = "files"
-	CheckListItemTypeYesNo  CheckListItemType = "yes_no"
+	CheckListItemTypeSimple   CheckListItemType = "simple"
+	CheckListItemTypeString   CheckListItemType = "string"
+	CheckListItemTypeEnum     CheckListItemType = "enum"
+	CheckListItemTypeFiles    CheckListItemType = "files"
+	CheckListItemTypeYesNo    CheckListItemType = "yes_no"
+	CheckListItemTypeCellScan CheckListItemType = "cell_scan"
+	CheckListItemTypeWifiScan CheckListItemType = "wifi_scan"
 )
 
 var AllCheckListItemType = []CheckListItemType{
@@ -934,11 +947,13 @@ var AllCheckListItemType = []CheckListItemType{
 	CheckListItemTypeEnum,
 	CheckListItemTypeFiles,
 	CheckListItemTypeYesNo,
+	CheckListItemTypeCellScan,
+	CheckListItemTypeWifiScan,
 }
 
 func (e CheckListItemType) IsValid() bool {
 	switch e {
-	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum, CheckListItemTypeFiles, CheckListItemTypeYesNo:
+	case CheckListItemTypeSimple, CheckListItemTypeString, CheckListItemTypeEnum, CheckListItemTypeFiles, CheckListItemTypeYesNo, CheckListItemTypeCellScan, CheckListItemTypeWifiScan:
 		return true
 	}
 	return false
@@ -1581,47 +1596,6 @@ func (e *PropertyKind) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PropertyKind) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type ServiceEndpointRole string
-
-const (
-	ServiceEndpointRoleConsumer ServiceEndpointRole = "CONSUMER"
-	ServiceEndpointRoleProvider ServiceEndpointRole = "PROVIDER"
-)
-
-var AllServiceEndpointRole = []ServiceEndpointRole{
-	ServiceEndpointRoleConsumer,
-	ServiceEndpointRoleProvider,
-}
-
-func (e ServiceEndpointRole) IsValid() bool {
-	switch e {
-	case ServiceEndpointRoleConsumer, ServiceEndpointRoleProvider:
-		return true
-	}
-	return false
-}
-
-func (e ServiceEndpointRole) String() string {
-	return string(e)
-}
-
-func (e *ServiceEndpointRole) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = ServiceEndpointRole(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ServiceEndpointRole", str)
-	}
-	return nil
-}
-
-func (e ServiceEndpointRole) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

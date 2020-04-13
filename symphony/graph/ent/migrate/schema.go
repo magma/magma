@@ -1051,9 +1051,10 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "role", Type: field.TypeString},
 		{Name: "service_endpoints", Type: field.TypeInt, Nullable: true},
 		{Name: "service_endpoint_port", Type: field.TypeInt, Nullable: true},
+		{Name: "service_endpoint_equipment", Type: field.TypeInt, Nullable: true},
+		{Name: "service_endpoint_definition_endpoints", Type: field.TypeInt, Nullable: true},
 	}
 	// ServiceEndpointsTable holds the schema information for the "service_endpoints" table.
 	ServiceEndpointsTable = &schema.Table{
@@ -1063,17 +1064,84 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "service_endpoints_services_endpoints",
-				Columns: []*schema.Column{ServiceEndpointsColumns[4]},
+				Columns: []*schema.Column{ServiceEndpointsColumns[3]},
 
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "service_endpoints_equipment_ports_port",
-				Columns: []*schema.Column{ServiceEndpointsColumns[5]},
+				Columns: []*schema.Column{ServiceEndpointsColumns[4]},
 
 				RefColumns: []*schema.Column{EquipmentPortsColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "service_endpoints_equipment_equipment",
+				Columns: []*schema.Column{ServiceEndpointsColumns[5]},
+
+				RefColumns: []*schema.Column{EquipmentColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "service_endpoints_service_endpoint_definitions_endpoints",
+				Columns: []*schema.Column{ServiceEndpointsColumns[6]},
+
+				RefColumns: []*schema.Column{ServiceEndpointDefinitionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// ServiceEndpointDefinitionsColumns holds the columns for the "service_endpoint_definitions" table.
+	ServiceEndpointDefinitionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "role", Type: field.TypeString, Nullable: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "index", Type: field.TypeInt},
+		{Name: "equipment_type_service_endpoint_definitions", Type: field.TypeInt, Nullable: true},
+		{Name: "service_endpoint_definition_service_type", Type: field.TypeInt, Nullable: true},
+		{Name: "service_type_endpoint_definitions", Type: field.TypeInt, Nullable: true},
+	}
+	// ServiceEndpointDefinitionsTable holds the schema information for the "service_endpoint_definitions" table.
+	ServiceEndpointDefinitionsTable = &schema.Table{
+		Name:       "service_endpoint_definitions",
+		Columns:    ServiceEndpointDefinitionsColumns,
+		PrimaryKey: []*schema.Column{ServiceEndpointDefinitionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "service_endpoint_definitions_equipment_types_service_endpoint_definitions",
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[6]},
+
+				RefColumns: []*schema.Column{EquipmentTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "service_endpoint_definitions_service_types_service_type",
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[7]},
+
+				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "service_endpoint_definitions_service_types_endpoint_definitions",
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[8]},
+
+				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "serviceendpointdefinition_index_service_endpoint_definition_service_type",
+				Unique:  true,
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[5], ServiceEndpointDefinitionsColumns[7]},
+			},
+			{
+				Name:    "serviceendpointdefinition_name_service_endpoint_definition_service_type",
+				Unique:  true,
+				Columns: []*schema.Column{ServiceEndpointDefinitionsColumns[4], ServiceEndpointDefinitionsColumns[7]},
 			},
 		},
 	}
@@ -1151,6 +1219,7 @@ var (
 		{Name: "uarfcn", Type: field.TypeInt, Nullable: true},
 		{Name: "latitude", Type: field.TypeFloat64, Nullable: true},
 		{Name: "longitude", Type: field.TypeFloat64, Nullable: true},
+		{Name: "survey_cell_scan_checklist_item", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_cell_scan_survey_question", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_cell_scan_location", Type: field.TypeInt, Nullable: true},
 	}
@@ -1161,15 +1230,22 @@ var (
 		PrimaryKey: []*schema.Column{SurveyCellScansColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "survey_cell_scans_survey_questions_survey_question",
+				Symbol:  "survey_cell_scans_check_list_items_checklist_item",
 				Columns: []*schema.Column{SurveyCellScansColumns[23]},
+
+				RefColumns: []*schema.Column{CheckListItemsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "survey_cell_scans_survey_questions_survey_question",
+				Columns: []*schema.Column{SurveyCellScansColumns[24]},
 
 				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "survey_cell_scans_locations_location",
-				Columns: []*schema.Column{SurveyCellScansColumns[24]},
+				Columns: []*schema.Column{SurveyCellScansColumns[25]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1289,6 +1365,7 @@ var (
 		{Name: "strength", Type: field.TypeInt},
 		{Name: "latitude", Type: field.TypeFloat64, Nullable: true},
 		{Name: "longitude", Type: field.TypeFloat64, Nullable: true},
+		{Name: "survey_wi_fi_scan_checklist_item", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_wi_fi_scan_survey_question", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_wi_fi_scan_location", Type: field.TypeInt, Nullable: true},
 	}
@@ -1299,15 +1376,22 @@ var (
 		PrimaryKey: []*schema.Column{SurveyWiFiScansColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "survey_wi_fi_scans_survey_questions_survey_question",
+				Symbol:  "survey_wi_fi_scans_check_list_items_checklist_item",
 				Columns: []*schema.Column{SurveyWiFiScansColumns[14]},
+
+				RefColumns: []*schema.Column{CheckListItemsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "survey_wi_fi_scans_survey_questions_survey_question",
+				Columns: []*schema.Column{SurveyWiFiScansColumns[15]},
 
 				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "survey_wi_fi_scans_locations_location",
-				Columns: []*schema.Column{SurveyWiFiScansColumns[15]},
+				Columns: []*schema.Column{SurveyWiFiScansColumns[16]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1628,6 +1712,7 @@ var (
 		ReportFiltersTable,
 		ServicesTable,
 		ServiceEndpointsTable,
+		ServiceEndpointDefinitionsTable,
 		ServiceTypesTable,
 		SurveysTable,
 		SurveyCellScansTable,
@@ -1710,15 +1795,22 @@ func init() {
 	ServicesTable.ForeignKeys[0].RefTable = ServiceTypesTable
 	ServiceEndpointsTable.ForeignKeys[0].RefTable = ServicesTable
 	ServiceEndpointsTable.ForeignKeys[1].RefTable = EquipmentPortsTable
+	ServiceEndpointsTable.ForeignKeys[2].RefTable = EquipmentTable
+	ServiceEndpointsTable.ForeignKeys[3].RefTable = ServiceEndpointDefinitionsTable
+	ServiceEndpointDefinitionsTable.ForeignKeys[0].RefTable = EquipmentTypesTable
+	ServiceEndpointDefinitionsTable.ForeignKeys[1].RefTable = ServiceTypesTable
+	ServiceEndpointDefinitionsTable.ForeignKeys[2].RefTable = ServiceTypesTable
 	SurveysTable.ForeignKeys[0].RefTable = LocationsTable
 	SurveysTable.ForeignKeys[1].RefTable = FilesTable
-	SurveyCellScansTable.ForeignKeys[0].RefTable = SurveyQuestionsTable
-	SurveyCellScansTable.ForeignKeys[1].RefTable = LocationsTable
+	SurveyCellScansTable.ForeignKeys[0].RefTable = CheckListItemsTable
+	SurveyCellScansTable.ForeignKeys[1].RefTable = SurveyQuestionsTable
+	SurveyCellScansTable.ForeignKeys[2].RefTable = LocationsTable
 	SurveyQuestionsTable.ForeignKeys[0].RefTable = SurveysTable
 	SurveyTemplateCategoriesTable.ForeignKeys[0].RefTable = LocationTypesTable
 	SurveyTemplateQuestionsTable.ForeignKeys[0].RefTable = SurveyTemplateCategoriesTable
-	SurveyWiFiScansTable.ForeignKeys[0].RefTable = SurveyQuestionsTable
-	SurveyWiFiScansTable.ForeignKeys[1].RefTable = LocationsTable
+	SurveyWiFiScansTable.ForeignKeys[0].RefTable = CheckListItemsTable
+	SurveyWiFiScansTable.ForeignKeys[1].RefTable = SurveyQuestionsTable
+	SurveyWiFiScansTable.ForeignKeys[2].RefTable = LocationsTable
 	UsersTable.ForeignKeys[0].RefTable = FilesTable
 	WorkOrdersTable.ForeignKeys[0].RefTable = ProjectsTable
 	WorkOrdersTable.ForeignKeys[1].RefTable = WorkOrderTypesTable

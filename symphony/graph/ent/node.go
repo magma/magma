@@ -44,6 +44,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -207,7 +208,7 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		ID:     cli.ID,
 		Type:   "CheckListItem",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 4),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(cli.Title); err != nil {
@@ -302,13 +303,35 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		Type: "File",
 		Name: "Files",
 	}
+	ids, err = cli.QueryWifiScan().
+		Select(surveywifiscan.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "SurveyWiFiScan",
+		Name: "WifiScan",
+	}
+	ids, err = cli.QueryCellScan().
+		Select(surveycellscan.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "SurveyCellScan",
+		Name: "CellScan",
+	}
 	ids, err = cli.QueryWorkOrder().
 		Select(workorder.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
+	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
 		Name: "WorkOrder",
@@ -502,7 +525,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 		ID:     e.ID,
 		Type:   "Equipment",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 9),
+		Edges:  make([]*Edge, 10),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(e.CreateTime); err != nil {
@@ -652,6 +675,17 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "Hyperlink",
 		Name: "Hyperlinks",
+	}
+	ids, err = e.QueryEndpoints().
+		Select(serviceendpoint.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[9] = &Edge{
+		IDs:  ids,
+		Type: "ServiceEndpoint",
+		Name: "Endpoints",
 	}
 	return node, nil
 }
@@ -1088,7 +1122,7 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 		ID:     et.ID,
 		Type:   "EquipmentType",
 		Fields: make([]*Field, 3),
-		Edges:  make([]*Edge, 5),
+		Edges:  make([]*Edge, 6),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(et.CreateTime); err != nil {
@@ -1170,6 +1204,17 @@ func (et *EquipmentType) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "EquipmentCategory",
 		Name: "Category",
+	}
+	ids, err = et.QueryServiceEndpointDefinitions().
+		Select(serviceendpointdefinition.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[5] = &Edge{
+		IDs:  ids,
+		Type: "ServiceEndpointDefinition",
+		Name: "ServiceEndpointDefinitions",
 	}
 	return node, nil
 }
@@ -2739,8 +2784,8 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     se.ID,
 		Type:   "ServiceEndpoint",
-		Fields: make([]*Field, 3),
-		Edges:  make([]*Edge, 2),
+		Fields: make([]*Field, 2),
+		Edges:  make([]*Edge, 4),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(se.CreateTime); err != nil {
@@ -2759,14 +2804,6 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "UpdateTime",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(se.Role); err != nil {
-		return nil, err
-	}
-	node.Fields[2] = &Field{
-		Type:  "string",
-		Name:  "Role",
-		Value: string(buf),
-	}
 	var ids []int
 	ids, err = se.QueryPort().
 		Select(equipmentport.FieldID).
@@ -2779,16 +2816,123 @@ func (se *ServiceEndpoint) Node(ctx context.Context) (node *Node, err error) {
 		Type: "EquipmentPort",
 		Name: "Port",
 	}
-	ids, err = se.QueryService().
-		Select(service.FieldID).
+	ids, err = se.QueryEquipment().
+		Select(equipment.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
 	node.Edges[1] = &Edge{
 		IDs:  ids,
+		Type: "Equipment",
+		Name: "Equipment",
+	}
+	ids, err = se.QueryService().
+		Select(service.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
 		Type: "Service",
 		Name: "Service",
+	}
+	ids, err = se.QueryDefinition().
+		Select(serviceendpointdefinition.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[3] = &Edge{
+		IDs:  ids,
+		Type: "ServiceEndpointDefinition",
+		Name: "Definition",
+	}
+	return node, nil
+}
+
+func (sed *ServiceEndpointDefinition) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     sed.ID,
+		Type:   "ServiceEndpointDefinition",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 3),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(sed.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(sed.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(sed.Role); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "Role",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(sed.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "Name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(sed.Index); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "int",
+		Name:  "Index",
+		Value: string(buf),
+	}
+	var ids []int
+	ids, err = sed.QueryEndpoints().
+		Select(serviceendpoint.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "ServiceEndpoint",
+		Name: "Endpoints",
+	}
+	ids, err = sed.QueryServiceType().
+		Select(servicetype.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "ServiceType",
+		Name: "ServiceType",
+	}
+	ids, err = sed.QueryEquipmentType().
+		Select(equipmenttype.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "EquipmentType",
+		Name: "EquipmentType",
 	}
 	return node, nil
 }
@@ -2798,7 +2942,7 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 		ID:     st.ID,
 		Type:   "ServiceType",
 		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(st.CreateTime); err != nil {
@@ -2855,6 +2999,17 @@ func (st *ServiceType) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "PropertyType",
 		Name: "PropertyTypes",
+	}
+	ids, err = st.QueryEndpointDefinitions().
+		Select(serviceendpointdefinition.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "ServiceEndpointDefinition",
+		Name: "EndpointDefinitions",
 	}
 	return node, nil
 }
@@ -2957,7 +3112,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 		ID:     scs.ID,
 		Type:   "SurveyCellScan",
 		Fields: make([]*Field, 22),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(scs.CreateTime); err != nil {
@@ -3137,13 +3292,24 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 		Value: string(buf),
 	}
 	var ids []int
+	ids, err = scs.QueryChecklistItem().
+		Select(checklistitem.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "CheckListItem",
+		Name: "ChecklistItem",
+	}
 	ids, err = scs.QuerySurveyQuestion().
 		Select(surveyquestion.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[0] = &Edge{
+	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "SurveyQuestion",
 		Name: "SurveyQuestion",
@@ -3154,7 +3320,7 @@ func (scs *SurveyCellScan) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
+	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Location",
 		Name: "Location",
@@ -3520,7 +3686,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 		ID:     swfs.ID,
 		Type:   "SurveyWiFiScan",
 		Fields: make([]*Field, 13),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(swfs.CreateTime); err != nil {
@@ -3628,13 +3794,24 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 		Value: string(buf),
 	}
 	var ids []int
+	ids, err = swfs.QueryChecklistItem().
+		Select(checklistitem.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "CheckListItem",
+		Name: "ChecklistItem",
+	}
 	ids, err = swfs.QuerySurveyQuestion().
 		Select(surveyquestion.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[0] = &Edge{
+	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "SurveyQuestion",
 		Name: "SurveyQuestion",
@@ -3645,7 +3822,7 @@ func (swfs *SurveyWiFiScan) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
+	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Location",
 		Name: "Location",
@@ -4550,6 +4727,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.ServiceEndpoint.Query().
 			Where(serviceendpoint.ID(id)).
 			CollectFields(ctx, "ServiceEndpoint").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case serviceendpointdefinition.Table:
+		n, err := c.ServiceEndpointDefinition.Query().
+			Where(serviceendpointdefinition.ID(id)).
+			CollectFields(ctx, "ServiceEndpointDefinition").
 			Only(ctx)
 		if err != nil {
 			return nil, err

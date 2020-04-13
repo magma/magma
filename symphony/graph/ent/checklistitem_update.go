@@ -16,6 +16,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
+	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -227,6 +229,36 @@ func (cliu *CheckListItemUpdate) AddFiles(f ...*File) *CheckListItemUpdate {
 	return cliu.AddFileIDs(ids...)
 }
 
+// AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
+func (cliu *CheckListItemUpdate) AddWifiScanIDs(ids ...int) *CheckListItemUpdate {
+	cliu.mutation.AddWifiScanIDs(ids...)
+	return cliu
+}
+
+// AddWifiScan adds the wifi_scan edges to SurveyWiFiScan.
+func (cliu *CheckListItemUpdate) AddWifiScan(s ...*SurveyWiFiScan) *CheckListItemUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cliu.AddWifiScanIDs(ids...)
+}
+
+// AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
+func (cliu *CheckListItemUpdate) AddCellScanIDs(ids ...int) *CheckListItemUpdate {
+	cliu.mutation.AddCellScanIDs(ids...)
+	return cliu
+}
+
+// AddCellScan adds the cell_scan edges to SurveyCellScan.
+func (cliu *CheckListItemUpdate) AddCellScan(s ...*SurveyCellScan) *CheckListItemUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cliu.AddCellScanIDs(ids...)
+}
+
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (cliu *CheckListItemUpdate) SetWorkOrderID(id int) *CheckListItemUpdate {
 	cliu.mutation.SetWorkOrderID(id)
@@ -259,6 +291,36 @@ func (cliu *CheckListItemUpdate) RemoveFiles(f ...*File) *CheckListItemUpdate {
 		ids[i] = f[i].ID
 	}
 	return cliu.RemoveFileIDs(ids...)
+}
+
+// RemoveWifiScanIDs removes the wifi_scan edge to SurveyWiFiScan by ids.
+func (cliu *CheckListItemUpdate) RemoveWifiScanIDs(ids ...int) *CheckListItemUpdate {
+	cliu.mutation.RemoveWifiScanIDs(ids...)
+	return cliu
+}
+
+// RemoveWifiScan removes wifi_scan edges to SurveyWiFiScan.
+func (cliu *CheckListItemUpdate) RemoveWifiScan(s ...*SurveyWiFiScan) *CheckListItemUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cliu.RemoveWifiScanIDs(ids...)
+}
+
+// RemoveCellScanIDs removes the cell_scan edge to SurveyCellScan by ids.
+func (cliu *CheckListItemUpdate) RemoveCellScanIDs(ids ...int) *CheckListItemUpdate {
+	cliu.mutation.RemoveCellScanIDs(ids...)
+	return cliu
+}
+
+// RemoveCellScan removes cell_scan edges to SurveyCellScan.
+func (cliu *CheckListItemUpdate) RemoveCellScan(s ...*SurveyCellScan) *CheckListItemUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cliu.RemoveCellScanIDs(ids...)
 }
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
@@ -496,6 +558,82 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := cliu.mutation.RemovedWifiScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.WifiScanTable,
+			Columns: []string{checklistitem.WifiScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveywifiscan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cliu.mutation.WifiScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.WifiScanTable,
+			Columns: []string{checklistitem.WifiScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveywifiscan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := cliu.mutation.RemovedCellScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.CellScanTable,
+			Columns: []string{checklistitem.CellScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveycellscan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cliu.mutation.CellScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.CellScanTable,
+			Columns: []string{checklistitem.CellScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveycellscan.FieldID,
 				},
 			},
 		}
@@ -751,6 +889,36 @@ func (cliuo *CheckListItemUpdateOne) AddFiles(f ...*File) *CheckListItemUpdateOn
 	return cliuo.AddFileIDs(ids...)
 }
 
+// AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
+func (cliuo *CheckListItemUpdateOne) AddWifiScanIDs(ids ...int) *CheckListItemUpdateOne {
+	cliuo.mutation.AddWifiScanIDs(ids...)
+	return cliuo
+}
+
+// AddWifiScan adds the wifi_scan edges to SurveyWiFiScan.
+func (cliuo *CheckListItemUpdateOne) AddWifiScan(s ...*SurveyWiFiScan) *CheckListItemUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cliuo.AddWifiScanIDs(ids...)
+}
+
+// AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
+func (cliuo *CheckListItemUpdateOne) AddCellScanIDs(ids ...int) *CheckListItemUpdateOne {
+	cliuo.mutation.AddCellScanIDs(ids...)
+	return cliuo
+}
+
+// AddCellScan adds the cell_scan edges to SurveyCellScan.
+func (cliuo *CheckListItemUpdateOne) AddCellScan(s ...*SurveyCellScan) *CheckListItemUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cliuo.AddCellScanIDs(ids...)
+}
+
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (cliuo *CheckListItemUpdateOne) SetWorkOrderID(id int) *CheckListItemUpdateOne {
 	cliuo.mutation.SetWorkOrderID(id)
@@ -783,6 +951,36 @@ func (cliuo *CheckListItemUpdateOne) RemoveFiles(f ...*File) *CheckListItemUpdat
 		ids[i] = f[i].ID
 	}
 	return cliuo.RemoveFileIDs(ids...)
+}
+
+// RemoveWifiScanIDs removes the wifi_scan edge to SurveyWiFiScan by ids.
+func (cliuo *CheckListItemUpdateOne) RemoveWifiScanIDs(ids ...int) *CheckListItemUpdateOne {
+	cliuo.mutation.RemoveWifiScanIDs(ids...)
+	return cliuo
+}
+
+// RemoveWifiScan removes wifi_scan edges to SurveyWiFiScan.
+func (cliuo *CheckListItemUpdateOne) RemoveWifiScan(s ...*SurveyWiFiScan) *CheckListItemUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cliuo.RemoveWifiScanIDs(ids...)
+}
+
+// RemoveCellScanIDs removes the cell_scan edge to SurveyCellScan by ids.
+func (cliuo *CheckListItemUpdateOne) RemoveCellScanIDs(ids ...int) *CheckListItemUpdateOne {
+	cliuo.mutation.RemoveCellScanIDs(ids...)
+	return cliuo
+}
+
+// RemoveCellScan removes cell_scan edges to SurveyCellScan.
+func (cliuo *CheckListItemUpdateOne) RemoveCellScan(s ...*SurveyCellScan) *CheckListItemUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return cliuo.RemoveCellScanIDs(ids...)
 }
 
 // ClearWorkOrder clears the work_order edge to WorkOrder.
@@ -1018,6 +1216,82 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := cliuo.mutation.RemovedWifiScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.WifiScanTable,
+			Columns: []string{checklistitem.WifiScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveywifiscan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cliuo.mutation.WifiScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.WifiScanTable,
+			Columns: []string{checklistitem.WifiScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveywifiscan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := cliuo.mutation.RemovedCellScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.CellScanTable,
+			Columns: []string{checklistitem.CellScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveycellscan.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cliuo.mutation.CellScanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   checklistitem.CellScanTable,
+			Columns: []string{checklistitem.CellScanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: surveycellscan.FieldID,
 				},
 			},
 		}

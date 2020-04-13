@@ -73,14 +73,14 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		linkIDs[i] = l.ID
 	}
 	cg := ctxgroup.WithContext(ctx, ctxgroup.MaxConcurrency(32))
-	cg.Go(func(ctx context.Context) error {
+	cg.Go(func(ctx context.Context) (err error) {
 		if orderedLocTypes, err = locationTypeHierarchy(ctx, client); err != nil {
 			logger.Error("cannot query location types", zap.Error(err))
 			return errors.Wrap(err, "cannot query location types")
 		}
 		return nil
 	})
-	cg.Go(func(ctx context.Context) error {
+	cg.Go(func(ctx context.Context) (err error) {
 		if propertyTypes, err = propertyTypesSlice(ctx, linkIDs, client, models.PropertyEntityLink); err != nil {
 			logger.Error("cannot query property types", zap.Error(err))
 			return errors.Wrap(err, "cannot query property types")

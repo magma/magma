@@ -39,9 +39,11 @@ type ServiceTypeEdges struct {
 	Services []*Service
 	// PropertyTypes holds the value of the property_types edge.
 	PropertyTypes []*PropertyType
+	// EndpointDefinitions holds the value of the endpoint_definitions edge.
+	EndpointDefinitions []*ServiceEndpointDefinition
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // ServicesOrErr returns the Services value or an error if the edge
@@ -60,6 +62,15 @@ func (e ServiceTypeEdges) PropertyTypesOrErr() ([]*PropertyType, error) {
 		return e.PropertyTypes, nil
 	}
 	return nil, &NotLoadedError{edge: "property_types"}
+}
+
+// EndpointDefinitionsOrErr returns the EndpointDefinitions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ServiceTypeEdges) EndpointDefinitionsOrErr() ([]*ServiceEndpointDefinition, error) {
+	if e.loadedTypes[2] {
+		return e.EndpointDefinitions, nil
+	}
+	return nil, &NotLoadedError{edge: "endpoint_definitions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -116,6 +127,11 @@ func (st *ServiceType) QueryServices() *ServiceQuery {
 // QueryPropertyTypes queries the property_types edge of the ServiceType.
 func (st *ServiceType) QueryPropertyTypes() *PropertyTypeQuery {
 	return (&ServiceTypeClient{config: st.config}).QueryPropertyTypes(st)
+}
+
+// QueryEndpointDefinitions queries the endpoint_definitions edge of the ServiceType.
+func (st *ServiceType) QueryEndpointDefinitions() *ServiceEndpointDefinitionQuery {
+	return (&ServiceTypeClient{config: st.config}).QueryEndpointDefinitions(st)
 }
 
 // Update returns a builder for updating this ServiceType.

@@ -44,6 +44,8 @@ export function getInitialState(
         storeKey: file.storeKey ?? '',
         fileName: file.fileName,
       })),
+      cellData: item.cellData,
+      wifiData: item.wifiData,
     })),
   }));
 }

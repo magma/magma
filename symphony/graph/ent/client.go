@@ -42,6 +42,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -124,6 +125,8 @@ type Client struct {
 	Service *ServiceClient
 	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
 	ServiceEndpoint *ServiceEndpointClient
+	// ServiceEndpointDefinition is the client for interacting with the ServiceEndpointDefinition builders.
+	ServiceEndpointDefinition *ServiceEndpointDefinitionClient
 	// ServiceType is the client for interacting with the ServiceType builders.
 	ServiceType *ServiceTypeClient
 	// Survey is the client for interacting with the Survey builders.
@@ -195,6 +198,7 @@ func (c *Client) init() {
 	c.ReportFilter = NewReportFilterClient(c.config)
 	c.Service = NewServiceClient(c.config)
 	c.ServiceEndpoint = NewServiceEndpointClient(c.config)
+	c.ServiceEndpointDefinition = NewServiceEndpointDefinitionClient(c.config)
 	c.ServiceType = NewServiceTypeClient(c.config)
 	c.Survey = NewSurveyClient(c.config)
 	c.SurveyCellScan = NewSurveyCellScanClient(c.config)
@@ -267,6 +271,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ReportFilter:                NewReportFilterClient(cfg),
 		Service:                     NewServiceClient(cfg),
 		ServiceEndpoint:             NewServiceEndpointClient(cfg),
+		ServiceEndpointDefinition:   NewServiceEndpointDefinitionClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
 		Survey:                      NewSurveyClient(cfg),
 		SurveyCellScan:              NewSurveyCellScanClient(cfg),
@@ -337,6 +342,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.ReportFilter.Use(hooks...)
 	c.Service.Use(hooks...)
 	c.ServiceEndpoint.Use(hooks...)
+	c.ServiceEndpointDefinition.Use(hooks...)
 	c.ServiceType.Use(hooks...)
 	c.Survey.Use(hooks...)
 	c.SurveyCellScan.Use(hooks...)
@@ -621,6 +627,38 @@ func (c *CheckListItemClient) QueryFiles(cli *CheckListItem) *FileQuery {
 			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
 			sqlgraph.To(file.Table, file.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, checklistitem.FilesTable, checklistitem.FilesColumn),
+		)
+		fromV = sqlgraph.Neighbors(cli.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWifiScan queries the wifi_scan edge of a CheckListItem.
+func (c *CheckListItemClient) QueryWifiScan(cli *CheckListItem) *SurveyWiFiScanQuery {
+	query := &SurveyWiFiScanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := cli.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
+			sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, checklistitem.WifiScanTable, checklistitem.WifiScanColumn),
+		)
+		fromV = sqlgraph.Neighbors(cli.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCellScan queries the cell_scan edge of a CheckListItem.
+func (c *CheckListItemClient) QueryCellScan(cli *CheckListItem) *SurveyCellScanQuery {
+	query := &SurveyCellScanQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := cli.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistitem.Table, checklistitem.FieldID, id),
+			sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, checklistitem.CellScanTable, checklistitem.CellScanColumn),
 		)
 		fromV = sqlgraph.Neighbors(cli.driver.Dialect(), step)
 		return fromV, nil
@@ -1161,6 +1199,22 @@ func (c *EquipmentClient) QueryHyperlinks(e *Equipment) *HyperlinkQuery {
 			sqlgraph.From(equipment.Table, equipment.FieldID, id),
 			sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, equipment.HyperlinksTable, equipment.HyperlinksColumn),
+		)
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEndpoints queries the endpoints edge of a Equipment.
+func (c *EquipmentClient) QueryEndpoints(e *Equipment) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, id),
+			sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, equipment.EndpointsTable, equipment.EndpointsColumn),
 		)
 		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
 		return fromV, nil
@@ -2094,6 +2148,22 @@ func (c *EquipmentTypeClient) QueryCategory(et *EquipmentType) *EquipmentCategor
 			sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, id),
 			sqlgraph.To(equipmentcategory.Table, equipmentcategory.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, equipmenttype.CategoryTable, equipmenttype.CategoryColumn),
+		)
+		fromV = sqlgraph.Neighbors(et.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryServiceEndpointDefinitions queries the service_endpoint_definitions edge of a EquipmentType.
+func (c *EquipmentTypeClient) QueryServiceEndpointDefinitions(et *EquipmentType) *ServiceEndpointDefinitionQuery {
+	query := &ServiceEndpointDefinitionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := et.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, id),
+			sqlgraph.To(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, equipmenttype.ServiceEndpointDefinitionsTable, equipmenttype.ServiceEndpointDefinitionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(et.driver.Dialect(), step)
 		return fromV, nil
@@ -4290,6 +4360,22 @@ func (c *ServiceEndpointClient) QueryPort(se *ServiceEndpoint) *EquipmentPortQue
 	return query
 }
 
+// QueryEquipment queries the equipment edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryEquipment(se *ServiceEndpoint) *EquipmentQuery {
+	query := &EquipmentQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := se.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+			sqlgraph.To(equipment.Table, equipment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.EquipmentTable, serviceendpoint.EquipmentColumn),
+		)
+		fromV = sqlgraph.Neighbors(se.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryService queries the service edge of a ServiceEndpoint.
 func (c *ServiceEndpointClient) QueryService(se *ServiceEndpoint) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
@@ -4306,9 +4392,156 @@ func (c *ServiceEndpointClient) QueryService(se *ServiceEndpoint) *ServiceQuery 
 	return query
 }
 
+// QueryDefinition queries the definition edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryDefinition(se *ServiceEndpoint) *ServiceEndpointDefinitionQuery {
+	query := &ServiceEndpointDefinitionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := se.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+			sqlgraph.To(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceendpoint.DefinitionTable, serviceendpoint.DefinitionColumn),
+		)
+		fromV = sqlgraph.Neighbors(se.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ServiceEndpointClient) Hooks() []Hook {
 	return c.hooks.ServiceEndpoint
+}
+
+// ServiceEndpointDefinitionClient is a client for the ServiceEndpointDefinition schema.
+type ServiceEndpointDefinitionClient struct {
+	config
+}
+
+// NewServiceEndpointDefinitionClient returns a client for the ServiceEndpointDefinition from the given config.
+func NewServiceEndpointDefinitionClient(c config) *ServiceEndpointDefinitionClient {
+	return &ServiceEndpointDefinitionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `serviceendpointdefinition.Hooks(f(g(h())))`.
+func (c *ServiceEndpointDefinitionClient) Use(hooks ...Hook) {
+	c.hooks.ServiceEndpointDefinition = append(c.hooks.ServiceEndpointDefinition, hooks...)
+}
+
+// Create returns a create builder for ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) Create() *ServiceEndpointDefinitionCreate {
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpCreate)
+	return &ServiceEndpointDefinitionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) Update() *ServiceEndpointDefinitionUpdate {
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpUpdate)
+	return &ServiceEndpointDefinitionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ServiceEndpointDefinitionClient) UpdateOne(sed *ServiceEndpointDefinition) *ServiceEndpointDefinitionUpdateOne {
+	return c.UpdateOneID(sed.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ServiceEndpointDefinitionClient) UpdateOneID(id int) *ServiceEndpointDefinitionUpdateOne {
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpUpdateOne)
+	mutation.id = &id
+	return &ServiceEndpointDefinitionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) Delete() *ServiceEndpointDefinitionDelete {
+	mutation := newServiceEndpointDefinitionMutation(c.config, OpDelete)
+	return &ServiceEndpointDefinitionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ServiceEndpointDefinitionClient) DeleteOne(sed *ServiceEndpointDefinition) *ServiceEndpointDefinitionDeleteOne {
+	return c.DeleteOneID(sed.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ServiceEndpointDefinitionClient) DeleteOneID(id int) *ServiceEndpointDefinitionDeleteOne {
+	builder := c.Delete().Where(serviceendpointdefinition.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ServiceEndpointDefinitionDeleteOne{builder}
+}
+
+// Create returns a query builder for ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) Query() *ServiceEndpointDefinitionQuery {
+	return &ServiceEndpointDefinitionQuery{config: c.config}
+}
+
+// Get returns a ServiceEndpointDefinition entity by its id.
+func (c *ServiceEndpointDefinitionClient) Get(ctx context.Context, id int) (*ServiceEndpointDefinition, error) {
+	return c.Query().Where(serviceendpointdefinition.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ServiceEndpointDefinitionClient) GetX(ctx context.Context, id int) *ServiceEndpointDefinition {
+	sed, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return sed
+}
+
+// QueryEndpoints queries the endpoints edge of a ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) QueryEndpoints(sed *ServiceEndpointDefinition) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := sed.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID, id),
+			sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, serviceendpointdefinition.EndpointsTable, serviceendpointdefinition.EndpointsColumn),
+		)
+		fromV = sqlgraph.Neighbors(sed.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryServiceType queries the service_type edge of a ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) QueryServiceType(sed *ServiceEndpointDefinition) *ServiceTypeQuery {
+	query := &ServiceTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := sed.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID, id),
+			sqlgraph.To(servicetype.Table, servicetype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, serviceendpointdefinition.ServiceTypeTable, serviceendpointdefinition.ServiceTypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(sed.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEquipmentType queries the equipment_type edge of a ServiceEndpointDefinition.
+func (c *ServiceEndpointDefinitionClient) QueryEquipmentType(sed *ServiceEndpointDefinition) *EquipmentTypeQuery {
+	query := &EquipmentTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := sed.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID, id),
+			sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, serviceendpointdefinition.EquipmentTypeTable, serviceendpointdefinition.EquipmentTypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(sed.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ServiceEndpointDefinitionClient) Hooks() []Hook {
+	return c.hooks.ServiceEndpointDefinition
 }
 
 // ServiceTypeClient is a client for the ServiceType schema.
@@ -4414,6 +4647,22 @@ func (c *ServiceTypeClient) QueryPropertyTypes(st *ServiceType) *PropertyTypeQue
 			sqlgraph.From(servicetype.Table, servicetype.FieldID, id),
 			sqlgraph.To(propertytype.Table, propertytype.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
+		)
+		fromV = sqlgraph.Neighbors(st.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEndpointDefinitions queries the endpoint_definitions edge of a ServiceType.
+func (c *ServiceTypeClient) QueryEndpointDefinitions(st *ServiceType) *ServiceEndpointDefinitionQuery {
+	query := &ServiceEndpointDefinitionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := st.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(servicetype.Table, servicetype.FieldID, id),
+			sqlgraph.To(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, servicetype.EndpointDefinitionsTable, servicetype.EndpointDefinitionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(st.driver.Dialect(), step)
 		return fromV, nil
@@ -4633,6 +4882,22 @@ func (c *SurveyCellScanClient) GetX(ctx context.Context, id int) *SurveyCellScan
 		panic(err)
 	}
 	return scs
+}
+
+// QueryChecklistItem queries the checklist_item edge of a SurveyCellScan.
+func (c *SurveyCellScanClient) QueryChecklistItem(scs *SurveyCellScan) *CheckListItemQuery {
+	query := &CheckListItemQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := scs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, id),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.ChecklistItemTable, surveycellscan.ChecklistItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(scs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QuerySurveyQuestion queries the survey_question edge of a SurveyCellScan.
@@ -5109,6 +5374,22 @@ func (c *SurveyWiFiScanClient) GetX(ctx context.Context, id int) *SurveyWiFiScan
 		panic(err)
 	}
 	return swfs
+}
+
+// QueryChecklistItem queries the checklist_item edge of a SurveyWiFiScan.
+func (c *SurveyWiFiScanClient) QueryChecklistItem(swfs *SurveyWiFiScan) *CheckListItemQuery {
+	query := &CheckListItemQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := swfs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, id),
+			sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.ChecklistItemTable, surveywifiscan.ChecklistItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(swfs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QuerySurveyQuestion queries the survey_question edge of a SurveyWiFiScan.

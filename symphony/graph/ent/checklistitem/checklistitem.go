@@ -28,6 +28,10 @@ const (
 
 	// EdgeFiles holds the string denoting the files edge name in mutations.
 	EdgeFiles = "files"
+	// EdgeWifiScan holds the string denoting the wifi_scan edge name in mutations.
+	EdgeWifiScan = "wifi_scan"
+	// EdgeCellScan holds the string denoting the cell_scan edge name in mutations.
+	EdgeCellScan = "cell_scan"
 	// EdgeWorkOrder holds the string denoting the work_order edge name in mutations.
 	EdgeWorkOrder = "work_order"
 
@@ -40,6 +44,20 @@ const (
 	FilesInverseTable = "files"
 	// FilesColumn is the table column denoting the files relation/edge.
 	FilesColumn = "check_list_item_files"
+	// WifiScanTable is the table the holds the wifi_scan relation/edge.
+	WifiScanTable = "survey_wi_fi_scans"
+	// WifiScanInverseTable is the table name for the SurveyWiFiScan entity.
+	// It exists in this package in order to avoid circular dependency with the "surveywifiscan" package.
+	WifiScanInverseTable = "survey_wi_fi_scans"
+	// WifiScanColumn is the table column denoting the wifi_scan relation/edge.
+	WifiScanColumn = "survey_wi_fi_scan_checklist_item"
+	// CellScanTable is the table the holds the cell_scan relation/edge.
+	CellScanTable = "survey_cell_scans"
+	// CellScanInverseTable is the table name for the SurveyCellScan entity.
+	// It exists in this package in order to avoid circular dependency with the "surveycellscan" package.
+	CellScanInverseTable = "survey_cell_scans"
+	// CellScanColumn is the table column denoting the cell_scan relation/edge.
+	CellScanColumn = "survey_cell_scan_checklist_item"
 	// WorkOrderTable is the table the holds the work_order relation/edge.
 	WorkOrderTable = "check_list_items"
 	// WorkOrderInverseTable is the table name for the WorkOrder entity.

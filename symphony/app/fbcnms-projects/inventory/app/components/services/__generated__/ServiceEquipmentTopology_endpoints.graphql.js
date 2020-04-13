@@ -14,21 +14,20 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServiceEquipmentTopology_endpoints$ref: FragmentReference;
 declare export opaque type ServiceEquipmentTopology_endpoints$fragmentType: ServiceEquipmentTopology_endpoints$ref;
 export type ServiceEquipmentTopology_endpoints = $ReadOnlyArray<{|
-  +role: ServiceEndpointRole,
-  +port: {|
-    +parentEquipment: {|
-      +id: string,
-      +positionHierarchy: $ReadOnlyArray<{|
-        +parentEquipment: {|
-          +id: string
-        |}
-      |}>,
-    |}
+  +definition: {|
+    +role: string
+  |},
+  +equipment: {|
+    +id: string,
+    +positionHierarchy: $ReadOnlyArray<{|
+      +parentEquipment: {|
+        +id: string
+      |}
+    |}>,
   |},
   +$refType: ServiceEquipmentTopology_endpoints$ref,
 |}>;
@@ -59,52 +58,52 @@ return {
   "argumentDefinitions": [],
   "selections": [
     {
-      "kind": "ScalarField",
+      "kind": "LinkedField",
       "alias": null,
-      "name": "role",
+      "name": "definition",
+      "storageKey": null,
       "args": null,
-      "storageKey": null
+      "concreteType": "ServiceEndpointDefinition",
+      "plural": false,
+      "selections": [
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "role",
+          "args": null,
+          "storageKey": null
+        }
+      ]
     },
     {
       "kind": "LinkedField",
       "alias": null,
-      "name": "port",
+      "name": "equipment",
       "storageKey": null,
       "args": null,
-      "concreteType": "EquipmentPort",
+      "concreteType": "Equipment",
       "plural": false,
       "selections": [
+        (v0/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
-          "name": "parentEquipment",
+          "name": "positionHierarchy",
           "storageKey": null,
           "args": null,
-          "concreteType": "Equipment",
-          "plural": false,
+          "concreteType": "EquipmentPosition",
+          "plural": true,
           "selections": [
-            (v0/*: any*/),
             {
               "kind": "LinkedField",
               "alias": null,
-              "name": "positionHierarchy",
+              "name": "parentEquipment",
               "storageKey": null,
               "args": null,
-              "concreteType": "EquipmentPosition",
-              "plural": true,
+              "concreteType": "Equipment",
+              "plural": false,
               "selections": [
-                {
-                  "kind": "LinkedField",
-                  "alias": null,
-                  "name": "parentEquipment",
-                  "storageKey": null,
-                  "args": null,
-                  "concreteType": "Equipment",
-                  "plural": false,
-                  "selections": [
-                    (v0/*: any*/)
-                  ]
-                }
+                (v0/*: any*/)
               ]
             }
           ]
@@ -115,5 +114,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'fefef731e1a8ed1be6e4d21a1a0b7781';
+(node/*: any*/).hash = '085a9519bd88793b015ab955f716fb5f';
 module.exports = node;

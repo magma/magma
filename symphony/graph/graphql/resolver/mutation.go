@@ -233,13 +233,27 @@ func (r mutationResolver) AddSurveyTemplateQuestions(ctx context.Context, inputs
 	return questions, nil
 }
 
-func (r mutationResolver) AddWiFiScans(ctx context.Context, data []*models.SurveyWiFiScanData, locationID int) ([]*ent.SurveyWiFiScan, error) {
-	return r.CreateWiFiScans(ctx, data, nil, &locationID)
+type ScanParentIDs struct {
+	qid             *int
+	locationID      *int
+	checklistItemID *int
 }
 
-func (r mutationResolver) CreateWiFiScans(ctx context.Context, inputs []*models.SurveyWiFiScanData, qid, locationID *int) ([]*ent.SurveyWiFiScan, error) {
-	if qid == nil && locationID == nil {
-		return nil, errors.New("must specify either question or location")
+func validateScanParentIDs(ids ScanParentIDs) error {
+	if ids.qid == nil && ids.locationID == nil && ids.checklistItemID == nil {
+		return errors.New("must specify either question, location or checklist item")
+	}
+
+	return nil
+}
+
+func (r mutationResolver) AddWiFiScans(ctx context.Context, data []*models.SurveyWiFiScanData, locationID int) ([]*ent.SurveyWiFiScan, error) {
+	return r.CreateWiFiScans(ctx, data, ScanParentIDs{locationID: &locationID})
+}
+
+func (r mutationResolver) CreateWiFiScans(ctx context.Context, inputs []*models.SurveyWiFiScanData, parentIDs ScanParentIDs) ([]*ent.SurveyWiFiScan, error) {
+	if err := validateScanParentIDs(parentIDs); err != nil {
+		return nil, err
 	}
 	var (
 		client = r.ClientFrom(ctx).SurveyWiFiScan
@@ -259,8 +273,9 @@ func (r mutationResolver) CreateWiFiScans(ctx context.Context, inputs []*models.
 			SetNillableCapabilities(input.Capabilities).
 			SetNillableLatitude(input.Latitude).
 			SetNillableLongitude(input.Longitude).
-			SetNillableSurveyQuestionID(qid).
-			SetNillableLocationID(locationID).
+			SetNillableSurveyQuestionID(parentIDs.qid).
+			SetNillableLocationID(parentIDs.locationID).
+			SetNillableChecklistItemID(parentIDs.checklistItemID).
 			Save(ctx); err != nil {
 			return nil, fmt.Errorf("creating survey wifi scan: %w", err)
 		}
@@ -269,12 +284,12 @@ func (r mutationResolver) CreateWiFiScans(ctx context.Context, inputs []*models.
 }
 
 func (r mutationResolver) AddCellScans(ctx context.Context, data []*models.SurveyCellScanData, locationID int) ([]*ent.SurveyCellScan, error) {
-	return r.CreateCellScans(ctx, data, nil, &locationID)
+	return r.CreateCellScans(ctx, data, ScanParentIDs{locationID: &locationID})
 }
 
-func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.SurveyCellScanData, qid, locationID *int) ([]*ent.SurveyCellScan, error) {
-	if qid == nil && locationID == nil {
-		return nil, errors.New("must specify either question or location")
+func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.SurveyCellScanData, parentIDs ScanParentIDs) ([]*ent.SurveyCellScan, error) {
+	if err := validateScanParentIDs(parentIDs); err != nil {
+		return nil, err
 	}
 	var (
 		client = r.ClientFrom(ctx).SurveyCellScan
@@ -308,8 +323,9 @@ func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.
 			SetNillableUarfcn(input.Uarfcn).
 			SetNillableLatitude(input.Latitude).
 			SetNillableLongitude(input.Longitude).
-			SetNillableSurveyQuestionID(qid).
-			SetNillableLocationID(locationID).
+			SetNillableSurveyQuestionID(parentIDs.qid).
+			SetNillableLocationID(parentIDs.locationID).
+			SetNillableChecklistItemID(parentIDs.checklistItemID).
 			Save(ctx); err != nil {
 			return nil, fmt.Errorf("creating survey cell scan: %w", err)
 		}
@@ -402,9 +418,9 @@ func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCr
 		if sr.QuestionFormat != nil {
 			switch *sr.QuestionFormat {
 			case models.SurveyQuestionTypeWifi:
-				_, err = r.CreateWiFiScans(ctx, sr.WifiData, &question.ID, nil)
+				_, err = r.CreateWiFiScans(ctx, sr.WifiData, ScanParentIDs{qid: &question.ID})
 			case models.SurveyQuestionTypeCellular:
-				_, err = r.CreateCellScans(ctx, sr.CellData, &question.ID, nil)
+				_, err = r.CreateCellScans(ctx, sr.CellData, ScanParentIDs{qid: &question.ID})
 			}
 		}
 		if err != nil {

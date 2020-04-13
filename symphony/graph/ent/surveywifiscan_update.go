@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
@@ -226,6 +227,25 @@ func (swfsu *SurveyWiFiScanUpdate) ClearLongitude() *SurveyWiFiScanUpdate {
 	return swfsu
 }
 
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (swfsu *SurveyWiFiScanUpdate) SetChecklistItemID(id int) *SurveyWiFiScanUpdate {
+	swfsu.mutation.SetChecklistItemID(id)
+	return swfsu
+}
+
+// SetNillableChecklistItemID sets the checklist_item edge to CheckListItem by id if the given value is not nil.
+func (swfsu *SurveyWiFiScanUpdate) SetNillableChecklistItemID(id *int) *SurveyWiFiScanUpdate {
+	if id != nil {
+		swfsu = swfsu.SetChecklistItemID(*id)
+	}
+	return swfsu
+}
+
+// SetChecklistItem sets the checklist_item edge to CheckListItem.
+func (swfsu *SurveyWiFiScanUpdate) SetChecklistItem(c *CheckListItem) *SurveyWiFiScanUpdate {
+	return swfsu.SetChecklistItemID(c.ID)
+}
+
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (swfsu *SurveyWiFiScanUpdate) SetSurveyQuestionID(id int) *SurveyWiFiScanUpdate {
 	swfsu.mutation.SetSurveyQuestionID(id)
@@ -262,6 +282,12 @@ func (swfsu *SurveyWiFiScanUpdate) SetNillableLocationID(id *int) *SurveyWiFiSca
 // SetLocation sets the location edge to Location.
 func (swfsu *SurveyWiFiScanUpdate) SetLocation(l *Location) *SurveyWiFiScanUpdate {
 	return swfsu.SetLocationID(l.ID)
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (swfsu *SurveyWiFiScanUpdate) ClearChecklistItem() *SurveyWiFiScanUpdate {
+	swfsu.mutation.ClearChecklistItem()
+	return swfsu
 }
 
 // ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
@@ -510,6 +536,41 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Type:   field.TypeFloat64,
 			Column: surveywifiscan.FieldLongitude,
 		})
+	}
+	if swfsu.mutation.ChecklistItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveywifiscan.ChecklistItemTable,
+			Columns: []string{surveywifiscan.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := swfsu.mutation.ChecklistItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveywifiscan.ChecklistItemTable,
+			Columns: []string{surveywifiscan.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if swfsu.mutation.SurveyQuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -791,6 +852,25 @@ func (swfsuo *SurveyWiFiScanUpdateOne) ClearLongitude() *SurveyWiFiScanUpdateOne
 	return swfsuo
 }
 
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (swfsuo *SurveyWiFiScanUpdateOne) SetChecklistItemID(id int) *SurveyWiFiScanUpdateOne {
+	swfsuo.mutation.SetChecklistItemID(id)
+	return swfsuo
+}
+
+// SetNillableChecklistItemID sets the checklist_item edge to CheckListItem by id if the given value is not nil.
+func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableChecklistItemID(id *int) *SurveyWiFiScanUpdateOne {
+	if id != nil {
+		swfsuo = swfsuo.SetChecklistItemID(*id)
+	}
+	return swfsuo
+}
+
+// SetChecklistItem sets the checklist_item edge to CheckListItem.
+func (swfsuo *SurveyWiFiScanUpdateOne) SetChecklistItem(c *CheckListItem) *SurveyWiFiScanUpdateOne {
+	return swfsuo.SetChecklistItemID(c.ID)
+}
+
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetSurveyQuestionID(id int) *SurveyWiFiScanUpdateOne {
 	swfsuo.mutation.SetSurveyQuestionID(id)
@@ -827,6 +907,12 @@ func (swfsuo *SurveyWiFiScanUpdateOne) SetNillableLocationID(id *int) *SurveyWiF
 // SetLocation sets the location edge to Location.
 func (swfsuo *SurveyWiFiScanUpdateOne) SetLocation(l *Location) *SurveyWiFiScanUpdateOne {
 	return swfsuo.SetLocationID(l.ID)
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (swfsuo *SurveyWiFiScanUpdateOne) ClearChecklistItem() *SurveyWiFiScanUpdateOne {
+	swfsuo.mutation.ClearChecklistItem()
+	return swfsuo
 }
 
 // ClearSurveyQuestion clears the survey_question edge to SurveyQuestion.
@@ -1073,6 +1159,41 @@ func (swfsuo *SurveyWiFiScanUpdateOne) sqlSave(ctx context.Context) (swfs *Surve
 			Type:   field.TypeFloat64,
 			Column: surveywifiscan.FieldLongitude,
 		})
+	}
+	if swfsuo.mutation.ChecklistItemCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveywifiscan.ChecklistItemTable,
+			Columns: []string{surveywifiscan.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := swfsuo.mutation.ChecklistItemIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   surveywifiscan.ChecklistItemTable,
+			Columns: []string{surveywifiscan.ChecklistItemColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: checklistitem.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if swfsuo.mutation.SurveyQuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{

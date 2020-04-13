@@ -426,7 +426,9 @@ func init() {
 	proto.RegisterType((*ExecutionError)(nil), "graph.executionError")
 }
 
-func init() { proto.RegisterFile("rpc.proto", fileDescriptor_77a6da22d6a3feb1) }
+func init() {
+	proto.RegisterFile("rpc.proto", fileDescriptor_77a6da22d6a3feb1)
+}
 
 var fileDescriptor_77a6da22d6a3feb1 = []byte{
 	// 570 bytes of a gzipped FileDescriptorProto
@@ -470,11 +472,11 @@ var fileDescriptor_77a6da22d6a3feb1 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // TenantServiceClient is the client API for TenantService service.
 //
@@ -488,10 +490,10 @@ type TenantServiceClient interface {
 }
 
 type tenantServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewTenantServiceClient(cc *grpc.ClientConn) TenantServiceClient {
+func NewTenantServiceClient(cc grpc.ClientConnInterface) TenantServiceClient {
 	return &tenantServiceClient{cc}
 }
 
@@ -701,10 +703,10 @@ type UserServiceClient interface {
 }
 
 type userServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewUserServiceClient(cc *grpc.ClientConn) UserServiceClient {
+func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
 }
 
@@ -808,10 +810,10 @@ type ActionsAlertServiceClient interface {
 }
 
 type actionsAlertServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewActionsAlertServiceClient(cc *grpc.ClientConn) ActionsAlertServiceClient {
+func NewActionsAlertServiceClient(cc grpc.ClientConnInterface) ActionsAlertServiceClient {
 	return &actionsAlertServiceClient{cc}
 }
 

@@ -31,7 +31,9 @@ mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
           }
         }
       }
-      role
+      definition {
+        role
+      }
     }
     links {
       id

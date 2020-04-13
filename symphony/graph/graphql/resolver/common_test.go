@@ -55,14 +55,11 @@ func newResolver(t *testing.T, drv dialect.Driver, opts ...Option) *TestResolver
 	require.NoError(t, c.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
 
 	emitter, subscriber := event.Pipe()
-	r := New(
-		Config{
-			Logger:     logtest.NewTestLogger(t),
-			Emitter:    emitter,
-			Subscriber: subscriber,
-		},
-		opts...,
-	)
+	logger := logtest.NewTestLogger(t)
+	eventer := event.Eventer{Logger: logger, Emitter: emitter}
+	eventer.HookTo(c)
+
+	r := New(Config{Logger: logger, Subscriber: subscriber}, opts...)
 	return &TestResolver{r, drv, c}
 }
 

@@ -521,6 +521,34 @@ func HasCategoryWith(preds ...predicate.EquipmentCategory) predicate.EquipmentTy
 	})
 }
 
+// HasServiceEndpointDefinitions applies the HasEdge predicate on the "service_endpoint_definitions" edge.
+func HasServiceEndpointDefinitions() predicate.EquipmentType {
+	return predicate.EquipmentType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ServiceEndpointDefinitionsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ServiceEndpointDefinitionsTable, ServiceEndpointDefinitionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasServiceEndpointDefinitionsWith applies the HasEdge predicate on the "service_endpoint_definitions" edge with a given conditions (other predicates).
+func HasServiceEndpointDefinitionsWith(preds ...predicate.ServiceEndpointDefinition) predicate.EquipmentType {
+	return predicate.EquipmentType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ServiceEndpointDefinitionsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ServiceEndpointDefinitionsTable, ServiceEndpointDefinitionsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.EquipmentType) predicate.EquipmentType {
 	return predicate.EquipmentType(func(s *sql.Selector) {

@@ -9,14 +9,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/service"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -137,23 +133,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: validating existing port: id %v", err.Error(), id)})
 						continue
 					}
-					consumerServiceIds, providerServiceIds, err := m.validateServicesForPortEndpoints(ctx, importLine)
-					if err != nil {
-						errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: validating services where the port is to be endpoint for the services: id %v", err.Error(), id)})
-						continue
-					}
-					if commit {
-						err = m.editServiceEndpoints(ctx, port, consumerServiceIds, models.ServiceEndpointRoleConsumer)
-						if err != nil {
-							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%v: editing services where the port is to be consumer endpoint for the services: id %v", err.Error(), id)})
-							continue
-						}
-						err = m.editServiceEndpoints(ctx, port, providerServiceIds, models.ServiceEndpointRoleProvider)
-						if err != nil {
-							errs = append(errs, ErrorLine{Line: numRows, Error: err.Error(), Message: fmt.Sprintf("%q: editing services where the port is to be provider endpoint for the services: id %v", err.Error(), id)})
-							continue
-						}
-					}
+					// TODO T64283840: support editing services for ports (by endpoint type role)
 					var propInputs []*models.PropertyInput
 					parent := port.QueryParent().OnlyX(ctx)
 					definition := port.QueryDefinition().OnlyX(ctx)
@@ -242,64 +222,9 @@ func (m *importer) inputValidationsPorts(ctx context.Context, importHeader Impor
 	if !equal(firstLine[:locStart], []string{"Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}) {
 		return errors.New("first line misses sequence; 'Port ID','Port Name','Port Type','Equipment Name' or 'Equipment Type'")
 	}
-	if !equal(firstLine[prnt3Idx:importHeader.PropertyStartIdx()], []string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position", "Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment", "Consumer Endpoint for These Services", "Provider Endpoint for These Services"}) {
-		return errors.New("first line should include: 'Parent Equipment (3)', 'Parent Equipment (2)', 'Parent Equipment', 'Equipment Position' 'Linked Port ID', 'Linked Port Name', 'Linked Equipment ID', 'Linked Equipment', 'Consumer Endpoint for These Services', 'Provider Endpoint for These Services'")
+	if !equal(firstLine[prnt3Idx:importHeader.PropertyStartIdx()], []string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position", "Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment", "Service Names"}) {
+		return errors.New("first line should include: 'Parent Equipment (3)', 'Parent Equipment (2)', 'Parent Equipment', 'Equipment Position' 'Linked Port ID', 'Linked Port Name', 'Linked Equipment ID', 'Linked Equipment', 'Service Names'")
 	}
 	err := m.validateAllLocationTypeExist(ctx, 5, importHeader.LocationTypesRangeArr(), false)
 	return err
-}
-
-func (m *importer) validateServicesForPortEndpoints(ctx context.Context, line ImportRecord) ([]int, []int, error) {
-	serviceNamesMap := make(map[string]bool)
-	var consumerServiceIds, providerServiceIds []int
-	consumerServiceNames := strings.Split(line.ConsumerPortsServices(), ";")
-	for _, serviceName := range consumerServiceNames {
-		if serviceName != "" {
-			serviceID, err := m.validateServiceExistsAndUnique(ctx, serviceNamesMap, serviceName)
-			if err != nil {
-				return nil, nil, err
-			}
-			consumerServiceIds = append(consumerServiceIds, serviceID)
-		}
-
-	}
-	providerServiceNames := strings.Split(line.ProviderPortsServices(), ";")
-	for _, serviceName := range providerServiceNames {
-		if serviceName != "" {
-			serviceID, err := m.validateServiceExistsAndUnique(ctx, serviceNamesMap, serviceName)
-			if err != nil {
-				return nil, nil, err
-			}
-			providerServiceIds = append(providerServiceIds, serviceID)
-		}
-	}
-	return consumerServiceIds, providerServiceIds, nil
-}
-
-func (m *importer) editServiceEndpoints(ctx context.Context, port *ent.EquipmentPort, serviceIds []int, role models.ServiceEndpointRole) error {
-	mutation := m.r.Mutation()
-	currentServiceIds, err := port.QueryEndpoints().Where(serviceendpoint.Role(role.String())).QueryService().IDs(ctx)
-	if err != nil {
-		return err
-	}
-	addedServiceIds, deletedServiceIds := resolverutil.GetDifferenceBetweenSlices(currentServiceIds, serviceIds)
-	for _, serviceID := range addedServiceIds {
-		if _, err := mutation.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-			ID:     serviceID,
-			PortID: port.ID,
-			Role:   role,
-		}); err != nil {
-			return err
-		}
-	}
-	for _, serviceID := range deletedServiceIds {
-		serviceEndpointID, err := port.QueryEndpoints().Where(serviceendpoint.HasServiceWith(service.ID(serviceID))).OnlyID(ctx)
-		if err != nil {
-			return err
-		}
-		if _, err := mutation.RemoveServiceEndpoint(ctx, serviceEndpointID); err != nil {
-			return err
-		}
-	}
-	return nil
 }

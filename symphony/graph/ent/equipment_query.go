@@ -25,6 +25,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -46,6 +47,7 @@ type EquipmentQuery struct {
 	withProperties     *PropertyQuery
 	withFiles          *FileQuery
 	withHyperlinks     *HyperlinkQuery
+	withEndpoints      *ServiceEndpointQuery
 	withFKs            bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -231,6 +233,24 @@ func (eq *EquipmentQuery) QueryHyperlinks() *HyperlinkQuery {
 			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
 			sqlgraph.To(hyperlink.Table, hyperlink.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, equipment.HyperlinksTable, equipment.HyperlinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEndpoints chains the current query on the endpoints edge.
+func (eq *EquipmentQuery) QueryEndpoints() *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: eq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+			sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, equipment.EndpointsTable, equipment.EndpointsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 		return fromU, nil
@@ -516,6 +536,17 @@ func (eq *EquipmentQuery) WithHyperlinks(opts ...func(*HyperlinkQuery)) *Equipme
 	return eq
 }
 
+//  WithEndpoints tells the query-builder to eager-loads the nodes that are connected to
+// the "endpoints" edge. The optional arguments used to configure the query builder of the edge.
+func (eq *EquipmentQuery) WithEndpoints(opts ...func(*ServiceEndpointQuery)) *EquipmentQuery {
+	query := &ServiceEndpointQuery{config: eq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	eq.withEndpoints = query
+	return eq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -583,7 +614,7 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 		nodes       = []*Equipment{}
 		withFKs     = eq.withFKs
 		_spec       = eq.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [10]bool{
 			eq.withType != nil,
 			eq.withLocation != nil,
 			eq.withParentPosition != nil,
@@ -593,6 +624,7 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 			eq.withProperties != nil,
 			eq.withFiles != nil,
 			eq.withHyperlinks != nil,
+			eq.withEndpoints != nil,
 		}
 	)
 	if eq.withType != nil || eq.withLocation != nil || eq.withParentPosition != nil || eq.withWorkOrder != nil {
@@ -862,6 +894,34 @@ func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
 				return nil, fmt.Errorf(`unexpected foreign-key "equipment_hyperlinks" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Hyperlinks = append(node.Edges.Hyperlinks, n)
+		}
+	}
+
+	if query := eq.withEndpoints; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Equipment)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.ServiceEndpoint(func(s *sql.Selector) {
+			s.Where(sql.InValues(equipment.EndpointsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.service_endpoint_equipment
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "service_endpoint_equipment" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "service_endpoint_equipment" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Endpoints = append(node.Edges.Endpoints, n)
 		}
 	}
 

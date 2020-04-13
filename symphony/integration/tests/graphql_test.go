@@ -17,11 +17,10 @@ import (
 	"time"
 
 	"github.com/AlekSi/pointer"
+	"github.com/cenkalti/backoff"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
-
-	"github.com/cenkalti/backoff"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/uuid"
 	"github.com/shurcooL/graphql"

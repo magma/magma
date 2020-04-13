@@ -216,10 +216,20 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s.ID, l2.ID)
 	require.NoError(t, err)
+
+	ept, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
+		Name:            "endpoint type1",
+		Role:            pointer.ToString("CONSUMER"),
+		ServiceTypeID:   st.ID,
+		EquipmentTypeID: eqt.ID,
+	})
+	require.NoError(t, err)
+
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -311,10 +321,20 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s.ID, l.ID)
 	require.NoError(t, err)
+
+	ept, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
+		Name:            "endpoint type1",
+		Role:            pointer.ToString("CONSUMER"),
+		ServiceTypeID:   st.ID,
+		EquipmentTypeID: card.ID,
+	})
+	require.NoError(t, err)
+
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s.ID,
+		EquipmentID: card1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -596,17 +616,27 @@ func TestAddEndpointsToService(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     service.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+	ept, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
+		Name:            "endpoint type1",
+		Role:            pointer.ToString("CONSUMER"),
+		ServiceTypeID:   serviceType.ID,
+		EquipmentTypeID: eqType.ID,
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     service.ID,
-		PortID: ep2.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          service.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:          service.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep2.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -618,9 +648,10 @@ func TestAddEndpointsToService(t *testing.T) {
 	e1 := fetchedService.QueryEndpoints().Where(serviceendpoint.HasPortWith(equipmentport.ID(ep1.ID))).OnlyX(ctx)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     service.ID,
-		PortID: ep3.ID,
-		Role:   models.ServiceEndpointRoleProvider,
+		ID:          service.ID,
+		EquipmentID: eq3.ID,
+		PortID:      pointer.ToInt(ep3.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -704,10 +735,20 @@ func TestServicesOfEquipment(t *testing.T) {
 		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
+
+	ept, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
+		Name:            "endpoint type1",
+		Role:            pointer.ToString("CONSUMER"),
+		ServiceTypeID:   st.ID,
+		EquipmentTypeID: eqt.ID,
+	})
+	require.NoError(t, err)
+
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s1.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s1.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -722,9 +763,10 @@ func TestServicesOfEquipment(t *testing.T) {
 	_, err = mr.AddServiceLink(ctx, s2.ID, l2.ID)
 	require.NoError(t, err)
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
-		ID:     s2.ID,
-		PortID: ep1.ID,
-		Role:   models.ServiceEndpointRoleConsumer,
+		ID:          s2.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept.ID,
 	})
 	require.NoError(t, err)
 
@@ -788,4 +830,112 @@ func TestAddServiceWithServiceProperty(t *testing.T) {
 	serviceValue := serviceProp.QueryServiceValue().OnlyX(ctx)
 
 	require.Equal(t, "service_1", serviceValue.Name)
+}
+
+func TestAddServiceEndpointType(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr := r.Mutation()
+
+	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
+		Name: "loc_type_name",
+	})
+	require.NoError(t, err)
+
+	location, err := mr.AddLocation(ctx, models.AddLocationInput{
+		Name: "loc_inst_name",
+		Type: locType.ID,
+	})
+	require.NoError(t, err)
+
+	eqType1, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name: "eq_type_name",
+		Ports: []*models.EquipmentPortInput{
+			{Name: "typ1_p1"},
+		},
+	})
+	require.NoError(t, err)
+	defs1 := eqType1.QueryPortDefinitions().AllX(ctx)
+
+	eqType2, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name: "eq_type_name2",
+		Ports: []*models.EquipmentPortInput{
+			{Name: "typ1_p1"},
+		},
+	})
+	require.NoError(t, err)
+	defs2 := eqType2.QueryPortDefinitions().AllX(ctx)
+
+	eq1, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     "eq_inst_name_1",
+		Type:     eqType1.ID,
+		Location: &location.ID,
+	})
+	require.NoError(t, err)
+
+	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(defs1[0].ID))).OnlyX(ctx)
+
+	eq2, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     "eq_inst_name_2",
+		Type:     eqType2.ID,
+		Location: &location.ID,
+	})
+	require.NoError(t, err)
+
+	ep2 := eq2.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(defs2[0].ID))).OnlyX(ctx)
+
+	serviceType1, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
+		Name: "service_type_name",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "service_type_name", serviceType1.Name)
+
+	ept1, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
+		Name:            "endpoint type1",
+		Role:            pointer.ToString("CONSUMER"),
+		ServiceTypeID:   serviceType1.ID,
+		EquipmentTypeID: eqType1.ID,
+	})
+	require.NoError(t, err)
+	service1, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Kent building, room 201",
+		ServiceTypeID: serviceType1.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:          service1.ID,
+		EquipmentID: eq1.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept1.ID,
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:          service1.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep2.ID),
+		Definition:  ept1.ID,
+	})
+	require.Error(t, err, "port equipment is of different type than service type")
+
+	serviceType2, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
+		Name: "service_type_name2",
+	})
+	require.NoError(t, err)
+	service2, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Kent2 building, room 401",
+		ServiceTypeID: serviceType2.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:          service2.ID,
+		EquipmentID: eq2.ID,
+		PortID:      pointer.ToInt(ep1.ID),
+		Definition:  ept1.ID,
+	})
+	require.Error(t, err, "service is of different type than service endpoint type")
 }

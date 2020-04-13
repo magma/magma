@@ -44,6 +44,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -2771,6 +2772,98 @@ func (se *ServiceEndpointQuery) collectConnectionFields(ctx context.Context) *Se
 		se = se.collectField(graphql.GetRequestContext(ctx), *field)
 	}
 	return se
+}
+
+// ServiceEndpointDefinitionEdge is the edge representation of ServiceEndpointDefinition.
+type ServiceEndpointDefinitionEdge struct {
+	Node   *ServiceEndpointDefinition `json:"node"`
+	Cursor Cursor                     `json:"cursor"`
+}
+
+// ServiceEndpointDefinitionConnection is the connection containing edges to ServiceEndpointDefinition.
+type ServiceEndpointDefinitionConnection struct {
+	Edges    []*ServiceEndpointDefinitionEdge `json:"edges"`
+	PageInfo PageInfo                         `json:"pageInfo"`
+}
+
+// Paginate executes the query and returns a relay based cursor connection to ServiceEndpointDefinition.
+func (sed *ServiceEndpointDefinitionQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ServiceEndpointDefinitionConnection, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &ServiceEndpointDefinitionConnection{
+				Edges: []*ServiceEndpointDefinitionEdge{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &ServiceEndpointDefinitionConnection{
+				Edges: []*ServiceEndpointDefinitionEdge{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		sed = sed.Where(serviceendpointdefinition.IDGT(after.ID))
+	}
+	if before != nil {
+		sed = sed.Where(serviceendpointdefinition.IDLT(before.ID))
+	}
+	if first != nil {
+		sed = sed.Order(Asc(serviceendpointdefinition.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		sed = sed.Order(Desc(serviceendpointdefinition.FieldID)).Limit(*last + 1)
+	}
+	sed = sed.collectConnectionFields(ctx)
+
+	nodes, err := sed.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &ServiceEndpointDefinitionConnection{
+			Edges: []*ServiceEndpointDefinitionEdge{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn ServiceEndpointDefinitionConnection
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*ServiceEndpointDefinitionEdge, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &ServiceEndpointDefinitionEdge{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+func (sed *ServiceEndpointDefinitionQuery) collectConnectionFields(ctx context.Context) *ServiceEndpointDefinitionQuery {
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		sed = sed.collectField(graphql.GetRequestContext(ctx), *field)
+	}
+	return sed
 }
 
 // ServiceTypeEdge is the edge representation of ServiceType.

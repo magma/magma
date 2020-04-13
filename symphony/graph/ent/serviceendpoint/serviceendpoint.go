@@ -16,13 +16,16 @@ const (
 	// FieldID holds the string denoting the id field in the database.
 	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
 	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldRole holds the string denoting the role vertex property in the database.
-	FieldRole       = "role"
+	FieldUpdateTime = "update_time"
 
 	// EdgePort holds the string denoting the port edge name in mutations.
 	EdgePort = "port"
+	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
+	EdgeEquipment = "equipment"
 	// EdgeService holds the string denoting the service edge name in mutations.
 	EdgeService = "service"
+	// EdgeDefinition holds the string denoting the definition edge name in mutations.
+	EdgeDefinition = "definition"
 
 	// Table holds the table name of the serviceendpoint in the database.
 	Table = "service_endpoints"
@@ -33,6 +36,13 @@ const (
 	PortInverseTable = "equipment_ports"
 	// PortColumn is the table column denoting the port relation/edge.
 	PortColumn = "service_endpoint_port"
+	// EquipmentTable is the table the holds the equipment relation/edge.
+	EquipmentTable = "service_endpoints"
+	// EquipmentInverseTable is the table name for the Equipment entity.
+	// It exists in this package in order to avoid circular dependency with the "equipment" package.
+	EquipmentInverseTable = "equipment"
+	// EquipmentColumn is the table column denoting the equipment relation/edge.
+	EquipmentColumn = "service_endpoint_equipment"
 	// ServiceTable is the table the holds the service relation/edge.
 	ServiceTable = "service_endpoints"
 	// ServiceInverseTable is the table name for the Service entity.
@@ -40,6 +50,13 @@ const (
 	ServiceInverseTable = "services"
 	// ServiceColumn is the table column denoting the service relation/edge.
 	ServiceColumn = "service_endpoints"
+	// DefinitionTable is the table the holds the definition relation/edge.
+	DefinitionTable = "service_endpoints"
+	// DefinitionInverseTable is the table name for the ServiceEndpointDefinition entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceendpointdefinition" package.
+	DefinitionInverseTable = "service_endpoint_definitions"
+	// DefinitionColumn is the table column denoting the definition relation/edge.
+	DefinitionColumn = "service_endpoint_definition_endpoints"
 )
 
 // Columns holds all SQL columns for serviceendpoint fields.
@@ -47,13 +64,14 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
-	FieldRole,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the ServiceEndpoint type.
 var ForeignKeys = []string{
 	"service_endpoints",
 	"service_endpoint_port",
+	"service_endpoint_equipment",
+	"service_endpoint_definition_endpoints",
 }
 
 var (

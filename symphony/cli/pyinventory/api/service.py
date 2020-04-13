@@ -25,7 +25,6 @@ from ..graphql.remove_service_mutation import RemoveServiceMutation
 from ..graphql.remove_service_type_mutation import RemoveServiceTypeMutation
 from ..graphql.service_create_data_input import ServiceCreateData
 from ..graphql.service_details_query import ServiceDetailsQuery
-from ..graphql.service_endpoint_role_enum import ServiceEndpointRole
 from ..graphql.service_status_enum import ServiceStatus
 from ..graphql.service_type_create_data_input import ServiceTypeCreateData
 from ..graphql.service_type_services_query import ServiceTypeServicesQuery
@@ -101,15 +100,16 @@ def add_service(
     returned_customer = result.customer
     endpoints = []
     for e in result.endpoints:
-        link = e.port.link
+        port = e.port
+        link = port.link if port is not None else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
                 port=EquipmentPort(
-                    id=e.port.id,
-                    properties=e.port.properties,
+                    id=port.id,
+                    properties=port.properties,
                     definition=EquipmentPortDefinition(
-                        id=e.port.definition.id, name=e.port.definition.name
+                        id=port.definition.id, name=port.definition.name
                     ),
                     link=Link(
                         link.id,
@@ -118,8 +118,11 @@ def add_service(
                     )
                     if link
                     else None,
-                ),
-                role=e.role.value,
+                )
+                if port
+                else None,
+                # TODO add service_endpoint_type api
+                type="1",
             )
         )
     return Service(
@@ -144,13 +147,13 @@ def add_service(
 
 
 def add_service_endpoint(
-    client: SymphonyClient,
-    service: Service,
-    port: EquipmentPort,
-    role: ServiceEndpointRole,
+    client: SymphonyClient, service: Service, port: EquipmentPort
 ) -> None:
     AddServiceEndpointMutation.execute(
-        client, input=AddServiceEndpointInput(id=service.id, portId=port.id, role=role)
+        client,
+        input=AddServiceEndpointInput(
+            id=service.id, portId=port.id, definition="1", equipmentID="1"
+        ),
     )
 
 
@@ -161,15 +164,16 @@ def get_service(client: SymphonyClient, id: str) -> Service:
     customer = result.customer
     endpoints = []
     for e in result.endpoints:
-        link = e.port.link
+        port = e.port
+        link = port.link if port is not None else None
         endpoints.append(
             ServiceEndpoint(
                 id=e.id,
                 port=EquipmentPort(
-                    id=e.port.id,
-                    properties=e.port.properties,
+                    id=port.id,
+                    properties=port.properties,
                     definition=EquipmentPortDefinition(
-                        id=e.port.definition.id, name=e.port.definition.name
+                        id=port.definition.id, name=port.definition.name
                     ),
                     link=Link(
                         id=link.id,
@@ -178,8 +182,11 @@ def get_service(client: SymphonyClient, id: str) -> Service:
                     )
                     if link
                     else None,
-                ),
-                role=e.role.value,
+                )
+                if port is not None
+                else None,
+                # TODO add service_endpoint_type api
+                type="1",
             )
         )
     return Service(

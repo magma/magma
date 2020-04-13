@@ -485,6 +485,7 @@ func TestViewerTenancy(t *testing.T) {
 				assert.True(t, viewer.Features.Enabled("feature1"))
 				assert.True(t, viewer.Features.Enabled("feature2"))
 				assert.False(t, viewer.Features.Enabled("feature3"))
+				assert.Equal(t, "feature1,feature2", viewer.Features.String())
 				w.WriteHeader(http.StatusAccepted)
 			}),
 			nil,

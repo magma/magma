@@ -50,7 +50,7 @@ class PropertyDefinition(NamedTuple):
     """
     Attributes:
         property_name (str): type name
-        property_type (str): enum["string", "int", "bool", "float", "date", "enum", "range", 
+        property_type (str): enum["string", "int", "bool", "float", "date", "enum", "range",
             "email", "gps_location", "equipment", "location", "service", "datetime_local"]
         default_value (PropertyValue): default property value
         is_fixed (bool): fixed value flag
@@ -138,7 +138,7 @@ class Link(NamedTuple):
     """
     Attributes:
         id (str): link ID
-        service_ids (List[str]): service IDs 
+        service_ids (List[str]): service IDs
     """
 
     id: str
@@ -199,8 +199,8 @@ class Customer(NamedTuple):
 
 class ServiceEndpoint(NamedTuple):
     id: str
-    port: EquipmentPort
-    role: str
+    port: Optional[EquipmentPort]
+    type: str
 
 
 class Service(NamedTuple):

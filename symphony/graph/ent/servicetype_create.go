@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
@@ -102,6 +103,21 @@ func (stc *ServiceTypeCreate) AddPropertyTypes(p ...*PropertyType) *ServiceTypeC
 		ids[i] = p[i].ID
 	}
 	return stc.AddPropertyTypeIDs(ids...)
+}
+
+// AddEndpointDefinitionIDs adds the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (stc *ServiceTypeCreate) AddEndpointDefinitionIDs(ids ...int) *ServiceTypeCreate {
+	stc.mutation.AddEndpointDefinitionIDs(ids...)
+	return stc
+}
+
+// AddEndpointDefinitions adds the endpoint_definitions edges to ServiceEndpointDefinition.
+func (stc *ServiceTypeCreate) AddEndpointDefinitions(s ...*ServiceEndpointDefinition) *ServiceTypeCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return stc.AddEndpointDefinitionIDs(ids...)
 }
 
 // Save creates the ServiceType in the database.
@@ -229,6 +245,25 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := stc.mutation.EndpointDefinitionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   servicetype.EndpointDefinitionsTable,
+			Columns: []string{servicetype.EndpointDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: serviceendpointdefinition.FieldID,
 				},
 			},
 		}

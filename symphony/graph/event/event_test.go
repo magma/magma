@@ -8,8 +8,44 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
+	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
+
+type eventTestSuite struct {
+	suite.Suite
+	ctx        context.Context
+	logger     log.Logger
+	client     *ent.Client
+	user       *ent.User
+	subscriber Subscriber
+}
+
+func (s *eventTestSuite) SetupSuite() {
+	db, name, err := testdb.Open()
+	s.Require().NoError(err)
+	db.SetMaxOpenConns(1)
+
+	ctx := context.Background()
+	s.client = ent.NewClient(ent.Driver(sql.OpenDB(name, db)))
+	err = s.client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true))
+	s.Require().NoError(err)
+	s.ctx = viewertest.NewContext(s.client)
+	s.user, _ = viewer.UserFromContext(s.ctx)
+	s.logger = logtest.NewTestLogger(s.T())
+
+	eventer := Eventer{Logger: s.logger}
+	eventer.Emitter, s.subscriber = Pipe()
+	eventer.HookTo(s.client)
+}
 
 func TestPipe(t *testing.T) {
 	emitter, subscriber := Pipe()

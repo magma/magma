@@ -39,6 +39,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -95,6 +96,7 @@ const (
 	TypeReportFilter                = "ReportFilter"
 	TypeService                     = "Service"
 	TypeServiceEndpoint             = "ServiceEndpoint"
+	TypeServiceEndpointDefinition   = "ServiceEndpointDefinition"
 	TypeServiceType                 = "ServiceType"
 	TypeSurvey                      = "Survey"
 	TypeSurveyCellScan              = "SurveyCellScan"
@@ -962,6 +964,10 @@ type CheckListItemMutation struct {
 	clearedFields        map[string]struct{}
 	files                map[int]struct{}
 	removedfiles         map[int]struct{}
+	wifi_scan            map[int]struct{}
+	removedwifi_scan     map[int]struct{}
+	cell_scan            map[int]struct{}
+	removedcell_scan     map[int]struct{}
 	work_order           *int
 	clearedwork_order    bool
 }
@@ -1363,6 +1369,90 @@ func (m *CheckListItemMutation) ResetFiles() {
 	m.removedfiles = nil
 }
 
+// AddWifiScanIDs adds the wifi_scan edge to SurveyWiFiScan by ids.
+func (m *CheckListItemMutation) AddWifiScanIDs(ids ...int) {
+	if m.wifi_scan == nil {
+		m.wifi_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.wifi_scan[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveWifiScanIDs removes the wifi_scan edge to SurveyWiFiScan by ids.
+func (m *CheckListItemMutation) RemoveWifiScanIDs(ids ...int) {
+	if m.removedwifi_scan == nil {
+		m.removedwifi_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedwifi_scan[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWifiScan returns the removed ids of wifi_scan.
+func (m *CheckListItemMutation) RemovedWifiScanIDs() (ids []int) {
+	for id := range m.removedwifi_scan {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WifiScanIDs returns the wifi_scan ids in the mutation.
+func (m *CheckListItemMutation) WifiScanIDs() (ids []int) {
+	for id := range m.wifi_scan {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWifiScan reset all changes of the wifi_scan edge.
+func (m *CheckListItemMutation) ResetWifiScan() {
+	m.wifi_scan = nil
+	m.removedwifi_scan = nil
+}
+
+// AddCellScanIDs adds the cell_scan edge to SurveyCellScan by ids.
+func (m *CheckListItemMutation) AddCellScanIDs(ids ...int) {
+	if m.cell_scan == nil {
+		m.cell_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.cell_scan[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveCellScanIDs removes the cell_scan edge to SurveyCellScan by ids.
+func (m *CheckListItemMutation) RemoveCellScanIDs(ids ...int) {
+	if m.removedcell_scan == nil {
+		m.removedcell_scan = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedcell_scan[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCellScan returns the removed ids of cell_scan.
+func (m *CheckListItemMutation) RemovedCellScanIDs() (ids []int) {
+	for id := range m.removedcell_scan {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CellScanIDs returns the cell_scan ids in the mutation.
+func (m *CheckListItemMutation) CellScanIDs() (ids []int) {
+	for id := range m.cell_scan {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCellScan reset all changes of the cell_scan edge.
+func (m *CheckListItemMutation) ResetCellScan() {
+	m.cell_scan = nil
+	m.removedcell_scan = nil
+}
+
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
 func (m *CheckListItemMutation) SetWorkOrderID(id int) {
 	m.work_order = &id
@@ -1707,9 +1797,15 @@ func (m *CheckListItemMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *CheckListItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.files != nil {
 		edges = append(edges, checklistitem.EdgeFiles)
+	}
+	if m.wifi_scan != nil {
+		edges = append(edges, checklistitem.EdgeWifiScan)
+	}
+	if m.cell_scan != nil {
+		edges = append(edges, checklistitem.EdgeCellScan)
 	}
 	if m.work_order != nil {
 		edges = append(edges, checklistitem.EdgeWorkOrder)
@@ -1727,6 +1823,18 @@ func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case checklistitem.EdgeWifiScan:
+		ids := make([]ent.Value, 0, len(m.wifi_scan))
+		for id := range m.wifi_scan {
+			ids = append(ids, id)
+		}
+		return ids
+	case checklistitem.EdgeCellScan:
+		ids := make([]ent.Value, 0, len(m.cell_scan))
+		for id := range m.cell_scan {
+			ids = append(ids, id)
+		}
+		return ids
 	case checklistitem.EdgeWorkOrder:
 		if id := m.work_order; id != nil {
 			return []ent.Value{*id}
@@ -1738,9 +1846,15 @@ func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *CheckListItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.removedfiles != nil {
 		edges = append(edges, checklistitem.EdgeFiles)
+	}
+	if m.removedwifi_scan != nil {
+		edges = append(edges, checklistitem.EdgeWifiScan)
+	}
+	if m.removedcell_scan != nil {
+		edges = append(edges, checklistitem.EdgeCellScan)
 	}
 	return edges
 }
@@ -1755,6 +1869,18 @@ func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case checklistitem.EdgeWifiScan:
+		ids := make([]ent.Value, 0, len(m.removedwifi_scan))
+		for id := range m.removedwifi_scan {
+			ids = append(ids, id)
+		}
+		return ids
+	case checklistitem.EdgeCellScan:
+		ids := make([]ent.Value, 0, len(m.removedcell_scan))
+		for id := range m.removedcell_scan {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1762,7 +1888,7 @@ func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *CheckListItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.clearedwork_order {
 		edges = append(edges, checklistitem.EdgeWorkOrder)
 	}
@@ -1797,6 +1923,12 @@ func (m *CheckListItemMutation) ResetEdge(name string) error {
 	switch name {
 	case checklistitem.EdgeFiles:
 		m.ResetFiles()
+		return nil
+	case checklistitem.EdgeWifiScan:
+		m.ResetWifiScan()
+		return nil
+	case checklistitem.EdgeCellScan:
+		m.ResetCellScan()
 		return nil
 	case checklistitem.EdgeWorkOrder:
 		m.ResetWorkOrder()
@@ -3223,6 +3355,8 @@ type EquipmentMutation struct {
 	removedfiles           map[int]struct{}
 	hyperlinks             map[int]struct{}
 	removedhyperlinks      map[int]struct{}
+	endpoints              map[int]struct{}
+	removedendpoints       map[int]struct{}
 }
 
 var _ ent.Mutation = (*EquipmentMutation)(nil)
@@ -3784,6 +3918,48 @@ func (m *EquipmentMutation) ResetHyperlinks() {
 	m.removedhyperlinks = nil
 }
 
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (m *EquipmentMutation) AddEndpointIDs(ids ...int) {
+	if m.endpoints == nil {
+		m.endpoints = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.endpoints[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
+func (m *EquipmentMutation) RemoveEndpointIDs(ids ...int) {
+	if m.removedendpoints == nil {
+		m.removedendpoints = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedendpoints[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEndpoints returns the removed ids of endpoints.
+func (m *EquipmentMutation) RemovedEndpointsIDs() (ids []int) {
+	for id := range m.removedendpoints {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EndpointsIDs returns the endpoints ids in the mutation.
+func (m *EquipmentMutation) EndpointsIDs() (ids []int) {
+	for id := range m.endpoints {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEndpoints reset all changes of the endpoints edge.
+func (m *EquipmentMutation) ResetEndpoints() {
+	m.endpoints = nil
+	m.removedendpoints = nil
+}
+
 // Op returns the operation name.
 func (m *EquipmentMutation) Op() Op {
 	return m.op
@@ -3984,7 +4160,7 @@ func (m *EquipmentMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *EquipmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m._type != nil {
 		edges = append(edges, equipment.EdgeType)
 	}
@@ -4011,6 +4187,9 @@ func (m *EquipmentMutation) AddedEdges() []string {
 	}
 	if m.hyperlinks != nil {
 		edges = append(edges, equipment.EdgeHyperlinks)
+	}
+	if m.endpoints != nil {
+		edges = append(edges, equipment.EdgeEndpoints)
 	}
 	return edges
 }
@@ -4065,6 +4244,12 @@ func (m *EquipmentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case equipment.EdgeEndpoints:
+		ids := make([]ent.Value, 0, len(m.endpoints))
+		for id := range m.endpoints {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -4072,7 +4257,7 @@ func (m *EquipmentMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *EquipmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.removedpositions != nil {
 		edges = append(edges, equipment.EdgePositions)
 	}
@@ -4087,6 +4272,9 @@ func (m *EquipmentMutation) RemovedEdges() []string {
 	}
 	if m.removedhyperlinks != nil {
 		edges = append(edges, equipment.EdgeHyperlinks)
+	}
+	if m.removedendpoints != nil {
+		edges = append(edges, equipment.EdgeEndpoints)
 	}
 	return edges
 }
@@ -4125,6 +4313,12 @@ func (m *EquipmentMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case equipment.EdgeEndpoints:
+		ids := make([]ent.Value, 0, len(m.removedendpoints))
+		for id := range m.removedendpoints {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -4132,7 +4326,7 @@ func (m *EquipmentMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *EquipmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.cleared_type {
 		edges = append(edges, equipment.EdgeType)
 	}
@@ -4215,6 +4409,9 @@ func (m *EquipmentMutation) ResetEdge(name string) error {
 		return nil
 	case equipment.EdgeHyperlinks:
 		m.ResetHyperlinks()
+		return nil
+	case equipment.EdgeEndpoints:
+		m.ResetEndpoints()
 		return nil
 	}
 	return fmt.Errorf("unknown Equipment edge %s", name)
@@ -7373,23 +7570,25 @@ func (m *EquipmentPositionDefinitionMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type EquipmentTypeMutation struct {
 	config
-	op                          Op
-	typ                         string
-	id                          *int
-	create_time                 *time.Time
-	update_time                 *time.Time
-	name                        *string
-	clearedFields               map[string]struct{}
-	port_definitions            map[int]struct{}
-	removedport_definitions     map[int]struct{}
-	position_definitions        map[int]struct{}
-	removedposition_definitions map[int]struct{}
-	property_types              map[int]struct{}
-	removedproperty_types       map[int]struct{}
-	equipment                   map[int]struct{}
-	removedequipment            map[int]struct{}
-	category                    *int
-	clearedcategory             bool
+	op                                  Op
+	typ                                 string
+	id                                  *int
+	create_time                         *time.Time
+	update_time                         *time.Time
+	name                                *string
+	clearedFields                       map[string]struct{}
+	port_definitions                    map[int]struct{}
+	removedport_definitions             map[int]struct{}
+	position_definitions                map[int]struct{}
+	removedposition_definitions         map[int]struct{}
+	property_types                      map[int]struct{}
+	removedproperty_types               map[int]struct{}
+	equipment                           map[int]struct{}
+	removedequipment                    map[int]struct{}
+	category                            *int
+	clearedcategory                     bool
+	service_endpoint_definitions        map[int]struct{}
+	removedservice_endpoint_definitions map[int]struct{}
 }
 
 var _ ent.Mutation = (*EquipmentTypeMutation)(nil)
@@ -7696,6 +7895,48 @@ func (m *EquipmentTypeMutation) ResetCategory() {
 	m.clearedcategory = false
 }
 
+// AddServiceEndpointDefinitionIDs adds the service_endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (m *EquipmentTypeMutation) AddServiceEndpointDefinitionIDs(ids ...int) {
+	if m.service_endpoint_definitions == nil {
+		m.service_endpoint_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.service_endpoint_definitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveServiceEndpointDefinitionIDs removes the service_endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (m *EquipmentTypeMutation) RemoveServiceEndpointDefinitionIDs(ids ...int) {
+	if m.removedservice_endpoint_definitions == nil {
+		m.removedservice_endpoint_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedservice_endpoint_definitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedServiceEndpointDefinitions returns the removed ids of service_endpoint_definitions.
+func (m *EquipmentTypeMutation) RemovedServiceEndpointDefinitionsIDs() (ids []int) {
+	for id := range m.removedservice_endpoint_definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ServiceEndpointDefinitionsIDs returns the service_endpoint_definitions ids in the mutation.
+func (m *EquipmentTypeMutation) ServiceEndpointDefinitionsIDs() (ids []int) {
+	for id := range m.service_endpoint_definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetServiceEndpointDefinitions reset all changes of the service_endpoint_definitions edge.
+func (m *EquipmentTypeMutation) ResetServiceEndpointDefinitions() {
+	m.service_endpoint_definitions = nil
+	m.removedservice_endpoint_definitions = nil
+}
+
 // Op returns the operation name.
 func (m *EquipmentTypeMutation) Op() Op {
 	return m.op
@@ -7830,7 +8071,7 @@ func (m *EquipmentTypeMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *EquipmentTypeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.port_definitions != nil {
 		edges = append(edges, equipmenttype.EdgePortDefinitions)
 	}
@@ -7845,6 +8086,9 @@ func (m *EquipmentTypeMutation) AddedEdges() []string {
 	}
 	if m.category != nil {
 		edges = append(edges, equipmenttype.EdgeCategory)
+	}
+	if m.service_endpoint_definitions != nil {
+		edges = append(edges, equipmenttype.EdgeServiceEndpointDefinitions)
 	}
 	return edges
 }
@@ -7881,6 +8125,12 @@ func (m *EquipmentTypeMutation) AddedIDs(name string) []ent.Value {
 		if id := m.category; id != nil {
 			return []ent.Value{*id}
 		}
+	case equipmenttype.EdgeServiceEndpointDefinitions:
+		ids := make([]ent.Value, 0, len(m.service_endpoint_definitions))
+		for id := range m.service_endpoint_definitions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -7888,7 +8138,7 @@ func (m *EquipmentTypeMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *EquipmentTypeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedport_definitions != nil {
 		edges = append(edges, equipmenttype.EdgePortDefinitions)
 	}
@@ -7900,6 +8150,9 @@ func (m *EquipmentTypeMutation) RemovedEdges() []string {
 	}
 	if m.removedequipment != nil {
 		edges = append(edges, equipmenttype.EdgeEquipment)
+	}
+	if m.removedservice_endpoint_definitions != nil {
+		edges = append(edges, equipmenttype.EdgeServiceEndpointDefinitions)
 	}
 	return edges
 }
@@ -7932,6 +8185,12 @@ func (m *EquipmentTypeMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case equipmenttype.EdgeServiceEndpointDefinitions:
+		ids := make([]ent.Value, 0, len(m.removedservice_endpoint_definitions))
+		for id := range m.removedservice_endpoint_definitions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -7939,7 +8198,7 @@ func (m *EquipmentTypeMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *EquipmentTypeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedcategory {
 		edges = append(edges, equipmenttype.EdgeCategory)
 	}
@@ -7986,6 +8245,9 @@ func (m *EquipmentTypeMutation) ResetEdge(name string) error {
 		return nil
 	case equipmenttype.EdgeCategory:
 		m.ResetCategory()
+		return nil
+	case equipmenttype.EdgeServiceEndpointDefinitions:
+		m.ResetServiceEndpointDefinitions()
 		return nil
 	}
 	return fmt.Errorf("unknown EquipmentType edge %s", name)
@@ -19262,17 +19524,20 @@ func (m *ServiceMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type ServiceEndpointMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	create_time    *time.Time
-	update_time    *time.Time
-	role           *string
-	clearedFields  map[string]struct{}
-	port           *int
-	clearedport    bool
-	service        *int
-	clearedservice bool
+	op                Op
+	typ               string
+	id                *int
+	create_time       *time.Time
+	update_time       *time.Time
+	clearedFields     map[string]struct{}
+	port              *int
+	clearedport       bool
+	equipment         *int
+	clearedequipment  bool
+	service           *int
+	clearedservice    bool
+	definition        *int
+	cleareddefinition bool
 }
 
 var _ ent.Mutation = (*ServiceEndpointMutation)(nil)
@@ -19353,25 +19618,6 @@ func (m *ServiceEndpointMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
 
-// SetRole sets the role field.
-func (m *ServiceEndpointMutation) SetRole(s string) {
-	m.role = &s
-}
-
-// Role returns the role value in the mutation.
-func (m *ServiceEndpointMutation) Role() (r string, exists bool) {
-	v := m.role
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetRole reset all changes of the role field.
-func (m *ServiceEndpointMutation) ResetRole() {
-	m.role = nil
-}
-
 // SetPortID sets the port edge to EquipmentPort by id.
 func (m *ServiceEndpointMutation) SetPortID(id int) {
 	m.port = &id
@@ -19409,6 +19655,45 @@ func (m *ServiceEndpointMutation) PortIDs() (ids []int) {
 func (m *ServiceEndpointMutation) ResetPort() {
 	m.port = nil
 	m.clearedport = false
+}
+
+// SetEquipmentID sets the equipment edge to Equipment by id.
+func (m *ServiceEndpointMutation) SetEquipmentID(id int) {
+	m.equipment = &id
+}
+
+// ClearEquipment clears the equipment edge to Equipment.
+func (m *ServiceEndpointMutation) ClearEquipment() {
+	m.clearedequipment = true
+}
+
+// EquipmentCleared returns if the edge equipment was cleared.
+func (m *ServiceEndpointMutation) EquipmentCleared() bool {
+	return m.clearedequipment
+}
+
+// EquipmentID returns the equipment id in the mutation.
+func (m *ServiceEndpointMutation) EquipmentID() (id int, exists bool) {
+	if m.equipment != nil {
+		return *m.equipment, true
+	}
+	return
+}
+
+// EquipmentIDs returns the equipment ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// EquipmentID instead. It exists only for internal usage by the builders.
+func (m *ServiceEndpointMutation) EquipmentIDs() (ids []int) {
+	if id := m.equipment; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEquipment reset all changes of the equipment edge.
+func (m *ServiceEndpointMutation) ResetEquipment() {
+	m.equipment = nil
+	m.clearedequipment = false
 }
 
 // SetServiceID sets the service edge to Service by id.
@@ -19450,6 +19735,45 @@ func (m *ServiceEndpointMutation) ResetService() {
 	m.clearedservice = false
 }
 
+// SetDefinitionID sets the definition edge to ServiceEndpointDefinition by id.
+func (m *ServiceEndpointMutation) SetDefinitionID(id int) {
+	m.definition = &id
+}
+
+// ClearDefinition clears the definition edge to ServiceEndpointDefinition.
+func (m *ServiceEndpointMutation) ClearDefinition() {
+	m.cleareddefinition = true
+}
+
+// DefinitionCleared returns if the edge definition was cleared.
+func (m *ServiceEndpointMutation) DefinitionCleared() bool {
+	return m.cleareddefinition
+}
+
+// DefinitionID returns the definition id in the mutation.
+func (m *ServiceEndpointMutation) DefinitionID() (id int, exists bool) {
+	if m.definition != nil {
+		return *m.definition, true
+	}
+	return
+}
+
+// DefinitionIDs returns the definition ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// DefinitionID instead. It exists only for internal usage by the builders.
+func (m *ServiceEndpointMutation) DefinitionIDs() (ids []int) {
+	if id := m.definition; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDefinition reset all changes of the definition edge.
+func (m *ServiceEndpointMutation) ResetDefinition() {
+	m.definition = nil
+	m.cleareddefinition = false
+}
+
 // Op returns the operation name.
 func (m *ServiceEndpointMutation) Op() Op {
 	return m.op
@@ -19464,15 +19788,12 @@ func (m *ServiceEndpointMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *ServiceEndpointMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 2)
 	if m.create_time != nil {
 		fields = append(fields, serviceendpoint.FieldCreateTime)
 	}
 	if m.update_time != nil {
 		fields = append(fields, serviceendpoint.FieldUpdateTime)
-	}
-	if m.role != nil {
-		fields = append(fields, serviceendpoint.FieldRole)
 	}
 	return fields
 }
@@ -19486,8 +19807,6 @@ func (m *ServiceEndpointMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case serviceendpoint.FieldUpdateTime:
 		return m.UpdateTime()
-	case serviceendpoint.FieldRole:
-		return m.Role()
 	}
 	return nil, false
 }
@@ -19510,13 +19829,6 @@ func (m *ServiceEndpointMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
-		return nil
-	case serviceendpoint.FieldRole:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRole(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceEndpoint field %s", name)
@@ -19574,9 +19886,6 @@ func (m *ServiceEndpointMutation) ResetField(name string) error {
 	case serviceendpoint.FieldUpdateTime:
 		m.ResetUpdateTime()
 		return nil
-	case serviceendpoint.FieldRole:
-		m.ResetRole()
-		return nil
 	}
 	return fmt.Errorf("unknown ServiceEndpoint field %s", name)
 }
@@ -19584,12 +19893,18 @@ func (m *ServiceEndpointMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *ServiceEndpointMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.port != nil {
 		edges = append(edges, serviceendpoint.EdgePort)
 	}
+	if m.equipment != nil {
+		edges = append(edges, serviceendpoint.EdgeEquipment)
+	}
 	if m.service != nil {
 		edges = append(edges, serviceendpoint.EdgeService)
+	}
+	if m.definition != nil {
+		edges = append(edges, serviceendpoint.EdgeDefinition)
 	}
 	return edges
 }
@@ -19602,8 +19917,16 @@ func (m *ServiceEndpointMutation) AddedIDs(name string) []ent.Value {
 		if id := m.port; id != nil {
 			return []ent.Value{*id}
 		}
+	case serviceendpoint.EdgeEquipment:
+		if id := m.equipment; id != nil {
+			return []ent.Value{*id}
+		}
 	case serviceendpoint.EdgeService:
 		if id := m.service; id != nil {
+			return []ent.Value{*id}
+		}
+	case serviceendpoint.EdgeDefinition:
+		if id := m.definition; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -19613,7 +19936,7 @@ func (m *ServiceEndpointMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *ServiceEndpointMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	return edges
 }
 
@@ -19628,12 +19951,18 @@ func (m *ServiceEndpointMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *ServiceEndpointMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 4)
 	if m.clearedport {
 		edges = append(edges, serviceendpoint.EdgePort)
 	}
+	if m.clearedequipment {
+		edges = append(edges, serviceendpoint.EdgeEquipment)
+	}
 	if m.clearedservice {
 		edges = append(edges, serviceendpoint.EdgeService)
+	}
+	if m.cleareddefinition {
+		edges = append(edges, serviceendpoint.EdgeDefinition)
 	}
 	return edges
 }
@@ -19644,8 +19973,12 @@ func (m *ServiceEndpointMutation) EdgeCleared(name string) bool {
 	switch name {
 	case serviceendpoint.EdgePort:
 		return m.clearedport
+	case serviceendpoint.EdgeEquipment:
+		return m.clearedequipment
 	case serviceendpoint.EdgeService:
 		return m.clearedservice
+	case serviceendpoint.EdgeDefinition:
+		return m.cleareddefinition
 	}
 	return false
 }
@@ -19657,8 +19990,14 @@ func (m *ServiceEndpointMutation) ClearEdge(name string) error {
 	case serviceendpoint.EdgePort:
 		m.ClearPort()
 		return nil
+	case serviceendpoint.EdgeEquipment:
+		m.ClearEquipment()
+		return nil
 	case serviceendpoint.EdgeService:
 		m.ClearService()
+		return nil
+	case serviceendpoint.EdgeDefinition:
+		m.ClearDefinition()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceEndpoint unique edge %s", name)
@@ -19672,29 +20011,651 @@ func (m *ServiceEndpointMutation) ResetEdge(name string) error {
 	case serviceendpoint.EdgePort:
 		m.ResetPort()
 		return nil
+	case serviceendpoint.EdgeEquipment:
+		m.ResetEquipment()
+		return nil
 	case serviceendpoint.EdgeService:
 		m.ResetService()
+		return nil
+	case serviceendpoint.EdgeDefinition:
+		m.ResetDefinition()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceEndpoint edge %s", name)
 }
 
-// ServiceTypeMutation represents an operation that mutate the ServiceTypes
+// ServiceEndpointDefinitionMutation represents an operation that mutate the ServiceEndpointDefinitions
 // nodes in the graph.
-type ServiceTypeMutation struct {
+type ServiceEndpointDefinitionMutation struct {
 	config
 	op                    Op
 	typ                   string
 	id                    *int
 	create_time           *time.Time
 	update_time           *time.Time
+	role                  *string
 	name                  *string
-	has_customer          *bool
+	index                 *int
+	addindex              *int
 	clearedFields         map[string]struct{}
-	services              map[int]struct{}
-	removedservices       map[int]struct{}
-	property_types        map[int]struct{}
-	removedproperty_types map[int]struct{}
+	endpoints             map[int]struct{}
+	removedendpoints      map[int]struct{}
+	service_type          *int
+	clearedservice_type   bool
+	equipment_type        *int
+	clearedequipment_type bool
+}
+
+var _ ent.Mutation = (*ServiceEndpointDefinitionMutation)(nil)
+
+// newServiceEndpointDefinitionMutation creates new mutation for $n.Name.
+func newServiceEndpointDefinitionMutation(c config, op Op) *ServiceEndpointDefinitionMutation {
+	return &ServiceEndpointDefinitionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeServiceEndpointDefinition,
+		clearedFields: make(map[string]struct{}),
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ServiceEndpointDefinitionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ServiceEndpointDefinitionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the id value in the mutation. Note that, the id
+// is available only if it was provided to the builder.
+func (m *ServiceEndpointDefinitionMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreateTime sets the create_time field.
+func (m *ServiceEndpointDefinitionMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the create_time value in the mutation.
+func (m *ServiceEndpointDefinitionMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCreateTime reset all changes of the create_time field.
+func (m *ServiceEndpointDefinitionMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the update_time field.
+func (m *ServiceEndpointDefinitionMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the update_time value in the mutation.
+func (m *ServiceEndpointDefinitionMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUpdateTime reset all changes of the update_time field.
+func (m *ServiceEndpointDefinitionMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetRole sets the role field.
+func (m *ServiceEndpointDefinitionMutation) SetRole(s string) {
+	m.role = &s
+}
+
+// Role returns the role value in the mutation.
+func (m *ServiceEndpointDefinitionMutation) Role() (r string, exists bool) {
+	v := m.role
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearRole clears the value of role.
+func (m *ServiceEndpointDefinitionMutation) ClearRole() {
+	m.role = nil
+	m.clearedFields[serviceendpointdefinition.FieldRole] = struct{}{}
+}
+
+// RoleCleared returns if the field role was cleared in this mutation.
+func (m *ServiceEndpointDefinitionMutation) RoleCleared() bool {
+	_, ok := m.clearedFields[serviceendpointdefinition.FieldRole]
+	return ok
+}
+
+// ResetRole reset all changes of the role field.
+func (m *ServiceEndpointDefinitionMutation) ResetRole() {
+	m.role = nil
+	delete(m.clearedFields, serviceendpointdefinition.FieldRole)
+}
+
+// SetName sets the name field.
+func (m *ServiceEndpointDefinitionMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the name value in the mutation.
+func (m *ServiceEndpointDefinitionMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetName reset all changes of the name field.
+func (m *ServiceEndpointDefinitionMutation) ResetName() {
+	m.name = nil
+}
+
+// SetIndex sets the index field.
+func (m *ServiceEndpointDefinitionMutation) SetIndex(i int) {
+	m.index = &i
+	m.addindex = nil
+}
+
+// Index returns the index value in the mutation.
+func (m *ServiceEndpointDefinitionMutation) Index() (r int, exists bool) {
+	v := m.index
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// AddIndex adds i to index.
+func (m *ServiceEndpointDefinitionMutation) AddIndex(i int) {
+	if m.addindex != nil {
+		*m.addindex += i
+	} else {
+		m.addindex = &i
+	}
+}
+
+// AddedIndex returns the value that was added to the index field in this mutation.
+func (m *ServiceEndpointDefinitionMutation) AddedIndex() (r int, exists bool) {
+	v := m.addindex
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIndex reset all changes of the index field.
+func (m *ServiceEndpointDefinitionMutation) ResetIndex() {
+	m.index = nil
+	m.addindex = nil
+}
+
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (m *ServiceEndpointDefinitionMutation) AddEndpointIDs(ids ...int) {
+	if m.endpoints == nil {
+		m.endpoints = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.endpoints[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
+func (m *ServiceEndpointDefinitionMutation) RemoveEndpointIDs(ids ...int) {
+	if m.removedendpoints == nil {
+		m.removedendpoints = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedendpoints[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEndpoints returns the removed ids of endpoints.
+func (m *ServiceEndpointDefinitionMutation) RemovedEndpointsIDs() (ids []int) {
+	for id := range m.removedendpoints {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EndpointsIDs returns the endpoints ids in the mutation.
+func (m *ServiceEndpointDefinitionMutation) EndpointsIDs() (ids []int) {
+	for id := range m.endpoints {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEndpoints reset all changes of the endpoints edge.
+func (m *ServiceEndpointDefinitionMutation) ResetEndpoints() {
+	m.endpoints = nil
+	m.removedendpoints = nil
+}
+
+// SetServiceTypeID sets the service_type edge to ServiceType by id.
+func (m *ServiceEndpointDefinitionMutation) SetServiceTypeID(id int) {
+	m.service_type = &id
+}
+
+// ClearServiceType clears the service_type edge to ServiceType.
+func (m *ServiceEndpointDefinitionMutation) ClearServiceType() {
+	m.clearedservice_type = true
+}
+
+// ServiceTypeCleared returns if the edge service_type was cleared.
+func (m *ServiceEndpointDefinitionMutation) ServiceTypeCleared() bool {
+	return m.clearedservice_type
+}
+
+// ServiceTypeID returns the service_type id in the mutation.
+func (m *ServiceEndpointDefinitionMutation) ServiceTypeID() (id int, exists bool) {
+	if m.service_type != nil {
+		return *m.service_type, true
+	}
+	return
+}
+
+// ServiceTypeIDs returns the service_type ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// ServiceTypeID instead. It exists only for internal usage by the builders.
+func (m *ServiceEndpointDefinitionMutation) ServiceTypeIDs() (ids []int) {
+	if id := m.service_type; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetServiceType reset all changes of the service_type edge.
+func (m *ServiceEndpointDefinitionMutation) ResetServiceType() {
+	m.service_type = nil
+	m.clearedservice_type = false
+}
+
+// SetEquipmentTypeID sets the equipment_type edge to EquipmentType by id.
+func (m *ServiceEndpointDefinitionMutation) SetEquipmentTypeID(id int) {
+	m.equipment_type = &id
+}
+
+// ClearEquipmentType clears the equipment_type edge to EquipmentType.
+func (m *ServiceEndpointDefinitionMutation) ClearEquipmentType() {
+	m.clearedequipment_type = true
+}
+
+// EquipmentTypeCleared returns if the edge equipment_type was cleared.
+func (m *ServiceEndpointDefinitionMutation) EquipmentTypeCleared() bool {
+	return m.clearedequipment_type
+}
+
+// EquipmentTypeID returns the equipment_type id in the mutation.
+func (m *ServiceEndpointDefinitionMutation) EquipmentTypeID() (id int, exists bool) {
+	if m.equipment_type != nil {
+		return *m.equipment_type, true
+	}
+	return
+}
+
+// EquipmentTypeIDs returns the equipment_type ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// EquipmentTypeID instead. It exists only for internal usage by the builders.
+func (m *ServiceEndpointDefinitionMutation) EquipmentTypeIDs() (ids []int) {
+	if id := m.equipment_type; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEquipmentType reset all changes of the equipment_type edge.
+func (m *ServiceEndpointDefinitionMutation) ResetEquipmentType() {
+	m.equipment_type = nil
+	m.clearedequipment_type = false
+}
+
+// Op returns the operation name.
+func (m *ServiceEndpointDefinitionMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (ServiceEndpointDefinition).
+func (m *ServiceEndpointDefinitionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during
+// this mutation. Note that, in order to get all numeric
+// fields that were in/decremented, call AddedFields().
+func (m *ServiceEndpointDefinitionMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.create_time != nil {
+		fields = append(fields, serviceendpointdefinition.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, serviceendpointdefinition.FieldUpdateTime)
+	}
+	if m.role != nil {
+		fields = append(fields, serviceendpointdefinition.FieldRole)
+	}
+	if m.name != nil {
+		fields = append(fields, serviceendpointdefinition.FieldName)
+	}
+	if m.index != nil {
+		fields = append(fields, serviceendpointdefinition.FieldIndex)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name.
+// The second boolean value indicates that this field was
+// not set, or was not define in the schema.
+func (m *ServiceEndpointDefinitionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case serviceendpointdefinition.FieldCreateTime:
+		return m.CreateTime()
+	case serviceendpointdefinition.FieldUpdateTime:
+		return m.UpdateTime()
+	case serviceendpointdefinition.FieldRole:
+		return m.Role()
+	case serviceendpointdefinition.FieldName:
+		return m.Name()
+	case serviceendpointdefinition.FieldIndex:
+		return m.Index()
+	}
+	return nil, false
+}
+
+// SetField sets the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *ServiceEndpointDefinitionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case serviceendpointdefinition.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case serviceendpointdefinition.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case serviceendpointdefinition.FieldRole:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRole(v)
+		return nil
+	case serviceendpointdefinition.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case serviceendpointdefinition.FieldIndex:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIndex(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ServiceEndpointDefinition field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented
+// or decremented during this mutation.
+func (m *ServiceEndpointDefinitionMutation) AddedFields() []string {
+	var fields []string
+	if m.addindex != nil {
+		fields = append(fields, serviceendpointdefinition.FieldIndex)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was in/decremented
+// from a field with the given name. The second value indicates
+// that this field was not set, or was not define in the schema.
+func (m *ServiceEndpointDefinitionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case serviceendpointdefinition.FieldIndex:
+		return m.AddedIndex()
+	}
+	return nil, false
+}
+
+// AddField adds the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *ServiceEndpointDefinitionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case serviceendpointdefinition.FieldIndex:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddIndex(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ServiceEndpointDefinition numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared
+// during this mutation.
+func (m *ServiceEndpointDefinitionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(serviceendpointdefinition.FieldRole) {
+		fields = append(fields, serviceendpointdefinition.FieldRole)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicates if this field was
+// cleared in this mutation.
+func (m *ServiceEndpointDefinitionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value for the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ServiceEndpointDefinitionMutation) ClearField(name string) error {
+	switch name {
+	case serviceendpointdefinition.FieldRole:
+		m.ClearRole()
+		return nil
+	}
+	return fmt.Errorf("unknown ServiceEndpointDefinition nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation regarding the
+// given field name. It returns an error if the field is not
+// defined in the schema.
+func (m *ServiceEndpointDefinitionMutation) ResetField(name string) error {
+	switch name {
+	case serviceendpointdefinition.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case serviceendpointdefinition.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case serviceendpointdefinition.FieldRole:
+		m.ResetRole()
+		return nil
+	case serviceendpointdefinition.FieldName:
+		m.ResetName()
+		return nil
+	case serviceendpointdefinition.FieldIndex:
+		m.ResetIndex()
+		return nil
+	}
+	return fmt.Errorf("unknown ServiceEndpointDefinition field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this
+// mutation.
+func (m *ServiceEndpointDefinitionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.endpoints != nil {
+		edges = append(edges, serviceendpointdefinition.EdgeEndpoints)
+	}
+	if m.service_type != nil {
+		edges = append(edges, serviceendpointdefinition.EdgeServiceType)
+	}
+	if m.equipment_type != nil {
+		edges = append(edges, serviceendpointdefinition.EdgeEquipmentType)
+	}
+	return edges
+}
+
+// AddedIDs returns all ids (to other nodes) that were added for
+// the given edge name.
+func (m *ServiceEndpointDefinitionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case serviceendpointdefinition.EdgeEndpoints:
+		ids := make([]ent.Value, 0, len(m.endpoints))
+		for id := range m.endpoints {
+			ids = append(ids, id)
+		}
+		return ids
+	case serviceendpointdefinition.EdgeServiceType:
+		if id := m.service_type; id != nil {
+			return []ent.Value{*id}
+		}
+	case serviceendpointdefinition.EdgeEquipmentType:
+		if id := m.equipment_type; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this
+// mutation.
+func (m *ServiceEndpointDefinitionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedendpoints != nil {
+		edges = append(edges, serviceendpointdefinition.EdgeEndpoints)
+	}
+	return edges
+}
+
+// RemovedIDs returns all ids (to other nodes) that were removed for
+// the given edge name.
+func (m *ServiceEndpointDefinitionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case serviceendpointdefinition.EdgeEndpoints:
+		ids := make([]ent.Value, 0, len(m.removedendpoints))
+		for id := range m.removedendpoints {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this
+// mutation.
+func (m *ServiceEndpointDefinitionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedservice_type {
+		edges = append(edges, serviceendpointdefinition.EdgeServiceType)
+	}
+	if m.clearedequipment_type {
+		edges = append(edges, serviceendpointdefinition.EdgeEquipmentType)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean indicates if this edge was
+// cleared in this mutation.
+func (m *ServiceEndpointDefinitionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case serviceendpointdefinition.EdgeServiceType:
+		return m.clearedservice_type
+	case serviceendpointdefinition.EdgeEquipmentType:
+		return m.clearedequipment_type
+	}
+	return false
+}
+
+// ClearEdge clears the value for the given name. It returns an
+// error if the edge name is not defined in the schema.
+func (m *ServiceEndpointDefinitionMutation) ClearEdge(name string) error {
+	switch name {
+	case serviceendpointdefinition.EdgeServiceType:
+		m.ClearServiceType()
+		return nil
+	case serviceendpointdefinition.EdgeEquipmentType:
+		m.ClearEquipmentType()
+		return nil
+	}
+	return fmt.Errorf("unknown ServiceEndpointDefinition unique edge %s", name)
+}
+
+// ResetEdge resets all changes in the mutation regarding the
+// given edge name. It returns an error if the edge is not
+// defined in the schema.
+func (m *ServiceEndpointDefinitionMutation) ResetEdge(name string) error {
+	switch name {
+	case serviceendpointdefinition.EdgeEndpoints:
+		m.ResetEndpoints()
+		return nil
+	case serviceendpointdefinition.EdgeServiceType:
+		m.ResetServiceType()
+		return nil
+	case serviceendpointdefinition.EdgeEquipmentType:
+		m.ResetEquipmentType()
+		return nil
+	}
+	return fmt.Errorf("unknown ServiceEndpointDefinition edge %s", name)
+}
+
+// ServiceTypeMutation represents an operation that mutate the ServiceTypes
+// nodes in the graph.
+type ServiceTypeMutation struct {
+	config
+	op                          Op
+	typ                         string
+	id                          *int
+	create_time                 *time.Time
+	update_time                 *time.Time
+	name                        *string
+	has_customer                *bool
+	clearedFields               map[string]struct{}
+	services                    map[int]struct{}
+	removedservices             map[int]struct{}
+	property_types              map[int]struct{}
+	removedproperty_types       map[int]struct{}
+	endpoint_definitions        map[int]struct{}
+	removedendpoint_definitions map[int]struct{}
 }
 
 var _ ent.Mutation = (*ServiceTypeMutation)(nil)
@@ -19897,6 +20858,48 @@ func (m *ServiceTypeMutation) ResetPropertyTypes() {
 	m.removedproperty_types = nil
 }
 
+// AddEndpointDefinitionIDs adds the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (m *ServiceTypeMutation) AddEndpointDefinitionIDs(ids ...int) {
+	if m.endpoint_definitions == nil {
+		m.endpoint_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.endpoint_definitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveEndpointDefinitionIDs removes the endpoint_definitions edge to ServiceEndpointDefinition by ids.
+func (m *ServiceTypeMutation) RemoveEndpointDefinitionIDs(ids ...int) {
+	if m.removedendpoint_definitions == nil {
+		m.removedendpoint_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedendpoint_definitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEndpointDefinitions returns the removed ids of endpoint_definitions.
+func (m *ServiceTypeMutation) RemovedEndpointDefinitionsIDs() (ids []int) {
+	for id := range m.removedendpoint_definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EndpointDefinitionsIDs returns the endpoint_definitions ids in the mutation.
+func (m *ServiceTypeMutation) EndpointDefinitionsIDs() (ids []int) {
+	for id := range m.endpoint_definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEndpointDefinitions reset all changes of the endpoint_definitions edge.
+func (m *ServiceTypeMutation) ResetEndpointDefinitions() {
+	m.endpoint_definitions = nil
+	m.removedendpoint_definitions = nil
+}
+
 // Op returns the operation name.
 func (m *ServiceTypeMutation) Op() Op {
 	return m.op
@@ -20046,12 +21049,15 @@ func (m *ServiceTypeMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *ServiceTypeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.services != nil {
 		edges = append(edges, servicetype.EdgeServices)
 	}
 	if m.property_types != nil {
 		edges = append(edges, servicetype.EdgePropertyTypes)
+	}
+	if m.endpoint_definitions != nil {
+		edges = append(edges, servicetype.EdgeEndpointDefinitions)
 	}
 	return edges
 }
@@ -20072,6 +21078,12 @@ func (m *ServiceTypeMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case servicetype.EdgeEndpointDefinitions:
+		ids := make([]ent.Value, 0, len(m.endpoint_definitions))
+		for id := range m.endpoint_definitions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -20079,12 +21091,15 @@ func (m *ServiceTypeMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *ServiceTypeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedservices != nil {
 		edges = append(edges, servicetype.EdgeServices)
 	}
 	if m.removedproperty_types != nil {
 		edges = append(edges, servicetype.EdgePropertyTypes)
+	}
+	if m.removedendpoint_definitions != nil {
+		edges = append(edges, servicetype.EdgeEndpointDefinitions)
 	}
 	return edges
 }
@@ -20105,6 +21120,12 @@ func (m *ServiceTypeMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case servicetype.EdgeEndpointDefinitions:
+		ids := make([]ent.Value, 0, len(m.removedendpoint_definitions))
+		for id := range m.removedendpoint_definitions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -20112,7 +21133,7 @@ func (m *ServiceTypeMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *ServiceTypeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -20142,6 +21163,9 @@ func (m *ServiceTypeMutation) ResetEdge(name string) error {
 		return nil
 	case servicetype.EdgePropertyTypes:
 		m.ResetPropertyTypes()
+		return nil
+	case servicetype.EdgeEndpointDefinitions:
+		m.ResetEndpointDefinitions()
 		return nil
 	}
 	return fmt.Errorf("unknown ServiceType edge %s", name)
@@ -20816,6 +21840,8 @@ type SurveyCellScanMutation struct {
 	longitude               *float64
 	addlongitude            *float64
 	clearedFields           map[string]struct{}
+	checklist_item          *int
+	clearedchecklist_item   bool
 	survey_question         *int
 	clearedsurvey_question  bool
 	location                *int
@@ -21660,6 +22686,45 @@ func (m *SurveyCellScanMutation) ResetLongitude() {
 	delete(m.clearedFields, surveycellscan.FieldLongitude)
 }
 
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (m *SurveyCellScanMutation) SetChecklistItemID(id int) {
+	m.checklist_item = &id
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (m *SurveyCellScanMutation) ClearChecklistItem() {
+	m.clearedchecklist_item = true
+}
+
+// ChecklistItemCleared returns if the edge checklist_item was cleared.
+func (m *SurveyCellScanMutation) ChecklistItemCleared() bool {
+	return m.clearedchecklist_item
+}
+
+// ChecklistItemID returns the checklist_item id in the mutation.
+func (m *SurveyCellScanMutation) ChecklistItemID() (id int, exists bool) {
+	if m.checklist_item != nil {
+		return *m.checklist_item, true
+	}
+	return
+}
+
+// ChecklistItemIDs returns the checklist_item ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// ChecklistItemID instead. It exists only for internal usage by the builders.
+func (m *SurveyCellScanMutation) ChecklistItemIDs() (ids []int) {
+	if id := m.checklist_item; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetChecklistItem reset all changes of the checklist_item edge.
+func (m *SurveyCellScanMutation) ResetChecklistItem() {
+	m.checklist_item = nil
+	m.clearedchecklist_item = false
+}
+
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (m *SurveyCellScanMutation) SetSurveyQuestionID(id int) {
 	m.survey_question = &id
@@ -22355,7 +23420,10 @@ func (m *SurveyCellScanMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *SurveyCellScanMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.checklist_item != nil {
+		edges = append(edges, surveycellscan.EdgeChecklistItem)
+	}
 	if m.survey_question != nil {
 		edges = append(edges, surveycellscan.EdgeSurveyQuestion)
 	}
@@ -22369,6 +23437,10 @@ func (m *SurveyCellScanMutation) AddedEdges() []string {
 // the given edge name.
 func (m *SurveyCellScanMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case surveycellscan.EdgeChecklistItem:
+		if id := m.checklist_item; id != nil {
+			return []ent.Value{*id}
+		}
 	case surveycellscan.EdgeSurveyQuestion:
 		if id := m.survey_question; id != nil {
 			return []ent.Value{*id}
@@ -22384,7 +23456,7 @@ func (m *SurveyCellScanMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *SurveyCellScanMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -22399,7 +23471,10 @@ func (m *SurveyCellScanMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *SurveyCellScanMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedchecklist_item {
+		edges = append(edges, surveycellscan.EdgeChecklistItem)
+	}
 	if m.clearedsurvey_question {
 		edges = append(edges, surveycellscan.EdgeSurveyQuestion)
 	}
@@ -22413,6 +23488,8 @@ func (m *SurveyCellScanMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *SurveyCellScanMutation) EdgeCleared(name string) bool {
 	switch name {
+	case surveycellscan.EdgeChecklistItem:
+		return m.clearedchecklist_item
 	case surveycellscan.EdgeSurveyQuestion:
 		return m.clearedsurvey_question
 	case surveycellscan.EdgeLocation:
@@ -22425,6 +23502,9 @@ func (m *SurveyCellScanMutation) EdgeCleared(name string) bool {
 // error if the edge name is not defined in the schema.
 func (m *SurveyCellScanMutation) ClearEdge(name string) error {
 	switch name {
+	case surveycellscan.EdgeChecklistItem:
+		m.ClearChecklistItem()
+		return nil
 	case surveycellscan.EdgeSurveyQuestion:
 		m.ClearSurveyQuestion()
 		return nil
@@ -22440,6 +23520,9 @@ func (m *SurveyCellScanMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *SurveyCellScanMutation) ResetEdge(name string) error {
 	switch name {
+	case surveycellscan.EdgeChecklistItem:
+		m.ResetChecklistItem()
+		return nil
 	case surveycellscan.EdgeSurveyQuestion:
 		m.ResetSurveyQuestion()
 		return nil
@@ -25180,6 +26263,8 @@ type SurveyWiFiScanMutation struct {
 	longitude              *float64
 	addlongitude           *float64
 	clearedFields          map[string]struct{}
+	checklist_item         *int
+	clearedchecklist_item  bool
 	survey_question        *int
 	clearedsurvey_question bool
 	location               *int
@@ -25674,6 +26759,45 @@ func (m *SurveyWiFiScanMutation) ResetLongitude() {
 	delete(m.clearedFields, surveywifiscan.FieldLongitude)
 }
 
+// SetChecklistItemID sets the checklist_item edge to CheckListItem by id.
+func (m *SurveyWiFiScanMutation) SetChecklistItemID(id int) {
+	m.checklist_item = &id
+}
+
+// ClearChecklistItem clears the checklist_item edge to CheckListItem.
+func (m *SurveyWiFiScanMutation) ClearChecklistItem() {
+	m.clearedchecklist_item = true
+}
+
+// ChecklistItemCleared returns if the edge checklist_item was cleared.
+func (m *SurveyWiFiScanMutation) ChecklistItemCleared() bool {
+	return m.clearedchecklist_item
+}
+
+// ChecklistItemID returns the checklist_item id in the mutation.
+func (m *SurveyWiFiScanMutation) ChecklistItemID() (id int, exists bool) {
+	if m.checklist_item != nil {
+		return *m.checklist_item, true
+	}
+	return
+}
+
+// ChecklistItemIDs returns the checklist_item ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// ChecklistItemID instead. It exists only for internal usage by the builders.
+func (m *SurveyWiFiScanMutation) ChecklistItemIDs() (ids []int) {
+	if id := m.checklist_item; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetChecklistItem reset all changes of the checklist_item edge.
+func (m *SurveyWiFiScanMutation) ResetChecklistItem() {
+	m.checklist_item = nil
+	m.clearedchecklist_item = false
+}
+
 // SetSurveyQuestionID sets the survey_question edge to SurveyQuestion by id.
 func (m *SurveyWiFiScanMutation) SetSurveyQuestionID(id int) {
 	m.survey_question = &id
@@ -26150,7 +27274,10 @@ func (m *SurveyWiFiScanMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *SurveyWiFiScanMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.checklist_item != nil {
+		edges = append(edges, surveywifiscan.EdgeChecklistItem)
+	}
 	if m.survey_question != nil {
 		edges = append(edges, surveywifiscan.EdgeSurveyQuestion)
 	}
@@ -26164,6 +27291,10 @@ func (m *SurveyWiFiScanMutation) AddedEdges() []string {
 // the given edge name.
 func (m *SurveyWiFiScanMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case surveywifiscan.EdgeChecklistItem:
+		if id := m.checklist_item; id != nil {
+			return []ent.Value{*id}
+		}
 	case surveywifiscan.EdgeSurveyQuestion:
 		if id := m.survey_question; id != nil {
 			return []ent.Value{*id}
@@ -26179,7 +27310,7 @@ func (m *SurveyWiFiScanMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *SurveyWiFiScanMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -26194,7 +27325,10 @@ func (m *SurveyWiFiScanMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *SurveyWiFiScanMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedchecklist_item {
+		edges = append(edges, surveywifiscan.EdgeChecklistItem)
+	}
 	if m.clearedsurvey_question {
 		edges = append(edges, surveywifiscan.EdgeSurveyQuestion)
 	}
@@ -26208,6 +27342,8 @@ func (m *SurveyWiFiScanMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *SurveyWiFiScanMutation) EdgeCleared(name string) bool {
 	switch name {
+	case surveywifiscan.EdgeChecklistItem:
+		return m.clearedchecklist_item
 	case surveywifiscan.EdgeSurveyQuestion:
 		return m.clearedsurvey_question
 	case surveywifiscan.EdgeLocation:
@@ -26220,6 +27356,9 @@ func (m *SurveyWiFiScanMutation) EdgeCleared(name string) bool {
 // error if the edge name is not defined in the schema.
 func (m *SurveyWiFiScanMutation) ClearEdge(name string) error {
 	switch name {
+	case surveywifiscan.EdgeChecklistItem:
+		m.ClearChecklistItem()
+		return nil
 	case surveywifiscan.EdgeSurveyQuestion:
 		m.ClearSurveyQuestion()
 		return nil
@@ -26235,6 +27374,9 @@ func (m *SurveyWiFiScanMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *SurveyWiFiScanMutation) ResetEdge(name string) error {
 	switch name {
+	case surveywifiscan.EdgeChecklistItem:
+		m.ResetChecklistItem()
+		return nil
 	case surveywifiscan.EdgeSurveyQuestion:
 		m.ResetSurveyQuestion()
 		return nil

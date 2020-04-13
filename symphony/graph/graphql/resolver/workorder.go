@@ -807,6 +807,20 @@ func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, inp
 			SetNillableSelectedEnumValues(clInput.SelectedEnumValues).
 			SetNillableYesNoVal(convertYesNoResponseToYesNoVal(clInput.YesNoResponse)).
 			Save(ctx)
+
+		if clInput.WifiData != nil && len(clInput.WifiData) > 0 {
+			_, err := r.CreateWiFiScans(ctx, clInput.WifiData, ScanParentIDs{checklistItemID: &clInput.ID})
+			if err != nil {
+				return nil, fmt.Errorf("creating wifi scans, item %q: err %w", clInput.ID, err)
+			}
+		}
+		if clInput.CellData != nil && len(clInput.CellData) > 0 {
+			_, err := r.CreateCellScans(ctx, clInput.CellData, ScanParentIDs{checklistItemID: &clInput.ID})
+			if err != nil {
+				return nil, fmt.Errorf("creating cell scans, item %q: err %w", clInput.ID, err)
+			}
+		}
+
 		if err != nil {
 			return nil, fmt.Errorf("updating checklist item %q: err %w", clInput.ID, err)
 		}

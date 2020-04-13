@@ -4,6 +4,8 @@
 # license that can be found in the LICENSE file.
 
 
+import unittest
+
 from pyinventory import InventoryClient
 from pyinventory.api.customer import add_customer
 from pyinventory.api.equipment import add_equipment
@@ -20,7 +22,6 @@ from pyinventory.api.service import (
 )
 from pyinventory.consts import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
-from pyinventory.graphql.service_endpoint_role_enum import ServiceEndpointRole
 
 from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils.base_test import BaseTest
@@ -90,6 +91,7 @@ class TestService(BaseTest):
         fetch_service = get_service(client=self.client, id=service.id)
         self.assertEqual(service, fetch_service)
 
+    @unittest.skip("Will be restored once new endpoint schema is finalized")
     def test_service_with_topology_created(self) -> None:
         location = add_location(
             client=self.client,
@@ -145,15 +147,16 @@ class TestService(BaseTest):
             properties_dict={"Address Family": "v4"},
             links=[link1, link2],
         )
-        add_service_endpoint(
-            client=self.client,
-            service=service,
-            port=endpoint_port,
-            role=ServiceEndpointRole.CONSUMER,
-        )
-        service = get_service(client=self.client, id=service.id)
+        # TODO add service_endpoint_type api
+        add_service_endpoint(client=self.client, service=service, port=endpoint_port)
 
-        self.assertEqual([endpoint_port.id], [e.port.id for e in service.endpoints])
+        service = get_service(
+            client=self.client, id=service.id if service is not None else ""
+        )
+        ports = [e.port for e in service.endpoints]
+        self.assertEqual(
+            [endpoint_port.id], [p.id if p is not None else None for p in ports]
+        )
         self.assertEqual([link1.id, link2.id], [s.id for s in service.links])
 
     def test_service_with_customer_created(self) -> None:

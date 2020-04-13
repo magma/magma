@@ -25,10 +25,8 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
   std::shared_ptr<LocalEnforcer> enforcer,
   SessionReporter* reporter,
   std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-  SessionMap& session_map,
   SessionStore& session_store):
   enforcer_(enforcer),
-  session_map_(session_map),
   session_store_(session_store),
   reporter_(reporter),
   directoryd_client_(directoryd_client),
@@ -126,8 +124,9 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     enforcer_->get_event_base().runInEventBaseThread([=] {
       enforcer_->get_event_base().timer().scheduleTimeoutFn(
         std::move([=] {
+          auto session_map = session_store_.read_all_sessions();
           enforcer_->setup(
-            session_map_,
+            session_map,
             epoch,
             std::bind(
               &LocalSessionManagerHandlerImpl::handle_setup_callback,
@@ -148,8 +147,9 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     enforcer_->get_event_base().runInEventBaseThread([=] {
       enforcer_->get_event_base().timer().scheduleTimeoutFn(
         std::move([=] {
+          auto session_map = session_store_.read_all_sessions();
           enforcer_->setup(
-            session_map_,
+            session_map,
             epoch,
             std::bind(
               &LocalSessionManagerHandlerImpl::handle_setup_callback,
@@ -170,8 +170,9 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
 {
   using namespace std::placeholders;
   enforcer_->get_event_base().runInEventBaseThread([this, epoch]() {
+    auto session_map = session_store_.read_all_sessions();
     enforcer_->setup(
-      session_map_,
+      session_map,
       epoch,
       std::bind(
         &LocalSessionManagerHandlerImpl::handle_setup_callback,

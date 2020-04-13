@@ -67,7 +67,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
     std::shared_ptr<LocalEnforcer> monitor,
     SessionReporter* reporter,
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-    SessionMap& session_map,
     SessionStore& session_store);
   ~LocalSessionManagerHandlerImpl() {}
   /**
@@ -96,7 +95,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
     std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
  private:
-  SessionMap& session_map_;
   SessionStore& session_store_;
   std::shared_ptr<LocalEnforcer> enforcer_;
   SessionReporter* reporter_;

@@ -25,7 +25,6 @@ const (
 	svcName  = "serviceName"
 	svc2Name = "serviceName2"
 	svc3Name = "serviceName3"
-	svc4Name = "serviceName4"
 )
 
 type TestImporterResolver struct {
@@ -46,11 +45,9 @@ func newResolver(t *testing.T, drv dialect.Driver) *TestImporterResolver {
 	err := client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true))
 	require.NoError(t, err)
 
-	emitter, subscriber := event.Pipe()
 	r := resolver.New(resolver.Config{
 		Logger:     logtest.NewTestLogger(t),
-		Emitter:    emitter,
-		Subscriber: subscriber,
+		Subscriber: event.NewNopSubscriber(),
 	})
 	return &TestImporterResolver{
 		drv:    drv,

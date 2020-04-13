@@ -51,11 +51,15 @@ type CheckListItem struct {
 type CheckListItemEdges struct {
 	// Files holds the value of the files edge.
 	Files []*File
+	// WifiScan holds the value of the wifi_scan edge.
+	WifiScan []*SurveyWiFiScan
+	// CellScan holds the value of the cell_scan edge.
+	CellScan []*SurveyCellScan
 	// WorkOrder holds the value of the work_order edge.
 	WorkOrder *WorkOrder
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // FilesOrErr returns the Files value or an error if the edge
@@ -67,10 +71,28 @@ func (e CheckListItemEdges) FilesOrErr() ([]*File, error) {
 	return nil, &NotLoadedError{edge: "files"}
 }
 
+// WifiScanOrErr returns the WifiScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e CheckListItemEdges) WifiScanOrErr() ([]*SurveyWiFiScan, error) {
+	if e.loadedTypes[1] {
+		return e.WifiScan, nil
+	}
+	return nil, &NotLoadedError{edge: "wifi_scan"}
+}
+
+// CellScanOrErr returns the CellScan value or an error if the edge
+// was not loaded in eager-loading.
+func (e CheckListItemEdges) CellScanOrErr() ([]*SurveyCellScan, error) {
+	if e.loadedTypes[2] {
+		return e.CellScan, nil
+	}
+	return nil, &NotLoadedError{edge: "cell_scan"}
+}
+
 // WorkOrderOrErr returns the WorkOrder value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e CheckListItemEdges) WorkOrderOrErr() (*WorkOrder, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[3] {
 		if e.WorkOrder == nil {
 			// The edge work_order was loaded in eager-loading,
 			// but was not found.
@@ -190,6 +212,16 @@ func (cli *CheckListItem) assignValues(values ...interface{}) error {
 // QueryFiles queries the files edge of the CheckListItem.
 func (cli *CheckListItem) QueryFiles() *FileQuery {
 	return (&CheckListItemClient{config: cli.config}).QueryFiles(cli)
+}
+
+// QueryWifiScan queries the wifi_scan edge of the CheckListItem.
+func (cli *CheckListItem) QueryWifiScan() *SurveyWiFiScanQuery {
+	return (&CheckListItemClient{config: cli.config}).QueryWifiScan(cli)
+}
+
+// QueryCellScan queries the cell_scan edge of the CheckListItem.
+func (cli *CheckListItem) QueryCellScan() *SurveyCellScanQuery {
+	return (&CheckListItemClient{config: cli.config}).QueryCellScan(cli)
 }
 
 // QueryWorkOrder queries the work_order edge of the CheckListItem.

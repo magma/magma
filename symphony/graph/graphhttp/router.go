@@ -25,11 +25,8 @@ type routerConfig struct {
 		tenancy viewer.Tenancy
 		authurl string
 	}
-	logger log.Logger
-	events struct {
-		emitter    event.Emitter
-		subscriber event.Subscriber
-	}
+	logger  log.Logger
+	events  struct{ subscriber event.Subscriber }
 	orc8r   struct{ client *http.Client }
 	actions struct{ registry *executor.Registry }
 }
@@ -50,13 +47,10 @@ func newRouter(cfg routerConfig) (*mux.Router, func(), error) {
 			return actions.Handler(h, cfg.logger, cfg.actions.registry)
 		},
 	)
-	handler, err := importer.NewHandler(
-		importer.Config{
-			Logger:     cfg.logger,
-			Emitter:    cfg.events.emitter,
-			Subscriber: cfg.events.subscriber,
-		},
-	)
+	handler, err := importer.NewHandler(importer.Config{
+		Logger:     cfg.logger,
+		Subscriber: cfg.events.subscriber,
+	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating import handler: %w", err)
 	}
@@ -74,7 +68,6 @@ func newRouter(cfg routerConfig) (*mux.Router, func(), error) {
 	handler, cleanup, err := graphql.NewHandler(
 		graphql.HandlerConfig{
 			Logger:      cfg.logger,
-			Emitter:     cfg.events.emitter,
 			Subscriber:  cfg.events.subscriber,
 			Orc8rClient: cfg.orc8r.client,
 		},

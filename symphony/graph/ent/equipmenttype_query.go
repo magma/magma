@@ -23,6 +23,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpointdefinition"
 )
 
 // EquipmentTypeQuery is the builder for querying EquipmentType entities.
@@ -34,12 +35,13 @@ type EquipmentTypeQuery struct {
 	unique     []string
 	predicates []predicate.EquipmentType
 	// eager-loading edges.
-	withPortDefinitions     *EquipmentPortDefinitionQuery
-	withPositionDefinitions *EquipmentPositionDefinitionQuery
-	withPropertyTypes       *PropertyTypeQuery
-	withEquipment           *EquipmentQuery
-	withCategory            *EquipmentCategoryQuery
-	withFKs                 bool
+	withPortDefinitions            *EquipmentPortDefinitionQuery
+	withPositionDefinitions        *EquipmentPositionDefinitionQuery
+	withPropertyTypes              *PropertyTypeQuery
+	withEquipment                  *EquipmentQuery
+	withCategory                   *EquipmentCategoryQuery
+	withServiceEndpointDefinitions *ServiceEndpointDefinitionQuery
+	withFKs                        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -152,6 +154,24 @@ func (etq *EquipmentTypeQuery) QueryCategory() *EquipmentCategoryQuery {
 			sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
 			sqlgraph.To(equipmentcategory.Table, equipmentcategory.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, equipmenttype.CategoryTable, equipmenttype.CategoryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(etq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryServiceEndpointDefinitions chains the current query on the service_endpoint_definitions edge.
+func (etq *EquipmentTypeQuery) QueryServiceEndpointDefinitions() *ServiceEndpointDefinitionQuery {
+	query := &ServiceEndpointDefinitionQuery{config: etq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := etq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+			sqlgraph.To(serviceendpointdefinition.Table, serviceendpointdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, equipmenttype.ServiceEndpointDefinitionsTable, equipmenttype.ServiceEndpointDefinitionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(etq.driver.Dialect(), step)
 		return fromU, nil
@@ -393,6 +413,17 @@ func (etq *EquipmentTypeQuery) WithCategory(opts ...func(*EquipmentCategoryQuery
 	return etq
 }
 
+//  WithServiceEndpointDefinitions tells the query-builder to eager-loads the nodes that are connected to
+// the "service_endpoint_definitions" edge. The optional arguments used to configure the query builder of the edge.
+func (etq *EquipmentTypeQuery) WithServiceEndpointDefinitions(opts ...func(*ServiceEndpointDefinitionQuery)) *EquipmentTypeQuery {
+	query := &ServiceEndpointDefinitionQuery{config: etq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	etq.withServiceEndpointDefinitions = query
+	return etq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -460,12 +491,13 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 		nodes       = []*EquipmentType{}
 		withFKs     = etq.withFKs
 		_spec       = etq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			etq.withPortDefinitions != nil,
 			etq.withPositionDefinitions != nil,
 			etq.withPropertyTypes != nil,
 			etq.withEquipment != nil,
 			etq.withCategory != nil,
+			etq.withServiceEndpointDefinitions != nil,
 		}
 	)
 	if etq.withCategory != nil {
@@ -632,6 +664,34 @@ func (etq *EquipmentTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentType, er
 			for i := range nodes {
 				nodes[i].Edges.Category = n
 			}
+		}
+	}
+
+	if query := etq.withServiceEndpointDefinitions; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*EquipmentType)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.ServiceEndpointDefinition(func(s *sql.Selector) {
+			s.Where(sql.InValues(equipmenttype.ServiceEndpointDefinitionsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.equipment_type_service_endpoint_definitions
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "equipment_type_service_endpoint_definitions" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "equipment_type_service_endpoint_definitions" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.ServiceEndpointDefinitions = append(node.Edges.ServiceEndpointDefinitions, n)
 		}
 	}
 

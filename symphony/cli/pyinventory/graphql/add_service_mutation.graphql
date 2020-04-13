@@ -31,7 +31,9 @@ mutation AddServiceMutation($data: ServiceCreateData!) {
           }
         }
       }
-      role
+      definition {
+        role
+      }
     }
     links {
       id

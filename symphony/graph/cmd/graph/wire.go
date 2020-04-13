@@ -18,6 +18,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/mysql"
 	"github.com/facebookincubator/symphony/pkg/server"
+	"gocloud.dev/server/health"
 
 	"github.com/google/wire"
 	"google.golang.org/grpc"
@@ -30,6 +31,8 @@ func NewApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 		log.Provider,
 		newApplication,
 		newTenancy,
+		newHealthChecks,
+		newMySQLTenancy,
 		newAuthURL,
 		mysql.Open,
 		event.Set,
@@ -51,11 +54,21 @@ func newApplication(logger log.Logger, httpServer *server.Server, grpcServer *gr
 	return &app
 }
 
-func newTenancy(logger log.Logger, dsn string) (*viewer.MySQLTenancy, error) {
+func newTenancy(tenancy *viewer.MySQLTenancy, logger log.Logger, emitter event.Emitter) (viewer.Tenancy, error) {
+	eventer := event.Eventer{Logger: logger, Emitter: emitter}
+	return viewer.NewCacheTenancy(tenancy, eventer.HookTo), nil
+}
+
+func newHealthChecks(tenancy *viewer.MySQLTenancy) []health.Checker {
+	return []health.Checker{tenancy}
+}
+
+func newMySQLTenancy(dsn string, logger log.Logger) (*viewer.MySQLTenancy, error) {
 	tenancy, err := viewer.NewMySQLTenancy(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("creating mysql tenancy: %w", err)
 	}
+	tenancy.SetLogger(logger)
 	mysql.SetLogger(logger)
 	return tenancy, nil
 }

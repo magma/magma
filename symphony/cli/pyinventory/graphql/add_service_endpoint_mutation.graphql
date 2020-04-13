@@ -11,7 +11,9 @@ mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
       port {
         id
       }
-      role
+      definition {
+        role
+      }
     }
     links {
       id

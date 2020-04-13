@@ -75,7 +75,7 @@ class SessiondTest : public ::testing::Test {
     session_manager = std::make_shared<LocalSessionManagerAsyncService>(
       local_service->GetNewCompletionQueue(),
       std::make_unique<LocalSessionManagerHandlerImpl>(
-        monitor, reporter.get(), directoryd_client, session_map, *session_store));
+        monitor, reporter.get(), directoryd_client, *session_store));
 
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
       local_service->GetNewCompletionQueue(),

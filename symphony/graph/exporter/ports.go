@@ -14,7 +14,6 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
@@ -47,7 +46,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		portDataHeader = [...]string{bom + "Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
 		linkHeader     = [...]string{"Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}
-		serviceHeader  = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
+		serviceHeader  = [...]string{"Service Names"}
 	)
 	filtersParam := url.Query().Get("filters")
 	if filtersParam != "" {
@@ -70,7 +69,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	allrows := make([][]string, len(portsList)+1)
 
 	var orderedLocTypes, propertyTypes []string
-	cg.Go(func(ctx context.Context) error {
+	cg.Go(func(ctx context.Context) (err error) {
 		orderedLocTypes, err = locationTypeHierarchy(ctx, client)
 		if err != nil {
 			logger.Error("cannot query location types", zap.Error(err))
@@ -78,7 +77,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		}
 		return nil
 	})
-	cg.Go(func(ctx context.Context) error {
+	cg.Go(func(ctx context.Context) (err error) {
 		portIDs := make([]int, len(portsList))
 		for i, p := range portsList {
 			portIDs[i] = p.ID
@@ -136,11 +135,11 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 	portDefinition := port.QueryDefinition().OnlyX(ctx)
 	g := ctxgroup.WithContext(ctx)
 
-	g.Go(func(ctx context.Context) error {
+	g.Go(func(ctx context.Context) (err error) {
 		lParents, err = locationHierarchyForEquipment(ctx, parentEquip, orderedLocTypes)
 		return err
 	})
-	g.Go(func(ctx context.Context) error {
+	g.Go(func(ctx context.Context) (err error) {
 		properties, err = propertiesSlice(ctx, port, propertyTypes, models.PropertyEntityPort)
 		return err
 	})
@@ -187,15 +186,12 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 		return nil
 	})
 	g.Go(func(ctx context.Context) error {
-		consumerServicesStr, err := getServicesOfPortAsEndpoint(ctx, port, models.ServiceEndpointRoleConsumer)
+		servicesStr, err := getServicesOfPortAsEndpoint(ctx, port)
 		if err != nil {
 			return err
 		}
-		providerServicesStr, err := getServicesOfPortAsEndpoint(ctx, port, models.ServiceEndpointRoleProvider)
-		if err != nil {
-			return err
-		}
-		serviceData = []string{consumerServicesStr, providerServicesStr}
+		// TODO T64283840: support editing services for ports (by endpoint type role)
+		serviceData = []string{servicesStr}
 		return nil
 	})
 	if err := g.Wait(); err != nil {
@@ -218,10 +214,9 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 	return row, nil
 }
 
-func getServicesOfPortAsEndpoint(ctx context.Context, port *ent.EquipmentPort, role models.ServiceEndpointRole) (string, error) {
+func getServicesOfPortAsEndpoint(ctx context.Context, port *ent.EquipmentPort) (string, error) {
 	services, err := port.
 		QueryEndpoints().
-		Where(serviceendpoint.Role(role.String())).
 		QueryService().
 		All(ctx)
 	if err != nil {

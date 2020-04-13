@@ -14,9 +14,6 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/stretchr/testify/require"
 )
@@ -47,11 +44,10 @@ func writeModifiedPortsCSV(t *testing.T, r *csv.Reader, skipLines, withVerify bo
 		} else {
 			newLine = line
 			if line[1] == portName1 {
-				newLine[18] = "new-prop-value"
-				newLine[19] = "new-prop-value2"
+				newLine[17] = "new-prop-value"
+				newLine[18] = "new-prop-value2"
 			} else if line[1] == portName2 {
-				newLine[16] = secondServiceName
-				newLine[17] = ""
+				newLine[16] = ""
 			}
 			lines[i] = newLine
 		}
@@ -91,8 +87,7 @@ func TestImportAndEditPorts(t *testing.T) {
 			require.Equal(t, 2, ports.Count)
 			for _, port := range ports.Ports {
 				def := port.QueryDefinition().OnlyX(ctx)
-				switch def.Name {
-				case portName1:
+				if def.Name == portName1 {
 					typ := def.QueryEquipmentPortType().OnlyX(ctx)
 					propTyps := typ.QueryPropertyTypes().AllX(ctx)
 					require.Len(t, propTyps, 2)
@@ -108,18 +103,6 @@ func TestImportAndEditPorts(t *testing.T) {
 
 						require.Equal(t, port.QueryProperties().Where(property.HasTypeWith(propertytype.ID(p1.ID))).OnlyX(ctx).StringVal, "new-prop-value")
 						require.Equal(t, port.QueryProperties().Where(property.HasTypeWith(propertytype.ID(p2.ID))).OnlyX(ctx).StringVal, "new-prop-value2")
-					}
-				case portName2:
-					typ, _ := def.QueryEquipmentPortType().Only(ctx)
-					require.Nil(t, typ)
-					s, err := port.QueryEndpoints().Where(serviceendpoint.Role(models.ServiceEndpointRoleConsumer.String())).QueryService().Only(ctx)
-					if skipLines || withVerify {
-						require.Error(t, err)
-						require.Nil(t, s)
-					} else {
-						require.NotNil(t, s)
-						require.Equal(t, s.Name, secondServiceName)
-						require.False(t, port.QueryEndpoints().Where(serviceendpoint.Role(models.ServiceEndpointRoleProvider.String())).ExistX(ctx))
 					}
 				}
 			}

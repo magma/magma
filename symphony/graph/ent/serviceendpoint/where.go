@@ -111,13 +111,6 @@ func UpdateTime(v time.Time) predicate.ServiceEndpoint {
 	})
 }
 
-// Role applies equality check predicate on the "role" field. It's identical to RoleEQ.
-func Role(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldRole), v))
-	})
-}
-
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.ServiceEndpoint {
 	return predicate.ServiceEndpoint(func(s *sql.Selector) {
@@ -270,117 +263,6 @@ func UpdateTimeLTE(v time.Time) predicate.ServiceEndpoint {
 	})
 }
 
-// RoleEQ applies the EQ predicate on the "role" field.
-func RoleEQ(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldRole), v))
-	})
-}
-
-// RoleNEQ applies the NEQ predicate on the "role" field.
-func RoleNEQ(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldRole), v))
-	})
-}
-
-// RoleIn applies the In predicate on the "role" field.
-func RoleIn(vs ...string) predicate.ServiceEndpoint {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldRole), v...))
-	})
-}
-
-// RoleNotIn applies the NotIn predicate on the "role" field.
-func RoleNotIn(vs ...string) predicate.ServiceEndpoint {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldRole), v...))
-	})
-}
-
-// RoleGT applies the GT predicate on the "role" field.
-func RoleGT(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldRole), v))
-	})
-}
-
-// RoleGTE applies the GTE predicate on the "role" field.
-func RoleGTE(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldRole), v))
-	})
-}
-
-// RoleLT applies the LT predicate on the "role" field.
-func RoleLT(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldRole), v))
-	})
-}
-
-// RoleLTE applies the LTE predicate on the "role" field.
-func RoleLTE(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldRole), v))
-	})
-}
-
-// RoleContains applies the Contains predicate on the "role" field.
-func RoleContains(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldRole), v))
-	})
-}
-
-// RoleHasPrefix applies the HasPrefix predicate on the "role" field.
-func RoleHasPrefix(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldRole), v))
-	})
-}
-
-// RoleHasSuffix applies the HasSuffix predicate on the "role" field.
-func RoleHasSuffix(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldRole), v))
-	})
-}
-
-// RoleEqualFold applies the EqualFold predicate on the "role" field.
-func RoleEqualFold(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldRole), v))
-	})
-}
-
-// RoleContainsFold applies the ContainsFold predicate on the "role" field.
-func RoleContainsFold(v string) predicate.ServiceEndpoint {
-	return predicate.ServiceEndpoint(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldRole), v))
-	})
-}
-
 // HasPort applies the HasEdge predicate on the "port" edge.
 func HasPort() predicate.ServiceEndpoint {
 	return predicate.ServiceEndpoint(func(s *sql.Selector) {
@@ -409,6 +291,34 @@ func HasPortWith(preds ...predicate.EquipmentPort) predicate.ServiceEndpoint {
 	})
 }
 
+// HasEquipment applies the HasEdge predicate on the "equipment" edge.
+func HasEquipment() predicate.ServiceEndpoint {
+	return predicate.ServiceEndpoint(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EquipmentTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, EquipmentTable, EquipmentColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEquipmentWith applies the HasEdge predicate on the "equipment" edge with a given conditions (other predicates).
+func HasEquipmentWith(preds ...predicate.Equipment) predicate.ServiceEndpoint {
+	return predicate.ServiceEndpoint(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EquipmentInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, EquipmentTable, EquipmentColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasService applies the HasEdge predicate on the "service" edge.
 func HasService() predicate.ServiceEndpoint {
 	return predicate.ServiceEndpoint(func(s *sql.Selector) {
@@ -428,6 +338,34 @@ func HasServiceWith(preds ...predicate.Service) predicate.ServiceEndpoint {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ServiceInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ServiceTable, ServiceColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDefinition applies the HasEdge predicate on the "definition" edge.
+func HasDefinition() predicate.ServiceEndpoint {
+	return predicate.ServiceEndpoint(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(DefinitionTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, DefinitionTable, DefinitionColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDefinitionWith applies the HasEdge predicate on the "definition" edge with a given conditions (other predicates).
+func HasDefinitionWith(preds ...predicate.ServiceEndpointDefinition) predicate.ServiceEndpoint {
+	return predicate.ServiceEndpoint(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(DefinitionInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, DefinitionTable, DefinitionColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

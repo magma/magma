@@ -1813,15 +1813,22 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 			Title: "Bar",
 			CheckList: []*models.CheckListItemInput{{
 				Title:   "Foo",
-				Type:    "simple",
+				Type:    models.CheckListItemTypeSimple,
 				Index:   pointer.ToInt(0),
 				Checked: pointer.ToBool(false),
-			}},
+			},
+				{
+					Title: "CellScan",
+					Type:  models.CheckListItemTypeCellScan,
+					Index: pointer.ToInt(1),
+				}},
 		}},
 	})
 	require.NoError(t, err)
 
-	fooID, err := wo.QueryCheckListCategories().QueryCheckListItems().OnlyID(ctx)
+	fooID, err := wo.QueryCheckListCategories().QueryCheckListItems().Where(checklistitem.TypeEQ("simple")).OnlyID(ctx)
+	require.NoError(t, err)
+	cellScanID, err := wo.QueryCheckListCategories().QueryCheckListItems().Where(checklistitem.TypeEQ("cell_scan")).OnlyID(ctx)
 	require.NoError(t, err)
 	techInput := models.TechnicianWorkOrderUploadInput{
 		WorkOrderID: wo.ID,
@@ -1829,6 +1836,13 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 			{
 				ID:      fooID,
 				Checked: pointer.ToBool(true),
+			},
+			{
+				ID: cellScanID,
+				CellData: []*models.SurveyCellScanData{{
+					NetworkType:    models.CellularNetworkTypeLte,
+					SignalStrength: -93,
+				}},
 			},
 		},
 	}
@@ -1838,8 +1852,13 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 			ID                  string
 			CheckListCategories []struct {
 				CheckList []struct {
-					ID      string
-					Checked *bool
+					ID       string
+					Type     models.CheckListItemType
+					Checked  *bool
+					CellData []struct {
+						NetworkType    string
+						SignalStrength int
+					}
 				}
 			}
 		}
@@ -1851,7 +1870,12 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 				checkListCategories {
 					checkList {
 						id
+						type
 						checked
+						cellData {
+							networkType
+							signalStrength
+						}
 					}
 				}
 			}
@@ -1861,6 +1885,15 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 	)
 
 	require.Len(t, rsp.TechnicianWorkOrderUploadData.CheckListCategories, 1)
-	require.Len(t, rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList, 1)
-	require.True(t, *rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList[0].Checked)
+	require.Len(t, rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList, 2)
+
+	for _, item := range rsp.TechnicianWorkOrderUploadData.CheckListCategories[0].CheckList {
+		if item.Type == models.CheckListItemTypeSimple {
+			require.True(t, *item.Checked)
+		} else {
+			require.Equal(t, models.CellularNetworkTypeLte.String(), item.CellData[0].NetworkType)
+			require.Equal(t, -93, item.CellData[0].SignalStrength)
+		}
+	}
+
 }

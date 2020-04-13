@@ -75,6 +75,7 @@ type ResolverRoot interface {
 	ReportFilter() ReportFilterResolver
 	Service() ServiceResolver
 	ServiceEndpoint() ServiceEndpointResolver
+	ServiceEndpointDefinition() ServiceEndpointDefinitionResolver
 	ServiceType() ServiceTypeResolver
 	Subscription() SubscriptionResolver
 	Survey() SurveyResolver
@@ -172,6 +173,7 @@ type ComplexityRoot struct {
 	}
 
 	CheckListItem struct {
+		CellData           func(childComplexity int) int
 		Checked            func(childComplexity int) int
 		EnumSelectionMode  func(childComplexity int) int
 		EnumValues         func(childComplexity int) int
@@ -183,6 +185,7 @@ type ComplexityRoot struct {
 		StringVal          func(childComplexity int) int
 		Title              func(childComplexity int) int
 		Type               func(childComplexity int) int
+		WifiData           func(childComplexity int) int
 		YesNoResponse      func(childComplexity int) int
 	}
 
@@ -499,6 +502,7 @@ type ComplexityRoot struct {
 		AddReportFilter                          func(childComplexity int, input models.ReportFilterInput) int
 		AddService                               func(childComplexity int, data models.ServiceCreateData) int
 		AddServiceEndpoint                       func(childComplexity int, input models.AddServiceEndpointInput) int
+		AddServiceEndpointDefinition             func(childComplexity int, input models.AddServiceEndpointDefinitionInput) int
 		AddServiceLink                           func(childComplexity int, id int, linkID int) int
 		AddServiceType                           func(childComplexity int, data models.ServiceTypeCreateData) int
 		AddTechnician                            func(childComplexity int, input models.TechnicianInput) int
@@ -758,10 +762,20 @@ type ComplexityRoot struct {
 	}
 
 	ServiceEndpoint struct {
-		ID      func(childComplexity int) int
-		Port    func(childComplexity int) int
-		Role    func(childComplexity int) int
-		Service func(childComplexity int) int
+		Definition func(childComplexity int) int
+		Equipment  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Port       func(childComplexity int) int
+		Service    func(childComplexity int) int
+	}
+
+	ServiceEndpointDefinition struct {
+		Endpoints     func(childComplexity int) int
+		EquipmentType func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Index         func(childComplexity int) int
+		Role          func(childComplexity int) int
+		ServiceType   func(childComplexity int) int
 	}
 
 	ServiceSearchResult struct {
@@ -770,12 +784,13 @@ type ComplexityRoot struct {
 	}
 
 	ServiceType struct {
-		HasCustomer      func(childComplexity int) int
-		ID               func(childComplexity int) int
-		Name             func(childComplexity int) int
-		NumberOfServices func(childComplexity int) int
-		PropertyTypes    func(childComplexity int) int
-		Services         func(childComplexity int) int
+		EndpointDefinitions func(childComplexity int) int
+		HasCustomer         func(childComplexity int) int
+		ID                  func(childComplexity int) int
+		Name                func(childComplexity int) int
+		NumberOfServices    func(childComplexity int) int
+		PropertyTypes       func(childComplexity int) int
+		Services            func(childComplexity int) int
 	}
 
 	ServiceTypeConnection struct {
@@ -1057,6 +1072,8 @@ type CheckListItemResolver interface {
 
 	Files(ctx context.Context, obj *ent.CheckListItem) ([]*ent.File, error)
 	YesNoResponse(ctx context.Context, obj *ent.CheckListItem) (*models.YesNoResponse, error)
+	WifiData(ctx context.Context, obj *ent.CheckListItem) ([]*ent.SurveyWiFiScan, error)
+	CellData(ctx context.Context, obj *ent.CheckListItem) ([]*ent.SurveyCellScan, error)
 }
 type CheckListItemDefinitionResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error)
@@ -1184,6 +1201,7 @@ type MutationResolver interface {
 	AddServiceLink(ctx context.Context, id int, linkID int) (*ent.Service, error)
 	RemoveServiceLink(ctx context.Context, id int, linkID int) (*ent.Service, error)
 	AddServiceEndpoint(ctx context.Context, input models.AddServiceEndpointInput) (*ent.Service, error)
+	AddServiceEndpointDefinition(ctx context.Context, input models.AddServiceEndpointDefinitionInput) (*ent.ServiceEndpointDefinition, error)
 	RemoveServiceEndpoint(ctx context.Context, serviceEndpointID int) (*ent.Service, error)
 	AddServiceType(ctx context.Context, data models.ServiceTypeCreateData) (*ent.ServiceType, error)
 	EditServiceType(ctx context.Context, data models.ServiceTypeEditData) (*ent.ServiceType, error)
@@ -1319,13 +1337,20 @@ type ServiceResolver interface {
 }
 type ServiceEndpointResolver interface {
 	Port(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.EquipmentPort, error)
-	Role(ctx context.Context, obj *ent.ServiceEndpoint) (models.ServiceEndpointRole, error)
+	Equipment(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.Equipment, error)
 	Service(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.Service, error)
+	Definition(ctx context.Context, obj *ent.ServiceEndpoint) (*ent.ServiceEndpointDefinition, error)
+}
+type ServiceEndpointDefinitionResolver interface {
+	Endpoints(ctx context.Context, obj *ent.ServiceEndpointDefinition) ([]*ent.ServiceEndpoint, error)
+	EquipmentType(ctx context.Context, obj *ent.ServiceEndpointDefinition) (*ent.EquipmentType, error)
+	ServiceType(ctx context.Context, obj *ent.ServiceEndpointDefinition) (*ent.ServiceType, error)
 }
 type ServiceTypeResolver interface {
 	PropertyTypes(ctx context.Context, obj *ent.ServiceType) ([]*ent.PropertyType, error)
 	Services(ctx context.Context, obj *ent.ServiceType) ([]*ent.Service, error)
 	NumberOfServices(ctx context.Context, obj *ent.ServiceType) (int, error)
+	EndpointDefinitions(ctx context.Context, obj *ent.ServiceType) ([]*ent.ServiceEndpointDefinition, error)
 }
 type SubscriptionResolver interface {
 	WorkOrderAdded(ctx context.Context) (<-chan *ent.WorkOrder, error)
@@ -1674,6 +1699,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CheckListCategory.Title(childComplexity), true
 
+	case "CheckListItem.cellData":
+		if e.complexity.CheckListItem.CellData == nil {
+			break
+		}
+
+		return e.complexity.CheckListItem.CellData(childComplexity), true
+
 	case "CheckListItem.checked":
 		if e.complexity.CheckListItem.Checked == nil {
 			break
@@ -1750,6 +1782,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CheckListItem.Type(childComplexity), true
+
+	case "CheckListItem.wifiData":
+		if e.complexity.CheckListItem.WifiData == nil {
+			break
+		}
+
+		return e.complexity.CheckListItem.WifiData(childComplexity), true
 
 	case "CheckListItem.yesNoResponse":
 		if e.complexity.CheckListItem.YesNoResponse == nil {
@@ -3243,6 +3282,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddServiceEndpoint(childComplexity, args["input"].(models.AddServiceEndpointInput)), true
+
+	case "Mutation.addServiceEndpointDefinition":
+		if e.complexity.Mutation.AddServiceEndpointDefinition == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addServiceEndpointDefinition_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddServiceEndpointDefinition(childComplexity, args["input"].(models.AddServiceEndpointDefinitionInput)), true
 
 	case "Mutation.addServiceLink":
 		if e.complexity.Mutation.AddServiceLink == nil {
@@ -5127,6 +5178,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Service.Upstream(childComplexity), true
 
+	case "ServiceEndpoint.definition":
+		if e.complexity.ServiceEndpoint.Definition == nil {
+			break
+		}
+
+		return e.complexity.ServiceEndpoint.Definition(childComplexity), true
+
+	case "ServiceEndpoint.equipment":
+		if e.complexity.ServiceEndpoint.Equipment == nil {
+			break
+		}
+
+		return e.complexity.ServiceEndpoint.Equipment(childComplexity), true
+
 	case "ServiceEndpoint.id":
 		if e.complexity.ServiceEndpoint.ID == nil {
 			break
@@ -5141,19 +5206,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceEndpoint.Port(childComplexity), true
 
-	case "ServiceEndpoint.role":
-		if e.complexity.ServiceEndpoint.Role == nil {
-			break
-		}
-
-		return e.complexity.ServiceEndpoint.Role(childComplexity), true
-
 	case "ServiceEndpoint.service":
 		if e.complexity.ServiceEndpoint.Service == nil {
 			break
 		}
 
 		return e.complexity.ServiceEndpoint.Service(childComplexity), true
+
+	case "ServiceEndpointDefinition.endpoints":
+		if e.complexity.ServiceEndpointDefinition.Endpoints == nil {
+			break
+		}
+
+		return e.complexity.ServiceEndpointDefinition.Endpoints(childComplexity), true
+
+	case "ServiceEndpointDefinition.equipmentType":
+		if e.complexity.ServiceEndpointDefinition.EquipmentType == nil {
+			break
+		}
+
+		return e.complexity.ServiceEndpointDefinition.EquipmentType(childComplexity), true
+
+	case "ServiceEndpointDefinition.id":
+		if e.complexity.ServiceEndpointDefinition.ID == nil {
+			break
+		}
+
+		return e.complexity.ServiceEndpointDefinition.ID(childComplexity), true
+
+	case "ServiceEndpointDefinition.index":
+		if e.complexity.ServiceEndpointDefinition.Index == nil {
+			break
+		}
+
+		return e.complexity.ServiceEndpointDefinition.Index(childComplexity), true
+
+	case "ServiceEndpointDefinition.role":
+		if e.complexity.ServiceEndpointDefinition.Role == nil {
+			break
+		}
+
+		return e.complexity.ServiceEndpointDefinition.Role(childComplexity), true
+
+	case "ServiceEndpointDefinition.serviceType":
+		if e.complexity.ServiceEndpointDefinition.ServiceType == nil {
+			break
+		}
+
+		return e.complexity.ServiceEndpointDefinition.ServiceType(childComplexity), true
 
 	case "ServiceSearchResult.count":
 		if e.complexity.ServiceSearchResult.Count == nil {
@@ -5168,6 +5268,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceSearchResult.Services(childComplexity), true
+
+	case "ServiceType.endpointDefinitions":
+		if e.complexity.ServiceType.EndpointDefinitions == nil {
+			break
+		}
+
+		return e.complexity.ServiceType.EndpointDefinitions(childComplexity), true
 
 	case "ServiceType.hasCustomer":
 		if e.complexity.ServiceType.HasCustomer == nil {
@@ -6988,6 +7095,8 @@ input TechnicianCheckListItemInput {
   stringValue: String
   checked: Boolean
   yesNoResponse: YesNoResponse
+  wifiData: [SurveyWiFiScanData!]
+  cellData: [SurveyCellScanData!]
 }
 
 input TechnicianWorkOrderUploadInput {
@@ -7515,6 +7624,8 @@ enum CheckListItemType {
   enum
   files
   yes_no
+  cell_scan
+  wifi_scan
 }
 
 enum CheckListItemEnumSelectionMode {
@@ -7560,6 +7671,8 @@ type CheckListItem implements Node {
   checked: Boolean
   files: [File!]!
   yesNoResponse: YesNoResponse
+  wifiData: [SurveyWiFiScan!]
+  cellData: [SurveyCellScan!]
 }
 
 input CheckListCategoryInput {
@@ -8172,16 +8285,12 @@ type Customer implements Node {
   externalId: String
 }
 
-enum ServiceEndpointRole {
-  CONSUMER
-  PROVIDER
-}
-
 type ServiceEndpoint implements Node {
   id: ID!
-  port: EquipmentPort!
-  role: ServiceEndpointRole!
+  port: EquipmentPort
+  equipment: Equipment!
   service: Service!
+  definition: ServiceEndpointDefinition!
 }
 
 """
@@ -8202,6 +8311,15 @@ type Service implements Node {
   topology: NetworkTopology!
 }
 
+type ServiceEndpointDefinition implements Node {
+  id: ID!
+  index: Int!
+  role: String!
+  endpoints: [ServiceEndpoint]!
+  equipmentType: EquipmentType!
+  serviceType: ServiceType!
+}
+
 """
 Service type schema: e.g. L2 VPN.
 """
@@ -8212,6 +8330,7 @@ type ServiceType implements Node {
   propertyTypes: [PropertyType]!
   services: [Service]!
   numberOfServices: Int!
+  endpointDefinitions: [ServiceEndpointDefinition]!
 }
 
 directive @uniqueField(
@@ -8261,8 +8380,17 @@ input ServiceEditData {
 
 input AddServiceEndpointInput {
   id: ID!
-  portId: ID!
-  role: ServiceEndpointRole!
+  portId: ID
+  equipmentID: ID!
+  definition: ID!
+}
+
+input AddServiceEndpointDefinitionInput {
+  name: String!
+  role: String
+  Index: Int!
+  serviceTypeID: ID!
+  equipmentTypeID: ID!
 }
 
 input SurveyCreateData {
@@ -8866,9 +8994,13 @@ type Mutation {
   addServiceLink(id: ID!, linkId: ID!): Service!
   removeServiceLink(id: ID!, linkId: ID!): Service!
   addServiceEndpoint(input: AddServiceEndpointInput!): Service!
+  addServiceEndpointDefinition(
+    input: AddServiceEndpointDefinitionInput!
+  ): ServiceEndpointDefinition!
   removeServiceEndpoint(serviceEndpointId: ID!): Service!
   addServiceType(
     """
+    AddServiceEndpointInput
     data to edit service type
     """
     data: ServiceTypeCreateData!
@@ -9375,6 +9507,20 @@ func (ec *executionContext) field_Mutation_addReportFilter_args(ctx context.Cont
 	var arg0 models.ReportFilterInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNReportFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐReportFilterInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addServiceEndpointDefinition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.AddServiceEndpointDefinitionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNAddServiceEndpointDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddServiceEndpointDefinitionInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -13158,6 +13304,74 @@ func (ec *executionContext) _CheckListItem_yesNoResponse(ctx context.Context, fi
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOYesNoResponse2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐYesNoResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListItem_wifiData(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CheckListItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CheckListItem().WifiData(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.SurveyWiFiScan)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOSurveyWiFiScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScanᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CheckListItem_cellData(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "CheckListItem",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.CheckListItem().CellData(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.SurveyCellScan)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScanᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListItemDefinition_id(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItemDefinition) (ret graphql.Marshaler) {
@@ -21089,6 +21303,50 @@ func (ec *executionContext) _Mutation_addServiceEndpoint(ctx context.Context, fi
 	return ec.marshalNService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addServiceEndpointDefinition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addServiceEndpointDefinition_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddServiceEndpointDefinition(rctx, args["input"].(models.AddServiceEndpointDefinitionInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ServiceEndpointDefinition)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNServiceEndpointDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_removeServiceEndpoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -28504,18 +28762,15 @@ func (ec *executionContext) _ServiceEndpoint_port(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.EquipmentPort)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEquipmentPort2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPort(ctx, field.Selections, res)
+	return ec.marshalOEquipmentPort2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPort(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ServiceEndpoint_role(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpoint) (ret graphql.Marshaler) {
+func (ec *executionContext) _ServiceEndpoint_equipment(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpoint) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -28534,7 +28789,7 @@ func (ec *executionContext) _ServiceEndpoint_role(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ServiceEndpoint().Role(rctx, obj)
+		return ec.resolvers.ServiceEndpoint().Equipment(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28546,10 +28801,10 @@ func (ec *executionContext) _ServiceEndpoint_role(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.ServiceEndpointRole)
+	res := resTmp.(*ent.Equipment)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNServiceEndpointRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointRole(ctx, field.Selections, res)
+	return ec.marshalNEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceEndpoint_service(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpoint) (ret graphql.Marshaler) {
@@ -28587,6 +28842,265 @@ func (ec *executionContext) _ServiceEndpoint_service(ctx context.Context, field 
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEndpoint_definition(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpoint) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceEndpoint",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ServiceEndpoint().Definition(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ServiceEndpointDefinition)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNServiceEndpointDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEndpointDefinition_id(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpointDefinition) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceEndpointDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEndpointDefinition_index(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpointDefinition) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceEndpointDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Index, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEndpointDefinition_role(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpointDefinition) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceEndpointDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEndpointDefinition_endpoints(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpointDefinition) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceEndpointDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ServiceEndpointDefinition().Endpoints(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.ServiceEndpoint)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNServiceEndpoint2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpoint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEndpointDefinition_equipmentType(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpointDefinition) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceEndpointDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ServiceEndpointDefinition().EquipmentType(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.EquipmentType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEquipmentType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEndpointDefinition_serviceType(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpointDefinition) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceEndpointDefinition",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ServiceEndpointDefinition().ServiceType(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ServiceType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNServiceType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceSearchResult_services(ctx context.Context, field graphql.CollectedField, obj *models.ServiceSearchResult) (ret graphql.Marshaler) {
@@ -28883,6 +29397,43 @@ func (ec *executionContext) _ServiceType_numberOfServices(ctx context.Context, f
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceType_endpointDefinitions(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ServiceType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ServiceType().EndpointDefinitions(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.ServiceEndpointDefinition)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNServiceEndpointDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceTypeConnection) (ret graphql.Marshaler) {
@@ -36954,6 +37505,48 @@ func (ec *executionContext) unmarshalInputAddProjectTypeInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAddServiceEndpointDefinitionInput(ctx context.Context, obj interface{}) (models.AddServiceEndpointDefinitionInput, error) {
+	var it models.AddServiceEndpointDefinitionInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "role":
+			var err error
+			it.Role, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Index":
+			var err error
+			it.Index, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "serviceTypeID":
+			var err error
+			it.ServiceTypeID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "equipmentTypeID":
+			var err error
+			it.EquipmentTypeID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAddServiceEndpointInput(ctx context.Context, obj interface{}) (models.AddServiceEndpointInput, error) {
 	var it models.AddServiceEndpointInput
 	var asMap = obj.(map[string]interface{})
@@ -36968,13 +37561,19 @@ func (ec *executionContext) unmarshalInputAddServiceEndpointInput(ctx context.Co
 			}
 		case "portId":
 			var err error
-			it.PortID, err = ec.unmarshalNID2int(ctx, v)
+			it.PortID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "role":
+		case "equipmentID":
 			var err error
-			it.Role, err = ec.unmarshalNServiceEndpointRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointRole(ctx, v)
+			it.EquipmentID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "definition":
+			var err error
+			it.Definition, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39938,6 +40537,18 @@ func (ec *executionContext) unmarshalInputTechnicianCheckListItemInput(ctx conte
 			if err != nil {
 				return it, err
 			}
+		case "wifiData":
+			var err error
+			it.WifiData, err = ec.unmarshalOSurveyWiFiScanData2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyWiFiScanDataᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "cellData":
+			var err error
+			it.CellData, err = ec.unmarshalOSurveyCellScanData2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyCellScanDataᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -40346,6 +40957,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._Service(ctx, sel, obj)
+	case *ent.ServiceEndpointDefinition:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._ServiceEndpointDefinition(ctx, sel, obj)
 	case *ent.ServiceType:
 		if obj == nil {
 			return graphql.Null
@@ -40957,6 +41573,28 @@ func (ec *executionContext) _CheckListItem(ctx context.Context, sel ast.Selectio
 					}
 				}()
 				res = ec._CheckListItem_yesNoResponse(ctx, field, obj)
+				return res
+			})
+		case "wifiData":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CheckListItem_wifiData(ctx, field, obj)
+				return res
+			})
+		case "cellData":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._CheckListItem_cellData(ctx, field, obj)
 				return res
 			})
 		default:
@@ -43331,6 +43969,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "addServiceEndpointDefinition":
+			out.Values[i] = ec._Mutation_addServiceEndpointDefinition(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "removeServiceEndpoint":
 			out.Values[i] = ec._Mutation_removeServiceEndpoint(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -45144,12 +45787,9 @@ func (ec *executionContext) _ServiceEndpoint(ctx context.Context, sel ast.Select
 					}
 				}()
 				res = ec._ServiceEndpoint_port(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
-		case "role":
+		case "equipment":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -45157,7 +45797,7 @@ func (ec *executionContext) _ServiceEndpoint(ctx context.Context, sel ast.Select
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ServiceEndpoint_role(ctx, field, obj)
+				res = ec._ServiceEndpoint_equipment(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -45172,6 +45812,99 @@ func (ec *executionContext) _ServiceEndpoint(ctx context.Context, sel ast.Select
 					}
 				}()
 				res = ec._ServiceEndpoint_service(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "definition":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ServiceEndpoint_definition(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var serviceEndpointDefinitionImplementors = []string{"ServiceEndpointDefinition", "Node"}
+
+func (ec *executionContext) _ServiceEndpointDefinition(ctx context.Context, sel ast.SelectionSet, obj *ent.ServiceEndpointDefinition) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, serviceEndpointDefinitionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceEndpointDefinition")
+		case "id":
+			out.Values[i] = ec._ServiceEndpointDefinition_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "index":
+			out.Values[i] = ec._ServiceEndpointDefinition_index(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "role":
+			out.Values[i] = ec._ServiceEndpointDefinition_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "endpoints":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ServiceEndpointDefinition_endpoints(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "equipmentType":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ServiceEndpointDefinition_equipmentType(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "serviceType":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ServiceEndpointDefinition_serviceType(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -45283,6 +46016,20 @@ func (ec *executionContext) _ServiceType(ctx context.Context, sel ast.SelectionS
 					}
 				}()
 				res = ec._ServiceType_numberOfServices(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "endpointDefinitions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ServiceType_endpointDefinitions(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -47671,6 +48418,10 @@ func (ec *executionContext) unmarshalNAddProjectInput2githubᚗcomᚋfacebookinc
 
 func (ec *executionContext) unmarshalNAddProjectTypeInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddProjectTypeInput(ctx context.Context, v interface{}) (models.AddProjectTypeInput, error) {
 	return ec.unmarshalInputAddProjectTypeInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNAddServiceEndpointDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddServiceEndpointDefinitionInput(ctx context.Context, v interface{}) (models.AddServiceEndpointDefinitionInput, error) {
+	return ec.unmarshalInputAddServiceEndpointDefinitionInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNAddServiceEndpointInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddServiceEndpointInput(ctx context.Context, v interface{}) (models.AddServiceEndpointInput, error) {
@@ -50546,13 +51297,55 @@ func (ec *executionContext) marshalNServiceEndpoint2ᚖgithubᚗcomᚋfacebookin
 	return ec._ServiceEndpoint(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNServiceEndpointRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointRole(ctx context.Context, v interface{}) (models.ServiceEndpointRole, error) {
-	var res models.ServiceEndpointRole
-	return res, res.UnmarshalGQL(v)
+func (ec *executionContext) marshalNServiceEndpointDefinition2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx context.Context, sel ast.SelectionSet, v ent.ServiceEndpointDefinition) graphql.Marshaler {
+	return ec._ServiceEndpointDefinition(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNServiceEndpointRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointRole(ctx context.Context, sel ast.SelectionSet, v models.ServiceEndpointRole) graphql.Marshaler {
-	return v
+func (ec *executionContext) marshalNServiceEndpointDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx context.Context, sel ast.SelectionSet, v []*ent.ServiceEndpointDefinition) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOServiceEndpointDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNServiceEndpointDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.ServiceEndpointDefinition) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ServiceEndpointDefinition(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNServiceFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceFilterInput(ctx context.Context, v interface{}) (models.ServiceFilterInput, error) {
@@ -50794,6 +51587,10 @@ func (ec *executionContext) marshalNSurvey2ᚖgithubᚗcomᚋfacebookincubator�
 	return ec._Survey(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNSurveyCellScan2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx context.Context, sel ast.SelectionSet, v ent.SurveyCellScan) graphql.Marshaler {
+	return ec._SurveyCellScan(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx context.Context, sel ast.SelectionSet, v []*ent.SurveyCellScan) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -50829,6 +51626,16 @@ func (ec *executionContext) marshalNSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebook
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNSurveyCellScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx context.Context, sel ast.SelectionSet, v *ent.SurveyCellScan) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SurveyCellScan(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNSurveyCellScanData2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyCellScanData(ctx context.Context, v interface{}) (models.SurveyCellScanData, error) {
@@ -50991,6 +51798,10 @@ func (ec *executionContext) unmarshalNSurveyTemplateCategoryInput2ᚖgithubᚗco
 	return &res, err
 }
 
+func (ec *executionContext) marshalNSurveyWiFiScan2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScan(ctx context.Context, sel ast.SelectionSet, v ent.SurveyWiFiScan) graphql.Marshaler {
+	return ec._SurveyWiFiScan(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNSurveyWiFiScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScan(ctx context.Context, sel ast.SelectionSet, v []*ent.SurveyWiFiScan) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -51026,6 +51837,16 @@ func (ec *executionContext) marshalNSurveyWiFiScan2ᚕᚖgithubᚗcomᚋfacebook
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNSurveyWiFiScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScan(ctx context.Context, sel ast.SelectionSet, v *ent.SurveyWiFiScan) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SurveyWiFiScan(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNSurveyWiFiScanData2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyWiFiScanData(ctx context.Context, v interface{}) (models.SurveyWiFiScanData, error) {
@@ -53258,6 +54079,17 @@ func (ec *executionContext) marshalOServiceEndpoint2ᚖgithubᚗcomᚋfacebookin
 	return ec._ServiceEndpoint(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOServiceEndpointDefinition2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx context.Context, sel ast.SelectionSet, v ent.ServiceEndpointDefinition) graphql.Marshaler {
+	return ec._ServiceEndpointDefinition(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOServiceEndpointDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceEndpointDefinition(ctx context.Context, sel ast.SelectionSet, v *ent.ServiceEndpointDefinition) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ServiceEndpointDefinition(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, v interface{}) (models.ServiceStatus, error) {
 	var res models.ServiceStatus
 	return res, res.UnmarshalGQL(v)
@@ -53402,6 +54234,46 @@ func (ec *executionContext) marshalOSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebook
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalOSurveyCellScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScanᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.SurveyCellScan) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSurveyCellScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -53738,6 +54610,46 @@ func (ec *executionContext) marshalOSurveyWiFiScan2ᚕᚖgithubᚗcomᚋfacebook
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalOSurveyWiFiScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScan(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOSurveyWiFiScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScanᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.SurveyWiFiScan) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSurveyWiFiScan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyWiFiScan(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
