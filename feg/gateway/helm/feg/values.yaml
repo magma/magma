@@ -17,9 +17,14 @@ release_group: null
 imagePullSecrets: []
 # - name: orc8r-secrets-registry
 
+# secrets sub-chart configuration.
+secrets:
+  create: false
+
 # Define which secrets should be mounted by pods.
 secret:
   certs: orc8r-secrets-certs
+  gwinfo: feg-secrets-gwinfo
 
 ## Key Values for docker inside VM
 feg:
