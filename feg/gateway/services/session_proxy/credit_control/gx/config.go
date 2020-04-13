@@ -172,8 +172,15 @@ func GetGxGlobalConfig() *GxGlobalConfig {
 
 // validGxConfig check if required fields related to Gx are valid in the config
 func validGxConfig(config *mconfig.SessionProxyConfig) bool {
-	if config == nil || config.Gx == nil || config.Gx.Server == nil || config.Gx.Server.Address == "" {
+	if config == nil || config.Gx == nil ||
+		(config.Gx.Server == nil && len(config.Gx.Servers) == 0) ||
+		(config.Gx.Server != nil && config.Gx.Server.Address == "") {
 		return false
+	}
+	for _, server := range config.Gx.Servers {
+		if server.Address == "" {
+			return false
+		}
 	}
 	return true
 }

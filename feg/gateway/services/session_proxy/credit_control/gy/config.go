@@ -212,8 +212,15 @@ func GetGyGlobalConfig() *GyGlobalConfig {
 
 // check if required fields related to Gy are valid in the config
 func validGyConfig(config *mconfig.SessionProxyConfig) bool {
-	if config == nil || config.Gy == nil || config.Gy.Server == nil || config.Gy.Server.Address == "" {
+	if config == nil || config.Gy == nil ||
+		(config.Gy.Server == nil && len(config.Gy.Servers) == 0) ||
+		(config.Gy.Server != nil && config.Gy.Server.Address == "") {
 		return false
+	}
+	for _, server := range config.Gy.Servers {
+		if server.Address == "" {
+			return false
+		}
 	}
 	return true
 }
