@@ -21,15 +21,15 @@ namespace magma {
 
 class StoredStateTest : public ::testing::Test {
  protected:
-  StoredQoSInfo get_stored_qos_info() {
-    StoredQoSInfo stored;
+  QoSInfo get_stored_qos_info() {
+    QoSInfo stored;
     stored.enabled = true;
     stored.qci = 123;
     return stored;
   }
 
-  StoredSessionConfig get_stored_session_config() {
-    StoredSessionConfig stored;
+  SessionConfig get_stored_session_config() {
+    SessionConfig stored;
     stored.ue_ipv4 = "192.168.0.1";
     stored.spgw_ipv4 = "192.168.0.2";
     stored.msisdn = "a";
@@ -149,7 +149,7 @@ TEST_F(StoredStateTest, test_stored_session_config)
   auto stored = get_stored_session_config();
 
   std::string serialized = serialize_stored_session_config(stored);
-  StoredSessionConfig deserialized = deserialize_stored_session_config(serialized);
+  SessionConfig deserialized = deserialize_stored_session_config(serialized);
 
   EXPECT_EQ(deserialized.ue_ipv4, "192.168.0.1");
   EXPECT_EQ(deserialized.spgw_ipv4, "192.168.0.2");

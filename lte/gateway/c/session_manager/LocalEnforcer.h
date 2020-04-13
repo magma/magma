@@ -130,7 +130,7 @@ class LocalEnforcer {
     SessionMap& session_map,
     const std::string& imsi,
     const std::string& session_id,
-    const SessionState::Config& cfg,
+    const SessionConfig& cfg,
     const CreateSessionResponse& response);
 
   /**
@@ -216,7 +216,7 @@ class LocalEnforcer {
   bool session_with_same_config_exists(
     SessionMap& session_map,
     const std::string& imsi,
-    const magma::SessionState::Config& config,
+    const magma::SessionConfig& config,
     std::string* core_session_id) const;
 
   /**
@@ -227,7 +227,7 @@ class LocalEnforcer {
   void handle_cwf_roaming(
     SessionMap& session_map,
     const std::string& imsi,
-    const magma::SessionState::Config& config,
+    const magma::SessionConfig& config,
     SessionUpdate& session_update);
 
   /**

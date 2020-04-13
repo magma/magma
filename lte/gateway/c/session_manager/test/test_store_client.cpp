@@ -49,7 +49,7 @@ TEST_F(StoreClientTest, test_read_and_write) {
   auto sid2                   = id_gen_.gen_session_id(imsi2);
   auto sid3                   = id_gen_.gen_session_id(imsi3);
   std::string core_session_id = "asdf";
-  SessionState::Config cfg    = {.ue_ipv4           = "",
+  SessionConfig cfg    = {.ue_ipv4           = "",
                               .spgw_ipv4         = "",
                               .msisdn            = msisdn,
                               .apn               = "",

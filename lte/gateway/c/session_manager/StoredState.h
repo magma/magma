@@ -21,12 +21,12 @@
 #include "CreditKey.h"
 
 namespace magma {
-struct StoredQoSInfo {
+struct QoSInfo {
   bool enabled;
   uint32_t qci;
 };
 
-struct StoredSessionConfig {
+struct SessionConfig {
   std::string ue_ipv4;
   std::string spgw_ipv4;
   std::string msisdn;
@@ -40,7 +40,7 @@ struct StoredSessionConfig {
   std::string hardware_addr; // MAC Address for WLAN (binary)
   std::string radius_session_id;
   uint32_t bearer_id;
-  StoredQoSInfo qos_info;
+  QoSInfo qos_info;
 };
 
 // Session Credit
@@ -117,7 +117,7 @@ struct StoredUsageMonitoringCreditPool {
 };
 
 struct StoredSessionState {
-  StoredSessionConfig config;
+  SessionConfig config;
   StoredChargingCreditPool charging_pool;
   StoredUsageMonitoringCreditPool monitor_pool;
   std::string imsi;
@@ -146,7 +146,7 @@ struct SessionCreditUpdateCriteria {
 struct SessionStateUpdateCriteria {
   bool is_session_ended;
   bool is_config_updated;
-  StoredSessionConfig updated_config;
+  SessionConfig updated_config;
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;
   std::vector<PolicyRule> dynamic_rules_to_install;
@@ -165,13 +165,13 @@ struct SessionStateUpdateCriteria {
 
 SessionStateUpdateCriteria get_default_update_criteria();
 
-std::string serialize_stored_qos_info(const StoredQoSInfo& stored);
+std::string serialize_stored_qos_info(const QoSInfo& stored);
 
-StoredQoSInfo deserialize_stored_qos_info(const std::string& serialized);
+QoSInfo deserialize_stored_qos_info(const std::string& serialized);
 
-std::string serialize_stored_session_config(const StoredSessionConfig& stored);
+std::string serialize_stored_session_config(const SessionConfig& stored);
 
-StoredSessionConfig deserialize_stored_session_config(
+SessionConfig deserialize_stored_session_config(
     const std::string& serialized);
 
 std::string serialize_stored_redirect_server(

@@ -25,7 +25,7 @@ SessionStateUpdateCriteria get_default_update_criteria()
   return uc;
 }
 
-std::string serialize_stored_qos_info(const StoredQoSInfo& stored) {
+std::string serialize_stored_qos_info(const QoSInfo& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
   marshaled["enabled"]     = stored.enabled;
   marshaled["qci"]         = std::to_string(stored.qci);
@@ -34,18 +34,18 @@ std::string serialize_stored_qos_info(const StoredQoSInfo& stored) {
   return serialized;
 }
 
-StoredQoSInfo deserialize_stored_qos_info(const std::string& serialized) {
+QoSInfo deserialize_stored_qos_info(const std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored    = StoredQoSInfo{};
+  auto stored    = QoSInfo{};
   stored.enabled = marshaled["enabled"].getBool();
   stored.qci = static_cast<uint32_t>(std::stoul(marshaled["qci"].getString()));
 
   return stored;
 }
 
-std::string serialize_stored_session_config(const StoredSessionConfig& stored) {
+std::string serialize_stored_session_config(const SessionConfig& stored) {
   folly::dynamic marshaled       = folly::dynamic::object;
   marshaled["ue_ipv4"]           = stored.ue_ipv4;
   marshaled["spgw_ipv4"]         = stored.spgw_ipv4;
@@ -66,12 +66,12 @@ std::string serialize_stored_session_config(const StoredSessionConfig& stored) {
   return serialized;
 }
 
-StoredSessionConfig deserialize_stored_session_config(
+SessionConfig deserialize_stored_session_config(
     const std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
-  auto stored          = StoredSessionConfig{};
+  auto stored          = SessionConfig{};
   stored.ue_ipv4       = marshaled["ue_ipv4"].getString();
   stored.spgw_ipv4     = marshaled["spgw_ipv4"].getString();
   stored.msisdn        = marshaled["msisdn"].getString();

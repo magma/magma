@@ -32,7 +32,7 @@ using ::testing::Test;
 
 namespace magma {
 
-const SessionState::Config test_cfg = {.ue_ipv4 = "127.0.0.1",
+const SessionConfig test_cfg = {.ue_ipv4 = "127.0.0.1",
                                        .spgw_ipv4 = "128.0.0.1",
                                        .msisdn = "",
                                        .apn = "IMS"};
@@ -214,7 +214,7 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit)
     .Times(1)
     .WillOnce(testing::Return(true));
 
-  SessionState::Config test_cwf_cfg;
+  SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   test_cwf_cfg.mac_addr = "00:00:00:00:00:00";
   test_cwf_cfg.radius_session_id = "1234567";
@@ -619,7 +619,7 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling)
 
   insert_static_rule(0, "m1", "rule3");
 
-  SessionState::Config test_cwf_cfg;
+  SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   test_cwf_cfg.mac_addr = "00:00:00:00:00:00";
   test_cwf_cfg.radius_session_id = "1234567";
@@ -1078,11 +1078,11 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
 
 TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer)
 {
-  SessionState::QoSInfo test_qos_info;
+  QoSInfo test_qos_info;
   test_qos_info.enabled = true;
   test_qos_info.qci = 0;
 
-  SessionState::Config test_volte_cfg;
+  SessionConfig test_volte_cfg;
   test_volte_cfg.ue_ipv4 = "127.0.0.1";
   test_volte_cfg.bearer_id = 1;
   test_volte_cfg.qos_info = test_qos_info;
@@ -1220,7 +1220,7 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup)
   policy_rule->set_tracking_type(PolicyRule::ONLY_OCS);
   auto static_rule = response.mutable_static_rules()->Add();
   static_rule->set_rule_id("rule2");
-  SessionState::Config test_cwf_cfg1;
+  SessionConfig test_cwf_cfg1;
   test_cwf_cfg1.rat_type = RATType::TGPP_WLAN;
   test_cwf_cfg1.ue_ipv4 = "127.0.0.1";
   test_cwf_cfg1.mac_addr = "11:22:00:00:22:11";
@@ -1237,7 +1237,7 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup)
   policy_rule2->set_id("rule22");
   policy_rule2->set_rating_group(1);
   policy_rule2->set_tracking_type(PolicyRule::ONLY_OCS);
-  SessionState::Config test_cwf_cfg2;
+  SessionConfig test_cwf_cfg2;
   test_cwf_cfg2.rat_type = RATType::TGPP_WLAN;
   test_cwf_cfg2.ue_ipv4 = "127.0.0.1";
   test_cwf_cfg2.mac_addr = "00:00:00:00:00:02";
@@ -1336,7 +1336,7 @@ TEST_F(LocalEnforcerTest, test_valid_apn_parsing)
     .Times(1)
     .WillOnce(testing::Return(true));
 
-  SessionState::Config test_cwf_cfg;
+  SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   test_cwf_cfg.mac_addr = "00:00:00:00:00:02";
   test_cwf_cfg.radius_session_id = "5555";
@@ -1363,7 +1363,7 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing)
     .Times(1)
     .WillOnce(testing::Return(true));
 
-  SessionState::Config test_cwf_cfg;
+  SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   test_cwf_cfg.mac_addr = "00:00:00:00:00:00";
   test_cwf_cfg.radius_session_id = "1234567";
@@ -1378,7 +1378,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota)
   insert_static_rule(1, "m1", "static_1");
 
   std::vector<std::string> static_rules{}; // no rule installs
-  SessionState::Config test_cwf_cfg;
+  SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
   create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
@@ -1398,7 +1398,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota)
   insert_static_rule(0, "m1", "static_1");
 
   std::vector<std::string> static_rules{"static_1"};
-  SessionState::Config test_cwf_cfg;
+  SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
   create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
@@ -1425,7 +1425,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update)
   insert_static_rule(0, "m1", "static_2");
 
   std::vector<std::string> static_rules{"static_1", "static_2"};
-  SessionState::Config test_cwf_cfg;
+  SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
   create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);
@@ -1476,7 +1476,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar)
   insert_static_rule(0, "m1", "static_1");
 
   std::vector<std::string> static_rules{"static_1"};
-  SessionState::Config test_cwf_cfg;
+  SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
   create_cwf_session_create_response("IMSI1", "m1", static_rules, &response);

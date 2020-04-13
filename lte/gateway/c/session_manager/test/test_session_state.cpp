@@ -20,7 +20,7 @@
 using ::testing::Test;
 
 namespace magma {
-const SessionState::Config test_sstate_cfg = {.ue_ipv4 = "127.0.0.1",
+const SessionConfig test_sstate_cfg = {.ue_ipv4 = "127.0.0.1",
                                               .spgw_ipv4 = "128.0.0.1"};
 
 class SessionStateTest : public ::testing::Test {
