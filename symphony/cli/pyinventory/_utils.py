@@ -293,6 +293,7 @@ def format_property_definitions(
                 "type": PropertyKind(prop.property_kind),
                 "index": i,
                 "externalId": prop.external_id,
+                "isMandatory": prop.is_mandatory,
                 **_get_property_default_value(
                     prop.property_name, prop.property_kind.value, prop.default_value
                 ),
