@@ -23,6 +23,12 @@ This is template for release notes
     - `get_equipments_by_type`
     - `get_equipments_by_location`
     - `get_equipment_by_external_id`
+- EquipmentType functionality:
+    - `get_equipment_type_property_type`
+    - `get_equipment_type_property_type_by_external_id`
+    - `edit_equipment_type_property_type`
+- PropertyType functionality:
+    - `get_property_type_id`
 ### Changes
 - Equipment functionality:
     - `external_id` variable added to functions

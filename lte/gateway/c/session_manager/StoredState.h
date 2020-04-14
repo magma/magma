@@ -14,19 +14,19 @@
 #include <folly/dynamic.h>
 #include <folly/json.h>
 
-#include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "CreditKey.h"
 
 namespace magma {
-struct StoredQoSInfo {
+struct QoSInfo {
   bool enabled;
   uint32_t qci;
 };
 
-struct StoredSessionConfig {
+struct SessionConfig {
   std::string ue_ipv4;
   std::string spgw_ipv4;
   std::string msisdn;
@@ -36,11 +36,11 @@ struct StoredSessionConfig {
   std::string imsi_plmn_id;
   std::string user_location;
   RATType rat_type;
-  std::string mac_addr; // MAC Address for WLAN
+  std::string mac_addr;      // MAC Address for WLAN
   std::string hardware_addr; // MAC Address for WLAN (binary)
   std::string radius_session_id;
   uint32_t bearer_id;
-  StoredQoSInfo qos_info;
+  QoSInfo qos_info;
 };
 
 // Session Credit
@@ -50,7 +50,7 @@ struct StoredRedirectServer {
   std::string redirect_server_address;
 };
 
-struct StoredFinalActionInfo {
+struct FinalActionInfo {
   ChargingCredit_FinalAction final_action;
   RedirectServer redirect_server;
 };
@@ -90,10 +90,10 @@ struct StoredSessionCredit {
   bool reporting;
   bool is_final;
   bool unlimited_quota;
-  StoredFinalActionInfo final_action_info;
+  FinalActionInfo final_action_info;
   ReAuthState reauth_state;
   ServiceState service_state;
-  std::time_t  expiry_time;
+  std::time_t expiry_time;
   std::unordered_map<Bucket, uint64_t> buckets;
   uint64_t usage_reporting_limit;
 };
@@ -105,9 +105,9 @@ struct StoredMonitor {
 
 struct StoredChargingCreditPool {
   std::string imsi;
-  std::unordered_map<
-    CreditKey, StoredSessionCredit,
-    decltype(&ccHash), decltype(&ccEqual)> credit_map;
+  std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
+                     decltype(&ccEqual)>
+      credit_map;
 };
 
 struct StoredUsageMonitoringCreditPool {
@@ -117,7 +117,7 @@ struct StoredUsageMonitoringCreditPool {
 };
 
 struct StoredSessionState {
-  StoredSessionConfig config;
+  SessionConfig config;
   StoredChargingCreditPool charging_pool;
   StoredUsageMonitoringCreditPool monitor_pool;
   std::string imsi;
@@ -137,7 +137,7 @@ struct SessionCreditUpdateCriteria {
   bool reporting;
   ReAuthState reauth_state;
   ServiceState service_state;
-  std::time_t  expiry_time;
+  std::time_t expiry_time;
   // Do not mark REPORTING buckets, but do mark REPORTED
   std::unordered_map<Bucket, uint64_t> bucket_deltas;
   uint64_t usage_reporting_limit;
@@ -146,72 +146,68 @@ struct SessionCreditUpdateCriteria {
 struct SessionStateUpdateCriteria {
   bool is_session_ended;
   bool is_config_updated;
-  StoredSessionConfig updated_config;
+  SessionConfig updated_config;
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;
   std::vector<PolicyRule> dynamic_rules_to_install;
   std::set<std::string> dynamic_rules_to_uninstall;
-  std::unordered_map<
-    CreditKey, StoredSessionCredit,
-    decltype(&ccHash), decltype(&ccEqual)> charging_credit_to_install;
-  std::unordered_map<
-    CreditKey, SessionCreditUpdateCriteria,
-    decltype(&ccHash), decltype(&ccEqual)> charging_credit_map;
+  std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
+                     decltype(&ccEqual)>
+      charging_credit_to_install;
+  std::unordered_map<CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
+                     decltype(&ccEqual)>
+      charging_credit_map;
   std::unordered_map<std::string, StoredMonitor> monitor_credit_to_install;
-  std::unordered_map<std::string, SessionCreditUpdateCriteria> monitor_credit_map;
+  std::unordered_map<std::string, SessionCreditUpdateCriteria>
+      monitor_credit_map;
   TgppContext updated_tgpp_context;
   magma::lte::SubscriberQuotaUpdate_Type updated_subscriber_quota_state;
 };
 
 SessionStateUpdateCriteria get_default_update_criteria();
 
-std::string serialize_stored_qos_info(const StoredQoSInfo& stored);
+std::string serialize_stored_qos_info(const QoSInfo &stored);
 
-StoredQoSInfo deserialize_stored_qos_info(const std::string& serialized);
+QoSInfo deserialize_stored_qos_info(const std::string &serialized);
 
-std::string serialize_stored_session_config(const StoredSessionConfig& stored);
+std::string serialize_stored_session_config(const SessionConfig &stored);
 
-StoredSessionConfig deserialize_stored_session_config(
-    const std::string& serialized);
+SessionConfig deserialize_stored_session_config(const std::string &serialized);
 
-std::string serialize_stored_redirect_server(
-    const StoredRedirectServer& stored);
+std::string
+serialize_stored_redirect_server(const StoredRedirectServer &stored);
 
-StoredRedirectServer deserialize_stored_redirect_server(
-    const std::string& serialized);
+StoredRedirectServer
+deserialize_stored_redirect_server(const std::string &serialized);
 
-std::string serialize_stored_final_action_info(
-    const StoredFinalActionInfo& stored);
+std::string serialize_stored_final_action_info(const FinalActionInfo &stored);
 
-StoredFinalActionInfo deserialize_stored_final_action_info(
-    const std::string& serialized);
+FinalActionInfo
+deserialize_stored_final_action_info(const std::string &serialized);
 
-std::string serialize_stored_session_credit(
-    StoredSessionCredit& stored);
+std::string serialize_stored_session_credit(StoredSessionCredit &stored);
 
-StoredSessionCredit deserialize_stored_session_credit(
-    const std::string& serialized);
+StoredSessionCredit
+deserialize_stored_session_credit(const std::string &serialized);
 
-std::string serialize_stored_monitor(
-    StoredMonitor& stored);
+std::string serialize_stored_monitor(StoredMonitor &stored);
 
-StoredMonitor deserialize_stored_monitor(
-    const std::string& serialized);
+StoredMonitor deserialize_stored_monitor(const std::string &serialized);
 
-std::string serialize_stored_charging_credit_pool(
-    StoredChargingCreditPool& stored);
+std::string
+serialize_stored_charging_credit_pool(StoredChargingCreditPool &stored);
 
-StoredChargingCreditPool deserialize_stored_charging_credit_pool(
-    std::string& serialized);
+StoredChargingCreditPool
+deserialize_stored_charging_credit_pool(std::string &serialized);
 
-std::string serialize_stored_usage_monitoring_pool(
-    StoredUsageMonitoringCreditPool& stored);
+std::string
+serialize_stored_usage_monitoring_pool(StoredUsageMonitoringCreditPool &stored);
 
-StoredUsageMonitoringCreditPool deserialize_stored_usage_monitoring_pool(
-    std::string& serialized);
+StoredUsageMonitoringCreditPool
+deserialize_stored_usage_monitoring_pool(std::string &serialized);
 
-std::string serialize_stored_session(StoredSessionState& stored);
+std::string serialize_stored_session(StoredSessionState &stored);
 
-StoredSessionState deserialize_stored_session(std::string& serialized);
+StoredSessionState deserialize_stored_session(std::string &serialized);
 
 } // namespace magma

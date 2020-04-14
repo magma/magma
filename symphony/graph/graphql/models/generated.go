@@ -179,14 +179,6 @@ type AddProjectTypeInput struct {
 	WorkOrders  []*WorkOrderDefinitionInput `json:"workOrders"`
 }
 
-type AddServiceEndpointDefinitionInput struct {
-	Name            string  `json:"name"`
-	Role            *string `json:"role"`
-	Index           int     `json:"Index"`
-	ServiceTypeID   int     `json:"serviceTypeID"`
-	EquipmentTypeID int     `json:"equipmentTypeID"`
-}
-
 type AddServiceEndpointInput struct {
 	ID          int  `json:"id"`
 	PortID      *int `json:"portId"`
@@ -646,6 +638,14 @@ type ServiceEditData struct {
 	Properties         []*PropertyInput `json:"properties"`
 }
 
+type ServiceEndpointDefinitionInput struct {
+	ID              *int    `json:"id"`
+	Name            string  `json:"name"`
+	Role            *string `json:"role"`
+	Index           int     `json:"index"`
+	EquipmentTypeID int     `json:"equipmentTypeID"`
+}
+
 type ServiceFilterInput struct {
 	FilterType    ServiceFilterType  `json:"filterType"`
 	Operator      FilterOperator     `json:"operator"`
@@ -662,16 +662,18 @@ type ServiceSearchResult struct {
 }
 
 type ServiceTypeCreateData struct {
-	Name        string               `json:"name"`
-	HasCustomer bool                 `json:"hasCustomer"`
-	Properties  []*PropertyTypeInput `json:"properties"`
+	Name        string                            `json:"name"`
+	HasCustomer bool                              `json:"hasCustomer"`
+	Properties  []*PropertyTypeInput              `json:"properties"`
+	Endpoints   []*ServiceEndpointDefinitionInput `json:"endpoints"`
 }
 
 type ServiceTypeEditData struct {
-	ID          int                  `json:"id"`
-	Name        string               `json:"name"`
-	HasCustomer bool                 `json:"hasCustomer"`
-	Properties  []*PropertyTypeInput `json:"properties"`
+	ID          int                               `json:"id"`
+	Name        string                            `json:"name"`
+	HasCustomer bool                              `json:"hasCustomer"`
+	Properties  []*PropertyTypeInput              `json:"properties"`
+	Endpoints   []*ServiceEndpointDefinitionInput `json:"endpoints"`
 }
 
 type SurveyCellScanData struct {

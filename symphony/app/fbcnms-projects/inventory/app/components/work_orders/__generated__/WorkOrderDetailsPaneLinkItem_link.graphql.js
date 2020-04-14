@@ -74,7 +74,7 @@ export type WorkOrderDetailsPaneLinkItem_link = {|
     |},
     +serviceEndpoints: $ReadOnlyArray<{|
       +definition: {|
-        +role: string
+        +role: ?string
       |},
       +service: {|
         +name: string

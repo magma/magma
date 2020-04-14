@@ -11,9 +11,11 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import DataClassJsonMixin
 
 from .property_type_input import PropertyTypeInput
+from .service_endpoint_definition_input import ServiceEndpointDefinitionInput
 @dataclass
 class ServiceTypeCreateData(DataClassJsonMixin):
     name: str
     hasCustomer: bool
     properties: Optional[List[PropertyTypeInput]] = None
+    endpoints: Optional[List[ServiceEndpointDefinitionInput]] = None
 

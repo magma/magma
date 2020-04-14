@@ -42,24 +42,27 @@ def add_location(
     externalID: Optional[str] = None,
 ) -> Location:
     """Create a new location of a specific type with a specific name.
-        It will also get the requested location specifiers for hirerchy 
+        It will also get the requested location specifiers for hirerchy
         leading to it and will create all the hirerchy.
-        However the lat,long and propertiesDict would only apply for the last location in the chain.
-        If a location with its name in this place already exists the existing location is returned
+        However the `lat`,`long` and `properties_dict` would only apply for the last location in the chain.
+        If a location with its name in this place already exists, then existing location is returned
 
         Args:
-            location_hirerchy (List[Tuple[str, str]]): An hirerchy of locations.
+            location_hirerchy (List[Tuple[str, str]]): hirerchy of locations.
             - str - location type name
             - str - location name
 
-            properties_dict: dict of property name to property value. the property value should match
-                            the property type. Otherwise exception is raised
+            properties_dict (Dict[str, PropertyValue]): dict of property name to property value. The property value should match
+                            the property type, otherwise exception is raised
+            - str - property name
+            - PropertyValue - new value of the same type for this property
+
             lat (float): latitude
             long (float): longitude
-            externalID (str): ID from external system
+            externalID (str): location external ID
 
         Returns:
-            pyinventory.consts.Location object
+            `pyinventory.consts.Location` object
 
         Raises:
             LocationIsNotUniqueException: if there is two possible locations
@@ -70,22 +73,22 @@ def add_location(
         Example:
             ```
             location = client.add_location(
-                [
-                    ('Country', 'England'),
-                    ('City', 'Milton Keynes'),
-                    ('Site', 'Bletchley Park')
+                location_hirerchy=[
+                    ("Country", "England"),
+                    ("City", "Milton Keynes"),
+                    ("Site", "Bletchley Park")
                 ],
-                {
-                    'Date Property ': date.today(),
-                    'Lat/Lng Property: ': (-1.23,9.232),
-                    'E-mail Property ': "user@fb.com",
-                    'Number Property ': 11,
-                    'String Property ': "aa",
-                    'Float Property': 1.23
+                properties_dict={
+                    "Date Property": date.today(),
+                    "Lat/Lng Property": (-1.23,9.232),
+                    "E-mail Property": "user@fb.com",
+                    "Number Property": 11,
+                    "String Property": "aa",
+                    "Float Property": 1.23
                 },
-                -11.32,
-                98.32,
-                None)
+                lat=-11.32,
+                long=98.32,
+                externalID=None)
             ```
     """
 
@@ -246,13 +249,12 @@ def get_location(
         It can get only the requested location specifiers or the hirerchy leading to it
 
         Args:
-            location_hirerchy (List[Tuple[str, str]]): An hirerchy of locations.
+            location_hirerchy (List[Tuple[str, str]]): hirerchy of locations
             - str - location type name
             - str - location name
 
         Returns:
-            pyinventory.consts.Location object
-
+            `pyinventory.consts.Location` object
 
         Raises:
             LocationIsNotUniqueException: if there is more than one correct
@@ -263,16 +265,17 @@ def get_location(
 
         Example:
             ```
-            location = client.get_location([
-                ('Country', 'England'),
-                ('City', 'Milton Keynes'),
-                ('Site', 'Bletchley Park')
-            ])
+            location = client.get_location(
+                location_hirerchy=[
+                    ("Country", "England"),
+                    ("City", "Milton Keynes"),
+                    ("Site", "Bletchley Park")
+                ])
             ```
             or
             ```
             # this call will fail if there is Bletchley Park in two cities
-            location = client.get_location([('Site', 'Bletchley Park')])
+            location = client.get_location(location_hirerchy=[("Site", "Bletchley Park")])
             ```
     """
 
@@ -357,7 +360,7 @@ def get_locations(client: SymphonyClient) -> List[Location]:
     """This function returns all existing locations
 
         Returns:
-            List[ pyinventory.consts.Location ]
+            List[ `pyinventory.consts.Location` ]
 
         Example:
             ```
@@ -394,17 +397,18 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
             location_id (str): parent location ID
 
         Returns:
-            List[ pyinventory.consts.Location ]
+            List[ `pyinventory.consts.Location` ]
 
-        Raises: `pyinventory.exceptions.EntityNotFoundError`: location does not exist
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: location does not exist
 
         Example:
             ```
-            client.add_location([('Country', 'England'), ('City', 'Milton Keynes')], {})
-            client.add_location([('Country', 'England'), ('City', 'London')], {})
-            parent_location = client.get_location([('Country', 'England')])
-            children_locations = client.get_location_children(parent_location.id)
-            # This call will return a list with 2 locations: 'Milton Keynes' and 'London'
+            client.add_location([("Country", "England"), ("City", "Milton Keynes")], {})
+            client.add_location([("Country", "England"), ("City", "London")], {})
+            parent_location = client.get_location(location_hirerchy=[("Country", "England")])
+            children_locations = client.get_location_children(location_id=parent_location.id)
+            # This call will return a list with 2 locations: "Milton Keynes" and "London"
             ```
     """
     location_with_children = LocationChildrenQuery.execute(
@@ -438,17 +442,17 @@ def edit_location(
     """This function returns edited location.
 
         Args:
-            location (pyinventory.consts.Location): location object
+            location ( `pyinventory.consts.Location` ): location object
             new_name (Optional[str]): location new name
             new_lat (Optional[float]): location new latitude
             new_long (Optional[float]): location new longitude
             new_external_id (Optional[float]): location new external ID
-            new_properties (Optional[Dict[str, PropertyValue]]): dict of property name to property value
+            new_properties (Optional[Dict[str, PropertyValue]]): dictionary of property name to property value
             - str - property name
             - PropertyValue - new value of the same type for this property
 
         Returns:
-            pyinventory.consts.Location object
+            `pyinventory.consts.Location` object
 
         Raises:
             FailedOperationException: for internal inventory error
@@ -456,7 +460,7 @@ def edit_location(
         Example:
             ```
             # this call will fail if there is Bletchley Park in two cities
-            location = client.get_location([('Site', 'Bletchley Park')])
+            location = client.get_location(location_hirerchy=[("Site", "Bletchley Park")])
             edited_location = client.edit_location(
                 location=location,
                 new_name="New Bletchley Park",
@@ -511,6 +515,23 @@ def edit_location(
 
 
 def delete_location(client: SymphonyClient, location: Location) -> None:
+    """This delete existing location.
+
+        Args:
+            location ( `pyinventory.consts.Location` ): location object
+
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: if location does not exist
+            FailedOperationException: for internal inventory error
+            LocationCannotBeDeletedWithDependency: if there are dependencies in this location
+            ["files", "images", "children", "surveys", "equipment"]
+
+        Example:
+            ```
+            location = client.get_location(location_hirerchy=[('Site', 'Bletchley Park')])
+            client.delete_location(location=location)
+            ```
+    """
     location_with_deps = LocationDepsQuery.execute(client, id=location.id).location
     if location_with_deps is None:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location.id)
@@ -537,7 +558,7 @@ def move_location(
             new_parent_id (Optional[str]): new existing parent location ID
 
         Returns:
-            pyinventory.consts.Location object
+            `pyinventory.consts.Location` object
 
         Raises:
             FailedOperationException: for internal inventory error
@@ -545,9 +566,9 @@ def move_location(
         Example:
             ```
             # this call will fail if there is Bletchley Park in two cities
-            location = client.get_location([('Site', 'Bletchley Park')])
+            location = client.get_location(location_hirerchy=[("Site", "Bletchley Park")])
             moved_location = client.move_locatoin(
-                location_id=location.id, 
+                location_id=location.id,
                 new_parent_id="12345"
             )
             ```
@@ -590,10 +611,11 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
             external_id (str): location external ID
 
         Returns:
-            pyinventory.consts.Location object
+            `pyinventory.consts.Location` object
 
         Raises:
             LocationNotFoundException: location with this external ID does not exists
+            `pyinventory.exceptions.EntityNotFoundError`: location does not found
             FailedOperationException: for internal inventory error
 
         Example:
@@ -636,19 +658,19 @@ def get_location_documents(
     """This function returns locations documents.
 
         Args:
-            location (pyinventory.consts.Location): location object
+            location ( `pyinventory.consts.Location` ): location object
 
         Returns:
-            List[ pyinventory.consts.Document ]
+            List[ `pyinventory.consts.Document` ]
 
         Raises:
-            LocationNotFoundException: location with this external ID does not exists
+            `pyinventory.exceptions.EntityNotFoundError`: location does not exists
             FailedOperationException: for internal inventory error
 
         Example:
             ```
             # this call will fail if there is Bletchley Park in two cities
-            location = client.get_location([('Site', 'Bletchley Park')])
+            location = client.get_location(location_hirerchy=[("Site", "Bletchley Park")])
             location = client.get_location_documents(location=location)
             ```
     """

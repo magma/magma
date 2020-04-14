@@ -128,12 +128,6 @@ def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
     finally:
         _release_node_lease(api_url, lease.node_id, lease.lease_id,
                             cert_file, cert_key_file)
-        if env.stack == LTE_STACK:
-            _destroy_vms(repo, magma_root, 'lte/gateway',
-                         ['magma', 'magma_test', 'magma_trfserver'])
-        elif env.stack == CWF_STACK:
-            _destroy_vms(repo, magma_root, 'cwf/gateway',
-                         ['cwag', 'cwag_test'])
 
 
 def _write_lease_to_disk(lease: NodeLease):

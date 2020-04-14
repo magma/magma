@@ -630,7 +630,7 @@ func HasServiceType() predicate.ServiceEndpointDefinition {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ServiceTypeTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ServiceTypeTable, ServiceTypeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ServiceTypeTable, ServiceTypeColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -642,7 +642,7 @@ func HasServiceTypeWith(preds ...predicate.ServiceType) predicate.ServiceEndpoin
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ServiceTypeInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ServiceTypeTable, ServiceTypeColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ServiceTypeTable, ServiceTypeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

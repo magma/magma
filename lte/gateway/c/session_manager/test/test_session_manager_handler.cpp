@@ -9,28 +9,27 @@
 
 #include <memory>
 
+#include <folly/io/async/EventBaseManager.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
-#include <folly/io/async/EventBaseManager.h>
 
-#include "MagmaService.h"
 #include "LocalEnforcer.h"
+#include "MagmaService.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
-#include "SessiondMocks.h"
-#include "SessionStore.h"
 #include "SessionState.h"
+#include "SessionStore.h"
+#include "SessiondMocks.h"
 #include "StoredState.h"
 #include "magma_logging.h"
-
 
 using ::testing::Test;
 
 namespace magma {
 
 class SessionManagerHandlerTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     monitoring_key = "mk1";
 
@@ -43,16 +42,8 @@ class SessionManagerHandlerTest : public ::testing::Test {
     auto spgw_client = std::make_shared<MockSpgwServiceClient>();
     auto aaa_client = std::make_shared<MockAAAClient>();
     local_enforcer = std::make_shared<LocalEnforcer>(
-            reporter,
-            rule_store,
-            *session_store,
-            pipelined_client,
-            directoryd_client,
-            eventd_client,
-            spgw_client,
-            aaa_client,
-            0,
-            0);
+        reporter, rule_store, *session_store, pipelined_client,
+        directoryd_client, eventd_client, spgw_client, aaa_client, 0, 0);
     evb = new folly::EventBase();
     std::thread([&]() {
       std::cout << "Started event loop thread\n";
@@ -63,15 +54,12 @@ class SessionManagerHandlerTest : public ::testing::Test {
     session_map_ = SessionMap{};
 
     session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
-      local_enforcer, reporter.get(), directoryd_client, *session_store);
+        local_enforcer, reporter.get(), directoryd_client, *session_store);
   }
 
-  void insert_static_rule(
-    std::shared_ptr<StaticRuleStore> rule_store,
-    const std::string& m_key,
-    uint32_t charging_key,
-    const std::string &rule_id)
-  {
+  void insert_static_rule(std::shared_ptr<StaticRuleStore> rule_store,
+                          const std::string &m_key, uint32_t charging_key,
+                          const std::string &rule_id) {
     PolicyRule rule;
     rule.set_id(rule_id);
     rule.set_rating_group(charging_key);
@@ -80,7 +68,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     rule_store->insert_rule(rule);
   }
 
- protected:
+protected:
   std::string monitoring_key;
 
   std::shared_ptr<SessionStore> session_store;
@@ -88,14 +76,13 @@ class SessionManagerHandlerTest : public ::testing::Test {
   std::shared_ptr<LocalSessionManagerHandlerImpl> session_manager;
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
-  std::shared_ptr <LocalEnforcer> local_enforcer;
+  std::shared_ptr<LocalEnforcer> local_enforcer;
   SessionIDGenerator id_gen_;
   folly::EventBase *evb;
   SessionMap session_map_;
 };
 
-MATCHER_P(CheckCreateSession, imsi, "")
-{
+MATCHER_P(CheckCreateSession, imsi, "") {
   auto sid = static_cast<const CreateSessionRequest *>(arg);
   return sid->subscriber().id() == imsi;
 }
@@ -108,39 +95,40 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   LocalCreateSessionRequest request;
   CreateSessionResponse response;
   std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-  std::string imsi                = "IMSI1";
-  std::string msisdn              = "5100001234";
-  std::string radius_session_id =
-      "AA-AA-AA-AA-AA-AA:TESTAP__"
-      "0F-10-2E-12-3A-55";
-  auto sid                 = id_gen_.gen_session_id(imsi);
-  SessionState::Config cfg = {.ue_ipv4           = "",
-                              .spgw_ipv4         = "",
-                              .msisdn            = msisdn,
-                              .apn               = "apn1",
-                              .imei              = "",
-                              .plmn_id           = "",
-                              .imsi_plmn_id      = "",
-                              .user_location     = "",
-                              .rat_type          = RATType::TGPP_WLAN,
-                              .mac_addr          = "0f:10:2e:12:3a:55",
-                              .hardware_addr     = hardware_addr_bytes,
-                              .radius_session_id = radius_session_id};
+  std::string imsi = "IMSI1";
+  std::string msisdn = "5100001234";
+  std::string radius_session_id = "AA-AA-AA-AA-AA-AA:TESTAP__"
+                                  "0F-10-2E-12-3A-55";
+  auto sid = id_gen_.gen_session_id(imsi);
+  SessionConfig cfg = {.ue_ipv4 = "",
+                       .spgw_ipv4 = "",
+                       .msisdn = msisdn,
+                       .apn = "apn1",
+                       .imei = "",
+                       .plmn_id = "",
+                       .imsi_plmn_id = "",
+                       .user_location = "",
+                       .rat_type = RATType::TGPP_WLAN,
+                       .mac_addr = "0f:10:2e:12:3a:55",
+                       .hardware_addr = hardware_addr_bytes,
+                       .radius_session_id = radius_session_id};
 
   response.set_session_id(sid);
   // Only the active sessions are not recycled, to ensure that
   // this session is not automatically scheduled for termination
   // when RAT Type is WLAN, it needs monitoring keys...
-  create_cwf_session_create_response(imsi, monitoring_key, static_rules, &response);
+  create_cwf_session_create_response(imsi, monitoring_key, static_rules,
+                                     &response);
 
-  SessionRead req  = {"IMSI1"};
+  SessionRead req = {"IMSI1"};
   auto session_map = session_store->read_sessions(req);
   local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
   bool write_success =
       session_store->create_sessions(imsi, std::move(session_map[imsi]));
   EXPECT_TRUE(write_success);
   session_map = session_store->read_sessions(req);
-  EXPECT_TRUE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
+  EXPECT_TRUE(
+      local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
 
   grpc::ServerContext create_context;
   request.mutable_sid()->set_id("IMSI1");
@@ -148,7 +136,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   request.set_hardware_addr(hardware_addr_bytes);
   request.set_msisdn(msisdn);
   request.set_radius_session_id(radius_session_id);
-  request.set_apn("apn2");  // Update APN
+  request.set_apn("apn2"); // Update APN
 
   // Ensure session is not reported as its a duplicate
   EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
@@ -168,11 +156,10 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
       local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn2"));
 }
 
-TEST_F(SessionManagerHandlerTest, test_create_session)
-{
+TEST_F(SessionManagerHandlerTest, test_create_session) {
   // 1) Create the session
   LocalCreateSessionRequest request;
-  std::string hardware_addr_bytes = {0x0f,0x10,0x2e,0x12,0x3a,0x55};
+  std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
   std::string imsi = "IMSI1";
   std::string msisdn = "5100001234";
   std::string radius_session_id = "AA-AA-AA-AA-AA-AA:TESTAP__"
@@ -192,15 +179,16 @@ TEST_F(SessionManagerHandlerTest, test_create_session)
       "rule2");
   create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
       "rule3");
-  create_credit_update_response(
-      "IMSI1", 1, 1536, create_response.mutable_credits()->Add());
-  create_credit_update_response(
-      "IMSI1", 2, 1024, create_response.mutable_credits()->Add());
+  create_credit_update_response("IMSI1", 1, 1536,
+                                create_response.mutable_credits()->Add());
+  create_credit_update_response("IMSI1", 2, 1024,
+                                create_response.mutable_credits()->Add());
 
   // Ensure session is reported as it is not a duplicate
   EXPECT_CALL(*reporter, report_create_session(_, _)).Times(1);
-  session_manager->CreateSession(&server_context, &request, [this](
-      grpc::Status status, LocalCreateSessionResponse response_out) {});
+  session_manager->CreateSession(
+      &server_context, &request,
+      [this](grpc::Status status, LocalCreateSessionResponse response_out) {});
 
   // Run session creation in the EventBase loop
   evb->loopOnce();
@@ -208,39 +196,39 @@ TEST_F(SessionManagerHandlerTest, test_create_session)
   evb->loopOnce();
 }
 
-TEST_F(SessionManagerHandlerTest, test_report_rule_stats)
-{
+TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   // 1) Insert the entry for a rule
   insert_static_rule(rule_store, monitoring_key, 1, "rule1");
 
   // 2) Create a session
   CreateSessionResponse response;
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      "IMSI1", 1, 1025, response.mutable_credits()->Add());
-  std::string hardware_addr_bytes = {0x0f,0x10,0x2e,0x12,0x3a,0x55};
+  create_credit_update_response("IMSI1", 1, 1025,
+                                response.mutable_credits()->Add());
+  std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
   std::string imsi = "IMSI1";
   std::string msisdn = "5100001234";
   std::string radius_session_id = "AA-AA-AA-AA-AA-AA:TESTAP__"
                                   "0F-10-2E-12-3A-55";
   auto sid = id_gen_.gen_session_id(imsi);
-  SessionState::Config cfg = {.ue_ipv4 = "",
-      .spgw_ipv4 = "",
-      .msisdn = msisdn,
-      .apn = "apn1",
-      .imei = "",
-      .plmn_id = "",
-      .imsi_plmn_id = "",
-      .user_location = "",
-      .rat_type = RATType::TGPP_LTE,
-      .mac_addr = "0f:10:2e:12:3a:55",
-      .hardware_addr = hardware_addr_bytes,
-      .radius_session_id = radius_session_id};
+  SessionConfig cfg = {.ue_ipv4 = "",
+                       .spgw_ipv4 = "",
+                       .msisdn = msisdn,
+                       .apn = "apn1",
+                       .imei = "",
+                       .plmn_id = "",
+                       .imsi_plmn_id = "",
+                       .user_location = "",
+                       .rat_type = RATType::TGPP_LTE,
+                       .mac_addr = "0f:10:2e:12:3a:55",
+                       .hardware_addr = hardware_addr_bytes,
+                       .radius_session_id = radius_session_id};
 
   SessionRead req = {"IMSI1"};
   auto session_map = session_store->read_sessions(req);
   local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
-  bool write_success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  bool write_success =
+      session_store->create_sessions(imsi, std::move(session_map[imsi]));
   EXPECT_TRUE(write_success);
 
   // 2) ReportRuleStats
@@ -250,8 +238,9 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats)
   create_rule_record("IMSI1", "rule1", 512, 512, record_list->Add());
 
   EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
-  session_manager->ReportRuleStats(&server_context, &table, [this](
-      grpc::Status status, orc8r::Void response_out) {});
+  session_manager->ReportRuleStats(
+      &server_context, &table,
+      [this](grpc::Status status, orc8r::Void response_out) {});
   evb->loopOnce();
   evb->loopOnce();
 }
@@ -263,32 +252,32 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   // 2) Create a session
   CreateSessionResponse response;
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      "IMSI1", 1, 1025, response.mutable_credits()->Add());
+  create_credit_update_response("IMSI1", 1, 1025,
+                                response.mutable_credits()->Add());
   std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-  std::string imsi                = "IMSI1";
-  std::string msisdn              = "5100001234";
-  std::string radius_session_id =
-      "AA-AA-AA-AA-AA-AA:TESTAP__"
-      "0F-10-2E-12-3A-55";
-  auto sid                 = id_gen_.gen_session_id(imsi);
-  SessionState::Config cfg = {.ue_ipv4           = "",
-                              .spgw_ipv4         = "",
-                              .msisdn            = msisdn,
-                              .apn               = "apn1",
-                              .imei              = "",
-                              .plmn_id           = "",
-                              .imsi_plmn_id      = "",
-                              .user_location     = "",
-                              .rat_type          = RATType::TGPP_LTE,
-                              .mac_addr          = "0f:10:2e:12:3a:55",
-                              .hardware_addr     = hardware_addr_bytes,
-                              .radius_session_id = radius_session_id};
+  std::string imsi = "IMSI1";
+  std::string msisdn = "5100001234";
+  std::string radius_session_id = "AA-AA-AA-AA-AA-AA:TESTAP__"
+                                  "0F-10-2E-12-3A-55";
+  auto sid = id_gen_.gen_session_id(imsi);
+  SessionConfig cfg = {.ue_ipv4 = "",
+                       .spgw_ipv4 = "",
+                       .msisdn = msisdn,
+                       .apn = "apn1",
+                       .imei = "",
+                       .plmn_id = "",
+                       .imsi_plmn_id = "",
+                       .user_location = "",
+                       .rat_type = RATType::TGPP_LTE,
+                       .mac_addr = "0f:10:2e:12:3a:55",
+                       .hardware_addr = hardware_addr_bytes,
+                       .radius_session_id = radius_session_id};
 
   SessionRead req = {"IMSI1"};
   auto session_map = session_store->read_sessions(req);
   local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
-  bool write_success = session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  bool write_success =
+      session_store->create_sessions(imsi, std::move(session_map[imsi]));
   EXPECT_TRUE(write_success);
 
   // 3) EndSession
@@ -300,8 +289,9 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   grpc::ServerContext server_context;
 
   EXPECT_CALL(*reporter, report_terminate_session(_, _)).Times(1);
-  session_manager->EndSession(&server_context, &end_request,
-      [this] (grpc::Status status, LocalEndSessionResponse response_out) {});
+  session_manager->EndSession(
+      &server_context, &end_request,
+      [this](grpc::Status status, LocalEndSessionResponse response_out) {});
   evb->loopOnce();
   session_map = session_store->read_sessions(req);
   EXPECT_EQ(session_map["IMSI1"].size(), 1);
@@ -312,10 +302,9 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   EXPECT_EQ(session_map["IMSI1"].size(), 0);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+  return RUN_ALL_TESTS();
 }
 
 } // namespace magma

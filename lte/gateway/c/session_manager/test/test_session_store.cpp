@@ -63,7 +63,7 @@ class SessionStoreTest : public ::testing::Test {
       "AA-AA-AA-AA-AA-AA:TESTAP__"
       "0F-10-2E-12-3A-55";
     std::string core_session_id = "asdf";
-    SessionState::Config cfg = {.ue_ipv4 = "",
+    SessionConfig cfg = {.ue_ipv4 = "",
       .spgw_ipv4 = "",
       .msisdn = msisdn,
       .apn = "",

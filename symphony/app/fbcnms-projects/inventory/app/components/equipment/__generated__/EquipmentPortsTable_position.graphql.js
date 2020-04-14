@@ -161,7 +161,7 @@ export type EquipmentPortsTable_position = {
           },
           +serviceEndpoints: $ReadOnlyArray<{
             +definition: {
-              +role: string,
+              +role: ?string,
               ...
             },
             +service: {
@@ -280,7 +280,7 @@ export type EquipmentPortsTable_position = {
       }>,
       +serviceEndpoints: $ReadOnlyArray<{
         +definition: {
-          +role: string,
+          +role: ?string,
           ...
         },
         +service: {
@@ -441,7 +441,7 @@ export type EquipmentPortsTable_position = {
               },
               +serviceEndpoints: $ReadOnlyArray<{
                 +definition: {
-                  +role: string,
+                  +role: ?string,
                   ...
                 },
                 +service: {
@@ -560,7 +560,7 @@ export type EquipmentPortsTable_position = {
           }>,
           +serviceEndpoints: $ReadOnlyArray<{
             +definition: {
-              +role: string,
+              +role: ?string,
               ...
             },
             +service: {
@@ -721,7 +721,7 @@ export type EquipmentPortsTable_position = {
                   },
                   +serviceEndpoints: $ReadOnlyArray<{
                     +definition: {
-                      +role: string,
+                      +role: ?string,
                       ...
                     },
                     +service: {
@@ -840,7 +840,7 @@ export type EquipmentPortsTable_position = {
               }>,
               +serviceEndpoints: $ReadOnlyArray<{
                 +definition: {
-                  +role: string,
+                  +role: ?string,
                   ...
                 },
                 +service: {
@@ -1001,7 +1001,7 @@ export type EquipmentPortsTable_position = {
                       },
                       +serviceEndpoints: $ReadOnlyArray<{
                         +definition: {
-                          +role: string,
+                          +role: ?string,
                           ...
                         },
                         +service: {
@@ -1120,7 +1120,7 @@ export type EquipmentPortsTable_position = {
                   }>,
                   +serviceEndpoints: $ReadOnlyArray<{
                     +definition: {
-                      +role: string,
+                      +role: ?string,
                       ...
                     },
                     +service: {

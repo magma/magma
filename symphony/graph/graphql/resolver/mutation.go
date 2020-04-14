@@ -1933,17 +1933,21 @@ func (r mutationResolver) AddServiceType(ctx context.Context, data models.Servic
 	if err != nil {
 		return nil, errors.WithMessage(err, "creating service type properties")
 	}
+
+	epTypes, err := r.addServiceEndpointDefinitions(ctx, data.Endpoints...)
+	if err != nil {
+		return nil, errors.WithMessage(err, "creating service endpoint definition")
+	}
+
 	st, err := r.ClientFrom(ctx).
 		ServiceType.Create().
 		SetName(data.Name).
 		SetHasCustomer(data.HasCustomer).
 		AddPropertyTypes(types...).
+		AddEndpointDefinitions(epTypes...).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintError(err) {
-			return nil, gqlerror.Errorf("A service type with the name %v already exists", data.Name)
-		}
-		return nil, errors.Wrap(err, "creating service type")
+		return nil, gqlerror.Errorf("creating service type. error=%v", err.Error())
 	}
 	return st, nil
 }
@@ -1974,6 +1978,32 @@ func (r mutationResolver) EditServiceType(ctx context.Context, data models.Servi
 			return nil, err
 		}
 	}
+
+	// update indexes to be invalid number before re-assigning (field is unique+mandatory)
+	for _, input := range data.Endpoints {
+		if input.ID != nil {
+			ept, err := r.ClientFrom(ctx).ServiceEndpointDefinition.Get(ctx, *input.ID)
+			if err != nil {
+				return nil, err
+			}
+			_, err = ept.Update().SetIndex(-1*ept.Index - 1).Save(ctx)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	for _, input := range data.Endpoints {
+		if input.ID == nil {
+			err = r.validateAndAddEndpointDefinition(ctx, input, data.ID)
+		} else {
+			err = r.updateEndpointDefinition(ctx, input, data.ID)
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return typ, nil
 
 }
@@ -2223,6 +2253,14 @@ func (r mutationResolver) validateAndAddNewPropertyType(ctx context.Context, inp
 			Save(ctx); ent.IsConstraintError(err) {
 		return gqlerror.Errorf("A property type with the name %v already exists under in the selected object", input.Name)
 	}
+	return err
+}
+
+func (r mutationResolver) validateAndAddEndpointDefinition(ctx context.Context, input *models.ServiceEndpointDefinitionInput, serviceTypeID int) error {
+	if input == nil {
+		return nil
+	}
+	_, err := r.addServiceEndpointDefinition(ctx, *input, serviceTypeID)
 	return err
 }
 
@@ -2595,6 +2633,20 @@ func (r mutationResolver) updatePropType(ctx context.Context, input *models.Prop
 		SetNillableDeleted(input.IsDeleted).
 		Exec(ctx); err != nil {
 		return errors.Wrap(err, "updating property type")
+	}
+	return nil
+}
+
+func (r mutationResolver) updateEndpointDefinition(ctx context.Context, input *models.ServiceEndpointDefinitionInput, serviceTypeID int) error {
+	if err := r.ClientFrom(ctx).ServiceEndpointDefinition.
+		UpdateOneID(*input.ID).
+		SetName(input.Name).
+		SetNillableRole(input.Role).
+		SetIndex(input.Index).
+		SetEquipmentTypeID(input.EquipmentTypeID).
+		SetServiceTypeID(serviceTypeID).
+		Exec(ctx); err != nil {
+		return errors.Wrap(err, "updating service endpoint definition")
 	}
 	return nil
 }

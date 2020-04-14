@@ -64,9 +64,26 @@ func prepareServiceData(ctx context.Context, r *TestResolver) serviceSearchDataM
 	mr := r.Mutation()
 
 	props := preparePropertyTypes()
+	eqt, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name: "eq_type",
+		Ports: []*models.EquipmentPortInput{
+			{Name: "typ1_p1"},
+			{Name: "typ1_p2"},
+		},
+	})
 
 	st1, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
-		Name: "Internet Access", HasCustomer: false, Properties: props})
+		Name:        "Internet Access",
+		HasCustomer: false,
+		Properties:  props,
+		Endpoints: []*models.ServiceEndpointDefinitionInput{
+			{
+				Name:            "endpoint type1",
+				Role:            pointer.ToString("CONSUMER"),
+				Index:           0,
+				EquipmentTypeID: eqt.ID,
+			},
+		}})
 
 	st2, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name: "Internet Access 2", HasCustomer: false, Properties: []*models.PropertyTypeInput{}})
@@ -82,14 +99,6 @@ func prepareServiceData(ctx context.Context, r *TestResolver) serviceSearchDataM
 
 	locRoom, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "room",
-	})
-
-	eqt, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
-		Name: "eq_type",
-		Ports: []*models.EquipmentPortInput{
-			{Name: "typ1_p1"},
-			{Name: "typ1_p2"},
-		},
 	})
 
 	defs := eqt.QueryPortDefinitions().AllX(ctx)
@@ -469,13 +478,8 @@ func TestSearchServicesByLocations(t *testing.T) {
 
 	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
 
-	ept, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
-		Name:            "endpoint type1",
-		Role:            pointer.ToString("CONSUMER"),
-		ServiceTypeID:   data.st1,
-		EquipmentTypeID: data.eqt,
-	})
-	require.NoError(t, err)
+	st := r.client.ServiceType.GetX(ctx, data.st1)
+	ept := st.QueryEndpointDefinitions().OnlyX(ctx)
 
 	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
 		ID:          s1.ID,
@@ -611,15 +615,10 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 
 	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(data.eqpd1))).OnlyX(ctx)
 
-	ept, err := mr.AddServiceEndpointDefinition(ctx, models.AddServiceEndpointDefinitionInput{
-		Name:            "endpoint type1",
-		Role:            pointer.ToString("Consumer"),
-		ServiceTypeID:   data.st1,
-		EquipmentTypeID: data.eqt,
-	})
-	require.NoError(t, err)
+	st := r.client.ServiceType.GetX(ctx, data.st1)
+	ept := st.QueryEndpointDefinitions().OnlyX(ctx)
 
-	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+	_, err := mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
 		ID:          s1.ID,
 		EquipmentID: eq1.ID,
 		PortID:      pointer.ToInt(ep1.ID),

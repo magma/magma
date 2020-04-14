@@ -14,6 +14,13 @@ export const DEACTIVATED_PAGE_PATH = '/deactivated';
 
 export default function DeactivatedPage() {
   return (
-    <div>Your user had been deactivated. Contact you system administrator.</div>
+    <>
+      <div>
+        Your user had been deactivated. Contact you system administrator.
+      </div>
+      <div>
+        <a href="/user/logout">logout</a>
+      </div>
+    </>
   );
 }

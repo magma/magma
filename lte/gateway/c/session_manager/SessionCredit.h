@@ -45,11 +45,6 @@ public:
     uint64_t bytes_rx;
   };
 
-  struct FinalActionInfo {
-    ChargingCredit_FinalAction final_action;
-    RedirectServer redirect_server;
-  };
-
   static std::unique_ptr<SessionCredit>
   unmarshal(const StoredSessionCredit &marshaled, CreditType credit_type);
 

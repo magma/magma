@@ -36,7 +36,6 @@ type ServiceEndpointDefinition struct {
 	// The values are being populated by the ServiceEndpointDefinitionQuery when eager-loading is set.
 	Edges                                       ServiceEndpointDefinitionEdges `json:"edges"`
 	equipment_type_service_endpoint_definitions *int
-	service_endpoint_definition_service_type    *int
 	service_type_endpoint_definitions           *int
 }
 
@@ -106,7 +105,6 @@ func (*ServiceEndpointDefinition) scanValues() []interface{} {
 func (*ServiceEndpointDefinition) fkValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{}, // equipment_type_service_endpoint_definitions
-		&sql.NullInt64{}, // service_endpoint_definition_service_type
 		&sql.NullInt64{}, // service_type_endpoint_definitions
 	}
 }
@@ -157,12 +155,6 @@ func (sed *ServiceEndpointDefinition) assignValues(values ...interface{}) error 
 			*sed.equipment_type_service_endpoint_definitions = int(value.Int64)
 		}
 		if value, ok := values[1].(*sql.NullInt64); !ok {
-			return fmt.Errorf("unexpected type %T for edge-field service_endpoint_definition_service_type", value)
-		} else if value.Valid {
-			sed.service_endpoint_definition_service_type = new(int)
-			*sed.service_endpoint_definition_service_type = int(value.Int64)
-		}
-		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field service_type_endpoint_definitions", value)
 		} else if value.Valid {
 			sed.service_type_endpoint_definitions = new(int)

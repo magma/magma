@@ -44,17 +44,25 @@ def copy_equipment_with_all_attachments(
     """Copy the equipment to the new location with all its attachments
 
         Args:
-            equipment (pyinventory.consts.Equipment object): could be retrieved from the following apis:
-                * getEquipment
-                * getEquipmentInPosition
-                * addEquipment
-                * addEquipmentToPosition
-            dest_location (pyinventory.consts.Location object): retrieved from getLocation or addLocation api.
+            equipment ( `pyinventory.consts.Equipment` ): could be retrieved from
+            - `pyinventory.api.equipment.get_equipment`
+            - `pyinventory.api.equipment.get_equipment_in_position`
+            - `pyinventory.api.equipment.add_equipment`
+            - `pyinventory.api.equipment.add_equipment_to_position`
 
-        Raises: FailedOperationException for internal inventory error
+            dest_location ( `pyinventory.consts.Location` ): could be retrieved from
+            - `pyinventory.api.location.get_location`
+            - `pyinventory.api.location.add_location`
 
-        Returns: dict of source equipment (pyinventory.consts.Equipment) to new equipment (pyinventory.consts.Equipment)
-                The dict includes the equipment given as parameter and also all the equipments
+        Raises:
+            FailedOperationException: internal inventory error
+
+        Returns:
+            Dict[ `pyinventory.consts.Equipment` , `pyinventory.consts.Equipment` ]
+            - `pyinventory.consts.Equipment` - source equipment
+            - `pyinventory.consts.Equipment` - new equipment
+
+            The dict includes the equipment given as parameter and also all the equipments
                 attached to it
     """
 

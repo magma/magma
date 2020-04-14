@@ -313,7 +313,7 @@ func (sedu *ServiceEndpointDefinitionUpdate) sqlSave(ctx context.Context) (n int
 	if sedu.mutation.ServiceTypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   serviceendpointdefinition.ServiceTypeTable,
 			Columns: []string{serviceendpointdefinition.ServiceTypeColumn},
 			Bidi:    false,
@@ -329,7 +329,7 @@ func (sedu *ServiceEndpointDefinitionUpdate) sqlSave(ctx context.Context) (n int
 	if nodes := sedu.mutation.ServiceTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   serviceendpointdefinition.ServiceTypeTable,
 			Columns: []string{serviceendpointdefinition.ServiceTypeColumn},
 			Bidi:    false,
@@ -675,7 +675,7 @@ func (seduo *ServiceEndpointDefinitionUpdateOne) sqlSave(ctx context.Context) (s
 	if seduo.mutation.ServiceTypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   serviceendpointdefinition.ServiceTypeTable,
 			Columns: []string{serviceendpointdefinition.ServiceTypeColumn},
 			Bidi:    false,
@@ -691,7 +691,7 @@ func (seduo *ServiceEndpointDefinitionUpdateOne) sqlSave(ctx context.Context) (s
 	if nodes := seduo.mutation.ServiceTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   serviceendpointdefinition.ServiceTypeTable,
 			Columns: []string{serviceendpointdefinition.ServiceTypeColumn},
 			Bidi:    false,

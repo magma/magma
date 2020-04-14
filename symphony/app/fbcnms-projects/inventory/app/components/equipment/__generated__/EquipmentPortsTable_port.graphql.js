@@ -142,7 +142,7 @@ export type EquipmentPortsTable_port = {|
       |},
       +serviceEndpoints: $ReadOnlyArray<{|
         +definition: {|
-          +role: string
+          +role: ?string
         |},
         +service: {|
           +name: string
@@ -244,7 +244,7 @@ export type EquipmentPortsTable_port = {|
   |}>,
   +serviceEndpoints: $ReadOnlyArray<{|
     +definition: {|
-      +role: string
+      +role: ?string
     |},
     +service: {|
       +name: string

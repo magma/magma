@@ -263,7 +263,7 @@ func (sedc *ServiceEndpointDefinitionCreate) sqlSave(ctx context.Context) (*Serv
 	if nodes := sedc.mutation.ServiceTypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   serviceendpointdefinition.ServiceTypeTable,
 			Columns: []string{serviceendpointdefinition.ServiceTypeColumn},
 			Bidi:    false,

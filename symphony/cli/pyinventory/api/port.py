@@ -38,22 +38,21 @@ def get_port(
     """This function returns port in equipment based on its name.
 
         Args:
-            equipment (pyinventory.consts.Equipment object): existing equipment object
+            equipment ( `pyinventory.consts.Equipment` ): existing equipment object
             port_name (str): existing port name
 
         Returns:
-            pyinventory.consts.EquipmentPort object
+            `pyinventory.consts.EquipmentPort` object
 
         Raises:
             EquipmentPortIsNotUniqueException: there is more than one port with this name
-            EntityNotFoundError: the port was not found
-            `pyinventory.exceptions.EntityNotFoundError`: equipment does not exist
+            `pyinventory.exceptions.EntityNotFoundError`: equipment does not exist or port was not found
 
         Example:
             ```
-            location = client.get_location([("Country", "LS_IND_Prod_Copy")])
-            equipment = client.get_equipment("indProdCpy1_AIO", location)
-            port = client.get_port(equipment, "Z AIO - Port 1") 
+            location = client.get_location(location_hirerchy=[("Country", "LS_IND_Prod_Copy")])
+            equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
+            port = client.get_port(equipment=equipment, port_name="Z AIO - Port 1")
             ```
     """
     equipment_with_ports = EquipmentPortsQuery.execute(
@@ -105,25 +104,29 @@ def edit_port_properties(
     """This function returns edited port in equipment based on its name.
 
         Args:
-            equipment (pyinventory.consts.Equipment object): existing equipment object
+            equipment ( `pyinventory.consts.Equipment` ): existing equipment object
             port_name (str): existing port name
             new_properties (Dict[str, PropertyValue]): Dict, where
-                str - property name
-                PropertyValue - new value of the same type for this property
+            - str - property name
+            - PropertyValue - new value of the same type for this property
 
         Returns:
-            pyinventory.consts.EquipmentPort object
+            `pyinventory.consts.EquipmentPort` object
 
         Raises:
-            pyinventory.exceptions.EntityNotFoundError: when `pyinventory.consts.EquipmentPortDefinition.port_type_name` is None, there are no properties
+            `pyinventory.exceptions.EntityNotFoundError`: when `pyinventory.consts.EquipmentPortDefinition.port_type_name` is None, there are no properties
                 or if there any unknown property name in properties_dict keys
-            FailedOperationException: on operation failure 
+            FailedOperationException: on operation failure
 
         Example:
             ```
-            location = client.get_location([("Country", "LS_IND_Prod_Copy")])
-            equipment = client.get_equipment("indProdCpy1_AIO", location)
-            edited_port = client.edit_port_properties(equipment, "Z AIO - Port 1", {"Port Property 2": "test_it"})  
+            location = client.get_location(location_hirerchy=[("Country", "LS_IND_Prod_Copy")])
+            equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
+            edited_port = client.edit_port_properties(
+                equipment=equipment,
+                port_name="Z AIO - Port 1",
+                new_properties={"Port Property 2": "test_it"},
+            )
             ```
     """
     port = get_port(client, equipment, port_name)
@@ -191,22 +194,28 @@ def edit_link_properties(
     """This function returns edited port in equipment based on its name.
 
         Args:
-            equipment (pyinventory.consts.Equipment object): existing equipment object
+            equipment ( `pyinventory.consts.Equipment` ): existing equipment object
             port_name (str): existing port name
             new_link_properties (Dict[str, PropertyValue])
+            - str - link property name
+            - PropertyValue - new value of the same type for this property
 
         Returns:
-            pyinventory.consts.EquipmentPort object
+            `pyinventory.consts.EquipmentPort` object
 
         Raises:
-            EntityNotFoundError: when `pyinventory.consts.EquipmentPortDefinition.port_type_name` is None, there are no properties
-            FailedOperationException: on operation failure 
+            `pyinventory.exceptions.EntityNotFoundError`: when `pyinventory.consts.EquipmentPortDefinition.port_type_name` is None, there are no properties
+            FailedOperationException: on operation failure
 
         Example:
             ```
-            location = client.get_location([("Country", "LS_IND_Prod_Copy")])
-            equipment = client.get_equipment("indProdCpy1_AIO", location)
-            edited_port = client.edit_link_properties(equipment, "Z AIO - Port 1", {"Link Property 1": 98765})
+            location = client.get_location(location_hirerchy=[("Country", "LS_IND_Prod_Copy")])
+            equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
+            edited_port = client.edit_link_properties(
+                equipment=equipment,
+                port_name="Z AIO - Port 1",
+                new_link_properties={"Link Property 1": 98765},
+            )
             ```
     """
     port = get_port(client, equipment, port_name)

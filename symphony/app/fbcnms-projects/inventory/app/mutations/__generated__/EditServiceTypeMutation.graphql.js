@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b45339ee8db0d26af27dad91d469975b
+ * @relayHash cb0c914315a99565698be289f38d7568
  */
 
 /* eslint-disable */
@@ -21,6 +21,7 @@ export type ServiceTypeEditData = {|
   name: string,
   hasCustomer: boolean,
   properties?: ?$ReadOnlyArray<?PropertyTypeInput>,
+  endpoints?: ?$ReadOnlyArray<?ServiceEndpointDefinitionInput>,
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
@@ -41,6 +42,13 @@ export type PropertyTypeInput = {|
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
   isDeleted?: ?boolean,
+|};
+export type ServiceEndpointDefinitionInput = {|
+  id?: ?string,
+  name: string,
+  role?: ?string,
+  index: number,
+  equipmentTypeID: string,
 |};
 export type EditServiceTypeMutationVariables = {|
   data: ServiceTypeEditData

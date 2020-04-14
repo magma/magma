@@ -54,12 +54,16 @@ class PropertyDefinition(NamedTuple):
             "email", "gps_location", "equipment", "location", "service", "datetime_local"]
         default_value (PropertyValue): default property value
         is_fixed (bool): fixed value flag
+        external_id (str): property type external ID
+        is_mandatory (bool): mandatory value flag
     """
 
     property_name: str
     property_kind: PropertyKind
     default_value: Optional[PropertyValue]
     is_fixed: Optional[bool] = False
+    external_id: Optional[str] = None
+    is_mandatory: Optional[bool] = False
 
 
 class DataTypeName(NamedTuple):
