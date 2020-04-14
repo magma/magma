@@ -39,8 +39,8 @@ class SubTests(Enum):
 
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
-               transfer_images='False',
-               destroy_vm="False", no_build="False", tests_to_run="integ_test"):
+               transfer_images=False, destroy_vm=False, no_build=False,
+               tests_to_run="integ_test", skip_unit_tests=False, test_re=None):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -66,9 +66,6 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         print("{} is not a valid value. We support {}".format(
             tests_to_run, SubTests.list()))
         return
-    destroy_vm = bool(strtobool(destroy_vm))
-    no_build = bool(strtobool(no_build))
-    transfer_images = bool(strtobool(transfer_images))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -77,7 +74,9 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     else:
         ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
 
-    execute(_run_unit_tests)
+    if not skip_unit_tests:
+        execute(_run_unit_tests)
+
     execute(_set_cwag_configs)
     cwag_host_to_mac = execute(_get_br_mac, CWAG_BR_NAME)
     host = env.hosts[0]
@@ -130,7 +129,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
-    execute(_run_integ_tests, test_host, trf_host, tests_to_run)
+    execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
 
 
 def _transfer_docker_images():
@@ -231,10 +230,13 @@ def _run_unit_tests():
         run('make test')
 
 
-def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests):
+def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests, testRe=None):
     """ Run the integration tests """
     with cd(CWAG_INTEG_ROOT):
-        command = "make " + str(tests_to_run.value)
+        if testRe:
+            command = "TESTS=" + testRe + " make " + str(tests_to_run.value)
+        else:
+            command = "make " + str(tests_to_run.value)
         result = run(command, warn_only=True)
     if not test_host and not trf_host:
         # Clean up only for now when running locally
