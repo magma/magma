@@ -242,6 +242,11 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
         run('fab integ_test:destroy_vm=True,transfer_images=True',
             timeout=110*60)
 
+        run("fab transfer_service_logs:services="
+            "'sessiond session_proxy pcrf ocs'")
+        run('mkdir /tmp/cwf_integ_test_logs')
+        run('cp *.log /tmp/cwf_integ_test_logs')
+
 
 def _run_remote_lte_package(repo: str, magma_root: str,
                             package_cert: str, package_control_proxy: str,
