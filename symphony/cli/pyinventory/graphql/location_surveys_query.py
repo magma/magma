@@ -11,37 +11,14 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from gql.gql.enum_utils import enum_field
-from .survey_question_type_enum import SurveyQuestionType
+from .survey_fragment import SurveyFragment, QUERY as SurveyFragmentQuery
 
-
-QUERY: List[str] = ["""
+QUERY: List[str] = SurveyFragmentQuery + ["""
 query LocationSurveysQuery($id: ID!) {
   location: node(id: $id) {
     ... on Location {
       surveys {
-        id
-        name
-        completionTimestamp
-        sourceFile {
-          id
-          fileName
-          storeKey
-        }
-        surveyResponses {
-          formName
-          questionFormat
-          questionText
-          boolData
-          emailData
-          latitude
-          longitude
-          phoneData
-          textData
-          floatData
-          intData
-          dateData
-        }
+        ...SurveyFragment
       }
     }
   }
@@ -56,33 +33,8 @@ class LocationSurveysQuery(DataClassJsonMixin):
         @dataclass
         class Node(DataClassJsonMixin):
             @dataclass
-            class Survey(DataClassJsonMixin):
-                @dataclass
-                class File(DataClassJsonMixin):
-                    id: str
-                    fileName: str
-                    storeKey: Optional[str]
-
-                @dataclass
-                class SurveyQuestion(DataClassJsonMixin):
-                    questionText: str
-                    formName: Optional[str]
-                    questionFormat: Optional[SurveyQuestionType] = enum_field(SurveyQuestionType)
-                    boolData: Optional[bool]
-                    emailData: Optional[str]
-                    latitude: Optional[Number]
-                    longitude: Optional[Number]
-                    phoneData: Optional[str]
-                    textData: Optional[str]
-                    floatData: Optional[Number]
-                    intData: Optional[int]
-                    dateData: Optional[int]
-
-                id: str
-                name: str
-                completionTimestamp: int
-                surveyResponses: List[SurveyQuestion]
-                sourceFile: Optional[File]
+            class Survey(SurveyFragment):
+                pass
 
             surveys: List[Survey]
 

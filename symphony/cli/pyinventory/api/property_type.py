@@ -24,7 +24,7 @@ def get_property_types(
             entity_name (str): existing entity name
 
         Returns:
-            Sequence[ `pyinventory.graphql.property_type_input.PropertyTypeFragment` ]
+            Sequence[ `pyinventory.graphql.property_type_fragment.PropertyTypeFragment` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: if entity type does not found or does not have property types

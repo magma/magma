@@ -45,20 +45,20 @@
 <dt><strong><code>entity_id</code></strong> :&ensp;<code>string</code></dt>
 <dd>valid entity ID</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>Optional</code>[<code>string</code>]</dt>
-<dd>file category name </dd>
+<dd>file category name</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
 client.add_file(
-    local_file_path='./document.pdf', 
-    entity_type='LOCATION', 
-    entity_id=location.id, 
-    category='category_name'
+    local_file_path=&quot;./document.pdf&quot;,
+    entity_type=&quot;LOCATION&quot;,
+    entity_id=location.id,
+    category=&quot;category_name&quot;,
 )
 </code></pre></section>
 </dd>
@@ -69,8 +69,8 @@ client.add_file(
 <section class="desc"><p>This function adds all files located in folder to an entity of a given type.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
-<dd>local system path to the file</dd>
+<dt><strong><code>local_directory_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>local system path to the directory</dd>
 <dt><strong><code>entity_type</code></strong> :&ensp;<code>str</code></dt>
 <dd>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dd>
 <dt><strong><code>entity_id</code></strong> :&ensp;<code>string</code></dt>
@@ -81,10 +81,11 @@ client.add_file(
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
 client.add_files(
-    local_directory_path='./documents_folder/', 
-    entity_type='LOCATION', 
-    entity_id=location.id, 
-    category='category_name')
+    local_directory_path=&quot;./documents_folder/&quot;,
+    entity_type=&quot;LOCATION&quot;,
+    entity_id=location.id,
+    category=&quot;category_name&quot;,
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.file.add_location_image"><code class="name flex">
@@ -95,20 +96,19 @@ client.add_files(
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
-<dd>existing port name</dd>
-<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a></dt>
-<dd>existing location object</dd>
+<dd>local system path to the file</dd>
 </dl>
+<p>location ( <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> ): existing location object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
 client.add_location_image(
-    local_file_path='./document.pdf',
-    location=location
+    local_file_path=&quot;./document.pdf&quot;,
+    location=location,
 )
 </code></pre></section>
 </dd>
@@ -120,18 +120,18 @@ client.add_location_image(
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
-<dd>existing port name</dd>
+<dd>local system path to the file</dd>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>site survey ID</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>client.add_site_survey_image(
-    local_file_path='./document.pdf',
+    local_file_path=&quot;./document.pdf&quot;,
     id=&quot;123456&quot;
 )
 </code></pre></section>
@@ -142,14 +142,11 @@ client.add_location_image(
 <dd>
 <section class="desc"><p>This function deletes existing document.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>document</code></strong> :&ensp;<a title="pyinventory.consts.Document" href="../consts.html#pyinventory.consts.Document"><code>Document</code></a></dt>
-<dd>document object</dd>
-</dl>
+<p>document ( <a title="pyinventory.consts.Document" href="../consts.html#pyinventory.consts.Document"><code>Document</code></a> ): document object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>client.delete_document(document=document)
@@ -161,14 +158,11 @@ client.add_location_image(
 <dd>
 <section class="desc"><p>This function deletes image from existing site survey.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>survey</code></strong> :&ensp;<a title="pyinventory.consts.SiteSurvey" href="../consts.html#pyinventory.consts.SiteSurvey"><code>SiteSurvey</code></a></dt>
-<dd>site survey object</dd>
-</dl>
+<p>survey ( <a title="pyinventory.consts.SiteSurvey" href="../consts.html#pyinventory.consts.SiteSurvey"><code>SiteSurvey</code></a> ): site survey object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>client.delete_site_survey_image(survey=survey)

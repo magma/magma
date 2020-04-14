@@ -43,21 +43,25 @@
 <dd>
 <section class="desc"><p>Copy the equipment to the new location with all its attachments</p>
 <h2 id="args">Args</h2>
+<p>equipment ( <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from
+- <a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
+<p>dest_location ( <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> ): could be retrieved from
+- <a title="pyinventory.api.location.get_location" href="location.html#pyinventory.api.location.get_location"><code>get_location()</code></a>
+- <a title="pyinventory.api.location.add_location" href="location.html#pyinventory.api.location.add_location"><code>add_location()</code></a></p>
+<h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from the following apis:
-* getEquipment
-* getEquipmentInPosition
-* addEquipment
-* addEquipmentToPosition</dd>
-<dt><strong><code>dest_location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>retrieved from getLocation or addLocation api.</dd>
-<dt><strong><code>Raises</code></strong> :&ensp;<code>FailedOperationException</code> <code>for</code> <code>internal</code> <code>inventory</code> <code>error</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>dict</code> of <code>source</code> <code>equipment</code> (<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a>) <code>to</code> <code>new</code> <code>equipment</code> (<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a>)</dt>
-<dd>The dict includes the equipment given as parameter and also all the equipments
-attached to it</dd>
-</dl></section>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dict[ <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> , <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ]
+- <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> - source equipment
+- <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> - new equipment</p>
+<p>The dict includes the equipment given as parameter and also all the equipments
+attached to it</p></section>
 </dd>
 </dl>
 </section>

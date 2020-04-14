@@ -47,7 +47,7 @@ setuptools.setup(
         "dataclasses==0.6",
         "dataclasses-json==0.3.2",
         "dacite>=1.0.2",
-        "pdoc3>=0.7.1",
+        "pdoc3==0.7.2",
         "colorama>=0.4.1",
         "unittest-xml-reporting>=2.5.2",
         "protobuf>=3.11.3",

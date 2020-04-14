@@ -35,19 +35,62 @@
 <span>def <span class="ident">add_location_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], map_zoom_level: int = 8) -> <a title="pyinventory.consts.LocationType" href="../consts.html#pyinventory.consts.LocationType">LocationType</a></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function creates new location type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>location type name</dd>
+</dl>
+<p>properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
+- str - type name
+- str - enum["string", "int", "bool", "float", "date", "enum", "range",
+"email", "gps_location", "equipment", "location", "service", "datetime_local"]
+- PropertyValue - default property value
+- bool - fixed value flag</p>
+<dl>
+<dt><strong><code>map_zoom_level</code></strong> :&ensp;<code>int</code></dt>
+<dd>map zoom level</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.LocationType" href="../consts.html#pyinventory.consts.LocationType"><code>LocationType</code></a> object</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>location_type = client.add_location_type(
+    name=&quot;city&quot;,
+    properties=[(&quot;Contact&quot;, &quot;email&quot;, None, True)],
+    map_zoom_level=5,
+)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.location_type.delete_location_type_with_locations"><code class="name flex">
 <span>def <span class="ident">delete_location_type_with_locations</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_type: <a title="pyinventory.consts.LocationType" href="../consts.html#pyinventory.consts.LocationType">LocationType</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Delete locaton type with existing locations.</p>
+<h2 id="args">Args</h2>
+<p>location_type (<a title="pyinventory.consts.LocationType" href="../consts.html#pyinventory.consts.LocationType"><code>LocationType</code></a>): location type object</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if location_type does not exist</p>
+<h2 id="example">Example</h2>
+<pre><code>client.delete_location_type_with_locations(location_type=location_type)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.location_type.delete_locations_by_location_type"><code class="name flex">
 <span>def <span class="ident">delete_locations_by_location_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_type: <a title="pyinventory.consts.LocationType" href="../consts.html#pyinventory.consts.LocationType">LocationType</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Delete locatons by location type.</p>
+<h2 id="args">Args</h2>
+<p>location_type ( <a title="pyinventory.consts.LocationType" href="../consts.html#pyinventory.consts.LocationType"><code>LocationType</code></a> ): location type object</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if location_type does not exist</p>
+<h2 id="example">Example</h2>
+<pre><code>client.delete_locations_by_location_type(location_type=location_type)
+</code></pre></section>
 </dd>
 </dl>
 </section>

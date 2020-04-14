@@ -35,10 +35,10 @@
 <dl>
 <dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment"><code class="flex name class">
 <span>class <span class="ident">PropertyTypeFragment</span></span>
-<span>(</span><span>id: str, name: str, type: <a title="pyinventory.graphql.property_kind_enum.PropertyKind" href="property_kind_enum.html#pyinventory.graphql.property_kind_enum.PropertyKind">PropertyKind</a>, index: Union[int, NoneType] = None, category: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[numbers.Number, NoneType] = None, latitudeValue: Union[numbers.Number, NoneType] = None, longitudeValue: Union[numbers.Number, NoneType] = None, rangeFromValue: Union[numbers.Number, NoneType] = None, rangeToValue: Union[numbers.Number, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None, isMandatory: Union[bool, NoneType] = None, isDeleted: Union[bool, NoneType] = None)</span>
+<span>(</span><span>id: str, name: str, type: <a title="pyinventory.graphql.property_kind_enum.PropertyKind" href="property_kind_enum.html#pyinventory.graphql.property_kind_enum.PropertyKind">PropertyKind</a>, externalId: Union[str, NoneType], index: Union[int, NoneType], category: Union[str, NoneType], stringValue: Union[str, NoneType], intValue: Union[int, NoneType], booleanValue: Union[bool, NoneType], floatValue: Union[numbers.Number, NoneType], latitudeValue: Union[numbers.Number, NoneType], longitudeValue: Union[numbers.Number, NoneType], rangeFromValue: Union[numbers.Number, NoneType], rangeToValue: Union[numbers.Number, NoneType], isEditable: Union[bool, NoneType], isInstanceProperty: Union[bool, NoneType], isMandatory: Union[bool, NoneType], isDeleted: Union[bool, NoneType])</span>
 </code></dt>
 <dd>
-<section class="desc"><p>PropertyTypeFragment(id: str, name: str, type: pyinventory.graphql.property_kind_enum.PropertyKind, index: Union[int, NoneType] = None, category: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[numbers.Number, NoneType] = None, latitudeValue: Union[numbers.Number, NoneType] = None, longitudeValue: Union[numbers.Number, NoneType] = None, rangeFromValue: Union[numbers.Number, NoneType] = None, rangeToValue: Union[numbers.Number, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None, isMandatory: Union[bool, NoneType] = None, isDeleted: Union[bool, NoneType] = None)</p></section>
+<section class="desc"><p>PropertyTypeFragment(id: str, name: str, type: pyinventory.graphql.property_kind_enum.PropertyKind, externalId: Union[str, NoneType], index: Union[int, NoneType], category: Union[str, NoneType], stringValue: Union[str, NoneType], intValue: Union[int, NoneType], booleanValue: Union[bool, NoneType], floatValue: Union[numbers.Number, NoneType], latitudeValue: Union[numbers.Number, NoneType], longitudeValue: Union[numbers.Number, NoneType], rangeFromValue: Union[numbers.Number, NoneType], rangeToValue: Union[numbers.Number, NoneType], isEditable: Union[bool, NoneType], isInstanceProperty: Union[bool, NoneType], isMandatory: Union[bool, NoneType], isDeleted: Union[bool, NoneType])</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>dataclasses_json.api.DataClassJsonMixin</li>
@@ -49,75 +49,13 @@
 <li><a title="pyinventory.graphql.property_fragment.PropertyFragment.PropertyType" href="property_fragment.html#pyinventory.graphql.property_fragment.PropertyFragment.PropertyType">PropertyFragment.PropertyType</a></li>
 <li>pyinventory.graphql.add_equipment_type_mutation.AddEquipmentTypeMutation.AddEquipmentTypeMutationData.EquipmentType.PropertyType</li>
 <li>pyinventory.graphql.edit_equipment_type_mutation.EditEquipmentTypeMutation.EditEquipmentTypeMutationData.EquipmentType.PropertyType</li>
-<li>pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData.EquipmentPortTypeConnection.EquipmentPortTypeEdge.EquipmentPortType.PropertyType</li>
+<li><a title="pyinventory.graphql.equipment_port_type_fragment.EquipmentPortTypeFragment.PropertyType" href="equipment_port_type_fragment.html#pyinventory.graphql.equipment_port_type_fragment.EquipmentPortTypeFragment.PropertyType">EquipmentPortTypeFragment.PropertyType</a></li>
 <li>pyinventory.graphql.equipment_types_query.EquipmentTypesQuery.EquipmentTypesQueryData.EquipmentTypeConnection.EquipmentTypeEdge.EquipmentType.PropertyType</li>
 <li>pyinventory.graphql.add_location_type_mutation.AddLocationTypeMutation.AddLocationTypeMutationData.LocationType.PropertyType</li>
 <li>pyinventory.graphql.location_types_query.LocationTypesQuery.LocationTypesQueryData.LocationTypeConnection.LocationTypeEdge.LocationType.PropertyType</li>
 <li>pyinventory.graphql.add_service_type_mutation.AddServiceTypeMutation.AddServiceTypeMutationData.ServiceType.PropertyType</li>
 <li>pyinventory.graphql.service_types_query.ServiceTypesQuery.ServiceTypesQueryData.ServiceTypeConnection.ServiceTypeEdge.ServiceType.PropertyType</li>
-<li>pyinventory.graphql.add_equipment_port_type_mutation.AddEquipmentPortTypeMutation.AddEquipmentPortTypeMutationData.EquipmentPortType.PropertyType</li>
-<li>pyinventory.graphql.edit_equipment_port_type_mutation.EditEquipmentPortTypeMutation.EditEquipmentPortTypeMutationData.EquipmentPortType.PropertyType</li>
-<li>pyinventory.graphql.equipment_port_type_query.EquipmentPortTypeQuery.EquipmentPortTypeQueryData.Node.PropertyType</li>
 </ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.booleanValue"><code class="name">var <span class="ident">booleanValue</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.category"><code class="name">var <span class="ident">category</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.floatValue"><code class="name">var <span class="ident">floatValue</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.index"><code class="name">var <span class="ident">index</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.intValue"><code class="name">var <span class="ident">intValue</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isDeleted"><code class="name">var <span class="ident">isDeleted</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isEditable"><code class="name">var <span class="ident">isEditable</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isInstanceProperty"><code class="name">var <span class="ident">isInstanceProperty</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isMandatory"><code class="name">var <span class="ident">isMandatory</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.latitudeValue"><code class="name">var <span class="ident">latitudeValue</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.longitudeValue"><code class="name">var <span class="ident">longitudeValue</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.rangeFromValue"><code class="name">var <span class="ident">rangeFromValue</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.rangeToValue"><code class="name">var <span class="ident">rangeToValue</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.stringValue"><code class="name">var <span class="ident">stringValue</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
 </dd>
 </dl>
 </section>
@@ -137,22 +75,6 @@
 <ul>
 <li>
 <h4><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></code></h4>
-<ul class="two-column">
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.booleanValue" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.booleanValue">booleanValue</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.category" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.category">category</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.floatValue" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.floatValue">floatValue</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.index" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.index">index</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.intValue" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.intValue">intValue</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isDeleted" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isDeleted">isDeleted</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isEditable" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isEditable">isEditable</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isInstanceProperty" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isInstanceProperty">isInstanceProperty</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isMandatory" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.isMandatory">isMandatory</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.latitudeValue" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.latitudeValue">latitudeValue</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.longitudeValue" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.longitudeValue">longitudeValue</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.rangeFromValue" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.rangeFromValue">rangeFromValue</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.rangeToValue" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.rangeToValue">rangeToValue</a></code></li>
-<li><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment.stringValue" href="#pyinventory.graphql.property_type_fragment.PropertyTypeFragment.stringValue">stringValue</a></code></li>
-</ul>
 </li>
 </ul>
 </li>

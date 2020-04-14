@@ -37,18 +37,15 @@
 <dd>
 <section class="desc"><p>Activate the user which would allow the user to login again to symphony</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>user</code></strong></dt>
-<dd>user to activate</dd>
-</dl>
+<p>user ( <a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> ): user to activate</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>user = client.get_user(&quot;user@test.com&quot;)
-client.activate_user(user)
+<pre><code>user = client.get_user(email=&quot;user@test.com&quot;)
+client.activate_user(user=user)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.user.add_user"><code class="name flex">
@@ -58,20 +55,16 @@ client.activate_user(user)
 <section class="desc"><p>Adds new user to inventory with its email and password</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>email</code></strong></dt>
+<dt><strong><code>email</code></strong> :&ensp;<code>str</code></dt>
 <dd>the email address of the user</dd>
-<dt><strong><code>password</code></strong></dt>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
 <dd>password the user would connect with</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>EntityNotFoundError</code></strong></dt>
-<dd>the user was not created properly</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: the user was not created properly</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>internal inventory error</dd>
 <dt><strong><code>AssertionError</code></strong></dt>
@@ -80,7 +73,7 @@ client.activate_user(user)
 <dd>Error with connection</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>user = client.add_user(&quot;user@test.com&quot;, &quot;P0ssW!rd0f43&quot;)
+<pre><code>user = client.add_user(email=&quot;user@test.com&quot;, password=&quot;P0ssW!rd0f43&quot;)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.user.deactivate_user"><code class="name flex">
@@ -90,12 +83,12 @@ client.activate_user(user)
 <section class="desc"><p>Deactivate the user which would prevent the user from login in to symphony
 Users in symphony are never deleted. Only de-activated.</p>
 <p>Args:
-user: user to deactivate</p>
+user ( <a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> ): user to deactivate</p>
 <p>Raises:
 FailedOperationException: internal inventory error</p>
 <p>Example:
-<code>user = client.get_user("user@test.com")
-client.deactivate_user(user)</code></p></section>
+<code>user = client.get_user(email="user@test.com")
+client.deactivate_user(user=user)</code></p></section>
 </dd>
 <dt id="pyinventory.api.user.edit_user"><code class="name flex">
 <span>def <span class="ident">edit_user</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, user: <a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User">User</a>, new_password: Union[str, NoneType] = None, new_role: Union[<a title="pyinventory.graphql.user_role_enum.UserRole" href="../graphql/user_role_enum.html#pyinventory.graphql.user_role_enum.UserRole">UserRole</a>, NoneType] = None) -> NoneType</span>
@@ -104,13 +97,11 @@ client.deactivate_user(user)</code></p></section>
 <section class="desc"><p>Edit user password and role</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>user</code></strong></dt>
-<dd>user to edit</dd>
-<dt><strong><code>new_password</code></strong></dt>
+<dt>user ( <a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> ): user to edit</dt>
+<dt><strong><code>new_password</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
 <dd>new password the user would connect with</dd>
-<dt><strong><code>new_role</code></strong></dt>
-<dd>new role of the user</dd>
 </dl>
+<p>new_role ( <a title="pyinventory.graphql.user_role_enum.UserRole" href="../graphql/user_role_enum.html#pyinventory.graphql.user_role_enum.UserRole"><code>UserRole</code></a> ): user new role</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -121,9 +112,9 @@ client.deactivate_user(user)</code></p></section>
 <dd>Error with connection</dd>
 </dl>
 <h2 id="example">Example</h2>
-<p>user = client.add_user("user@test.com", "P0ssW!rd0f43")
-client.edit_user(user, "New_Password4Ever", UserRole.ADMIN)
-```</p></section>
+<pre><code>user = client.add_user(email=&quot;user@test.com&quot;, password=&quot;P0ssW!rd0f43&quot;)
+client.edit_user(user=user, new_password=&quot;New_Password4Ever&quot;, new_role=UserRole.ADMIN)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.user.get_active_users"><code class="name flex">
 <span>def <span class="ident">get_active_users</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User">User</a>]</span>
@@ -131,7 +122,7 @@ client.edit_user(user, "New_Password4Ever", UserRole.ADMIN)
 <dd>
 <section class="desc"><p>Get the list of the active users in the system</p>
 <h2 id="returns">Returns</h2>
-<p>list of <a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> objects</p>
+<p>List[ <a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> ]</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -150,23 +141,19 @@ for user in users:
 <section class="desc"><p>Returns <a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> object by its email</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>email</code></strong></dt>
+<dt><strong><code>email</code></strong> :&ensp;<code>str</code></dt>
 <dd>the email address the user registered with</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>EntityNotFoundError</code></strong></dt>
-<dd>the user was not found</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: the user was not found</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>user = client.get_user(&quot;user@test.com&quot;)
+<pre><code>user = client.get_user(email=&quot;user@test.com&quot;)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.user.get_users"><code class="name flex">
@@ -175,7 +162,7 @@ for user in users:
 <dd>
 <section class="desc"><p>Get the list of users in the system (both active and deactivate)</p>
 <h2 id="returns">Returns</h2>
-<p>list of <a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> objects</p>
+<p>List[ <a title="pyinventory.consts.User" href="../consts.html#pyinventory.consts.User"><code>User</code></a> ]</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>

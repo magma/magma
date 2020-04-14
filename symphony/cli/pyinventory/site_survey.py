@@ -3,7 +3,7 @@
 import math
 from datetime import datetime
 from itertools import combinations
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
 from dacite import Config, from_dict
@@ -22,6 +22,8 @@ from .graphql.create_survey_mutation import CreateSurveyMutation
 from .graphql.location_surveys_query import LocationSurveysQuery
 from .graphql.remove_site_survey_mutation import RemoveSiteSurveyMutation
 from .graphql.survey_create_data_input import SurveyCreateData
+from .graphql.survey_fragment import SurveyFragment
+from .graphql.survey_question_fragment import SurveyQuestionFragment
 from .graphql.survey_question_type_enum import SurveyQuestionType
 from .site_survey_schema import retrieve_tamplates_and_set_them
 
@@ -36,9 +38,6 @@ SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME = {
     "INTEGER": "intData",
     "PHONE": "phoneData",
 }
-SurveyQuestion = (
-    LocationSurveysQuery.LocationSurveysQueryData.Node.Survey.SurveyQuestion
-)
 
 
 def _get_dependencies(question: Dict[str, Any]) -> Tuple[List[str], List[str]]:
@@ -61,8 +60,7 @@ def _extract_questions(
     content: Dict[str, Any]
 ) -> Tuple[List[Tuple[str, ...]], List[Dict[str, Any]], int]:
     form_to_questions = [
-        (form["formTitle"], [question for question in form["questions"]])
-        for form in content["forms"]
+        (form["formTitle"], list(form["questions"])) for form in content["forms"]
     ]
     full_question_paths = []
     questions = []
@@ -777,7 +775,7 @@ def upload_site_survey(
 
 
 def _survey_responses_to_forms(
-    responses: List[SurveyQuestion]
+    responses: Sequence[SurveyQuestionFragment]
 ) -> Dict[str, Dict[str, Any]]:
     forms = {}
     value_does_not_match_type_error_msg = (
@@ -824,9 +822,7 @@ def _survey_responses_to_forms(
     return forms
 
 
-def build_site_survey_from_survey_response(
-    survey: LocationSurveysQuery.LocationSurveysQueryData.Node.Survey
-) -> SiteSurvey:
+def build_site_survey_from_survey_response(survey: SurveyFragment) -> SiteSurvey:
     id = survey.id
     name = survey.name
     completion_time = datetime.fromtimestamp(survey.completionTimestamp)

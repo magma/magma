@@ -111,18 +111,15 @@ discards reports</dd>
 <dd>
 <section class="desc"><p>Activate the user which would allow the user to login again to symphony</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>user</code></strong></dt>
-<dd>user to activate</dd>
-</dl>
+<p>user ( <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> ): user to activate</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>user = client.get_user(&quot;user@test.com&quot;)
-client.activate_user(user)
+<pre><code>user = client.get_user(email=&quot;user@test.com&quot;)
+client.activate_user(user=user)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.add_customer"><code class="name flex">
@@ -138,50 +135,48 @@ client.activate_user(user)
 <dd>external ID for the Customer</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Customer" href="consts.html#pyinventory.consts.Customer"><code>Customer</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Customer" href="consts.html#pyinventory.consts.Customer"><code>Customer</code></a> object</p>
 <h2 id="example">Example</h2>
-<pre><code>new_customers = client.add_customer(name=&quot;new_customer&quot;) 
+<pre><code>new_customers = client.add_customer(name=&quot;new_customer&quot;)
 </code></pre>
 <dl>
 <dt><strong><code>or</code></strong></dt>
 <dd>&nbsp;</dd>
 </dl>
-<pre><code>new_customers = client.add_customer(name=&quot;new_customer&quot;, external_id=&quot;12345678&quot;) 
+<pre><code>new_customers = client.add_customer(name=&quot;new_customer&quot;, external_id=&quot;12345678&quot;)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.add_equipment"><code class="name flex">
-<span>def <span class="ident">add_equipment</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">add_equipment</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
-<section class="desc"><p>Create a new equipment in a given location.
-The equipment will be of the given equipment type,
-with the given name and with the given properties.
-If equipment with his name in this location already exists,
-the existing equipment is returned</p>
+<section class="desc"><p>Create a new equipment in a given <code>location</code>.
+The equipment will be of the given <code>equipment_type</code>,
+with the given <code>name</code> and with the given <code>properties</code>.
+If equipment with this name already exists in this location,
+then existing equipment is returned.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>new equipment name</dd>
 <dt><strong><code>equipment_type</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment type name</dd>
-<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>location object could be retrieved from </dd>
 </dl>
-<ul>
-<li><a title="pyinventory.api.location.get_location" href="api/location.html#pyinventory.api.location.get_location"><code>get_location()</code></a></li>
-<li><a title="pyinventory.api.location.add_location" href="api/location.html#pyinventory.api.location.add_location"><code>add_location()</code></a></li>
-</ul>
+<p>location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ): location object could be retrieved from
+- <a title="pyinventory.api.location.get_location" href="api/location.html#pyinventory.api.location.get_location"><code>get_location()</code></a>
+- <a title="pyinventory.api.location.add_location" href="api/location.html#pyinventory.api.location.add_location"><code>add_location()</code></a></p>
 <dl>
-<dt><strong><code>properties_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
-<dd>dict of property name to property value</dd>
+<dt><strong><code>properties_dict</code></strong> :&ensp;<code>Mapping</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
+<dd>dictionary of property name to property value</dd>
 </dl>
 <ul>
 <li>str - property name</li>
 <li>PropertyValue - new value of the same type for this property</li>
 </ul>
+<dl>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
+<dd>equipment external ID</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code>:</dt>
@@ -191,24 +186,24 @@ the existing equipment is returned</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>AssertionException</code></strong></dt>
-<dd>location contains more than one equipments with the
+<dd>location contains more than one equipment with the
 same name or if property value in properties_dict does not match the property type</dd>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>from datetime import date
-equipment = client.addEquipment(
-    &quot;Router X123&quot;,
-    &quot;Router&quot;,
-    location,
-    {
-        'Date Property ': date.today(),
-        'Lat/Lng Property: ': (-1.23,9.232),
-        'E-mail Property ': &quot;user@fb.com&quot;,
-        'Number Property ': 11,
-        'String Property ': &quot;aa&quot;,
-        'Float Property': 1.23
+equipment = client.add_equipment(
+    name=&quot;Router X123&quot;,
+    equipment_type=&quot;Router&quot;,
+    location=location,
+    properties_dict={
+        &quot;Date Property&quot;: date.today(),
+        &quot;Lat/Lng Property&quot;: (-1.23,9.232),
+        &quot;E-mail Property&quot;: &quot;user@fb.com&quot;,
+        &quot;Number Property&quot;: 11,
+        &quot;String Property&quot;: &quot;aa&quot;,
+        &quot;Float Property&quot;: 1.23
     })
 </code></pre></section>
 </dd>
@@ -220,93 +215,102 @@ equipment = client.addEquipment(
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
-<dd>&nbsp;</dd>
+<dd>equipment port type name</dd>
 <dt><strong><code>properties</code></strong></dt>
-<dd>(List[PropertyDefinition]): list of PropertyDefinitions</dd>
+<dd>(List[ <a title="pyinventory.consts.PropertyDefinition" href="consts.html#pyinventory.consts.PropertyDefinition"><code>PropertyDefinition</code></a> ]): list of property definitions</dd>
 <dt><strong><code>link_properties</code></strong></dt>
-<dd>(List[PropertyDefinition]): list of PropertyDefinitions</dd>
-<dt><strong><code>Returns</code></strong></dt>
-<dd>EquipmentPortType object</dd>
-<dt><strong><code>Raises</code></strong></dt>
-<dd>FailedOperationException</dd>
+<dd>(List[ <a title="pyinventory.consts.PropertyDefinition" href="consts.html#pyinventory.consts.PropertyDefinition"><code>PropertyDefinition</code></a> ]): list of property definitions</dd>
 </dl>
-<p>Example:</p>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.EquipmentPortType" href="consts.html#pyinventory.consts.EquipmentPortType"><code>EquipmentPortType</code></a> object</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
 <pre><code>from pyinventory.consts import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
 port_type1 = client.add_equipment_port_type(
-    &quot;port type 1&quot;,
-    [PropertyDefinition(&quot;port property&quot;, PropertyKind.string, None, True)],
-    [PropertyDefinition(&quot;link port property&quot;, PropertyKind.string, None, True)],
+    name=&quot;port type 1&quot;,
+    properties=[PropertyDefinition(
+        property_name=&quot;port property&quot;,
+        property_kind=PropertyKind.string,
+        default_value=None,
+        is_fixed=True)],
+    link_properties=[PropertyDefinition(
+        property_name=&quot;link port property&quot;,
+        property_kind=PropertyKind.string,
+        default_value=None,
+        is_fixed=True)],
 )
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.add_equipment_to_position"><code class="name flex">
-<span>def <span class="ident">add_equipment_to_position</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">add_equipment_to_position</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
-<section class="desc"><p>Create a new equipment inside a given positionName of the given existingEquipment.
-The equipment will be of the given equipment type, with the given name and with the given properties.
-If equipment with his name in this position already exists the existing equipment is returned</p>
+<section class="desc"><p>Create a new equipment inside a given <code>position_name</code> of the given <code>existing_equipment</code>.
+The equipment will be of the given <code>equipment_type</code>, with the given <code>name</code> and with the given <code>properties</code>.
+If equipment with this name already exists in this position, then existing equipment is returned.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>new equipment name</dd>
 <dt><strong><code>equipment_type</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment type name</dd>
-<dt><strong><code>existing_equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from</dd>
 </dl>
-<ul>
-<li><a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
-</ul>
+<p>existing_equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from
+- <a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
 <dl>
 <dt><strong><code>position_name</code></strong> :&ensp;<code>str</code></dt>
-<dd>position name in the equipment type.
-</dd>
-<dt><strong><code>properties_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
-<dd>dict of property name to property value</dd>
+<dd>position name in the equipment type.</dd>
+<dt><strong><code>properties_dict</code></strong> :&ensp;<code>Mapping</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
+<dd>dictionary of property name to property value</dd>
 </dl>
 <ul>
 <li>str - property name</li>
 <li>PropertyValue - new value of the same type for this property</li>
 </ul>
-<h2 id="returns">Returns</h2>
 <dl>
-<dt><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code>:</dt>
-<dd>You can use the ID to access the equipment from the UI:
-<a href="https://{}.thesymphony.cloud/inventory/inventory?equipment={}">https://{}.thesymphony.cloud/inventory/inventory?equipment={}</a></dd>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
+<dd>equipment external ID</dd>
 </dl>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> object:
+You can use the ID to access the equipment from the UI:
+<a href="https://{}.thesymphony.cloud/inventory/inventory?equipment={}">https://{}.thesymphony.cloud/inventory/inventory?equipment={}</a></p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>AssertionException</code></strong></dt>
 <dd>if parent equipment has more than one position with the given name
-or if property value in propertiesDict does not match the property type</dd>
+or if property value in <code>properties_dict</code> does not match the property type</dd>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>for internal inventory error</dd>
 </dl>
-<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if existing_equipment does not exist</p>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if <code>existing_equipment</code> does not exist</p>
 <h2 id="example">Example</h2>
 <pre><code>from datetime import date
-equipment = client.addEquipmentToPosition(
-    &quot;Card Y123&quot;,
-    &quot;Card&quot;,
-    equipment,
-    &quot;Pos 1&quot;,
-    {
-        'Date Property ': date.today(),
-        'Lat/Lng Property: ': (-1.23,9.232),
-        'E-mail Property ': &quot;user@fb.com&quot;,
-        'Number Property ': 11,
-        'String Property ': &quot;aa&quot;,
-        'Float Property': 1.23
+equipment = client.add_equipment_to_position(
+    name=&quot;Card Y123&quot;,
+    equipment_type=&quot;Card&quot;,
+    existing_equipment=equipment,
+    position_name=&quot;Pos 1&quot;,
+    properties_dict={
+        &quot;Date Property&quot;: date.today(),
+        &quot;Lat/Lng Property&quot;: (-1.23,9.232),
+        &quot;E-mail Property&quot;: &quot;user@fb.com&quot;,
+        &quot;Number Property&quot;: 11,
+        &quot;String Property&quot;: &quot;aa&quot;,
+        &quot;Float Property&quot;: 1.23
     })
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.add_equipment_type"><code class="name flex">
-<span>def <span class="ident">add_equipment_type</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">add_equipment_type</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: Sequence[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>This function creates new equipment type.</p>
@@ -316,19 +320,16 @@ equipment = client.addEquipmentToPosition(
 <dd>equipment type name</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
 <dd>category name</dd>
-<dt><strong><code>properties</code></strong> :&ensp;<code>List</code>[<code>Tuple</code>[<code>str</code>, <code>str</code>, <code>Optional</code>[<code>PropertyValue</code>], <code>Optional</code>[<code>bool</code>]]]</dt>
-<dd>&nbsp;</dd>
 </dl>
-<ul>
-<li>str - type name</li>
-<li>str - enum["string", "int", "bool", "float", "date", "enum", "range",
-"email", "gps_location", "equipment", "location", "service", "datetime_local"]</li>
-<li>PropertyValue - default property value</li>
-<li>bool - fixed value flag</li>
-</ul>
+<p>properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
+- str - type name
+- str - enum["string", "int", "bool", "float", "date", "enum", "range",
+"email", "gps_location", "equipment", "location", "service", "datetime_local"]
+- PropertyValue - default property value
+- bool - fixed value flag</p>
 <dl>
 <dt><strong><code>ports_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>str</code>]</dt>
-<dd>dict of property name to property value</dd>
+<dd>dictionary of port name to port type name</dd>
 </dl>
 <ul>
 <li>str - port name</li>
@@ -339,10 +340,7 @@ equipment = client.addEquipmentToPosition(
 <dd>list of positions names</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -372,20 +370,20 @@ equipment = client.addEquipmentToPosition(
 <dt><strong><code>entity_id</code></strong> :&ensp;<code>string</code></dt>
 <dd>valid entity ID</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>Optional</code>[<code>string</code>]</dt>
-<dd>file category name </dd>
+<dd>file category name</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
 client.add_file(
-    local_file_path='./document.pdf', 
-    entity_type='LOCATION', 
-    entity_id=location.id, 
-    category='category_name'
+    local_file_path=&quot;./document.pdf&quot;,
+    entity_type=&quot;LOCATION&quot;,
+    entity_id=location.id,
+    category=&quot;category_name&quot;,
 )
 </code></pre></section>
 </dd>
@@ -396,8 +394,8 @@ client.add_file(
 <section class="desc"><p>This function adds all files located in folder to an entity of a given type.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
-<dd>local system path to the file</dd>
+<dt><strong><code>local_directory_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>local system path to the directory</dd>
 <dt><strong><code>entity_type</code></strong> :&ensp;<code>str</code></dt>
 <dd>one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]</dd>
 <dt><strong><code>entity_id</code></strong> :&ensp;<code>string</code></dt>
@@ -408,10 +406,11 @@ client.add_file(
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
 client.add_files(
-    local_directory_path='./documents_folder/', 
-    entity_type='LOCATION', 
-    entity_id=location.id, 
-    category='category_name')
+    local_directory_path=&quot;./documents_folder/&quot;,
+    entity_type=&quot;LOCATION&quot;,
+    entity_id=location.id,
+    category=&quot;category_name&quot;,
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.add_link"><code class="name flex">
@@ -420,54 +419,43 @@ client.add_files(
 <dd>
 <section class="desc"><p>Connects a link between two ports of two equipments.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>equipment_a</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from </dd>
-</dl>
-<ul>
-<li><a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
-</ul>
+<p>equipment_a ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from
+- <a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
 <dl>
 <dt><strong><code>port_name_a</code></strong> :&ensp;<code>str</code></dt>
 <dd>The name of port in equipment type</dd>
-<dt><strong><code>equipment_b</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from the following apis:</dd>
 </dl>
-<ul>
-<li><a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
-</ul>
+<p>equipment_b ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from the following apis:
+- <a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
 <dl>
 <dt><strong><code>port_name_b</code></strong> :&ensp;<code>str</code></dt>
 <dd>The name of port in equipment type</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Link" href="consts.html#pyinventory.consts.Link"><code>Link</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Link" href="consts.html#pyinventory.consts.Link"><code>Link</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>AssertionError</code></strong></dt>
-<dd>if portName in any of the equipment does not exist, match more than one port
+<dd>if port_name in any of the equipment does not exist, or match more than one port
 or is already occupied by link</dd>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>for internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location1 = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment1 = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location1) 
+equipment1 = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location1)
 location2 = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod&quot;)})
-equipment2 = client.get_equipment(&quot;indProd1_AIO&quot;, location2) 
+equipment2 = client.get_equipment(name=&quot;indProd1_AIO&quot;, location=location2)
 client.add_link(
-    equipment_a=equipment1, 
-    port_name_a=&quot;Port A&quot;, 
-    equipment_b=equipment2, 
+    equipment_a=equipment1,
+    port_name_a=&quot;Port A&quot;,
+    equipment_b=equipment2,
     port_name_b=&quot;Port B&quot;
 )
 </code></pre></section>
@@ -479,33 +467,36 @@ client.add_link(
 <section class="desc"><p>Create a new location of a specific type with a specific name.
 It will also get the requested location specifiers for hirerchy
 leading to it and will create all the hirerchy.
-However the lat,long and propertiesDict would only apply for the last location in the chain.
-If a location with its name in this place already exists the existing location is returned</p>
+However the <code>lat</code>,<code>long</code> and <code>properties_dict</code> would only apply for the last location in the chain.
+If a location with its name in this place already exists, then existing location is returned</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>location_hirerchy</code></strong> :&ensp;<code>List</code>[<code>Tuple</code>[<code>str</code>, <code>str</code>]]</dt>
-<dd>An hirerchy of locations.</dd>
+<dd>hirerchy of locations.</dd>
 </dl>
 <ul>
 <li>str - location type name</li>
 <li>str - location name</li>
 </ul>
 <dl>
-<dt><strong><code>properties_dict</code></strong></dt>
-<dd>dict of property name to property value. the property value should match
-the property type. Otherwise exception is raised</dd>
+<dt><strong><code>properties_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
+<dd>dict of property name to property value. The property value should match
+the property type, otherwise exception is raised</dd>
+</dl>
+<ul>
+<li>str - property name</li>
+<li>PropertyValue - new value of the same type for this property</li>
+</ul>
+<dl>
 <dt><strong><code>lat</code></strong> :&ensp;<code>float</code></dt>
 <dd>latitude</dd>
 <dt><strong><code>long</code></strong> :&ensp;<code>float</code></dt>
 <dd>longitude</dd>
 <dt><strong><code>externalID</code></strong> :&ensp;<code>str</code></dt>
-<dd>ID from external system</dd>
+<dd>location external ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>LocationIsNotUniqueException</code></strong></dt>
@@ -517,22 +508,22 @@ inside the chain and it is not clear where to create or what to return</dd>
 <p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: parent location in the chain does not exist</p>
 <h2 id="example">Example</h2>
 <pre><code>location = client.add_location(
-    [
-        ('Country', 'England'),
-        ('City', 'Milton Keynes'),
-        ('Site', 'Bletchley Park')
+    location_hirerchy=[
+        (&quot;Country&quot;, &quot;England&quot;),
+        (&quot;City&quot;, &quot;Milton Keynes&quot;),
+        (&quot;Site&quot;, &quot;Bletchley Park&quot;)
     ],
-    {
-        'Date Property ': date.today(),
-        'Lat/Lng Property: ': (-1.23,9.232),
-        'E-mail Property ': &quot;user@fb.com&quot;,
-        'Number Property ': 11,
-        'String Property ': &quot;aa&quot;,
-        'Float Property': 1.23
+    properties_dict={
+        &quot;Date Property&quot;: date.today(),
+        &quot;Lat/Lng Property&quot;: (-1.23,9.232),
+        &quot;E-mail Property&quot;: &quot;user@fb.com&quot;,
+        &quot;Number Property&quot;: 11,
+        &quot;String Property&quot;: &quot;aa&quot;,
+        &quot;Float Property&quot;: 1.23
     },
-    -11.32,
-    98.32,
-    None)
+    lat=-11.32,
+    long=98.32,
+    externalID=None)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.add_location_image"><code class="name flex">
@@ -543,20 +534,19 @@ inside the chain and it is not clear where to create or what to return</dd>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
-<dd>existing port name</dd>
-<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a></dt>
-<dd>existing location object</dd>
+<dd>local system path to the file</dd>
 </dl>
+<p>location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ): existing location object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
 client.add_location_image(
-    local_file_path='./document.pdf',
-    location=location
+    local_file_path=&quot;./document.pdf&quot;,
+    location=location,
 )
 </code></pre></section>
 </dd>
@@ -564,7 +554,36 @@ client.add_location_image(
 <span>def <span class="ident">add_location_type</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], map_zoom_level: int = 8) -> <a title="pyinventory.consts.LocationType" href="consts.html#pyinventory.consts.LocationType">LocationType</a></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This function creates new location type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>location type name</dd>
+</dl>
+<p>properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
+- str - type name
+- str - enum["string", "int", "bool", "float", "date", "enum", "range",
+"email", "gps_location", "equipment", "location", "service", "datetime_local"]
+- PropertyValue - default property value
+- bool - fixed value flag</p>
+<dl>
+<dt><strong><code>map_zoom_level</code></strong> :&ensp;<code>int</code></dt>
+<dd>map zoom level</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.LocationType" href="consts.html#pyinventory.consts.LocationType"><code>LocationType</code></a> object</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>location_type = client.add_location_type(
+    name=&quot;city&quot;,
+    properties=[(&quot;Contact&quot;, &quot;email&quot;, None, True)],
+    map_zoom_level=5,
+)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.add_service"><code class="name flex">
 <span>def <span class="ident">add_service</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, external_id: Union[str, NoneType], service_type: str, customer: Union[<a title="pyinventory.consts.Customer" href="consts.html#pyinventory.consts.Customer">Customer</a>, NoneType], properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], links: List[<a title="pyinventory.consts.Link" href="consts.html#pyinventory.consts.Link">Link</a>]) -> <a title="pyinventory.consts.Service" href="consts.html#pyinventory.consts.Service">Service</a></span>
@@ -573,7 +592,7 @@ client.add_location_image(
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.InventoryClient.add_service_endpoint"><code class="name flex">
-<span>def <span class="ident">add_service_endpoint</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, service: <a title="pyinventory.consts.Service" href="consts.html#pyinventory.consts.Service">Service</a>, port: <a title="pyinventory.consts.EquipmentPort" href="consts.html#pyinventory.consts.EquipmentPort">EquipmentPort</a>, role: <a title="pyinventory.graphql.service_endpoint_role_enum.ServiceEndpointRole" href="graphql/service_endpoint_role_enum.html#pyinventory.graphql.service_endpoint_role_enum.ServiceEndpointRole">ServiceEndpointRole</a>) -> NoneType</span>
+<span>def <span class="ident">add_service_endpoint</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, service: <a title="pyinventory.consts.Service" href="consts.html#pyinventory.consts.Service">Service</a>, port: <a title="pyinventory.consts.EquipmentPort" href="consts.html#pyinventory.consts.EquipmentPort">EquipmentPort</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -592,18 +611,18 @@ client.add_location_image(
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
-<dd>existing port name</dd>
+<dd>local system path to the file</dd>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>site survey ID</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>client.add_site_survey_image(
-    local_file_path='./document.pdf',
+    local_file_path=&quot;./document.pdf&quot;,
     id=&quot;123456&quot;
 )
 </code></pre></section>
@@ -615,20 +634,16 @@ client.add_location_image(
 <section class="desc"><p>Adds new user to inventory with its email and password</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>email</code></strong></dt>
+<dt><strong><code>email</code></strong> :&ensp;<code>str</code></dt>
 <dd>the email address of the user</dd>
-<dt><strong><code>password</code></strong></dt>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
 <dd>password the user would connect with</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>EntityNotFoundError</code></strong></dt>
-<dd>the user was not created properly</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: the user was not created properly</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>internal inventory error</dd>
 <dt><strong><code>AssertionError</code></strong></dt>
@@ -637,7 +652,7 @@ client.add_location_image(
 <dd>Error with connection</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>user = client.add_user(&quot;user@test.com&quot;, &quot;P0ssW!rd0f43&quot;)
+<pre><code>user = client.add_user(email=&quot;user@test.com&quot;, password=&quot;P0ssW!rd0f43&quot;)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.apply_location_template_to_location"><code class="name flex">
@@ -647,59 +662,60 @@ client.add_location_image(
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.InventoryClient.build_site_survey_from_survey_response"><code class="name flex">
-<span>def <span class="ident">build_site_survey_from_survey_response</span></span>(<span>survey: pyinventory.graphql.location_surveys_query.LocationSurveysQuery.LocationSurveysQueryData.Node.Survey) -> <a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a></span>
+<span>def <span class="ident">build_site_survey_from_survey_response</span></span>(<span>survey: <a title="pyinventory.graphql.survey_fragment.SurveyFragment" href="graphql/survey_fragment.html#pyinventory.graphql.survey_fragment.SurveyFragment">SurveyFragment</a>) -> <a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey">SiteSurvey</a></span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.InventoryClient.copy_equipment"><code class="name flex">
-<span>def <span class="ident">copy_equipment</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">copy_equipment</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>, new_external_id: Union[str, NoneType] = None) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>Copy equipment.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>equipment object to be copied</dd>
-<dt><strong><code>dest_location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a></dt>
-<dd>destination locatoin to copy to</dd>
+<dt>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): equipment object to be copied</dt>
+<dt>dest_location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ): destination locatoin to copy to</dt>
+<dt><strong><code>new_external_id</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
+<dd>equipment external ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> object</p>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
 new_location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod&quot;)})
-copied_equipment = client.copy_equipment(equipment=equipment, dest_location=new_location)
+copied_equipment = client.copy_equipment(
+    equipment=equipment,
+    dest_location=new_location,
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.copy_equipment_in_position"><code class="name flex">
-<span>def <span class="ident">copy_equipment_in_position</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_parent_equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_position_name: str) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">copy_equipment_in_position</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_parent_equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, dest_position_name: str, new_external_id: Union[str, NoneType] = None) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>Copy equipment in position.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>equipment object to be copied</dd>
-<dt><strong><code>dest_parent_equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>parent equipment, destination to copy to</dd>
+<dt>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): equipment object to be copied</dt>
+<dt>dest_parent_equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): parent equipment, destination to copy to</dt>
 <dt><strong><code>dest_position_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>destination position name</dd>
+<dt><strong><code>new_external_id</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
+<dd>new external ID for equipment</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> object</p>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment_to_copy = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location) 
-parent_equipment = client.get_equipment(&quot;parent&quot;, location) 
-copied_equipment = client.copy_equipment_in_position(equipment=equipment, dest_parent_equipment=parent_equipment, dest_position_name=&quot;destination position name&quot;)
+equipment_to_copy = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
+parent_equipment = client.get_equipment(name=&quot;parent&quot;, location=location)
+copied_equipment = client.copy_equipment_in_position(
+    equipment=equipment,
+    dest_parent_equipment=parent_equipment,
+    dest_position_name=&quot;destination position name&quot;,
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.copy_equipment_type"><code class="name flex">
@@ -715,10 +731,7 @@ copied_equipment = client.copy_equipment_in_position(equipment=equipment, dest_p
 <dd>new equipment type name</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -737,21 +750,25 @@ copied_equipment = client.copy_equipment_in_position(equipment=equipment, dest_p
 <dd>
 <section class="desc"><p>Copy the equipment to the new location with all its attachments</p>
 <h2 id="args">Args</h2>
+<p>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from
+- <a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
+<p>dest_location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ): could be retrieved from
+- <a title="pyinventory.api.location.get_location" href="api/location.html#pyinventory.api.location.get_location"><code>get_location()</code></a>
+- <a title="pyinventory.api.location.add_location" href="api/location.html#pyinventory.api.location.add_location"><code>add_location()</code></a></p>
+<h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from the following apis:
-* getEquipment
-* getEquipmentInPosition
-* addEquipment
-* addEquipmentToPosition</dd>
-<dt><strong><code>dest_location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>retrieved from getLocation or addLocation api.</dd>
-<dt><strong><code>Raises</code></strong> :&ensp;<code>FailedOperationException</code> <code>for</code> <code>internal</code> <code>inventory</code> <code>error</code></dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>Returns</code></strong> :&ensp;<code>dict</code> of <code>source</code> <code>equipment</code> (<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a>) <code>to</code> <code>new</code> <code>equipment</code> (<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a>)</dt>
-<dd>The dict includes the equipment given as parameter and also all the equipments
-attached to it</dd>
-</dl></section>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dict[ <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> , <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ]
+- <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> - source equipment
+- <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> - new equipment</p>
+<p>The dict includes the equipment given as parameter and also all the equipments
+attached to it</p></section>
 </dd>
 <dt id="pyinventory.InventoryClient.deactivate_user"><code class="name flex">
 <span>def <span class="ident">deactivate_user</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, user: <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User">User</a>) -> NoneType</span>
@@ -760,12 +777,12 @@ attached to it</dd>
 <section class="desc"><p>Deactivate the user which would prevent the user from login in to symphony
 Users in symphony are never deleted. Only de-activated.</p>
 <p>Args:
-user: user to deactivate</p>
+user ( <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> ): user to deactivate</p>
 <p>Raises:
 FailedOperationException: internal inventory error</p>
 <p>Example:
-<code>user = client.get_user("user@test.com")
-client.deactivate_user(user)</code></p></section>
+<code>user = client.get_user(email="user@test.com")
+client.deactivate_user(user=user)</code></p></section>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_all_equipments"><code class="name flex">
 <span>def <span class="ident">delete_all_equipments</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> NoneType</span>
@@ -773,7 +790,7 @@ client.deactivate_user(user)</code></p></section>
 <dd>
 <section class="desc"><p>This function delete all Equipments.</p>
 <h2 id="example">Example</h2>
-<pre><code>client.delete_all_equipment() 
+<pre><code>client.delete_all_equipment()
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_customer"><code class="name flex">
@@ -782,12 +799,9 @@ client.deactivate_user(user)</code></p></section>
 <dd>
 <section class="desc"><p>This function delete Customer.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>customer</code></strong> :&ensp;<a title="pyinventory.consts.Customer" href="consts.html#pyinventory.consts.Customer"><code>Customer</code></a> <code>object</code></dt>
-<dd>customer object</dd>
-</dl>
+<p>customer ( <a title="pyinventory.consts.Customer" href="consts.html#pyinventory.consts.Customer"><code>Customer</code></a> ): customer object</p>
 <h2 id="example">Example</h2>
-<pre><code>client.delete_customer(customer) 
+<pre><code>client.delete_customer(customer)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_document"><code class="name flex">
@@ -796,14 +810,11 @@ client.deactivate_user(user)</code></p></section>
 <dd>
 <section class="desc"><p>This function deletes existing document.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>document</code></strong> :&ensp;<a title="pyinventory.consts.Document" href="consts.html#pyinventory.consts.Document"><code>Document</code></a></dt>
-<dd>document object</dd>
-</dl>
+<p>document ( <a title="pyinventory.consts.Document" href="consts.html#pyinventory.consts.Document"><code>Document</code></a> ): document object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>client.delete_document(document=document)
@@ -815,12 +826,9 @@ client.deactivate_user(user)</code></p></section>
 <dd>
 <section class="desc"><p>This function delete Equipment.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>equipment object</dd>
-</dl>
+<p>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): equipment object</p>
 <h2 id="example">Example</h2>
-<pre><code>client.delete_equipment(equipment) 
+<pre><code>client.delete_equipment(equipment=equipment)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_equipment_port_type"><code class="name flex">
@@ -834,33 +842,76 @@ It can get only the requested equipment port type ID</p>
 <dt><strong><code>equipment_port_type_id</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment port type ID</dd>
 </dl>
-<p>Example:</p>
-<pre><code>client.delete_equipment_port_type(self.port_type1.id)
+<h2 id="example">Example</h2>
+<pre><code>client.delete_equipment_port_type(equipment_port_type_id=port_type1.id)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_equipment_type_with_equipments"><code class="name flex">
 <span>def <span class="ident">delete_equipment_type_with_equipments</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type: <a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType">EquipmentType</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Delete equipment type with existing equipments.</p>
+<h2 id="args">Args</h2>
+<p>equipment_type ( <a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> ): equipment type object</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if equipment_type does not exist</p>
+<h2 id="example">Example</h2>
+<pre><code>equipment_type = client.get_or_create_equipment_type(
+    name=&quot;Tp-Link T1600G&quot;,
+    category=&quot;Router&quot;,
+    properties=[(&quot;IP&quot;, &quot;string&quot;, None, True)],
+    ports_dict={&quot;Port 1&quot;: &quot;eth port&quot;, &quot;port 2&quot;: &quot;eth port&quot;},
+    position_list=[],
+)
+client.delete_equipment_type_with_equipments(equipment_type=equipment_type)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_location"><code class="name flex">
 <span>def <span class="ident">delete_location</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>This delete existing location.</p>
+<h2 id="args">Args</h2>
+<p>location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ): location object</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if location does not exist</dt>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>for internal inventory error</dd>
+<dt><strong><code>LocationCannotBeDeletedWithDependency</code></strong></dt>
+<dd>if there are dependencies in this location</dd>
+</dl>
+<p>["files", "images", "children", "surveys", "equipment"]</p>
+<h2 id="example">Example</h2>
+<pre><code>location = client.get_location(location_hirerchy=[('Site', 'Bletchley Park')])
+client.delete_location(location=location)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_location_type_with_locations"><code class="name flex">
 <span>def <span class="ident">delete_location_type_with_locations</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_type: <a title="pyinventory.consts.LocationType" href="consts.html#pyinventory.consts.LocationType">LocationType</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Delete locaton type with existing locations.</p>
+<h2 id="args">Args</h2>
+<p>location_type (<a title="pyinventory.consts.LocationType" href="consts.html#pyinventory.consts.LocationType"><code>LocationType</code></a>): location type object</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if location_type does not exist</p>
+<h2 id="example">Example</h2>
+<pre><code>client.delete_location_type_with_locations(location_type=location_type)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_locations_by_location_type"><code class="name flex">
 <span>def <span class="ident">delete_locations_by_location_type</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_type: <a title="pyinventory.consts.LocationType" href="consts.html#pyinventory.consts.LocationType">LocationType</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Delete locatons by location type.</p>
+<h2 id="args">Args</h2>
+<p>location_type ( <a title="pyinventory.consts.LocationType" href="consts.html#pyinventory.consts.LocationType"><code>LocationType</code></a> ): location type object</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if location_type does not exist</p>
+<h2 id="example">Example</h2>
+<pre><code>client.delete_locations_by_location_type(location_type=location_type)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_service_type_with_services"><code class="name flex">
 <span>def <span class="ident">delete_service_type_with_services</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, service_type: <a title="pyinventory.consts.ServiceType" href="consts.html#pyinventory.consts.ServiceType">ServiceType</a>) -> NoneType</span>
@@ -880,14 +931,11 @@ It can get only the requested equipment port type ID</p>
 <dd>
 <section class="desc"><p>This function deletes image from existing site survey.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>survey</code></strong> :&ensp;<a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey"><code>SiteSurvey</code></a></dt>
-<dd>site survey object</dd>
-</dl>
+<p>survey ( <a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey"><code>SiteSurvey</code></a> ): site survey object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>client.delete_site_survey_image(survey=survey)
@@ -900,20 +948,16 @@ It can get only the requested equipment port type ID</p>
 <section class="desc"><p>Edit existing equipment.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>equipment object</dd>
+<dt>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): equipment object</dt>
 <dt><strong><code>new_name</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
 <dd>equipment new name</dd>
-<dt><strong><code>new_properties</code></strong> :&ensp;<code>Optional</code>[<code>Dict</code>[<code>str</code>, <code>pyinventory.consts.PropertyValue</code>]]</dt>
-<dd>Dict, where
+<dt><strong><code>new_properties</code></strong> :&ensp;<code>Optional</code>[<code>Dict</code>[<code>str</code>, <code>PropertyValue</code>]]</dt>
+<dd>dictionary of property name to property value
 str - property name
 PropertyValue - new value of the same type for this property</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -921,8 +965,12 @@ PropertyValue - new value of the same type for this property</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location) 
-edited_equipment = client.edit_equipment(equipment=equipment, new_name=&quot;new_name&quot;, new_properties={&quot;Z AIO - Number&quot;: 123})
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
+edited_equipment = client.edit_equipment(
+    equipment=equipment,
+    new_name=&quot;new_name&quot;,
+    new_properties={&quot;Z AIO - Number&quot;: 123},
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_equipment_port_type"><code class="name flex">
@@ -932,30 +980,39 @@ edited_equipment = client.edit_equipment(equipment=equipment, new_name=&quot;new
 <section class="desc"><p>This function edits an existing equipment port type.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>port_type</code></strong> :&ensp;<code>EquipmentPortType</code> <code>object</code></dt>
-<dd>existing eqipment port type object</dd>
+<dt>port_type ( <a title="pyinventory.consts.EquipmentPortType" href="consts.html#pyinventory.consts.EquipmentPortType"><code>EquipmentPortType</code></a> ): existing eqipment port type object</dt>
 <dt><strong><code>new_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>new name</dd>
 <dt><strong><code>new_properties</code></strong></dt>
-<dd>(Dict[str, PropertyValue]): list of tuples, where
-str - property type name
-PropertyValue - new value of the same type for this property</dd>
+<dd>(Dict[str, PropertyValue]): dictionary</dd>
+</dl>
+<ul>
+<li>str - property type name</li>
+<li>PropertyValue - new value of the same type for this property</li>
+</ul>
+<dl>
 <dt><strong><code>new_link_properties</code></strong></dt>
-<dd>(Dict[str, PropertyValue]): list of tuples, where
-str - link property type name
-PropertyValue - new value of the same type for this link property</dd>
-<dt><strong><code>Returns</code></strong></dt>
-<dd>EquipmentPortType object</dd>
-<dt><strong><code>Raises</code></strong></dt>
-<dd>FailedOperationException</dd>
+<dd>(Dict[str, PropertyValue]): dictionary</dd>
+</dl>
+<ul>
+<li>str - link property type name</li>
+<li>PropertyValue - new value of the same type for this link property</li>
+</ul>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.EquipmentPortType" href="consts.html#pyinventory.consts.EquipmentPortType"><code>EquipmentPortType</code></a> object</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<p>port_type1 = self.client.edit_equipment_port_type(
-equipment_port_type,
-"new port type name",
-{"existing property name": "new value"},
-{"existing link property name": "new value"},
-)</p></section>
+<pre><code>port_type1 = client.edit_equipment_port_type(
+    port_type=equipment_port_type,
+    new_name=&quot;new port type name&quot;,
+    new_properties={&quot;existing property name&quot;: &quot;new value&quot;},
+    new_link_properties={&quot;existing link property name&quot;: &quot;new value&quot;},
+)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_equipment_type"><code class="name flex">
 <span>def <span class="ident">edit_equipment_type</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, new_positions_list: List[str], new_ports_dict: Dict[str, str]) -> <a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
@@ -969,20 +1026,58 @@ equipment_port_type,
 <dt><strong><code>new_positions_list</code></strong> :&ensp;<code>List</code>[<code>str</code>]</dt>
 <dd>new position list</dd>
 <dt><strong><code>new_ports_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>str</code>]</dt>
-<dd>ports dictionary, where key is a port name and value is port type name</dd>
+<dd>dictionary of port name to port type name</dd>
 </dl>
+<ul>
+<li>str - port name</li>
+<li>str - port type name</li>
+</ul>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> object</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>edited_equipment = client.edit_equipment_type(
+    name=&quot;Card&quot;,
+    new_positions_list=[],
+    new_ports_dict={&quot;Port 5&quot;: &quot;Z Cards Only (LS - DND)&quot;}
+)
+</code></pre></section>
+</dd>
+<dt id="pyinventory.InventoryClient.edit_equipment_type_property_type"><code class="name flex">
+<span>def <span class="ident">edit_equipment_type_property_type</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_name: str, property_type_id: str, new_property_definition: <a title="pyinventory.consts.PropertyDefinition" href="consts.html#pyinventory.consts.PropertyDefinition">PropertyDefinition</a>) -> <a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
+</code></dt>
+<dd>
+<section class="desc"><p>Edit specific property type on specific equipment type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>equipment_type_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing equipment type name</dd>
+<dt><strong><code>property_type_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing property type name</dd>
+</dl>
+<p>new_property_definition ( <a title="pyinventory.consts.PropertyDefinition" href="consts.html#pyinventory.consts.PropertyDefinition"><code>PropertyDefinition</code></a> ): new property definition</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>EquipmentType</code> <code>object</code></dt>
+<dt><a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> <code>object</code></dt>
 <dd>&nbsp;</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>FailedOperationException</code> <code>for</code> <code>internal</code> <code>inventory</code> <code>error</code></dt>
-<dd>&nbsp;</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if property type name is not found</dt>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<p>edited_equipment = client.edit_equipment_type("Card", [], {"Port 5": "Z Cards Only (LS - DND)"})</p></section>
+<pre><code>e_type = client.edit_equipment_type_property_type_name(
+    equipment_type_name=&quot;Card&quot;,
+    property_type_name=&quot;contact&quot;,
+    new_name=&quot;contact information&quot;,
+)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_link_properties"><code class="name flex">
 <span>def <span class="ident">edit_link_properties</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, port_name: str, new_link_properties: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.EquipmentPort" href="consts.html#pyinventory.consts.EquipmentPort">EquipmentPort</a></span>
@@ -991,28 +1086,29 @@ equipment_port_type,
 <section class="desc"><p>This function returns edited port in equipment based on its name.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>existing equipment object</dd>
+<dt>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): existing equipment object</dt>
 <dt><strong><code>port_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>existing port name</dd>
 </dl>
-<p>new_link_properties (Dict[str, PropertyValue])</p>
+<p>new_link_properties (Dict[str, PropertyValue])
+- str - link property name
+- PropertyValue - new value of the same type for this property</p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.EquipmentPort" href="consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.EquipmentPort" href="consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>EntityNotFoundError</code></strong></dt>
-<dd>when <a title="pyinventory.consts.EquipmentPortDefinition.port_type_name" href="consts.html#pyinventory.consts.EquipmentPortDefinition.port_type_name"><code>EquipmentPortDefinition.port_type_name</code></a> is None, there are no properties</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: when <a title="pyinventory.consts.EquipmentPortDefinition.port_type_name" href="consts.html#pyinventory.consts.EquipmentPortDefinition.port_type_name"><code>EquipmentPortDefinition.port_type_name</code></a> is None, there are no properties</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>location = client.get_location([(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
-edited_port = client.edit_link_properties(equipment, &quot;Z AIO - Port 1&quot;, {&quot;Link Property 1&quot;: 98765})
+<pre><code>location = client.get_location(location_hirerchy=[(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
+edited_port = client.edit_link_properties(
+    equipment=equipment,
+    port_name=&quot;Z AIO - Port 1&quot;,
+    new_link_properties={&quot;Link Property 1&quot;: 98765},
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_location"><code class="name flex">
@@ -1022,8 +1118,7 @@ edited_port = client.edit_link_properties(equipment, &quot;Z AIO - Port 1&quot;,
 <section class="desc"><p>This function returns edited location.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a></dt>
-<dd>location object</dd>
+<dt>location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ): location object</dt>
 <dt><strong><code>new_name</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
 <dd>location new name</dd>
 <dt><strong><code>new_lat</code></strong> :&ensp;<code>Optional</code>[<code>float</code>]</dt>
@@ -1033,17 +1128,14 @@ edited_port = client.edit_link_properties(equipment, &quot;Z AIO - Port 1&quot;,
 <dt><strong><code>new_external_id</code></strong> :&ensp;<code>Optional</code>[<code>float</code>]</dt>
 <dd>location new external ID</dd>
 <dt><strong><code>new_properties</code></strong> :&ensp;<code>Optional</code>[<code>Dict</code>[<code>str</code>, <code>PropertyValue</code>]]</dt>
-<dd>dict of property name to property value</dd>
+<dd>dictionary of property name to property value</dd>
 </dl>
 <ul>
 <li>str - property name</li>
 <li>PropertyValue - new value of the same type for this property</li>
 </ul>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -1051,7 +1143,7 @@ edited_port = client.edit_link_properties(equipment, &quot;Z AIO - Port 1&quot;,
 </dl>
 <h2 id="example">Example</h2>
 <pre><code># this call will fail if there is Bletchley Park in two cities
-location = client.get_location([('Site', 'Bletchley Park')])
+location = client.get_location(location_hirerchy=[(&quot;Site&quot;, &quot;Bletchley Park&quot;)])
 edited_location = client.edit_location(
     location=location,
     new_name=&quot;New Bletchley Park&quot;,
@@ -1069,31 +1161,33 @@ edited_location = client.edit_location(
 <section class="desc"><p>This function returns edited port in equipment based on its name.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>existing equipment object</dd>
+<dt>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): existing equipment object</dt>
 <dt><strong><code>port_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>existing port name</dd>
 <dt><strong><code>new_properties</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
-<dd>Dict, where
-str - property name
-PropertyValue - new value of the same type for this property</dd>
+<dd>Dict, where</dd>
 </dl>
+<ul>
+<li>str - property name</li>
+<li>PropertyValue - new value of the same type for this property</li>
+</ul>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.EquipmentPort" href="consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.EquipmentPort" href="consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt>pyinventory.exceptions.EntityNotFoundError: when <a title="pyinventory.consts.EquipmentPortDefinition.port_type_name" href="consts.html#pyinventory.consts.EquipmentPortDefinition.port_type_name"><code>EquipmentPortDefinition.port_type_name</code></a> is None, there are no properties</dt>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: when <a title="pyinventory.consts.EquipmentPortDefinition.port_type_name" href="consts.html#pyinventory.consts.EquipmentPortDefinition.port_type_name"><code>EquipmentPortDefinition.port_type_name</code></a> is None, there are no properties</dt>
 <dt>or if there any unknown property name in properties_dict keys</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>location = client.get_location([(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
-edited_port = client.edit_port_properties(equipment, &quot;Z AIO - Port 1&quot;, {&quot;Port Property 2&quot;: &quot;test_it&quot;})  
+<pre><code>location = client.get_location(location_hirerchy=[(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
+edited_port = client.edit_port_properties(
+    equipment=equipment,
+    port_name=&quot;Z AIO - Port 1&quot;,
+    new_properties={&quot;Port Property 2&quot;: &quot;test_it&quot;},
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_user"><code class="name flex">
@@ -1103,13 +1197,11 @@ edited_port = client.edit_port_properties(equipment, &quot;Z AIO - Port 1&quot;,
 <section class="desc"><p>Edit user password and role</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>user</code></strong></dt>
-<dd>user to edit</dd>
-<dt><strong><code>new_password</code></strong></dt>
+<dt>user ( <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> ): user to edit</dt>
+<dt><strong><code>new_password</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
 <dd>new password the user would connect with</dd>
-<dt><strong><code>new_role</code></strong></dt>
-<dd>new role of the user</dd>
 </dl>
+<p>new_role ( <a title="pyinventory.graphql.user_role_enum.UserRole" href="graphql/user_role_enum.html#pyinventory.graphql.user_role_enum.UserRole"><code>UserRole</code></a> ): user new role</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -1120,9 +1212,9 @@ edited_port = client.edit_port_properties(equipment, &quot;Z AIO - Port 1&quot;,
 <dd>Error with connection</dd>
 </dl>
 <h2 id="example">Example</h2>
-<p>user = client.add_user("user@test.com", "P0ssW!rd0f43")
-client.edit_user(user, "New_Password4Ever", UserRole.ADMIN)
-```</p></section>
+<pre><code>user = client.add_user(email=&quot;user@test.com&quot;, password=&quot;P0ssW!rd0f43&quot;)
+client.edit_user(user=user, new_password=&quot;New_Password4Ever&quot;, new_role=UserRole.ADMIN)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_active_users"><code class="name flex">
 <span>def <span class="ident">get_active_users</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User">User</a>]</span>
@@ -1130,7 +1222,7 @@ client.edit_user(user, "New_Password4Ever", UserRole.ADMIN)
 <dd>
 <section class="desc"><p>Get the list of the active users in the system</p>
 <h2 id="returns">Returns</h2>
-<p>list of <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> objects</p>
+<p>List[ <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> ]</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -1150,7 +1242,7 @@ for user in users:
 <h2 id="returns">Returns</h2>
 <p>List[ <a title="pyinventory.consts.Customer" href="consts.html#pyinventory.consts.Customer"><code>Customer</code></a> ]</p>
 <h2 id="example">Example</h2>
-<pre><code>customers = client.get_all_customers() 
+<pre><code>customers = client.get_all_customers()
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_all_links_and_port_names_of_equipment"><code class="name flex">
@@ -1159,32 +1251,26 @@ for user in users:
 <dd>
 <section class="desc"><p>Returns all links and port names in equipment.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from </dd>
-</dl>
-<ul>
-<li><a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
-</ul>
+<p>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from
+- <a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
 <h2 id="returns">Returns</h2>
-<p>List[Tuple[ <a title="pyinventory.consts.Link" href="consts.html#pyinventory.consts.Link"><code>Link</code></a> , str]]: </p>
+<p>List[Tuple[ <a title="pyinventory.consts.Link" href="consts.html#pyinventory.consts.Link"><code>Link</code></a> , str]]:</p>
 <ul>
 <li><a title="pyinventory.consts.Link" href="consts.html#pyinventory.consts.Link"><code>Link</code></a> - link object</li>
 <li>str - port definition name</li>
 </ul>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>LinkNotFoundException</code></strong></dt>
-<dd>if link not found</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if link not found</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>for internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location1) 
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location1)
 client.get_all_links_and_port_names_of_equipment(equipment=equipment)
 </code></pre></section>
 </dd>
@@ -1197,19 +1283,14 @@ client.get_all_links_and_port_names_of_equipment(equipment=equipment)
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment name</dd>
-<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>location object could be retrieved from </dd>
 </dl>
-<ul>
-<li><a title="pyinventory.api.location.get_location" href="api/location.html#pyinventory.api.location.get_location"><code>get_location()</code></a></li>
-<li><a title="pyinventory.api.location.add_location" href="api/location.html#pyinventory.api.location.add_location"><code>add_location()</code></a></li>
-</ul>
+<p>location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a>): location object could be retrieved from
+- <a title="pyinventory.api.location.get_location" href="api/location.html#pyinventory.api.location.get_location"><code>get_location()</code></a>
+- <a title="pyinventory.api.location.add_location" href="api/location.html#pyinventory.api.location.add_location"><code>add_location()</code></a></p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code>:</dt>
-<dd>You can use the ID to access the equipment from the UI:
-<a href="https://{}.thesymphony.cloud/inventory/inventory?equipment={}">https://{}.thesymphony.cloud/inventory/inventory?equipment={}</a></dd>
-</dl>
+<p><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> object:
+You can use the ID to access the equipment from the UI:
+<a href="https://{}.thesymphony.cloud/inventory/inventory?equipment={}">https://{}.thesymphony.cloud/inventory/inventory?equipment={}</a></p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>EquipmentIsNotUniqueException</code></strong></dt>
@@ -1225,38 +1306,58 @@ more than one equipment with the same name</dd>
 equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
 </code></pre></section>
 </dd>
+<dt id="pyinventory.InventoryClient.get_equipment_by_external_id"><code class="name flex">
+<span>def <span class="ident">get_equipment_by_external_id</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, external_id: str) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get equipment by external ID.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>equipment external ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> object:
+You can use the ID to access the equipment from the UI:
+<a href="https://{}.thesymphony.cloud/inventory/inventory?equipment={}">https://{}.thesymphony.cloud/inventory/inventory?equipment={}</a></p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>EquipmentIsNotUniqueException</code></strong></dt>
+<dd>location contains
+more than one equipment with the same external ID</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: the equipment was not found</dt>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>equipment = client.get_equipment_by_external_id(external_id=&quot;123456&quot;)
+</code></pre></section>
+</dd>
 <dt id="pyinventory.InventoryClient.get_equipment_in_position"><code class="name flex">
 <span>def <span class="ident">get_equipment_in_position</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, parent_equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get the equipment attached in a given positionName of a given parentEquipment</p>
+<section class="desc"><p>Get the equipment attached in a given <code>position_name</code> of a given <code>parent_equipment</code></p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>parent_equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from</dd>
-</dl>
-<ul>
-<li><a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
-</ul>
+<p>parent_equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from
+- <a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
 <dl>
 <dt><strong><code>position_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>position name</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code>:</dt>
-<dd>You can use the ID to access the equipment from the UI:
-<a href="https://{}.thesymphony.cloud/inventory/inventory?equipment={}">https://{}.thesymphony.cloud/inventory/inventory?equipment={}</a></dd>
-</dl>
+<p><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> object:
+You can use the ID to access the equipment from the UI:
+<a href="https://{}.thesymphony.cloud/inventory/inventory?equipment={}">https://{}.thesymphony.cloud/inventory/inventory?equipment={}</a></p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>AssertionException</code></strong></dt>
 <dd>if parent equipment has more than one
 position with the given name, or none with this name or
-if the position is not occupied._findPositionDefinitionId</dd>
+if the position is not occupied.</dd>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>for internal inventory error</dd>
 </dl>
@@ -1277,13 +1378,13 @@ It can get only the requested equipment port type ID</p>
 <dl>
 <dt><strong><code>equipment_port_type_id</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment port type ID</dd>
-<dt><strong><code>Returns</code></strong></dt>
-<dd>pyinventory.consts.EquipmentPortType object</dd>
-<dt><strong><code>Raises</code></strong></dt>
-<dd>EntityNotFoundError for not found entity</dd>
 </dl>
-<p>Example:</p>
-<pre><code>port_type = client.get_equipment_port_type(self.port_type1.id)
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.EquipmentPortType" href="consts.html#pyinventory.consts.EquipmentPortType"><code>EquipmentPortType</code></a> object</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: equipment port type does not found</p>
+<h2 id="example">Example</h2>
+<pre><code>port_type = client.get_equipment_port_type(equipment_port_type_id=port_type1.id)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipment_properties"><code class="name flex">
@@ -1292,17 +1393,14 @@ It can get only the requested equipment port type ID</p>
 <dd>
 <section class="desc"><p>Get specific equipment properties.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>equipment object</dd>
-</dl>
+<p>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): equipment object</p>
 <h2 id="returns">Returns</h2>
-<p>Dict[str, PropertyValue]: dict of property name to property value
+<p>Dict[str, PropertyValue]: dictionary of property name to property value
 - str - property name
 - PropertyValue - new value of the same type for this property</p>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location) 
+equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
 properties = client.get_equipment_properties(equipment=equipment)
 </code></pre></section>
 </dd>
@@ -1312,19 +1410,97 @@ properties = client.get_equipment_properties(equipment=equipment)
 <dd>
 <section class="desc"><p>This function returns equipment type object of equipment.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>equipment object</dd>
-</dl>
+<p>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): equipment object</p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> object</p>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location) 
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
 equipment_type = client.get_equipment_type_of_equipment(equipment=equipment)
+</code></pre></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_equipment_type_property_type"><code class="name flex">
+<span>def <span class="ident">get_equipment_type_property_type</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_name: str, property_type_id: str) -> <a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get property type by ID on specific equipment type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>equipment_type_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing equipment type name</dd>
+<dt><strong><code>property_type_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>property type ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment"><code>PropertyTypeFragment</code></a>
+object</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: property type with id=<code>property_type_id</code> is not found</p>
+<h2 id="example">Example</h2>
+<pre><code>property_type = client.get_equipment_type_property_type(
+    equipment_type_name=&quot;Card&quot;,
+    property_type_id=&quot;12345&quot;,
+)
+</code></pre></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_equipment_type_property_type_by_external_id"><code class="name flex">
+<span>def <span class="ident">get_equipment_type_property_type_by_external_id</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_name: str, property_type_external_id: str) -> <a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get property type by external ID on specific equipment type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>equipment_type_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing equipment type name</dd>
+<dt><strong><code>property_type_external_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>property type external ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment"><code>PropertyTypeFragment</code></a>
+object</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: property type with external_id=<code>property_type_external_id</code> is not found</p>
+<h2 id="example">Example</h2>
+<pre><code>property_type = client.get_equipment_type_property_type_by_external_id(
+    equipment_type_name=&quot;Card&quot;,
+    property_type_external_id=&quot;12345&quot;,
+)
+</code></pre></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_equipments_by_location"><code class="name flex">
+<span>def <span class="ident">get_equipments_by_location</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str) -> List[<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>]</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get equipments by ID of specific location.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>location_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>location ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>List[ <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ]: List of found equipments</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: location with this ID does not exist</p>
+<h2 id="example">Example</h2>
+<pre><code>equipments = client.get_equipments_by_location(location_id=&quot;60129542651&quot;)
+</code></pre></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_equipments_by_type"><code class="name flex">
+<span>def <span class="ident">get_equipments_by_type</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_id: str) -> List[<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>]</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get equipments by ID of specific type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>equipment_type_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>equipment type ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>List[ <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ]: List of found equipments</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: equipment type with this ID does not exist</p>
+<h2 id="example">Example</h2>
+<pre><code>equipments = client.get_equipments_by_type(equipment_type_id=&quot;34359738369&quot;)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_link_in_port_of_equipment"><code class="name flex">
@@ -1333,25 +1509,17 @@ equipment_type = client.get_equipment_type_of_equipment(equipment=equipment)
 <dd>
 <section class="desc"><p>Returns link in specific port by name in equipment.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from </dd>
-</dl>
-<ul>
-<li><a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
-</ul>
+<p>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from
+- <a title="pyinventory.api.equipment.get_equipment" href="api/equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="api/equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="api/equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="api/equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
 <dl>
 <dt><strong><code>port_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>The name of port in equipment type</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Link" href="consts.html#pyinventory.consts.Link"><code>Link</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Link" href="consts.html#pyinventory.consts.Link"><code>Link</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>LinkNotFoundException</code></strong></dt>
@@ -1361,9 +1529,9 @@ equipment_type = client.get_equipment_type_of_equipment(equipment=equipment)
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location1) 
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
 client.get_link_in_port_of_equipment(
-    equipment=equipment, 
+    equipment=equipment,
     port_name=&quot;Port A&quot;
 )
 </code></pre></section>
@@ -1377,17 +1545,14 @@ It can get only the requested location specifiers or the hirerchy leading to it<
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>location_hirerchy</code></strong> :&ensp;<code>List</code>[<code>Tuple</code>[<code>str</code>, <code>str</code>]]</dt>
-<dd>An hirerchy of locations.</dd>
+<dd>hirerchy of locations</dd>
 </dl>
 <ul>
 <li>str - location type name</li>
 <li>str - location name</li>
 </ul>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>LocationIsNotUniqueException</code></strong></dt>
@@ -1400,18 +1565,19 @@ location to return</dd>
 <dd>for internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>location = client.get_location([
-    ('Country', 'England'),
-    ('City', 'Milton Keynes'),
-    ('Site', 'Bletchley Park')
-])
+<pre><code>location = client.get_location(
+    location_hirerchy=[
+        (&quot;Country&quot;, &quot;England&quot;),
+        (&quot;City&quot;, &quot;Milton Keynes&quot;),
+        (&quot;Site&quot;, &quot;Bletchley Park&quot;)
+    ])
 </code></pre>
 <dl>
 <dt><strong><code>or</code></strong></dt>
 <dd>&nbsp;</dd>
 </dl>
 <pre><code># this call will fail if there is Bletchley Park in two cities
-location = client.get_location([('Site', 'Bletchley Park')])
+location = client.get_location(location_hirerchy=[(&quot;Site&quot;, &quot;Bletchley Park&quot;)])
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_location_by_external_id"><code class="name flex">
@@ -1425,14 +1591,12 @@ location = client.get_location([('Site', 'Bletchley Park')])
 <dd>location external ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>LocationNotFoundException</code></strong></dt>
 <dd>location with this external ID does not exists</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: location does not found</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>for internal inventory error</dd>
 </dl>
@@ -1451,18 +1615,15 @@ location = client.get_location([('Site', 'Bletchley Park')])
 <dd>parent location ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><code>List</code>[ <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ]</dt>
-<dd>&nbsp;</dd>
-<dt><strong><code>Raises</code></strong> :&ensp;<code>&lt;a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"&gt;</code>EntityNotFoundError<code>&lt;/a&gt;</code>: <code>location</code> <code>does</code> <code>not</code> <code>exist</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p>List[ <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ]</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: location does not exist</p>
 <h2 id="example">Example</h2>
-<pre><code>client.add_location([('Country', 'England'), ('City', 'Milton Keynes')], {})
-client.add_location([('Country', 'England'), ('City', 'London')], {})
-parent_location = client.get_location([('Country', 'England')])
-children_locations = client.get_location_children(parent_location.id)
-# This call will return a list with 2 locations: 'Milton Keynes' and 'London'
+<pre><code>client.add_location([(&quot;Country&quot;, &quot;England&quot;), (&quot;City&quot;, &quot;Milton Keynes&quot;)], {})
+client.add_location([(&quot;Country&quot;, &quot;England&quot;), (&quot;City&quot;, &quot;London&quot;)], {})
+parent_location = client.get_location(location_hirerchy=[(&quot;Country&quot;, &quot;England&quot;)])
+children_locations = client.get_location_children(location_id=parent_location.id)
+# This call will return a list with 2 locations: &quot;Milton Keynes&quot; and &quot;London&quot;
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_location_documents"><code class="name flex">
@@ -1471,25 +1632,18 @@ children_locations = client.get_location_children(parent_location.id)
 <dd>
 <section class="desc"><p>This function returns locations documents.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a></dt>
-<dd>location object</dd>
-</dl>
+<p>location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ): location object</p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><code>List</code>[ <a title="pyinventory.consts.Document" href="consts.html#pyinventory.consts.Document"><code>Document</code></a> ]</dt>
-<dd>&nbsp;</dd>
-</dl>
+<p>List[ <a title="pyinventory.consts.Document" href="consts.html#pyinventory.consts.Document"><code>Document</code></a> ]</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>LocationNotFoundException</code></strong></dt>
-<dd>location with this external ID does not exists</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: location does not exists</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>for internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code># this call will fail if there is Bletchley Park in two cities
-location = client.get_location([('Site', 'Bletchley Park')])
+location = client.get_location(location_hirerchy=[(&quot;Site&quot;, &quot;Bletchley Park&quot;)])
 location = client.get_location_documents(location=location)
 </code></pre></section>
 </dd>
@@ -1499,10 +1653,7 @@ location = client.get_location_documents(location=location)
 <dd>
 <section class="desc"><p>This function returns all existing locations</p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><code>List</code>[ <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ]</dt>
-<dd>&nbsp;</dd>
-</dl>
+<p>List[ <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ]</p>
 <h2 id="example">Example</h2>
 <pre><code>all_locations = client.get_locations()
 </code></pre></section>
@@ -1514,10 +1665,10 @@ location = client.get_location_documents(location=location)
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_or_create_equipment"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_or_create_equipment</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, location: <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location">Location</a>, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
-<section class="desc"><p>This function checks if equipment existence in specific location by name,
+<section class="desc"><p>This function checks equipment existence by name in specific location,
 in case it is not found by name, creates one.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1525,32 +1676,28 @@ in case it is not found by name, creates one.</p>
 <dd>equipment name</dd>
 <dt><strong><code>equipment_type</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment type name</dd>
-<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>location object could be retrieved from </dd>
+</dl>
+<p>location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ): location object could be retrieved from
+- <a title="pyinventory.api.location.get_location" href="api/location.html#pyinventory.api.location.get_location"><code>get_location()</code></a>
+- <a title="pyinventory.api.location.add_location" href="api/location.html#pyinventory.api.location.add_location"><code>add_location()</code></a></p>
+<dl>
+<dt><strong><code>properties_dict</code></strong> :&ensp;<code>Mapping</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
+<dd>dictionary of property name to property value</dd>
 </dl>
 <ul>
-<li><a title="pyinventory.api.location.get_location" href="api/location.html#pyinventory.api.location.get_location"><code>get_location()</code></a></li>
-<li>
-<dl>
-<dt><a title="pyinventory.api.location.add_location" href="api/location.html#pyinventory.api.location.add_location"><code>add_location()</code></a></dt>
-<dt><strong><code>properties_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
-<dd>dict of property name to property value</dd>
-</dl>
-</li>
-<li>
-<p>str - property name</p>
-</li>
+<li>str - property name</li>
 <li>PropertyValue - new value of the same type for this property</li>
 </ul>
-<h2 id="returns">Returns</h2>
 <dl>
-<dt><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
+<dd>equipment external ID</dd>
 </dl>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>AssertionException</code></strong></dt>
-<dd>location contains more than one equipments with the
+<dd>location contains more than one equipment with the
 same name or if property value in properties_dict does not match the property type</dd>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>internal inventory error</dd>
@@ -1558,24 +1705,24 @@ same name or if property value in properties_dict does not match the property ty
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
 equipment = client.get_or_create_equipment(
-    name=&quot;indProdCpy1_AIO&quot;, 
-    equipment_type=&quot;router&quot;, 
+    name=&quot;indProdCpy1_AIO&quot;,
+    equipment_type=&quot;router&quot;,
     location=location,
     properties_dict={
-        'Date Property ': date.today(),
-        'Lat/Lng Property: ': (-1.23,9.232),
-        'E-mail Property ': &quot;user@fb.com&quot;,
-        'Number Property ': 11,
-        'String Property ': &quot;aa&quot;,
-        'Float Property': 1.23
+        &quot;Date Property&quot;: date.today(),
+        &quot;Lat/Lng Property&quot;: (-1.23,9.232),
+        &quot;E-mail Property&quot;: &quot;user@fb.com&quot;,
+        &quot;Number Property&quot;: 11,
+        &quot;String Property&quot;: &quot;aa&quot;,
+        &quot;Float Property&quot;: 1.23
     })
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_or_create_equipment_in_position"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment_in_position</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str, properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_or_create_equipment_in_position</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>, position_name: str, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
-<section class="desc"><p>This function checks equipment existence in specific location by name,
+<section class="desc"><p>This function checks equipment existence by name in specific location,
 in case it is not found by name, creates one.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1583,50 +1730,50 @@ in case it is not found by name, creates one.</p>
 <dd>equipment name</dd>
 <dt><strong><code>equipment_type</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment type name</dd>
-<dt><strong><code>existing_equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>existing equipment</dd>
+<dt>existing_equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): existing equipment</dt>
 <dt><strong><code>position_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>position name</dd>
-<dt><strong><code>properties_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
-<dd>dict of property name to property value</dd>
+<dt><strong><code>properties_dict</code></strong> :&ensp;<code>Mapping</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
+<dd>dictionary of property name to property value</dd>
 </dl>
 <ul>
 <li>str - property name</li>
 <li>PropertyValue - new value of the same type for this property</li>
 </ul>
-<h2 id="returns">Returns</h2>
 <dl>
-<dt><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
+<dd>equipment external ID</dd>
 </dl>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>AssertionException</code></strong></dt>
-<dd>location contains more than one equipments with the
+<dd>location contains more than one equipment with the
 same name or if property value in properties_dict does not match the property type</dd>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-e_equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location) 
+e_equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
 equipment_in_position = client.get_or_create_equipment_in_position(
-    name=&quot;indProdCpy1_AIO&quot;, 
-    equipment_type=&quot;router&quot;, 
+    name=&quot;indProdCpy1_AIO&quot;,
+    equipment_type=&quot;router&quot;,
     existing_equipment=e_equipment,
     position_name=&quot;some_position&quot;,
     properties_dict={
-        'Date Property ': date.today(),
-        'Lat/Lng Property: ': (-1.23,9.232),
-        'E-mail Property ': &quot;user@fb.com&quot;,
-        'Number Property ': 11,
-        'String Property ': &quot;aa&quot;,
-        'Float Property': 1.23
+        &quot;Date Property&quot;: date.today(),
+        &quot;Lat/Lng Property&quot;: (-1.23,9.232),
+        &quot;E-mail Property&quot;: &quot;user@fb.com&quot;,
+        &quot;Number Property&quot;: 11,
+        &quot;String Property&quot;: &quot;aa&quot;,
+        &quot;Float Property&quot;: 1.23
     })
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_or_create_equipment_type"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: Sequence[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <section class="desc"><p>This function checks equipment type existence,
@@ -1637,16 +1784,13 @@ in case it is not found, creates one.</p>
 <dd>equipment name</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
 <dd>category name</dd>
-<dt><strong><code>properties</code></strong> :&ensp;<code>List</code>[<code>Tuple</code>[<code>str</code>, <code>str</code>, <code>Optional</code>[<code>PropertyValue</code>], <code>Optional</code>[<code>bool</code>]]]</dt>
-<dd>&nbsp;</dd>
 </dl>
-<ul>
-<li>str - type name</li>
-<li>str - enum["string", "int", "bool", "float", "date", "enum", "range",
-"email", "gps_location", "equipment", "location", "service", "datetime_local"]</li>
-<li>PropertyValue - default property value</li>
-<li>bool - fixed value flag</li>
-</ul>
+<p>properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
+- str - type name
+- str - enum["string", "int", "bool", "float", "date", "enum", "range",
+"email", "gps_location", "equipment", "location", "service", "datetime_local"]
+- PropertyValue - default property value
+- bool - fixed value flag</p>
 <dl>
 <dt><strong><code>ports_dict</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>str</code>]</dt>
 <dd>dict of property name to property value</dd>
@@ -1660,10 +1804,7 @@ in case it is not found, creates one.</p>
 <dd>list of positions names</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.EquipmentType" href="consts.html#pyinventory.consts.EquipmentType"><code>EquipmentType</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -1686,28 +1827,49 @@ in case it is not found, creates one.</p>
 <section class="desc"><p>This function returns port in equipment based on its name.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>existing equipment object</dd>
+<dt>equipment ( <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): existing equipment object</dt>
 <dt><strong><code>port_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>existing port name</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.EquipmentPort" href="consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.EquipmentPort" href="consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>EquipmentPortIsNotUniqueException</code></strong></dt>
 <dd>there is more than one port with this name</dd>
-<dt><strong><code>EntityNotFoundError</code></strong></dt>
-<dd>the port was not found</dd>
 </dl>
-<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: equipment does not exist</p>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: equipment does not exist or port was not found</p>
 <h2 id="example">Example</h2>
-<pre><code>location = client.get_location([(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
-port = client.get_port(equipment, &quot;Z AIO - Port 1&quot;) 
+<pre><code>location = client.get_location(location_hirerchy=[(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
+port = client.get_port(equipment=equipment, port_name=&quot;Z AIO - Port 1&quot;)
+</code></pre></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_property_type_id"><code class="name flex">
+<span>def <span class="ident">get_property_type_id</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, entity_type: <a title="pyinventory.consts.Entity" href="consts.html#pyinventory.consts.Entity">Entity</a>, entity_name: str, property_type_name: str) -> str</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get property type ID on specific entity.
+<code>entity_type</code> - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]</p>
+<pre><code>Args:
+    entity_type ( &lt;a title="pyinventory.consts.Entity" href="consts.html#pyinventory.consts.Entity"&gt;`Entity`&lt;/a&gt; ): existing entity type
+    entity_name (str): existing entity name
+    property_type_name (str): property type ID
+
+Returns:
+    property type ID (str): property type ID
+
+Raises:
+    &lt;a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"&gt;`EntityNotFoundError`&lt;/a&gt;: if property type with id=`property_type_id` does not found
+
+Example:
+    ```
+    property_type = client.get_property_type_id(
+        entity_type=Entity.EquipmentType,
+        entity_name="Card",
+        property_type_name="IP",
+    )
+    ```
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_service"><code class="name flex">
@@ -1751,23 +1913,19 @@ port = client.get_port(equipment, &quot;Z AIO - Port 1&quot;)
 <section class="desc"><p>Returns <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> object by its email</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>email</code></strong></dt>
+<dt><strong><code>email</code></strong> :&ensp;<code>str</code></dt>
 <dd>the email address the user registered with</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>EntityNotFoundError</code></strong></dt>
-<dd>the user was not found</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: the user was not found</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>user = client.get_user(&quot;user@test.com&quot;)
+<pre><code>user = client.get_user(email=&quot;user@test.com&quot;)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_users"><code class="name flex">
@@ -1776,7 +1934,7 @@ port = client.get_port(equipment, &quot;Z AIO - Port 1&quot;)
 <dd>
 <section class="desc"><p>Get the list of users in the system (both active and deactivate)</p>
 <h2 id="returns">Returns</h2>
-<p>list of <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> objects</p>
+<p>List[ <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User"><code>User</code></a> ]</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -1801,10 +1959,7 @@ for user in users:
 <dd>new existing parent location ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>FailedOperationException</code></strong></dt>
@@ -1812,12 +1967,18 @@ for user in users:
 </dl>
 <h2 id="example">Example</h2>
 <pre><code># this call will fail if there is Bletchley Park in two cities
-location = client.get_location([('Site', 'Bletchley Park')])
+location = client.get_location(location_hirerchy=[(&quot;Site&quot;, &quot;Bletchley Park&quot;)])
 moved_location = client.move_locatoin(
-    location_id=location.id, 
+    location_id=location.id,
     new_parent_id=&quot;12345&quot;
 )
 </code></pre></section>
+</dd>
+<dt id="pyinventory.InventoryClient.populate_types"><code class="name flex">
+<span>def <span class="ident">populate_types</span></span>(<span>self) -> NoneType</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
 </dd>
 <dt id="pyinventory.InventoryClient.search_for_equipments"><code class="name flex">
 <span>def <span class="ident">search_for_equipments</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, limit: int) -> Tuple[List[<a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment">Equipment</a>], int]</span>
@@ -1830,9 +1991,9 @@ moved_location = client.move_locatoin(
 <dd>search result limit</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>Tuple[List[ <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> , int]</p>
+<p>Tuple[List[ <a title="pyinventory.consts.Equipment" href="consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ], int]</p>
 <h2 id="example">Example</h2>
-<pre><code>client.search_for_equipments(10)
+<pre><code>client.search_for_equipments(limit=10)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.upload_site_survey"><code class="name flex">
@@ -1951,6 +2112,7 @@ Example of the format:</p>
 <li><code><a title="pyinventory.InventoryClient.edit_equipment" href="#pyinventory.InventoryClient.edit_equipment">edit_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_equipment_port_type" href="#pyinventory.InventoryClient.edit_equipment_port_type">edit_equipment_port_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_equipment_type" href="#pyinventory.InventoryClient.edit_equipment_type">edit_equipment_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.edit_equipment_type_property_type" href="#pyinventory.InventoryClient.edit_equipment_type_property_type">edit_equipment_type_property_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_link_properties" href="#pyinventory.InventoryClient.edit_link_properties">edit_link_properties</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_location" href="#pyinventory.InventoryClient.edit_location">edit_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_port_properties" href="#pyinventory.InventoryClient.edit_port_properties">edit_port_properties</a></code></li>
@@ -1959,10 +2121,15 @@ Example of the format:</p>
 <li><code><a title="pyinventory.InventoryClient.get_all_customers" href="#pyinventory.InventoryClient.get_all_customers">get_all_customers</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_all_links_and_port_names_of_equipment" href="#pyinventory.InventoryClient.get_all_links_and_port_names_of_equipment">get_all_links_and_port_names_of_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_equipment" href="#pyinventory.InventoryClient.get_equipment">get_equipment</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_equipment_by_external_id" href="#pyinventory.InventoryClient.get_equipment_by_external_id">get_equipment_by_external_id</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_equipment_in_position" href="#pyinventory.InventoryClient.get_equipment_in_position">get_equipment_in_position</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_equipment_port_type" href="#pyinventory.InventoryClient.get_equipment_port_type">get_equipment_port_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_equipment_properties" href="#pyinventory.InventoryClient.get_equipment_properties">get_equipment_properties</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_equipment_type_of_equipment" href="#pyinventory.InventoryClient.get_equipment_type_of_equipment">get_equipment_type_of_equipment</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_equipment_type_property_type" href="#pyinventory.InventoryClient.get_equipment_type_property_type">get_equipment_type_property_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_equipment_type_property_type_by_external_id" href="#pyinventory.InventoryClient.get_equipment_type_property_type_by_external_id">get_equipment_type_property_type_by_external_id</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_equipments_by_location" href="#pyinventory.InventoryClient.get_equipments_by_location">get_equipments_by_location</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_equipments_by_type" href="#pyinventory.InventoryClient.get_equipments_by_type">get_equipments_by_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_link_in_port_of_equipment" href="#pyinventory.InventoryClient.get_link_in_port_of_equipment">get_link_in_port_of_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location" href="#pyinventory.InventoryClient.get_location">get_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location_by_external_id" href="#pyinventory.InventoryClient.get_location_by_external_id">get_location_by_external_id</a></code></li>
@@ -1974,11 +2141,13 @@ Example of the format:</p>
 <li><code><a title="pyinventory.InventoryClient.get_or_create_equipment_in_position" href="#pyinventory.InventoryClient.get_or_create_equipment_in_position">get_or_create_equipment_in_position</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_or_create_equipment_type" href="#pyinventory.InventoryClient.get_or_create_equipment_type">get_or_create_equipment_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_port" href="#pyinventory.InventoryClient.get_port">get_port</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_property_type_id" href="#pyinventory.InventoryClient.get_property_type_id">get_property_type_id</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_service" href="#pyinventory.InventoryClient.get_service">get_service</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_site_surveys" href="#pyinventory.InventoryClient.get_site_surveys">get_site_surveys</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_user" href="#pyinventory.InventoryClient.get_user">get_user</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_users" href="#pyinventory.InventoryClient.get_users">get_users</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.move_location" href="#pyinventory.InventoryClient.move_location">move_location</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.populate_types" href="#pyinventory.InventoryClient.populate_types">populate_types</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.search_for_equipments" href="#pyinventory.InventoryClient.search_for_equipments">search_for_equipments</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.upload_site_survey" href="#pyinventory.InventoryClient.upload_site_survey">upload_site_survey</a></code></li>
 </ul>

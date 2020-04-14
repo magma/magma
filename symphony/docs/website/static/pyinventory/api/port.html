@@ -38,28 +38,29 @@
 <section class="desc"><p>This function returns edited port in equipment based on its name.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>existing equipment object</dd>
+<dt>equipment ( <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): existing equipment object</dt>
 <dt><strong><code>port_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>existing port name</dd>
 </dl>
-<p>new_link_properties (Dict[str, PropertyValue])</p>
+<p>new_link_properties (Dict[str, PropertyValue])
+- str - link property name
+- PropertyValue - new value of the same type for this property</p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.EquipmentPort" href="../consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.EquipmentPort" href="../consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>EntityNotFoundError</code></strong></dt>
-<dd>when <a title="pyinventory.consts.EquipmentPortDefinition.port_type_name" href="../consts.html#pyinventory.consts.EquipmentPortDefinition.port_type_name"><code>EquipmentPortDefinition.port_type_name</code></a> is None, there are no properties</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: when <a title="pyinventory.consts.EquipmentPortDefinition.port_type_name" href="../consts.html#pyinventory.consts.EquipmentPortDefinition.port_type_name"><code>EquipmentPortDefinition.port_type_name</code></a> is None, there are no properties</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>location = client.get_location([(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
-edited_port = client.edit_link_properties(equipment, &quot;Z AIO - Port 1&quot;, {&quot;Link Property 1&quot;: 98765})
+<pre><code>location = client.get_location(location_hirerchy=[(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
+edited_port = client.edit_link_properties(
+    equipment=equipment,
+    port_name=&quot;Z AIO - Port 1&quot;,
+    new_link_properties={&quot;Link Property 1&quot;: 98765},
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.port.edit_port_properties"><code class="name flex">
@@ -69,31 +70,33 @@ edited_port = client.edit_link_properties(equipment, &quot;Z AIO - Port 1&quot;,
 <section class="desc"><p>This function returns edited port in equipment based on its name.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>existing equipment object</dd>
+<dt>equipment ( <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): existing equipment object</dt>
 <dt><strong><code>port_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>existing port name</dd>
 <dt><strong><code>new_properties</code></strong> :&ensp;<code>Dict</code>[<code>str</code>, <code>PropertyValue</code>]</dt>
-<dd>Dict, where
-str - property name
-PropertyValue - new value of the same type for this property</dd>
+<dd>Dict, where</dd>
 </dl>
+<ul>
+<li>str - property name</li>
+<li>PropertyValue - new value of the same type for this property</li>
+</ul>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.EquipmentPort" href="../consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.EquipmentPort" href="../consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt>pyinventory.exceptions.EntityNotFoundError: when <a title="pyinventory.consts.EquipmentPortDefinition.port_type_name" href="../consts.html#pyinventory.consts.EquipmentPortDefinition.port_type_name"><code>EquipmentPortDefinition.port_type_name</code></a> is None, there are no properties</dt>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: when <a title="pyinventory.consts.EquipmentPortDefinition.port_type_name" href="../consts.html#pyinventory.consts.EquipmentPortDefinition.port_type_name"><code>EquipmentPortDefinition.port_type_name</code></a> is None, there are no properties</dt>
 <dt>or if there any unknown property name in properties_dict keys</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
-<dd>on operation failure </dd>
+<dd>on operation failure</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>location = client.get_location([(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
-edited_port = client.edit_port_properties(equipment, &quot;Z AIO - Port 1&quot;, {&quot;Port Property 2&quot;: &quot;test_it&quot;})  
+<pre><code>location = client.get_location(location_hirerchy=[(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
+edited_port = client.edit_port_properties(
+    equipment=equipment,
+    port_name=&quot;Z AIO - Port 1&quot;,
+    new_properties={&quot;Port Property 2&quot;: &quot;test_it&quot;},
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.port.get_port"><code class="name flex">
@@ -103,28 +106,22 @@ edited_port = client.edit_port_properties(equipment, &quot;Z AIO - Port 1&quot;,
 <section class="desc"><p>This function returns port in equipment based on its name.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>existing equipment object</dd>
+<dt>equipment ( <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): existing equipment object</dt>
 <dt><strong><code>port_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>existing port name</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.EquipmentPort" href="../consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.EquipmentPort" href="../consts.html#pyinventory.consts.EquipmentPort"><code>EquipmentPort</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>EquipmentPortIsNotUniqueException</code></strong></dt>
 <dd>there is more than one port with this name</dd>
-<dt><strong><code>EntityNotFoundError</code></strong></dt>
-<dd>the port was not found</dd>
 </dl>
-<p><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: equipment does not exist</p>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: equipment does not exist or port was not found</p>
 <h2 id="example">Example</h2>
-<pre><code>location = client.get_location([(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
-port = client.get_port(equipment, &quot;Z AIO - Port 1&quot;) 
+<pre><code>location = client.get_location(location_hirerchy=[(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
+port = client.get_port(equipment=equipment, port_name=&quot;Z AIO - Port 1&quot;)
 </code></pre></section>
 </dd>
 </dl>

@@ -37,54 +37,43 @@
 <dd>
 <section class="desc"><p>Connects a link between two ports of two equipments.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>equipment_a</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from </dd>
-</dl>
-<ul>
-<li><a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
-</ul>
+<p>equipment_a ( <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from
+- <a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
 <dl>
 <dt><strong><code>port_name_a</code></strong> :&ensp;<code>str</code></dt>
 <dd>The name of port in equipment type</dd>
-<dt><strong><code>equipment_b</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from the following apis:</dd>
 </dl>
-<ul>
-<li><a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
-</ul>
+<p>equipment_b ( <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from the following apis:
+- <a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
 <dl>
 <dt><strong><code>port_name_b</code></strong> :&ensp;<code>str</code></dt>
 <dd>The name of port in equipment type</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link"><code>Link</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link"><code>Link</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>AssertionError</code></strong></dt>
-<dd>if portName in any of the equipment does not exist, match more than one port
+<dd>if port_name in any of the equipment does not exist, or match more than one port
 or is already occupied by link</dd>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>for internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location1 = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment1 = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location1) 
+equipment1 = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location1)
 location2 = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod&quot;)})
-equipment2 = client.get_equipment(&quot;indProd1_AIO&quot;, location2) 
+equipment2 = client.get_equipment(name=&quot;indProd1_AIO&quot;, location=location2)
 client.add_link(
-    equipment_a=equipment1, 
-    port_name_a=&quot;Port A&quot;, 
-    equipment_b=equipment2, 
+    equipment_a=equipment1,
+    port_name_a=&quot;Port A&quot;,
+    equipment_b=equipment2,
     port_name_b=&quot;Port B&quot;
 )
 </code></pre></section>
@@ -95,32 +84,26 @@ client.add_link(
 <dd>
 <section class="desc"><p>Returns all links and port names in equipment.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from </dd>
-</dl>
-<ul>
-<li><a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
-</ul>
+<p>equipment ( <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from
+- <a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
 <h2 id="returns">Returns</h2>
-<p>List[Tuple[ <a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link"><code>Link</code></a> , str]]: </p>
+<p>List[Tuple[ <a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link"><code>Link</code></a> , str]]:</p>
 <ul>
 <li><a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link"><code>Link</code></a> - link object</li>
 <li>str - port definition name</li>
 </ul>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>LinkNotFoundException</code></strong></dt>
-<dd>if link not found</dd>
+<dt><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if link not found</dt>
 <dt><strong><code>FailedOperationException</code></strong></dt>
 <dd>for internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location1) 
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location1)
 client.get_all_links_and_port_names_of_equipment(equipment=equipment)
 </code></pre></section>
 </dd>
@@ -130,25 +113,17 @@ client.get_all_links_and_port_names_of_equipment(equipment=equipment)
 <dd>
 <section class="desc"><p>Returns link in specific port by name in equipment.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>equipment</code></strong> :&ensp;<a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> <code>object</code></dt>
-<dd>could be retrieved from </dd>
-</dl>
-<ul>
-<li><a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a></li>
-<li><a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></li>
-</ul>
+<p>equipment ( <a title="pyinventory.consts.Equipment" href="../consts.html#pyinventory.consts.Equipment"><code>Equipment</code></a> ): could be retrieved from
+- <a title="pyinventory.api.equipment.get_equipment" href="equipment.html#pyinventory.api.equipment.get_equipment"><code>get_equipment()</code></a>
+- <a title="pyinventory.api.equipment.get_equipment_in_position" href="equipment.html#pyinventory.api.equipment.get_equipment_in_position"><code>get_equipment_in_position()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment" href="equipment.html#pyinventory.api.equipment.add_equipment"><code>add_equipment()</code></a>
+- <a title="pyinventory.api.equipment.add_equipment_to_position" href="equipment.html#pyinventory.api.equipment.add_equipment_to_position"><code>add_equipment_to_position()</code></a></p>
 <dl>
 <dt><strong><code>port_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>The name of port in equipment type</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link"><code>Link</code></a> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl>
+<p><a title="pyinventory.consts.Link" href="../consts.html#pyinventory.consts.Link"><code>Link</code></a> object</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><strong><code>LinkNotFoundException</code></strong></dt>
@@ -158,9 +133,9 @@ client.get_all_links_and_port_names_of_equipment(equipment=equipment)
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>location = client.get_location({(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)})
-equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location1) 
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
 client.get_link_in_port_of_equipment(
-    equipment=equipment, 
+    equipment=equipment,
     port_name=&quot;Port A&quot;
 )
 </code></pre></section>

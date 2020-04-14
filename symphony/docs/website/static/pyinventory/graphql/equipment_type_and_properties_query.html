@@ -38,48 +38,7 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.equipment_type_and_properties_query.EquipmentTypeAndPropertiesQuery.EquipmentTypeAndPropertiesQueryData" href="#pyinventory.graphql.equipment_type_and_properties_query.EquipmentTypeAndPropertiesQuery.EquipmentTypeAndPropertiesQueryData">EquipmentTypeAndPropertiesQuery.EquipmentTypeAndPropertiesQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentTypeAndPropertiesQuery(data: pyinventory.graphql.equipment_type_and_properties_query.EquipmentTypeAndPropertiesQuery.EquipmentTypeAndPropertiesQueryData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
-id\n
-name\n
-type\n
-index\n
-category\n
-stringValue\n
-intValue\n
-booleanValue\n
-floatValue\n
-latitudeValue\n
-longitudeValue\n
-rangeFromValue\n
-rangeToValue\n
-isEditable\n
-isInstanceProperty\n
-isMandatory\n
-isDeleted\n}\n\n\nfragment PropertyFragment on Property {\n
-id\n
-propertyType {\n
-&hellip;PropertyTypeFragment\n
-}\n
-stringValue\n
-intValue\n
-floatValue\n
-booleanValue\n
-latitudeValue\n
-longitudeValue\n
-rangeFromValue\n
-rangeToValue\n}\n\n\n
-query EquipmentTypeAndPropertiesQuery($id: ID!) {\n
-equipment: node(id: $id) {\n
-&hellip; on Equipment {\n
-equipmentType {\n
-name\n
-}\n
-properties {\n
-&hellip;PropertyFragment\n
-}\n
-}\n
-}\n}\n\n
-')</p></section>
+<section class="desc"><p>EquipmentTypeAndPropertiesQuery(data: pyinventory.graphql.equipment_type_and_properties_query.EquipmentTypeAndPropertiesQuery.EquipmentTypeAndPropertiesQueryData)</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>dataclasses_json.api.DataClassJsonMixin</li>
@@ -89,7 +48,7 @@ properties {\n
 <dl>
 <dt id="pyinventory.graphql.equipment_type_and_properties_query.EquipmentTypeAndPropertiesQuery.EquipmentTypeAndPropertiesQueryData"><code class="name">var <span class="ident">EquipmentTypeAndPropertiesQueryData</span></code></dt>
 <dd>
-<section class="desc"><p>EquipmentTypeAndPropertiesQueryData(equipment: Union[pyinventory.graphql.equipment_type_and_properties_query.EquipmentTypeAndPropertiesQuery.EquipmentTypeAndPropertiesQueryData.Node, NoneType] = None)</p></section>
+<section class="desc"><p>EquipmentTypeAndPropertiesQueryData(equipment: Union[pyinventory.graphql.equipment_type_and_properties_query.EquipmentTypeAndPropertiesQuery.EquipmentTypeAndPropertiesQueryData.Node, NoneType])</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
