@@ -23,9 +23,8 @@ namespace sessiond {
 class RestartHandler {
  public:
   RestartHandler(
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-    std::shared_ptr<LocalEnforcer> enforcer,
-    SessionReporter* reporter);
+      std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+      std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter);
 
   /**
    * Cleanup previous sessions stored in directoryD
@@ -34,8 +33,7 @@ class RestartHandler {
 
  private:
   void terminate_previous_session(
-    const std::string& sid,
-    const std::string& session_id);
+      const std::string& sid, const std::string& session_id);
 
  private:
   std::shared_ptr<LocalEnforcer> enforcer_;
@@ -45,5 +43,5 @@ class RestartHandler {
   static const uint max_cleanup_retries_;
   static const uint rpc_retry_interval_s_;
 };
-} // namespace sessiond
-} // namespace magma
+}  // namespace sessiond
+}  // namespace magma
