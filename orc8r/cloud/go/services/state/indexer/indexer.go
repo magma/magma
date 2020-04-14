@@ -35,6 +35,7 @@ type Indexer interface {
 
 	// GetVersion returns the current version for the indexer.
 	// Incrementing the version in a release will result in a reindex.
+	// An indexer's version is required to be non-decreasing across successive releases.
 	GetVersion() Version
 
 	// GetSubscriptions defines the composite keys this indexer is interested in.
