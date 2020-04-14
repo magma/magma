@@ -1849,27 +1849,28 @@ port = client.get_port(equipment=equipment, port_name=&quot;Z AIO - Port 1&quot;
 <span>def <span class="ident">get_property_type_id</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, entity_type: <a title="pyinventory.consts.Entity" href="consts.html#pyinventory.consts.Entity">Entity</a>, entity_name: str, property_type_name: str) -> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get property type ID on specific entity.
-<code>entity_type</code> - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]</p>
-<pre><code>Args:
-    entity_type ( &lt;a title="pyinventory.consts.Entity" href="consts.html#pyinventory.consts.Entity"&gt;`Entity`&lt;/a&gt; ): existing entity type
-    entity_name (str): existing entity name
-    property_type_name (str): property type ID
-
-Returns:
-    property type ID (str): property type ID
-
-Raises:
-    &lt;a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"&gt;`EntityNotFoundError`&lt;/a&gt;: if property type with id=`property_type_id` does not found
-
-Example:
-    ```
-    property_type = client.get_property_type_id(
-        entity_type=Entity.EquipmentType,
-        entity_name="Card",
-        property_type_name="IP",
-    )
-    ```
+<section class="desc"><p>Get property type ID on specific entity. <code>entity_type</code> - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>entity_type ( <a title="pyinventory.consts.Entity" href="consts.html#pyinventory.consts.Entity"><code>Entity</code></a> ): existing entity type</dt>
+<dt><strong><code>entity_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing entity name</dd>
+<dt><strong><code>property_type_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>property type ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>property</code> <code>type</code> <code>ID</code> (<code>str</code>): <code>property</code> <code>type</code> <code>ID</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: if property type with id=<code>property_type_id</code> does not found</p>
+<h2 id="example">Example</h2>
+<pre><code>property_type = client.get_property_type_id(
+    entity_type=Entity.EquipmentType,
+    entity_name=&quot;Card&quot;,
+    property_type_name=&quot;IP&quot;,
+)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_service"><code class="name flex">
@@ -1884,27 +1885,11 @@ Example:
 <dd>
 <section class="desc"><p>Retrieve all site survey completed in the location.</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>could be retrieved from getLocation or addLocation api</dd>
-<dt><strong><code>Returns</code></strong> :&ensp;<a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey"><code>SiteSurvey</code></a> <code>object</code> (<code>with</code> <code>name</code>, <code>id</code>, <code>completion</code> <code>time</code> <code>and</code> <code>the</code> <code>forms</code>)</dt>
-<dd>The forms are the results of the survey. It is a dict of dicts:</dd>
-</dl>
-<pre><code>{
-    formA: {
-        question1: value1
-        question2: value2
-    }
-    formB: {
-        question3: value3
-        question4: value4
-    }
-}
-</code></pre>
-<dl>
-<dt><strong><code>Raises</code></strong> :&ensp;<code>&lt;a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"&gt;</code>EntityNotFoundError<code>&lt;/a&gt;</code>: <code>location</code> <code>does</code> <code>not</code> <code>exist</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<p>location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ): could be retrieved from getLocation or addLocation api</p>
+<h2 id="returns">Returns</h2>
+<p>List[ <a title="pyinventory.consts.SiteSurvey" href="consts.html#pyinventory.consts.SiteSurvey"><code>SiteSurvey</code></a> ]</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: location does not exist</p></section>
 </dd>
 <dt id="pyinventory.InventoryClient.get_user"><code class="name flex">
 <span>def <span class="ident">get_user</span></span>(<span><a title="pyinventory.client" href="client.html">pyinventory.client</a>: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, email: str) -> <a title="pyinventory.consts.User" href="consts.html#pyinventory.consts.User">User</a></span>
@@ -2005,8 +1990,7 @@ given excel file. We use the schema file to validate the input in the
 excel is as needed for upload.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>location</code></strong> :&ensp;<a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> <code>object</code></dt>
-<dd>could be retrieved from getLocation or addLocation api</dd>
+<dt>location ( <a title="pyinventory.consts.Location" href="consts.html#pyinventory.consts.Location"><code>Location</code></a> ): could be retrieved from getLocation or addLocation api</dt>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>name of the site survey</dd>
 <dt><strong><code>completion_date</code></strong> :&ensp;<code>datetime.datetime</code> <code>object</code></dt>
@@ -2041,9 +2025,12 @@ Example of the format:</p>
     ]
 }
 </code></pre>
+<h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>input</code> <code>values</code> <code>in</code> <code>the</code> <code>excel</code> <code>are</code> <code>incorrect</code></dt>
-<dd>FailedOperationException for internal inventory error</dd>
+<dt><strong><code>AssertionException</code></strong></dt>
+<dd>if input values in the excel are incorrect</dd>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
 </dl></section>
 </dd>
 </dl>

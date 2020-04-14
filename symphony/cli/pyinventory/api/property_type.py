@@ -16,8 +16,7 @@ from ..graphql.property_type_input import PropertyTypeInput
 def get_property_types(
     client: SymphonyClient, entity_type: Entity, entity_name: str
 ) -> Sequence[PropertyTypeFragment]:
-    """Get property types on specific entity.
-    `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
+    """Get property types on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
             entity_type ( `pyinventory.consts.Entity` ): existing entity type
@@ -58,8 +57,7 @@ def get_property_types(
 def get_property_type(
     client: SymphonyClient, entity_type: Entity, entity_name: str, property_type_id: str
 ) -> PropertyTypeFragment:
-    """Get property type on specific entity.
-    `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
+    """Get property type on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
             entity_type ( `pyinventory.consts.Entity` ): existing entity type
@@ -97,8 +95,7 @@ def get_property_type_id(
     entity_name: str,
     property_type_name: str,
 ) -> str:
-    """Get property type ID on specific entity.
-    `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
+    """Get property type ID on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
             entity_type ( `pyinventory.consts.Entity` ): existing entity type
@@ -138,8 +135,7 @@ def get_property_type_by_external_id(
     entity_name: str,
     property_type_external_id: str,
 ) -> PropertyTypeFragment:
-    """Get property type by external ID on specific entity.
-    `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
+    """Get property type by external ID on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
             entity_type ( `pyinventory.consts.Entity` ): existing entity type
@@ -180,8 +176,7 @@ def edit_property_type(
     property_type_id: str,
     new_property_definition: PropertyDefinition,
 ) -> List[PropertyTypeInput]:
-    """Edit specific property type on specific entity.
-    `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
+    """Edit specific property type on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
         Args:
             entity_type ( `pyinventory.consts.Entity` ): existing entity type
