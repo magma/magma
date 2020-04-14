@@ -33,6 +33,12 @@ namespace magma {
 class SessionProxyResponderHandlerTest : public ::testing::Test {
 protected:
   virtual void SetUp() {
+    evb = new folly::EventBase();
+    std::thread([&]() {
+      std::cout << "Started event loop thread\n";
+      folly::EventBaseManager::get()->setEventBase(evb, 0);
+    }).detach();
+
     imsi = "IMSI1";
     imsi2 = "IMSI2";
     sid = id_gen_.gen_session_id(imsi);
@@ -57,7 +63,6 @@ protected:
     local_enforcer = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
         directoryd_client, eventd_client, spgw_client, aaa_client, 0, 0);
-    evb = folly::EventBaseManager::get()->getEventBase();
     session_map = SessionMap{};
 
     proxy_responder = std::make_shared<SessionProxyResponderHandlerImpl>(
@@ -178,19 +183,20 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   auto rule_store = std::make_shared<StaticRuleStore>();
 
   // 2) Create bare-bones session for IMSI1
+  auto uc = get_default_update_criteria();
   auto session = get_session(sid, rule_store);
-  session->activate_static_rule(rule_id_3);
+  session->activate_static_rule(rule_id_3, uc);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session->get_request_number(), 2);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_3), true);
 
   auto credit_update = get_monitoring_update();
   UsageMonitoringUpdateResponse &credit_update_ref = *credit_update;
-  session->get_monitor_pool().receive_credit(credit_update_ref);
+  session->get_monitor_pool().receive_credit(credit_update_ref, uc);
 
   // Add some used credit
   session->get_monitor_pool().add_used_credit(monitoring_key, uint64_t(111),
-                                              uint64_t(333));
+                                              uint64_t(333), uc);
   EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_TX),
             111);
   EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_RX),
