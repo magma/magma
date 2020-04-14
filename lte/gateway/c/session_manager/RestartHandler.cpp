@@ -21,12 +21,10 @@ const uint RestartHandler::rpc_retry_interval_s_ = 5;
 RestartHandler::RestartHandler(
   std::shared_ptr<AsyncDirectorydClient> directoryd_client,
   std::shared_ptr<LocalEnforcer> enforcer,
-  SessionReporter* reporter,
-  SessionMap& session_map):
+  SessionReporter* reporter):
   directoryd_client_(directoryd_client),
   enforcer_(enforcer),
-  reporter_(reporter),
-  session_map_(session_map)
+  reporter_(reporter)
 {
 }
 
@@ -111,15 +109,6 @@ void RestartHandler::terminate_previous_session(
           MLOG(MERROR) << "CCR-T cleanup for subscriber " << sid
                        << ", session id: " << session_id << " failed";
           termination_res.set_value(false);
-          return;
-        }
-        // Don't delete subscriber from directoryD if IMSI is known
-        if (enforcer_->session_with_imsi_exists(session_map_, response.sid())) {
-          MLOG(MINFO) << "Not cleaning up previous session after restart "
-                      << "for subscriber " << response.sid()
-                      << ", session id: " << response.session_id()
-                      << ": subscriber session exists.";
-          termination_res.set_value(true);
           return;
         }
         DeleteRecordRequest del_request;
