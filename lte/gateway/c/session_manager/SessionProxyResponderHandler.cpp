@@ -24,6 +24,9 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
     ServerContext* context, const ChargingReAuthRequest* request,
     std::function<void(Status, ChargingReAuthAnswer)> response_callback) {
   auto& request_cpy = *request;
+  MLOG(MDEBUG) << "Received a Gy (Charging) ReAuthRequest for "
+               << request->session_id() << " and charging_key "
+               << request->charging_key();
   enforcer_->get_event_base().runInEventBaseThread(
       [this, request_cpy, response_callback]() {
         auto session_map = get_sessions_for_charging(request_cpy);
@@ -31,6 +34,7 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
             SessionStore::get_default_session_update(session_map);
         auto result =
             enforcer_->init_charging_reauth(session_map, request_cpy, update);
+        MLOG(MDEBUG) << "Result of Gy (Charging) ReAuthRequest " << result;
         ChargingReAuthAnswer ans;
         ans.set_result(result);
 
@@ -38,6 +42,8 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
         if (update_success) {
           response_callback(Status::OK, ans);
         } else {
+          // Todo If update fails, we should rollback changes from the request
+          MLOG(MERROR) << "Failed to update Gy (Charging) ReAuthRequest changes...";
           auto status = Status(
               grpc::ABORTED,
               "ChargingReAuth no longer valid due to another update that "
@@ -51,6 +57,8 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
     ServerContext* context, const PolicyReAuthRequest* request,
     std::function<void(Status, PolicyReAuthAnswer)> response_callback) {
   auto& request_cpy = *request;
+  MLOG(MDEBUG) << "Received a Gx (Policy) ReAuthRequest for session_id "
+               << request->session_id();
   enforcer_->get_event_base().runInEventBaseThread(
       [this, request_cpy, response_callback]() {
         PolicyReAuthAnswer ans;
@@ -58,11 +66,13 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
         SessionUpdate update =
             SessionStore::get_default_session_update(session_map);
         enforcer_->init_policy_reauth(session_map, request_cpy, ans, update);
-
+        MLOG(MDEBUG) << "Result of Gx (Policy) ReAuthRequest " << ans.result();
         bool update_success = session_store_.update_sessions(update);
         if (update_success) {
           response_callback(Status::OK, ans);
         } else {
+        // Todo If update fails, we should rollback changes from the request
+          MLOG(MERROR) << "Failed to update Gx (Policy) ReAuthRequest changes...";
           auto status = Status(
               grpc::ABORTED,
               "PolicyReAuth no longer valid due to another update that "
