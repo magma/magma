@@ -25,8 +25,7 @@ class RestartHandler {
   RestartHandler(
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
     std::shared_ptr<LocalEnforcer> enforcer,
-    SessionReporter* reporter,
-    SessionMap& session_map);
+    SessionReporter* reporter);
 
   /**
    * Cleanup previous sessions stored in directoryD
@@ -43,7 +42,6 @@ class RestartHandler {
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   SessionReporter* reporter_;
   std::unordered_map<std::string, std::string> sessions_to_terminate_;
-  SessionMap& session_map_;
   static const uint max_cleanup_retries_;
   static const uint rpc_retry_interval_s_;
 };

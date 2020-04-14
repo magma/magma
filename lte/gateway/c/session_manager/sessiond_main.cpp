@@ -213,7 +213,6 @@ int main(int argc, char *argv[])
       DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS;
   }
 
-  magma::SessionMap session_map{};
   magma::SessionStore* session_store;
   bool is_stateless = config["support_stateless"].IsDefined()
       && config["support_stateless"].as<bool>();
@@ -252,10 +251,13 @@ int main(int argc, char *argv[])
     monitor, *session_store);
 
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
-      directoryd_client, monitor, reporter.get(), session_map);
+      directoryd_client, monitor, reporter.get());
   std::thread restart_handler_thread([&]() {
-    if (is_stateless) {
-      MLOG(MINFO) << "Started sessiond restart handler thread";
+    // TODO: Add AAA server re-init logic when stateless
+    // If running as stateless, session flows will be re-initialized in the
+    // LocalSessionManagerHandler. Otherwise, cleanup all previous sessions.
+    MLOG(MINFO) << "Started sessiond restart handler thread";
+    if (!is_stateless) {
       restart_handler->cleanup_previous_sessions();
     }
   });
