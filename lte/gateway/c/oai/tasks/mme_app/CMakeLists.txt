@@ -19,6 +19,10 @@ link_directories(
         ${MAGMA_LIB_DIR}/eventd
 )
 
+if ( EMBEDDED_SGW)
+set(S11_RELATED_SRCS mme_app_embedded_spgw.c)
+endif (EMBEDDED_SGW)
+
 add_library(TASK_MME_APP
     mme_app_capabilities.c
     mme_app_context.c
@@ -61,7 +65,13 @@ add_library(TASK_MME_APP
     mme_app_embedded_spgw.c
     ${PROTO_SRCS}
     ${PROTO_HDRS}
+    ${S11_RELATED_SRCS}
     )
+
+#set (MME_APP_SGW
+#mme_app_embedded_spgw.c)
+
+#set(ALLOW_DUPLICATE_CUSTOM_TARGETS TRUE)
 
 target_compile_definitions(TASK_MME_APP PRIVATE
   PACKAGE_NAME=\"MME\"
