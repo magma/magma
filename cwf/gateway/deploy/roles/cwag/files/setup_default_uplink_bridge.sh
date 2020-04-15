@@ -8,7 +8,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 sudo ovs-vsctl add-br uplink_br0
-sudo ovs-vsctl set-fail-mode cwag_br0 secure
+sudo ovs-vsctl set-fail-mode uplink_br0 secure
 sudo ovs-ofctl del-flows uplink_br0
 
 sudo ovs-vsctl --may-exist add-port uplink_br0 gw0 \
