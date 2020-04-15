@@ -158,7 +158,7 @@ services:
     command: python3 -m magma.redirectd.main
 
   radius:
-    image: ${DOCKER_REGISTRY}gateway_radius:${IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
     container_name: radius
     logging: *logging_anchor
     environment:
@@ -179,6 +179,9 @@ services:
       retries: 3
     network_mode: host
     restart: always
+    command: >
+      /bin/bash -c "envsubst < /etc/magma/templates/radius.conf.template > /var/opt/magma/tmp/radius.config.json &&
+             envdir /var/opt/magma/envdir /var/opt/magma/bin/radius -config /var/opt/magma/tmp/radius.config.json"
 
   radiusd:
     <<: *feggoservice
