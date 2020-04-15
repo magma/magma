@@ -126,8 +126,12 @@ class LIMirrorController(MagmaController):
         Main thread that polls config updates and updates LI mirror flows
         """
         while True:
-            li_imsis = load_service_mconfig('pipelined',
+            mconfg_li_imsis = load_service_mconfig('pipelined',
                                             mconfigs_pb2.PipelineD()).li_imsis
+            li_imsis = []
+            for imsi in mconfg_li_imsis:
+                if any(i.isdigit() for i in imsi):
+                    li_imsis.append(imsi)
             imsis_to_add = [imsi for imsi in li_imsis if
                             imsi not in self._li_imsis]
             self._install_mirror_flows(imsis_to_add)
