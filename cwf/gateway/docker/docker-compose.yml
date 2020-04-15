@@ -171,6 +171,8 @@ services:
       - AAA_ENDPOINT=127.0.0.1:9109
       - ANALYTICS_GRAPHQL_TOKEN=${ANALYTICS_GRAPHQL_TOKEN}
       - ANALYTICS_GRAPHQL_ENDPOINT=${ANALYTICS_GRAPHQL_ENDPOINT}
+      - STORAGE_TYPE=memory
+      - REDIS_ADDR=
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost","9108"]
       timeout: "4s"
