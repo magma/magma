@@ -14,6 +14,8 @@ type EntWithID = $ReadOnly<{
   id?: ?string,
 }>;
 
+export type NamedNode = {id: string, name: string};
+
 export type ShortUser = $ReadOnly<{
   id: string,
   email: string,

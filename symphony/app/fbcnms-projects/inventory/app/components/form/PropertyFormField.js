@@ -7,71 +7,77 @@
  * @flow
  * @format
  */
-import type {Property} from '../../common/Property';
-import type {WithStyles} from '@material-ui/core';
 
+import type {Property} from '../../common/Property';
+
+import * as React from 'react';
 import FormField from '@fbcnms/ui/components/FormField';
-import PropertyValue from './PropertyValue';
-import React from 'react';
+import NodePropertyValue from '../NodePropertyValue';
 import {createFragmentContainer, graphql} from 'react-relay';
-import {withStyles} from '@material-ui/core/styles';
+import {getPropertyValue} from '../../common/Property';
 
 type Props = {
   property: Property,
-} & WithStyles<typeof styles>;
-
-const styles = _theme => ({});
+};
 
 class PropertyFormField extends React.Component<Props> {
   render() {
     const {property} = this.props;
+    const propType = property.propertyType ? property.propertyType : property;
     return (
       <FormField
         label={property.propertyType.name}
-        value={<PropertyValue property={property} />}
+        value={
+          propType.type === 'node' && propType.nodeType != null ? (
+            <NodePropertyValue
+              type={propType.nodeType}
+              value={property.nodeValue}
+            />
+          ) : (
+            getPropertyValue(property) ?? ''
+          )
+        }
       />
     );
   }
 }
 
-export default withStyles(styles)(
-  createFragmentContainer(PropertyFormField, {
-    property: graphql`
-      fragment PropertyFormField_property on Property {
+export default createFragmentContainer(PropertyFormField, {
+  property: graphql`
+    fragment PropertyFormField_property on Property {
+      id
+      propertyType {
         id
-        propertyType {
-          id
-          name
-          type
-          nodeType
-          index
-          stringValue
-          intValue
-          booleanValue
-          floatValue
-          latitudeValue
-          longitudeValue
-          rangeFromValue
-          rangeToValue
-          isEditable
-          isInstanceProperty
-          isMandatory
-          category
-          isDeleted
-        }
+        name
+        type
+        nodeType
+        index
         stringValue
         intValue
-        floatValue
         booleanValue
+        floatValue
         latitudeValue
         longitudeValue
         rangeFromValue
         rangeToValue
-        nodeValue {
-          id
-          name
-        }
+        isEditable
+        isInstanceProperty
+        isMandatory
+        category
+        isDeleted
       }
-    `,
-  }),
-);
+      stringValue
+      intValue
+      floatValue
+      booleanValue
+      latitudeValue
+      longitudeValue
+      rangeFromValue
+      rangeToValue
+      nodeValue {
+        id
+        name
+      }
+    }
+  `,
+});

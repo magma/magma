@@ -32,6 +32,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import inventoryTheme from '../../common/theme';
 import {DeleteIcon, PlusIcon} from '@fbcnms/ui/components/design-system/Icons';
+import {PropertyTypeLabels} from '../PropertyTypeLabels';
 import {removeItem, setItem, updateItem} from '@fbcnms/util/arrays';
 import {reorder} from '../draggable/DraggableUtils';
 import {withStyles} from '@material-ui/core/styles';
@@ -64,29 +65,11 @@ const styles = () => ({
   },
 });
 
-type PropertyTypeInfo = {|
+export type PropertyTypeInfo = $ReadOnly<{|
   label: string,
   featureFlag?: FeatureID,
-|};
-
-const propertyTypeLabels: {[string]: PropertyTypeInfo} = {
-  date: {label: 'Date'},
-  datetime_local: {label: 'Date & Time'},
-  int: {label: 'Number'},
-  float: {label: 'Float'},
-  string: {label: 'Text'},
-  email: {label: 'Email'},
-  gps_location: {label: 'Coordinates'},
-  bool: {label: 'True or False'},
-  range: {label: 'Range'},
-  enum: {label: 'Multiple choice'},
-  equipment: {label: 'Equipment'},
-  location: {label: 'Location'},
-  service: {
-    label: 'Service',
-    featureFlag: 'services',
-  },
-};
+  isNode?: boolean,
+|}>;
 
 type Props = {
   propertyTypes: Array<PropertyType>,
@@ -161,23 +144,23 @@ class PropertyTypeTable extends React.Component<Props> {
                     <FormField>
                       <Select
                         className={classes.input}
-                        options={Object.keys(propertyTypeLabels)
+                        options={Object.keys(PropertyTypeLabels)
                           .filter(
                             type =>
-                              !propertyTypeLabels[type].featureFlag ||
+                              !PropertyTypeLabels[type].featureFlag ||
                               this.context.isFeatureEnabled(
-                                propertyTypeLabels[type].featureFlag,
+                                PropertyTypeLabels[type].featureFlag,
                               ),
                           )
                           .map(type => ({
                             key: type,
-                            value: type,
-                            label: propertyTypeLabels[type].label,
+                            value: PropertyTypeLabels[type].isNode
+                              ? 'node_' + type
+                              : type + '_',
+                            label: PropertyTypeLabels[type].label,
                           }))}
                         selectedValue={
-                          property.type == 'node'
-                            ? property.nodeType
-                            : property.type
+                          property.type + '_' + (property.nodeType ?? '')
                         }
                         onChange={this._handleTypeChange(i)}
                       />
@@ -273,32 +256,22 @@ class PropertyTypeTable extends React.Component<Props> {
   };
 
   _handleTypeChange = index => value => {
-    if (value == 'equipment' || value == 'location' || value == 'service') {
-      const newPropertyTypes = updateItem<PropertyType, 'type'>(
-        this.props.propertyTypes,
+    const [type, nodeType] = value.split('_');
+    const newPropertyTypes = updateItem<PropertyType, 'type'>(
+      this.props.propertyTypes,
+      index,
+      'type',
+      // $FlowFixMe: need to figure out how to cast string to PropertyKind
+      type,
+    );
+    this.props.onPropertiesChanged(
+      updateItem<PropertyType, 'nodeType'>(
+        newPropertyTypes,
         index,
-        'type',
-        'node',
-      );
-      this.props.onPropertiesChanged(
-        updateItem<PropertyType, 'nodeType'>(
-          newPropertyTypes,
-          index,
-          'nodeType',
-          value,
-        ),
-      );
-    } else {
-      this.props.onPropertiesChanged(
-        updateItem<PropertyType, 'type'>(
-          this.props.propertyTypes,
-          index,
-          'type',
-          // $FlowFixMe: need to figure out how to cast string to PropertyKind
-          value,
-        ),
-      );
-    }
+        'nodeType',
+        nodeType,
+      ),
+    );
   };
 
   _handleNameBlur = index => {
