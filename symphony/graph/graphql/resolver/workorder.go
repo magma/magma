@@ -374,7 +374,7 @@ func (r mutationResolver) updateProperty(
 			Update().
 			Where(property.ID(existingProperty.ID))
 
-		if _, err = updatePropValues(input, existingPropQuery).Save(ctx); err != nil {
+		if r.updatePropValues(ctx, input, existingPropQuery) != nil {
 			return errors.Wrap(err, "saving work order property value update")
 		}
 	}

@@ -15,6 +15,7 @@ import type {PropertyKind} from '../components/form/__generated__/PropertyTypeFo
 export type PropertyType = {|
   id: string,
   type: PropertyKind,
+  nodeType?: ?string,
   name: string,
   index?: ?number,
   category?: ?string,
@@ -65,9 +66,7 @@ export const getPropertyDefaultValue = (propertyType: PropertyType) => {
               ', ' +
               (propertyType.longitudeValue ?? '')
           : '';
-      case 'equipment':
-      case 'location':
-      case 'service':
+      case 'node':
         return '';
     }
   }
@@ -87,7 +86,7 @@ export const getInitialPropertyFromType = (
     longitudeValue: propType.longitudeValue,
     rangeFromValue: propType.rangeFromValue,
     rangeToValue: propType.rangeToValue,
-    equipmentValue: null,
+    nodeValue: null,
   };
 };
 
@@ -98,6 +97,7 @@ export const toMutablePropertyType = (
 ): PropertyType => ({
   id: immutablePropertyType.id,
   type: immutablePropertyType.type,
+  nodeType: immutablePropertyType.nodeType,
   name: immutablePropertyType.name,
   index: immutablePropertyType.index,
   category: immutablePropertyType.category,

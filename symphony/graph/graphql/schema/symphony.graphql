@@ -95,6 +95,17 @@ interface Node
   id: ID!
 }
 
+interface NamedNode {
+  """
+  The id of the object.
+  """
+  id: ID!
+  """
+  The name of the object.
+  """
+  name: String!
+}
+
 type Field {
   name: String!
   value: String!
@@ -129,7 +140,7 @@ input TechnicianInput {
 }
 
 # location or site: e.g. building at specific address.
-type Location implements Node {
+type Location implements Node & NamedNode {
   id: ID!
   externalId: String
   name: String!
@@ -318,7 +329,7 @@ input CommentInput {
 }
 
 # specific equipment instance: e.g. Wifi Access Point X at Location Y.
-type Equipment implements Node {
+type Equipment implements Node & NamedNode {
   id: ID!
   externalId: String
   name: String!
@@ -852,10 +863,8 @@ enum PropertyKind {
   range
   email
   gps_location
-  equipment
-  location
-  service
   datetime_local
+  node
 }
 
 type PropertyType implements Node {
@@ -863,6 +872,7 @@ type PropertyType implements Node {
   externalId: String
   name: String!
   type: PropertyKind!
+  nodeType: String
   index: Int
   category: String
   stringValue: String
@@ -884,6 +894,7 @@ input PropertyTypeInput {
   externalId: String
   name: String!
   type: PropertyKind!
+  nodeType: String
   index: Int
   category: String
   stringValue: String
@@ -911,9 +922,7 @@ type Property implements Node {
   longitudeValue: Float
   rangeFromValue: Float
   rangeToValue: Float
-  equipmentValue: Equipment
-  locationValue: Location
-  serviceValue: Service
+  nodeValue: NamedNode
 }
 
 input PropertyInput {
@@ -927,9 +936,7 @@ input PropertyInput {
   longitudeValue: Float
   rangeFromValue: Float
   rangeToValue: Float
-  equipmentIDValue: ID
-  locationIDValue: ID
-  serviceIDValue: ID
+  nodeIDValue: ID
   isEditable: Boolean
   isInstanceProperty: Boolean
 }
@@ -1716,7 +1723,7 @@ type ServiceEndpoint implements Node {
 """
 Modeling a specific service: e.g. a L2 VPN instance.
 """
-type Service implements Node {
+type Service implements Node & NamedNode {
   id: ID!
   name: String!
   externalId: String

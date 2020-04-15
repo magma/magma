@@ -316,6 +316,7 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           index
           isInstanceProperty
           type
+          nodeType
           stringValue
           intValue
           floatValue
@@ -333,6 +334,7 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           id
           name
           type
+          nodeType
           isEditable
           isInstanceProperty
           isMandatory
@@ -346,15 +348,7 @@ export default createFragmentContainer(ServiceDetailsPanel, {
         longitudeValue
         rangeFromValue
         rangeToValue
-        equipmentValue {
-          id
-          name
-        }
-        locationValue {
-          id
-          name
-        }
-        serviceValue {
+        nodeValue {
           id
           name
         }

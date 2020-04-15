@@ -1134,7 +1134,7 @@ func TestAddLocationWithEquipmentProperty(t *testing.T) {
 	index := 0
 	eqPropType := models.PropertyTypeInput{
 		Name:  "eq_prop",
-		Type:  "equipment",
+		Type:  "node",
 		Index: &index,
 	}
 
@@ -1147,8 +1147,8 @@ func TestAddLocationWithEquipmentProperty(t *testing.T) {
 
 	propType := lt.QueryPropertyTypes().OnlyX(ctx)
 	eqPropInput := models.PropertyInput{
-		PropertyTypeID:   propType.ID,
-		EquipmentIDValue: &equipment.ID,
+		PropertyTypeID: propType.ID,
+		NodeIDValue:    &equipment.ID,
 	}
 
 	l, err := mr.AddLocation(ctx, models.AddLocationInput{
@@ -1196,8 +1196,8 @@ func TestAddLocationWithLocationProperty(t *testing.T) {
 
 	propType := lt.QueryPropertyTypes().OnlyX(ctx)
 	locationPropInput := models.PropertyInput{
-		PropertyTypeID:  propType.ID,
-		LocationIDValue: &el.ID,
+		PropertyTypeID: propType.ID,
+		NodeIDValue:    &el.ID,
 	}
 
 	l, err := mr.AddLocation(ctx, models.AddLocationInput{

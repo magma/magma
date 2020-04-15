@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type PropertyTypeFormField_propertyType$ref: FragmentReference;
 declare export opaque type PropertyTypeFormField_propertyType$fragmentType: PropertyTypeFormField_propertyType$ref;
@@ -22,6 +22,7 @@ export type PropertyTypeFormField_propertyType = {|
   +id: string,
   +name: string,
   +type: PropertyKind,
+  +nodeType: ?string,
   +index: ?number,
   +stringValue: ?string,
   +intValue: ?number,
@@ -72,6 +73,13 @@ const node/*: ReaderFragment*/ = {
       "kind": "ScalarField",
       "alias": null,
       "name": "type",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "nodeType",
       "args": null,
       "storageKey": null
     },
@@ -176,5 +184,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = 'abc21c936b145d984043f004119c1d14';
+(node/*: any*/).hash = 'e9ebc13a5940b5ac262a1d0496f2253c';
 module.exports = node;

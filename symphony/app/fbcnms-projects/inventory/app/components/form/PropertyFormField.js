@@ -43,6 +43,7 @@ export default withStyles(styles)(
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue
@@ -66,15 +67,7 @@ export default withStyles(styles)(
         longitudeValue
         rangeFromValue
         rangeToValue
-        equipmentValue {
-          id
-          name
-        }
-        locationValue {
-          id
-          name
-        }
-        serviceValue {
+        nodeValue {
           id
           name
         }

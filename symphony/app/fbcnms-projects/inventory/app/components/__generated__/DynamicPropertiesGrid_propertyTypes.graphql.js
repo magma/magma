@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type DynamicPropertiesGrid_propertyTypes$ref: FragmentReference;
 declare export opaque type DynamicPropertiesGrid_propertyTypes$fragmentType: DynamicPropertiesGrid_propertyTypes$ref;
@@ -24,6 +24,7 @@ export type DynamicPropertiesGrid_propertyTypes = $ReadOnlyArray<{|
   +index: ?number,
   +isInstanceProperty: ?boolean,
   +type: PropertyKind,
+  +nodeType: ?string,
   +stringValue: ?string,
   +intValue: ?number,
   +booleanValue: ?boolean,
@@ -90,6 +91,13 @@ const node/*: ReaderFragment*/ = {
     {
       "kind": "ScalarField",
       "alias": null,
+      "name": "nodeType",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
       "name": "stringValue",
       "args": null,
       "storageKey": null
@@ -146,5 +154,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = '352ce07fece51150af9945c3ea537d3f';
+(node/*: any*/).hash = 'f28bea12cb3a2126f30e1696b5d6f117';
 module.exports = node;

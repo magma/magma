@@ -299,63 +299,66 @@ class PropertyValueInput<T: Property | PropertyType> extends React.Component<
             }
           />
         );
-      case 'equipment':
-        return inputType == 'Property' ? (
-          <EquipmentTypeahead
-            margin="dense"
-            // eslint-disable-next-line no-warning-comments
-            // $FlowFixMe - need to fix this entire file as it receives either property or property type
-            selectedEquipment={property.equipmentValue}
-            onEquipmentSelection={equipment =>
-              onChange(
-                update(property, {
-                  equipmentValue: {$set: equipment},
-                }),
-              )
-            }
-            headline={label}
-          />
-        ) : (
-          <Text>-</Text>
-        );
-      case 'location':
-        return inputType == 'Property' ? (
-          <LocationTypeahead
-            margin="dense"
-            // eslint-disable-next-line no-warning-comments
-            // $FlowFixMe - need to fix this entire file as it receives either property or property type
-            selectedLocation={property.locationValue}
-            onLocationSelection={location =>
-              onChange(
-                update(property, {
-                  locationValue: {$set: location},
-                }),
-              )
-            }
-            headline={label}
-          />
-        ) : (
-          <Text>-</Text>
-        );
-      case 'service':
-        return inputType == 'Property' ? (
-          <ServiceTypeahead
-            margin="dense"
-            // eslint-disable-next-line no-warning-comments
-            // $FlowFixMe - need to fix this entire file as it receives either property or property type
-            selectedService={property.serviceValue}
-            onServiceSelection={service =>
-              onChange(
-                update(property, {
-                  serviceValue: {$set: service},
-                }),
-              )
-            }
-            headline={label}
-          />
-        ) : (
-          <Text>-</Text>
-        );
+      case 'node':
+        switch (propertyType.nodeType) {
+          case 'equipment':
+            return inputType == 'Property' ? (
+              <EquipmentTypeahead
+                margin="dense"
+                // eslint-disable-next-line no-warning-comments
+                // $FlowFixMe - need to fix this entire file as it receives either property or property type
+                selectedEquipment={property.nodeValue}
+                onEquipmentSelection={equipment =>
+                  onChange(
+                    update(property, {
+                      nodeValue: {$set: equipment},
+                    }),
+                  )
+                }
+                headline={label}
+              />
+            ) : (
+              <Text>-</Text>
+            );
+          case 'location':
+            return inputType == 'Property' ? (
+              <LocationTypeahead
+                margin="dense"
+                // eslint-disable-next-line no-warning-comments
+                // $FlowFixMe - need to fix this entire file as it receives either property or property type
+                selectedLocation={property.nodeValue}
+                onLocationSelection={location =>
+                  onChange(
+                    update(property, {
+                      nodeValue: {$set: location},
+                    }),
+                  )
+                }
+                headline={label}
+              />
+            ) : (
+              <Text>-</Text>
+            );
+          case 'service':
+            return inputType == 'Property' ? (
+              <ServiceTypeahead
+                margin="dense"
+                // eslint-disable-next-line no-warning-comments
+                // $FlowFixMe - need to fix this entire file as it receives either property or property type
+                selectedService={property.nodeValue}
+                onServiceSelection={service =>
+                  onChange(
+                    update(property, {
+                      nodeValue: {$set: service},
+                    }),
+                  )
+                }
+                headline={label}
+              />
+            ) : (
+              <Text>-</Text>
+            );
+        }
     }
     return null;
   };

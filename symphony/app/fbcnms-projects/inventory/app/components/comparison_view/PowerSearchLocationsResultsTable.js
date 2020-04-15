@@ -264,15 +264,7 @@ export default withRouter(
               longitudeValue
               rangeFromValue
               rangeToValue
-              equipmentValue {
-                id
-                name
-              }
-              locationValue {
-                id
-                name
-              }
-              serviceValue {
+              nodeValue {
                 id
                 name
               }
@@ -280,6 +272,7 @@ export default withRouter(
                 id
                 name
                 type
+                nodeType
                 isEditable
                 isInstanceProperty
                 stringValue

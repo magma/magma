@@ -60,11 +60,11 @@ func prepareServiceTypeData(ctx context.Context, t *testing.T, r TestImporterRes
 	}
 	propDefInput7 := models.PropertyTypeInput{
 		Name: propName7,
-		Type: "location",
+		Type: "node",
 	}
 	propDefInput8 := models.PropertyTypeInput{
 		Name: propName8,
-		Type: "service",
+		Type: "node",
 	}
 
 	serviceType1, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
@@ -123,7 +123,7 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 		row1       = []string{"", "s1", serviceTypeName, "M123", "", "", "IN_SERVICE", "strVal", "54", "", "", "", "", "", ""}
 		row2       = []string{"", "s2", serviceType2Name, "M456", "", "", "MAINTENANCE", "", "", "29/03/88", "false", "", "", "", ""}
 		row3       = []string{"", "s3", serviceType3Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "30.23-50", "45.8,88.9", "", ""}
-		row4       = []string{"", "s3", serviceType4Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "", "", strconv.Itoa(loc.ID), service.Name}
+		row4       = []string{"", "s3", serviceType4Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "", "", strconv.Itoa(loc.ID), strconv.Itoa(service.ID)}
 	)
 
 	titleWithProperties := append(dataHeader[:], propName1, propName2, propName3, propName4, propName5, propName6, propName7, propName8)
@@ -206,11 +206,11 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 		ptyp := styp4.QueryPropertyTypes().Where(propertytype.ID(value.PropertyTypeID)).OnlyX(ctx)
 		switch ptyp.Name {
 		case propName7:
-			require.Equal(t, *value.LocationIDValue, loc.ID)
-			require.Equal(t, ptyp.Type, "location")
+			require.Equal(t, *value.NodeIDValue, loc.ID)
+			require.Equal(t, ptyp.Type, "node")
 		case propName8:
-			require.Equal(t, *value.ServiceIDValue, service.ID)
-			require.Equal(t, ptyp.Type, "service")
+			require.Equal(t, *value.NodeIDValue, service.ID)
+			require.Equal(t, ptyp.Type, "node")
 		default:
 			require.Fail(t, "property type name should be one of the two")
 		}

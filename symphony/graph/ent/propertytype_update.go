@@ -375,6 +375,26 @@ func (ptu *PropertyTypeUpdate) SetNillableDeleted(b *bool) *PropertyTypeUpdate {
 	return ptu
 }
 
+// SetNodeType sets the nodeType field.
+func (ptu *PropertyTypeUpdate) SetNodeType(s string) *PropertyTypeUpdate {
+	ptu.mutation.SetNodeType(s)
+	return ptu
+}
+
+// SetNillableNodeType sets the nodeType field if the given value is not nil.
+func (ptu *PropertyTypeUpdate) SetNillableNodeType(s *string) *PropertyTypeUpdate {
+	if s != nil {
+		ptu.SetNodeType(*s)
+	}
+	return ptu
+}
+
+// ClearNodeType clears the value of nodeType.
+func (ptu *PropertyTypeUpdate) ClearNodeType() *PropertyTypeUpdate {
+	ptu.mutation.ClearNodeType()
+	return ptu
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptu *PropertyTypeUpdate) AddPropertyIDs(ids ...int) *PropertyTypeUpdate {
 	ptu.mutation.AddPropertyIDs(ids...)
@@ -892,6 +912,19 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: propertytype.FieldDeleted,
+		})
+	}
+	if value, ok := ptu.mutation.NodeType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldNodeType,
+		})
+	}
+	if ptu.mutation.NodeTypeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: propertytype.FieldNodeType,
 		})
 	}
 	if nodes := ptu.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {
@@ -1532,6 +1565,26 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableDeleted(b *bool) *PropertyTypeUpda
 	return ptuo
 }
 
+// SetNodeType sets the nodeType field.
+func (ptuo *PropertyTypeUpdateOne) SetNodeType(s string) *PropertyTypeUpdateOne {
+	ptuo.mutation.SetNodeType(s)
+	return ptuo
+}
+
+// SetNillableNodeType sets the nodeType field if the given value is not nil.
+func (ptuo *PropertyTypeUpdateOne) SetNillableNodeType(s *string) *PropertyTypeUpdateOne {
+	if s != nil {
+		ptuo.SetNodeType(*s)
+	}
+	return ptuo
+}
+
+// ClearNodeType clears the value of nodeType.
+func (ptuo *PropertyTypeUpdateOne) ClearNodeType() *PropertyTypeUpdateOne {
+	ptuo.mutation.ClearNodeType()
+	return ptuo
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptuo *PropertyTypeUpdateOne) AddPropertyIDs(ids ...int) *PropertyTypeUpdateOne {
 	ptuo.mutation.AddPropertyIDs(ids...)
@@ -2047,6 +2100,19 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: propertytype.FieldDeleted,
+		})
+	}
+	if value, ok := ptuo.mutation.NodeType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldNodeType,
+		})
+	}
+	if ptuo.mutation.NodeTypeCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: propertytype.FieldNodeType,
 		})
 	}
 	if nodes := ptuo.mutation.RemovedPropertiesIDs(); len(nodes) > 0 {

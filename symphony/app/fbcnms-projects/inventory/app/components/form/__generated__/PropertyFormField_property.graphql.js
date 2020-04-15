@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type PropertyFormField_property$ref: FragmentReference;
 declare export opaque type PropertyFormField_property$fragmentType: PropertyFormField_property$ref;
@@ -24,6 +24,7 @@ export type PropertyFormField_property = {|
     +id: string,
     +name: string,
     +type: PropertyKind,
+    +nodeType: ?string,
     +index: ?number,
     +stringValue: ?string,
     +intValue: ?number,
@@ -47,15 +48,7 @@ export type PropertyFormField_property = {|
   +longitudeValue: ?number,
   +rangeFromValue: ?number,
   +rangeToValue: ?number,
-  +equipmentValue: ?{|
-    +id: string,
-    +name: string,
-  |},
-  +locationValue: ?{|
-    +id: string,
-    +name: string,
-  |},
-  +serviceValue: ?{|
+  +nodeValue: ?{|
     +id: string,
     +name: string,
   |},
@@ -140,11 +133,7 @@ v9 = {
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
-},
-v10 = [
-  (v0/*: any*/),
-  (v1/*: any*/)
-];
+};
 return {
   "kind": "Fragment",
   "name": "PropertyFormField_property",
@@ -168,6 +157,13 @@ return {
           "kind": "ScalarField",
           "alias": null,
           "name": "type",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "nodeType",
           "args": null,
           "storageKey": null
         },
@@ -234,36 +230,19 @@ return {
     {
       "kind": "LinkedField",
       "alias": null,
-      "name": "equipmentValue",
+      "name": "nodeValue",
       "storageKey": null,
       "args": null,
-      "concreteType": "Equipment",
+      "concreteType": null,
       "plural": false,
-      "selections": (v10/*: any*/)
-    },
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "locationValue",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "Location",
-      "plural": false,
-      "selections": (v10/*: any*/)
-    },
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "serviceValue",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "Service",
-      "plural": false,
-      "selections": (v10/*: any*/)
+      "selections": [
+        (v0/*: any*/),
+        (v1/*: any*/)
+      ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c0216f5951d95041e1ad709abaaf6f26';
+(node/*: any*/).hash = '1ab1f3c728b5670201d8721cc096343a';
 module.exports = node;

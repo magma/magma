@@ -64,6 +64,8 @@ type PropertyType struct {
 	Mandatory bool `json:"mandatory,omitempty" gqlgen:"isMandatory"`
 	// Deleted holds the value of the "deleted" field.
 	Deleted bool `json:"deleted,omitempty" gqlgen:"isDeleted"`
+	// NodeType holds the value of the "nodeType" field.
+	NodeType string `json:"nodeType,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PropertyTypeQuery when eager-loading is set.
 	Edges                                   PropertyTypeEdges `json:"edges"`
@@ -229,6 +231,7 @@ func (*PropertyType) scanValues() []interface{} {
 		&sql.NullBool{},    // editable
 		&sql.NullBool{},    // mandatory
 		&sql.NullBool{},    // deleted
+		&sql.NullString{},  // nodeType
 	}
 }
 
@@ -352,7 +355,12 @@ func (pt *PropertyType) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		pt.Deleted = value.Bool
 	}
-	values = values[19:]
+	if value, ok := values[19].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field nodeType", values[19])
+	} else if value.Valid {
+		pt.NodeType = value.String
+	}
+	values = values[20:]
 	if len(values) == len(propertytype.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_port_type_property_types", value)
@@ -501,6 +509,8 @@ func (pt *PropertyType) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pt.Mandatory))
 	builder.WriteString(", deleted=")
 	builder.WriteString(fmt.Sprintf("%v", pt.Deleted))
+	builder.WriteString(", nodeType=")
+	builder.WriteString(pt.NodeType)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -16,7 +16,7 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type PowerSearchLinksResultsTable_links$ref: FragmentReference;
@@ -35,6 +35,7 @@ export type PowerSearchLinksResultsTable_links = $ReadOnlyArray<{|
           +id: string,
           +name: string,
           +type: PropertyKind,
+          +nodeType: ?string,
           +index: ?number,
           +stringValue: ?string,
           +intValue: ?number,
@@ -87,6 +88,7 @@ export type PowerSearchLinksResultsTable_links = $ReadOnlyArray<{|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +stringValue: ?string,
@@ -157,74 +159,81 @@ v4 = {
 v5 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "stringValue",
+  "name": "nodeType",
   "args": null,
   "storageKey": null
 },
 v6 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "intValue",
+  "name": "stringValue",
   "args": null,
   "storageKey": null
 },
 v7 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "booleanValue",
+  "name": "intValue",
   "args": null,
   "storageKey": null
 },
 v8 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "floatValue",
+  "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
 v9 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "latitudeValue",
+  "name": "floatValue",
   "args": null,
   "storageKey": null
 },
 v10 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "longitudeValue",
+  "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
 v11 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "rangeFromValue",
+  "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
 v12 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "rangeToValue",
+  "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
 v13 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "isEditable",
+  "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
 v14 = {
   "kind": "ScalarField",
   "alias": null,
+  "name": "isEditable",
+  "args": null,
+  "storageKey": null
+},
+v15 = {
+  "kind": "ScalarField",
+  "alias": null,
   "name": "isInstanceProperty",
   "args": null,
   "storageKey": null
 },
-v15 = [
+v16 = [
   (v0/*: any*/),
   (v2/*: any*/)
 ];
@@ -282,6 +291,7 @@ return {
                     (v0/*: any*/),
                     (v2/*: any*/),
                     (v4/*: any*/),
+                    (v5/*: any*/),
                     {
                       "kind": "ScalarField",
                       "alias": null,
@@ -289,7 +299,6 @@ return {
                       "args": null,
                       "storageKey": null
                     },
-                    (v5/*: any*/),
                     (v6/*: any*/),
                     (v7/*: any*/),
                     (v8/*: any*/),
@@ -299,6 +308,7 @@ return {
                     (v12/*: any*/),
                     (v13/*: any*/),
                     (v14/*: any*/),
+                    (v15/*: any*/),
                     {
                       "kind": "ScalarField",
                       "alias": null,
@@ -376,7 +386,7 @@ return {
                       "args": null,
                       "concreteType": "EquipmentPortType",
                       "plural": false,
-                      "selections": (v15/*: any*/)
+                      "selections": (v16/*: any*/)
                     }
                   ]
                 }
@@ -401,14 +411,14 @@ return {
       "plural": true,
       "selections": [
         (v0/*: any*/),
-        (v5/*: any*/),
         (v6/*: any*/),
-        (v8/*: any*/),
         (v7/*: any*/),
         (v9/*: any*/),
+        (v8/*: any*/),
         (v10/*: any*/),
         (v11/*: any*/),
         (v12/*: any*/),
+        (v13/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -421,16 +431,17 @@ return {
             (v0/*: any*/),
             (v2/*: any*/),
             (v4/*: any*/),
-            (v13/*: any*/),
-            (v14/*: any*/),
             (v5/*: any*/),
+            (v14/*: any*/),
+            (v15/*: any*/),
             (v6/*: any*/),
-            (v8/*: any*/),
             (v7/*: any*/),
             (v9/*: any*/),
+            (v8/*: any*/),
             (v10/*: any*/),
             (v11/*: any*/),
-            (v12/*: any*/)
+            (v12/*: any*/),
+            (v13/*: any*/)
           ]
         }
       ]
@@ -462,11 +473,11 @@ return {
       "args": null,
       "concreteType": "Service",
       "plural": true,
-      "selections": (v15/*: any*/)
+      "selections": (v16/*: any*/)
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '1f762af83fe696ca157c3697b4b35e8b';
+(node/*: any*/).hash = 'a8e04e91f3b3dad4b69b5fc1ded6abce';
 module.exports = node;

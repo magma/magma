@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type SurveyQuestionType = "BOOL" | "CELLULAR" | "COORDS" | "DATE" | "EMAIL" | "FLOAT" | "INTEGER" | "PHONE" | "PHOTO" | "TEXT" | "TEXTAREA" | "WIFI" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type AddEditLocationTypeCard_editingLocationType$ref: FragmentReference;
@@ -30,6 +30,7 @@ export type AddEditLocationTypeCard_editingLocationType = {|
     +id: string,
     +name: string,
     +type: PropertyKind,
+    +nodeType: ?string,
     +index: ?number,
     +stringValue: ?string,
     +intValue: ?number,
@@ -140,6 +141,13 @@ return {
           "kind": "ScalarField",
           "alias": null,
           "name": "type",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "nodeType",
           "args": null,
           "storageKey": null
         },
@@ -287,5 +295,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'a8646889770a54d6b386f9e60ad52c91';
+(node/*: any*/).hash = '922d9f9f84ee7d6e6f8efd7f0da8b295';
 module.exports = node;

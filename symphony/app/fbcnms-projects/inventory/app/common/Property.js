@@ -30,9 +30,7 @@ export type Property = {|
   longitudeValue?: ?number,
   rangeFromValue?: ?number,
   rangeToValue?: ?number,
-  equipmentValue?: ?{id: string, name: string},
-  locationValue?: ?{id: string, name: string},
-  serviceValue?: ?{id: string, name: string},
+  nodeValue?: ?{id: string, name: string},
 |};
 
 export const sortPropertiesByIndex = (a: Property, b: Property) =>
@@ -87,12 +85,8 @@ export const getPropertyValue = (property: Property | PropertyType) => {
        * we need to check which one we recieved.
        * In the case of PropertyType, there isn't an equipment/location value.
        */
-      case 'equipment':
-        return property.propertyType ? property.equipmentValue?.name : null;
-      case 'location':
-        return property.propertyType ? property.locationValue?.name : null;
-      case 'service':
-        return property.propertyType ? property.serviceValue?.name : null;
+      case 'node':
+        return property.propertyType ? property.nodeValue?.name : null;
     }
   }
 };
@@ -116,12 +110,8 @@ export const toPropertyInput = (properties: Array<Property>): Array<any> => {
     })
     .map(property => ({
       ...property,
-      equipmentValue: undefined,
-      equipmentIDValue: property.equipmentValue?.id ?? null,
-      locationValue: undefined,
-      locationIDValue: property.locationValue?.id ?? null,
-      serviceValue: undefined,
-      serviceIDValue: property.serviceValue?.id ?? null,
+      nodeValue: undefined,
+      nodeIDValue: property.nodeValue?.id ?? null,
     }));
 };
 
@@ -140,25 +130,11 @@ export const toMutableProperty = (
   longitudeValue: immutableProperty.longitudeValue,
   rangeFromValue: immutableProperty.rangeFromValue,
   rangeToValue: immutableProperty.rangeToValue,
-  equipmentValue:
-    immutableProperty.equipmentValue != null
+  nodeValue:
+    immutableProperty.nodeValue != null
       ? {
-          id: immutableProperty.equipmentValue.id,
-          name: immutableProperty.equipmentValue.name,
-        }
-      : null,
-  locationValue:
-    immutableProperty.locationValue != null
-      ? {
-          id: immutableProperty.locationValue.id,
-          name: immutableProperty.locationValue.name,
-        }
-      : null,
-  serviceValue:
-    immutableProperty.serviceValue != null
-      ? {
-          id: immutableProperty.serviceValue.id,
-          name: immutableProperty.serviceValue.name,
+          id: immutableProperty.nodeValue.id,
+          name: immutableProperty.nodeValue.name,
         }
       : null,
 });

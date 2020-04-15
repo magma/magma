@@ -18,6 +18,10 @@ import (
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
+type NamedNode interface {
+	IsNamedNode()
+}
+
 type ActionsAction struct {
 	ActionID    core.ActionID `json:"actionID"`
 	Description string        `json:"description"`
@@ -537,9 +541,7 @@ type PropertyInput struct {
 	LongitudeValue     *float64 `json:"longitudeValue"`
 	RangeFromValue     *float64 `json:"rangeFromValue"`
 	RangeToValue       *float64 `json:"rangeToValue"`
-	EquipmentIDValue   *int     `json:"equipmentIDValue"`
-	LocationIDValue    *int     `json:"locationIDValue"`
-	ServiceIDValue     *int     `json:"serviceIDValue"`
+	NodeIDValue        *int     `json:"nodeIDValue"`
 	IsEditable         *bool    `json:"isEditable"`
 	IsInstanceProperty *bool    `json:"isInstanceProperty"`
 }
@@ -549,6 +551,7 @@ type PropertyTypeInput struct {
 	ExternalID         *string      `json:"externalId"`
 	Name               string       `json:"name"`
 	Type               PropertyKind `json:"type"`
+	NodeType           *string      `json:"nodeType"`
 	Index              *int         `json:"index"`
 	Category           *string      `json:"category"`
 	StringValue        *string      `json:"stringValue"`
@@ -1550,10 +1553,8 @@ const (
 	PropertyKindRange         PropertyKind = "range"
 	PropertyKindEmail         PropertyKind = "email"
 	PropertyKindGpsLocation   PropertyKind = "gps_location"
-	PropertyKindEquipment     PropertyKind = "equipment"
-	PropertyKindLocation      PropertyKind = "location"
-	PropertyKindService       PropertyKind = "service"
 	PropertyKindDatetimeLocal PropertyKind = "datetime_local"
+	PropertyKindNode          PropertyKind = "node"
 )
 
 var AllPropertyKind = []PropertyKind{
@@ -1566,15 +1567,13 @@ var AllPropertyKind = []PropertyKind{
 	PropertyKindRange,
 	PropertyKindEmail,
 	PropertyKindGpsLocation,
-	PropertyKindEquipment,
-	PropertyKindLocation,
-	PropertyKindService,
 	PropertyKindDatetimeLocal,
+	PropertyKindNode,
 }
 
 func (e PropertyKind) IsValid() bool {
 	switch e {
-	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation, PropertyKindService, PropertyKindDatetimeLocal:
+	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindDatetimeLocal, PropertyKindNode:
 		return true
 	}
 	return false

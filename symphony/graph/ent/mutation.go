@@ -16544,6 +16544,7 @@ type PropertyTypeMutation struct {
 	editable                        *bool
 	mandatory                       *bool
 	deleted                         *bool
+	nodeType                        *string
 	clearedFields                   map[string]struct{}
 	properties                      map[int]struct{}
 	removedproperties               map[int]struct{}
@@ -17254,6 +17255,38 @@ func (m *PropertyTypeMutation) ResetDeleted() {
 	m.deleted = nil
 }
 
+// SetNodeType sets the nodeType field.
+func (m *PropertyTypeMutation) SetNodeType(s string) {
+	m.nodeType = &s
+}
+
+// NodeType returns the nodeType value in the mutation.
+func (m *PropertyTypeMutation) NodeType() (r string, exists bool) {
+	v := m.nodeType
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearNodeType clears the value of nodeType.
+func (m *PropertyTypeMutation) ClearNodeType() {
+	m.nodeType = nil
+	m.clearedFields[propertytype.FieldNodeType] = struct{}{}
+}
+
+// NodeTypeCleared returns if the field nodeType was cleared in this mutation.
+func (m *PropertyTypeMutation) NodeTypeCleared() bool {
+	_, ok := m.clearedFields[propertytype.FieldNodeType]
+	return ok
+}
+
+// ResetNodeType reset all changes of the nodeType field.
+func (m *PropertyTypeMutation) ResetNodeType() {
+	m.nodeType = nil
+	delete(m.clearedFields, propertytype.FieldNodeType)
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (m *PropertyTypeMutation) AddPropertyIDs(ids ...int) {
 	if m.properties == nil {
@@ -17583,7 +17616,7 @@ func (m *PropertyTypeMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *PropertyTypeMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 20)
 	if m.create_time != nil {
 		fields = append(fields, propertytype.FieldCreateTime)
 	}
@@ -17641,6 +17674,9 @@ func (m *PropertyTypeMutation) Fields() []string {
 	if m.deleted != nil {
 		fields = append(fields, propertytype.FieldDeleted)
 	}
+	if m.nodeType != nil {
+		fields = append(fields, propertytype.FieldNodeType)
+	}
 	return fields
 }
 
@@ -17687,6 +17723,8 @@ func (m *PropertyTypeMutation) Field(name string) (ent.Value, bool) {
 		return m.Mandatory()
 	case propertytype.FieldDeleted:
 		return m.Deleted()
+	case propertytype.FieldNodeType:
+		return m.NodeType()
 	}
 	return nil, false
 }
@@ -17828,6 +17866,13 @@ func (m *PropertyTypeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDeleted(v)
+		return nil
+	case propertytype.FieldNodeType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNodeType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown PropertyType field %s", name)
@@ -17979,6 +18024,9 @@ func (m *PropertyTypeMutation) ClearedFields() []string {
 	if m.FieldCleared(propertytype.FieldRangeToVal) {
 		fields = append(fields, propertytype.FieldRangeToVal)
 	}
+	if m.FieldCleared(propertytype.FieldNodeType) {
+		fields = append(fields, propertytype.FieldNodeType)
+	}
 	return fields
 }
 
@@ -18025,6 +18073,9 @@ func (m *PropertyTypeMutation) ClearField(name string) error {
 		return nil
 	case propertytype.FieldRangeToVal:
 		m.ClearRangeToVal()
+		return nil
+	case propertytype.FieldNodeType:
+		m.ClearNodeType()
 		return nil
 	}
 	return fmt.Errorf("unknown PropertyType nullable field %s", name)
@@ -18091,6 +18142,9 @@ func (m *PropertyTypeMutation) ResetField(name string) error {
 		return nil
 	case propertytype.FieldDeleted:
 		m.ResetDeleted()
+		return nil
+	case propertytype.FieldNodeType:
+		m.ResetNodeType()
 		return nil
 	}
 	return fmt.Errorf("unknown PropertyType field %s", name)

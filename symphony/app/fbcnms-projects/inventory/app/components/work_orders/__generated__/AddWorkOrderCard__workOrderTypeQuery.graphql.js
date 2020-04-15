@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 568fcb905b8b6b76ec03edabf9ac81d3
+ * @relayHash 5c5ed28a4286c80d55dc4e6f9994dd7b
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type AddWorkOrderCard__workOrderTypeQueryVariables = {|
   workOrderTypeId: string
 |};
@@ -28,6 +28,7 @@ export type AddWorkOrderCard__workOrderTypeQueryResponse = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -65,6 +66,7 @@ query AddWorkOrderCard__workOrderTypeQuery(
         id
         name
         type
+        nodeType
         index
         stringValue
         intValue
@@ -137,6 +139,13 @@ v5 = {
       "kind": "ScalarField",
       "alias": null,
       "name": "type",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "nodeType",
       "args": null,
       "storageKey": null
     },
@@ -304,11 +313,11 @@ return {
     "operationKind": "query",
     "name": "AddWorkOrderCard__workOrderTypeQuery",
     "id": null,
-    "text": "query AddWorkOrderCard__workOrderTypeQuery(\n  $workOrderTypeId: ID!\n) {\n  workOrderType: node(id: $workOrderTypeId) {\n    __typename\n    ... on WorkOrderType {\n      id\n      name\n      description\n      propertyTypes {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isMandatory\n        isInstanceProperty\n        isDeleted\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query AddWorkOrderCard__workOrderTypeQuery(\n  $workOrderTypeId: ID!\n) {\n  workOrderType: node(id: $workOrderTypeId) {\n    __typename\n    ... on WorkOrderType {\n      id\n      name\n      description\n      propertyTypes {\n        id\n        name\n        type\n        nodeType\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isMandatory\n        isInstanceProperty\n        isDeleted\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '3205c75c69df56168b9d41015e450ff8';
+(node/*: any*/).hash = '2488f436edbb32bad13c042f4fc91af2';
 module.exports = node;

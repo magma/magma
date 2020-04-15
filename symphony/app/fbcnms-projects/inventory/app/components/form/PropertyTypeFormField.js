@@ -41,6 +41,7 @@ export default withStyles(styles)(
         id
         name
         type
+        nodeType
         index
         stringValue
         intValue

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash af5d7b45b53fb739e259665bd47242c3
+ * @relayHash a7a8e8f04c0e84f790443c8c60ad8103
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type AddProjectCard__projectTypeQueryVariables = {|
   projectTypeId: string
 |};
@@ -28,6 +28,7 @@ export type AddProjectCard__projectTypeQueryResponse = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -65,6 +66,7 @@ query AddProjectCard__projectTypeQuery(
         id
         name
         type
+        nodeType
         index
         stringValue
         intValue
@@ -137,6 +139,13 @@ v5 = {
       "kind": "ScalarField",
       "alias": null,
       "name": "type",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "nodeType",
       "args": null,
       "storageKey": null
     },
@@ -304,11 +313,11 @@ return {
     "operationKind": "query",
     "name": "AddProjectCard__projectTypeQuery",
     "id": null,
-    "text": "query AddProjectCard__projectTypeQuery(\n  $projectTypeId: ID!\n) {\n  projectType: node(id: $projectTypeId) {\n    __typename\n    ... on ProjectType {\n      id\n      name\n      description\n      properties {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isDeleted\n        isMandatory\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query AddProjectCard__projectTypeQuery(\n  $projectTypeId: ID!\n) {\n  projectType: node(id: $projectTypeId) {\n    __typename\n    ... on ProjectType {\n      id\n      name\n      description\n      properties {\n        id\n        name\n        type\n        nodeType\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isDeleted\n        isMandatory\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'd508b7415134664d22c3632dbe6ac460';
+(node/*: any*/).hash = '30fccb6e48c301875aa28df6e9702411';
 module.exports = node;

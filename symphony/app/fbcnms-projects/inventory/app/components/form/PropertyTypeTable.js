@@ -82,7 +82,10 @@ const propertyTypeLabels: {[string]: PropertyTypeInfo} = {
   enum: {label: 'Multiple choice'},
   equipment: {label: 'Equipment'},
   location: {label: 'Location'},
-  service: {label: 'Service', featureFlag: 'services'},
+  service: {
+    label: 'Service',
+    featureFlag: 'services',
+  },
 };
 
 type Props = {
@@ -171,7 +174,11 @@ class PropertyTypeTable extends React.Component<Props> {
                             value: type,
                             label: propertyTypeLabels[type].label,
                           }))}
-                        selectedValue={property.type}
+                        selectedValue={
+                          property.type == 'node'
+                            ? property.nodeType
+                            : property.type
+                        }
                         onChange={this._handleTypeChange(i)}
                       />
                     </FormField>
@@ -266,15 +273,32 @@ class PropertyTypeTable extends React.Component<Props> {
   };
 
   _handleTypeChange = index => value => {
-    this.props.onPropertiesChanged(
-      updateItem<PropertyType, 'type'>(
+    if (value == 'equipment' || value == 'location' || value == 'service') {
+      const newPropertyTypes = updateItem<PropertyType, 'type'>(
         this.props.propertyTypes,
         index,
         'type',
-        // $FlowFixMe: need to figure out how to cast string to PropertyKind
-        value,
-      ),
-    );
+        'node',
+      );
+      this.props.onPropertiesChanged(
+        updateItem<PropertyType, 'nodeType'>(
+          newPropertyTypes,
+          index,
+          'nodeType',
+          value,
+        ),
+      );
+    } else {
+      this.props.onPropertiesChanged(
+        updateItem<PropertyType, 'type'>(
+          this.props.propertyTypes,
+          index,
+          'type',
+          // $FlowFixMe: need to figure out how to cast string to PropertyKind
+          value,
+        ),
+      );
+    }
   };
 
   _handleNameBlur = index => {
@@ -361,6 +385,7 @@ class PropertyTypeTable extends React.Component<Props> {
       name: '',
       index: this.props.propertyTypes.length,
       type: 'string',
+      nodeType: null,
       booleanValue: false,
       stringValue: null,
       intValue: null,

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 567d8b0ddd6c5efcc89cc5d7a018108e
+ * @relayHash 5eed9893ea0c0163186eea8eef345b8c
  */
 
 /* eslint-disable */
@@ -19,7 +19,7 @@ type AddEditWorkOrderTypeCard_editingWorkOrderType$ref = any;
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
 export type CheckListItemType = "cell_scan" | "enum" | "files" | "simple" | "string" | "wifi_scan" | "yes_no" | "%future added value";
 export type FileType = "FILE" | "IMAGE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type YesNoResponse = "NO" | "YES" | "%future added value";
 export type AddWorkOrderTypeInput = {|
   name: string,
@@ -33,6 +33,7 @@ export type PropertyTypeInput = {|
   externalId?: ?string,
   name: string,
   type: PropertyKind,
+  nodeType?: ?string,
   index?: ?number,
   category?: ?string,
   stringValue?: ?string,
@@ -123,6 +124,7 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     id
     name
     type
+    nodeType
     index
     stringValue
     intValue
@@ -250,6 +252,13 @@ return {
               {
                 "kind": "ScalarField",
                 "alias": null,
+                "name": "nodeType",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
                 "name": "index",
                 "args": null,
                 "storageKey": null
@@ -348,7 +357,7 @@ return {
     "operationKind": "mutation",
     "name": "AddWorkOrderTypeMutation",
     "id": null,
-    "text": "mutation AddWorkOrderTypeMutation(\n  $input: AddWorkOrderTypeInput!\n) {\n  addWorkOrderType(input: $input) {\n    id\n    name\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n",
+    "text": "mutation AddWorkOrderTypeMutation(\n  $input: AddWorkOrderTypeInput!\n) {\n  addWorkOrderType(input: $input) {\n    id\n    name\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n",
     "metadata": {}
   }
 };

@@ -318,6 +318,7 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
         name: p.name,
         index: p.index || 0,
         type: p.type,
+        nodeType: p.nodeType,
         booleanValue: p.booleanValue,
         stringValue: p.stringValue,
         intValue: p.intValue,
@@ -340,6 +341,7 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
                 id: 'PropertyType@tmp',
                 name: '',
                 type: 'string',
+                nodeType: null,
                 index: editingServiceType?.propertyTypes?.length ?? 0,
                 booleanValue: false,
                 stringValue: null,
@@ -368,6 +370,7 @@ export default withStyles(styles)(
               id
               name
               type
+              nodeType
               index
               stringValue
               intValue

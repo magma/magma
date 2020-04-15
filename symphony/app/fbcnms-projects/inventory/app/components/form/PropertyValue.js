@@ -22,50 +22,46 @@ type Props = {
 
 const PropertyValue = ({property}: Props) => {
   const history = useHistory();
-  const type = property.propertyType
-    ? property.propertyType.type
-    : property.type;
+  const propType = property.propertyType ? property.propertyType : property;
 
-  switch (type) {
-    case 'equipment':
-      const equipmentValue = property.equipmentValue;
-      if (equipmentValue) {
-        return (
-          <Button
-            variant="text"
-            onClick={() =>
-              history.push(InventoryAPIUrls.equipment(equipmentValue.id))
-            }>
-            {equipmentValue.name}
-          </Button>
-        );
+  switch (propType.type) {
+    case 'node':
+      const nodeValue = property.nodeValue;
+      if (nodeValue) {
+        switch (propType.nodeType) {
+          case 'equipment':
+            return (
+              <Button
+                variant="text"
+                onClick={() =>
+                  history.push(InventoryAPIUrls.equipment(nodeValue.id))
+                }>
+                {nodeValue.name}
+              </Button>
+            );
+          case 'location':
+            return (
+              <Button
+                variant="text"
+                onClick={() =>
+                  history.push(InventoryAPIUrls.location(nodeValue.id))
+                }>
+                {nodeValue.name}
+              </Button>
+            );
+          case 'service':
+            return (
+              <Button
+                variant="text"
+                onClick={() =>
+                  history.push(InventoryAPIUrls.service(nodeValue.id))
+                }>
+                {nodeValue.name}
+              </Button>
+            );
+        }
       }
-    case 'location':
-      const locationValue = property.locationValue;
-      if (locationValue) {
-        return (
-          <Button
-            variant="text"
-            onClick={() =>
-              history.push(InventoryAPIUrls.location(locationValue.id))
-            }>
-            {locationValue.name}
-          </Button>
-        );
-      }
-    case 'service':
-      const serviceValue = property.serviceValue;
-      if (serviceValue) {
-        return (
-          <Button
-            variant="text"
-            onClick={() =>
-              history.push(InventoryAPIUrls.service(serviceValue.id))
-            }>
-            {serviceValue.name}
-          </Button>
-        );
-      }
+
     default:
       return getPropertyValue(property) ?? '';
   }

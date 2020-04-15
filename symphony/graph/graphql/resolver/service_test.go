@@ -811,7 +811,7 @@ func TestAddServiceWithServiceProperty(t *testing.T) {
 	index := 0
 	servicePropType := models.PropertyTypeInput{
 		Name:  "service_prop",
-		Type:  "service",
+		Type:  "node",
 		Index: &index,
 	}
 
@@ -826,7 +826,7 @@ func TestAddServiceWithServiceProperty(t *testing.T) {
 	propType := serviceTypeWithServiceProp.QueryPropertyTypes().OnlyX(ctx)
 	servicePropInput := models.PropertyInput{
 		PropertyTypeID: propType.ID,
-		ServiceIDValue: &service1.ID,
+		NodeIDValue:    &service1.ID,
 	}
 
 	service2, err := mr.AddService(ctx, models.ServiceCreateData{

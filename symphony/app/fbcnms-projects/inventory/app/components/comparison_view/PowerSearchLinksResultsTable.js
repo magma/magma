@@ -354,6 +354,7 @@ export default withRouter(
                 id
                 name
                 type
+                nodeType
                 isEditable
                 isInstanceProperty
                 stringValue

@@ -115,6 +115,7 @@ const addProjectCard__projectTypeQuery = graphql`
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue

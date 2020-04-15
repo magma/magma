@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b9979b1bc860ff012e6f6b0715ce3f20
+ * @relayHash 73294a2006b0a59f84ec58c74db2430b
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 export type EditEquipmentPortInput = {|
   side: LinkSide,
@@ -38,9 +38,7 @@ export type PropertyInput = {|
   longitudeValue?: ?number,
   rangeFromValue?: ?number,
   rangeToValue?: ?number,
-  equipmentIDValue?: ?string,
-  locationIDValue?: ?string,
-  serviceIDValue?: ?string,
+  nodeIDValue?: ?string,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
 |};
@@ -62,6 +60,7 @@ export type EditEquipmentPortMutationResponse = {|
           +id: string,
           +name: string,
           +type: PropertyKind,
+          +nodeType: ?string,
           +index: ?number,
           +stringValue: ?string,
           +intValue: ?number,
@@ -81,6 +80,7 @@ export type EditEquipmentPortMutationResponse = {|
           +id: string,
           +name: string,
           +type: PropertyKind,
+          +nodeType: ?string,
           +index: ?number,
           +stringValue: ?string,
           +intValue: ?number,
@@ -130,6 +130,7 @@ export type EditEquipmentPortMutationResponse = {|
               +id: string,
               +name: string,
               +type: PropertyKind,
+              +nodeType: ?string,
               +index: ?number,
               +stringValue: ?string,
               +intValue: ?number,
@@ -186,6 +187,7 @@ export type EditEquipmentPortMutationResponse = {|
           +id: string,
           +name: string,
           +type: PropertyKind,
+          +nodeType: ?string,
           +index: ?number,
           +stringValue: ?string,
           +intValue: ?number,
@@ -209,15 +211,7 @@ export type EditEquipmentPortMutationResponse = {|
         +longitudeValue: ?number,
         +rangeFromValue: ?number,
         +rangeToValue: ?number,
-        +equipmentValue: ?{|
-          +id: string,
-          +name: string,
-        |},
-        +locationValue: ?{|
-          +id: string,
-          +name: string,
-        |},
-        +serviceValue: ?{|
+        +nodeValue: ?{|
           +id: string,
           +name: string,
         |},
@@ -233,6 +227,7 @@ export type EditEquipmentPortMutationResponse = {|
         +id: string,
         +name: string,
         +type: PropertyKind,
+        +nodeType: ?string,
         +index: ?number,
         +stringValue: ?string,
         +intValue: ?number,
@@ -256,15 +251,7 @@ export type EditEquipmentPortMutationResponse = {|
       +longitudeValue: ?number,
       +rangeFromValue: ?number,
       +rangeToValue: ?number,
-      +equipmentValue: ?{|
-        +id: string,
-        +name: string,
-      |},
-      +locationValue: ?{|
-        +id: string,
-        +name: string,
-      |},
-      +serviceValue: ?{|
+      +nodeValue: ?{|
         +id: string,
         +name: string,
       |},
@@ -304,6 +291,7 @@ mutation EditEquipmentPortMutation(
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue
@@ -323,6 +311,7 @@ mutation EditEquipmentPortMutation(
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue
@@ -372,6 +361,7 @@ mutation EditEquipmentPortMutation(
               id
               name
               type
+              nodeType
               index
               stringValue
               intValue
@@ -432,6 +422,7 @@ mutation EditEquipmentPortMutation(
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue
@@ -455,15 +446,8 @@ mutation EditEquipmentPortMutation(
         longitudeValue
         rangeFromValue
         rangeToValue
-        equipmentValue {
-          id
-          name
-        }
-        locationValue {
-          id
-          name
-        }
-        serviceValue {
+        nodeValue {
+          __typename
           id
           name
         }
@@ -479,6 +463,7 @@ mutation EditEquipmentPortMutation(
         id
         name
         type
+        nodeType
         index
         stringValue
         intValue
@@ -502,15 +487,8 @@ mutation EditEquipmentPortMutation(
       longitudeValue
       rangeFromValue
       rangeToValue
-      equipmentValue {
-        id
-        name
-      }
-      locationValue {
-        id
-        name
-      }
-      serviceValue {
+      nodeValue {
+        __typename
         id
         name
       }
@@ -670,6 +648,13 @@ v14 = [
     "kind": "ScalarField",
     "alias": null,
     "name": "type",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "nodeType",
     "args": null,
     "storageKey": null
   },
@@ -930,6 +915,16 @@ v25 = {
 v26 = {
   "kind": "LinkedField",
   "alias": null,
+  "name": "propertyType",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "PropertyType",
+  "plural": false,
+  "selections": (v14/*: any*/)
+},
+v27 = {
+  "kind": "LinkedField",
+  "alias": null,
   "name": "properties",
   "storageKey": null,
   "args": null,
@@ -937,16 +932,7 @@ v26 = {
   "plural": true,
   "selections": [
     (v2/*: any*/),
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "propertyType",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "PropertyType",
-      "plural": false,
-      "selections": (v14/*: any*/)
-    },
+    (v26/*: any*/),
     (v6/*: any*/),
     (v7/*: any*/),
     (v9/*: any*/),
@@ -958,36 +944,16 @@ v26 = {
     {
       "kind": "LinkedField",
       "alias": null,
-      "name": "equipmentValue",
+      "name": "nodeValue",
       "storageKey": null,
       "args": null,
-      "concreteType": "Equipment",
-      "plural": false,
-      "selections": (v17/*: any*/)
-    },
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "locationValue",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "Location",
-      "plural": false,
-      "selections": (v17/*: any*/)
-    },
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "serviceValue",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "Service",
+      "concreteType": null,
       "plural": false,
       "selections": (v17/*: any*/)
     }
   ]
 },
-v27 = {
+v28 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "services",
@@ -997,11 +963,11 @@ v27 = {
   "plural": true,
   "selections": (v17/*: any*/)
 },
-v28 = [
+v29 = [
   (v3/*: any*/),
   (v2/*: any*/)
 ],
-v29 = {
+v30 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "serviceEndpoints",
@@ -1031,9 +997,50 @@ v29 = {
       "args": null,
       "concreteType": "Service",
       "plural": false,
-      "selections": (v28/*: any*/)
+      "selections": (v29/*: any*/)
     },
     (v2/*: any*/)
+  ]
+},
+v31 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "properties",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "Property",
+  "plural": true,
+  "selections": [
+    (v2/*: any*/),
+    (v26/*: any*/),
+    (v6/*: any*/),
+    (v7/*: any*/),
+    (v9/*: any*/),
+    (v8/*: any*/),
+    (v10/*: any*/),
+    (v11/*: any*/),
+    (v12/*: any*/),
+    (v13/*: any*/),
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "nodeValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": null,
+      "plural": false,
+      "selections": [
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "__typename",
+          "args": null,
+          "storageKey": null
+        },
+        (v2/*: any*/),
+        (v3/*: any*/)
+      ]
+    }
   ]
 };
 return {
@@ -1128,11 +1135,11 @@ return {
                 ]
               },
               (v25/*: any*/),
-              (v26/*: any*/),
-              (v27/*: any*/)
+              (v27/*: any*/),
+              (v28/*: any*/)
             ]
           },
-          (v26/*: any*/),
+          (v27/*: any*/),
           (v24/*: any*/)
         ]
       }
@@ -1235,7 +1242,7 @@ return {
                             "args": null,
                             "concreteType": "LocationType",
                             "plural": false,
-                            "selections": (v28/*: any*/)
+                            "selections": (v29/*: any*/)
                           }
                         ]
                       },
@@ -1290,16 +1297,16 @@ return {
                       }
                     ]
                   },
-                  (v29/*: any*/)
+                  (v30/*: any*/)
                 ]
               },
               (v25/*: any*/),
-              (v26/*: any*/),
-              (v27/*: any*/)
+              (v31/*: any*/),
+              (v28/*: any*/)
             ]
           },
-          (v26/*: any*/),
-          (v29/*: any*/)
+          (v31/*: any*/),
+          (v30/*: any*/)
         ]
       }
     ]
@@ -1308,7 +1315,7 @@ return {
     "operationKind": "mutation",
     "name": "EditEquipmentPortMutation",
     "id": null,
-    "text": "mutation EditEquipmentPortMutation(\n  $input: EditEquipmentPortInput!\n) {\n  editEquipmentPort(input: $input) {\n    id\n    definition {\n      id\n      name\n      index\n      visibleLabel\n      portType {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n          category\n          isDeleted\n        }\n        linkPropertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n          category\n          isDeleted\n        }\n      }\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          portType {\n            id\n            name\n          }\n          bandwidth\n        }\n      }\n    }\n    link {\n      id\n      futureState\n      ports {\n        id\n        definition {\n          id\n          name\n          visibleLabel\n          portType {\n            linkPropertyTypes {\n              id\n              name\n              type\n              index\n              stringValue\n              intValue\n              booleanValue\n              floatValue\n              latitudeValue\n              longitudeValue\n              rangeFromValue\n              rangeToValue\n              isEditable\n              isInstanceProperty\n              isMandatory\n              category\n              isDeleted\n            }\n            id\n          }\n        }\n        parentEquipment {\n          id\n          name\n          futureState\n          equipmentType {\n            id\n            name\n            portDefinitions {\n              id\n              name\n              visibleLabel\n              bandwidth\n              portType {\n                id\n                name\n              }\n            }\n          }\n          ...EquipmentBreadcrumbs_equipment\n        }\n        serviceEndpoints {\n          definition {\n            role\n            id\n          }\n          service {\n            name\n            id\n          }\n          id\n        }\n      }\n      workOrder {\n        id\n        status\n      }\n      properties {\n        id\n        propertyType {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n          category\n          isDeleted\n        }\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        equipmentValue {\n          id\n          name\n        }\n        locationValue {\n          id\n          name\n        }\n        serviceValue {\n          id\n          name\n        }\n      }\n      services {\n        id\n        name\n      }\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n        category\n        isDeleted\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n      serviceValue {\n        id\n        name\n      }\n    }\n    serviceEndpoints {\n      definition {\n        role\n        id\n      }\n      service {\n        name\n        id\n      }\n      id\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "mutation EditEquipmentPortMutation(\n  $input: EditEquipmentPortInput!\n) {\n  editEquipmentPort(input: $input) {\n    id\n    definition {\n      id\n      name\n      index\n      visibleLabel\n      portType {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          nodeType\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n          category\n          isDeleted\n        }\n        linkPropertyTypes {\n          id\n          name\n          type\n          nodeType\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n          category\n          isDeleted\n        }\n      }\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          portType {\n            id\n            name\n          }\n          bandwidth\n        }\n      }\n    }\n    link {\n      id\n      futureState\n      ports {\n        id\n        definition {\n          id\n          name\n          visibleLabel\n          portType {\n            linkPropertyTypes {\n              id\n              name\n              type\n              nodeType\n              index\n              stringValue\n              intValue\n              booleanValue\n              floatValue\n              latitudeValue\n              longitudeValue\n              rangeFromValue\n              rangeToValue\n              isEditable\n              isInstanceProperty\n              isMandatory\n              category\n              isDeleted\n            }\n            id\n          }\n        }\n        parentEquipment {\n          id\n          name\n          futureState\n          equipmentType {\n            id\n            name\n            portDefinitions {\n              id\n              name\n              visibleLabel\n              bandwidth\n              portType {\n                id\n                name\n              }\n            }\n          }\n          ...EquipmentBreadcrumbs_equipment\n        }\n        serviceEndpoints {\n          definition {\n            role\n            id\n          }\n          service {\n            name\n            id\n          }\n          id\n        }\n      }\n      workOrder {\n        id\n        status\n      }\n      properties {\n        id\n        propertyType {\n          id\n          name\n          type\n          nodeType\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n          category\n          isDeleted\n        }\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        nodeValue {\n          __typename\n          id\n          name\n        }\n      }\n      services {\n        id\n        name\n      }\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        nodeType\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n        category\n        isDeleted\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      nodeValue {\n        __typename\n        id\n        name\n      }\n    }\n    serviceEndpoints {\n      definition {\n        role\n        id\n      }\n      service {\n        name\n        id\n      }\n      id\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
