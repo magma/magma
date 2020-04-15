@@ -301,7 +301,7 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
 
   proto->set_apn(session_request->apn, strlen(session_request->apn));
   proto->set_paa(bdata(paa_to_bstring(&session_request->paa)));
-  proto->set_peer_ip(session_request->peer_ip.s_addr);
+  proto->set_peer_ip(session_request->edns_peer_ip.addr_v4.sin_addr.s_addr);
 
   proto->mutable_pco()->set_ext(session_request->pco.ext);
   proto->mutable_pco()->set_spare(session_request->pco.spare);
@@ -397,7 +397,7 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
 
   memcpy(&session_request->apn, proto.apn().c_str(), proto.apn().length());
   bstring_to_paa(bfromcstr(proto.paa().c_str()), &session_request->paa);
-  session_request->peer_ip.s_addr = proto.peer_ip();
+  session_request->edns_peer_ip.addr_v4.sin_addr.s_addr = proto.peer_ip();
 
   session_request->pco.ext = proto.pco().ext();
   session_request->pco.spare = proto.pco().spare();

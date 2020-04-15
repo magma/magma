@@ -45,7 +45,6 @@ target_link_libraries(TASK_SGW
     ${GTPNL_LIBRARIES}
     LIB_BSTR LIB_HASHTABLE LIB_RPC_CLIENT LIB_PCEF
     TASK_GTPV1U
-    
     cpp_redis tacopie protobuf
 )
 target_include_directories(TASK_SGW PUBLIC

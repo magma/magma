@@ -29,9 +29,6 @@ if ("${LFDS}" STREQUAL "LFDS-NOTFOUND")
   message(FATAL_ERROR "LIB LFDS not found, please install it" )
 endif()
 
-
-
-
 add_executable(mme
     ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme.c
     ${PROJECT_SOURCE_DIR}/common/common_types.c
@@ -58,12 +55,11 @@ target_link_libraries(mme
 if ( NOT EMBEDDED_SGW )
     target_link_libraries(mme
     LIB_GTPV2C TASK_UDP)
-   
-    
-Message(EMBEDDED_SGW  should be unset is actually ${EMBEDDED_SGW})
+      
+#Message(EMBEDDED_SGW  should be unset is actually ${EMBEDDED_SGW})
 else ( EMBEDDED_SGW )
-Message(EMBEDDED_SGW  should be set is actually ${EMBEDDED_SGW})
-    target_link_libraries( TASK_SGW )
+#Message(EMBEDDED_SGW  should be set is actually ${EMBEDDED_SGW})
+    target_link_libraries( mme TASK_SGW )
 endif ( NOT EMBEDDED_SGW )
 
 #2020/04/06: we kept master content

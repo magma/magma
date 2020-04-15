@@ -35,7 +35,7 @@ target_link_libraries(oai_fuzz
     prometheus-cpp grpc grpc++
 )
 if (EMBEDDED_SGW)
-target_link_libraries(TASK_SGW)
+target_link_libraries( oai_fuzz TASK_SGW)
 endif(EMBEDDED_SGW)
 
 target_include_directories(oai_fuzz PUBLIC
