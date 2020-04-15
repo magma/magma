@@ -29,7 +29,6 @@ CWF_IMAGES = [
     'cwag_go'
     'gateway_go',
     'gateway_python',
-    'gateway_radius',
     'gateway_sessiond',
     'gateway_pipelined',
 ]
