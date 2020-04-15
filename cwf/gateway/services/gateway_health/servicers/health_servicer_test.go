@@ -58,6 +58,7 @@ func TestGetHealthStatus(t *testing.T) {
 
 	// Simulate successful enable
 	mockSystem.On("Enable").Return(nil)
+	mockService.On("Enable", "radius").Return(nil)
 	mockService.On("Enable", "sessiond").Return(nil)
 	_, err = servicer.Enable(context.Background(), req)
 	assert.NoError(t, err)
@@ -77,6 +78,7 @@ func TestGetHealthStatus(t *testing.T) {
 	// Simulate successful disable
 	disableReq := &protos.DisableMessage{}
 	mockSystem.On("Disable").Return(nil)
+	mockService.On("Disable", "radius").Return(nil)
 	_, err = servicer.Disable(context.Background(), disableReq)
 	assert.NoError(t, err)
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
@@ -120,6 +122,11 @@ func (m *mockServiceHealth) GetUnhealthyServices() ([]string, error) {
 }
 
 func (m *mockServiceHealth) Enable(service string) error {
+	args := m.Called(service)
+	return args.Error(0)
+}
+
+func (m *mockServiceHealth) Disable(service string) error {
 	args := m.Called(service)
 	return args.Error(0)
 }

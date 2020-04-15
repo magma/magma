@@ -19,4 +19,9 @@ type ServiceHealth interface {
 	// provided service. It is up to implementors to determine
 	// the specific functionality.
 	Enable(service string) error
+
+	// Disable allows the disabling of service level functionality for the
+	// provided service. It is up to implementors to determine
+	// the specific functionality.
+	Disable(service string) error
 }

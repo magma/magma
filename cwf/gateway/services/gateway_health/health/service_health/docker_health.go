@@ -70,6 +70,16 @@ func (d *DockerServiceHealthProvider) Enable(service string) error {
 	return d.dockerClient.ContainerRestart(context.Background(), sessiondID, &timeout)
 }
 
+// Disable stops the service provided
+func (d *DockerServiceHealthProvider) Disable(service string) error {
+	sessiondID, err := d.getContainerID(service)
+	if err != nil {
+		return err
+	}
+	timeout := dockerRequestTimeout
+	return d.dockerClient.ContainerStop(context.Background(), sessiondID, &timeout)
+}
+
 func (d *DockerServiceHealthProvider) getContainerID(serviceName string) (string, error) {
 	filter := filters.NewArgs()
 	filter.Add("name", serviceName)

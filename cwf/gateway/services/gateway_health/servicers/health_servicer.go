@@ -24,6 +24,7 @@ import (
 
 const (
 	sessiondServiceName = "sessiond"
+	radiusServiceName   = "radius"
 )
 
 type GatewayHealthServicer struct {
@@ -48,15 +49,23 @@ func NewGatewayHealthServicer(
 	}
 }
 
-// Disable adds a drop rule for ICMP on eth1 of the gateway. This is used to ensure that
-// the standby gateway is perceived as being down by the AP/WLC.
+// Disable disables datapath and service functionality.
+// It disables datapath functionality by adding a drop rule for ICMP on eth1
+// of the gateway to ensure the standby gateway's GRE tunnel is perceived as
+// being down by the AP/WLC. It disables service functionality by stopping to
+// ensure the RADIUS server is perceived as being down.
 func (s *GatewayHealthServicer) Disable(ctx context.Context, req *protos.DisableMessage) (*orcprotos.Void, error) {
 	ret := &orcprotos.Void{}
-	return ret, s.systemHealth.Disable()
+	err := s.systemHealth.Disable()
+	if err != nil {
+		return ret, err
+	}
+	// Stop the RADIUS server so that the WLC perceives it as down.
+	return ret, s.serviceHealth.Disable(radiusServiceName)
 }
 
-// Enable ensures ICMP is enabled on eth1, then restarts sessiond to trigger
-// initialization of the gateway.
+// Enable ensures ICMP is enabled on eth1, then restarts radius and sessiond
+// to trigger initialization of the gateway.
 func (s *GatewayHealthServicer) Enable(ctx context.Context, req *orcprotos.Void) (*orcprotos.Void, error) {
 	ret := &orcprotos.Void{}
 	err := s.systemHealth.Enable()
@@ -64,7 +73,14 @@ func (s *GatewayHealthServicer) Enable(ctx context.Context, req *orcprotos.Void)
 		return ret, err
 	}
 	err = s.serviceHealth.Enable(sessiondServiceName)
-	return ret, err
+	if err != nil {
+		return ret, err
+	}
+	err = s.serviceHealth.Enable(radiusServiceName)
+	if err != nil {
+		return ret, err
+	}
+	return ret, nil
 }
 
 // GetHealthStatus retrieves a health status object which contains the current
