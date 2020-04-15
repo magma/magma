@@ -29,4 +29,4 @@ WORKDIR /app/fbcnms-projects/workflows
 COPY fbcnms-projects/workflows .
 
 # Start app
-CMD yarn start
+CMD yarn run start:dev
