@@ -58,7 +58,7 @@ require (
 	github.com/toqueteos/webbrowser v1.1.0 // indirect
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	golang.org/x/tools v0.0.0-20191012152004-8de300cfc20a
 	google.golang.org/api v0.3.1 // indirect
 	google.golang.org/grpc v1.27.1

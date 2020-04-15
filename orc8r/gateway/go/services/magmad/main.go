@@ -20,6 +20,7 @@ import (
 	bootstrapper "magma/gateway/services/bootstrapper/service"
 	configurator "magma/gateway/services/configurator/service"
 	"magma/gateway/services/magmad/service_manager"
+	"magma/gateway/services/magmad/status"
 	sync_rpc "magma/gateway/services/sync_rpc/service"
 )
 
@@ -104,6 +105,9 @@ func main() {
 		syncRpcService := sync_rpc.NewClient(nil)
 		go syncRpcService.Run()
 	}
+
+	// start service status collector & reporter
+	go status.StartReporter()
 
 	// Start configurator & block on main()
 	cfg := configurator.NewConfigurator(eventChan)
