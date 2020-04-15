@@ -78,7 +78,7 @@ func runTest(t *testing.T, st aaa.SessionTable, c chan struct{}) {
 
 	// Test Crete session
 	var done callbackDone
-	s, err := st.AddSession(pc, time.Millisecond*10, (&done).timeoutCallback)
+	s, err := st.AddSession(pc, time.Millisecond*40, (&done).timeoutCallback)
 	assert.NoError(t, err)
 	assert.NotNil(t, s)
 

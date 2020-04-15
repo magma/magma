@@ -19,6 +19,7 @@ var (
 	registry = map[string]ServiceController{
 		strings.ToLower(DockerController{}.Name()):  DockerController{},
 		strings.ToLower(SystemdController{}.Name()): SystemdController{},
+		strings.ToLower(RunitController{}.Name()):   RunitController{},
 	}
 	defaultController = DockerController{}
 )

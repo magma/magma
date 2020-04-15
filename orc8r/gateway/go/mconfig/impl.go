@@ -25,7 +25,7 @@ import (
 
 var (
 	localConfig   unsafe.Pointer
-	cfgMu         sync.Mutex
+	cfgMu         sync.RWMutex
 	lastFileInfo  os.FileInfo
 	lastFilePath  string
 	refreshTicker *time.Ticker
@@ -137,4 +137,11 @@ func StopRefreshTicker() {
 		refreshTicker.Stop()
 	}
 	cfgMu.Unlock()
+}
+
+// Info returns last used mconfig file information
+func Info() (fullPath string, fileInfo os.FileInfo) {
+	cfgMu.RLock()
+	defer cfgMu.RUnlock()
+	return lastFilePath, lastFileInfo
 }
