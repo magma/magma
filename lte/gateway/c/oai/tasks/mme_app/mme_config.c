@@ -1175,23 +1175,21 @@ int mme_config_parse_file(mme_config_t *config_pP)
      config_setting_get_member(setting_mme, MME_CONFIG_STRING_SGW_CONFIG);
 
      if (setting != NULL) {
-
      if ((config_setting_lookup_string(setting,SGW_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,(const char **) &sgw_ip_address_for_s11))) 
                            {
-
           OAILOG_DEBUG ( LOG_MME_APP, "sgw interface IP information %s\n", sgw_ip_address_for_s11);
           
-          cidr = bfromcstr(sgw_ip_address_for_s11);
-          struct bstrList *list = bsplit(cidr, '/');
-          AssertFatal(2 == list->qty, "Bad CIDR address %s", bdata(cidr));
-          address = list->entry[0];
+          //cidr = bfromcstr(sgw_ip_address_for_s11);
+         // struct bstrList *list = bsplit(cidr, '/');
+          //AssertFatal(2 == list->qty, "Bad CIDR address %s", bdata(cidr));
+          //address = list->entry[0];
           IPV4_STR_ADDR_TO_INADDR(
-            bdata(address),
+            sgw_ip_address_for_s11,
             config_pP->e_dns_emulation.sgw_ip_addr[0],
             "BAD IP ADDRESS FORMAT FOR SGW S11 !\n");
 
-          bstrListDestroy(list);
-          bdestroy_wrapper(&cidr);
+         // bstrListDestroy(list);
+         // bdestroy_wrapper(&cidr);
           OAILOG_INFO(
             LOG_SPGW_APP,
             "Parsing configuration file found S-GW S11: %s\n",

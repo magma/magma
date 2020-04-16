@@ -14,7 +14,7 @@ BUILD_TYPE ?= Debug
 # s6a with fd (freeDiameter)
 
 # Default is agw with OpenFlow, gRPC over S6a , (no freeDiameter over s6a).
-FEATURES ?=  agw_of 
+FEATURES ?=   mme
 
 # EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.

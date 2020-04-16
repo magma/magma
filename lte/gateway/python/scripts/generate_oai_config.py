@@ -121,7 +121,6 @@ def _get_context():
     """
     context = {}
     context["s11_ip"] = _get_iface_ip("mme", "s11_iface_name")
-    context["s11_sgw_ip"] = _get_iface_ip("mme", "s11_sgw_iface_name")
     context["s1ap_ip"] = _get_iface_ip("mme", "s1ap_iface_name")
     context["s1u_ip"] = _get_iface_ip("spgw", "s1u_iface_name")
     context["oai_log_level"] = _get_oai_log_level()
@@ -136,6 +135,7 @@ def _get_context():
     context["attached_enodeb_tacs"] = _get_attached_enodeb_tacs()
     # set ovs params
     for key in (
+        "s11_sgw_ip"
         "ovs_bridge_name",
         "ovs_gtp_port_number",
         "ovs_mtr_port_number",
