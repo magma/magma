@@ -257,7 +257,7 @@ def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
     local("mkdir /tmp/build_logs/dev")
     local("mkdir /tmp/build_logs/test")
     local("mkdir /tmp/build_logs/trfserver")
-    dev_files = ["/var/log/mme.log", "/var/log/syslog"]
+    dev_files = ["/var/log/mme.log", "/var/log/syslog", "/var/log/MME.magma*"]
     test_files = ["/var/log/syslog", "/tmp/fw/"]
     trf_files = ["/home/admin/nohup.out"]
 
