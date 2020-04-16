@@ -38,82 +38,7 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.service_details_query.ServiceDetailsQuery.ServiceDetailsQueryData" href="#pyinventory.graphql.service_details_query.ServiceDetailsQuery.ServiceDetailsQueryData">ServiceDetailsQuery.ServiceDetailsQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>ServiceDetailsQuery(data: pyinventory.graphql.service_details_query.ServiceDetailsQuery.ServiceDetailsQueryData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
-id\n
-name\n
-type\n
-index\n
-category\n
-stringValue\n
-intValue\n
-booleanValue\n
-floatValue\n
-latitudeValue\n
-longitudeValue\n
-rangeFromValue\n
-rangeToValue\n
-isEditable\n
-isInstanceProperty\n
-isMandatory\n
-isDeleted\n}\n\n\nfragment PropertyFragment on Property {\n
-id\n
-propertyType {\n
-&hellip;PropertyTypeFragment\n
-}\n
-stringValue\n
-intValue\n
-floatValue\n
-booleanValue\n
-latitudeValue\n
-longitudeValue\n
-rangeFromValue\n
-rangeToValue\n}\n\n\n
-query ServiceDetailsQuery($id: ID!) {\n
-service: node(id: $id) {\n
-&hellip; on Service {\n
-id\n
-name\n
-externalId\n
-customer {\n
-id\n
-name\n
-externalId\n
-}\n
-endpoints {\n
-id\n
-port {\n
-id\n
-properties {\n
-&hellip;PropertyFragment\n
-}\n
-definition {\n
-id\n
-name\n
-}\n
-link {\n
-id\n
-properties {\n
-&hellip;PropertyFragment\n
-}\n
-services {\n
-id\n
-}\n
-}\n
-}\n
-role\n
-}\n
-links {\n
-id\n
-properties {\n
-&hellip;PropertyFragment\n
-}\n
-services {\n
-id\n
-}\n
-}\n
-}\n
-}\n}\n\n
-')</p></section>
+<section class="desc"><p>ServiceDetailsQuery(data: pyinventory.graphql.service_details_query.ServiceDetailsQuery.ServiceDetailsQueryData)</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>dataclasses_json.api.DataClassJsonMixin</li>
@@ -123,7 +48,7 @@ id\n
 <dl>
 <dt id="pyinventory.graphql.service_details_query.ServiceDetailsQuery.ServiceDetailsQueryData"><code class="name">var <span class="ident">ServiceDetailsQueryData</span></code></dt>
 <dd>
-<section class="desc"><p>ServiceDetailsQueryData(service: Union[pyinventory.graphql.service_details_query.ServiceDetailsQuery.ServiceDetailsQueryData.Node, NoneType] = None)</p></section>
+<section class="desc"><p>ServiceDetailsQueryData(service: Union[pyinventory.graphql.service_details_query.ServiceDetailsQuery.ServiceDetailsQueryData.Node, NoneType])</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>

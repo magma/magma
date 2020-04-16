@@ -53,6 +53,11 @@ class TunnelLearnController(MagmaController):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self.tunnel_learn_scratch)
 
+    def remove_subscriber_flow(self, mac_addr: str):
+        match = MagmaMatch(eth_dst=mac_addr)
+        flows.delete_flow(self._datapath, self.tbl_num, match)
+        flows.delete_flow(self._datapath, self.ip_rewrite_scratch, match)
+
     def _install_default_tunnel_classify_flows(self, dp):
         """
         For direction OUT:

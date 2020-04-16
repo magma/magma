@@ -382,6 +382,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
           name: '',
           index: index,
           type: 'string',
+          nodeType: null,
           booleanValue: false,
           stringValue: null,
           intValue: null,
@@ -399,6 +400,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
           name: '',
           index: index,
           type: 'string',
+          nodeType: null,
           booleanValue: false,
           stringValue: null,
           intValue: null,
@@ -427,6 +429,7 @@ export default withStyles(styles)(
               id
               name
               type
+              nodeType
               index
               stringValue
               intValue
@@ -441,6 +444,7 @@ export default withStyles(styles)(
               id
               name
               type
+              nodeType
               index
               stringValue
               intValue

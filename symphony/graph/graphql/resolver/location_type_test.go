@@ -123,7 +123,7 @@ func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 	index := 0
 	eqPropType := models.PropertyTypeInput{
 		Name:  "eq_prop",
-		Type:  "equipment",
+		Type:  "node",
 		Index: &index,
 	}
 	propTypeInputs := []*models.PropertyTypeInput{&eqPropType}
@@ -133,10 +133,10 @@ func TestAddLocationTypeWithEquipmentProperty(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	eqProp := locType.QueryPropertyTypes().Where(propertytype.Type("equipment")).OnlyX(ctx)
+	eqProp := locType.QueryPropertyTypes().Where(propertytype.Type("node")).OnlyX(ctx)
 
 	require.Equal(t, "eq_prop", eqProp.Name)
-	require.Equal(t, "equipment", eqProp.Type)
+	require.Equal(t, "node", eqProp.Type)
 }
 
 func TestAddLocationTypeWithSurveyTemplate(t *testing.T) {

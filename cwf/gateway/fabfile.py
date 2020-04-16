@@ -133,6 +133,17 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_run_integ_tests, test_host, trf_host, tests_to_run)
 
 
+def transfer_service_logs(services="sessiond session_proxy"):
+    services = services.strip().split(' ')
+    print("Transferring logs for " + str(services))
+
+    # We do NOT want to destroy this VM after we just set it up...
+    vagrant_setup("cwag", False)
+    with cd(CWAG_ROOT):
+        for service in services:
+            run("docker logs -t " + service + " 2> " + service + ".log")
+            # For vagrant the files should already be in CWAG_ROOT
+
 def _transfer_docker_images():
     output = local("docker images cwf_*", capture=True)
     for line in output.splitlines():
@@ -245,7 +256,6 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests):
     else:
         print("Integration Test returned ", result.return_code)
         sys.exit(result.return_code)
-
 
 def _clean_up():
     # already in cwag test vm at this point

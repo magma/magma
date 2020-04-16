@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 74c4d52d9b64b9cce42be5dd0aab926c
+ * @relayHash 9212c67f1516f904f7f2a5c1135e4a34
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type LocationAddEditCard__locationTypeQueryVariables = {|
   locationTypeId: string
 |};
@@ -27,6 +27,7 @@ export type LocationAddEditCard__locationTypeQueryResponse = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -62,6 +63,7 @@ query LocationAddEditCard__locationTypeQuery(
         id
         name
         type
+        nodeType
         index
         stringValue
         intValue
@@ -126,6 +128,13 @@ v4 = {
       "kind": "ScalarField",
       "alias": null,
       "name": "type",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "nodeType",
       "args": null,
       "storageKey": null
     },
@@ -284,11 +293,11 @@ return {
     "operationKind": "query",
     "name": "LocationAddEditCard__locationTypeQuery",
     "id": null,
-    "text": "query LocationAddEditCard__locationTypeQuery(\n  $locationTypeId: ID!\n) {\n  locationType: node(id: $locationTypeId) {\n    __typename\n    ... on LocationType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query LocationAddEditCard__locationTypeQuery(\n  $locationTypeId: ID!\n) {\n  locationType: node(id: $locationTypeId) {\n    __typename\n    ... on LocationType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        nodeType\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'd5a7d89034a409e8bae8790e37e41261';
+(node/*: any*/).hash = 'f48e051d918fb0d2fd6ff5ca4a7d441c';
 module.exports = node;

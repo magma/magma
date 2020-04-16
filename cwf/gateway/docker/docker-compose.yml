@@ -158,7 +158,7 @@ services:
     command: python3 -m magma.redirectd.main
 
   radius:
-    image: ${DOCKER_REGISTRY}gateway_radius:${IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
     container_name: radius
     logging: *logging_anchor
     environment:
@@ -171,12 +171,17 @@ services:
       - AAA_ENDPOINT=127.0.0.1:9109
       - ANALYTICS_GRAPHQL_TOKEN=${ANALYTICS_GRAPHQL_TOKEN}
       - ANALYTICS_GRAPHQL_ENDPOINT=${ANALYTICS_GRAPHQL_ENDPOINT}
+      - STORAGE_TYPE=memory
+      - REDIS_ADDR=
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost","9108"]
       timeout: "4s"
       retries: 3
     network_mode: host
     restart: always
+    command: >
+      /bin/bash -c "envsubst < /etc/magma/templates/radius.conf.template > /var/opt/magma/tmp/radius.config.json &&
+             envdir /var/opt/magma/envdir /var/opt/magma/bin/radius -config /var/opt/magma/tmp/radius.config.json"
 
   radiusd:
     <<: *feggoservice

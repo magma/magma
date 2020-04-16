@@ -307,7 +307,14 @@ userGrafana:
   replicas: 1
 
   # Resource limits & requests
-  resources: {}
+  # These defaults are suggested as lower limits may cause grafana to crashloop
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1024Mi
+    requests:
+      cpu: 100m
+      memory: 1024Mi
 
   # Define which Nodes the Pods are scheduled on.
   # ref: https://kubernetes.io/docs/user-guide/node-selection/

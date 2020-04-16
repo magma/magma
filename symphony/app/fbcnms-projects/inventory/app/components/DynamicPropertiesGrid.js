@@ -93,6 +93,7 @@ export default withStyles(styles)(
         index
         isInstanceProperty
         type
+        nodeType
         stringValue
         intValue
         booleanValue

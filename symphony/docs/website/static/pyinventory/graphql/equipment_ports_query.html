@@ -38,65 +38,7 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData" href="#pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData">EquipmentPortsQuery.EquipmentPortsQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentPortsQuery(data: pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
-id\n
-name\n
-type\n
-index\n
-category\n
-stringValue\n
-intValue\n
-booleanValue\n
-floatValue\n
-latitudeValue\n
-longitudeValue\n
-rangeFromValue\n
-rangeToValue\n
-isEditable\n
-isInstanceProperty\n
-isMandatory\n
-isDeleted\n}\n\n\nfragment PropertyFragment on Property {\n
-id\n
-propertyType {\n
-&hellip;PropertyTypeFragment\n
-}\n
-stringValue\n
-intValue\n
-floatValue\n
-booleanValue\n
-latitudeValue\n
-longitudeValue\n
-rangeFromValue\n
-rangeToValue\n}\n\n\n
-query EquipmentPortsQuery($id: ID!) {\n
-equipment: node(id: $id) {\n
-&hellip; on Equipment {\n
-ports {\n
-id\n
-properties {\n
-&hellip;PropertyFragment\n
-}\n
-definition {\n
-id\n
-name\n
-portType {\n
-id\n
-name\n
-}\n
-}\n
-link {\n
-id\n
-properties {\n
-&hellip;PropertyFragment\n
-}\n
-services {\n
-id\n
-}\n
-}\n
-}\n
-}\n
-}\n}\n\n
-')</p></section>
+<section class="desc"><p>EquipmentPortsQuery(data: pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData)</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>dataclasses_json.api.DataClassJsonMixin</li>
@@ -106,7 +48,7 @@ id\n
 <dl>
 <dt id="pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData"><code class="name">var <span class="ident">EquipmentPortsQueryData</span></code></dt>
 <dd>
-<section class="desc"><p>EquipmentPortsQueryData(equipment: Union[pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData.Node, NoneType] = None)</p></section>
+<section class="desc"><p>EquipmentPortsQueryData(equipment: Union[pyinventory.graphql.equipment_ports_query.EquipmentPortsQuery.EquipmentPortsQueryData.Node, NoneType])</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>

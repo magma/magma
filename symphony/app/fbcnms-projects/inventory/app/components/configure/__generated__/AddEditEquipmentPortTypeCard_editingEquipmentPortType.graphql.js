@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type AddEditEquipmentPortTypeCard_editingEquipmentPortType$ref: FragmentReference;
 declare export opaque type AddEditEquipmentPortTypeCard_editingEquipmentPortType$fragmentType: AddEditEquipmentPortTypeCard_editingEquipmentPortType$ref;
@@ -26,6 +26,7 @@ export type AddEditEquipmentPortTypeCard_editingEquipmentPortType = {|
     +id: string,
     +name: string,
     +type: PropertyKind,
+    +nodeType: ?string,
     +index: ?number,
     +stringValue: ?string,
     +intValue: ?number,
@@ -40,6 +41,7 @@ export type AddEditEquipmentPortTypeCard_editingEquipmentPortType = {|
     +id: string,
     +name: string,
     +type: PropertyKind,
+    +nodeType: ?string,
     +index: ?number,
     +stringValue: ?string,
     +intValue: ?number,
@@ -83,6 +85,13 @@ v2 = [
     "kind": "ScalarField",
     "alias": null,
     "name": "type",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "nodeType",
     "args": null,
     "storageKey": null
   },
@@ -190,5 +199,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'cbbbc3036d129e71518042ca1f99cc8c';
+(node/*: any*/).hash = '7ac4f29ced9bfcf2b8395e8a95c58b15';
 module.exports = node;

@@ -12,12 +12,18 @@
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.require_version ">=1.9.1"
 
+# Install vagrant-disksize to allow resizing the vagrant box disk.
+unless Vagrant.has_plugin?("vagrant-disksize")
+    raise  Vagrant::Errors::VagrantError.new, "vagrant-disksize plugin is missing. Please install it using 'vagrant plugin install vagrant-disksize' and rerun 'vagrant up'"
+end
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Mount magma directory
   config.vm.synced_folder "../..", "/home/vagrant/magma"
 
   config.vm.define :cwag, primary: true do |cwag|
     cwag.vm.box = "generic/ubuntu1804"
+    cwag.disksize.size = '50GB'
     cwag.vm.box_version = "1.9.12"
     cwag.vbguest.auto_update = false
     cwag.vm.hostname = "cwag-dev"

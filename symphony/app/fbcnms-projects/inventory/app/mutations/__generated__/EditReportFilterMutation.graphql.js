@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 91777f4c391165e5ca21c5119a2e2ee0
+ * @relayHash 1a45573aca6ae785e8d8e01fde07975c
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 export type FilterEntity = "EQUIPMENT" | "LINK" | "LOCATION" | "PORT" | "SERVICE" | "WORK_ORDER" | "%future added value";
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type EditReportFilterInput = {|
   id: string,
   name: string,
@@ -42,6 +42,7 @@ export type EditReportFilterMutationResponse = {|
         +id: string,
         +name: string,
         +type: PropertyKind,
+        +nodeType: ?string,
         +isEditable: ?boolean,
         +isInstanceProperty: ?boolean,
         +stringValue: ?string,
@@ -83,6 +84,7 @@ mutation EditReportFilterMutation(
         id
         name
         type
+        nodeType
         isEditable
         isInstanceProperty
         stringValue
@@ -227,6 +229,13 @@ v4 = [
               {
                 "kind": "ScalarField",
                 "alias": null,
+                "name": "nodeType",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
                 "name": "isEditable",
                 "args": null,
                 "storageKey": null
@@ -315,11 +324,11 @@ return {
     "operationKind": "mutation",
     "name": "EditReportFilterMutation",
     "id": null,
-    "text": "mutation EditReportFilterMutation(\n  $input: EditReportFilterInput!\n) {\n  editReportFilter(input: $input) {\n    id\n    name\n    entity\n    filters {\n      filterType\n      key\n      operator\n      stringValue\n      idSet\n      stringSet\n      boolValue\n      propertyValue {\n        id\n        name\n        type\n        isEditable\n        isInstanceProperty\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n      }\n    }\n  }\n}\n",
+    "text": "mutation EditReportFilterMutation(\n  $input: EditReportFilterInput!\n) {\n  editReportFilter(input: $input) {\n    id\n    name\n    entity\n    filters {\n      filterType\n      key\n      operator\n      stringValue\n      idSet\n      stringSet\n      boolValue\n      propertyValue {\n        id\n        name\n        type\n        nodeType\n        isEditable\n        isInstanceProperty\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'ef67707aaa950190aae2e3297b096b71';
+(node/*: any*/).hash = 'dc9fbe43ecf904517a036b595a47c621';
 module.exports = node;

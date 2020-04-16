@@ -1,0 +1,14 @@
+fragment SurveyQuestionFragment on SurveyQuestion {
+  formName
+  questionFormat
+  questionText
+  boolData
+  emailData
+  latitude
+  longitude
+  phoneData
+  textData
+  floatData
+  intData
+  dateData
+}

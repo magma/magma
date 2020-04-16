@@ -16,14 +16,12 @@ import type {WithStyles} from '@material-ui/core';
 import * as React from 'react';
 import EnumPropertySelectValueInput from './EnumPropertySelectValueInput';
 import EnumPropertyValueInput from './EnumPropertyValueInput';
-import EquipmentTypeahead from '../typeahead/EquipmentTypeahead';
 import FormContext from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import GPSPropertyValueInput from './GPSPropertyValueInput';
-import LocationTypeahead from '../typeahead/LocationTypeahead';
+import NodePropertyInput from '../NodePropertyInput';
 import RangePropertyValueInput from './RangePropertyValueInput';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
-import ServiceTypeahead from '../typeahead/ServiceTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import classNames from 'classnames';
@@ -299,59 +297,20 @@ class PropertyValueInput<T: Property | PropertyType> extends React.Component<
             }
           />
         );
-      case 'equipment':
+      case 'node':
         return inputType == 'Property' ? (
-          <EquipmentTypeahead
-            margin="dense"
+          <NodePropertyInput
+            type={propertyType.nodeType ?? ''}
             // eslint-disable-next-line no-warning-comments
             // $FlowFixMe - need to fix this entire file as it receives either property or property type
-            selectedEquipment={property.equipmentValue}
-            onEquipmentSelection={equipment =>
-              onChange(
-                update(property, {
-                  equipmentValue: {$set: equipment},
-                }),
-              )
+            value={property.nodeValue}
+            onChange={node =>
+              onChange({
+                ...property,
+                nodeValue: node,
+              })
             }
-            headline={label}
-          />
-        ) : (
-          <Text>-</Text>
-        );
-      case 'location':
-        return inputType == 'Property' ? (
-          <LocationTypeahead
-            margin="dense"
-            // eslint-disable-next-line no-warning-comments
-            // $FlowFixMe - need to fix this entire file as it receives either property or property type
-            selectedLocation={property.locationValue}
-            onLocationSelection={location =>
-              onChange(
-                update(property, {
-                  locationValue: {$set: location},
-                }),
-              )
-            }
-            headline={label}
-          />
-        ) : (
-          <Text>-</Text>
-        );
-      case 'service':
-        return inputType == 'Property' ? (
-          <ServiceTypeahead
-            margin="dense"
-            // eslint-disable-next-line no-warning-comments
-            // $FlowFixMe - need to fix this entire file as it receives either property or property type
-            selectedService={property.serviceValue}
-            onServiceSelection={service =>
-              onChange(
-                update(property, {
-                  serviceValue: {$set: service},
-                }),
-              )
-            }
-            headline={label}
+            label={label}
           />
         ) : (
           <Text>-</Text>

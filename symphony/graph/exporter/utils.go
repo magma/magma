@@ -40,9 +40,7 @@ const (
 	gpsLocationVal      = "gps_location"
 	rangeVal            = "range"
 	enum                = "enum"
-	equipmentVal        = "equipment"
-	locationVal         = "location"
-	serviceVal          = "service"
+	nodeVal             = "node"
 )
 
 func toIntSlice(a []string) ([]int, error) {
@@ -510,28 +508,22 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 		return fmt.Sprintf("%.3f", rf) + " - " + fmt.Sprintf("%.3f", rt), nil
 	case boolVal:
 		return strconv.FormatBool(vo.FieldByName("BoolVal").Bool()), nil
-	case equipmentVal, locationVal:
+	case nodeVal:
 		p, ok := v.(*ent.Property)
 		if !ok {
 			return "", nil
 		}
 		var id int
-		if typ == equipmentVal {
-			id, _ = p.QueryEquipmentValue().OnlyID(ctx)
-		} else {
-			id, _ = p.QueryLocationValue().OnlyID(ctx)
+		if i, err := p.QueryEquipmentValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryLocationValue().OnlyID(ctx); err == nil {
+			id = i
+		}
+		if i, err := p.QueryServiceValue().OnlyID(ctx); err == nil {
+			id = i
 		}
 		return strconv.Itoa(id), nil
-	case serviceVal:
-		p, ok := v.(*ent.Property)
-		if !ok {
-			return "", nil
-		}
-		value, _ := p.QueryServiceValue().Only(ctx)
-		if value == nil {
-			return "", nil
-		}
-		return value.Name, nil
 	default:
 		return "", errors.Errorf("type not supported %s", typ)
 	}

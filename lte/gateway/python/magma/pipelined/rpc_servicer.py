@@ -33,6 +33,8 @@ from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.check_quota import CheckQuotaController
+from magma.pipelined.app.vlan_learn import VlanLearnController
+from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
@@ -45,7 +47,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     """
 
     def __init__(self, loop, enforcer_app, enforcement_stats, dpi_app,
-                 ue_mac_app, check_quota_app, ipfix_app, service_manager):
+                 ue_mac_app, check_quota_app, ipfix_app, vlan_learn_app,
+                 tunnel_learn_app, service_manager):
         self._loop = loop
         self._enforcer_app = enforcer_app
         self._enforcement_stats = enforcement_stats
@@ -53,6 +56,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._ue_mac_app = ue_mac_app
         self._check_quota_app = check_quota_app
         self._ipfix_app = ipfix_app
+        self._vlan_learn_app = vlan_learn_app
+        self._tunnel_learn_app = tunnel_learn_app
         self._service_manager = service_manager
 
     def add_to_server(self, server):
@@ -365,6 +370,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if self._service_manager.is_app_enabled(CheckQuotaController.APP_NAME):
             self._loop.call_soon_threadsafe(
                 self._check_quota_app.remove_subscriber_flow, request.sid.id)
+
+        if self._service_manager.is_app_enabled(VlanLearnController.APP_NAME):
+            self._loop.call_soon_threadsafe(
+                self._vlan_learn_app.remove_subscriber_flow, request.sid.id)
+
+        if self._service_manager.is_app_enabled(TunnelLearnController.APP_NAME):
+            self._loop.call_soon_threadsafe(
+                self._tunnel_learn_app.remove_subscriber_flow, request.mac_addr)
 
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
             # Delete trace flow

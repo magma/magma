@@ -99,6 +99,7 @@ const serviceTypeQuery = graphql`
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue

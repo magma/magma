@@ -2,8 +2,10 @@
 
 import os
 import re
+import warnings
 
 import pdoc
+from pdoc.html_helpers import ReferenceWarning
 
 
 def module_path(m: pdoc.Module, output_dir: str, ext: str):
@@ -32,6 +34,7 @@ def write_files(m: pdoc.Module, output_dir: str, **kwargs):
 
 
 def export_doc():
+    warnings.simplefilter("error", category=ReferenceWarning)
     pyinventory_module = pdoc.Module("pyinventory")
     write_files(
         pyinventory_module,

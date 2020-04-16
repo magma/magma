@@ -622,19 +622,17 @@ type ComplexityRoot struct {
 	}
 
 	Property struct {
-		BoolVal        func(childComplexity int) int
-		EquipmentValue func(childComplexity int) int
-		FloatVal       func(childComplexity int) int
-		ID             func(childComplexity int) int
-		IntVal         func(childComplexity int) int
-		LatitudeVal    func(childComplexity int) int
-		LocationValue  func(childComplexity int) int
-		LongitudeVal   func(childComplexity int) int
-		PropertyType   func(childComplexity int) int
-		RangeFromVal   func(childComplexity int) int
-		RangeToVal     func(childComplexity int) int
-		ServiceValue   func(childComplexity int) int
-		StringVal      func(childComplexity int) int
+		BoolVal      func(childComplexity int) int
+		FloatVal     func(childComplexity int) int
+		ID           func(childComplexity int) int
+		IntVal       func(childComplexity int) int
+		LatitudeVal  func(childComplexity int) int
+		LongitudeVal func(childComplexity int) int
+		NodeValue    func(childComplexity int) int
+		PropertyType func(childComplexity int) int
+		RangeFromVal func(childComplexity int) int
+		RangeToVal   func(childComplexity int) int
+		StringVal    func(childComplexity int) int
 	}
 
 	PropertyType struct {
@@ -652,6 +650,7 @@ type ComplexityRoot struct {
 		LongitudeVal       func(childComplexity int) int
 		Mandatory          func(childComplexity int) int
 		Name               func(childComplexity int) int
+		NodeType           func(childComplexity int) int
 		RangeFromVal       func(childComplexity int) int
 		RangeToVal         func(childComplexity int) int
 		StringVal          func(childComplexity int) int
@@ -1268,9 +1267,7 @@ type ProjectTypeResolver interface {
 type PropertyResolver interface {
 	PropertyType(ctx context.Context, obj *ent.Property) (*ent.PropertyType, error)
 
-	EquipmentValue(ctx context.Context, obj *ent.Property) (*ent.Equipment, error)
-	LocationValue(ctx context.Context, obj *ent.Property) (*ent.Location, error)
-	ServiceValue(ctx context.Context, obj *ent.Property) (*ent.Service, error)
+	NodeValue(ctx context.Context, obj *ent.Property) (models.NamedNode, error)
 }
 type PropertyTypeResolver interface {
 	Type(ctx context.Context, obj *ent.PropertyType) (models.PropertyKind, error)
@@ -4245,13 +4242,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Property.BoolVal(childComplexity), true
 
-	case "Property.equipmentValue":
-		if e.complexity.Property.EquipmentValue == nil {
-			break
-		}
-
-		return e.complexity.Property.EquipmentValue(childComplexity), true
-
 	case "Property.floatValue":
 		if e.complexity.Property.FloatVal == nil {
 			break
@@ -4280,19 +4270,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Property.LatitudeVal(childComplexity), true
 
-	case "Property.locationValue":
-		if e.complexity.Property.LocationValue == nil {
-			break
-		}
-
-		return e.complexity.Property.LocationValue(childComplexity), true
-
 	case "Property.longitudeValue":
 		if e.complexity.Property.LongitudeVal == nil {
 			break
 		}
 
 		return e.complexity.Property.LongitudeVal(childComplexity), true
+
+	case "Property.nodeValue":
+		if e.complexity.Property.NodeValue == nil {
+			break
+		}
+
+		return e.complexity.Property.NodeValue(childComplexity), true
 
 	case "Property.propertyType":
 		if e.complexity.Property.PropertyType == nil {
@@ -4314,13 +4304,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Property.RangeToVal(childComplexity), true
-
-	case "Property.serviceValue":
-		if e.complexity.Property.ServiceValue == nil {
-			break
-		}
-
-		return e.complexity.Property.ServiceValue(childComplexity), true
 
 	case "Property.stringValue":
 		if e.complexity.Property.StringVal == nil {
@@ -4426,6 +4409,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PropertyType.Name(childComplexity), true
+
+	case "PropertyType.nodeType":
+		if e.complexity.PropertyType.NodeType == nil {
+			break
+		}
+
+		return e.complexity.PropertyType.NodeType(childComplexity), true
 
 	case "PropertyType.rangeFromValue":
 		if e.complexity.PropertyType.RangeFromVal == nil {
@@ -6669,6 +6659,17 @@ interface Node
   id: ID!
 }
 
+interface NamedNode {
+  """
+  The id of the object.
+  """
+  id: ID!
+  """
+  The name of the object.
+  """
+  name: String!
+}
+
 type Field {
   name: String!
   value: String!
@@ -6703,7 +6704,7 @@ input TechnicianInput {
 }
 
 # location or site: e.g. building at specific address.
-type Location implements Node {
+type Location implements Node & NamedNode {
   id: ID!
   externalId: String
   name: String!
@@ -6892,7 +6893,7 @@ input CommentInput {
 }
 
 # specific equipment instance: e.g. Wifi Access Point X at Location Y.
-type Equipment implements Node {
+type Equipment implements Node & NamedNode {
   id: ID!
   externalId: String
   name: String!
@@ -7426,10 +7427,8 @@ enum PropertyKind {
   range
   email
   gps_location
-  equipment
-  location
-  service
   datetime_local
+  node
 }
 
 type PropertyType implements Node {
@@ -7437,6 +7436,7 @@ type PropertyType implements Node {
   externalId: String
   name: String!
   type: PropertyKind!
+  nodeType: String
   index: Int
   category: String
   stringValue: String
@@ -7458,6 +7458,7 @@ input PropertyTypeInput {
   externalId: String
   name: String!
   type: PropertyKind!
+  nodeType: String
   index: Int
   category: String
   stringValue: String
@@ -7485,9 +7486,7 @@ type Property implements Node {
   longitudeValue: Float
   rangeFromValue: Float
   rangeToValue: Float
-  equipmentValue: Equipment
-  locationValue: Location
-  serviceValue: Service
+  nodeValue: NamedNode
 }
 
 input PropertyInput {
@@ -7501,9 +7500,7 @@ input PropertyInput {
   longitudeValue: Float
   rangeFromValue: Float
   rangeToValue: Float
-  equipmentIDValue: ID
-  locationIDValue: ID
-  serviceIDValue: ID
+  nodeIDValue: ID
   isEditable: Boolean
   isInstanceProperty: Boolean
 }
@@ -8290,7 +8287,7 @@ type ServiceEndpoint implements Node {
 """
 Modeling a specific service: e.g. a L2 VPN instance.
 """
-type Service implements Node {
+type Service implements Node & NamedNode {
   id: ID!
   name: String!
   externalId: String
@@ -24893,7 +24890,7 @@ func (ec *executionContext) _Property_rangeToValue(ctx context.Context, field gr
 	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Property_equipmentValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
+func (ec *executionContext) _Property_nodeValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -24912,7 +24909,7 @@ func (ec *executionContext) _Property_equipmentValue(ctx context.Context, field 
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Property().EquipmentValue(rctx, obj)
+		return ec.resolvers.Property().NodeValue(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -24921,78 +24918,10 @@ func (ec *executionContext) _Property_equipmentValue(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Equipment)
+	res := resTmp.(models.NamedNode)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Property_locationValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Property",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Property().LocationValue(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Location)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Property_serviceValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Property",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Property().ServiceValue(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.Service)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+	return ec.marshalONamedNode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐNamedNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_id(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -25138,6 +25067,40 @@ func (ec *executionContext) _PropertyType_type(ctx context.Context, field graphq
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyKind(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PropertyType_nodeType(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PropertyType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NodeType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_index(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -39481,21 +39444,9 @@ func (ec *executionContext) unmarshalInputPropertyInput(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "equipmentIDValue":
+		case "nodeIDValue":
 			var err error
-			it.EquipmentIDValue, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "locationIDValue":
-			var err error
-			it.LocationIDValue, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "serviceIDValue":
-			var err error
-			it.ServiceIDValue, err = ec.unmarshalOID2ᚖint(ctx, v)
+			it.NodeIDValue, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39544,6 +39495,12 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 		case "type":
 			var err error
 			it.Type, err = ec.unmarshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyKind(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "nodeType":
+			var err error
+			it.NodeType, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -40795,6 +40752,30 @@ func (ec *executionContext) unmarshalInputWorkOrderFilterInput(ctx context.Conte
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _NamedNode(ctx context.Context, sel ast.SelectionSet, obj models.NamedNode) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case *ent.Location:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Location(ctx, sel, obj)
+	case *ent.Equipment:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Equipment(ctx, sel, obj)
+	case *ent.Service:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Service(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj ent.Noder) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
@@ -41873,7 +41854,7 @@ func (ec *executionContext) _Edge(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
-var equipmentImplementors = []string{"Equipment", "Node"}
+var equipmentImplementors = []string{"Equipment", "Node", "NamedNode"}
 
 func (ec *executionContext) _Equipment(ctx context.Context, sel ast.SelectionSet, obj *ent.Equipment) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, equipmentImplementors)
@@ -43269,7 +43250,7 @@ func (ec *executionContext) _LinkSearchResult(ctx context.Context, sel ast.Selec
 	return out
 }
 
-var locationImplementors = []string{"Location", "Node"}
+var locationImplementors = []string{"Location", "Node", "NamedNode"}
 
 func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *ent.Location) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, locationImplementors)
@@ -44651,7 +44632,7 @@ func (ec *executionContext) _Property(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._Property_rangeFromValue(ctx, field, obj)
 		case "rangeToValue":
 			out.Values[i] = ec._Property_rangeToValue(ctx, field, obj)
-		case "equipmentValue":
+		case "nodeValue":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -44659,29 +44640,7 @@ func (ec *executionContext) _Property(ctx context.Context, sel ast.SelectionSet,
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Property_equipmentValue(ctx, field, obj)
-				return res
-			})
-		case "locationValue":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Property_locationValue(ctx, field, obj)
-				return res
-			})
-		case "serviceValue":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Property_serviceValue(ctx, field, obj)
+				res = ec._Property_nodeValue(ctx, field, obj)
 				return res
 			})
 		default:
@@ -44732,6 +44691,8 @@ func (ec *executionContext) _PropertyType(ctx context.Context, sel ast.Selection
 				}
 				return res
 			})
+		case "nodeType":
+			out.Values[i] = ec._PropertyType_nodeType(ctx, field, obj)
 		case "index":
 			out.Values[i] = ec._PropertyType_index(ctx, field, obj)
 		case "category":
@@ -45582,7 +45543,7 @@ func (ec *executionContext) _SearchNodesConnection(ctx context.Context, sel ast.
 	return out
 }
 
-var serviceImplementors = []string{"Service", "Node"}
+var serviceImplementors = []string{"Service", "Node", "NamedNode"}
 
 func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, obj *ent.Service) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, serviceImplementors)
@@ -53762,6 +53723,13 @@ func (ec *executionContext) unmarshalOLocationTypeIndex2ᚖgithubᚗcomᚋfacebo
 	}
 	res, err := ec.unmarshalOLocationTypeIndex2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeIndex(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) marshalONamedNode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐNamedNode(ctx context.Context, sel ast.SelectionSet, v models.NamedNode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._NamedNode(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalONode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {

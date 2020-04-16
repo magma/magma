@@ -39,23 +39,34 @@
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
-<dd>&nbsp;</dd>
+<dd>equipment port type name</dd>
 <dt><strong><code>properties</code></strong></dt>
-<dd>(List[PropertyDefinition]): list of PropertyDefinitions</dd>
+<dd>(List[ <a title="pyinventory.consts.PropertyDefinition" href="../consts.html#pyinventory.consts.PropertyDefinition"><code>PropertyDefinition</code></a> ]): list of property definitions</dd>
 <dt><strong><code>link_properties</code></strong></dt>
-<dd>(List[PropertyDefinition]): list of PropertyDefinitions</dd>
-<dt><strong><code>Returns</code></strong></dt>
-<dd>EquipmentPortType object</dd>
-<dt><strong><code>Raises</code></strong></dt>
-<dd>FailedOperationException</dd>
+<dd>(List[ <a title="pyinventory.consts.PropertyDefinition" href="../consts.html#pyinventory.consts.PropertyDefinition"><code>PropertyDefinition</code></a> ]): list of property definitions</dd>
 </dl>
-<p>Example:</p>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType"><code>EquipmentPortType</code></a> object</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
 <pre><code>from pyinventory.consts import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
 port_type1 = client.add_equipment_port_type(
-    &quot;port type 1&quot;,
-    [PropertyDefinition(&quot;port property&quot;, PropertyKind.string, None, True)],
-    [PropertyDefinition(&quot;link port property&quot;, PropertyKind.string, None, True)],
+    name=&quot;port type 1&quot;,
+    properties=[PropertyDefinition(
+        property_name=&quot;port property&quot;,
+        property_kind=PropertyKind.string,
+        default_value=None,
+        is_fixed=True)],
+    link_properties=[PropertyDefinition(
+        property_name=&quot;link port property&quot;,
+        property_kind=PropertyKind.string,
+        default_value=None,
+        is_fixed=True)],
 )
 </code></pre></section>
 </dd>
@@ -70,8 +81,8 @@ It can get only the requested equipment port type ID</p>
 <dt><strong><code>equipment_port_type_id</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment port type ID</dd>
 </dl>
-<p>Example:</p>
-<pre><code>client.delete_equipment_port_type(self.port_type1.id)
+<h2 id="example">Example</h2>
+<pre><code>client.delete_equipment_port_type(equipment_port_type_id=port_type1.id)
 </code></pre></section>
 </dd>
 <dt id="pyinventory.api.port_type.edit_equipment_port_type"><code class="name flex">
@@ -81,30 +92,39 @@ It can get only the requested equipment port type ID</p>
 <section class="desc"><p>This function edits an existing equipment port type.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>port_type</code></strong> :&ensp;<code>EquipmentPortType</code> <code>object</code></dt>
-<dd>existing eqipment port type object</dd>
+<dt>port_type ( <a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType"><code>EquipmentPortType</code></a> ): existing eqipment port type object</dt>
 <dt><strong><code>new_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>new name</dd>
 <dt><strong><code>new_properties</code></strong></dt>
-<dd>(Dict[str, PropertyValue]): list of tuples, where
-str - property type name
-PropertyValue - new value of the same type for this property</dd>
+<dd>(Dict[str, PropertyValue]): dictionary</dd>
+</dl>
+<ul>
+<li>str - property type name</li>
+<li>PropertyValue - new value of the same type for this property</li>
+</ul>
+<dl>
 <dt><strong><code>new_link_properties</code></strong></dt>
-<dd>(Dict[str, PropertyValue]): list of tuples, where
-str - link property type name
-PropertyValue - new value of the same type for this link property</dd>
-<dt><strong><code>Returns</code></strong></dt>
-<dd>EquipmentPortType object</dd>
-<dt><strong><code>Raises</code></strong></dt>
-<dd>FailedOperationException</dd>
+<dd>(Dict[str, PropertyValue]): dictionary</dd>
+</dl>
+<ul>
+<li>str - link property type name</li>
+<li>PropertyValue - new value of the same type for this link property</li>
+</ul>
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType"><code>EquipmentPortType</code></a> object</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>FailedOperationException</code></strong></dt>
+<dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<p>port_type1 = self.client.edit_equipment_port_type(
-equipment_port_type,
-"new port type name",
-{"existing property name": "new value"},
-{"existing link property name": "new value"},
-)</p></section>
+<pre><code>port_type1 = client.edit_equipment_port_type(
+    port_type=equipment_port_type,
+    new_name=&quot;new port type name&quot;,
+    new_properties={&quot;existing property name&quot;: &quot;new value&quot;},
+    new_link_properties={&quot;existing link property name&quot;: &quot;new value&quot;},
+)
+</code></pre></section>
 </dd>
 <dt id="pyinventory.api.port_type.get_equipment_port_type"><code class="name flex">
 <span>def <span class="ident">get_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_port_type_id: str) -> <a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType">EquipmentPortType</a></span>
@@ -116,13 +136,13 @@ It can get only the requested equipment port type ID</p>
 <dl>
 <dt><strong><code>equipment_port_type_id</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment port type ID</dd>
-<dt><strong><code>Returns</code></strong></dt>
-<dd>pyinventory.consts.EquipmentPortType object</dd>
-<dt><strong><code>Raises</code></strong></dt>
-<dd>EntityNotFoundError for not found entity</dd>
 </dl>
-<p>Example:</p>
-<pre><code>port_type = client.get_equipment_port_type(self.port_type1.id)
+<h2 id="returns">Returns</h2>
+<p><a title="pyinventory.consts.EquipmentPortType" href="../consts.html#pyinventory.consts.EquipmentPortType"><code>EquipmentPortType</code></a> object</p>
+<h2 id="raises">Raises</h2>
+<p><a title="pyinventory.exceptions.EntityNotFoundError" href="../exceptions.html#pyinventory.exceptions.EntityNotFoundError"><code>EntityNotFoundError</code></a>: equipment port type does not found</p>
+<h2 id="example">Example</h2>
+<pre><code>port_type = client.get_equipment_port_type(equipment_port_type_id=port_type1.id)
 </code></pre></section>
 </dd>
 </dl>

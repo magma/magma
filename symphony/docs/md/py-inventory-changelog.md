@@ -7,17 +7,16 @@ title: Python API Release Notes
 ***
 This is template for release notes
 #3 new version number
-### Features
-### Changes
-### Deprecated
-### Removed
-### Bug fixes
+ Features
+ Changes
+ Deprecated
+ Removed
+ Bug fixes
 ***
 -->
 
-<!--
 ***
-## new version number
+## 2.6.0 - release date 14.04.2020
 ### Features
 - Equipment functionality:
     - `get_equipments_by_type`
@@ -29,6 +28,8 @@ This is template for release notes
     - `edit_equipment_type_property_type`
 - PropertyType functionality:
     - `get_property_type_id`
+- PropertyDefinition:
+    - `is_mandatory` value added
 ### Changes
 - Equipment functionality:
     - `external_id` variable added to functions
@@ -38,14 +39,12 @@ This is template for release notes
         - `copy_equipment`
         - `get_or_create_equipment`
         - `get_or_create_equipment_in_position`
-### Deprecated
-### Removed
 ### Bug fixes
 ***
 -->
 
 ***
-## 2.5.0 -release date 23.03.2020
+## 2.5.0 - release date 23.03.2020
 ### Features
 
 - User functionality:

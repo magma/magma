@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4f00e987d4d9715794d0e808f80d250f
+ * @relayHash a2adb2d2e7b8cc9191df9f7ff7578984
  */
 
 /* eslint-disable */
@@ -37,9 +37,7 @@ export type PropertyInput = {|
   longitudeValue?: ?number,
   rangeFromValue?: ?number,
   rangeToValue?: ?number,
-  equipmentIDValue?: ?string,
-  locationIDValue?: ?string,
-  serviceIDValue?: ?string,
+  nodeIDValue?: ?string,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
 |};
@@ -83,6 +81,7 @@ fragment DynamicPropertiesGrid_propertyTypes on PropertyType {
   index
   isInstanceProperty
   type
+  nodeType
   stringValue
   intValue
   booleanValue
@@ -99,6 +98,7 @@ fragment PropertyFormField_property on Property {
     id
     name
     type
+    nodeType
     index
     stringValue
     intValue
@@ -122,15 +122,8 @@ fragment PropertyFormField_property on Property {
   longitudeValue
   rangeFromValue
   rangeToValue
-  equipmentValue {
-    id
-    name
-  }
-  locationValue {
-    id
-    name
-  }
-  serviceValue {
+  nodeValue {
+    __typename
     id
     name
   }
@@ -140,6 +133,7 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   id
   name
   type
+  nodeType
   index
   stringValue
   intValue
@@ -212,67 +206,63 @@ v3 = {
   "args": null,
   "storageKey": null
 },
-v4 = [
-  (v2/*: any*/),
-  (v3/*: any*/)
-],
-v5 = {
+v4 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
-v6 = {
+v5 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "intValue",
   "args": null,
   "storageKey": null
 },
-v7 = {
+v6 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
-v8 = {
+v7 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "floatValue",
   "args": null,
   "storageKey": null
 },
-v9 = {
+v8 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
-v10 = {
+v9 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
-v11 = {
+v10 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
-v12 = {
+v11 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
-v13 = [
+v12 = [
   (v2/*: any*/),
   (v3/*: any*/),
   {
@@ -285,10 +275,18 @@ v13 = [
   {
     "kind": "ScalarField",
     "alias": null,
+    "name": "nodeType",
+    "args": null,
+    "storageKey": null
+  },
+  {
+    "kind": "ScalarField",
+    "alias": null,
     "name": "index",
     "args": null,
     "storageKey": null
   },
+  (v4/*: any*/),
   (v5/*: any*/),
   (v6/*: any*/),
   (v7/*: any*/),
@@ -296,7 +294,6 @@ v13 = [
   (v9/*: any*/),
   (v10/*: any*/),
   (v11/*: any*/),
-  (v12/*: any*/),
   {
     "kind": "ScalarField",
     "alias": null,
@@ -399,7 +396,10 @@ return {
             "args": null,
             "concreteType": "Customer",
             "plural": false,
-            "selections": (v4/*: any*/)
+            "selections": [
+              (v2/*: any*/),
+              (v3/*: any*/)
+            ]
           },
           {
             "kind": "LinkedField",
@@ -420,7 +420,7 @@ return {
                 "args": null,
                 "concreteType": "PropertyType",
                 "plural": true,
-                "selections": (v13/*: any*/)
+                "selections": (v12/*: any*/)
               }
             ]
           },
@@ -442,45 +442,35 @@ return {
                 "args": null,
                 "concreteType": "PropertyType",
                 "plural": false,
-                "selections": (v13/*: any*/)
+                "selections": (v12/*: any*/)
               },
+              (v4/*: any*/),
               (v5/*: any*/),
+              (v7/*: any*/),
               (v6/*: any*/),
               (v8/*: any*/),
-              (v7/*: any*/),
               (v9/*: any*/),
               (v10/*: any*/),
               (v11/*: any*/),
-              (v12/*: any*/),
               {
                 "kind": "LinkedField",
                 "alias": null,
-                "name": "equipmentValue",
+                "name": "nodeValue",
                 "storageKey": null,
                 "args": null,
-                "concreteType": "Equipment",
+                "concreteType": null,
                 "plural": false,
-                "selections": (v4/*: any*/)
-              },
-              {
-                "kind": "LinkedField",
-                "alias": null,
-                "name": "locationValue",
-                "storageKey": null,
-                "args": null,
-                "concreteType": "Location",
-                "plural": false,
-                "selections": (v4/*: any*/)
-              },
-              {
-                "kind": "LinkedField",
-                "alias": null,
-                "name": "serviceValue",
-                "storageKey": null,
-                "args": null,
-                "concreteType": "Service",
-                "plural": false,
-                "selections": (v4/*: any*/)
+                "selections": [
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "__typename",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  (v2/*: any*/),
+                  (v3/*: any*/)
+                ]
               }
             ]
           }
@@ -492,7 +482,7 @@ return {
     "operationKind": "mutation",
     "name": "AddServiceMutation",
     "id": null,
-    "text": "mutation AddServiceMutation(\n  $data: ServiceCreateData!\n) {\n  addService(data: $data) {\n    id\n    ...ServicesView_service\n  }\n}\n\nfragment DynamicPropertiesGrid_properties on Property {\n  ...PropertyFormField_property\n  propertyType {\n    id\n    index\n  }\n}\n\nfragment DynamicPropertiesGrid_propertyTypes on PropertyType {\n  id\n  name\n  index\n  isInstanceProperty\n  type\n  stringValue\n  intValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  floatValue\n}\n\nfragment PropertyFormField_property on Property {\n  id\n  propertyType {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n    isMandatory\n    category\n    isDeleted\n  }\n  stringValue\n  intValue\n  floatValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  equipmentValue {\n    id\n    name\n  }\n  locationValue {\n    id\n    name\n  }\n  serviceValue {\n    id\n    name\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n  category\n  isDeleted\n}\n\nfragment ServicesView_service on Service {\n  id\n  name\n  externalId\n  status\n  customer {\n    id\n    name\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      ...PropertyTypeFormField_propertyType\n      ...DynamicPropertiesGrid_propertyTypes\n      id\n    }\n  }\n  properties {\n    ...PropertyFormField_property\n    ...DynamicPropertiesGrid_properties\n    id\n  }\n}\n",
+    "text": "mutation AddServiceMutation(\n  $data: ServiceCreateData!\n) {\n  addService(data: $data) {\n    id\n    ...ServicesView_service\n  }\n}\n\nfragment DynamicPropertiesGrid_properties on Property {\n  ...PropertyFormField_property\n  propertyType {\n    id\n    index\n  }\n}\n\nfragment DynamicPropertiesGrid_propertyTypes on PropertyType {\n  id\n  name\n  index\n  isInstanceProperty\n  type\n  nodeType\n  stringValue\n  intValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  floatValue\n}\n\nfragment PropertyFormField_property on Property {\n  id\n  propertyType {\n    id\n    name\n    type\n    nodeType\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n    isMandatory\n    category\n    isDeleted\n  }\n  stringValue\n  intValue\n  floatValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  nodeValue {\n    __typename\n    id\n    name\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  nodeType\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n  category\n  isDeleted\n}\n\nfragment ServicesView_service on Service {\n  id\n  name\n  externalId\n  status\n  customer {\n    id\n    name\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      ...PropertyTypeFormField_propertyType\n      ...DynamicPropertiesGrid_propertyTypes\n      id\n    }\n  }\n  properties {\n    ...PropertyFormField_property\n    ...DynamicPropertiesGrid_properties\n    id\n  }\n}\n",
     "metadata": {}
   }
 };

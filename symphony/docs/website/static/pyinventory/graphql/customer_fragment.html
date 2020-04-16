@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.2" />
-<title>pyinventory.session API documentation</title>
+<title>pyinventory.graphql.customer_fragment API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pyinventory.session</code></h1>
+<h1 class="title">Module <code>pyinventory.graphql.customer_fragment</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -29,74 +29,31 @@
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="pyinventory.session.encode_variable"><code class="name flex">
-<span>def <span class="ident">encode_variable</span></span>(<span>variable)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.session.ExtendedExecutionResult"><code class="flex name class">
-<span>class <span class="ident">ExtendedExecutionResult</span></span>
-<span>(</span><span>errors, data, extensions)</span>
+<dt id="pyinventory.graphql.customer_fragment.CustomerFragment"><code class="flex name class">
+<span>class <span class="ident">CustomerFragment</span></span>
+<span>(</span><span>id: str, name: str, externalId: Union[str, NoneType])</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.session.RequestsHTTPSessionTransport"><code class="flex name class">
-<span>class <span class="ident">RequestsHTTPSessionTransport</span></span>
-<span>(</span><span>session, url, auth=None, use_json=False, timeout=None, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>:param session: The session
-:param auth: Auth tuple or callable to enable Basic/Digest/Custom HTTP Auth
-:param use_json: Send request body as JSON instead of form-urlencoded
-:param timeout: Specifies a default timeout for requests (Default: None)</p></section>
+<section class="desc"><p>CustomerFragment(id: str, name: str, externalId: Union[str, NoneType])</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>gql.gql.transport.http.HTTPTransport</li>
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.session.RequestsHTTPSessionTransport.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>self, document, variable_values=None, timeout=None, return_json=True)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.session.simple_utc"><code class="flex name class">
-<span>class <span class="ident">simple_utc</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Abstract base class for time zone info objects.</p></section>
-<h3>Ancestors</h3>
+<h3>Subclasses</h3>
 <ul class="hlist">
-<li>datetime.tzinfo</li>
+<li>pyinventory.graphql.add_service_endpoint_mutation.AddServiceEndpointMutation.AddServiceEndpointMutationData.Service.Customer</li>
+<li>pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData.Service.Customer</li>
+<li>pyinventory.graphql.add_service_mutation.AddServiceMutation.AddServiceMutationData.Service.Customer</li>
+<li>pyinventory.graphql.service_details_query.ServiceDetailsQuery.ServiceDetailsQueryData.Node.Customer</li>
+<li>pyinventory.graphql.service_type_services_query.ServiceTypeServicesQuery.ServiceTypeServicesQueryData.Node.Service.Customer</li>
+<li>pyinventory.graphql.add_customer_mutation.AddCustomerMutation.AddCustomerMutationData.Customer</li>
+<li>pyinventory.graphql.customers_query.CustomersQuery.CustomersQueryData.CustomerConnection.CustomerEdge.Customer</li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.session.simple_utc.tzname"><code class="name flex">
-<span>def <span class="ident">tzname</span></span>(<span>self, dt: Union[datetime.datetime, NoneType]) -> Union[str, NoneType]</span>
-</code></dt>
-<dd>
-<section class="desc"><p>datetime -&gt; string name of time zone.</p></section>
-</dd>
-<dt id="pyinventory.session.simple_utc.utcoffset"><code class="name flex">
-<span>def <span class="ident">utcoffset</span></span>(<span>self, dt: Union[datetime.datetime, NoneType]) -> Union[datetime.timedelta, NoneType]</span>
-</code></dt>
-<dd>
-<section class="desc"><p>datetime -&gt; timedelta showing offset from UTC, negative values indicating West of UTC</p></section>
-</dd>
-</dl>
 </dd>
 </dl>
 </section>
@@ -109,31 +66,13 @@
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="pyinventory" href="index.html">pyinventory</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="pyinventory.session.encode_variable" href="#pyinventory.session.encode_variable">encode_variable</a></code></li>
+<li><code><a title="pyinventory.graphql" href="index.html">pyinventory.graphql</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="pyinventory.session.ExtendedExecutionResult" href="#pyinventory.session.ExtendedExecutionResult">ExtendedExecutionResult</a></code></h4>
-</li>
-<li>
-<h4><code><a title="pyinventory.session.RequestsHTTPSessionTransport" href="#pyinventory.session.RequestsHTTPSessionTransport">RequestsHTTPSessionTransport</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.session.RequestsHTTPSessionTransport.execute" href="#pyinventory.session.RequestsHTTPSessionTransport.execute">execute</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.session.simple_utc" href="#pyinventory.session.simple_utc">simple_utc</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.session.simple_utc.tzname" href="#pyinventory.session.simple_utc.tzname">tzname</a></code></li>
-<li><code><a title="pyinventory.session.simple_utc.utcoffset" href="#pyinventory.session.simple_utc.utcoffset">utcoffset</a></code></li>
-</ul>
+<h4><code><a title="pyinventory.graphql.customer_fragment.CustomerFragment" href="#pyinventory.graphql.customer_fragment.CustomerFragment">CustomerFragment</a></code></h4>
 </li>
 </ul>
 </li>

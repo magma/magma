@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash cb0c914315a99565698be289f38d7568
+ * @relayHash 114c664d78b2ba49e59943bba29583f1
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type ServiceTypeEditData = {|
   id: string,
   name: string,
@@ -28,6 +28,7 @@ export type PropertyTypeInput = {|
   externalId?: ?string,
   name: string,
   type: PropertyKind,
+  nodeType?: ?string,
   index?: ?number,
   category?: ?string,
   stringValue?: ?string,
@@ -61,6 +62,7 @@ export type EditServiceTypeMutationResponse = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -96,6 +98,7 @@ mutation EditServiceTypeMutation(
       id
       name
       type
+      nodeType
       index
       stringValue
       intValue
@@ -171,6 +174,13 @@ v3 = [
             "kind": "ScalarField",
             "alias": null,
             "name": "type",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "nodeType",
             "args": null,
             "storageKey": null
           },
@@ -297,7 +307,7 @@ return {
     "operationKind": "mutation",
     "name": "EditServiceTypeMutation",
     "id": null,
-    "text": "mutation EditServiceTypeMutation(\n  $data: ServiceTypeEditData!\n) {\n  editServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n      category\n      isDeleted\n    }\n  }\n}\n",
+    "text": "mutation EditServiceTypeMutation(\n  $data: ServiceTypeEditData!\n) {\n  editServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      nodeType\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n      category\n      isDeleted\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

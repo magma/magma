@@ -36,6 +36,7 @@ const mutation = graphql`
           id
           name
           type
+          nodeType
           isEditable
           isInstanceProperty
           stringValue

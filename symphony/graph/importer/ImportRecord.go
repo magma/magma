@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/facebookincubator/symphony/graph/ent/service"
-
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -165,14 +163,6 @@ func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, 
 		return nil, nil
 	}
 	value := l.line[idx]
-
-	if pTyp.Type == models.PropertyKindService.String() && value != "" {
-		id, err := client.Service.Query().Where(service.Name(value)).OnlyID(ctx)
-		if err != nil {
-			return nil, errors.Wrapf(err, "cannot query service by name: %q", l.line[idx])
-		}
-		value = strconv.Itoa(id)
-	}
 	return getPropInput(*pTyp, value)
 }
 

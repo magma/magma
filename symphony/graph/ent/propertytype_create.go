@@ -281,6 +281,20 @@ func (ptc *PropertyTypeCreate) SetNillableDeleted(b *bool) *PropertyTypeCreate {
 	return ptc
 }
 
+// SetNodeType sets the nodeType field.
+func (ptc *PropertyTypeCreate) SetNodeType(s string) *PropertyTypeCreate {
+	ptc.mutation.SetNodeType(s)
+	return ptc
+}
+
+// SetNillableNodeType sets the nodeType field if the given value is not nil.
+func (ptc *PropertyTypeCreate) SetNillableNodeType(s *string) *PropertyTypeCreate {
+	if s != nil {
+		ptc.SetNodeType(*s)
+	}
+	return ptc
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptc *PropertyTypeCreate) AddPropertyIDs(ids ...int) *PropertyTypeCreate {
 	ptc.mutation.AddPropertyIDs(ids...)
@@ -658,6 +672,14 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Column: propertytype.FieldDeleted,
 		})
 		pt.Deleted = value
+	}
+	if value, ok := ptc.mutation.NodeType(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldNodeType,
+		})
+		pt.NodeType = value
 	}
 	if nodes := ptc.mutation.PropertiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

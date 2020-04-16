@@ -3,7 +3,7 @@
 import math
 from datetime import datetime
 from itertools import combinations
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
 from dacite import Config, from_dict
@@ -22,6 +22,8 @@ from .graphql.create_survey_mutation import CreateSurveyMutation
 from .graphql.location_surveys_query import LocationSurveysQuery
 from .graphql.remove_site_survey_mutation import RemoveSiteSurveyMutation
 from .graphql.survey_create_data_input import SurveyCreateData
+from .graphql.survey_fragment import SurveyFragment
+from .graphql.survey_question_fragment import SurveyQuestionFragment
 from .graphql.survey_question_type_enum import SurveyQuestionType
 from .site_survey_schema import retrieve_tamplates_and_set_them
 
@@ -36,9 +38,6 @@ SIMPLE_QUESTION_TYPE_TO_REQUIRED_PROPERTY_NAME = {
     "INTEGER": "intData",
     "PHONE": "phoneData",
 }
-SurveyQuestion = (
-    LocationSurveysQuery.LocationSurveysQueryData.Node.Survey.SurveyQuestion
-)
 
 
 def _get_dependencies(question: Dict[str, Any]) -> Tuple[List[str], List[str]]:
@@ -61,8 +60,7 @@ def _extract_questions(
     content: Dict[str, Any]
 ) -> Tuple[List[Tuple[str, ...]], List[Dict[str, Any]], int]:
     form_to_questions = [
-        (form["formTitle"], [question for question in form["questions"]])
-        for form in content["forms"]
+        (form["formTitle"], list(form["questions"])) for form in content["forms"]
     ]
     full_question_paths = []
     questions = []
@@ -710,7 +708,7 @@ def upload_site_survey(
         excel is as needed for upload.
 
         Args:
-            location (pyinventory.consts.Location object): could be retrieved from getLocation or addLocation api
+            location ( `pyinventory.consts.Location` ): could be retrieved from getLocation or addLocation api
             name (str): name of the site survey
             completion_date (datetime.datetime object): the time the site survey was completed
             excel_file_path (str): the path for the excel with the site survey information
@@ -743,8 +741,9 @@ def upload_site_survey(
             }
             ```
 
-        Raises: AssertionException if input values in the excel are incorrect
-                FailedOperationException for internal inventory error
+        Raises:
+            AssertionException: if input values in the excel are incorrect
+            FailedOperationException: internal inventory error
     """
     data_variables = {
         "name": name,
@@ -777,7 +776,7 @@ def upload_site_survey(
 
 
 def _survey_responses_to_forms(
-    responses: List[SurveyQuestion]
+    responses: Sequence[SurveyQuestionFragment]
 ) -> Dict[str, Dict[str, Any]]:
     forms = {}
     value_does_not_match_type_error_msg = (
@@ -824,9 +823,7 @@ def _survey_responses_to_forms(
     return forms
 
 
-def build_site_survey_from_survey_response(
-    survey: LocationSurveysQuery.LocationSurveysQueryData.Node.Survey
-) -> SiteSurvey:
+def build_site_survey_from_survey_response(survey: SurveyFragment) -> SiteSurvey:
     id = survey.id
     name = survey.name
     completion_time = datetime.fromtimestamp(survey.completionTimestamp)
@@ -851,24 +848,13 @@ def get_site_surveys(client: SymphonyClient, location: Location) -> List[SiteSur
     """Retrieve all site survey completed in the location.
 
         Args:
-            location (pyinventory.consts.Location object): could be retrieved from getLocation or addLocation api
+            location ( `pyinventory.consts.Location` ): could be retrieved from getLocation or addLocation api
 
-        Returns: pyinventory.consts.SiteSurvey object (with name, id, completion time and the forms)
-                 The forms are the results of the survey. It is a dict of dicts:
-        ```
-        {
-            formA: {
-                question1: value1
-                question2: value2
-            }
-            formB: {
-                question3: value3
-                question4: value4
-            }
-        }
-        ```
+        Returns:
+            List[ `pyinventory.consts.SiteSurvey` ]
 
-        Raises: `pyinventory.exceptions.EntityNotFoundError`: location does not exist
+        Raises:
+            `pyinventory.exceptions.EntityNotFoundError`: location does not exist
     """
 
     location_with_surveys = LocationSurveysQuery.execute(

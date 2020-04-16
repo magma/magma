@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 44e16cdd3d99e657686a386da2660c81
+ * @relayHash 7459bf2367b15af6a91cd7c5fe6d9e21
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type EditProjectInput = {|
   id: string,
   name: string,
@@ -37,9 +37,7 @@ export type PropertyInput = {|
   longitudeValue?: ?number,
   rangeFromValue?: ?number,
   rangeToValue?: ?number,
-  equipmentIDValue?: ?string,
-  locationIDValue?: ?string,
-  serviceIDValue?: ?string,
+  nodeIDValue?: ?string,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
 |};
@@ -68,6 +66,7 @@ export type EditProjectMutationResponse = {|
         +id: string,
         +name: string,
         +type: PropertyKind,
+        +nodeType: ?string,
         +isEditable: ?boolean,
         +isInstanceProperty: ?boolean,
         +stringValue: ?string,
@@ -114,6 +113,7 @@ mutation EditProjectMutation(
         id
         name
         type
+        nodeType
         isEditable
         isInstanceProperty
         stringValue
@@ -264,6 +264,13 @@ v14 = {
     {
       "kind": "ScalarField",
       "alias": null,
+      "name": "nodeType",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
       "name": "isEditable",
       "args": null,
       "storageKey": null
@@ -378,11 +385,11 @@ return {
     "operationKind": "mutation",
     "name": "EditProjectMutation",
     "id": null,
-    "text": "mutation EditProjectMutation(\n  $input: EditProjectInput!\n) {\n  editProject(input: $input) {\n    id\n    name\n    description\n    createdBy {\n      id\n      email\n    }\n    properties {\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      propertyType {\n        id\n        name\n        type\n        isEditable\n        isInstanceProperty\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n      }\n      id\n    }\n  }\n}\n",
+    "text": "mutation EditProjectMutation(\n  $input: EditProjectInput!\n) {\n  editProject(input: $input) {\n    id\n    name\n    description\n    createdBy {\n      id\n      email\n    }\n    properties {\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      propertyType {\n        id\n        name\n        type\n        nodeType\n        isEditable\n        isInstanceProperty\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n      }\n      id\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '27e3377b6794725c06e2982b462b4b12';
+(node/*: any*/).hash = '6b4753d606678a44a4cedd45175cf301';
 module.exports = node;

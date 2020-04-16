@@ -8,6 +8,12 @@
     "server": {
         "secret": "$RADIUS_SECRET",
         "dedupWindow": "500ms",
+        "sessionStorage": {
+            "storageType": "$STORAGE_TYPE",
+            "redis": {
+              "addr": "$REDIS_ADDR"
+            }
+        },
         "listeners": [
             {
                 "name": "auth",

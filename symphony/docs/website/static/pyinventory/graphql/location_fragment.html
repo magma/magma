@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.2" />
-<title>pyinventory.graphql.location_remove_deps_query API documentation</title>
+<title>pyinventory.graphql.location_fragment API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pyinventory.graphql.location_remove_deps_query</code></h1>
+<h1 class="title">Module <code>pyinventory.graphql.location_fragment</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -33,67 +33,32 @@
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery"><code class="flex name class">
-<span>class <span class="ident">LocationRemoveDepsQuery</span></span>
-<span>(</span><span>data=None, errors=None)</span>
+<dt id="pyinventory.graphql.location_fragment.LocationFragment"><code class="flex name class">
+<span>class <span class="ident">LocationFragment</span></span>
+<span>(</span><span>id: str, name: str, latitude: numbers.Number, longitude: numbers.Number, locationType: <a title="pyinventory.graphql.location_fragment.LocationFragment.LocationType" href="#pyinventory.graphql.location_fragment.LocationFragment.LocationType">LocationFragment.LocationType</a>, externalId: Union[str, NoneType])</span>
 </code></dt>
 <dd>
-<section class="desc"><p>LocationRemoveDepsQuery(data: Union[pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.LocationRemoveDepsQueryData, NoneType] = None, errors: Any = None)</p></section>
+<section class="desc"><p>LocationFragment(id: str, name: str, latitude: numbers.Number, longitude: numbers.Number, locationType: pyinventory.graphql.location_fragment.LocationFragment.LocationType, externalId: Union[str, NoneType])</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>dataclasses_json.api.DataClassJsonMixin</li>
+<li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li>pyinventory.graphql.location_type_locations_query.LocationTypeLocationsQuery.LocationTypeLocationsQueryData.Node.LocationConnection.LocationEdge.Location</li>
+<li>pyinventory.graphql.add_location_mutation.AddLocationMutation.AddLocationMutationData.Location</li>
+<li>pyinventory.graphql.edit_location_mutation.EditLocationMutation.EditLocationMutationData.Location</li>
+<li>pyinventory.graphql.get_locations_query.GetLocationsQuery.GetLocationsQueryData.LocationConnection.LocationEdge.Location</li>
+<li>pyinventory.graphql.location_children_query.LocationChildrenQuery.LocationChildrenQueryData.Node.Location</li>
+<li>pyinventory.graphql.location_details_query.LocationDetailsQuery.LocationDetailsQueryData.Node</li>
+<li>pyinventory.graphql.move_location_mutation.MoveLocationMutation.MoveLocationMutationData.Location</li>
+</ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.LocationRemoveDepsQueryData"><code class="name">var <span class="ident">LocationRemoveDepsQueryData</span></code></dt>
+<dt id="pyinventory.graphql.location_fragment.LocationFragment.LocationType"><code class="name">var <span class="ident">LocationType</span></code></dt>
 <dd>
-<section class="desc"><p>LocationRemoveDepsQueryData(location: Union[pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.LocationRemoveDepsQueryData.Node, NoneType] = None)</p></section>
-</dd>
-<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.data"><code class="name">var <span class="ident">data</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.errors"><code class="name">var <span class="ident">errors</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, id)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
+<section class="desc"><p>LocationType(name: str)</p></section>
 </dd>
 </dl>
 </dd>
@@ -114,17 +79,9 @@
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery">LocationRemoveDepsQuery</a></code></h4>
+<h4><code><a title="pyinventory.graphql.location_fragment.LocationFragment" href="#pyinventory.graphql.location_fragment.LocationFragment">LocationFragment</a></code></h4>
 <ul class="">
-<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.LocationRemoveDepsQueryData" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.LocationRemoveDepsQueryData">LocationRemoveDepsQueryData</a></code></li>
-<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.data" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.errors" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.errors">errors</a></code></li>
-<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.execute" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_dict" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_json" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.schema" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_dict" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_json" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_json">to_json</a></code></li>
+<li><code><a title="pyinventory.graphql.location_fragment.LocationFragment.LocationType" href="#pyinventory.graphql.location_fragment.LocationFragment.LocationType">LocationType</a></code></li>
 </ul>
 </li>
 </ul>

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash dfca792b3b24dd0b1a3ed432d08c1925
+ * @relayHash a4cc01da53355b52348499bbaadf681e
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type AddServiceDetailsServiceTypeQueryVariables = {|
   serviceTypeId: string
 |};
@@ -27,6 +27,7 @@ export type AddServiceDetailsServiceTypeQueryResponse = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -62,6 +63,7 @@ query AddServiceDetailsServiceTypeQuery(
         id
         name
         type
+        nodeType
         index
         stringValue
         intValue
@@ -126,6 +128,13 @@ v4 = {
       "kind": "ScalarField",
       "alias": null,
       "name": "type",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "nodeType",
       "args": null,
       "storageKey": null
     },
@@ -284,11 +293,11 @@ return {
     "operationKind": "query",
     "name": "AddServiceDetailsServiceTypeQuery",
     "id": null,
-    "text": "query AddServiceDetailsServiceTypeQuery(\n  $serviceTypeId: ID!\n) {\n  node(id: $serviceTypeId) {\n    __typename\n    ... on ServiceType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query AddServiceDetailsServiceTypeQuery(\n  $serviceTypeId: ID!\n) {\n  node(id: $serviceTypeId) {\n    __typename\n    ... on ServiceType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        nodeType\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '43a0850ad0d5aac31175287a0dfdded3';
+(node/*: any*/).hash = '394a573b37cc88928d7340fa4df5af42';
 module.exports = node;

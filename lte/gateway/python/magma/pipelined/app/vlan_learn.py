@@ -10,6 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 from .base import MagmaController, ControllerType
 from ryu.ofproto import ether
 from magma.pipelined.openflow import flows
+from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
     IMSI_REG, VLAN_TAG_REG
@@ -60,6 +61,11 @@ class VlanLearnController(MagmaController):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self.vlan_id_scratch)
         flows.delete_all_flows_from_table(datapath, self.vlan_header_scratch)
+
+    def remove_subscriber_flow(self, imsi: str):
+        match = MagmaMatch(imsi=encode_imsi(imsi))
+        flows.delete_flow(self._datapath, self.vlan_id_scratch, match)
+        flows.delete_flow(self._datapath, self.vlan_header_scratch, match)
 
     def _install_default_flows(self, dp):
         """

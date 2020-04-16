@@ -19,6 +19,7 @@ class PropertyTypeInput(DataClassJsonMixin):
     type: PropertyKind = enum_field(PropertyKind)
     id: Optional[str] = None
     externalId: Optional[str] = None
+    nodeType: Optional[str] = None
     index: Optional[int] = None
     category: Optional[str] = None
     stringValue: Optional[str] = None

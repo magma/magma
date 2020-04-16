@@ -31,7 +31,7 @@ import PropertyTypeTable from '../form/PropertyTypeTable';
 import React from 'react';
 import SectionedCard from '@fbcnms/ui/components/SectionedCard';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import SurveyTemplateCategories from '../form/SurveyTemplateCategories';
+import SurveyTemplateCategories from '../survey_templates/SurveyTemplateCategories';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import fbt from 'fbt';
@@ -453,6 +453,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
         name: p.name,
         index: p.index || 0,
         type: p.type,
+        nodeType: p.nodeType,
         booleanValue: p.booleanValue,
         stringValue: p.stringValue,
         intValue: p.intValue,
@@ -499,6 +500,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
                 name: '',
                 index: editingLocationType?.propertyTypes?.length ?? 0,
                 type: 'string',
+                nodeType: null,
                 booleanValue: false,
                 stringValue: null,
                 intValue: null,
@@ -541,6 +543,7 @@ export default withStyles(styles)(
               id
               name
               type
+              nodeType
               index
               stringValue
               intValue

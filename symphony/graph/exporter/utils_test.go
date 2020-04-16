@@ -202,16 +202,16 @@ func TestPropertiesForCSV(t *testing.T) {
 	}
 	propInput6 := models.PropertyTypeInput{
 		Name: "Property type6",
-		Type: "equipment",
+		Type: "node",
 	}
 	propInput7 := models.PropertyTypeInput{
 		Name: "Property type7",
-		Type: "location",
+		Type: "node",
 	}
 
 	propInput8 := models.PropertyTypeInput{
 		Name: "Property type8",
-		Type: "service",
+		Type: "node",
 	}
 
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -275,8 +275,8 @@ func TestPropertiesForCSV(t *testing.T) {
 	})
 	require.NoError(t, err)
 	prop6 := models.PropertyInput{
-		PropertyTypeID:   propType6.ID,
-		EquipmentIDValue: &propEquipment.ID,
+		PropertyTypeID: propType6.ID,
+		NodeIDValue:    &propEquipment.ID,
 	}
 
 	propLocationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: "prop_loc_type"})
@@ -287,8 +287,8 @@ func TestPropertiesForCSV(t *testing.T) {
 	})
 	require.NoError(t, err)
 	prop7 := models.PropertyInput{
-		PropertyTypeID:  propType7.ID,
-		LocationIDValue: &propLocation.ID,
+		PropertyTypeID: propType7.ID,
+		NodeIDValue:    &propLocation.ID,
 	}
 
 	propServiceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "prop_service_type", HasCustomer: false})
@@ -301,7 +301,7 @@ func TestPropertiesForCSV(t *testing.T) {
 	require.NoError(t, err)
 	prop8 := models.PropertyInput{
 		PropertyTypeID: propType8.ID,
-		ServiceIDValue: &propService.ID,
+		NodeIDValue:    &propService.ID,
 	}
 
 	equipment, err := mr.AddEquipment(ctx, models.AddEquipmentInput{

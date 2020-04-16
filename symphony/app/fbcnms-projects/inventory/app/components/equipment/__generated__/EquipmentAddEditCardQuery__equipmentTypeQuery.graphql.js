@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b80b6cf9a619935fd862ecf198e417ae
+ * @relayHash 8b80ea99865d1434e55d2d9de7fdf619
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type EquipmentAddEditCardQuery__equipmentTypeQueryVariables = {|
   equipmentTypeId: string
 |};
@@ -27,6 +27,7 @@ export type EquipmentAddEditCardQuery__equipmentTypeQueryResponse = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -62,6 +63,7 @@ query EquipmentAddEditCardQuery__equipmentTypeQuery(
         id
         name
         type
+        nodeType
         index
         stringValue
         intValue
@@ -126,6 +128,13 @@ v4 = {
       "kind": "ScalarField",
       "alias": null,
       "name": "type",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "nodeType",
       "args": null,
       "storageKey": null
     },
@@ -284,11 +293,11 @@ return {
     "operationKind": "query",
     "name": "EquipmentAddEditCardQuery__equipmentTypeQuery",
     "id": null,
-    "text": "query EquipmentAddEditCardQuery__equipmentTypeQuery(\n  $equipmentTypeId: ID!\n) {\n  equipmentType: node(id: $equipmentTypeId) {\n    __typename\n    ... on EquipmentType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isMandatory\n        isInstanceProperty\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query EquipmentAddEditCardQuery__equipmentTypeQuery(\n  $equipmentTypeId: ID!\n) {\n  equipmentType: node(id: $equipmentTypeId) {\n    __typename\n    ... on EquipmentType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        nodeType\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isMandatory\n        isInstanceProperty\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '5e9bd8a8cf5bd38d1aad2769908ccf0f';
+(node/*: any*/).hash = 'd0bad0b552a71b56cb8f59b3283de631';
 module.exports = node;

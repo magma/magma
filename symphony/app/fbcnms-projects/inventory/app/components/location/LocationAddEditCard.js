@@ -116,6 +116,7 @@ const locationAddEditCardQuery = graphql`
             index
             isInstanceProperty
             type
+            nodeType
             stringValue
             intValue
             floatValue
@@ -141,6 +142,7 @@ const locationAddEditCardQuery = graphql`
             id
             name
             type
+            nodeType
             index
             isEditable
             isInstanceProperty
@@ -155,15 +157,7 @@ const locationAddEditCardQuery = graphql`
           longitudeValue
           rangeFromValue
           rangeToValue
-          equipmentValue {
-            id
-            name
-          }
-          locationValue {
-            id
-            name
-          }
-          serviceValue {
+          nodeValue {
             id
             name
           }
@@ -183,6 +177,7 @@ const locationAddEditCard__locationTypeQuery = graphql`
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue

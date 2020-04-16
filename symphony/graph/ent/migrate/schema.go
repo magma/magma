@@ -906,6 +906,7 @@ var (
 		{Name: "editable", Type: field.TypeBool, Default: true},
 		{Name: "mandatory", Type: field.TypeBool},
 		{Name: "deleted", Type: field.TypeBool},
+		{Name: "node_type", Type: field.TypeString, Nullable: true},
 		{Name: "equipment_port_type_property_types", Type: field.TypeInt, Nullable: true},
 		{Name: "equipment_port_type_link_property_types", Type: field.TypeInt, Nullable: true},
 		{Name: "equipment_type_property_types", Type: field.TypeInt, Nullable: true},
@@ -922,49 +923,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "property_types_equipment_port_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[20]},
-
-				RefColumns: []*schema.Column{EquipmentPortTypesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:  "property_types_equipment_port_types_link_property_types",
 				Columns: []*schema.Column{PropertyTypesColumns[21]},
 
 				RefColumns: []*schema.Column{EquipmentPortTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "property_types_equipment_types_property_types",
+				Symbol:  "property_types_equipment_port_types_link_property_types",
 				Columns: []*schema.Column{PropertyTypesColumns[22]},
+
+				RefColumns: []*schema.Column{EquipmentPortTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "property_types_equipment_types_property_types",
+				Columns: []*schema.Column{PropertyTypesColumns[23]},
 
 				RefColumns: []*schema.Column{EquipmentTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_location_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[23]},
+				Columns: []*schema.Column{PropertyTypesColumns[24]},
 
 				RefColumns: []*schema.Column{LocationTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_project_types_properties",
-				Columns: []*schema.Column{PropertyTypesColumns[24]},
+				Columns: []*schema.Column{PropertyTypesColumns[25]},
 
 				RefColumns: []*schema.Column{ProjectTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_service_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[25]},
+				Columns: []*schema.Column{PropertyTypesColumns[26]},
 
 				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_work_order_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[26]},
+				Columns: []*schema.Column{PropertyTypesColumns[27]},
 
 				RefColumns: []*schema.Column{WorkOrderTypesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -974,27 +975,27 @@ var (
 			{
 				Name:    "propertytype_name_location_type_property_types",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[23]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[24]},
 			},
 			{
 				Name:    "propertytype_name_equipment_port_type_property_types",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[20]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[21]},
 			},
 			{
 				Name:    "propertytype_name_equipment_type_property_types",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[22]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[23]},
 			},
 			{
 				Name:    "propertytype_name_equipment_port_type_link_property_types",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[21]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[22]},
 			},
 			{
 				Name:    "propertytype_name_work_order_type_property_types",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[26]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[27]},
 			},
 		},
 	}

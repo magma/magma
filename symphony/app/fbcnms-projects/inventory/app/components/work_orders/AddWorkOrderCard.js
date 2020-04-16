@@ -127,6 +127,7 @@ const addWorkOrderCard__workOrderTypeQuery = graphql`
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue

@@ -33,7 +33,8 @@ const (
 	FieldIsInstanceProperty = "is_instance_property" // FieldEditable holds the string denoting the editable vertex property in the database.
 	FieldEditable           = "editable"             // FieldMandatory holds the string denoting the mandatory vertex property in the database.
 	FieldMandatory          = "mandatory"            // FieldDeleted holds the string denoting the deleted vertex property in the database.
-	FieldDeleted            = "deleted"
+	FieldDeleted            = "deleted"              // FieldNodeType holds the string denoting the nodetype vertex property in the database.
+	FieldNodeType           = "node_type"
 
 	// EdgeProperties holds the string denoting the properties edge name in mutations.
 	EdgeProperties = "properties"
@@ -134,6 +135,7 @@ var Columns = []string{
 	FieldEditable,
 	FieldMandatory,
 	FieldDeleted,
+	FieldNodeType,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the PropertyType type.

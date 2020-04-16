@@ -38,35 +38,7 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.search_query.SearchQuery.SearchQueryData" href="#pyinventory.graphql.search_query.SearchQuery.SearchQueryData">SearchQuery.SearchQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>SearchQuery(data: pyinventory.graphql.search_query.SearchQuery.SearchQueryData, <strong>QUERY</strong>: str = '\n
-query SearchQuery(\n
-$name: String!\n
-$after: Cursor\n
-$first: Int = 10\n
-$before: Cursor\n
-$last: Int\n) {\n
-searchForNode(\n
-name: $name\n
-after: $after\n
-first: $first\n
-before: $before\n
-last: $last\n
-) {\n
-edges {\n
-node {\n
-typename: __typename\n
-&hellip; on Location {\n
-id\n
-externalId\n
-name\n
-locationType {\n
-name\n
-}\n
-}\n
-}\n
-}\n
-}\n}\n\n
-')</p></section>
+<section class="desc"><p>SearchQuery(data: pyinventory.graphql.search_query.SearchQuery.SearchQueryData)</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>dataclasses_json.api.DataClassJsonMixin</li>

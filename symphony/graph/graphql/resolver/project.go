@@ -366,7 +366,7 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 			query := client.Property.
 				Update().
 				Where(property.ID(existingProperty.ID))
-			if _, err := updatePropValues(pInput, query).Save(ctx); err != nil {
+			if r.updatePropValues(ctx, pInput, query) != nil {
 				return nil, errors.Wrap(err, "updating property values")
 			}
 		}

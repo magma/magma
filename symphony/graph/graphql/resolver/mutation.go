@@ -105,6 +105,44 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 	}
 }
 
+func (r mutationResolver) setNodePropertyCreate(ctx context.Context, setter *ent.PropertyCreate, nodeID int) error {
+	client := r.ClientFrom(ctx)
+	value, err := client.Node(ctx, nodeID)
+	if err != nil {
+		return fmt.Errorf("invalid node id: %d %w", nodeID, err)
+	}
+	switch value.Type {
+	case ent.TypeEquipment:
+		setter.SetEquipmentValueID(value.ID)
+	case ent.TypeLocation:
+		setter.SetLocationValueID(value.ID)
+	case ent.TypeService:
+		setter.SetServiceValueID(value.ID)
+	default:
+		return fmt.Errorf("invalid node type: %d %s", value.ID, value.Type)
+	}
+	return nil
+}
+
+func (r mutationResolver) setNodePropertyUpdate(ctx context.Context, setter *ent.PropertyUpdate, nodeID int) error {
+	client := r.ClientFrom(ctx)
+	value, err := client.Node(ctx, nodeID)
+	if err != nil {
+		return fmt.Errorf("invalid node id: %d %w", nodeID, err)
+	}
+	switch value.Type {
+	case ent.TypeEquipment:
+		setter.SetEquipmentValueID(value.ID)
+	case ent.TypeLocation:
+		setter.SetLocationValueID(value.ID)
+	case ent.TypeService:
+		setter.SetServiceValueID(value.ID)
+	default:
+		return fmt.Errorf("invalid node type: %d %s", value.ID, value.Type)
+	}
+	return nil
+}
+
 func (r mutationResolver) AddProperty(
 	input *models.PropertyInput,
 	args resolverutil.AddPropertyArgs,
@@ -123,7 +161,8 @@ func (r mutationResolver) AddProperty(
 	if args.EntSetter != nil {
 		args.EntSetter(query)
 	}
-	p, err := query.
+
+	query = query.
 		SetTypeID(input.PropertyTypeID).
 		SetNillableStringVal(input.StringValue).
 		SetNillableIntVal(input.IntValue).
@@ -132,11 +171,15 @@ func (r mutationResolver) AddProperty(
 		SetNillableLatitudeVal(input.LatitudeValue).
 		SetNillableLongitudeVal(input.LongitudeValue).
 		SetNillableRangeFromVal(input.RangeFromValue).
-		SetNillableRangeToVal(input.RangeToValue).
-		SetNillableEquipmentValueID(input.EquipmentIDValue).
-		SetNillableLocationValueID(input.LocationIDValue).
-		SetNillableServiceValueID(input.ServiceIDValue).
-		Save(ctx)
+		SetNillableRangeToVal(input.RangeToValue)
+
+	if input.NodeIDValue != nil {
+		if err = r.setNodePropertyCreate(ctx, query, *input.NodeIDValue); err != nil {
+			return nil, err
+		}
+	}
+
+	p, err := query.Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating property: %w", err)
 	}
@@ -169,6 +212,7 @@ func (r mutationResolver) AddPropertyTypes(
 		if types[i], err = client.Create().
 			SetName(input.Name).
 			SetType(input.Type.String()).
+			SetNillableNodeType(input.NodeType).
 			SetNillableExternalID(input.ExternalID).
 			SetNillableIndex(input.Index).
 			SetNillableCategory(input.Category).
@@ -952,7 +996,7 @@ func (r mutationResolver) EditLocation(
 					property.HasLocationWith(location.ID(l.ID)),
 					property.ID(*input.ID),
 				)
-			if err := updatePropValues(input, query).Exec(ctx); err != nil {
+			if r.updatePropValues(ctx, input, query) != nil {
 				return nil, fmt.Errorf("updating property values: %w", err)
 			}
 		}
@@ -1305,7 +1349,7 @@ func (r mutationResolver) EditLink(
 					property.HasLinkWith(link.ID(l.ID)),
 					property.ID(*input.ID),
 				)
-			if err := updatePropValues(input, query).Exec(ctx); err != nil {
+			if r.updatePropValues(ctx, input, query) != nil {
 				return nil, fmt.Errorf("updating property values: %w", err)
 			}
 		}
@@ -1896,7 +1940,7 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 					property.HasServiceWith(service.ID(s.ID)),
 					property.ID(*input.ID),
 				)
-			if err := updatePropValues(input, query).Exec(ctx); err != nil {
+			if r.updatePropValues(ctx, input, query) != nil {
 				return nil, fmt.Errorf("updating property values: %w", err)
 			}
 		}
@@ -2105,7 +2149,7 @@ func (r mutationResolver) EditEquipment(
 					property.HasEquipmentWith(equipment.ID(e.ID)),
 					property.ID(*input.ID),
 				)
-			if _, err := updatePropValues(input, updater).Save(ctx); err != nil {
+			if r.updatePropValues(ctx, input, updater) != nil {
 				return nil, errors.Wrap(err, "updating property values")
 			}
 		}
@@ -2186,7 +2230,7 @@ func (r mutationResolver) EditEquipmentPort(
 					property.HasEquipmentPortWith(equipmentport.ID(p.ID)),
 					property.ID(*input.ID),
 				)
-			if _, err := updatePropValues(input, updater).Save(ctx); err != nil {
+			if r.updatePropValues(ctx, input, updater) != nil {
 				return nil, errors.Wrap(err, "updating property values")
 			}
 		}
@@ -2584,7 +2628,7 @@ func (r mutationResolver) DeleteLocationTypeEquipments(ctx context.Context, loca
 	return len(equipments), nil
 }
 
-func updatePropValues(input *models.PropertyInput, pu *ent.PropertyUpdate) *ent.PropertyUpdate {
+func (r mutationResolver) updatePropValues(ctx context.Context, input *models.PropertyInput, pu *ent.PropertyUpdate) error {
 	pu = pu.SetNillableStringVal(input.StringValue).
 		SetNillableIntVal(input.IntValue).
 		SetNillableBoolVal(input.BooleanValue).
@@ -2592,24 +2636,19 @@ func updatePropValues(input *models.PropertyInput, pu *ent.PropertyUpdate) *ent.
 		SetNillableLatitudeVal(input.LatitudeValue).
 		SetNillableLongitudeVal(input.LongitudeValue).
 		SetNillableRangeFromVal(input.RangeFromValue).
-		SetNillableRangeToVal(input.RangeToValue).
-		SetNillableEquipmentValueID(input.EquipmentIDValue).
-		SetNillableLocationValueID(input.LocationIDValue).
-		SetNillableServiceValueID(input.ServiceIDValue)
+		SetNillableRangeToVal(input.RangeToValue)
 
-	if input.EquipmentIDValue == nil {
+	if input.NodeIDValue != nil {
+		if err := r.setNodePropertyUpdate(ctx, pu, *input.NodeIDValue); err != nil {
+			return err
+		}
+	} else {
 		pu = pu.ClearEquipmentValue()
-	}
-
-	if input.LocationIDValue == nil {
 		pu = pu.ClearLocationValue()
-	}
-
-	if input.ServiceIDValue == nil {
 		pu = pu.ClearServiceValue()
 	}
 
-	return pu
+	return pu.Exec(ctx)
 }
 
 func (r mutationResolver) updatePropType(ctx context.Context, input *models.PropertyTypeInput) error {
@@ -2617,6 +2656,7 @@ func (r mutationResolver) updatePropType(ctx context.Context, input *models.Prop
 		UpdateOneID(*input.ID).
 		SetName(input.Name).
 		SetType(input.Type.String()).
+		SetNillableNodeType(input.NodeType).
 		SetNillableIndex(input.Index).
 		SetNillableExternalID(input.ExternalID).
 		SetNillableStringVal(input.StringValue).

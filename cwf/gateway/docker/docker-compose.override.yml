@@ -31,17 +31,7 @@ services:
       context: ${BUILD_CONTEXT}
       dockerfile: cwf/gateway/docker/python/Dockerfile
 
-  radius:
-    build:
-      context: ${BUILD_CONTEXT}
-      dockerfile: feg/gateway/docker/radius/Dockerfile
-
   sessiond:
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: cwf/gateway/docker/c/Dockerfile
-
-  uesim:
-    build:
-      context: ${BUILD_CONTEXT}
-      dockerfile: cwf/gateway/docker/go/Dockerfile

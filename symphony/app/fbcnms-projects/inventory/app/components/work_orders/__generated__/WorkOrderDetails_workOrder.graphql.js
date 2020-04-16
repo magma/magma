@@ -23,7 +23,7 @@ export type CellularNetworkType = "CDMA" | "GSM" | "LTE" | "WCDMA" | "%future ad
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
 export type CheckListItemType = "cell_scan" | "enum" | "files" | "simple" | "string" | "wifi_scan" | "yes_no" | "%future added value";
 export type FileType = "FILE" | "IMAGE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 export type YesNoResponse = "NO" | "YES" | "%future added value";
@@ -67,6 +67,7 @@ export type WorkOrderDetails_workOrder = {|
       +id: string,
       +name: string,
       +type: PropertyKind,
+      +nodeType: ?string,
       +index: ?number,
       +stringValue: ?string,
       +intValue: ?number,
@@ -90,15 +91,7 @@ export type WorkOrderDetails_workOrder = {|
     +longitudeValue: ?number,
     +rangeFromValue: ?number,
     +rangeToValue: ?number,
-    +equipmentValue: ?{|
-      +id: string,
-      +name: string,
-    |},
-    +locationValue: ?{|
-      +id: string,
-      +name: string,
-    |},
-    +serviceValue: ?{|
+    +nodeValue: ?{|
       +id: string,
       +name: string,
     |},
@@ -486,6 +479,13 @@ return {
             (v0/*: any*/),
             (v1/*: any*/),
             (v6/*: any*/),
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "nodeType",
+              "args": null,
+              "storageKey": null
+            },
             (v7/*: any*/),
             (v8/*: any*/),
             (v9/*: any*/),
@@ -537,30 +537,10 @@ return {
         {
           "kind": "LinkedField",
           "alias": null,
-          "name": "equipmentValue",
+          "name": "nodeValue",
           "storageKey": null,
           "args": null,
-          "concreteType": "Equipment",
-          "plural": false,
-          "selections": (v17/*: any*/)
-        },
-        {
-          "kind": "LinkedField",
-          "alias": null,
-          "name": "locationValue",
-          "storageKey": null,
-          "args": null,
-          "concreteType": "Location",
-          "plural": false,
-          "selections": (v17/*: any*/)
-        },
-        {
-          "kind": "LinkedField",
-          "alias": null,
-          "name": "serviceValue",
-          "storageKey": null,
-          "args": null,
-          "concreteType": "Service",
+          "concreteType": null,
           "plural": false,
           "selections": (v17/*: any*/)
         }

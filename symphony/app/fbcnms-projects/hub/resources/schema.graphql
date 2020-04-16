@@ -1,4 +1,4 @@
-input AtrinetService {
+type AtrinetService {
   serviceGlobalSettings: ServiceGlobalSettings!
   customer: String!
   operatorName: String!
@@ -6,11 +6,19 @@ input AtrinetService {
   sites: [Site!]!
 }
 
+input AtrinetServiceInput {
+  serviceGlobalSettings: ServiceGlobalSettingsInput!
+  customer: String!
+  operatorName: String!
+  modelName: String!
+  sites: [SiteInput!]!
+}
+
 scalar Map
 
 type Mutation {
-  createService(serviceRequest: NetworkServiceRequest): String!
-  deleteService(service: NetworkServiceInput): String!
+  createService(input: NetworkServiceInput!): String!
+  deleteService(input: Int!): String!
 }
 
 type NetworkDevice {
@@ -31,22 +39,22 @@ input NetworkDeviceInput {
 
 type NetworkService {
   ID: Int!
-  ExternalID: Int!
+  ExternalID: Int
+  Customer: String
   Name: String!
   Model: NetworkServiceModel!
-  Devices: [NetworkDevice!]!
-  AdditionalParams: Map!
+  DeviceSites: [Site!]!
+  AdditionalParams: Map
   Status: String!
 }
 
 input NetworkServiceInput {
-  ID: Int!
-  ExternalID: Int!
+  ExternalID: Int
+  Customer: String!
   Name: String!
   Model: NetworkServiceModelInput!
-  Devices: [NetworkDeviceInput!]!
-  AdditionalParams: Map!
-  Status: String!
+  DeviceSites: [SiteInput!]!
+  AdditionalParams: Map
 }
 
 type NetworkServiceModel {
@@ -57,35 +65,50 @@ input NetworkServiceModelInput {
   Name: String!
 }
 
-input NetworkServiceRequest {
-  Name: String!
-  Model: NetworkServiceModelInput!
-  Devices: [NetworkDeviceInput!]!
-  AdditionalParams: Map!
-}
-
 type Query {
   version: Version!
-  getServiceStatus(serviceID: Int!): String!
+  getServiceStatus(input: Int!): AtrinetService
 }
 
-input ServiceGlobalSettings {
+type ServiceGlobalSettings {
+  name: String!
+  rollbackPolicy: String!
+  mode: String!
+  result: String!
+}
+
+input ServiceGlobalSettingsInput {
   name: String!
   rollbackPolicy: String!
   mode: String!
 }
 
-input Site {
+type Site {
   siteNumber: Int!
   siteModelName: String!
   deviceName: String!
   deviceId: Int!
-  parameters: Map
+  parameters: Map!
   userPort: UserPort!
   accessMethod: String!
 }
 
-input UserPort {
+input SiteInput {
+  siteNumber: Int!
+  siteModelName: String!
+  deviceName: String!
+  deviceId: Int!
+  parameters: Map!
+  userPort: UserPortInput!
+  accessMethod: String!
+}
+
+type UserPort {
+  id: Int!
+  name: String!
+}
+
+input UserPortInput {
   id: Int!
   name: String!
 }

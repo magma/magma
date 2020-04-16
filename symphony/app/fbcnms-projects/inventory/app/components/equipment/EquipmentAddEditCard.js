@@ -96,6 +96,7 @@ const equipmentAddEditCardQuery = graphql`
             index
             isInstanceProperty
             type
+            nodeType
             isMandatory
             stringValue
             intValue
@@ -114,6 +115,7 @@ const equipmentAddEditCardQuery = graphql`
             index
             isInstanceProperty
             type
+            nodeType
             stringValue
             isMandatory
           }
@@ -126,15 +128,7 @@ const equipmentAddEditCardQuery = graphql`
           longitudeValue
           rangeFromValue
           rangeToValue
-          equipmentValue {
-            id
-            name
-          }
-          locationValue {
-            id
-            name
-          }
-          serviceValue {
+          nodeValue {
             id
             name
           }
@@ -154,6 +148,7 @@ const equipmentAddEditCardQuery__equipmentTypeQuery = graphql`
           id
           name
           type
+          nodeType
           index
           stringValue
           intValue

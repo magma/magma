@@ -13,6 +13,7 @@ import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import CreateService from './CreateService';
 import HubVersion from './HubVersion';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
 import React, {useContext} from 'react';
@@ -61,10 +62,18 @@ function CreateServiceForm() {
       <br />
       <HubVersion />
       <br />
-      <Text>Service Name</Text>
-      <TextInput />
+      <Text>
+        Create a simple service (only single port vlan is supported for now).
+      </Text>
       <br />
-      <Button>Create Service</Button>
+      <br />
+      <CreateService />
+      <br />
+      <br />
+      <br />
+      <Text>Service ID</Text>
+      <TextInput />
+      <Button>Delete Service</Button>
     </div>
   );
 }

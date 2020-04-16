@@ -166,35 +166,7 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 			PropertyTypeID: propertyType.ID,
 			BooleanValue:   &b,
 		}, nil
-	case "location":
-		if value != "" {
-			id, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, err
-			}
-			return &models.PropertyInput{
-				PropertyTypeID:  propertyType.ID,
-				LocationIDValue: &id,
-			}, nil
-		}
-		return &models.PropertyInput{
-			PropertyTypeID: propertyType.ID,
-		}, nil
-	case "equipment":
-		if value != "" {
-			id, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, err
-			}
-			return &models.PropertyInput{
-				PropertyTypeID:   propertyType.ID,
-				EquipmentIDValue: &id,
-			}, nil
-		}
-		return &models.PropertyInput{
-			PropertyTypeID: propertyType.ID,
-		}, nil
-	case "service":
+	case "node":
 		if value != "" {
 			id, err := strconv.Atoi(value)
 			if err != nil {
@@ -202,7 +174,7 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 			}
 			return &models.PropertyInput{
 				PropertyTypeID: propertyType.ID,
-				ServiceIDValue: &id,
+				NodeIDValue:    &id,
 			}, nil
 		}
 		return &models.PropertyInput{

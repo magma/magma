@@ -200,10 +200,12 @@
 <dd>
 <section class="desc"><h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
-<dd>equipment name</dd>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment ID</dd>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>Optional</code>[<code>str</code>]</dt>
+<dd>equipment external ID</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>equipment name</dd>
 <dt><strong><code>equipment_type_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment type name</dd>
 </dl></section>
@@ -215,15 +217,19 @@
 <dl>
 <dt id="pyinventory.consts.Equipment.equipment_type_name"><code class="name">var <span class="ident">equipment_type_name</span></code></dt>
 <dd>
-<section class="desc"><p>Alias for field number 2</p></section>
+<section class="desc"><p>Alias for field number 3</p></section>
 </dd>
-<dt id="pyinventory.consts.Equipment.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dt id="pyinventory.consts.Equipment.external_id"><code class="name">var <span class="ident">external_id</span></code></dt>
 <dd>
 <section class="desc"><p>Alias for field number 1</p></section>
 </dd>
-<dt id="pyinventory.consts.Equipment.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dt id="pyinventory.consts.Equipment.id"><code class="name">var <span class="ident">id</span></code></dt>
 <dd>
 <section class="desc"><p>Alias for field number 0</p></section>
+</dd>
+<dt id="pyinventory.consts.Equipment.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 2</p></section>
 </dd>
 </dl>
 </dd>
@@ -491,6 +497,10 @@
 <dd>default property value</dd>
 <dt><strong><code>is_fixed</code></strong> :&ensp;<code>bool</code></dt>
 <dd>fixed value flag</dd>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>property type external ID</dd>
+<dt><strong><code>is_mandatory</code></strong> :&ensp;<code>bool</code></dt>
+<dd>mandatory value flag</dd>
 </dl></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -502,9 +512,17 @@
 <dd>
 <section class="desc"><p>Alias for field number 2</p></section>
 </dd>
+<dt id="pyinventory.consts.PropertyDefinition.external_id"><code class="name">var <span class="ident">external_id</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 4</p></section>
+</dd>
 <dt id="pyinventory.consts.PropertyDefinition.is_fixed"><code class="name">var <span class="ident">is_fixed</span></code></dt>
 <dd>
 <section class="desc"><p>Alias for field number 3</p></section>
+</dd>
+<dt id="pyinventory.consts.PropertyDefinition.is_mandatory"><code class="name">var <span class="ident">is_mandatory</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 5</p></section>
 </dd>
 <dt id="pyinventory.consts.PropertyDefinition.property_kind"><code class="name">var <span class="ident">property_kind</span></code></dt>
 <dd>
@@ -559,7 +577,7 @@
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>ServiceEndpoint(id, port, role)</p></section>
+<section class="desc"><p>ServiceEndpoint(id, port, type)</p></section>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.tuple</li>
@@ -574,7 +592,7 @@
 <dd>
 <section class="desc"><p>Alias for field number 1</p></section>
 </dd>
-<dt id="pyinventory.consts.ServiceEndpoint.role"><code class="name">var <span class="ident">role</span></code></dt>
+<dt id="pyinventory.consts.ServiceEndpoint.type"><code class="name">var <span class="ident">type</span></code></dt>
 <dd>
 <section class="desc"><p>Alias for field number 2</p></section>
 </dd>
@@ -752,6 +770,7 @@
 <h4><code><a title="pyinventory.consts.Equipment" href="#pyinventory.consts.Equipment">Equipment</a></code></h4>
 <ul class="">
 <li><code><a title="pyinventory.consts.Equipment.equipment_type_name" href="#pyinventory.consts.Equipment.equipment_type_name">equipment_type_name</a></code></li>
+<li><code><a title="pyinventory.consts.Equipment.external_id" href="#pyinventory.consts.Equipment.external_id">external_id</a></code></li>
 <li><code><a title="pyinventory.consts.Equipment.id" href="#pyinventory.consts.Equipment.id">id</a></code></li>
 <li><code><a title="pyinventory.consts.Equipment.name" href="#pyinventory.consts.Equipment.name">name</a></code></li>
 </ul>
@@ -822,9 +841,11 @@
 </li>
 <li>
 <h4><code><a title="pyinventory.consts.PropertyDefinition" href="#pyinventory.consts.PropertyDefinition">PropertyDefinition</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="pyinventory.consts.PropertyDefinition.default_value" href="#pyinventory.consts.PropertyDefinition.default_value">default_value</a></code></li>
+<li><code><a title="pyinventory.consts.PropertyDefinition.external_id" href="#pyinventory.consts.PropertyDefinition.external_id">external_id</a></code></li>
 <li><code><a title="pyinventory.consts.PropertyDefinition.is_fixed" href="#pyinventory.consts.PropertyDefinition.is_fixed">is_fixed</a></code></li>
+<li><code><a title="pyinventory.consts.PropertyDefinition.is_mandatory" href="#pyinventory.consts.PropertyDefinition.is_mandatory">is_mandatory</a></code></li>
 <li><code><a title="pyinventory.consts.PropertyDefinition.property_kind" href="#pyinventory.consts.PropertyDefinition.property_kind">property_kind</a></code></li>
 <li><code><a title="pyinventory.consts.PropertyDefinition.property_name" href="#pyinventory.consts.PropertyDefinition.property_name">property_name</a></code></li>
 </ul>
@@ -845,7 +866,7 @@
 <ul class="">
 <li><code><a title="pyinventory.consts.ServiceEndpoint.id" href="#pyinventory.consts.ServiceEndpoint.id">id</a></code></li>
 <li><code><a title="pyinventory.consts.ServiceEndpoint.port" href="#pyinventory.consts.ServiceEndpoint.port">port</a></code></li>
-<li><code><a title="pyinventory.consts.ServiceEndpoint.role" href="#pyinventory.consts.ServiceEndpoint.role">role</a></code></li>
+<li><code><a title="pyinventory.consts.ServiceEndpoint.type" href="#pyinventory.consts.ServiceEndpoint.type">type</a></code></li>
 </ul>
 </li>
 <li>

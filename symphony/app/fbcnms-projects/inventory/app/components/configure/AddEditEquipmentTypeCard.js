@@ -430,6 +430,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
           id: 'PropertyType@tmp',
           name: '',
           type: 'string',
+          nodeType: null,
           index: editingEquipmentType?.propertyTypes.length ?? 0,
           booleanValue: false,
           stringValue: null,
@@ -458,6 +459,7 @@ export default withStyles(styles)(
               id
               name
               type
+              nodeType
               index
               stringValue
               intValue

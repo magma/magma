@@ -309,6 +309,7 @@ export default createFragmentContainer(AddEditProjectTypeCard, {
         id
         name
         type
+        nodeType
         index
         stringValue
         intValue
