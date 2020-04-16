@@ -83,13 +83,13 @@ spec:
           configMap:
             name: grafana-config-file
         - name: "datasources"
-{{ toYaml .Values.userGrafana.volumes.datasources.volumeSpec | indent 10 }}
+{{ toYaml .Values.userGrafana.volumes.datasources | indent 10 }}
         - name: "dashboardproviders"
-{{ toYaml .Values.userGrafana.volumes.dashboardproviders.volumeSpec | indent 10 }}
+{{ toYaml .Values.userGrafana.volumes.dashboardproviders | indent 10 }}
         - name: "dashboards"
-{{ toYaml .Values.userGrafana.volumes.dashboards.volumeSpec | indent 10 }}
+{{ toYaml .Values.userGrafana.volumes.dashboards | indent 10 }}
         - name: "grafana-data"
-{{ toYaml .Values.userGrafana.volumes.grafanaData.volumeSpec | indent 10 }}
+{{ toYaml .Values.userGrafana.volumes.grafanaData | indent 10 }}
 
           resources:
 {{ toYaml .Values.grafana.resources | indent 12 }}

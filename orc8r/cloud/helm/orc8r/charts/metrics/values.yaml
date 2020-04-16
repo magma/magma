@@ -286,17 +286,13 @@ userGrafana:
   volumes:
     # Default volume configurations for grafana data.
     dashboards:
-      volumeSpec:
-        emptyDir: {}
+      emptyDir: {}
     datasources:
-      volumeSpec:
-        emptyDir: {}
+      emptyDir: {}
     dashboardproviders:
-      volumeSpec:
-        emptyDir: {}
+      emptyDir: {}
     grafanaData:
-      volumeSpec:
-        emptyDir: {}
+      emptyDir: {}
 
   image:
     repository: grafana/grafana
