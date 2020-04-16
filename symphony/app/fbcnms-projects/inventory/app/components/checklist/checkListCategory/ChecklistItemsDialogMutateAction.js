@@ -8,7 +8,11 @@
  * @format
  */
 
-import type {CheckListItem} from './ChecklistItemsDialogMutateState';
+import type {
+  CheckListItem,
+  CheckListItemFile,
+} from './ChecklistItemsDialogMutateState';
+import type {CheckListItemPendingFile} from './ChecklistItemsDialogMutateState';
 
 export type ChecklistItemsDialogMutateStateActionType =
   | {|
@@ -30,6 +34,16 @@ export type ChecklistItemsDialogMutateStateActionType =
   | {|
       type: 'SET_EDITED_DEFINITION_ID',
       itemId: string,
+    |}
+  | {|
+      type: 'EDIT_ITEM_PENDING_FILE',
+      itemId: string,
+      file: CheckListItemPendingFile,
+    |}
+  | {|
+      type: 'ADD_ITEM_FILE',
+      itemId: string,
+      file: CheckListItemFile,
     |};
 
 export type ChecklistItemsDialogMutateDispatcher = (

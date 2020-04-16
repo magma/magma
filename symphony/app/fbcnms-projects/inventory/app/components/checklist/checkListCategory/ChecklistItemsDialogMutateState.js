@@ -46,8 +46,15 @@ export type CheckListItemFile = {|
   uploadTime?: number,
 |};
 
+export type CheckListItemPendingFile = {|
+  id: string,
+  name: string,
+  progress: number,
+|};
+
 export type FilesCheckListItemData = {|
   files?: ?Array<CheckListItemFile>,
+  pendingFiles?: ?Array<CheckListItemPendingFile>,
 |};
 
 export type YesNoCheckListItemData = {|
