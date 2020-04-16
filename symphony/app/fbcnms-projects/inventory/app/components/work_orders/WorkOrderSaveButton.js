@@ -86,7 +86,7 @@ const WorkOrderSaveButton = (props: Props) => {
               checked: item.checked,
               yesNoResponse: item.yesNoResponse,
               files: item.files?.map(file => ({
-                id: file.id,
+                id: isTempId(file.id) ? undefined : file.id,
                 storeKey: file.storeKey,
                 fileName: file.fileName,
                 sizeInBytes: file.sizeInBytes,

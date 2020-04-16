@@ -38,7 +38,7 @@ export type FreeTextCheckListItemData = {|
 |};
 
 export type CheckListItemFile = {|
-  id?: ?string,
+  id: string,
   storeKey: string,
   fileName: string,
   sizeInBytes?: number,

@@ -9,13 +9,15 @@
  */
 
 import type {CheckListItemFillingProps} from './CheckListItemFilling';
+import type {FileAttachmentType} from '../../../common/FileAttachment';
 
 import * as React from 'react';
 import FilePreview from '../../FilePreview/FilePreview';
 import FileUploadArea from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import FileUploadButton from '../../FileUpload/FileUploadButton';
-import shortid from 'shortid';
+import {generateTempId} from '../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback, useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -36,7 +38,18 @@ const FilesCheckListItemFilling = ({
   onChange,
 }: CheckListItemFillingProps): React.Node => {
   const classes = useStyles();
-  const tempId = shortid.generate();
+  const tempId = useMemo(() => generateTempId(), []);
+
+  const removeItemFile = useCallback(
+    (removedFile: FileAttachmentType) =>
+      onChange &&
+      onChange({
+        ...item,
+        files: item.files?.filter(file => file.id !== removedFile.id),
+      }),
+    [item, onChange],
+  );
+
   return (
     <div className={classes.root}>
       {item.files?.map(file => (
@@ -52,11 +65,11 @@ const FilesCheckListItemFilling = ({
             uploaded: file.uploadTime ? `${file.uploadTime}` : undefined,
             storeKey: file.storeKey,
           }}
-          onFileDeleted={() => {}}
+          onFileDeleted={removeItemFile}
         />
       ))}
       <FileUploadButton
-        useUploadSnackbar={false}
+        uploadUsingSnackbar={false}
         onProgress={(_fileId, _progress) => {
           // TODO: implement progress once there's design
         }}
@@ -67,6 +80,7 @@ const FilesCheckListItemFilling = ({
             files: [
               ...(item.files ?? []),
               {
+                id: generateTempId(),
                 storeKey,
                 fileName: file.name,
                 sizeInBytes: file.size,
