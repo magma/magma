@@ -321,23 +321,8 @@ void LocalEnforcer::terminate_service(
   }
 }
 
-// TODO: make session_manager.proto and policydb.proto to use common field
-static RedirectInformation_AddressType
-address_type_converter(RedirectServer_RedirectAddressType address_type) {
-  switch (address_type) {
-  case RedirectServer_RedirectAddressType_IPV4:
-    return RedirectInformation_AddressType_IPv4;
-  case RedirectServer_RedirectAddressType_IPV6:
-    return RedirectInformation_AddressType_IPv6;
-  case RedirectServer_RedirectAddressType_URL:
-    return RedirectInformation_AddressType_URL;
-  case RedirectServer_RedirectAddressType_SIP_URI:
-    return RedirectInformation_AddressType_SIP_URI;
-  }
-}
-
-static PolicyRule
-create_redirect_rule(const std::unique_ptr<ServiceAction> &action) {
+static PolicyRule create_redirect_rule(
+    const std::unique_ptr<ServiceAction>& action) {
   PolicyRule redirect_rule;
   redirect_rule.set_id("redirect");
   redirect_rule.set_priority(LocalEnforcer::REDIRECT_FLOW_PRIORITY);
@@ -347,8 +332,7 @@ create_redirect_rule(const std::unique_ptr<ServiceAction> &action) {
   redirect_info->set_support(RedirectInformation_Support_ENABLED);
 
   auto redirect_server = action->get_redirect_server();
-  redirect_info->set_address_type(
-      address_type_converter(redirect_server.redirect_address_type()));
+  redirect_info->set_address_type(redirect_server.redirect_address_type());
   redirect_info->set_server_address(redirect_server.redirect_server_address());
 
   return redirect_rule;

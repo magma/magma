@@ -24,7 +24,7 @@ func TestRedirectServer_ToProto(t *testing.T) {
 		RedirectServerAddress: "www.magma.com",
 	}).ToProto()
 
-	assert.Equal(t, protos.RedirectServer_IPV4, convertedRedirectServer.RedirectAddressType)
+	assert.Equal(t, protos.RedirectAddressType_IPv4, convertedRedirectServer.RedirectAddressType)
 	assert.Equal(t, "www.magma.com", convertedRedirectServer.RedirectServerAddress)
 
 	var nilRedirectServer *gy.RedirectServer = nil

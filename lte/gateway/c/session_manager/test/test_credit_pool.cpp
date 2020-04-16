@@ -57,7 +57,7 @@ class CreditPoolTest : public ::testing::Test {
   RedirectServer* get_redirect_server()
   {
     auto redirect = new RedirectServer();
-    redirect->set_redirect_address_type(RedirectServer_RedirectAddressType_IPV4);
+    redirect->set_redirect_address_type(IPv4);
     redirect->set_redirect_server_address("192.168.0.1");
   }
 
