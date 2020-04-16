@@ -119,7 +119,7 @@ services:
   uesim:
     <<: *service
     container_name: uesim
-    image: ${DOCKER_REGISTRY}uesim:${IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}cwag_go:${IMAGE_VERSION}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/uesim -logtostderr=true -v=0
 
   ingress:
