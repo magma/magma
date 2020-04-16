@@ -6,15 +6,7 @@ title: Graphql API Breaking Changes
 [//]: <> (@generated This file was created by cli/extract_graphql_deprecations.pydo not change it manually)
 
 ## Deprecated Queries
-* `location` - Use `node` instead. Will be removed on 2020-04-01
-* `locationType` - Use `node` instead. Will be removed on 2020-04-01
-* `equipment` - Use `node` instead. Will be removed on 2020-04-01
-* `equipmentType` - Use `node` instead. Will be removed on 2020-04-01
-* `service` - Use `node` instead. Will be removed on 2020-04-01
-* `serviceType` - Use `node` instead. Will be removed on 2020-04-01
-* `workOrder` - Use `node` instead. Will be removed on 2020-04-01
 * `searchForEntity` - Use `searchForNode` instead. Will be removed on 2020-05-01
-* `projectType` - Use `node` instead. Will be removed on 2020-04-01
 
 ## Deprecated Mutations
 

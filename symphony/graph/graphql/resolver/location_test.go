@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -35,10 +37,12 @@ func TestAddLocation(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, locationType.ID, location.QueryType().OnlyXID(ctx), "Verifying 'AddLocation' return value")
 
-	fetchedLocation, err := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
 	require.NoError(t, err)
+	fetchedLocation, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 
-	l, err := qr.Location(ctx, -1)
+	l, err := qr.Node(ctx, -1)
 	require.Nil(t, l, "Tried to fetch missing location")
 	require.NoError(t, err, "Missing location is not an error")
 
@@ -111,8 +115,11 @@ func TestAddLocationWithSameName(t *testing.T) {
 		Parent: &parentLocation.ID,
 	})
 	require.Error(t, err, "Trying to add  child location instance with same name")
-	parent, _ := qr.Location(ctx, parentLocation.ID)
-	children, _ := r.Location().Children(ctx, parent)
+	parentNode, err := qr.Node(ctx, parentLocation.ID)
+	require.NoError(t, err)
+	parentLocation, ok := parentNode.(*ent.Location)
+	require.True(t, ok)
+	children, _ := r.Location().Children(ctx, parentLocation)
 
 	onlyTopLevel := true
 	require.Len(t, children, 2, "Parent location has two children")
@@ -171,8 +178,10 @@ func TestAddLocationWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err, "Adding location instance")
 
-	fetchedLoc, err := qr.Location(ctx, loc.ID)
+	fetchedNode, err := qr.Node(ctx, loc.ID)
 	require.NoError(t, err, "Querying location instance")
+	fetchedLoc, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 
 	intFetchProp := fetchedLoc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("int_prop"))).OnlyX(ctx)
 	require.Equal(t, intFetchProp.IntVal, *intProp.IntValue, "Comparing properties: int value")
@@ -351,8 +360,10 @@ func TestAddLocationCellScans(t *testing.T) {
 	cells, err := mr.AddCellScans(ctx, cellScans, location.ID)
 	require.NoError(t, err, "Adding cell scans")
 
-	fetchedLocation, err := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
 	require.NoError(t, err, "Fetching location")
+	fetchedLocation, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 
 	fetchedCells, _ := fetchedLocation.QueryCellScan().All(ctx)
 	require.Equal(t, len(fetchedCells), len(cellScans))
@@ -395,7 +406,10 @@ func TestEditLocation(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedLocation, _ := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
+	require.NoError(t, err)
+	fetchedLocation, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	require.Equal(t, newLocation.Name, fetchedLocation.Name)
 	require.Equal(t, newLocation.Latitude, fetchedLocation.Latitude)
 	require.Equal(t, newLocation.Longitude, fetchedLocation.Longitude)
@@ -418,7 +432,10 @@ func TestEditLocationWithExternalID(t *testing.T) {
 		Type: locationType.ID,
 	})
 	require.NoError(t, err)
-	fetchedLocation, _ := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
+	require.NoError(t, err)
+	fetchedLocation, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	require.Equal(t, "", fetchedLocation.ExternalID)
 
 	externalID1 := "externalID1"
@@ -430,7 +447,10 @@ func TestEditLocationWithExternalID(t *testing.T) {
 		ExternalID: &externalID1,
 	})
 	require.NoError(t, err)
-	fetchedLocation, _ = qr.Location(ctx, location.ID)
+	fetchedNode, err = qr.Node(ctx, location.ID)
+	require.NoError(t, err)
+	fetchedLocation, ok = fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	require.Equal(t, externalID1, fetchedLocation.ExternalID)
 
 	externalID2 := "externalID2"
@@ -442,7 +462,10 @@ func TestEditLocationWithExternalID(t *testing.T) {
 		ExternalID: &externalID2,
 	})
 	require.NoError(t, err)
-	fetchedLocation, _ = qr.Location(ctx, location.ID)
+	fetchedNode, err = qr.Node(ctx, location.ID)
+	require.NoError(t, err)
+	fetchedLocation, ok = fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	require.Equal(t, externalID2, fetchedLocation.ExternalID)
 }
 
@@ -482,7 +505,10 @@ func TestEditLocationWithProperties(t *testing.T) {
 		Properties: []*models.PropertyInput{&strProp, &strProp2},
 	})
 	require.NoError(t, err)
-	fetchedLoc, _ := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
+	require.NoError(t, err)
+	fetchedLoc, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	fetchedProps, _ := fetchedLoc.QueryProperties().All(ctx)
 
 	// Property[] -> PropertyInput[]
@@ -504,8 +530,10 @@ func TestEditLocationWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err, "Editing location")
 
-	newFetchedLoc, err := qr.Location(ctx, location.ID)
+	newFetchedNode, err := qr.Node(ctx, location.ID)
 	require.NoError(t, err)
+	newFetchedLoc, ok := newFetchedNode.(*ent.Location)
+	require.True(t, ok)
 	existA := newFetchedLoc.QueryProperties().Where(property.StringVal("Foo-2")).ExistX(ctx)
 	require.NoError(t, err)
 	require.True(t, existA, "Property with the new name should exist on location")
@@ -698,9 +726,9 @@ func TestDeleteLocation(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, deletedLocationID, location.ID, "returned id from deletion matched location id")
 
-	fetchedLocation, err := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
 	require.NoError(t, err)
-	require.Nil(t, fetchedLocation, "no location with that id")
+	require.Nil(t, fetchedNode, "no location with that id")
 }
 
 func TestDeleteLocationWithEquipmentsFails(t *testing.T) {
@@ -744,8 +772,10 @@ func TestDeleteLocationWithEquipmentsFails(t *testing.T) {
 	require.Empty(t, deletedLocationID)
 	require.Error(t, err, "can't remove location with equipment")
 
-	fetchedLocation, err := qr.Location(ctx, location.ID)
+	fetchedNode, err := qr.Node(ctx, location.ID)
 	require.NoError(t, err)
+	fetchedLocation, ok := fetchedNode.(*ent.Location)
+	require.True(t, ok)
 	require.NotNil(t, fetchedLocation, "location exists after deletion attempt")
 }
 

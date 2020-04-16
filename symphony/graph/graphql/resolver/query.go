@@ -45,24 +45,6 @@ func (r queryResolver) Node(ctx context.Context, id int) (ent.Noder, error) {
 	return nil, ent.MaskNotFound(err)
 }
 
-func (r queryResolver) Location(ctx context.Context, id int) (*ent.Location, error) {
-	noder, err := r.Node(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	l, _ := noder.(*ent.Location)
-	return l, nil
-}
-
-func (r queryResolver) LocationType(ctx context.Context, id int) (*ent.LocationType, error) {
-	noder, err := r.Node(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	lt, _ := noder.(*ent.LocationType)
-	return lt, nil
-}
-
 func (r queryResolver) LocationTypes(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
@@ -108,24 +90,6 @@ func (r queryResolver) NearestSites(ctx context.Context, latitude, longitude flo
 	return sites[:first], nil
 }
 
-func (r queryResolver) Equipment(ctx context.Context, id int) (*ent.Equipment, error) {
-	noder, err := r.Node(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	e, _ := noder.(*ent.Equipment)
-	return e, nil
-}
-
-func (r queryResolver) EquipmentType(ctx context.Context, id int) (*ent.EquipmentType, error) {
-	noder, err := r.Node(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	et, _ := noder.(*ent.EquipmentType)
-	return et, nil
-}
-
 func (r queryResolver) EquipmentTypes(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
@@ -133,15 +97,6 @@ func (r queryResolver) EquipmentTypes(
 ) (*ent.EquipmentTypeConnection, error) {
 	return r.ClientFrom(ctx).EquipmentType.Query().
 		Paginate(ctx, after, first, before, last)
-}
-
-func (r queryResolver) EquipmentPortType(ctx context.Context, id int) (*ent.EquipmentPortType, error) {
-	noder, err := r.Node(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	ept, _ := noder.(*ent.EquipmentPortType)
-	return ept, nil
 }
 
 func (r queryResolver) EquipmentPortTypes(
@@ -160,15 +115,6 @@ func (r queryResolver) EquipmentPortDefinitions(
 ) (*ent.EquipmentPortDefinitionConnection, error) {
 	return r.ClientFrom(ctx).EquipmentPortDefinition.Query().
 		Paginate(ctx, after, first, before, last)
-}
-
-func (r queryResolver) WorkOrder(ctx context.Context, id int) (*ent.WorkOrder, error) {
-	noder, err := r.Node(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	wo, _ := noder.(*ent.WorkOrder)
-	return wo, nil
 }
 
 func (r queryResolver) WorkOrders(
@@ -351,24 +297,6 @@ func (r queryResolver) Surveys(ctx context.Context) ([]*ent.Survey, error) {
 		return nil, fmt.Errorf("querying all surveys: %w", err)
 	}
 	return surveys, nil
-}
-
-func (r queryResolver) Service(ctx context.Context, id int) (*ent.Service, error) {
-	noder, err := r.Node(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	s, _ := noder.(*ent.Service)
-	return s, nil
-}
-
-func (r queryResolver) ServiceType(ctx context.Context, id int) (*ent.ServiceType, error) {
-	noder, err := r.Node(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	st, _ := noder.(*ent.ServiceType)
-	return st, nil
 }
 
 func (r queryResolver) ServiceTypes(

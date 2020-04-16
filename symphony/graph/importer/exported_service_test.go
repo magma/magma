@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -130,8 +132,10 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	fl, _ := NewImportHeader(titleWithProperties, ImportEntityService)
 	r1, _ := NewImportRecord(row1, fl)
 	require.NoError(t, err)
-	styp1, err := q.ServiceType(ctx, data.serviceTypeID)
+	node1, err := q.Node(ctx, data.serviceTypeID)
 	require.NoError(t, err)
+	styp1, ok := node1.(*ent.ServiceType)
+	require.True(t, ok)
 	ptypes, err := importer.validatePropertiesForServiceType(ctx, r1, styp1)
 	require.NoError(t, err)
 	require.Len(t, ptypes, 2)
@@ -149,8 +153,10 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 			require.Fail(t, "property type name should be one of the two")
 		}
 	}
-	styp2, err := q.ServiceType(ctx, data.serviceTypeID2)
+	node2, err := q.Node(ctx, data.serviceTypeID2)
 	require.NoError(t, err)
+	styp2, ok := node2.(*ent.ServiceType)
+	require.True(t, ok)
 
 	r2, _ := NewImportRecord(row2, fl)
 	ptypes2, err := importer.validatePropertiesForServiceType(ctx, r2, styp2)
@@ -170,8 +176,10 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 		}
 	}
 
-	styp3, err := q.ServiceType(ctx, data.serviceTypeID3)
+	node3, err := q.Node(ctx, data.serviceTypeID3)
 	require.NoError(t, err)
+	styp3, ok := node3.(*ent.ServiceType)
+	require.True(t, ok)
 
 	r3, _ := NewImportRecord(row3, fl)
 	ptypes3, err := importer.validatePropertiesForServiceType(ctx, r3, styp3)
@@ -194,8 +202,10 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 		}
 	}
 
-	styp4, err := q.ServiceType(ctx, data.serviceTypeID4)
+	node4, err := q.Node(ctx, data.serviceTypeID4)
 	require.NoError(t, err)
+	styp4, ok := node4.(*ent.ServiceType)
+	require.True(t, ok)
 
 	r4, _ := NewImportRecord(row4, fl)
 	ptypes4, err := importer.validatePropertiesForServiceType(ctx, r4, styp4)

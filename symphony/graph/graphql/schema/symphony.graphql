@@ -2237,10 +2237,6 @@ type Query {
     id: ID!
   ): Node
   user(authID: String!): User
-  location(id: ID!): Location
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
-  locationType(id: ID!): LocationType
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   locationTypes(
     after: Cursor
     first: Int
@@ -2257,10 +2253,6 @@ type Query {
     before: Cursor
     last: Int
   ): LocationConnection
-  equipment(id: ID!): Equipment
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
-  equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -2279,18 +2271,12 @@ type Query {
     before: Cursor
     last: Int
   ): EquipmentTypeConnection!
-  service(id: ID!): Service
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
-  serviceType(id: ID!): ServiceType
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   serviceTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ServiceTypeConnection
-  workOrder(id: ID!): WorkOrder
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   workOrders(
     after: Cursor
     first: Int
@@ -2364,8 +2350,6 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
-  projectType(id: ID!): ProjectType
-    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   projectTypes(
     after: Cursor
     first: Int

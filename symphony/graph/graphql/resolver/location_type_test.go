@@ -8,6 +8,8 @@ package resolver
 import (
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -32,7 +34,10 @@ func TestAddLocationType(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedLocType, _ := qr.LocationType(ctx, locType.ID)
+	fetchedNode, err := qr.Node(ctx, locType.ID)
+	require.NoError(t, err)
+	fetchedLocType, ok := fetchedNode.(*ent.LocationType)
+	require.True(t, ok)
 	require.Equal(t, fetchedLocType.Name, "example_type", "verifying location type name")
 	require.Equal(t, fetchedLocType.MapType, mapType, "verifying location type map type")
 	require.Equal(t, fetchedLocType.MapZoomLevel, mapZoomLvl, "verifying location type zoom level")
@@ -237,8 +242,10 @@ func TestEditLocationType(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, types.Edges, 2)
 
-	typ, err := qr.LocationType(ctx, locType.ID)
+	node, err := qr.Node(ctx, locType.ID)
 	require.NoError(t, err)
+	typ, ok := node.(*ent.LocationType)
+	require.True(t, ok)
 	require.Equal(t, "example_type_name_2", typ.Name)
 }
 
@@ -398,7 +405,10 @@ func TestMarkLocationTypeAsSite(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedLocType, _ := qr.LocationType(ctx, locType.ID)
+	fetchedNode, err := qr.Node(ctx, locType.ID)
+	require.NoError(t, err)
+	fetchedLocType, ok := fetchedNode.(*ent.LocationType)
+	require.True(t, ok)
 	require.True(t, fetchedLocType.Site)
 }
 

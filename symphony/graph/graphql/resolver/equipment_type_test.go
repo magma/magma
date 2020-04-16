@@ -83,8 +83,10 @@ func TestAddEquipmentTypeWithPositions(t *testing.T) {
 		Positions: []*models.EquipmentPositionInput{&position1},
 	})
 	require.NoError(t, err)
-	fetchedEquipmentType, err := qr.EquipmentType(ctx, equipmentType.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentType.ID)
 	require.NoError(t, err)
+	fetchedEquipmentType, ok := fetchedNode.(*ent.EquipmentType)
+	require.True(t, ok)
 
 	require.Equal(t, equipmentType.ID, fetchedEquipmentType.ID, "Verifying saved equipment type vs fetched equipmenttype : ID")
 	require.Equal(t, equipmentType.Name, fetchedEquipmentType.Name, "Verifying saved equipment type  vs fetched equipment type : Name")
@@ -110,7 +112,10 @@ func TestAddEquipmentTypeWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedEquipmentType, _ := qr.EquipmentType(ctx, equipmentType.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentType.ID)
+	require.NoError(t, err)
+	fetchedEquipmentType, ok := fetchedNode.(*ent.EquipmentType)
+	require.True(t, ok)
 	fetchedPropertyTypes, _ := etr.PropertyTypes(ctx, fetchedEquipmentType)
 	require.Len(t, fetchedPropertyTypes, 1)
 	assert.Equal(t, fetchedPropertyTypes[0].Name, "str_prop")
@@ -153,7 +158,10 @@ func TestAddEquipmentTypeWithPorts(t *testing.T) {
 		Ports: []*models.EquipmentPortInput{&portDef},
 	})
 	require.NoError(t, err)
-	fetchedEquipmentType, _ := qr.EquipmentType(ctx, equipmentType.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentType.ID)
+	require.NoError(t, err)
+	fetchedEquipmentType, ok := fetchedNode.(*ent.EquipmentType)
+	require.True(t, ok)
 	ports := fetchedEquipmentType.QueryPortDefinitions().AllX(ctx)
 	require.Len(t, ports, 1)
 
@@ -192,8 +200,10 @@ func TestRemoveEquipmentTypeWithExistingEquipments(t *testing.T) {
 	_, err = mr.RemoveEquipmentType(ctx, equipmentType.ID)
 	require.Error(t, err)
 
-	fetchedEquipmentType, err := qr.EquipmentType(ctx, equipmentType.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentType.ID)
 	require.NoError(t, err)
+	fetchedEquipmentType, ok := fetchedNode.(*ent.EquipmentType)
+	require.True(t, ok)
 	assert.Equal(t, fetchedEquipmentType.ID, equipmentType.ID)
 }
 
@@ -228,9 +238,9 @@ func TestRemoveEquipmentType(t *testing.T) {
 	_, err = mr.RemoveEquipmentType(ctx, equipmentType.ID)
 	require.NoError(t, err)
 
-	deletedEquipmentType, err := qr.EquipmentType(ctx, equipmentType.ID)
+	deletedNode, err := qr.Node(ctx, equipmentType.ID)
 	require.NoError(t, err)
-	assert.Nil(t, deletedEquipmentType)
+	assert.Nil(t, deletedNode)
 
 	propertyTypes := equipmentType.QueryPropertyTypes().AllX(ctx)
 	assert.Empty(t, propertyTypes)
@@ -274,8 +284,10 @@ func TestEditEquipmentType(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, types.Edges, 2)
 
-	typ, err := qr.EquipmentType(ctx, eqType.ID)
+	node, err := qr.Node(ctx, eqType.ID)
 	require.NoError(t, err)
+	typ, ok := node.(*ent.EquipmentType)
+	require.True(t, ok)
 	require.Equal(t, "example_type_name_2", typ.Name)
 }
 

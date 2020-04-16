@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -322,8 +324,10 @@ func TestPosition(t *testing.T) {
 	rec4, _ := NewImportRecord(test4, title)
 	equipID, defID, err := importer.getPositionDetailsIfExists(ctx, loc, rec4, true)
 	require.NoError(t, err)
-	fetchedEquip, err := importer.r.Query().Equipment(ctx, *equipID)
+	fetchedNode, err := importer.r.Query().Node(ctx, *equipID)
 	require.NoError(t, err)
+	fetchedEquip, ok := fetchedNode.(*ent.Equipment)
+	require.True(t, ok)
 	fetchedDefinition := equipmentType.QueryPositionDefinitions().OnlyX(ctx)
 	require.Equal(t, fetchedEquip.Name, equip.Name)
 	require.Equal(t, fetchedEquip.ID, equip.ID)
@@ -356,8 +360,10 @@ func TestValidatePropertiesForType(t *testing.T) {
 	err = importer.populateEquipmentTypeNameToIDMap(ctx, fl, true)
 	r1, _ := NewImportRecord(row1, fl)
 	require.NoError(t, err)
-	etyp1, err := q.EquipmentType(ctx, data.equipTypeID)
+	node1, err := q.Node(ctx, data.equipTypeID)
 	require.NoError(t, err)
+	etyp1, ok := node1.(*ent.EquipmentType)
+	require.True(t, ok)
 	ptypes, err := importer.validatePropertiesForEquipmentType(ctx, r1, etyp1)
 	require.NoError(t, err)
 	require.Len(t, ptypes, 2)
@@ -375,8 +381,10 @@ func TestValidatePropertiesForType(t *testing.T) {
 			require.Fail(t, "property type name should be one of the two")
 		}
 	}
-	etyp2, err := q.EquipmentType(ctx, data.equipTypeID2)
+	node2, err := q.Node(ctx, data.equipTypeID2)
 	require.NoError(t, err)
+	etyp2, ok := node2.(*ent.EquipmentType)
+	require.True(t, ok)
 
 	r2, _ := NewImportRecord(row2, fl)
 	ptypes2, err := importer.validatePropertiesForEquipmentType(ctx, r2, etyp2)
@@ -396,8 +404,10 @@ func TestValidatePropertiesForType(t *testing.T) {
 		}
 	}
 
-	etyp3, err := q.EquipmentType(ctx, data.equipTypeID3)
+	node3, err := q.Node(ctx, data.equipTypeID3)
 	require.NoError(t, err)
+	etyp3, ok := node3.(*ent.EquipmentType)
+	require.True(t, ok)
 
 	r3, _ := NewImportRecord(row3, fl)
 	ptypes3, err := importer.validatePropertiesForEquipmentType(ctx, r3, etyp3)
