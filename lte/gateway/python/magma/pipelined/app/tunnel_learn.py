@@ -56,7 +56,7 @@ class TunnelLearnController(MagmaController):
     def remove_subscriber_flow(self, mac_addr: str):
         match = MagmaMatch(eth_dst=mac_addr)
         flows.delete_flow(self._datapath, self.tbl_num, match)
-        flows.delete_flow(self._datapath, self.ip_rewrite_scratch, match)
+        flows.delete_flow(self._datapath, self.tunnel_learn_scratch, match)
 
     def _install_default_tunnel_classify_flows(self, dp):
         """
