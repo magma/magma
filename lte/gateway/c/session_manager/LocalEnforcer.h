@@ -30,7 +30,7 @@
 namespace magma {
 
 class SessionNotFound : public std::exception {
-public:
+ public:
   SessionNotFound() = default;
 };
 
@@ -39,35 +39,36 @@ public:
  * has run out of credit
  */
 class LocalEnforcer {
-public:
+ public:
   LocalEnforcer();
 
-  LocalEnforcer(std::shared_ptr<SessionReporter> reporter,
-                std::shared_ptr<StaticRuleStore> rule_store,
-                SessionStore &session_store,
-                std::shared_ptr<PipelinedClient> pipelined_client,
-                std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-                std::shared_ptr<AsyncEventdClient> eventd_client,
-                std::shared_ptr<SpgwServiceClient> spgw_client,
-                std::shared_ptr<aaa::AAAClient> aaa_client,
-                long session_force_termination_timeout_ms,
-                long quota_exhaustion_termination_on_init_ms);
+  LocalEnforcer(
+      std::shared_ptr<SessionReporter> reporter,
+      std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
+      std::shared_ptr<PipelinedClient> pipelined_client,
+      std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+      std::shared_ptr<AsyncEventdClient> eventd_client,
+      std::shared_ptr<SpgwServiceClient> spgw_client,
+      std::shared_ptr<aaa::AAAClient> aaa_client,
+      long session_force_termination_timeout_ms,
+      long quota_exhaustion_termination_on_init_ms);
 
-  void attachEventBase(folly::EventBase *evb);
+  void attachEventBase(folly::EventBase* evb);
 
   // blocks
   void start();
 
   void stop();
 
-  folly::EventBase &get_event_base();
+  folly::EventBase& get_event_base();
 
   /**
    * Setup rules for all sessions in pipelined, used whenever pipelined
    * restarts and needs to recover state
    */
-  bool setup(SessionMap &session_map, const std::uint64_t &epoch,
-             std::function<void(Status status, SetupFlowsResult)> callback);
+  bool setup(
+      SessionMap& session_map, const std::uint64_t& epoch,
+      std::function<void(Status status, SetupFlowsResult)> callback);
 
   /**
    * Insert a group of rule usage into the monitor and update credit manager
@@ -76,9 +77,9 @@ public:
    *
    * @param records - a RuleRecordTable protobuf with a vector of RuleRecords
    */
-  void aggregate_records(SessionMap &session_map,
-                         const RuleRecordTable &records,
-                         SessionUpdate &session_update);
+  void aggregate_records(
+      SessionMap& session_map, const RuleRecordTable& records,
+      SessionUpdate& session_update);
 
   /**
    * reset_updates resets all of the charging keys being updated in
@@ -89,8 +90,8 @@ public:
    * @param failed_request - UpdateSessionRequest that couldn't be sent to the
    *                         cloud for whatever reason
    */
-  void reset_updates(SessionMap &session_map,
-                     const UpdateSessionRequest &failed_request);
+  void reset_updates(
+      SessionMap& session_map, const UpdateSessionRequest& failed_request);
 
   /**
    * Collect any credit keys that are either exhausted, timed out, or terminated
@@ -98,20 +99,19 @@ public:
    * @param updates_out (out) - vector to add usage updates to, if they exist
    * @param force_update force updates if revalidation timer expires
    */
-  UpdateSessionRequest
-  collect_updates(SessionMap &session_map,
-                  std::vector<std::unique_ptr<ServiceAction>> &actions,
-                  SessionUpdate &session_update,
-                  const bool force_update = false) const;
+  UpdateSessionRequest collect_updates(
+      SessionMap& session_map,
+      std::vector<std::unique_ptr<ServiceAction>>& actions,
+      SessionUpdate& session_update, const bool force_update = false) const;
 
   /**
    * Perform any rule installs/removals that need to be executed given a
    * CreateSessionResponse.
    */
   bool handle_session_init_rule_updates(
-      SessionMap &session_map, const std::string &imsi,
-      SessionState &session_state, const CreateSessionResponse &response,
-      std::unordered_set<uint32_t> &charging_credits_received);
+      SessionMap& session_map, const std::string& imsi,
+      SessionState& session_state, const CreateSessionResponse& response,
+      std::unordered_set<uint32_t>& charging_credits_received);
 
   /**
    * Initialize credit received from the cloud in the system. This adds all the
@@ -119,19 +119,19 @@ public:
    * @param credit_response - message from cloud containing initial credits
    * @return true if init was successful
    */
-  bool init_session_credit(SessionMap &session_map, const std::string &imsi,
-                           const std::string &session_id,
-                           const SessionConfig &cfg,
-                           const CreateSessionResponse &response);
+  bool init_session_credit(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, const SessionConfig& cfg,
+      const CreateSessionResponse& response);
 
   /**
    * Process the update response from the reporter and update the
    * monitoring/charging credits and attached rules.
    * @param credit_response - message from cloud containing new credits
    */
-  void update_session_credits_and_rules(SessionMap &session_map,
-                                        const UpdateSessionResponse &response,
-                                        SessionUpdate &session_update);
+  void update_session_credits_and_rules(
+      SessionMap& session_map, const UpdateSessionResponse& response,
+      SessionUpdate& session_update);
 
   /**
    * Starts the termination process for the session. When termination completes,
@@ -140,24 +140,25 @@ public:
    * @param on_termination_callback - callback function to be executed after
    * termination
    */
-  void terminate_subscriber(SessionMap &session_map, const std::string &imsi,
-                            const std::string &apn,
-                            SessionUpdate &session_update);
+  void terminate_subscriber(
+      SessionMap& session_map, const std::string& imsi, const std::string& apn,
+      SessionUpdate& session_update);
 
-  uint64_t get_charging_credit(SessionMap &session_map, const std::string &imsi,
-                               const CreditKey &charging_key,
-                               Bucket bucket) const;
+  uint64_t get_charging_credit(
+      SessionMap& session_map, const std::string& imsi,
+      const CreditKey& charging_key, Bucket bucket) const;
 
-  uint64_t get_monitor_credit(SessionMap &session_map, const std::string &imsi,
-                              const std::string &mkey, Bucket bucket) const;
+  uint64_t get_monitor_credit(
+      SessionMap& session_map, const std::string& imsi, const std::string& mkey,
+      Bucket bucket) const;
 
   /**
    * Initialize reauth for a subscriber service. If the subscriber cannot be
    * found, the method returns SESSION_NOT_FOUND
    */
-  ChargingReAuthAnswer::Result
-  init_charging_reauth(SessionMap &session_map, ChargingReAuthRequest request,
-                       SessionUpdate &session_update);
+  ChargingReAuthAnswer::Result init_charging_reauth(
+      SessionMap& session_map, ChargingReAuthRequest request,
+      SessionUpdate& session_update);
 
   /**
    * Handles the equivalent of a RAR.
@@ -170,52 +171,54 @@ public:
    * NOTE: If an empty session ID is specified, apply changes to all matching
    * sessions with the specified IMSI.
    */
-  void init_policy_reauth(SessionMap &session_map, PolicyReAuthRequest request,
-                          PolicyReAuthAnswer &answer_out,
-                          SessionUpdate &session_update);
+  void init_policy_reauth(
+      SessionMap& session_map, PolicyReAuthRequest request,
+      PolicyReAuthAnswer& answer_out, SessionUpdate& session_update);
 
-  bool session_with_imsi_exists(SessionMap &session_map,
-                                const std::string &imsi) const;
+  bool session_with_imsi_exists(
+      SessionMap& session_map, const std::string& imsi) const;
 
-  bool session_with_apn_exists(SessionMap &session_map, const std::string &imsi,
-                               const std::string &apn) const;
+  bool session_with_apn_exists(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& apn) const;
 
-  bool is_session_active(SessionMap &session_map, const std::string &imsi,
-                         const std::string &core_session_id) const;
+  bool is_session_active(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& core_session_id) const;
 
-  bool has_active_session(SessionMap &session_map, const std::string &imsi,
-                          std::string *core_session_id) const;
+  bool has_active_session(
+      SessionMap& session_map, const std::string& imsi,
+      std::string* core_session_id) const;
 
-  bool session_with_same_config_exists(SessionMap &session_map,
-                                       const std::string &imsi,
-                                       const magma::SessionConfig &config,
-                                       std::string *core_session_id) const;
+  bool session_with_same_config_exists(
+      SessionMap& session_map, const std::string& imsi,
+      const magma::SessionConfig& config, std::string* core_session_id) const;
 
   /**
    * Set session config for the IMSI.
    * Should be only used for WIFI as it will apply it to all sessions with the
    * IMSI
    */
-  void handle_cwf_roaming(SessionMap &session_map, const std::string &imsi,
-                          const magma::SessionConfig &config,
-                          SessionUpdate &session_update);
+  void handle_cwf_roaming(
+      SessionMap& session_map, const std::string& imsi,
+      const magma::SessionConfig& config, SessionUpdate& session_update);
 
   /**
    * Execute actions on subscriber's service, eg. terminate, redirect data, or
    * just continue
    */
-  void
-  execute_actions(SessionMap &session_map,
-                  const std::vector<std::unique_ptr<ServiceAction>> &actions,
-                  SessionUpdate &session_update);
+  void execute_actions(
+      SessionMap& session_map,
+      const std::vector<std::unique_ptr<ServiceAction>>& actions,
+      SessionUpdate& session_update);
 
   void set_termination_callback(
-      SessionMap &session_map, const std::string &imsi, const std::string &apn,
+      SessionMap& session_map, const std::string& imsi, const std::string& apn,
       std::function<void(SessionTerminateRequest)> on_termination_callback);
 
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
-private:
+ private:
   struct RulesToProcess {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
@@ -229,20 +232,20 @@ private:
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
       session_map_;
-  SessionStore &session_store_;
-  folly::EventBase *evb_;
+  SessionStore& session_store_;
+  folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
   // [CWF-ONLY] This configures how long we should wait before terminating a
   // session after it is created without any monitoring quota
   long quota_exhaustion_termination_on_init_ms_;
 
-private:
+ private:
   /**
    * notify_new_report_for_sessions notifies all sessions that a new usage
    * report is going to be
    * aggregated.
    */
-  void notify_new_report_for_sessions(SessionMap &session_map);
+  void notify_new_report_for_sessions(SessionMap& session_map);
 
   /**
    * notify_finish_report_for_sessions notifies all sessions that the
@@ -250,8 +253,8 @@ private:
    * report is finished. For sessions that are terminating, complete the
    * termination if the session is not included in the report.
    */
-  void notify_finish_report_for_sessions(SessionMap &session_map,
-                                         SessionUpdate &session_update);
+  void notify_finish_report_for_sessions(
+      SessionMap& session_map, SessionUpdate& session_update);
 
   /**
    * Process the create session response to get rules to activate/deactivate
@@ -259,19 +262,19 @@ private:
    * to activate/deactivate later. No state change is made.
    */
   void process_create_session_response(
-      SessionMap &session_map, const CreateSessionResponse &response,
-      const std::unordered_set<uint32_t> &successful_credits,
-      const std::string &imsi, const std::string &ip_addr,
-      RulesToProcess &rules_to_activate, RulesToProcess &rules_to_deactivate);
+      SessionMap& session_map, const CreateSessionResponse& response,
+      const std::unordered_set<uint32_t>& successful_credits,
+      const std::string& imsi, const std::string& ip_addr,
+      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate);
 
   /**
    * Processes the charging component of UpdateSessionResponse.
    * Updates charging credits according to the response.
    */
   void update_charging_credits(
-      SessionMap &session_map, const UpdateSessionResponse &response,
-      std::unordered_set<std::string> &subscribers_to_terminate,
-      SessionUpdate &session_update);
+      SessionMap& session_map, const UpdateSessionResponse& response,
+      std::unordered_set<std::string>& subscribers_to_terminate,
+      SessionUpdate& session_update);
 
   /**
    * Processes the monitoring component of UpdateSessionResponse.
@@ -281,9 +284,9 @@ private:
    * terminate
    */
   void update_monitoring_credits_and_rules(
-      SessionMap &session_map, const UpdateSessionResponse &response,
-      std::unordered_set<std::string> &subscribers_to_terminate,
-      SessionUpdate &session_update);
+      SessionMap& session_map, const UpdateSessionResponse& response,
+      std::unordered_set<std::string>& subscribers_to_terminate,
+      SessionUpdate& session_update);
 
   /**
    * Process the list of rule names given and fill in rules_to_deactivate by
@@ -291,11 +294,11 @@ private:
    * TODO separate out logic that modifies state vs logic that does not.
    */
   void process_rules_to_remove(
-      const std::string &imsi, const std::unique_ptr<SessionState> &session,
+      const std::string& imsi, const std::unique_ptr<SessionState>& session,
       const google::protobuf::RepeatedPtrField<std::basic_string<char>>
           rules_to_remove,
-      RulesToProcess &rules_to_deactivate,
-      SessionStateUpdateCriteria &update_criteria);
+      RulesToProcess& rules_to_deactivate,
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * Populate existing rules from a specific session;
@@ -304,8 +307,8 @@ private:
    * rules.
    */
   void populate_rules_from_session_to_remove(
-      const std::string &imsi, const std::unique_ptr<SessionState> &session,
-      RulesToProcess &rules_to_deactivate);
+      const std::string& imsi, const std::unique_ptr<SessionState>& session,
+      RulesToProcess& rules_to_deactivate);
 
   /**
    * Process protobuf StaticRuleInstalls and DynamicRuleInstalls to fill in
@@ -313,14 +316,14 @@ private:
    * TODO separate out logic that modifies state vs logic that does not.
    */
   void process_rules_to_install(
-      SessionMap &session_map, const std::string &imsi,
-      const std::unique_ptr<SessionState> &session,
+      SessionMap& session_map, const std::string& imsi,
+      const std::unique_ptr<SessionState>& session,
       const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
           static_rules_to_install,
       const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
           dynamic_rules_to_install,
-      RulesToProcess &rules_to_activate, RulesToProcess &rules_to_deactivate,
-      SessionStateUpdateCriteria &update_criteria);
+      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * For the matching session ID, activate and/or deactivate the specified
@@ -328,9 +331,9 @@ private:
    * Also create a bearer for the session.
    */
   void init_policy_reauth_for_session(
-      SessionMap &session_map, const PolicyReAuthRequest &request,
-      const std::unique_ptr<SessionState> &session, bool &activate_success,
-      bool &deactivate_success, SessionUpdate &session_update);
+      SessionMap& session_map, const PolicyReAuthRequest& request,
+      const std::unique_ptr<SessionState>& session, bool& activate_success,
+      bool& deactivate_success, SessionUpdate& session_update);
 
   /**
    * Completes the session termination and executes the callback function
@@ -343,85 +346,85 @@ private:
    * or a new session for the subscriber has been created, then it will do
    * nothing.
    */
-  void complete_termination(SessionMap &session_map, const std::string &imsi,
-                            const std::string &session_id,
-                            SessionStateUpdateCriteria &update_criteria);
+  void complete_termination(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id,
+      SessionStateUpdateCriteria& update_criteria);
 
-  void schedule_static_rule_activation(const std::string &imsi,
-                                       const std::string &ip_addr,
-                                       const StaticRuleInstall &static_rule);
+  void schedule_static_rule_activation(
+      const std::string& imsi, const std::string& ip_addr,
+      const StaticRuleInstall& static_rule);
 
-  void schedule_dynamic_rule_activation(const std::string &imsi,
-                                        const std::string &ip_addr,
-                                        const DynamicRuleInstall &dynamic_rule);
+  void schedule_dynamic_rule_activation(
+      const std::string& imsi, const std::string& ip_addr,
+      const DynamicRuleInstall& dynamic_rule);
 
-  void schedule_static_rule_deactivation(const std::string &imsi,
-                                         const StaticRuleInstall &static_rule);
+  void schedule_static_rule_deactivation(
+      const std::string& imsi, const StaticRuleInstall& static_rule);
 
-  void
-  schedule_dynamic_rule_deactivation(const std::string &imsi,
-                                     const DynamicRuleInstall &dynamic_rule);
+  void schedule_dynamic_rule_deactivation(
+      const std::string& imsi, const DynamicRuleInstall& dynamic_rule);
 
   /**
    * Get the monitoring credits from PolicyReAuthRequest (RAR) message
    * and add the credits to UsageMonitoringCreditPool of the session
    */
   void receive_monitoring_credit_from_rar(
-      const PolicyReAuthRequest &request,
-      const std::unique_ptr<SessionState> &session,
-      SessionStateUpdateCriteria &update_criteria);
+      const PolicyReAuthRequest& request,
+      const std::unique_ptr<SessionState>& session,
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * Send bearer creation request through the PGW client if rules were
    * activated successfully in pipelined
    */
-  void create_bearer(const bool activate_success,
-                     const std::unique_ptr<SessionState> &session,
-                     const PolicyReAuthRequest &request,
-                     const std::vector<PolicyRule> &dynamic_rules);
+  void create_bearer(
+      const bool activate_success, const std::unique_ptr<SessionState>& session,
+      const PolicyReAuthRequest& request,
+      const std::vector<PolicyRule>& dynamic_rules);
 
   /**
    * Check if REVALIDATION_TIMEOUT is one of the event triggers
    */
   bool revalidation_required(
-      const google::protobuf::RepeatedField<int> &event_triggers);
+      const google::protobuf::RepeatedField<int>& event_triggers);
 
-  void
-  schedule_revalidation(SessionMap &session_map,
-                        const google::protobuf::Timestamp &revalidation_time);
+  void schedule_revalidation(
+      SessionMap& session_map,
+      const google::protobuf::Timestamp& revalidation_time);
 
-  void check_usage_for_reporting(SessionMap &session_map,
-                                 SessionUpdate &session_update,
-                                 const bool force_update = false);
-
-  /**
-    * Deactivate rules for certain IMSI.
-    * Notify AAA service if the session is a CWF session.
-    */
-  void terminate_service(SessionMap &session_map, const std::string &imsi,
-                         const std::vector<std::string> &rule_ids,
-                         const std::vector<PolicyRule> &dynamic_rules,
-                         SessionUpdate &session_update);
+  void check_usage_for_reporting(
+      SessionMap& session_map, SessionUpdate& session_update,
+      const bool force_update = false);
 
   /**
-    * Deactivate rules for multiple IMSIs.
-    * Notify AAA service if the session is a CWF session.
-    */
-  void terminate_multiple_services(SessionMap &session_map,
-                                   const std::unordered_set<std::string> &imsis,
-                                   SessionUpdate &session_update);
+   * Deactivate rules for certain IMSI.
+   * Notify AAA service if the session is a CWF session.
+   */
+  void terminate_service(
+      SessionMap& session_map, const std::string& imsi,
+      const std::vector<std::string>& rule_ids,
+      const std::vector<PolicyRule>& dynamic_rules,
+      SessionUpdate& session_update);
 
   /**
-    * Install flow for redirection through pipelined
-    */
-  void install_redirect_flow(const std::unique_ptr<ServiceAction> &action);
+   * Deactivate rules for multiple IMSIs.
+   * Notify AAA service if the session is a CWF session.
+   */
+  void terminate_multiple_services(
+      SessionMap& session_map, const std::unordered_set<std::string>& imsis,
+      SessionUpdate& session_update);
 
-  bool rules_to_process_is_not_empty(const RulesToProcess &rules_to_process);
+  /**
+   * Install flow for redirection through pipelined
+   */
+  void install_redirect_flow(const std::unique_ptr<ServiceAction>& action);
 
-  void
-  report_subscriber_state_to_pipelined(const std::string &imsi,
-                                       const std::string &ue_mac_addr,
-                                       const SubscriberQuotaUpdate_Type state);
+  bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
+
+  void report_subscriber_state_to_pipelined(
+      const std::string& imsi, const std::string& ue_mac_addr,
+      const SubscriberQuotaUpdate_Type state);
 
   /**
    * [CWF-ONLY]
@@ -430,9 +433,9 @@ private:
    * Otherwise, mark the subscriber as out of quota to pipelined, and schedule
    * the session to be terminated in a configured amount of time.
    */
-  void handle_session_init_subscriber_quota_state(SessionMap &session_map,
-                                                  const std::string &imsi,
-                                                  SessionState &session_state);
+  void handle_session_init_subscriber_quota_state(
+      SessionMap& session_map, const std::string& imsi,
+      SessionState& session_state);
 };
 
-} // namespace magma
+}  // namespace magma
