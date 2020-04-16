@@ -79,7 +79,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
         "AA-AA-AA-AA-AA-AA:TESTAP__"
         "0F-10-2E-12-3A-55";
     std::string core_session_id = "asdf";
-    SessionConfig cfg           = {.ue_ipv4           = "",
+    SessionConfig cfg = {.ue_ipv4           = "",
                          .spgw_ipv4         = "",
                          .msisdn            = msisdn,
                          .apn               = "",
@@ -130,19 +130,6 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   }
 
   PolicyReAuthRequest* get_policy_reauth_request() {
-    //    message PolicyReAuthRequest {
-    //      // NOTE: if no session_id is specified, apply to all sessions for
-    //      the IMSI
-    //      string session_id = 1;
-    //      string imsi = 2;
-    //      repeated string rules_to_remove = 3;
-    //      repeated StaticRuleInstall rules_to_install = 6;
-    //      repeated DynamicRuleInstall dynamic_rules_to_install = 7;
-    //      repeated EventTrigger event_triggers = 8;
-    //      google.protobuf.Timestamp revalidation_time = 9;
-    //      repeated UsageMonitoringCredit usage_monitoring_credits = 10;
-    //      QoSInformation qos_info = 11;
-    //    }
     auto request = new PolicyReAuthRequest();
     request->set_session_id("");
     request->set_imsi("IMSI1");
