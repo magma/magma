@@ -56,5 +56,5 @@ RUN mkdir -p /var/opt/magma/docker
 COPY orc8r/tools/docker/recreate_services.sh /var/opt/magma/docker/
 COPY orc8r/tools/docker/recreate_services_cron /etc/cron.d/
 
-COPY xwf/gateway/tests/gw/entrypoint.sh .
+COPY xwf/gateway/integ_tests/gw/entrypoint.sh .
 CMD ./entrypoint.sh
