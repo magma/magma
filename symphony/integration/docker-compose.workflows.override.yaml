@@ -5,5 +5,6 @@
 version: "3.7"
 services:
   workflows:
+    command: yarn run start:dev
     volumes:
       - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows/src:/app/fbcnms-projects/workflows/src
