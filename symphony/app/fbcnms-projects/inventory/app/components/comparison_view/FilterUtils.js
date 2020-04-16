@@ -184,7 +184,7 @@ export function getPossibleProperties(
         type: prop.type,
         name: prop.name,
         index: index,
-        stringValue: '',
+        stringValue: prop.stringValue,
       })),
     prop => prop.name + prop.type,
   );
