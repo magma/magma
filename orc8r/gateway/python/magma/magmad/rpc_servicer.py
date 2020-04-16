@@ -93,6 +93,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             await asyncio.sleep(1)
             os.system('reboot')
 
+        logging.info("Remote reboot triggered! Rebooting gateway...")
         self._loop.create_task(run_reboot())
 
     @return_void
