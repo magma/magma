@@ -10,10 +10,19 @@
 'use strict';
 
 import ExpressApplication from 'express';
+import proxy from './proxy/proxy';
 import workflowRouter from './routes';
 
 const app = ExpressApplication();
 
-app.use('/', workflowRouter);
+async function init() {
+  const proxyTarget =
+    process.env.PROXY_TARGET || 'http://conductor-server:8080';
+  const proxyRouter = await proxy(proxyTarget);
 
-app.listen(80);
+  app.use('/', workflowRouter);
+  app.use('/proxy', proxyRouter);
+  app.listen(80);
+}
+
+init();
