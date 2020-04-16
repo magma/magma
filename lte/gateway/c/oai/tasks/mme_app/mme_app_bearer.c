@@ -2902,11 +2902,10 @@ void mme_app_handle_nw_init_bearer_deactv_req(
   pdn_context_t* pdn_context = ue_context_p->pdn_contexts[cid];
 
   /* If delete_default_bearer is set and this is the only active PDN,
-  *  Send Detach Request to UE
-  */
-  if (
-    (nw_init_bearer_deactv_req_p->delete_default_bearer) &&
-    (ue_context_p->nb_active_pdn_contexts == 1)) {
+   *  Send Detach Request to UE
+   */
+  if ((nw_init_bearer_deactv_req_p->delete_default_bearer) &&
+      (ue_context_p->emm_context.esm_ctx.n_pdns == 1)) {
     OAILOG_INFO_UE(
       LOG_MME_APP,
       ue_context_p->emm_context._imsi64,
