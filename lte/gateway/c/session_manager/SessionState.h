@@ -25,7 +25,7 @@ namespace magma {
  * usage and allowance for all charging keys
  */
 class SessionState {
-public:
+ public:
   struct SessionInfo {
     std::string imsi;
     std::string ip_addr;
@@ -39,23 +39,23 @@ public:
     uint64_t charging_rx;
   };
 
-public:
-  SessionState(const std::string &imsi, const std::string &session_id,
-               const std::string &core_session_id, const SessionConfig &cfg,
-               StaticRuleStore &rule_store,
-               const magma::lte::TgppContext &tgpp_context);
+ public:
+  SessionState(
+      const std::string& imsi, const std::string& session_id,
+      const std::string& core_session_id, const SessionConfig& cfg,
+      StaticRuleStore& rule_store, const magma::lte::TgppContext& tgpp_context);
 
-  SessionState(const StoredSessionState &marshaled,
-               StaticRuleStore &rule_store);
+  SessionState(
+      const StoredSessionState& marshaled, StaticRuleStore& rule_store);
 
-  static std::unique_ptr<SessionState>
-  unmarshal(const StoredSessionState &marshaled, StaticRuleStore &rule_store);
+  static std::unique_ptr<SessionState> unmarshal(
+      const StoredSessionState& marshaled, StaticRuleStore& rule_store);
 
   StoredSessionState marshal();
 
   SessionConfig marshal_config();
 
-  void unmarshal_config(const SessionConfig &marshaled);
+  void unmarshal_config(const SessionConfig& marshaled);
 
   /**
    * notify_new_report_for_sessions sets the state of terminating session to
@@ -76,9 +76,9 @@ public:
   /**
    * add_used_credit adds used TX/RX bytes to a particular charging key
    */
-  void add_used_credit(const std::string &rule_id, uint64_t used_tx,
-                       uint64_t used_rx,
-                       SessionStateUpdateCriteria &update_criteria);
+  void add_used_credit(
+      const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * get_updates collects updates and adds them to a UpdateSessionRequest
@@ -88,10 +88,11 @@ public:
    * @param actions (out) - actions to take on services
    * @param force_update force updates if revalidation timer expires
    */
-  void get_updates(UpdateSessionRequest &update_request_out,
-                   std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-                   SessionStateUpdateCriteria &update_criteria,
-                   const bool force_update = false);
+  void get_updates(
+      UpdateSessionRequest& update_request_out,
+      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+      SessionStateUpdateCriteria& update_criteria,
+      const bool force_update = false);
 
   /**
    * start_termination starts the termination process for the session.
@@ -102,7 +103,7 @@ public:
    * @param on_termination_callback - call back function to be executed after
    * termination
    */
-  void start_termination(SessionStateUpdateCriteria &update_criteria);
+  void start_termination(SessionStateUpdateCriteria& update_criteria);
 
   void set_termination_callback(
       std::function<void(SessionTerminateRequest)> on_termination_callback);
@@ -111,8 +112,8 @@ public:
    * mark_as_awaiting_termination transitions the session state from
    * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
    */
-  void
-  mark_as_awaiting_termination(SessionStateUpdateCriteria &update_criteria);
+  void mark_as_awaiting_termination(
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * can_complete_termination returns whether the termination for the session
@@ -131,7 +132,7 @@ public:
    * termination, this function should only be called when
    * can_complete_termination returns true.
    */
-  void complete_termination(SessionStateUpdateCriteria &update_criteria);
+  void complete_termination(SessionStateUpdateCriteria& update_criteria);
 
   /**
    * complete_termination collects final usages for all credits into a
@@ -142,12 +143,12 @@ public:
    * termination, this function should only be called when
    * can_complete_termination returns true.
    */
-  void complete_termination(SessionReporter &reporter,
-                            SessionStateUpdateCriteria &update_criteria);
+  void complete_termination(
+      SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria);
 
-  ChargingCreditPool &get_charging_pool();
+  ChargingCreditPool& get_charging_pool();
 
-  UsageMonitoringCreditPool &get_monitor_pool();
+  UsageMonitoringCreditPool& get_monitor_pool();
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,
@@ -181,22 +182,23 @@ public:
 
   bool is_radius_cwf_session() const;
 
-  bool is_same_config(const SessionConfig &new_config) const;
+  bool is_same_config(const SessionConfig& new_config) const;
 
-  void get_session_info(SessionState::SessionInfo &info);
+  void get_session_info(SessionState::SessionInfo& info);
 
   bool qos_enabled() const;
 
-  void set_tgpp_context(const magma::lte::TgppContext &tgpp_context,
-                        SessionStateUpdateCriteria &update_criteria);
+  void set_tgpp_context(
+      const magma::lte::TgppContext& tgpp_context,
+      SessionStateUpdateCriteria& update_criteria);
 
-  void set_config(const SessionConfig &config);
+  void set_config(const SessionConfig& config);
 
-  void fill_protos_tgpp_context(magma::lte::TgppContext *tgpp_context) const;
+  void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
-  void
-  set_subscriber_quota_state(const magma::lte::SubscriberQuotaUpdate_Type state,
-                             SessionStateUpdateCriteria &update_criteria);
+  void set_subscriber_quota_state(
+      const magma::lte::SubscriberQuotaUpdate_Type state,
+      SessionStateUpdateCriteria& update_criteria);
 
   bool active_monitored_rules_exist();
 
@@ -205,36 +207,37 @@ public:
   void increment_request_number(uint32_t incr);
 
   // Methods related to the session's static and dynamic rules
-  bool get_charging_key_for_rule_id(const std::string &rule_id,
-                                    CreditKey *charging_key);
+  bool get_charging_key_for_rule_id(
+      const std::string& rule_id, CreditKey* charging_key);
 
-  bool get_monitoring_key_for_rule_id(const std::string &rule_id,
-                                      std::string *monitoring_key);
+  bool get_monitoring_key_for_rule_id(
+      const std::string& rule_id, std::string* monitoring_key);
 
-  bool is_dynamic_rule_installed(const std::string &rule_id);
+  bool is_dynamic_rule_installed(const std::string& rule_id);
 
-  bool is_static_rule_installed(const std::string &rule_id);
+  bool is_static_rule_installed(const std::string& rule_id);
 
-  void insert_dynamic_rule(const PolicyRule &rule,
-                           SessionStateUpdateCriteria &update_criteria);
+  void insert_dynamic_rule(
+      const PolicyRule& rule, SessionStateUpdateCriteria& update_criteria);
 
-  void activate_static_rule(const std::string &rule_id,
-                            SessionStateUpdateCriteria &update_criteria);
+  void activate_static_rule(
+      const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
 
-  bool remove_dynamic_rule(const std::string &rule_id, PolicyRule *rule_out,
-                           SessionStateUpdateCriteria &update_criteria);
+  bool remove_dynamic_rule(
+      const std::string& rule_id, PolicyRule* rule_out,
+      SessionStateUpdateCriteria& update_criteria);
 
-  bool deactivate_static_rule(const std::string &rule_id,
-                              SessionStateUpdateCriteria &update_criteria);
+  bool deactivate_static_rule(
+      const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
 
-  DynamicRuleStore &get_dynamic_rules();
+  DynamicRuleStore& get_dynamic_rules();
 
   uint32_t total_monitored_rules_count();
   bool is_active();
 
   uint32_t get_credit_key_count();
 
-private:
+ private:
   /**
    * State transitions of a session:
    * SESSION_ACTIVE  ---------
@@ -262,11 +265,11 @@ private:
    * SESSION_TERMINATED
    */
   enum State {
-    SESSION_ACTIVE = 0,
-    SESSION_TERMINATING_FLOW_ACTIVE = 1,
+    SESSION_ACTIVE                        = 0,
+    SESSION_TERMINATING_FLOW_ACTIVE       = 1,
     SESSION_TERMINATING_AGGREGATING_STATS = 2,
-    SESSION_TERMINATING_FLOW_DELETED = 3,
-    SESSION_TERMINATED = 4,
+    SESSION_TERMINATING_FLOW_DELETED      = 3,
+    SESSION_TERMINATED                    = 4,
     // TODO All sessions in this state should be terminated on sessiond restart
     SESSION_TERMINATION_SCHEDULED = 5
   };
@@ -286,13 +289,13 @@ private:
   std::function<void(SessionTerminateRequest)> on_termination_callback_;
 
   // All static rules synced from policy DB
-  StaticRuleStore &static_rules_;
+  StaticRuleStore& static_rules_;
   // Static rules that are currently installed for the session
   std::vector<std::string> active_static_rules_;
   // Dynamic rules that are currently installed for the session
   DynamicRuleStore dynamic_rules_;
 
-private:
+ private:
   /**
    * For this session, add the CreditUsageUpdate to the UpdateSessionRequest.
    * Also
@@ -302,9 +305,9 @@ private:
    * @param force_update force updates if revalidation timer expires
    */
   void get_updates_from_charging_pool(
-      UpdateSessionRequest &update_request_out,
-      std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-      SessionStateUpdateCriteria &update_criteria,
+      UpdateSessionRequest& update_request_out,
+      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+      SessionStateUpdateCriteria& update_criteria,
       const bool force_update = false);
 
   /**
@@ -316,10 +319,10 @@ private:
    * @param force_update force updates if revalidation timer expires
    */
   void get_updates_from_monitor_pool(
-      UpdateSessionRequest &update_request_out,
-      std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-      SessionStateUpdateCriteria &update_criteria,
+      UpdateSessionRequest& update_request_out,
+      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+      SessionStateUpdateCriteria& update_criteria,
       const bool force_update = false);
 };
 
-} // namespace magma
+}  // namespace magma
