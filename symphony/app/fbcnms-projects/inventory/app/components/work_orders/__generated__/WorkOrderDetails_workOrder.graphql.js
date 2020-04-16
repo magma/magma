@@ -132,7 +132,7 @@ export type WorkOrderDetails_workOrder = {|
       +enumSelectionMode: ?CheckListItemEnumSelectionMode,
       +selectedEnumValues: ?string,
       +yesNoResponse: ?YesNoResponse,
-      +files: $ReadOnlyArray<{|
+      +files: ?$ReadOnlyArray<{|
         +id: string,
         +fileName: string,
         +sizeInBytes: ?number,

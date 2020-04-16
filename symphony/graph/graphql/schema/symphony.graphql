@@ -1096,7 +1096,7 @@ type CheckListItem implements Node {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
-  files: [File!]!
+  files: [File!]
   yesNoResponse: YesNoResponse
   wifiData: [SurveyWiFiScan!]
   cellData: [SurveyCellScan!]
