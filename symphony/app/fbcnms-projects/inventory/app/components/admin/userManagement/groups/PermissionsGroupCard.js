@@ -28,7 +28,8 @@ import {
 } from '../utils/UserManagementUtils';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useMemo, useState} from 'react';
+import {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouteMatch} from 'react-router-dom';
 import {useUserManagement} from '../UserManagementContext';
 
@@ -85,6 +86,14 @@ export default function PermissionsGroupCard({
     setGroup(requestedGroup);
   }, [groupId, groups, isOnNewGroup, redirectToGroupsView]);
 
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const handleError = useCallback(
+    (error: string) => {
+      enqueueSnackbar(error, {variant: 'error'});
+    },
+    [enqueueSnackbar],
+  );
+
   const header = useMemo(() => {
     const breadcrumbs = [
       {
@@ -110,7 +119,9 @@ export default function PermissionsGroupCard({
             return;
           }
           const saveAction = isOnNewGroup ? addGroup : editGroup;
-          saveAction(group).then(onClose);
+          saveAction(group)
+            .then(onClose)
+            .catch(handleError);
         },
       },
     ];
@@ -119,7 +130,15 @@ export default function PermissionsGroupCard({
       subtitle: fbt('Manage group details, members and policies', ''),
       actionButtons: actions,
     };
-  }, [addGroup, editGroup, group, isOnNewGroup, onClose, redirectToGroupsView]);
+  }, [
+    addGroup,
+    editGroup,
+    group,
+    handleError,
+    isOnNewGroup,
+    onClose,
+    redirectToGroupsView,
+  ]);
 
   if (group == null) {
     return null;
