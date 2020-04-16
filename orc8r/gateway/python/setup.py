@@ -85,6 +85,10 @@ setup(
         "strict-rfc3339>=0.7",
         "rfc3987>=1.3.0",
         "jsonpointer>=1.13",
-        "webcolors>=1.11.1"
-    ]
+        "webcolors>=1.11.1",
+    ],
+    extras_require={
+        'dev': [
+        ],
+    },
 )
