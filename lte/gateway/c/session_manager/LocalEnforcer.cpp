@@ -54,7 +54,7 @@ static void mark_rule_failures(const bool activate_success,
 static void handle_command_level_result_code(
     const std::string &imsi, const uint32_t result_code,
     std::unordered_set<std::string> &subscribers_to_terminate);
-static bool isValidMacAddress(const char *mac);
+static bool is_valid_mac_address(const char *mac);
 static int get_apn_split_locaion(const std::string &apn);
 static bool parse_apn(const std::string &apn, std::string &mac_addr,
                       std::string &name);
@@ -1681,7 +1681,7 @@ static void mark_rule_failures(const bool activate_success,
   }
 }
 
-static bool isValidMacAddress(const char *mac) {
+static bool is_valid_mac_address(const char *mac) {
   int i = 0;
   int s = 0;
 
@@ -1713,7 +1713,7 @@ static bool parse_apn(const std::string &apn, std::string &mac_addr,
     return false;
   }
   auto mac = apn.substr(0, split_location);
-  if (!isValidMacAddress(mac.c_str())) {
+  if (!is_valid_mac_address(mac.c_str())) {
     return false;
   }
   mac_addr = mac;
