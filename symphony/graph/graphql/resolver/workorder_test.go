@@ -529,8 +529,10 @@ func TestExecuteWorkOrderInstallEquipment(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, workOrder.ID, returnedWorkOrder.ID)
 
-	fetchedWorkOrderEquipment, err := qr.Equipment(ctx, workOrderEquipment.ID)
+	fetchedWorkOrderNode, err := qr.Node(ctx, workOrderEquipment.ID)
 	require.NoError(t, err)
+	fetchedWorkOrderEquipment, ok := fetchedWorkOrderNode.(*ent.Equipment)
+	require.True(t, ok)
 	assert.Empty(t, fetchedWorkOrderEquipment.FutureState)
 
 	wo, err := fetchedWorkOrderEquipment.QueryWorkOrder().FirstID(ctx)
@@ -574,16 +576,20 @@ func TestExecuteWorkOrderRemoveEquipment(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	fetchedParentEquipment, err := qr.Equipment(ctx, parentEquipment.ID)
+	fetchedParentNode, err := qr.Node(ctx, parentEquipment.ID)
 	assert.NoError(t, err)
+	fetchedParentEquipment, ok := fetchedParentNode.(*ent.Equipment)
+	assert.True(t, ok)
 	fetchedPosition := fetchedParentEquipment.QueryPositions().OnlyX(ctx)
 
 	updatedPosition, err := mr.RemoveEquipmentFromPosition(ctx, fetchedPosition.ID, &workOrder.ID)
 	require.NoError(t, err)
 	assert.NotNil(t, updatedPosition.QueryParent().OnlyX(ctx)) // equipment isn't removed yet, only when workOrder is executed
 
-	fetchedWorkOrderEquipment, err := qr.Equipment(ctx, childEquipment.ID)
+	fetchedWorkOrderNode, err := qr.Node(ctx, childEquipment.ID)
 	require.NoError(t, err)
+	fetchedWorkOrderEquipment, ok := fetchedWorkOrderNode.(*ent.Equipment)
+	require.True(t, ok)
 	assert.Equal(t, models.FutureStateRemove.String(), fetchedWorkOrderEquipment.FutureState)
 	assert.Equal(t, workOrder.ID, fetchedWorkOrderEquipment.QueryWorkOrder().OnlyXID(ctx))
 
@@ -591,12 +597,14 @@ func TestExecuteWorkOrderRemoveEquipment(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, workOrder.ID, returnedWorkOrder.ID)
 
-	fetchedRemovedWorkOrderEquipment, err := qr.Equipment(ctx, childEquipment.ID)
+	fetchedRemovedWorkOrderNode, err := qr.Node(ctx, childEquipment.ID)
 	require.NoError(t, err)
-	assert.Nil(t, fetchedRemovedWorkOrderEquipment)
+	assert.Nil(t, fetchedRemovedWorkOrderNode)
 
-	fetchedParentEquipmentAfterExecution, err := qr.Equipment(ctx, parentEquipment.ID)
+	fetchedParentNodeAfterExecution, err := qr.Node(ctx, parentEquipment.ID)
 	assert.NoError(t, err)
+	fetchedParentEquipmentAfterExecution, ok := fetchedParentNodeAfterExecution.(*ent.Equipment)
+	assert.True(t, ok)
 
 	fetchedPositionAfterExecution := fetchedParentEquipmentAfterExecution.QueryPositions().OnlyX(ctx)
 	_, err = mr.RemoveEquipmentFromPosition(ctx, fetchedPositionAfterExecution.ID, &workOrder.ID)
@@ -652,7 +660,10 @@ func TestExecuteWorkOrderInstallLink(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, workOrder.ID, returnedWorkOrder.ID)
 
-	fetchedEquipment, _ := qr.Equipment(ctx, equipmentA.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentA.ID)
+	assert.NoError(t, err)
+	fetchedEquipment, ok := fetchedNode.(*ent.Equipment)
+	assert.True(t, ok)
 	fetchedPort := fetchedEquipment.QueryPorts().OnlyX(ctx)
 	fetchedLink, _ := pr.Link(ctx, fetchedPort)
 	assert.Equal(t, createdLink.ID, fetchedLink.ID)
@@ -700,8 +711,10 @@ func TestExecuteWorkOrderRemoveLink(t *testing.T) {
 	_, err = mr.RemoveLink(ctx, createdLink.ID, &workOrder.ID)
 	assert.Nil(t, err)
 
-	fetchedEquipment, err := qr.Equipment(ctx, equipmentA.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentA.ID)
 	require.NoError(t, err)
+	fetchedEquipment, ok := fetchedNode.(*ent.Equipment)
+	require.True(t, ok)
 	fetchedPort := fetchedEquipment.QueryPorts().OnlyX(ctx)
 	fetchedLink, err := pr.Link(ctx, fetchedPort)
 	require.NoError(t, err)
@@ -713,8 +726,10 @@ func TestExecuteWorkOrderRemoveLink(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, workOrder.ID, returnedWorkOrder.ID)
 
-	fetchedEquipmentAfterExecution, err := qr.Equipment(ctx, equipmentA.ID)
+	fetchedNodeAfterExecution, err := qr.Node(ctx, equipmentA.ID)
 	require.NoError(t, err)
+	fetchedEquipmentAfterExecution, ok := fetchedNodeAfterExecution.(*ent.Equipment)
+	require.True(t, ok)
 	fetchedPortAfterExecution, err := fetchedEquipmentAfterExecution.QueryPorts().Only(ctx)
 	require.NoError(t, err)
 	fetchedLinkAfterExecution, err := pr.Link(ctx, fetchedPortAfterExecution)
@@ -766,7 +781,10 @@ func TestExecuteWorkOrderInstallDependantEquipmentAndLink(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, workOrder.ID, returnedWorkOrder.ID)
 
-	fetchedEquipment, _ := qr.Equipment(ctx, equipmentA.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentA.ID)
+	assert.NoError(t, err)
+	fetchedEquipment, ok := fetchedNode.(*ent.Equipment)
+	assert.True(t, ok)
 
 	fetchedPort := fetchedEquipment.QueryPorts().OnlyX(ctx)
 	fetchedLink, _ := pr.Link(ctx, fetchedPort)
@@ -820,8 +838,10 @@ func TestExecuteWorkOrderInstallEquipmentMultilayer(t *testing.T) {
 	assert.Equal(t, workOrder.ID, returnedWorkOrder.ID)
 
 	for _, equipment := range equipments {
-		fetchedEquipment, err := qr.Equipment(ctx, equipment.ID)
+		fetchedNode, err := qr.Node(ctx, equipment.ID)
 		assert.NoError(t, err)
+		fetchedEquipment, ok := fetchedNode.(*ent.Equipment)
+		assert.True(t, ok)
 		assert.Empty(t, fetchedEquipment.FutureState)
 		assert.Nil(t, fetchedEquipment.QueryWorkOrder().FirstX(ctx))
 	}
@@ -878,15 +898,17 @@ func TestExecuteWorkOrderRemoveEquipmentMultilayer(t *testing.T) {
 	assert.Equal(t, workOrder.ID, returnedWorkOrder.ID)
 
 	for i, equipment := range equipments {
-		fetchedEquipment, err := qr.Equipment(ctx, equipment.ID)
+		fetchedNode, err := qr.Node(ctx, equipment.ID)
 		if i == 0 {
 			assert.NoError(t, err)
+			fetchedEquipment, ok := fetchedNode.(*ent.Equipment)
+			assert.True(t, ok)
 			assert.Empty(t, fetchedEquipment.FutureState)
 
 			fetchedEquipmentWorkOrder, _ := fetchedEquipment.QueryWorkOrder().Only(ctx)
 			assert.Nil(t, fetchedEquipmentWorkOrder)
 		} else {
-			assert.Nil(t, fetchedEquipment)
+			assert.Nil(t, fetchedNode)
 		}
 	}
 }
@@ -931,7 +953,10 @@ func TestExecuteWorkOrderInstallChildOnUninstalledParent(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	fetchedWorkOrderEquipment, _ := qr.Equipment(ctx, childEquipment.ID)
+	fetchedWorkOrderNode, err := qr.Node(ctx, childEquipment.ID)
+	assert.NoError(t, err)
+	fetchedWorkOrderEquipment, ok := fetchedWorkOrderNode.(*ent.Equipment)
+	assert.True(t, ok)
 	assert.Equal(t, models.FutureStateInstall.String(), fetchedWorkOrderEquipment.FutureState)
 	equipmentWorkOrder, err := fetchedWorkOrderEquipment.QueryWorkOrder().Only(ctx)
 	require.NoError(t, err)
@@ -940,7 +965,10 @@ func TestExecuteWorkOrderInstallChildOnUninstalledParent(t *testing.T) {
 	returnedWorkOrder, _ := executeWorkOrder(ctx, t, mr, *workOrder)
 	assert.Nil(t, returnedWorkOrder)
 
-	fetchedChildEquipment, _ := qr.Equipment(ctx, childEquipment.ID)
+	fetchedChildNode, err := qr.Node(ctx, childEquipment.ID)
+	require.NoError(t, err)
+	fetchedChildEquipment, ok := fetchedChildNode.(*ent.Equipment)
+	require.True(t, ok)
 	equipmentWorkOrder, err = fetchedChildEquipment.QueryWorkOrder().Only(ctx)
 	require.NoError(t, err)
 
@@ -1001,7 +1029,10 @@ func TestExecuteWorkOrderInstallLinkOnUninstalledEquipment(t *testing.T) {
 	returnedWorkOrder, _ := executeWorkOrder(ctx, t, mr, *workOrder)
 	require.Nil(t, returnedWorkOrder)
 
-	fetchedEquipment, _ := qr.Equipment(ctx, equipmentA.ID)
+	fetchedNode, err := qr.Node(ctx, equipmentA.ID)
+	require.NoError(t, err)
+	fetchedEquipment, ok := fetchedNode.(*ent.Equipment)
+	require.True(t, ok)
 
 	fetchedPort, err := fetchedEquipment.QueryPorts().Only(ctx)
 	require.NoError(t, err)
@@ -1074,8 +1105,10 @@ func TestExecuteWorkOrderRemoveParentEquipment(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, childEquipment)
 
-	fetchedRootEquipment, err := qr.Equipment(ctx, rootEquipment.ID)
+	fetchedRootNode, err := qr.Node(ctx, rootEquipment.ID)
 	assert.NoError(t, err)
+	fetchedRootEquipment, ok := fetchedRootNode.(*ent.Equipment)
+	assert.True(t, ok)
 	fetchedPosition, err := fetchedRootEquipment.QueryPositions().Only(ctx)
 	require.NoError(t, err)
 
@@ -1087,7 +1120,10 @@ func TestExecuteWorkOrderRemoveParentEquipment(t *testing.T) {
 
 	assert.NotNil(t, attachedEquipment)
 
-	fetchedWorkOrderEquipment, _ := qr.Equipment(ctx, parentEquipment.ID)
+	fetchedWorkOrderNode, err := qr.Node(ctx, parentEquipment.ID)
+	assert.NoError(t, err)
+	fetchedWorkOrderEquipment, ok := fetchedWorkOrderNode.(*ent.Equipment)
+	assert.True(t, ok)
 
 	assert.Equal(t, models.FutureStateRemove.String(), fetchedWorkOrderEquipment.FutureState)
 	fetchedWorkOrderEquipmentWorkOrder, err := fetchedWorkOrderEquipment.QueryWorkOrder().Only(ctx)
@@ -1098,13 +1134,13 @@ func TestExecuteWorkOrderRemoveParentEquipment(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, workOrder.ID, returnedWorkOrder.ID)
 
-	fetchedParentWorkOrderEquipment, err := qr.Equipment(ctx, parentEquipment.ID)
+	fetchedParentWorkOrderNode, err := qr.Node(ctx, parentEquipment.ID)
 
 	assert.Nil(t, err)
 
-	assert.Nil(t, fetchedParentWorkOrderEquipment)
-	fetchedPChildEquipment, _ := qr.Equipment(ctx, childEquipment.ID)
-	assert.Nil(t, fetchedPChildEquipment)
+	assert.Nil(t, fetchedParentWorkOrderNode)
+	fetchedPChildNode, _ := qr.Node(ctx, childEquipment.ID)
+	assert.Nil(t, fetchedPChildNode)
 }
 
 func TestAddAndDeleteWorkOrderHyperlink(t *testing.T) {
@@ -1213,14 +1249,14 @@ func TestDeleteWorkOrderWithAttachmentAndLinksAdded(t *testing.T) {
 	_, err = mr.RemoveWorkOrder(ctx, workOrder.ID)
 	require.NoError(t, err)
 
-	fetchedParentWorkOrderEquipment, _ := qr.Equipment(ctx, parentEquipment.ID)
-	assert.Nil(t, fetchedParentWorkOrderEquipment)
+	fetchedParentWorkOrderNode, _ := qr.Node(ctx, parentEquipment.ID)
+	assert.Nil(t, fetchedParentWorkOrderNode)
 
-	fetchedChildWorkOrderEquipment, _ := qr.Equipment(ctx, childEquipment.ID)
-	assert.Nil(t, fetchedChildWorkOrderEquipment)
+	fetchedChildWorkOrderNode, _ := qr.Node(ctx, childEquipment.ID)
+	assert.Nil(t, fetchedChildWorkOrderNode)
 
-	fetchedConnectedWorkOrderEquipment, _ := qr.Equipment(ctx, connectedEquipment.ID)
-	assert.Nil(t, fetchedConnectedWorkOrderEquipment)
+	fetchedConnectedWorkOrderNode, _ := qr.Node(ctx, connectedEquipment.ID)
+	assert.Nil(t, fetchedConnectedWorkOrderNode)
 }
 
 func TestAddWorkOrderWithProperties(t *testing.T) {

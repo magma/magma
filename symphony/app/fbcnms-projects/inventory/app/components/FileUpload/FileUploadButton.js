@@ -33,7 +33,7 @@ const useStyles = makeStyles(() => ({
 type Props = {
   children: (openFileUploadDialog: () => void) => React.Node,
   className?: ?string,
-  onProgress?: (fileId: string, progress: number) => void,
+  onProgress?: (fileId: string, file: File, progress: number) => void,
   onFileUploaded: (file: File, key: string) => void,
   multiple?: boolean,
   fileTypes?: string,
@@ -55,9 +55,9 @@ const FileUploadButton = ({
   const inputRef = useRef();
   const buttonClick = useCallback(() => inputRef?.current?.click(), [inputRef]);
 
-  const onFileProgress = (fileId, progress) => {
+  const onFileProgress = (fileId, file, progress) => {
     uploadUsingSnackbar && uploadContext.setFileProgress(fileId, progress);
-    onProgress && onProgress(fileId, progress);
+    onProgress && onProgress(fileId, file, progress);
   };
 
   const onFilesChanged = async (e: SyntheticEvent<HTMLInputElement>) => {

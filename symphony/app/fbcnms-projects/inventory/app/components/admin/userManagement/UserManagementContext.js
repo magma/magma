@@ -140,7 +140,7 @@ const editUser = (newUserValue: User, updater?: StoreUpdater) => {
     const callbacks: MutationCallbacks<EditUserMutationResponse> = {
       onCompleted: (response, errors) => {
         if (errors && errors[0]) {
-          reject(errors[0].message);
+          reject(getGraphError(errors[0]));
         }
         resolve(userResponse2User(response.editUser));
         // TEMP: Need to update Node with the new role.
@@ -182,7 +182,7 @@ const editGroup = (usersMap: UsersMap) => (
     const callbacks: MutationCallbacks<EditUsersGroupMutationResponse> = {
       onCompleted: (response, errors) => {
         if (errors && errors[0]) {
-          reject(errors[0].message);
+          reject(getGraphError(errors[0]));
         }
         resolve(groupResponse2Group(response.editUsersGroup, usersMap));
       },
@@ -213,14 +213,14 @@ const updateGroupMembers = (usersMap: UsersMap) => (
     const cbs: MutationCallbacks<UpdateUsersGroupMembersMutationResponse> = {
       onCompleted: (response, errors) => {
         if (errors && errors[0]) {
-          reject(errors[0].message);
+          reject(getGraphError(errors[0]));
         }
         resolve(
           groupResponse2Group(response.updateUsersGroupMembers, usersMap),
         );
       },
       onError: e => {
-        reject(e.message);
+        reject(getGraphError(e));
       },
     };
     UpdateUsersGroupMembersMutation(
@@ -243,7 +243,7 @@ const addGroup = (usersMap: UsersMap) => (
     const callbacks: MutationCallbacks<AddUsersGroupMutationResponse> = {
       onCompleted: (response, errors) => {
         if (errors && errors[0]) {
-          reject(errors[0].message);
+          reject(getGraphError(errors[0]));
         }
         resolve(groupResponse2Group(response.addUsersGroup, usersMap));
       },

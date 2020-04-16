@@ -9,13 +9,17 @@
  */
 
 import type {CheckListItemFillingProps} from './CheckListItemFilling';
+import type {FileAttachmentType} from '../../../common/FileAttachment';
 
 import * as React from 'react';
+import ChecklistItemsDialogMutateDispatchContext from '../checkListCategory/ChecklistItemsDialogMutateDispatchContext';
 import FilePreview from '../../FilePreview/FilePreview';
 import FileUploadArea from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
 import FileUploadButton from '../../FileUpload/FileUploadButton';
-import shortid from 'shortid';
+import PendingFilePreview from '../../FilePreview/PendingFilePreview';
+import {generateTempId} from '../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback, useContext, useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -36,7 +40,34 @@ const FilesCheckListItemFilling = ({
   onChange,
 }: CheckListItemFillingProps): React.Node => {
   const classes = useStyles();
-  const tempId = shortid.generate();
+  const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
+  const tempId = useMemo(() => generateTempId(), []);
+
+  const removeItemFile = useCallback(
+    (removedFile: FileAttachmentType) =>
+      onChange &&
+      onChange({
+        ...item,
+        files: item.files?.filter(file => file.id !== removedFile.id),
+      }),
+    [item, onChange],
+  );
+
+  const updatePendingFile = useCallback(
+    (fileId: string, name: string, progress: number) => {
+      dispatch({
+        type: 'EDIT_ITEM_PENDING_FILE',
+        itemId: item.id,
+        file: {
+          id: fileId,
+          name,
+          progress,
+        },
+      });
+    },
+    [dispatch, item.id],
+  );
+
   return (
     <div className={classes.root}>
       {item.files?.map(file => (
@@ -52,28 +83,33 @@ const FilesCheckListItemFilling = ({
             uploaded: file.uploadTime ? `${file.uploadTime}` : undefined,
             storeKey: file.storeKey,
           }}
-          onFileDeleted={() => {}}
+          onFileDeleted={removeItemFile}
+        />
+      ))}
+      {item.pendingFiles?.map(pendingFile => (
+        <PendingFilePreview
+          className={classes.filePreview}
+          fileName={pendingFile.name}
+          progress={pendingFile.progress}
         />
       ))}
       <FileUploadButton
-        useUploadSnackbar={false}
-        onProgress={(_fileId, _progress) => {
-          // TODO: implement progress once there's design
+        uploadUsingSnackbar={false}
+        onProgress={(fileId, file, progress) => {
+          updatePendingFile(fileId, file.name, progress);
         }}
         onFileUploaded={(file, storeKey) =>
-          onChange &&
-          onChange({
-            ...item,
-            files: [
-              ...(item.files ?? []),
-              {
-                storeKey,
-                fileName: file.name,
-                sizeInBytes: file.size,
-                modificationTime: new Date().getTime(),
-                uploadTime: new Date().getTime(),
-              },
-            ],
+          dispatch({
+            type: 'ADD_ITEM_FILE',
+            itemId: item.id,
+            file: {
+              id: generateTempId(),
+              storeKey,
+              fileName: file.name,
+              sizeInBytes: file.size,
+              modificationTime: new Date().getTime(),
+              uploadTime: new Date().getTime(),
+            },
           })
         }>
         {openFileUploadDialog => (

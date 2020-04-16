@@ -257,10 +257,12 @@ func (m *importer) getEquipmentPropertyInputs(ctx context.Context, importLine Im
 }
 
 func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID int, importLine ImportRecord) (*ent.Equipment, error) {
-	equipment, err := m.r.Query().Equipment(ctx, equipID)
+	client := m.ClientFrom(ctx)
+	equipment, err := client.Equipment.Get(ctx, equipID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching equipment")
 	}
+
 	typ := equipment.QueryType().OnlyX(ctx)
 	if typ.Name != importLine.TypeName() {
 		return nil, errors.Errorf("wrong equipment type. should be %v, but %v", typ.Name, importLine.TypeName())

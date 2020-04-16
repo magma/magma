@@ -28,26 +28,30 @@ func (usersGroupResolver) Members(ctx context.Context, obj *ent.UsersGroup) ([]*
 
 func (r mutationResolver) AddUsersGroup(ctx context.Context, input models.AddUsersGroupInput) (*ent.UsersGroup, error) {
 	client := r.ClientFrom(ctx)
-
-	return client.UsersGroup.Create().
+	g, err := client.UsersGroup.Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetStatus(usersgroup.StatusACTIVE).
 		Save(ctx)
+	if ent.IsConstraintError(err) {
+		return nil, gqlerror.Errorf("A group with the name %s already exists", input.Name)
+	}
+	return g, err
 }
 
 func (r mutationResolver) EditUsersGroup(ctx context.Context, input models.EditUsersGroupInput) (*ent.UsersGroup, error) {
 	client := r.ClientFrom(ctx)
-
 	m := client.UsersGroup.UpdateOneID(input.ID).
 		SetNillableDescription(input.Description).
 		SetNillableStatus(input.Status)
-
 	if input.Name != nil {
 		m = m.SetName(*input.Name)
 	}
-
-	return m.Save(ctx)
+	g, err := m.Save(ctx)
+	if ent.IsConstraintError(err) {
+		return nil, gqlerror.Errorf("A group with the name %s already exists", *input.Name)
+	}
+	return g, err
 }
 
 func (r mutationResolver) DeleteUsersGroup(ctx context.Context, id int) (bool, error) {

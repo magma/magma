@@ -77,8 +77,10 @@ func TestAddEquipment(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedEquipment, err := qr.Equipment(ctx, equipment.ID)
+	fetchedNode, err := qr.Node(ctx, equipment.ID)
 	require.NoError(t, err)
+	fetchedEquipment, ok := fetchedNode.(*ent.Equipment)
+	require.True(t, ok)
 
 	assert.Equal(t, equipment.ID, fetchedEquipment.ID)
 	assert.Equal(t, equipment.Name, fetchedEquipment.Name)
@@ -384,17 +386,17 @@ func TestRemoveEquipmentWithChildren(t *testing.T) {
 
 	require.Zero(t, childEquipment.QueryPositions().CountX(ctx), "should delete also the positions")
 
-	eq, err := qr.Equipment(ctx, equipment.ID)
+	fetchedNode, err := qr.Node(ctx, equipment.ID)
 	require.NoError(t, err)
-	require.Nil(t, eq, "should return nil in case of not found")
+	require.Nil(t, fetchedNode, "should return nil in case of not found")
 
-	fetchedChildEquipment, err := qr.Equipment(ctx, childEquipment.ID)
+	fetchedChildNode, err := qr.Node(ctx, childEquipment.ID)
 	require.NoError(t, err)
-	require.Nil(t, fetchedChildEquipment, "should delete the child as well")
+	require.Nil(t, fetchedChildNode, "should delete the child as well")
 
-	fetchedGrandChildEquipment, err := qr.Equipment(ctx, grandChildEquipment.ID)
+	fetchedGrandChildNode, err := qr.Node(ctx, grandChildEquipment.ID)
 	require.NoError(t, err)
-	require.Nil(t, fetchedGrandChildEquipment, "should delete all equipment recursively")
+	require.Nil(t, fetchedGrandChildNode, "should delete all equipment recursively")
 }
 
 func TestRemoveEquipment(t *testing.T) {
@@ -490,7 +492,10 @@ func TestAttachEquipmentToPosition(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedParentEquipment, _ := qr.Equipment(ctx, parentEquipment.ID)
+	fetchedParentNode, err := qr.Node(ctx, parentEquipment.ID)
+	require.NoError(t, err)
+	fetchedParentEquipment, ok := fetchedParentNode.(*ent.Equipment)
+	require.True(t, ok)
 	assert.Equal(t, fetchedParentEquipment.QueryPositions().CountX(ctx), 3)
 
 	fetchedPosition := parentEquipment.QueryPositions().Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.Name("Position 3"))).OnlyX(ctx)
@@ -554,7 +559,10 @@ func TestMoveEquipmentToPosition(t *testing.T) {
 	fetchedPosition, err := mr.MoveEquipmentToPosition(ctx, &parentEquipment.ID, &posDefID, childEquipment.ID)
 	require.NoError(t, err)
 
-	fetchedChildEquipment, _ := qr.Equipment(ctx, childEquipment.ID)
+	fetchedChildNode, err := qr.Node(ctx, childEquipment.ID)
+	require.NoError(t, err)
+	fetchedChildEquipment, ok := fetchedChildNode.(*ent.Equipment)
+	require.True(t, ok)
 
 	require.NotNil(t, fetchedPosition)
 	cid := childEquipment.QueryPositions().FirstXID(ctx)
@@ -612,8 +620,10 @@ func TestDetachEquipmentFromPosition(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedParentEquipment, err := qr.Equipment(ctx, parentEquipment.ID)
+	fetchedParentNode, err := qr.Node(ctx, parentEquipment.ID)
 	require.NoError(t, err)
+	fetchedParentEquipment, ok := fetchedParentNode.(*ent.Equipment)
+	require.True(t, ok)
 	fetchedPosition := fetchedParentEquipment.QueryPositions().FirstX(ctx)
 
 	require.Equal(t, childEquipment.QueryParentPosition().FirstXID(ctx), fetchedPosition.ID)
@@ -625,17 +635,19 @@ func TestDetachEquipmentFromPosition(t *testing.T) {
 	require.Zero(t, updatedPosition.QueryAttachment().CountX(ctx))
 
 	// Check the updated parent equipment position
-	updatedParentEquipment, err := qr.Equipment(ctx, parentEquipment.ID)
+	updatedParentNode, err := qr.Node(ctx, parentEquipment.ID)
 	require.NoError(t, err)
+	updatedParentEquipment, ok := updatedParentNode.(*ent.Equipment)
+	require.True(t, ok)
 	refetchedPosition := updatedParentEquipment.QueryPositions().FirstX(ctx)
 	require.Nil(t, refetchedPosition.QueryAttachment().FirstX(ctx))
 
 	// TODO: verify what's the exppected behavior
 	//
 	// Verify child equipment is not attached to any position
-	refetchedChildEquipment, err := qr.Equipment(ctx, childEquipment.ID)
+	refetchedChildNode, err := qr.Node(ctx, childEquipment.ID)
 	require.NoError(t, err)
-	require.Nil(t, refetchedChildEquipment)
+	require.Nil(t, refetchedChildNode)
 
 	// Detach nil equipment from position
 	_, err = mr.RemoveEquipmentFromPosition(ctx, fetchedPosition.ID, nil)
@@ -680,8 +692,10 @@ func TestDetachEquipmentFromPositionWithWorkOrder(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	fetchedParentEquipment, err := qr.Equipment(ctx, parentEquipment.ID)
+	fetchedParentNode, err := qr.Node(ctx, parentEquipment.ID)
 	assert.NoError(t, err)
+	fetchedParentEquipment, ok := fetchedParentNode.(*ent.Equipment)
+	assert.True(t, ok)
 	fetchedPosition := fetchedParentEquipment.QueryPositions().OnlyX(ctx)
 
 	assert.Equal(t, childEquipment.QueryParentPosition().OnlyXID(ctx), fetchedPosition.ID)
@@ -746,8 +760,10 @@ func TestAddDetachEquipmentFromPositionSameWorkOrder(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	fetchedParentEquipment, err := qr.Equipment(ctx, parentEquipment.ID)
+	fetchedParentNode, err := qr.Node(ctx, parentEquipment.ID)
 	assert.NoError(t, err)
+	fetchedParentEquipment, ok := fetchedParentNode.(*ent.Equipment)
+	assert.True(t, ok)
 	fetchedPosition := fetchedParentEquipment.QueryPositions().FirstX(ctx)
 
 	assert.Equal(t, childEquipment.QueryParentPosition().OnlyXID(ctx), fetchedPosition.ID)
@@ -771,8 +787,8 @@ func TestAddDetachEquipmentFromPositionSameWorkOrder(t *testing.T) {
 	assert.Len(t, installedEquipment, 0)
 
 	// Verify child equipment is not attached to any position
-	refetchedChildEquipment, err := qr.Equipment(ctx, childEquipment.ID)
-	assert.Nil(t, refetchedChildEquipment)
+	refetchedChildNode, err := qr.Node(ctx, childEquipment.ID)
+	assert.Nil(t, refetchedChildNode)
 	assert.NoError(t, err)
 }
 
@@ -815,7 +831,11 @@ func TestEquipmentPortsAreCreatedFromType(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedEquipment, _ := qr.Equipment(ctx, equipment.ID)
+	fetchedNode, err := qr.Node(ctx, equipment.ID)
+	require.NoError(t, err)
+	fetchedEquipment, ok := fetchedNode.(*ent.Equipment)
+	require.True(t, ok)
+
 	fetchedPort := fetchedEquipment.QueryPorts().OnlyX(ctx)
 	def := fetchedPort.QueryDefinition().OnlyX(ctx)
 	assert.Equal(t, def.Name, portInput.Name)
@@ -994,7 +1014,10 @@ func TestEditEquipment(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedEquipment, _ := qr.Equipment(ctx, equipment.ID)
+	fetchedNode, err := qr.Node(ctx, equipment.ID)
+	require.NoError(t, err)
+	fetchedEquipment, ok := fetchedNode.(*ent.Equipment)
+	require.True(t, ok)
 	propTypeA := fetchedEquipment.QueryProperties().Where(property.HasTypeWith(propertytype.Name("bar_prop"))).OnlyX(ctx)
 	propTypeB := fetchedEquipment.QueryProperties().Where(property.HasTypeWith(propertytype.Name("foo_prop"))).OnlyX(ctx)
 
@@ -1182,8 +1205,14 @@ func TestAddLinkToNewlyAddedPortDefinition(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	fetchedEquipmentA, _ := qr.Equipment(ctx, equipmentA.ID)
-	fetchedEquipmentZ, _ := qr.Equipment(ctx, equipmentZ.ID)
+	fetchedNodeA, err := qr.Node(ctx, equipmentA.ID)
+	require.NoError(t, err)
+	fetchedEquipmentA, ok := fetchedNodeA.(*ent.Equipment)
+	require.True(t, ok)
+	fetchedNodeZ, err := qr.Node(ctx, equipmentZ.ID)
+	require.NoError(t, err)
+	fetchedEquipmentZ, ok := fetchedNodeZ.(*ent.Equipment)
+	require.True(t, ok)
 	fetchedPortA := fetchedEquipmentA.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.Name("Port - new"))).OnlyX(ctx)
 	fetchedPortZ := fetchedEquipmentZ.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.Name("Port 1 - edited"))).OnlyX(ctx)
 

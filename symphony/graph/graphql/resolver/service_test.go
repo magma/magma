@@ -7,6 +7,8 @@ package resolver
 import (
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/AlekSi/pointer"
 
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
@@ -135,8 +137,10 @@ func TestAddServiceWithCustomer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedService, err := qr.Service(ctx, s.ID)
+	fetchedNode, err := qr.Node(ctx, s.ID)
 	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 
 	customer = fetchedService.QueryCustomer().OnlyX(ctx)
 
@@ -386,7 +390,10 @@ func TestEditService(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "new_service_name", newService.Name)
 
-	fetchedService, _ := qr.Service(ctx, service.ID)
+	fetchedNode, err := qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	require.Equal(t, newService.Name, fetchedService.Name)
 }
 
@@ -408,7 +415,10 @@ func TestEditServiceWithExternalID(t *testing.T) {
 		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
-	fetchedService, _ := qr.Service(ctx, service.ID)
+	fetchedNode, err := qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	require.Nil(t, fetchedService.ExternalID)
 
 	externalID1 := "externalID1"
@@ -418,7 +428,10 @@ func TestEditServiceWithExternalID(t *testing.T) {
 		ExternalID: &externalID1,
 	})
 	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
+	fetchedNode, err = qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok = fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	require.Equal(t, externalID1, *fetchedService.ExternalID)
 
 	externalID2 := "externalID2"
@@ -428,7 +441,10 @@ func TestEditServiceWithExternalID(t *testing.T) {
 		ExternalID: &externalID2,
 	})
 	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
+	fetchedNode, err = qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok = fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	require.Equal(t, externalID2, *fetchedService.ExternalID)
 }
 
@@ -451,7 +467,10 @@ func TestEditServiceWithCustomer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedService, _ := qr.Service(ctx, service.ID)
+	fetchedNode, err := qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	exist := fetchedService.QueryCustomer().ExistX(ctx)
 	require.Equal(t, false, exist)
 
@@ -471,7 +490,10 @@ func TestEditServiceWithCustomer(t *testing.T) {
 		CustomerID: &donald.ID,
 	})
 	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
+	fetchedNode, err = qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok = fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	fetchedCustomer := fetchedService.QueryCustomer().OnlyX(ctx)
 	require.Equal(t, donald.ID, fetchedCustomer.ID)
 
@@ -481,7 +503,10 @@ func TestEditServiceWithCustomer(t *testing.T) {
 		CustomerID: &dafi.ID,
 	})
 	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
+	fetchedNode, err = qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok = fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	fetchedCustomer = fetchedService.QueryCustomer().OnlyX(ctx)
 	require.Equal(t, dafi.ID, fetchedCustomer.ID)
 }
@@ -522,7 +547,10 @@ func TestEditServiceWithProperties(t *testing.T) {
 		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
-	fetchedService, _ := qr.Service(ctx, service.ID)
+	fetchedNode, err := qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	fetchedProps, _ := fetchedService.QueryProperties().All(ctx)
 
 	// Property[] -> PropertyInput[]
@@ -544,8 +572,10 @@ func TestEditServiceWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err, "Editing service")
 
-	newFetchedService, err := qr.Service(ctx, service.ID)
+	newFetchedNode, err := qr.Node(ctx, service.ID)
 	require.NoError(t, err)
+	newFetchedService, ok := newFetchedNode.(*ent.Service)
+	require.True(t, ok)
 	existA := newFetchedService.QueryProperties().Where(property.StringVal("Foo-2")).ExistX(ctx)
 	require.NoError(t, err)
 	require.True(t, existA, "Property with the new name should exist on service")
@@ -649,7 +679,10 @@ func TestAddEndpointsToService(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fetchedService, _ := qr.Service(ctx, service.ID)
+	fetchedNode, err := qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok := fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	endpoints := fetchedService.QueryEndpoints().QueryPort().IDsX(ctx)
 	require.Len(t, endpoints, 2)
 	require.NotContains(t, endpoints, eq3.ID)
@@ -668,7 +701,10 @@ func TestAddEndpointsToService(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
+	fetchedNode, err = qr.Node(ctx, service.ID)
+	require.NoError(t, err)
+	fetchedService, ok = fetchedNode.(*ent.Service)
+	require.True(t, ok)
 	endpoints = fetchedService.QueryEndpoints().QueryPort().IDsX(ctx)
 	require.Len(t, endpoints, 2)
 	require.Contains(t, endpoints, ep3.ID)

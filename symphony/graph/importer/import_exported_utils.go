@@ -144,6 +144,7 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 	var currParentID *int
 	var loc *ent.Location
 	ic := getImportContext(ctx)
+	client := m.ClientFrom(ctx)
 
 	locStart, indexToStopLoop := l.Header().LocationsRangeIdx()
 	if limit != nil {
@@ -158,7 +159,7 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 			break
 		}
 		typID := ic.indexToLocationTypeID[i+locStart] // the actual index
-		typ, err := m.r.Query().LocationType(ctx, typID)
+		typ, err := client.LocationType.Get(ctx, typID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "missing location type: id=%q", typID)
 		}

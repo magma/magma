@@ -7,6 +7,8 @@ package resolver
 import (
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -44,8 +46,10 @@ func TestEditServiceType(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, types.Edges, 2)
 
-	typ, err := qr.ServiceType(ctx, serviceType.ID)
+	node, err := qr.Node(ctx, serviceType.ID)
 	require.NoError(t, err)
+	typ, ok := node.(*ent.ServiceType)
+	require.True(t, ok)
 	require.Equal(t, "example_type_name_2", typ.Name)
 }
 

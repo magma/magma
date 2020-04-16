@@ -67,6 +67,7 @@ export default function PermissionsGroupDetailsPane(props: Props) {
           <Grid item xs={12} sm={6} lg={6} xl={6}>
             <FormFieldTextInput
               className={classes.nameField}
+              disabled={!userManagementDevMode}
               label={`${fbt('Group Name', '')}`}
               validationId="name"
               value={group.name}

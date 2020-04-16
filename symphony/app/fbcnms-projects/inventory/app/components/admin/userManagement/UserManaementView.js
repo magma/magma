@@ -52,7 +52,6 @@ const UserManaementView = ({match}: Props) => {
         menuItem: {
           label: USERS_HEADER,
           tooltip: `${USERS_HEADER}`,
-          component: UsersView,
         },
         component: {
           header: {
@@ -74,7 +73,6 @@ const UserManaementView = ({match}: Props) => {
         menuItem: {
           label: PERMISSION_GROUPS_VIEW_NAME,
           tooltip: `${PERMISSION_GROUPS_VIEW_NAME}`,
-          component: PermissionsGroupsView,
         },
         component: {
           header: {

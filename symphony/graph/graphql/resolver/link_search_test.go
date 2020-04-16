@@ -8,6 +8,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
+
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 
 	"github.com/AlekSi/pointer"
@@ -379,9 +381,15 @@ func TestSearchLinksByEquipmentTyp(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, all.Links, 2)
 	maxDepth := 2
-	e1, _ := qr.Equipment(ctx, data.e1)
+	node1, err := qr.Node(ctx, data.e1)
+	require.NoError(t, err)
+	e1, ok := node1.(*ent.Equipment)
+	require.True(t, ok)
 	typ1 := e1.QueryType().OnlyX(ctx)
-	e3, _ := qr.Equipment(ctx, data.e3)
+	node3, err := qr.Node(ctx, data.e3)
+	require.NoError(t, err)
+	e3, ok := node3.(*ent.Equipment)
+	require.True(t, ok)
 	typ2 := e3.QueryType().OnlyX(ctx)
 
 	emptyTyp, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{Name: "empty_typ"})

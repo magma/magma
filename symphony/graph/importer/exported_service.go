@@ -239,7 +239,8 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 }
 
 func (m *importer) validateLineForExistingService(ctx context.Context, serviceID int, importLine ImportRecord) (*ent.Service, error) {
-	service, err := m.r.Query().Service(ctx, serviceID)
+	client := m.ClientFrom(ctx)
+	service, err := client.Service.Get(ctx, serviceID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching service")
 	}

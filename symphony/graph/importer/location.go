@@ -167,6 +167,7 @@ func (m *importer) handleLocationRow(ctx context.Context, lastPopulatedLocationI
 		parentID *int
 		locID    int
 		log      = m.logger.For(ctx)
+		client   = m.ClientFrom(ctx)
 	)
 	indexToLocationTypeID := getImportContext(ctx).indexToLocationTypeID
 	for index, name := range line {
@@ -210,7 +211,6 @@ func (m *importer) handleLocationRow(ctx context.Context, lastPopulatedLocationI
 				}
 			}
 		}
-		client := m.ClientFrom(ctx)
 		q := client.Location.Query().
 			Where(location.HasTypeWith(locationtype.ID(locationTypeID))).
 			Where(location.Name(name))
@@ -249,7 +249,7 @@ func (m *importer) handleLocationRow(ctx context.Context, lastPopulatedLocationI
 			locID = l.ID
 		} else if index == lastPopulatedLocationIdx && (lat != 0 || long != 0 || len(propertyInput) > 0 || externalID != "") {
 			for _, inp := range propertyInput {
-				ptype := m.ClientFrom(ctx).PropertyType.Query().Where(propertytype.ID(inp.PropertyTypeID)).OnlyX(ctx)
+				ptype := client.PropertyType.Query().Where(propertytype.ID(inp.PropertyTypeID)).OnlyX(ctx)
 				propertyID, err := ptype.QueryProperties().Where(property.HasLocationWith(location.ID(locID))).FirstID(ctx)
 				if ent.MaskNotFound(err) != nil {
 					log.Warn("can't find property for location", zap.Error(err))
@@ -271,7 +271,7 @@ func (m *importer) handleLocationRow(ctx context.Context, lastPopulatedLocationI
 		}
 		parentID = &locID
 	}
-	loc, err := m.r.Query().Location(ctx, locID)
+	loc, err := client.Location.Get(ctx, locID)
 	if err != nil {
 		return nil, err
 	}
