@@ -137,7 +137,7 @@ services:
     networks:
       - private
     volumes:
-      - ${PWD}/fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
+      - ${PWD}/fluentd/:/fluentd/etc/:ro
     restart: on-failure
 
   nginx:
