@@ -16,6 +16,7 @@ const MYSQL_PORT = parseInt(process.env.MYSQL_PORT || '3306');
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
 const MYSQL_PASS = process.env.MYSQL_PASS || '';
 const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
+const SEQUELIZE_DIALECT = process.env.SEQUELIZE_DIALECT || 'mysql';
 
 const logger = require('@fbcnms/logging').getLogger(module);
 
@@ -33,7 +34,7 @@ const config: {[string]: Options} = {
     database: MYSQL_DB,
     host: MYSQL_HOST,
     port: MYSQL_PORT,
-    dialect: 'mysql',
+    dialect: SEQUELIZE_DIALECT,
     logging: (msg: string) => logger.debug(msg),
   },
   production: {
@@ -42,7 +43,7 @@ const config: {[string]: Options} = {
     database: MYSQL_DB,
     host: MYSQL_HOST,
     port: MYSQL_PORT,
-    dialect: 'mysql',
+    dialect: SEQUELIZE_DIALECT,
     logging: (msg: string) => logger.debug(msg),
   },
 };
