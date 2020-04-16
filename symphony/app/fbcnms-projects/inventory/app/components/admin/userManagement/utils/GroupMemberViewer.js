@@ -40,23 +40,44 @@ const useStyles = makeStyles(() => ({
     flexShrink: 1,
   },
   userAssignButton: {
-    maxWidth: '88px',
-    '& $removeText': {
-      display: 'none',
-    },
     '&:hover, &$togglingAssignment': {
-      '& $addedIcon, $addedText': {
-        display: 'none',
+      '& $addedIcon': {
+        visibility: 'hidden',
       },
-      '& $removeText': {
-        display: 'unset',
+    },
+    '&:hover $buttonShownText': {
+      '&$buttonTextRemove': {
+        maxHeight: 'unset',
+        visibility: 'visible',
+      },
+    },
+    '&:not(:hover) $buttonShownText': {
+      '&$buttonTextAdded': {
+        maxHeight: 'unset',
+        visibility: 'visible',
       },
     },
   },
+  userAssignButtonContentContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  userAssignButtonContent: {
+    maxHeight: 0,
+    visibility: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonShownText: {
+    '&:not($buttonTextAdded):not($buttonTextRemove)': {
+      maxHeight: 'unset',
+      visibility: 'visible',
+    },
+  },
+  buttonTextAdded: {},
+  buttonTextRemove: {},
   togglingAssignment: {},
-  addedIcon: {},
-  addedText: {},
-  removeText: {},
 }));
 
 export const ASSIGNMENT_BUTTON_VIEWS = {
@@ -138,27 +159,49 @@ export default function GroupMemberViewer(props: Props) {
           })}
           disabled={isProcessed}
           onClick={() => toggleAssigment(member, !member.isMember)}
-          skin={member.isMember ? 'gray' : 'primary'}
-          leftIcon={member.isMember ? CheckIcon : PlusIcon}
-          leftIconClass={member.isMember ? classes.addedIcon : undefined}>
-          {member.isMember ? (
-            <>
-              <div className={classes.removeText}>
-                {isProcessed ? (
-                  <fbt desc="">Removing</fbt>
-                ) : (
-                  Strings.common.removeButton
-                )}
-              </div>
-              <div className={classes.addedText}>
-                <fbt desc="">Added</fbt>
-              </div>
-            </>
-          ) : isProcessed ? (
-            <fbt desc="">Adding</fbt>
-          ) : (
-            Strings.common.addButton
-          )}
+          skin={member.isMember ? 'gray' : 'primary'}>
+          <div className={classes.userAssignButtonContentContainer}>
+            <div
+              className={classNames(classes.userAssignButtonContent, {
+                [classes.buttonShownText]: !member.isMember && !isProcessed,
+              })}>
+              <PlusIcon color="inherit" size="small" />
+              {Strings.common.addButton}
+            </div>
+            <div
+              className={classNames(classes.userAssignButtonContent, {
+                [classes.buttonShownText]: !member.isMember && isProcessed,
+              })}>
+              <fbt desc="">Adding</fbt>
+            </div>
+            <div
+              className={classNames(
+                classes.userAssignButtonContent,
+                classes.buttonTextAdded,
+                {
+                  [classes.buttonShownText]: member.isMember && !isProcessed,
+                },
+              )}>
+              <CheckIcon color="inherit" size="small" />
+              <fbt desc="">Added</fbt>
+            </div>
+            <div
+              className={classNames(
+                classes.userAssignButtonContent,
+                classes.buttonTextRemove,
+                {
+                  [classes.buttonShownText]: member.isMember && !isProcessed,
+                },
+              )}>
+              {Strings.common.removeButton}
+            </div>
+            <div
+              className={classNames(classes.userAssignButtonContent, {
+                [classes.buttonShownText]: member.isMember && isProcessed,
+              })}>
+              <fbt desc="">Removing</fbt>
+            </div>
+          </div>
         </Button>
       )}
     </div>
