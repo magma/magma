@@ -10,6 +10,7 @@ import asyncio
 from unittest import TestCase, mock
 import grpc
 from concurrent import futures
+from redis.exceptions import RedisError
 
 import orc8r.protos.state_pb2_grpc as state_pb2_grpc
 from unittest.mock import MagicMock
@@ -19,8 +20,9 @@ from magma.common.redis.serializers import get_proto_deserializer, \
     get_proto_serializer, get_json_deserializer, get_json_serializer, \
     RedisSerde
 from magma.state.garbage_collector import GarbageCollector
+from magma.state.redis_dicts import StateDict
 from magma.common.grpc_client_manager import GRPCClientManager
-from magma.common.redis.mocks.mock_redis import MockRedis
+from magma.common.redis.mocks.mock_redis import MockRedis, MockUnavailableRedis
 from orc8r.protos.service303_pb2 import LogVerbosity
 from orc8r.protos.state_pb2_grpc import StateServiceStub
 from orc8r.protos.common_pb2 import NetworkID, Void
@@ -91,19 +93,19 @@ class GarbageCollectorTests(TestCase):
         # Create a rpc stub
         self.channel = grpc.insecure_channel('0.0.0.0:{}'.format(port))
 
-        serde1 = RedisSerde(NID_TYPE,
+        self.serde1 = RedisSerde(NID_TYPE,
                             get_proto_serializer(),
                             get_proto_deserializer(NetworkID))
-        serde2 = RedisSerde(FOO_TYPE,
+        self.serde2 = RedisSerde(FOO_TYPE,
                             get_json_serializer(),
                             get_json_deserializer())
-        serde3 = RedisSerde(LOG_TYPE,
+        self.serde3 = RedisSerde(LOG_TYPE,
                             get_proto_serializer(),
                             get_proto_deserializer(LogVerbosity))
 
-        self.nid_client = RedisFlatDict(get_default_client(), serde1)
-        self.foo_client = RedisFlatDict(get_default_client(), serde2)
-        self.log_client = RedisFlatDict(get_default_client(), serde3)
+        self.nid_client = RedisFlatDict(get_default_client(), self.serde1)
+        self.foo_client = RedisFlatDict(get_default_client(), self.serde2)
+        self.log_client = RedisFlatDict(get_default_client(), self.serde3)
 
         # Set up and start garbage collecting loop
         grpc_client_manager = GRPCClientManager(
@@ -244,5 +246,19 @@ class GarbageCollectorTests(TestCase):
             self.assertEqual(0, len(self.nid_client.garbage_keys()))
             self.assertEqual(0, len(self.foo_client.garbage_keys()))
             self.assertEqual(expected, self.nid_client[key])
+
+        self.loop.run_until_complete(test())
+
+    @mock.patch("redis.Redis", MockUnavailableRedis)
+    @mock.patch('snowflake.snowflake', get_mock_snowflake)
+    def test_redis_unavailable(self):
+        async def test():
+            unavailableRedis = StateDict(self.serde1, "blah", 0)
+            self.garbage_collector._redis_dicts = [unavailableRedis]
+            with self.assertRaises(RedisError):
+                await self.garbage_collector._collect_states_to_delete()
+
+            # Ensure above exception is handled
+            await self.garbage_collector.run_garbage_collection()
 
         self.loop.run_until_complete(test())

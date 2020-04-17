@@ -12,6 +12,7 @@ import logging
 import json
 import jsonpickle
 import grpc
+from redis.exceptions import RedisError
 
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.service import MagmaService
@@ -72,7 +73,15 @@ class StateReplicator(SDWatchdogTask):
                 logging.error("GRPC call failed for initial state re-sync: %s",
                               err)
                 return
-        request = await self._collect_states_to_replicate()
+            except RedisError as err:
+                logging.error("Connecting to redis failed: %s", err)
+                return
+        try:
+            request = await self._collect_states_to_replicate()
+        except RedisError as err:
+            logging.error("Connecting to redis failed: %s", err)
+            return
+
         if request is not None:
             await self._send_to_state_service(request)
         await self._cleanup_deleted_keys()

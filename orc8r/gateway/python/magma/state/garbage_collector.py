@@ -8,6 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 import grpc
 import logging
+from redis.exceptions import RedisError
 
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.rpc_utils import grpc_async_wrapper
@@ -40,7 +41,11 @@ class GarbageCollector:
         self._grpc_client_manager = grpc_client_manager
 
     async def run_garbage_collection(self):
-        request = await self._collect_states_to_delete()
+        try:
+            request = await self._collect_states_to_delete()
+        except RedisError as e:
+            logging.error("Connecting to redis failed: %s", e)
+            return
         if request is not None:
             await self._send_to_state_service(request)
 

@@ -12,6 +12,8 @@ import grpc
 import json
 import jsonpickle
 from concurrent import futures
+from redis.exceptions import RedisError
+
 import orc8r.protos.state_pb2_grpc as state_pb2_grpc
 from orc8r.protos.state_pb2 import ReportStatesResponse, \
     SyncStatesResponse, IDAndVersion, IDAndError
@@ -25,8 +27,9 @@ from magma.common.redis.serializers import get_proto_deserializer, \
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.state.keys import make_mem_key
 from magma.state.garbage_collector import GarbageCollector
+from magma.state.redis_dicts import StateDict
 from magma.state.state_replicator import StateReplicator
-from magma.common.redis.mocks.mock_redis import MockRedis
+from magma.common.redis.mocks.mock_redis import MockRedis, MockUnavailableRedis
 from orc8r.protos.state_pb2_grpc import StateServiceStub
 from orc8r.protos.common_pb2 import NetworkID, IDList
 from google.protobuf.json_format import MessageToDict
@@ -125,23 +128,23 @@ class StateReplicatorTests(TestCase):
         # Create a rpc stub
         self.channel = grpc.insecure_channel('0.0.0.0:{}'.format(port))
 
-        serde1 = RedisSerde(NID_TYPE,
+        self.serde1 = RedisSerde(NID_TYPE,
                             get_proto_serializer(),
                             get_proto_deserializer(NetworkID))
-        serde2 = RedisSerde(IDList_TYPE,
+        self.serde2 = RedisSerde(IDList_TYPE,
                             get_proto_serializer(),
                             get_proto_deserializer(IDList))
-        serde3 = RedisSerde(LOG_TYPE,
+        self.serde3 = RedisSerde(LOG_TYPE,
                             get_proto_serializer(),
                             get_proto_deserializer(LogVerbosity))
-        serde4 = RedisSerde(FOO_TYPE,
+        self.serde4 = RedisSerde(FOO_TYPE,
                             get_json_serializer(),
                             get_json_deserializer())
 
-        self.nid_client = RedisFlatDict(get_default_client(), serde1)
-        self.idlist_client = RedisFlatDict(get_default_client(), serde2)
-        self.log_client = RedisFlatDict(get_default_client(), serde3)
-        self.foo_client = RedisFlatDict(get_default_client(), serde4)
+        self.nid_client = RedisFlatDict(get_default_client(), self.serde1)
+        self.idlist_client = RedisFlatDict(get_default_client(), self.serde2)
+        self.log_client = RedisFlatDict(get_default_client(), self.serde3)
+        self.foo_client = RedisFlatDict(get_default_client(), self.serde4)
 
         # Set up and start state replicating loop
         grpc_client_manager = GRPCClientManager(
@@ -415,3 +418,22 @@ class StateReplicatorTests(TestCase):
         # Cancel the replicator's loop so there are no other activities
         self.state_replicator._periodic_task.cancel()
         self.loop.run_until_complete(test())
+
+    @mock.patch("redis.Redis", MockUnavailableRedis)
+    @mock.patch('snowflake.snowflake', get_mock_snowflake)
+    def test_redis_unavailable(self):
+        async def test():
+            unavailableDict = StateDict(self.serde1, "foo", 0)
+            self.state_replicator._redis_dicts = [unavailableDict]
+            with self.assertRaises(RedisError):
+                await self.state_replicator._resync()
+
+            with self.assertRaises(RedisError):
+                await self.state_replicator._collect_states_to_replicate()
+
+            await self.state_replicator._run()
+
+        # Cancel the replicator's loop so there are no other activities
+        self.state_replicator._periodic_task.cancel()
+        self.loop.run_until_complete(test())
+
