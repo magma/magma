@@ -14,26 +14,17 @@ endif
 export MAGMA_ROOT
 
 SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/apidocs
-SWAGGER_YML := $(SWAGGER_ROOT)/swagger.yml
-SWAGGER_TEMPLATE := $(SWAGGER_ROOT)/swagger-template.yml
-SWAGGER_TEMP_GEN := $(SWAGGER_ROOT)/temp
 SWAGGER_COMMON := swagger-common.yml
-export SWAGGER_ROOT
-export SWAGGER_TEMPLATE
-export SWAGGER_TEMP_GEN
-export SWAGGER_COMMON
-
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
 SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
 SWAGGER_V1_TEMPLATE := $(SWAGGER_ROOT)/v1/swagger-template.yml
 SWAGGER_V1_TEMP_GEN := $(SWAGGER_ROOT)/v1/temp
+export SWAGGER_ROOT
+export SWAGGER_COMMON
 export SWAGGER_V1_ROOT
 export SWAGGER_V1_TEMPLATE
 export SWAGGER_V1_TEMP_GEN
 
-BIN_DIR := $(GOPATH)/bin
-
-CERTS_DIR := $(MAGMA_ROOT)/.cache/test_certs
 ifndef PLUGIN_DIR
 PLUGIN_DIR := /home/$(USER)/go/plugins
 endif
@@ -81,8 +72,6 @@ $(CLEAN_LIST): %_clean:
 	make -C $*/cloud/go clean
 
 clean_gen: $(CLEAN_GEN_LIST)
-	rm -f $(SWAGGER_YML);
-	rm -rf $(SWAGGER_TEMP_GEN)
 $(CLEAN_GEN_LIST): %_cleangen:
 	make -C $*/cloud/go clean_gen
 
@@ -128,35 +117,23 @@ vet: $(VET_LIST)
 $(VET_LIST): %_vet:
 	make -C $*/cloud/go vet
 
-status:  # Get the status of all Magma services
-	sudo systemctl status magma@*
-
-stop:  # Stops all Magma services
-	sudo systemctl stop magma@*
-
-
 ##############################
 ## Swagger/API docs Targets ##
 ##############################
 
 swagger: swagger_directories tools $(SWAGGER_LIST)
-	combine_swagger --inp=$(SWAGGER_TEMP_GEN) --common=$(SWAGGER_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_YML)
-	rm -rf $(SWAGGER_TEMP_GEN)
 	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
 	combine_swagger --inp=$(SWAGGER_V1_TEMP_GEN) --common=$(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
 	rm -rf $(SWAGGER_V1_TEMP_GEN)
 
 swagger_directories:
-	rm -rf $(SWAGGER_TEMP_GEN)
 	rm -rf $(SWAGGER_V1_TEMP_GEN)
-	mkdir $(SWAGGER_TEMP_GEN)
 	mkdir $(SWAGGER_V1_TEMP_GEN)
 
 $(SWAGGER_LIST): %_swagger:
 	make -C $*/cloud/go copy_swagger_files
 
 swagger_validate: swagger
-	swagger validate $(SWAGGER_YML)
 	swagger validate $(SWAGGER_V1_YML)
 
 ##################
