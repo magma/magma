@@ -129,6 +129,15 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   void handle_setup_callback(
       const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
 
+  SessionConfig build_session_config(const LocalCreateSessionRequest& request);
+
+  void recycle_session(
+      SessionMap& session_map, const LocalCreateSessionRequest& request,
+      const std::string& imsi, const std::string& sid,
+      const std::string& core_sid, SessionConfig cfg, const bool is_wifi,
+      std::function<void(Status, LocalCreateSessionResponse)>
+          response_callback);
+
   /**
    * Get the most recently written state of sessions for Creation
    * Does not get any other sessions.
