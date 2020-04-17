@@ -191,6 +191,74 @@ static CreateSessionRequest copy_session_info2create_req(
   return create_request;
 }
 
+SessionConfig LocalSessionManagerHandlerImpl::build_session_config(
+    const LocalCreateSessionRequest& request) {
+  SessionConfig cfg = {
+      .ue_ipv4           = request.ue_ipv4(),
+      .spgw_ipv4         = request.spgw_ipv4(),
+      .msisdn            = request.msisdn(),
+      .apn               = request.apn(),
+      .imei              = request.imei(),
+      .plmn_id           = request.plmn_id(),
+      .imsi_plmn_id      = request.imsi_plmn_id(),
+      .user_location     = request.user_location(),
+      .rat_type          = request.rat_type(),
+      .mac_addr          = convert_mac_addr_to_str(request.hardware_addr()),
+      .hardware_addr     = request.hardware_addr(),
+      .radius_session_id = request.radius_session_id(),
+      .bearer_id         = request.bearer_id()};
+
+  QoSInfo qos_info = {.enabled = request.has_qos_info()};
+  if (request.has_qos_info()) {
+    qos_info.qci = request.qos_info().qos_class_id();
+  }
+  cfg.qos_info = qos_info;
+
+  return cfg;
+}
+
+void LocalSessionManagerHandlerImpl::recycle_session(
+    SessionMap& session_map, const LocalCreateSessionRequest& request,
+    const std::string& imsi, const std::string& sid,
+    const std::string& core_sid, SessionConfig cfg, const bool is_wifi,
+    std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
+  Status status;
+  if (is_wifi) {
+    MLOG(MINFO) << "Found an active session with the same IMSI " << imsi
+                << " and RAT Type is WLAN, not creating a new session";
+    // Wifi only supports one session per subscriber, so update the config
+    // here
+    SessionUpdate session_update =
+        SessionStore::get_default_session_update(session_map);
+    enforcer_->handle_cwf_roaming(session_map, imsi, cfg, session_update);
+    if (session_store_.update_sessions(session_update)) {
+      MLOG(MINFO) << "Successfully updated session " << sid
+                  << " in sessiond for subscriber " << imsi;
+      status = grpc::Status::OK;
+    } else {
+      MLOG(MINFO) << "Failed to initialize new session " << sid
+                  << " in sessiond for subscriber " << imsi
+                  << " with default bearer id " << cfg.bearer_id
+                  << " due to failure writing to SessionStore."
+                  << " An earlier update may have invalidated it.";
+      status = Status(grpc::ABORTED, "Failed to update SessionStore");
+    }
+  } else {
+    MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
+                << " and APN " << request.apn() << ", not creating session";
+    status = grpc::Status::OK;
+  }
+  try {
+    LocalCreateSessionResponse resp;
+    resp.set_session_id(core_sid);
+    response_callback(status, resp);
+  } catch (...) {
+    std::exception_ptr ep = std::current_exception();
+    MLOG(MERROR) << "CreateSession response_callback exception: "
+                 << (ep ? ep.__cxa_exception_type()->name() : "<unknown");
+  }
+}
+
 void LocalSessionManagerHandlerImpl::CreateSession(
     ServerContext* context, const LocalCreateSessionRequest* request,
     std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
@@ -198,33 +266,14 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   enforcer_->get_event_base().runInEventBaseThread([this, context,
                                                     response_callback,
                                                     request_cpy]() {
-    auto imsi     = request_cpy.sid().id();
-    auto sid      = id_gen_.gen_session_id(imsi);
-    auto mac_addr = convert_mac_addr_to_str(request_cpy.hardware_addr());
+    auto imsi = request_cpy.sid().id();
+    auto sid  = id_gen_.gen_session_id(imsi);
     MLOG(MDEBUG) << "PLMN_ID: " << request_cpy.plmn_id()
                  << " IMSI_PLMN_ID: " << request_cpy.imsi_plmn_id();
 
-    SessionConfig cfg = {.ue_ipv4           = request_cpy.ue_ipv4(),
-                         .spgw_ipv4         = request_cpy.spgw_ipv4(),
-                         .msisdn            = request_cpy.msisdn(),
-                         .apn               = request_cpy.apn(),
-                         .imei              = request_cpy.imei(),
-                         .plmn_id           = request_cpy.plmn_id(),
-                         .imsi_plmn_id      = request_cpy.imsi_plmn_id(),
-                         .user_location     = request_cpy.user_location(),
-                         .rat_type          = request_cpy.rat_type(),
-                         .mac_addr          = mac_addr,
-                         .hardware_addr     = request_cpy.hardware_addr(),
-                         .radius_session_id = request_cpy.radius_session_id(),
-                         .bearer_id         = request_cpy.bearer_id()};
+    SessionConfig cfg = build_session_config(request_cpy);
+    auto session_map  = get_sessions_for_creation(request_cpy);
 
-    QoSInfo qos_info = {.enabled = request_cpy.has_qos_info()};
-    if (request_cpy.has_qos_info()) {
-      qos_info.qci = request_cpy.qos_info().qos_class_id();
-    }
-    cfg.qos_info = qos_info;
-
-    auto session_map = get_sessions_for_creation(request_cpy);
     if (enforcer_->session_with_imsi_exists(session_map, imsi)) {
       std::string core_sid;
 
@@ -244,43 +293,9 @@ void LocalSessionManagerHandlerImpl::CreateSession(
       // for termination), it should have the exact same configuration or it
       // should be CWF use case.
       if ((same_config || is_wifi) && is_active) {
-        Status status;
-        if (is_wifi) {
-          MLOG(MINFO) << "Found an active session with the same IMSI " << imsi
-                      << " and RAT Type is WLAN, not creating a new session";
-          // Wifi only supports one session per subscriber, so update the config
-          // here
-          SessionUpdate session_update =
-              SessionStore::get_default_session_update(session_map);
-          enforcer_->handle_cwf_roaming(session_map, imsi, cfg, session_update);
-          if (session_store_.update_sessions(session_update)) {
-            MLOG(MINFO) << "Successfully updated session " << sid
-                        << " in sessiond for subscriber " << imsi;
-            status = grpc::Status::OK;
-          } else {
-            MLOG(MINFO) << "Failed to initialize new session " << sid
-                        << " in sessiond for subscriber " << imsi
-                        << " with default bearer id " << cfg.bearer_id
-                        << " due to failure writing to SessionStore."
-                        << " An earlier update may have invalidated it.";
-            status = Status(grpc::ABORTED, "Failed to update SessionStore");
-          }
-        } else {
-          MLOG(MINFO) << "Found completely duplicated session with IMSI "
-                      << imsi << " and APN " << request_cpy.apn()
-                      << ", not creating session";
-          status = grpc::Status::OK;
-        }
-        try {
-          LocalCreateSessionResponse resp;
-          resp.set_session_id(core_sid);
-          response_callback(status, resp);
-        } catch (...) {
-          std::exception_ptr ep = std::current_exception();
-          MLOG(MERROR) << "CreateSession response_callback exception: "
-                       << (ep ? ep.__cxa_exception_type()->name() : "<unknown");
-        }
-        // No new session created
+        recycle_session(
+            session_map, request_cpy, imsi, sid, core_sid, cfg, is_wifi,
+            response_callback);
         return;
       }
 
