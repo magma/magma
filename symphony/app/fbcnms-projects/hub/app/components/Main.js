@@ -18,6 +18,7 @@ import HubVersion from './HubVersion';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
 import React, {useContext} from 'react';
 import RouterIcon from '@material-ui/icons/Router';
+import Shuffle from '@material-ui/icons/Shuffle';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -53,8 +54,8 @@ function NavBarItems() {
     <NavListItem
       key={2}
       label="Workflows"
-      path="/hub/wf"
-      icon={<RouterIcon />}
+      path="/hub/workflows/defs"
+      icon={<Shuffle />}
       onClick={() => {}}
     />
   ];
@@ -86,26 +87,29 @@ function CreateServiceForm() {
   );
 }
 
-function Main() {
-  const {user, tabs, ssoEnabled} = useContext(AppContext);
-  const classes = useStyles();
-  return (
-    <div className={classes.root}>
-      <AppSideBar
-        mainItems={<NavBarItems />}
-        secondaryItems={[]}
-        projects={getProjectLinks(tabs, user)}
-        showSettings={shouldShowSettings({
-          isSuperUser: user.isSuperUser,
-          ssoEnabled,
-        })}
-        user={nullthrows(user)}
-      />
-      <AppContent>
-        <CreateServiceForm />
-      </AppContent>
-    </div>
-  );
+function Main(isWorkflow) {
+  return () => {
+    const {user, tabs, ssoEnabled} = useContext(AppContext);
+    const classes = useStyles();
+    let subApp = isWorkflow ? <WorkflowApp/> : <CreateServiceForm/>;
+    return (
+      <div className={classes.root}>
+        <AppSideBar
+          mainItems={<NavBarItems />}
+          secondaryItems={[]}
+          projects={getProjectLinks(tabs, user)}
+          showSettings={shouldShowSettings({
+            isSuperUser: user.isSuperUser,
+            ssoEnabled,
+          })}
+          user={nullthrows(user)}
+        />
+        <AppContent>
+          {subApp}
+        </AppContent>
+      </div>
+    );
+  }
 }
 
 export default () => {
@@ -114,12 +118,10 @@ export default () => {
     <ApplicationMain>
       <AppContextProvider>
         <Switch>
-          <Route path={relativeUrl('/services')} component={Main} />
+          <Route path={relativeUrl('/services')} component={Main(false)} />
           <Redirect exact from="/" to={relativeUrl('/hub')} />
           <Redirect exact from="/hub" to={relativeUrl('/services')} />
-          <Route path="/hub/wf">
-            <WorkflowApp />
-          </Route>
+          <Route path="/hub/workflows/defs" component={Main(true)} />
         </Switch>
       </AppContextProvider>
     </ApplicationMain>

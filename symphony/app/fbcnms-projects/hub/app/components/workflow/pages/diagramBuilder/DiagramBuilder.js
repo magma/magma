@@ -327,7 +327,7 @@ class DiagramBuilder extends Component {
   }
 
   redirectOnNew() {
-    this.props.history.push("/workflows/builder");
+    this.props.history.push("/hub/workflows/builder");
     window.location.reload();
   }
 

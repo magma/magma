@@ -95,7 +95,7 @@ const WorkflowList = (props) => {
         <div className="actions">
           <Button
             primary
-            onClick={() => props.history.push("/workflows/builder")}
+            onClick={() => props.history.push("/hub/workflows/builder")}
           >
             <Icon name="plus" />
             New

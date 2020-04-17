@@ -34,14 +34,14 @@ function App(props) {
       <BrowserRouter>
         <Switch>
           <Route
-            path={["/workflows/builder", "/workflows/builder/:name/:version"]}
+            path={["/hub/workflows/builder", "/hub/workflows/builder/:name/:version"]}
             render={(props) => (
               <DiagramBuilder hideHeader={hideHeader} {...props} />
             )}
           />
           <Route
             exact
-            path={["/workflows/:type", "/workflows/:type/:wfid", "/"]}
+            path={["/hub/workflows/:type", "/workflows/:type/:wfid", "/"]}
             component={WorkflowList}
           />
         </Switch>

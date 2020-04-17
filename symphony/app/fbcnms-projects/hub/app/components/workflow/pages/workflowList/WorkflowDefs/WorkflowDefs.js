@@ -279,7 +279,7 @@ class WorkflowDefs extends Component {
   editWorkflow() {
     const name = this.state.activeWf.split(" / ")[0];
     const version = this.state.activeWf.split(" / ")[1];
-    this.props.history.push(`/workflows/builder/${name}/${version}`);
+    this.props.history.push(`/hub/workflows/builder/${name}/${version}`);
   }
 
   deleteWorkflow() {
