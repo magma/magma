@@ -1579,9 +1579,10 @@ bool LocalEnforcer::is_session_active(
   return false;
 }
 
-bool LocalEnforcer::has_active_session(SessionMap &session_map,
-                                       const std::string &imsi,
-                                       std::string *core_session_id) const {
+bool LocalEnforcer::get_core_sid_of_active_session(
+    SessionMap &session_map,
+    const std::string &imsi,
+    std::string *core_session_id) const {
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
     return false;
@@ -1595,7 +1596,7 @@ bool LocalEnforcer::has_active_session(SessionMap &session_map,
   return false;
 }
 
-bool LocalEnforcer::session_with_same_config_exists(
+bool LocalEnforcer::get_core_sid_of_session_with_same_config(
     SessionMap &session_map, const std::string &imsi,
     const SessionConfig &config, std::string *core_session_id) const {
   auto it = session_map.find(imsi);
