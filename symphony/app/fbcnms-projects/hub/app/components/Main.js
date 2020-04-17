@@ -26,6 +26,7 @@ import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {shouldShowSettings} from '@fbcnms/magmalte/app/components/Settings';
 import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
+import WorkflowApp from "./workflow/App"
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -49,6 +50,13 @@ function NavBarItems() {
       icon={<RouterIcon />}
       onClick={() => {}}
     />,
+    <NavListItem
+      key={2}
+      label="Workflows"
+      path="/hub/wf"
+      icon={<RouterIcon />}
+      onClick={() => {}}
+    />
   ];
 }
 
@@ -109,6 +117,9 @@ export default () => {
           <Route path={relativeUrl('/services')} component={Main} />
           <Redirect exact from="/" to={relativeUrl('/hub')} />
           <Redirect exact from="/hub" to={relativeUrl('/services')} />
+          <Route path="/hub/wf">
+            <WorkflowApp />
+          </Route>
         </Switch>
       </AppContextProvider>
     </ApplicationMain>

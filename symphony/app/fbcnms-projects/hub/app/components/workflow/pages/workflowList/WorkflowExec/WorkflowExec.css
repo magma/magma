@@ -1,0 +1,17 @@
+.execTableRows {
+    font-size: 13px;
+    text-align: left;
+}
+
+.execTableWrapper {
+    overflow: auto;
+    max-height: 550px;
+}
+
+.childWf {
+    background-color: #cdcdcd;
+}
+
+.clickable:hover {
+    cursor: pointer;
+}
