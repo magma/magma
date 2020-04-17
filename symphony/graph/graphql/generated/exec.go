@@ -7548,7 +7548,7 @@ type CheckListItem implements Node {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
-  files: [File!]!
+  files: [File!]
   yesNoResponse: YesNoResponse
   wifiData: [SurveyWiFiScan!]
   cellData: [SurveyCellScan!]
@@ -12998,15 +12998,12 @@ func (ec *executionContext) _CheckListItem_files(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.([]*ent.File)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFileᚄ(ctx, field.Selections, res)
+	return ec.marshalOFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFileᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CheckListItem_yesNoResponse(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
@@ -40954,9 +40951,6 @@ func (ec *executionContext) _CheckListItem(ctx context.Context, sel ast.Selectio
 					}
 				}()
 				res = ec._CheckListItem_files(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "yesNoResponse":
@@ -48959,43 +48953,6 @@ func (ec *executionContext) marshalNFile2ᚕᚖgithubᚗcomᚋfacebookincubator�
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalOFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNFile2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFileᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.File) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFile2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

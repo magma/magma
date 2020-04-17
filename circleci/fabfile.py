@@ -26,7 +26,7 @@ STACKS = [
 ]
 
 CWF_IMAGES = [
-    'cwag_go'
+    'cwag_go',
     'gateway_go',
     'gateway_python',
     'gateway_sessiond',

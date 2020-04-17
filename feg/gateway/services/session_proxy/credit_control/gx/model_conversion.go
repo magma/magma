@@ -96,7 +96,7 @@ func (r *RedirectInformation) ToProto() *protos.RedirectInformation {
 	}
 	return &protos.RedirectInformation{
 		Support:       protos.RedirectInformation_Support(r.RedirectSupport),
-		AddressType:   protos.RedirectInformation_AddressType(r.RedirectAddressType),
+		AddressType:   protos.RedirectAddressType(r.RedirectAddressType),
 		ServerAddress: r.RedirectServerAddress,
 	}
 }

@@ -18,7 +18,7 @@ func (redirectServer *RedirectServer) ToProto() *protos.RedirectServer {
 		return &protos.RedirectServer{}
 	}
 	return &protos.RedirectServer{
-		RedirectAddressType:   protos.RedirectServer_RedirectAddressType(redirectServer.RedirectAddressType),
+		RedirectAddressType:   protos.RedirectAddressType(redirectServer.RedirectAddressType),
 		RedirectServerAddress: redirectServer.RedirectServerAddress,
 	}
 }

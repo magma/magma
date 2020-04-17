@@ -55,7 +55,7 @@ func TestPCRFExpectations(t *testing.T) {
 			FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
 			RedirectInformation: &lteprotos.RedirectInformation{
 				Support:     lteprotos.RedirectInformation_ENABLED,
-				AddressType: lteprotos.RedirectInformation_IPv4,
+				AddressType: lteprotos.RedirectAddressType_IPv4,
 			},
 			QosInformation: &lteprotos.FlowQos{
 				MaxReqBwDl: 15,

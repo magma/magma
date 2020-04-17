@@ -122,7 +122,7 @@ func TestPolicyStreamers(t *testing.T) {
 			Priority: 42,
 			Redirect: &protos.RedirectInformation{
 				Support:       protos.RedirectInformation_ENABLED,
-				AddressType:   protos.RedirectInformation_IPv4,
+				AddressType:   protos.RedirectAddressType_IPv4,
 				ServerAddress: "https://www.google.com",
 			},
 		},

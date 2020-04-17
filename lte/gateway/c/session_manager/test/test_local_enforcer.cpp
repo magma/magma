@@ -609,6 +609,11 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
               deactivate_flows_for_rules(testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
+  // Since this is a termination triggered by SessionD/Core (quota exhaustion
+  // + FUA-Terminate), we expect MME to be notified to delete the bearer
+  // created on session creation
+  EXPECT_CALL(*spgw_client,
+              delete_default_bearer("IMSI1", testing::_, testing::_));
   // call collect_updates to trigger actions
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto usage_updates =
