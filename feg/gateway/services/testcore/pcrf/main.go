@@ -10,6 +10,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"magma/feg/cloud/go/protos"
@@ -21,39 +22,60 @@ import (
 	"github.com/golang/glog"
 )
 
+var (
+	serverNumber int
+)
+
 func init() {
-	flag.Parse()
+	flag.IntVar(&serverNumber, "servernumber", 1, "Number of the server. Will use Gx[servernumber-1] configuration")
 }
 
 func main() {
-	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.MOCK_PCRF)
-	if err != nil {
-		log.Fatalf("Error creating mock PCRF service: %s", err)
-	}
+	flag.Parse()
 
-	// TODO: support multiple connections
-	gxCliConf := gx.GetGxClientConfiguration()[0]
-	gxServConf := gx.GetPCRFConfiguration()[0]
+	serverIdx := serverNumber - 1
+	log.Print("------ Reading Gx configuration a couple of times ------")
+	// Get the server N from the list of configured servers. This is normally 0, unless multiple GX connections are configured
+	gxConfigs := gx.GetGxClientConfiguration()
+	if serverIdx >= len(gxConfigs) {
+		log.Fatalf("ServerIndex value (%d) is bigger than the amout Gx servers configured (%d)", serverIdx, len(gxConfigs))
+		return
+	}
+	gxCliConf := gxConfigs[serverIdx]
+	gxServConf := gx.GetPCRFConfiguration()[serverIdx]
+	log.Print("------ Done reading Gy configuration  ------")
+	log.Printf("Mock PCRF using Gx server configured at index %d with adderess %s", serverIdx, gxServConf.Addr)
+
+	serviceName := registry.MOCK_PCRF
+	if serverIdx > 0 {
+		serviceName = fmt.Sprintf("%s%d", serviceName, serverNumber)
+		log.Printf("PCRF serviceName renamed to: %s", serviceName)
+	}
 
 	pcrfServer := mock_pcrf.NewPCRFDiamServer(
 		gxCliConf,
 		&mock_pcrf.PCRFConfig{ServerConfig: gxServConf},
 	)
 
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, serviceName)
+	if err != nil {
+		log.Fatalf("Error creating mock %s service: %s", serviceName, err)
+	}
+
 	lis, err := pcrfServer.StartListener()
 	if err != nil {
-		log.Fatalf("Unable to start listener for mock PCRF: %s", err)
+		log.Fatalf("Unable to start listener for mock %s: %s", serviceName, err)
 	}
 
 	protos.RegisterMockPCRFServer(srv.GrpcServer, pcrfServer)
 
 	go func() {
-		glog.V(2).Infof("Starting mock PCRF server at %s", lis.Addr().String())
+		glog.V(2).Infof("Starting mock %s server at %s", serviceName, lis.Addr().String())
 		glog.Errorf(pcrfServer.Start(lis).Error()) // blocks
 	}()
 
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running mock PCRF service: %s", err)
+		log.Fatalf("Error running mock %s service: %s", serviceName, err)
 	}
 }
