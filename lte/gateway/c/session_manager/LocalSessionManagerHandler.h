@@ -26,33 +26,32 @@ namespace magma {
 using namespace orc8r;
 
 class LocalSessionManagerHandler {
-public:
+ public:
   virtual ~LocalSessionManagerHandler() {}
 
   /**
    * Report flow stats from pipelined and track the usage per rule
    */
-  virtual void
-  ReportRuleStats(ServerContext *context, const RuleRecordTable *request,
-                  std::function<void(Status, Void)> response_callback) = 0;
+  virtual void ReportRuleStats(
+      ServerContext* context, const RuleRecordTable* request,
+      std::function<void(Status, Void)> response_callback) = 0;
 
   /**
    * Create a new session, initializing credit monitoring and requesting credit
    * from the cloud
    */
-  virtual void
-  CreateSession(ServerContext *context,
-                const LocalCreateSessionRequest *request,
-                std::function<void(Status, LocalCreateSessionResponse)>
-                    response_callback) = 0;
+  virtual void CreateSession(
+      ServerContext* context, const LocalCreateSessionRequest* request,
+      std::function<void(Status, LocalCreateSessionResponse)>
+          response_callback) = 0;
 
   /**
    * Terminate a session, untracking credit and terminating in the cloud
    */
-  virtual void EndSession(ServerContext *context,
-                          const LocalEndSessionRequest *request,
-                          std::function<void(Status, LocalEndSessionResponse)>
-                              response_callback) = 0;
+  virtual void EndSession(
+      ServerContext* context, const LocalEndSessionRequest* request,
+      std::function<void(Status, LocalEndSessionResponse)>
+          response_callback) = 0;
 };
 
 /**
@@ -61,38 +60,39 @@ public:
  * and report to the cloud, respectively
  */
 class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
-public:
+ public:
   LocalSessionManagerHandlerImpl(
-      std::shared_ptr<LocalEnforcer> monitor, SessionReporter *reporter,
+      std::shared_ptr<LocalEnforcer> monitor, SessionReporter* reporter,
       std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-      SessionStore &session_store);
+      SessionStore& session_store);
   ~LocalSessionManagerHandlerImpl() {}
   /**
    * Report flow stats from pipelined and track the usage per rule
    */
-  void ReportRuleStats(ServerContext *context, const RuleRecordTable *request,
-                       std::function<void(Status, Void)> response_callback);
+  void ReportRuleStats(
+      ServerContext* context, const RuleRecordTable* request,
+      std::function<void(Status, Void)> response_callback);
 
   /**
    * Create a new session, initializing credit monitoring and requesting credit
    * from the cloud
    */
-  void CreateSession(ServerContext *context,
-                     const LocalCreateSessionRequest *request,
-                     std::function<void(Status, LocalCreateSessionResponse)>
-                         response_callback);
+  void CreateSession(
+      ServerContext* context, const LocalCreateSessionRequest* request,
+      std::function<void(Status, LocalCreateSessionResponse)>
+          response_callback);
 
   /**
    * Terminate a session, untracking credit and terminating in the cloud
    */
   void EndSession(
-      ServerContext *context, const LocalEndSessionRequest *request,
+      ServerContext* context, const LocalEndSessionRequest* request,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
-private:
-  SessionStore &session_store_;
+ private:
+  SessionStore& session_store_;
   std::shared_ptr<LocalEnforcer> enforcer_;
-  SessionReporter *reporter_;
+  SessionReporter* reporter_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
@@ -100,20 +100,20 @@ private:
   std::chrono::seconds retry_timeout_;
   static const std::string hex_digit_;
 
-private:
-  void check_usage_for_reporting(SessionMap session_map,
-                                 SessionUpdate &session_update);
+ private:
+  void check_usage_for_reporting(
+      SessionMap session_map, SessionUpdate& session_update);
   bool is_pipelined_restarted();
-  bool restart_pipelined(const std::uint64_t &epoch);
+  bool restart_pipelined(const std::uint64_t& epoch);
 
   void end_session(
-      SessionMap &session_map, const LocalEndSessionRequest &request,
+      SessionMap& session_map, const LocalEndSessionRequest& request,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
-  std::string convert_mac_addr_to_str(const std::string &mac_addr);
+  std::string convert_mac_addr_to_str(const std::string& mac_addr);
 
-  void add_session_to_directory_record(const std::string &imsi,
-                                       const std::string &session_id);
+  void add_session_to_directory_record(
+      const std::string& imsi, const std::string& session_id);
 
   /**
    * Send session creation request to the CentralSessionController.
@@ -121,13 +121,13 @@ private:
    * gRPC caller.
    */
   void send_create_session(
-      SessionMap &session_map, const CreateSessionRequest &request,
-      const std::string &imsi, const std::string &sid, const SessionConfig &cfg,
+      SessionMap& session_map, const CreateSessionRequest& request,
+      const std::string& imsi, const std::string& sid, const SessionConfig& cfg,
       std::function<void(grpc::Status, LocalCreateSessionResponse)>
           response_callback);
 
-  void handle_setup_callback(const std::uint64_t &epoch, Status status,
-                             SetupFlowsResult resp);
+  void handle_setup_callback(
+      const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
 
   /**
    * Get the most recently written state of sessions for Creation
@@ -136,8 +136,8 @@ private:
    * NOTE: Call only from the main EventBase thread, otherwise there will
    *       be undefined behavior.
    */
-  SessionMap
-  get_sessions_for_creation(const LocalCreateSessionRequest &request);
+  SessionMap get_sessions_for_creation(
+      const LocalCreateSessionRequest& request);
 
   /**
    * Get the most recently written state of sessions for reporting usage.
@@ -146,7 +146,7 @@ private:
    * NOTE: Call only from the main EventBase thread, otherwise there will
    *       be undefined behavior.
    */
-  SessionMap get_sessions_for_reporting(const RuleRecordTable &request);
+  SessionMap get_sessions_for_reporting(const RuleRecordTable& request);
 
   /**
    * Get the most recently written state of the session that is to be deleted.
@@ -155,7 +155,7 @@ private:
    * NOTE: Call only from the main EventBase thread, otherwise there will
    *       be undefined behavior.
    */
-  SessionMap get_sessions_for_deletion(const LocalEndSessionRequest &request);
+  SessionMap get_sessions_for_deletion(const LocalEndSessionRequest& request);
 };
 
-} // namespace magma
+}  // namespace magma
