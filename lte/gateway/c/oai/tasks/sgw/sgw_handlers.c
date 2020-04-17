@@ -743,9 +743,9 @@ int sgw_handle_gtpv1uUpdateTunnelResp(
 
 //------------------------------------------------------------------------------
 int sgw_handle_sgi_endpoint_updated(
-  const itti_sgi_update_end_point_response_t *const resp_pP,
-  imsi64_t imsi64)
-{
+    spgw_state_t* state,
+    const itti_sgi_update_end_point_response_t* const resp_pP,
+    imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_s11_modify_bearer_response_t *modify_response_p = NULL;
   MessageDef *message_p = NULL;
@@ -910,13 +910,10 @@ int sgw_handle_sgi_endpoint_updated(
 
 //------------------------------------------------------------------------------
 int sgw_handle_sgi_endpoint_deleted(
-  const itti_sgi_delete_end_point_request_t *const resp_pP,
-  imsi64_t imsi64)
-{
+    spgw_state_t* spgw_state,
+    const itti_sgi_delete_end_point_request_t* const resp_pP, imsi64_t imsi64) {
   sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = NULL;
   int rv = RETURNok;
-  char *imsi = NULL;
-  char *apn = NULL;
   struct in_addr inaddr;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -962,14 +959,22 @@ int sgw_handle_sgi_endpoint_deleted(
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
       }
 
-      imsi = (char *)
-          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
-      apn = (char *)
-          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection.apn_in_use;
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
+      char* imsi = (char*) new_bearer_ctxt_info_p
+                       ->sgw_eps_bearer_context_information.imsi.digit;
+      char* apn =
+          (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+              .pdn_connection.apn_in_use;
+#endif
       switch (resp_pP->paa.pdn_type) {
         case IPv4:
           inaddr = resp_pP->paa.ipv4_address;
-          if (!release_ue_ipv4_address(imsi, apn, &inaddr)) {
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
+          rv = pgw_mobilityd_release_ue_ipv4_address(imsi, apn, &inaddr);
+#else
+          rv = pgw_locally_release_ue_ipv4_address(spgw_state, &inaddr);
+#endif
+          if (rv == RETURNok) {
             OAILOG_DEBUG_UE(
                 LOG_SPGW_APP, imsi64, "Released IPv4 PAA for PDN type IPv4\n");
           } else {
@@ -985,13 +990,19 @@ int sgw_handle_sgi_endpoint_deleted(
 
         case IPv4_AND_v6:
           inaddr = resp_pP->paa.ipv4_address;
-          if (!release_ue_ipv4_address(imsi, apn, &inaddr)) {
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
+          rv = pgw_mobilityd_release_ue_ipv4_address(imsi, apn, &inaddr);
+#else
+          rv = pgw_locally_release_ue_ipv4_address(spgw_state, &inaddr);
+#endif
+          if (rv == RETURNok) {
             OAILOG_DEBUG_UE(
                 LOG_SPGW_APP, imsi64,
                 "Released IPv4 PAA for PDN type IPv4_AND_v6\n");
           } else {
-            OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64,
-              "Failed to release IPv4 PAA for PDN type IPv4_AND_v6\n");
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "Failed to release IPv4 PAA for PDN type IPv4_AND_v6\n");
           }
           break;
 
@@ -1123,8 +1134,8 @@ int sgw_handle_modify_bearer_request(
         sgi_update_end_point_resp.eps_bearer_id =
           eps_bearer_ctxt_p->eps_bearer_id;
         sgi_update_end_point_resp.status = 0x00;
-        rv =
-          sgw_handle_sgi_endpoint_updated(&sgi_update_end_point_resp, imsi64);
+        rv                               = sgw_handle_sgi_endpoint_updated(
+            state, &sgi_update_end_point_resp, imsi64);
         if (RETURNok == rv) {
           if (spgw_config.pgw_config.pcef
                 .automatic_push_dedicated_bearer_sdf_identifier) {
@@ -1171,9 +1182,9 @@ int sgw_handle_modify_bearer_request(
 
 //------------------------------------------------------------------------------
 int sgw_handle_delete_session_request(
-  const itti_s11_delete_session_request_t *const delete_session_req_pP,
-  imsi64_t imsi64)
-{
+    spgw_state_t* spgw_state,
+    const itti_s11_delete_session_request_t* const delete_session_req_pP,
+    imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_s11_delete_session_response_t *delete_session_resp_p = NULL;
   MessageDef *message_p = NULL;
@@ -1325,7 +1336,8 @@ int sgw_handle_delete_session_request(
           &eps_bearer_ctxt_p->paa,
           sizeof(paa_t));
 
-        sgw_handle_sgi_endpoint_deleted(&sgi_delete_end_point_request, imsi64);
+        sgw_handle_sgi_endpoint_deleted(
+            spgw_state, &sgi_delete_end_point_request, imsi64);
       } else {
         OAILOG_WARNING_UE(
           LOG_SPGW_APP,
@@ -2317,10 +2329,10 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
  */
 
 int sgw_handle_nw_initiated_deactv_bearer_rsp(
-  const itti_s11_nw_init_deactv_bearer_rsp_t
-    *const s11_pcrf_ded_bearer_deactv_rsp,
-    imsi64_t imsi64)
-{
+    spgw_state_t* spgw_state,
+    const itti_s11_nw_init_deactv_bearer_rsp_t* const
+        s11_pcrf_ded_bearer_deactv_rsp,
+    imsi64_t imsi64) {
   uint32_t rc = RETURNok;
   uint32_t i = 0;
   uint32_t no_of_bearers = 0;
@@ -2386,7 +2398,8 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
       &eps_bearer_ctxt_p->paa,
       sizeof(paa_t));
 
-    sgw_handle_sgi_endpoint_deleted(&sgi_delete_end_point_request, imsi64);
+    sgw_handle_sgi_endpoint_deleted(
+        spgw_state, &sgi_delete_end_point_request, imsi64);
 
     sgw_cm_remove_eps_bearer_entry(
       &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);

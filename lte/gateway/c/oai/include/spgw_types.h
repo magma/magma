@@ -74,6 +74,7 @@ typedef struct mme_sgw_tunnel_s {
 // AGW-wide state for SPGW task
 typedef struct spgw_state_s {
   STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;
+  STAILQ_HEAD(ipv4_list_free_s, ipv4_list_elm_s) ipv4_list_free;
   hash_table_ts_t* deactivated_predefined_pcc_rules;
   hash_table_ts_t* predefined_pcc_rules;
   gtpv1u_data_t gtpv1u_data;

@@ -61,6 +61,7 @@
 #include "sgw_ie_defs.h"
 #include "pgw_procedures.h"
 #include "spgw_types.h"
+#include "pgw_ue_ip_address_alloc.h"
 
 extern spgw_config_t spgw_config;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
@@ -90,93 +91,90 @@ static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(
   teid_t mme_teid_S11);
 
 static void _spgw_handle_s5_response_with_error(
-  spgw_state_t* spgw_state,
-  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  teid_t context_teid,
-  ebi_t eps_bearer_id,
-  itti_sgi_create_end_point_response_t* sgi_create_endpoint_resp,
-  s5_create_session_response_t* s5_response);
+    spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    teid_t context_teid, ebi_t eps_bearer_id,
+    itti_sgi_create_end_point_response_t* sgi_create_endpoint_resp,
+    s5_create_session_response_t* s5_response);
+
+#if (!SPGW_ENABLE_SESSIOND_AND_MOBILITYD)
+static void _pgw_handle_locally_allocate_ipv4_address(
+    spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
+#endif
 
 //--------------------------------------------------------------------------------
 
 void handle_s5_create_session_request(
-  spgw_state_t* spgw_state,
-  s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p,
-  teid_t context_teid,
-  ebi_t eps_bearer_id)
-{
+    spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    teid_t context_teid, ebi_t eps_bearer_id) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
-  s5_create_session_response_t s5_response = {0};
-  struct in_addr inaddr;
-  char *imsi = NULL;
-  char *apn = NULL;
+  s5_create_session_response_t s5_response                      = {0};
 
   if (!new_bearer_ctxt_info_p) {
     OAILOG_ERROR(
-      LOG_SPGW_APP,
-      "Failed to fetch sgw bearer context from the received context "
-      "teid" TEID_FMT "\n",
-      context_teid);
+        LOG_SPGW_APP,
+        "Failed to fetch sgw bearer context from the received context "
+        "teid" TEID_FMT "\n",
+        context_teid);
     sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
     _spgw_handle_s5_response_with_error(
-      spgw_state,
-      new_bearer_ctxt_info_p,
-      context_teid,
-      eps_bearer_id,
-      &sgi_create_endpoint_resp,
-      &s5_response);
+        spgw_state, new_bearer_ctxt_info_p, context_teid, eps_bearer_id,
+        &sgi_create_endpoint_resp, &s5_response);
+    OAILOG_FUNC_OUT(LOG_SPGW_APP);
   }
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP,
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
       "Handle s5_create_session_request, for context sgw s11 teid, " TEID_FMT
-          "EPS bearer id %u\n",
-      context_teid,
-      eps_bearer_id);
+      "EPS bearer id %u\n",
+      context_teid, eps_bearer_id);
 
   // PCO processing
   protocol_configuration_options_t* pco_req =
-    &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-       .pco;
+      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
+           .pco;
   protocol_configuration_options_t pco_resp = {0};
   protocol_configuration_options_ids_t pco_ids;
   memset(&pco_ids, 0, sizeof pco_ids);
 
   if (pgw_process_pco_request(pco_req, &pco_resp, &pco_ids) != RETURNok) {
     OAILOG_ERROR_UE(
-      LOG_SPGW_APP,
-      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
-      "Error in processing PCO in create session request for "
-      "context_id: " TEID_FMT "\n",
-      context_teid);
+        LOG_SPGW_APP,
+        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
+        "Error in processing PCO in create session request for "
+        "context_id: " TEID_FMT "\n",
+        context_teid);
     sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_FAILED_TO_PROCESS_PCO;
     _spgw_handle_s5_response_with_error(
-      spgw_state,
-      new_bearer_ctxt_info_p,
-      context_teid,
-      eps_bearer_id,
-      &sgi_create_endpoint_resp,
-      &s5_response);
+        spgw_state, new_bearer_ctxt_info_p, context_teid, eps_bearer_id,
+        &sgi_create_endpoint_resp, &s5_response);
+    OAILOG_FUNC_OUT(LOG_SPGW_APP);
   }
   copy_protocol_configuration_options(&sgi_create_endpoint_resp.pco, &pco_resp);
   clear_protocol_configuration_options(&pco_resp);
 
   // IP forward will forward packets to this teid
-  sgi_create_endpoint_resp.context_teid = context_teid;
+  sgi_create_endpoint_resp.context_teid  = context_teid;
   sgi_create_endpoint_resp.eps_bearer_id = eps_bearer_id;
   sgi_create_endpoint_resp.paa.pdn_type =
-    new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
-      .pdn_type;
-
+      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message
+          .pdn_type;
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
+  char* imsi = NULL;
+  char* apn  = NULL;
+  struct in_addr inaddr;
   imsi =
-    (char*)
-      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
+      (char*)
+          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
 
   apn = (char*) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-          .pdn_connection.apn_in_use;
-
+            .pdn_connection.apn_in_use;
+#endif
   switch (sgi_create_endpoint_resp.paa.pdn_type) {
     case IPv4:
       // Use NAS by default if no preference is set.
@@ -187,30 +185,28 @@ void handle_s5_create_session_request(
       // allocates an IPv4 address if the UE has explicitly set the PCO
       // parameter for allocating IPv4 via NAS signaling (as opposed to via
       // DHCPv4). This means that, in the absence of either parameter being,
-      // set the does not know what to do, so we need a default option as well.
+      // set the does not know what to do, so we need a default option as
+      // well.
       //
       // Since we only support the NAS signaling option right now, we will
       // default to using NAS signaling UNLESS we see a preference for DHCPv4.
-      // This means that all IPv4 addresses are now allocated via NAS signaling
-      // unless specified otherwise.
+      // This means that all IPv4 addresses are now allocated via NAS
+      // signaling unless specified otherwise.
       //
       // In the long run, we will want to evolve the logic to use whatever
-      // information we have to choose the ``best" allocation method. This means
-      // adding new bitfields to pco_ids in pgw_pco.h, setting them in pgw_pco.c
-      // and using them here in conditional logic. We will also want to
-      // implement different logic between the PDN types.
+      // information we have to choose the ``best" allocation method. This
+      // means adding new bitfields to pco_ids in pgw_pco.h, setting them in
+      // pgw_pco.c and using them here in conditional logic. We will also want
+      // to implement different logic between the PDN types.
       if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
-        pgw_handle_allocate_ipv4_address(
-          imsi,
-          apn,
-          &inaddr,
-          sgi_create_endpoint_resp,
-          "ipv4",
-          context_teid,
-          eps_bearer_id,
-          spgw_state,
-          new_bearer_ctxt_info_p,
-          s5_response);
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
+        pgw_handle_mobilityd_allocate_ipv4_address(
+            imsi, apn, &inaddr, sgi_create_endpoint_resp, "ipv4", context_teid,
+            eps_bearer_id, spgw_state, new_bearer_ctxt_info_p, s5_response);
+#else
+        _pgw_handle_locally_allocate_ipv4_address(
+            spgw_state, new_bearer_ctxt_info_p, sgi_create_endpoint_resp);
+#endif
       }
       break;
 
@@ -225,17 +221,14 @@ void handle_s5_create_session_request(
       break;
 
     case IPv4_AND_v6:
-      pgw_handle_allocate_ipv4_address(
-        imsi,
-        apn,
-        &inaddr,
-        sgi_create_endpoint_resp,
-        "ipv4v6",
-        context_teid,
-        eps_bearer_id,
-        spgw_state,
-        new_bearer_ctxt_info_p,
-        s5_response);
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
+      pgw_handle_mobilityd_allocate_ipv4_address(
+          imsi, apn, &inaddr, sgi_create_endpoint_resp, "ipv4v6", context_teid,
+          eps_bearer_id, spgw_state, new_bearer_ctxt_info_p, s5_response);
+#else
+      _pgw_handle_locally_allocate_ipv4_address(
+          spgw_state, new_bearer_ctxt_info_p, sgi_create_endpoint_resp);
+#endif
       break;
 
     default:
@@ -797,3 +790,45 @@ static void _delete_temporary_dedicated_bearer_context(
   }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
+
+#if (!SPGW_ENABLE_SESSIOND_AND_MOBILITYD)
+static void _pgw_handle_locally_allocate_ipv4_address(
+    spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp) {
+  int rc = RETURNok;
+  struct in_addr inaddr;
+  s5_create_session_response_t s5_response = {0};
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  rc = pgw_allocate_ue_ipv4_address(spgw_state, &inaddr);
+  if (rc == RETURNok) {
+    sgi_create_endpoint_resp.status       = SGI_STATUS_OK;
+    sgi_create_endpoint_resp.paa.pdn_type = sgi_create_endpoint_resp.pdn_type;
+    sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
+    s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
+    s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
+    s5_response.sgi_create_endpoint_resp      = sgi_create_endpoint_resp;
+    s5_response.failure_cause                 = S5_OK;
+    handle_s5_create_session_response(
+        spgw_state, new_bearer_ctxt_info_p, s5_response);
+    OAILOG_DEBUG_UE(
+        LOG_SPGW_APP,
+        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
+        "Sending S5 Create Session Response to SGW: with context "
+        "teid, " TEID_FMT "EPS Bearer Id = %u\n",
+        s5_response.context_teid, s5_response.eps_bearer_id);
+  } else {
+    OAILOG_ERROR_UE(
+        LOG_SPGW_APP,
+        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
+        "Failed to allocate UE IP address \n");
+    sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_NO_RESOURCES_AVAILABLE;
+    _spgw_handle_s5_response_with_error(
+        spgw_state, new_bearer_ctxt_info_p,
+        sgi_create_endpoint_resp.context_teid,
+        sgi_create_endpoint_resp.eps_bearer_id, &sgi_create_endpoint_resp,
+        &s5_response);
+  }
+  OAILOG_FUNC_OUT(LOG_SPGW_APP);
+}
+#endif

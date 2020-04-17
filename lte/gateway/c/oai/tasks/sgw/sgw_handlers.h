@@ -40,11 +40,11 @@ int sgw_handle_s11_create_session_request(
   const itti_s11_create_session_request_t* const session_req_p,
   imsi64_t imsi64);
 int sgw_handle_sgi_endpoint_updated(
-  const itti_sgi_update_end_point_response_t *const resp_p,
-  imsi64_t imsi64);
+    spgw_state_t* state,
+    const itti_sgi_update_end_point_response_t* const resp_p, imsi64_t imsi64);
 int sgw_handle_sgi_endpoint_deleted(
-    const itti_sgi_delete_end_point_request_t *const resp_pP,
-    imsi64_t imsi64);
+    spgw_state_t* state,
+    const itti_sgi_delete_end_point_request_t* const resp_pP, imsi64_t imsi64);
 int sgw_handle_gtpv1uCreateTunnelResp(
   spgw_state_t* state,
   const Gtpv1uCreateTunnelResp *const endpoint_created_p, imsi64_t imsi64);
@@ -57,8 +57,9 @@ int sgw_handle_modify_bearer_request(
   const itti_s11_modify_bearer_request_t *const modify_bearer_p,
   imsi64_t imsi64);
 int sgw_handle_delete_session_request(
-  const itti_s11_delete_session_request_t *const delete_session_p,
-  imsi64_t imsi64);
+    spgw_state_t* spgw_state,
+    const itti_s11_delete_session_request_t* const delete_session_p,
+    imsi64_t imsi64);
 int sgw_handle_release_access_bearers_request(
   const itti_s11_release_access_bearers_request_t
     *const release_access_bearers_req_pP,
@@ -78,8 +79,9 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   const itti_s11_nw_init_actv_bearer_rsp_t* const s11_actv_bearer_rsp,
   imsi64_t imsi64);
 int sgw_handle_nw_initiated_deactv_bearer_rsp(
-  const itti_s11_nw_init_deactv_bearer_rsp_t
-    *const s11_pcrf_ded_bearer_deactv_rsp,
+    spgw_state_t* spgw_state,
+    const itti_s11_nw_init_deactv_bearer_rsp_t* const
+        s11_pcrf_ded_bearer_deactv_rsp,
     imsi64_t imsi64);
 bool is_enb_ip_address_same(const fteid_t *fte_p, ip_address_t *ip_p);
 uint32_t sgw_get_new_s1u_teid(spgw_state_t* state);

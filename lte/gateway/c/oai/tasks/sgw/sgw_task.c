@@ -94,8 +94,8 @@ static void* sgw_intertask_interface(void* args_p)
 
       case S11_DELETE_SESSION_REQUEST: {
         sgw_handle_delete_session_request(
-          &received_message_p->ittiMsg.s11_delete_session_request,
-          imsi64);
+            spgw_state, &received_message_p->ittiMsg.s11_delete_session_request,
+            imsi64);
       } break;
 
       case S11_MODIFY_BEARER_REQUEST: {
@@ -125,7 +125,8 @@ static void* sgw_intertask_interface(void* args_p)
 
       case SGI_UPDATE_ENDPOINT_RESPONSE: {
         sgw_handle_sgi_endpoint_updated(
-          &received_message_p->ittiMsg.sgi_update_end_point_response, imsi64);
+            spgw_state,
+            &received_message_p->ittiMsg.sgi_update_end_point_response, imsi64);
       } break;
 
       case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
@@ -138,8 +139,8 @@ static void* sgw_intertask_interface(void* args_p)
       case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
         //Handle Dedicated bearer deactivation Rsp from MME
         sgw_handle_nw_initiated_deactv_bearer_rsp(
-          &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp,
-          imsi64);
+            spgw_state,
+            &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp, imsi64);
       } break;
 
       case GX_NW_INITIATED_ACTIVATE_BEARER_REQ: {
@@ -230,6 +231,7 @@ int sgw_init(spgw_config_t* spgw_config_pP, bool persist_state)
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
     return RETURNerror;
   }
+  pgw_ip_address_pool_init(spgw_state_p);
 
   if (
     RETURNerror ==

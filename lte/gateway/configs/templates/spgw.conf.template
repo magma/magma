@@ -57,11 +57,10 @@ P-GW =
     # Pool of UE assigned IP addresses
     # Do not make IP pools overlap
     # first IPv4 address X.Y.Z.1 is reserved for GTP network device on SPGW
-    # Normally no more than 16 pools allowed, but since recent GTP kernel module use, only one pool allowed (TODO).
     IP_ADDRESS_POOL :
     {
         IPV4_LIST = (
-                      "0.0.0.0/24"   # Unused
+                      "192.168.128.2 - 192.168.128.250"                                   # STRING, IP RANGE, YOUR NETWORK CONFIG HERE.
                     );
     };
 

@@ -66,11 +66,14 @@ void pgw_config_init(pgw_config_t *config_pP)
 {
   memset((char *) config_pP, 0, sizeof(*config_pP));
   pthread_rwlock_init(&config_pP->rw_lock, NULL);
+  STAILQ_INIT(&config_pP->ipv4_pool_list);
 }
 
 //------------------------------------------------------------------------------
 int pgw_config_process(pgw_config_t *config_pP)
 {
+  struct in_addr addr_cur;
+  conf_ipv4_list_elm_t* ip4_ref = NULL;
 #if (!EMBEDDED_SGW)
   async_system_command(
     TASK_ASYNC_SYSTEM, PGW_ABORT_ON_ERROR, "iptables -t mangle -F OUTPUT");
@@ -128,6 +131,31 @@ int pgw_config_process(pgw_config_t *config_pP)
     OAILOG_DEBUG(
       LOG_SPGW_APP, "Found SGI interface MTU=%d\n", config_pP->ipv4.mtu_SGI);
     close(fd);
+  }
+  for (int i = 0; i < config_pP->num_ue_pool; i++) {
+    uint32_t range_low_hbo  = ntohl(config_pP->ue_pool_range_low[i].s_addr);
+    uint32_t range_high_hbo = ntohl(config_pP->ue_pool_range_high[i].s_addr);
+    uint32_t tmp_hbo        = range_low_hbo ^ range_high_hbo;
+    uint8_t nbits           = 32;
+    while (tmp_hbo) {
+      tmp_hbo = tmp_hbo >> 1;
+      nbits -= 1;
+    }
+    uint32_t network_hbo = range_high_hbo & (UINT32_MAX << (32 - nbits));
+    uint32_t netmask_hbo = 0xFFFFFFFF << (32 - nbits);
+    config_pP->ue_pool_network[i].s_addr = htonl(network_hbo);
+    config_pP->ue_pool_netmask[i].s_addr = htonl(netmask_hbo);
+
+    // Any math should be applied onto host byte order i.e. ntohl()
+    addr_cur.s_addr = config_pP->ue_pool_range_low[i].s_addr;
+    while (htonl(addr_cur.s_addr) <=
+           htonl(config_pP->ue_pool_range_high[i].s_addr)) {
+      ip4_ref              = calloc(1, sizeof(conf_ipv4_list_elm_t));
+      ip4_ref->addr.s_addr = addr_cur.s_addr;
+      STAILQ_INSERT_TAIL(&config_pP->ipv4_pool_list, ip4_ref, ipv4_entries);
+
+      addr_cur.s_addr = htonl(ntohl(addr_cur.s_addr) + 1);
+    }
   }
   // GET S5_S8 informations
   {
@@ -237,16 +265,11 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
   char *default_dns = NULL;
   char *default_dns_sec = NULL;
   const char *astring = NULL;
-  bstring address = NULL;
-  bstring cidr = NULL;
-  bstring mask = NULL;
   int num = 0;
   int i = 0;
   unsigned char buf_in_addr[sizeof(struct in_addr)];
-  struct in_addr addr_start;
   bstring system_cmd = NULL;
   libconfig_int mtu = 0;
-  int prefix_mask = 0;
 
   config_init(&cfg);
 
@@ -348,41 +371,62 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
           astring = config_setting_get_string_elem(sub2setting, i);
 
           if (astring) {
-            cidr = bfromcstr(astring);
-            AssertFatal(
-              BSTR_OK == btrimws(cidr),
-              "Error in PGW_CONFIG_STRING_IPV4_ADDRESS_LIST %s",
-              astring);
-            struct bstrList *list =
-              bsplit(cidr, PGW_CONFIG_STRING_IPV4_PREFIX_DELIMITER);
-            AssertFatal(2 == list->qty, "Bad CIDR address %s", bdata(cidr));
+            bstring range = bfromcstr(astring);
+            if (BSTR_OK != btrimws(range)) {
+              OAI_FPRINTF_ERR(
+                "Error in PGW_CONFIG_STRING_IPV4_ADDRESS_LIST %s", astring);
+              bdestroy_wrapper(&range);
+              return RETURNerror;
+            }
+            struct bstrList* list =
+              bsplit(range, PGW_CONFIG_STRING_IPV4_ADDRESS_RANGE_DELIMITER);
+            if (2 == list->qty) {
+              bstring address_low = list->entry[0];
+              bstring address_high = list->entry[1];
 
-            address = list->entry[0];
-            mask = list->entry[1];
+              btrimws(address_low);
+              btrimws(address_high);
 
-            if (inet_pton(AF_INET, bdata(address), buf_in_addr) == 1) {
-              memcpy(&addr_start, buf_in_addr, sizeof(struct in_addr));
-              // valid address
-              prefix_mask = atoi((const char *) mask->data);
-
-              if (
-                (prefix_mask >= 2) && (prefix_mask < 32) &&
-                (config_pP->num_ue_pool < PGW_NUM_UE_POOL_MAX)) {
+              if (inet_pton(AF_INET, bdata(address_low), buf_in_addr) == 1) {
                 memcpy(
-                  &config_pP->ue_pool_addr[config_pP->num_ue_pool],
+                  &config_pP->ue_pool_range_low[config_pP->num_ue_pool],
                   buf_in_addr,
                   sizeof(struct in_addr));
-                config_pP->ue_pool_mask[config_pP->num_ue_pool] = prefix_mask;
-                config_pP->num_ue_pool += 1;
               } else {
-                OAILOG_ERROR(
-                  LOG_SPGW_APP,
-                  "CONFIG POOL ADDR IPV4: BAD MASQ: %d\n",
-                  prefix_mask);
+                OAI_FPRINTF_ERR(
+                  "CONFIG POOL ADDR IPV4: BAD ADRESS: %s\n",
+                  bdata(address_low));
+                return RETURNerror;
               }
+              if (inet_pton(AF_INET, bdata(address_high), buf_in_addr) == 1) {
+                memcpy(
+                  &config_pP->ue_pool_range_high[config_pP->num_ue_pool],
+                  buf_in_addr,
+                  sizeof(struct in_addr));
+              } else {
+                OAI_FPRINTF_ERR(
+                  "CONFIG POOL ADDR IPV4: BAD ADRESS: %s\n",
+                  bdata(address_high));
+                return RETURNerror;
+              }
+              if (
+                htonl(config_pP->ue_pool_range_low[config_pP->num_ue_pool]
+                        .s_addr) >=
+                htonl(config_pP->ue_pool_range_high[config_pP->num_ue_pool]
+                        .s_addr)) {
+                OAI_FPRINTF_ERR(
+                  "CONFIG POOL ADDR IPV4: BAD RANGE: %s (%d %d)\n",
+                  bdata(range),
+                  htonl(config_pP->ue_pool_range_low[config_pP->num_ue_pool]
+                          .s_addr),
+                  htonl(config_pP->ue_pool_range_high[config_pP->num_ue_pool]
+                          .s_addr));
+                return RETURNerror;
+              }
+              config_pP->num_ue_pool += 1;
             }
             bstrListDestroy(list);
-            bdestroy(cidr);
+            bdestroy_wrapper(&range);
           }
         }
       } else {
@@ -638,9 +682,8 @@ void pgw_config_display(pgw_config_t *config_p)
     OAILOG_INFO(LOG_SPGW_APP, "- GTPv1U .................: Disabled\n");
   }
   OAILOG_INFO(
-    LOG_SPGW_APP,
-    "- PCEF support ...........: %s (in development)\n",
-    config_p->pcef.enabled == 0 ? "false" : "true");
+      LOG_SPGW_APP, "- PCEF support ...........: %s (in development)\n",
+      config_p->pcef.enabled == 0 ? "false" : "true");
   if (config_p->pcef.enabled) {
     OAILOG_INFO(
       LOG_SPGW_APP,

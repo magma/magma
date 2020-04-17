@@ -65,18 +65,13 @@ int get_assigned_ipv4_block(
   return status;
 }
 
-int pgw_handle_allocate_ipv4_address(
-  const char* subscriber_id,
-  const char* apn,
-  struct in_addr* addr,
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-  const char* pdn_type,
-  teid_t context_teid,
-  ebi_t eps_bearer_id,
-  spgw_state_t* spgw_state,
-  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  s5_create_session_response_t s5_response)
-{
+int pgw_handle_mobilityd_allocate_ipv4_address(
+    const char* subscriber_id, const char* apn, struct in_addr* addr,
+    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id,
+    spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    s5_create_session_response_t s5_response) {
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
     subscriber_id,
     apn,
