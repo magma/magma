@@ -16,7 +16,7 @@ ovs_bridge_name: "gtp_br0"
 ovs_uplink_mac: "ff:ff:ff:ff:ff:ff"
 
 # Interface used for determing MTU
-pgw_uplink: "gtp_br0"
+pgw_uplink: "eth2"
 ovs_uplink_port_number: 65534
 
 ###############
