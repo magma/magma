@@ -13,7 +13,12 @@ const logger = logging.getLogger(module);
 
 export default async function(registrationCtx) {
   // TODO populate from fs
-  const transformerModules = ['./transformers/metadata-taskdef'];
+  const transformerModules = [
+    './transformers/bulk',
+    './transformers/metadata-taskdef',
+    './transformers/metadata-workflowdef',
+    './transformers/workflow',
+  ];
   logger.debug(
     `Registering transformer modules: [${transformerModules}] using context ${JSON.stringify(
       registrationCtx,
