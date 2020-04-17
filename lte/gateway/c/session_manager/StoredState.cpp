@@ -109,7 +109,7 @@ deserialize_stored_redirect_server(const std::string &serialized) {
 
   auto stored = StoredRedirectServer{};
   stored.redirect_address_type =
-      static_cast<RedirectServer_RedirectAddressType>(
+      static_cast<RedirectAddressType>(
           marshaled["redirect_address_type"].getInt());
   stored.redirect_server_address =
       marshaled["redirect_server_address"].getString();
