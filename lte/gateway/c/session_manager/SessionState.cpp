@@ -46,6 +46,16 @@ StoredSessionState SessionState::marshal() {
   dynamic_rules_.get_rules(dynamic_rules);
   marshaled.dynamic_rules = std::move(dynamic_rules);
 
+  for (auto& rule_id : scheduled_static_rules_) {
+    marshaled.scheduled_static_rules.insert(rule_id);
+  }
+  std::vector<PolicyRule> scheduled_dynamic_rules;
+  scheduled_dynamic_rules_.get_rules(scheduled_dynamic_rules);
+  marshaled.scheduled_dynamic_rules = std::move(scheduled_dynamic_rules);
+  for (auto& it : rule_lifetimes_) {
+    marshaled.rule_lifetimes[it.first] = it.second;
+  }
+
   return marshaled;
 }
 
@@ -79,6 +89,16 @@ SessionState::SessionState(
   }
   for (auto& rule : marshaled.dynamic_rules) {
     dynamic_rules_.insert_rule(rule);
+  }
+
+  for (const std::string& rule_id : marshaled.scheduled_static_rules) {
+    scheduled_static_rules_.insert(rule_id);
+  }
+  for (auto& rule : marshaled.scheduled_dynamic_rules) {
+    scheduled_dynamic_rules_.insert_rule(rule);
+  }
+  for (auto& it : marshaled.rule_lifetimes) {
+    rule_lifetimes_[it.first] = it.second;
   }
 }
 
@@ -499,18 +519,24 @@ bool SessionState::is_static_rule_installed(const std::string& rule_id) {
 }
 
 void SessionState::insert_dynamic_rule(
-    const PolicyRule& rule, SessionStateUpdateCriteria& update_criteria) {
+    const PolicyRule& rule, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
   if (is_dynamic_rule_installed(rule.id())) {
     return;
   }
-  update_criteria.dynamic_rules_to_install.push_back(rule);
+  rule_lifetimes_[rule.id()] = lifetime;
   dynamic_rules_.insert_rule(rule);
+  update_criteria.dynamic_rules_to_install.push_back(rule);
+  update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
 }
 
 void SessionState::activate_static_rule(
-    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
-  update_criteria.static_rules_to_install.insert(rule_id);
+    const std::string& rule_id, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
+  rule_lifetimes_[rule_id] = lifetime;
   active_static_rules_.push_back(rule_id);
+  update_criteria.static_rules_to_install.insert(rule_id);
+  update_criteria.new_rule_lifetimes[rule_id] = lifetime;
 }
 
 bool SessionState::remove_dynamic_rule(
@@ -551,6 +577,48 @@ uint32_t SessionState::total_monitored_rules_count() {
     }
   }
   return monitored_dynamic_rules + monitored_static_rules;
+}
+
+void SessionState::schedule_dynamic_rule(
+    const PolicyRule& rule, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
+  rule_lifetimes_[rule.id()] = lifetime;
+  update_criteria.new_scheduled_dynamic_rules.push_back(rule);
+  scheduled_dynamic_rules_.insert_rule(rule);
+}
+
+void SessionState::schedule_static_rule(
+    const std::string& rule_id, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
+  rule_lifetimes_[rule_id] = lifetime;
+  update_criteria.new_scheduled_static_rules.insert(rule_id);
+  scheduled_static_rules_.insert(rule_id);
+}
+
+void SessionState::install_scheduled_dynamic_rule(
+    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
+  PolicyRule dynamic_rule;
+  bool removed = scheduled_dynamic_rules_.remove_rule(rule_id, &dynamic_rule);
+  if (!removed) {
+    MLOG(MERROR) << "Failed to mark a scheduled dynamic rule as installed "
+                 << "with rule_id: " << rule_id;
+    return;
+  }
+  update_criteria.dynamic_rules_to_install.push_back(dynamic_rule);
+  dynamic_rules_.insert_rule(dynamic_rule);
+}
+
+void SessionState::install_scheduled_static_rule(
+    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
+  auto it = scheduled_static_rules_.find(rule_id);
+  if (it == scheduled_static_rules_.end()) {
+    MLOG(MERROR) << "Failed to mark a scheduled static rule as installed "
+                    "with rule_id: "
+                 << rule_id;
+  }
+  update_criteria.static_rules_to_install.insert(rule_id);
+  scheduled_static_rules_.erase(rule_id);
+  active_static_rules_.push_back(rule_id);
 }
 
 uint32_t SessionState::get_credit_key_count() {

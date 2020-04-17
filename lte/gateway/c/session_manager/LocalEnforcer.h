@@ -256,16 +256,17 @@ class LocalEnforcer {
   void notify_finish_report_for_sessions(
       SessionMap& session_map, SessionUpdate& session_update);
 
-  /**
-   * Process the create session response to get rules to activate/deactivate
-   * instantly and schedule rules with activation/deactivation time info
-   * to activate/deactivate later. No state change is made.
-   */
-  void process_create_session_response(
-      SessionMap& session_map, const CreateSessionResponse& response,
-      const std::unordered_set<uint32_t>& successful_credits,
-      const std::string& imsi, const std::string& ip_addr,
-      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate);
+  void filter_rule_installs(
+      std::vector<StaticRuleInstall> static_rule_installs,
+      std::vector<DynamicRuleInstall> dynamic_rule_installs,
+      const std::unordered_set<uint32_t>& successful_credits);
+
+  std::vector<StaticRuleInstall> to_vec(
+      const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
+          static_rule_installs);
+  std::vector<DynamicRuleInstall> to_vec(
+      const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
+          dynamic_rule_installs);
 
   /**
    * Processes the charging component of UpdateSessionResponse.
@@ -316,12 +317,9 @@ class LocalEnforcer {
    * TODO separate out logic that modifies state vs logic that does not.
    */
   void process_rules_to_install(
-      SessionMap& session_map, const std::string& imsi,
-      const std::unique_ptr<SessionState>& session,
-      const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
-          static_rules_to_install,
-      const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
-          dynamic_rules_to_install,
+      SessionState& session, const std::string& imsi,
+      std::vector<StaticRuleInstall> static_rule_installs,
+      std::vector<DynamicRuleInstall> dynamic_rule_installs,
       RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
       SessionStateUpdateCriteria& update_criteria);
 
