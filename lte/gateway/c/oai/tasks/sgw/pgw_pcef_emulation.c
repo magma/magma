@@ -314,22 +314,23 @@ int pgw_pcef_emulation_init(
         TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
     pcc_rule->sdf_template.sdf_filter[0]
         .packetfiltercontents.ipv4remoteaddr[0]
-        .addr = (uint8_t) ((pgw_config_p->ue_pool_addr[0].s_addr) & 0x000000FF);
+        .addr =
+        (uint8_t)((pgw_config_p->ue_pool_network[0].s_addr) & 0x000000FF);
     pcc_rule->sdf_template.sdf_filter[0]
         .packetfiltercontents.ipv4remoteaddr[1]
         .addr =
-        (uint8_t) ((pgw_config_p->ue_pool_addr[0].s_addr >> 8) & 0x000000FF);
+        (uint8_t)((pgw_config_p->ue_pool_network[0].s_addr >> 8) & 0x000000FF);
     pcc_rule->sdf_template.sdf_filter[0]
         .packetfiltercontents.ipv4remoteaddr[2]
         .addr =
-        (uint8_t) ((pgw_config_p->ue_pool_addr[0].s_addr >> 16) & 0x000000FF);
+        (uint8_t)((pgw_config_p->ue_pool_network[0].s_addr >> 16) & 0x000000FF);
     pcc_rule->sdf_template.sdf_filter[0]
         .packetfiltercontents.ipv4remoteaddr[3]
         .addr =
-        (uint8_t) ((pgw_config_p->ue_pool_addr[0].s_addr >> 24) & 0x000000FF);
+        (uint8_t)((pgw_config_p->ue_pool_network[0].s_addr >> 24) & 0x000000FF);
+
     struct in_addr addr_mask = {0};
-    addr_mask.s_addr =
-        htonl(0xFFFFFFFF << (32 - pgw_config_p->ue_pool_mask[0]));
+    addr_mask.s_addr         = pgw_config_p->ue_pool_netmask[0].s_addr;
     pcc_rule->sdf_template.sdf_filter[0]
         .packetfiltercontents.ipv4remoteaddr[0]
         .mask = (uint8_t) ((addr_mask.s_addr) & 0x000000FF);
@@ -415,11 +416,13 @@ void pgw_pcef_emulation_apply_sdf_filter(
       // marking_command = bformat("iptables -I PREROUTING -t mangle
       // --in-interface %s --dest %"PRIu8".%"PRIu8".%"PRIu8".%"PRIu8"/%"PRIu8" %s
       // -j MARK --set-mark %d",
-      marking_command =
-          bformat("iptables -I POSTROUTING -t mangle  --dest %" PRIu8 ".%" PRIu8
-                  ".%" PRIu8 ".%" PRIu8 "/%" PRIu8 " %s -j MARK --set-mark %d",
-                  NIPADDR(pgw_config_p->ue_pool_addr[0].s_addr),
-                  pgw_config_p->ue_pool_mask[0], bdata(filter), sdf_id);
+      marking_command = bformat(
+          "iptables -I POSTROUTING -t mangle -m iprange --dst-range "
+          "%" PRIu8 ".%" PRIu8 ".%" PRIu8 ".%" PRIu8 "-%" PRIu8 ".%" PRIu8
+          ".%" PRIu8 ".%" PRIu8 " %s -j MARK --set-mark %d",
+          NIPADDR(pgw_config_p->ue_pool_range_low[0].s_addr),
+          NIPADDR(pgw_config_p->ue_pool_range_high[0].s_addr), bdata(filter),
+          sdf_id);
     }
     bdestroy_wrapper(&filter);
     async_system_command(TASK_ASYNC_SYSTEM, false, bdata(marking_command));
@@ -437,11 +440,13 @@ void pgw_pcef_emulation_apply_sdf_filter(
           bformat("iptables -I OUTPUT -t mangle  %s -j MARK --set-mark %d",
                   bdata(filter), sdf_id);
     } else {
-      marking_command =
-          bformat("iptables -I OUTPUT -t mangle  --dest %" PRIu8 ".%" PRIu8
-                  ".%" PRIu8 ".%" PRIu8 "/%" PRIu8 " %s -j MARK --set-mark %d",
-                  NIPADDR(pgw_config_p->ue_pool_addr[0].s_addr),
-                  pgw_config_p->ue_pool_mask[0], bdata(filter), sdf_id);
+      marking_command = bformat(
+          "iptables -I POSTROUTING -t mangle -m iprange --dst-range "
+          "%" PRIu8 ".%" PRIu8 ".%" PRIu8 ".%" PRIu8 "-%" PRIu8 ".%" PRIu8
+          ".%" PRIu8 ".%" PRIu8 " %s -j MARK --set-mark %d",
+          NIPADDR(pgw_config_p->ue_pool_range_low[0].s_addr),
+          NIPADDR(pgw_config_p->ue_pool_range_high[0].s_addr), bdata(filter),
+          sdf_id);
     }
     bdestroy_wrapper(&filter);
     async_system_command(TASK_ASYNC_SYSTEM, false, bdata(marking_command));

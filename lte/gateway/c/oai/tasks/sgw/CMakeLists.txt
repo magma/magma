@@ -26,6 +26,7 @@ add_library(TASK_SGW
     sgw_context_manager.c
     pgw_pco.c
     mobilityd_ue_ip_address_alloc.c
+    pgw_ue_ip_address_alloc.c
     sgw_paging.c
     pgw_pcef_emulation.c
     pgw_procedures.c
