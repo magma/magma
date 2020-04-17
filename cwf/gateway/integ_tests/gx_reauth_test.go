@@ -25,10 +25,10 @@ import (
 
 func gxReAuthTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig) {
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	ue := ues[0]
 
@@ -96,7 +96,7 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 		RuleNames:     []string{"static-pass-all-raa2"},
 		RuleBaseNames: []string{"base-raa1"},
 	}
-	raa, err := sendPolicyReAuthRequest(
+	raa, err := sendPolicyReAuthRequest(MockPCRFRemote,
 		&fegprotos.PolicyReAuthTarget{Imsi: imsi, RulesToRemove: rulesRemoval},
 	)
 	assert.NoError(t, err)
@@ -169,7 +169,7 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 		RuleNames:     []string{"static-pass-all-raa1", "static-pass-all-raa2"},
 		RuleBaseNames: []string{"base-raa1"},
 	}
-	raa, err := sendPolicyReAuthRequest(
+	raa, err := sendPolicyReAuthRequest(MockPCRFRemote,
 		&fegprotos.PolicyReAuthTarget{Imsi: imsi, RulesToRemove: rulesRemoval},
 	)
 	assert.NoError(t, err)
@@ -258,7 +258,7 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 	ruleInstall := &fegprotos.RuleInstalls{
 		RuleDefinitions: ruleDefinition,
 	}
-	raa, err := sendPolicyReAuthRequest(
+	raa, err := sendPolicyReAuthRequest(MockPCRFRemote,
 		&fegprotos.PolicyReAuthTarget{
 			Imsi:                 imsi,
 			RulesToInstall:       ruleInstall,
@@ -363,7 +363,7 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 	ruleInstall := &fegprotos.RuleInstalls{
 		RuleDefinitions: ruleDefinition,
 	}
-	raa, err := sendPolicyReAuthRequest(
+	raa, err := sendPolicyReAuthRequest(MockPCRFRemote,
 		&fegprotos.PolicyReAuthTarget{
 			Imsi:                 imsi,
 			RulesToInstall:       ruleInstall,
@@ -446,7 +446,7 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 			Octets:          &fegprotos.Octets{TotalOctets: 250 * KiloBytes},
 		},
 	}
-	raa, err := sendPolicyReAuthRequest(
+	raa, err := sendPolicyReAuthRequest(MockPCRFRemote,
 		&fegprotos.PolicyReAuthTarget{
 			Imsi:                 imsi,
 			UsageMonitoringInfos: usageMonitoring,

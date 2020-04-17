@@ -26,7 +26,7 @@ import (
 func TestAuthenticateMultipleUEs(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticate...")
 	tr := NewTestRunner(t)
-	ues, err := tr.ConfigUEs(3)
+	ues, err := tr.ConfigUEs(3, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	defer func() {
 		// Clear hss, ocs, and pcrf
@@ -46,14 +46,14 @@ func TestAuthenticateMultipleUEs(t *testing.T) {
 func TestAuthenticateFail(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticateFail...")
 	tr := NewTestRunner(t)
-	assert.NoError(t, usePCRFMockDriver())
+	assert.NoError(t, usePCRFMockDriver(MockPCRFRemote))
 	defer func() {
 		// Clear hss, ocs, and pcrf
-		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, clearPCRFMockDriver(MockPCRFRemote))
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 
 	// Test Authentication Fail
@@ -64,11 +64,11 @@ func TestAuthenticateFail(t *testing.T) {
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	defaultAnswer := protos.NewGxCCAnswer(diam.AuthenticationRejected)
-	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, []*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
 
 	tr.AuthenticateAndAssertFail(imsiFail)
 
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{{ExpectationIndex: 0, ExpectationMet: true}}
@@ -87,14 +87,14 @@ func TestAuthenticateFail(t *testing.T) {
 func TestAuthenticateUplinkTraffic(t *testing.T) {
 	fmt.Println("\nRunning TestAuthenticateUplinkTraffic...")
 	tr := NewTestRunner(t)
-	assert.NoError(t, usePCRFMockDriver())
+	assert.NoError(t, usePCRFMockDriver(MockPCRFRemote))
 	defer func() {
 		// Clear hss, ocs, and pcrf
-		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, clearPCRFMockDriver(MockPCRFRemote))
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 
 	imsi := ues[0].GetImsi()
@@ -112,7 +112,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 	// return success with credit on unexpected requests
 	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfos(usageMonitorInfo)
-	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, []*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
@@ -120,7 +120,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{

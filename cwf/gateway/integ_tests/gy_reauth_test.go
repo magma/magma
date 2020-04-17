@@ -32,7 +32,7 @@ func TestGyReAuth(t *testing.T) {
 	fmt.Println("\nRunning TestGyReAuth...")
 
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
 	defer func() {
 		// Clear hss, ocs, and pcrf
@@ -40,10 +40,10 @@ func TestGyReAuth(t *testing.T) {
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 
-	err = setNewOCSConfig(
+	err = setNewOCSConfig(MockOCSRemote,
 		&fegprotos.OCSConfig{
 			MaxUsageOctets: &fegprotos.Octets{TotalOctets: ReAuthMaxUsageBytes},
 			MaxUsageTime:   ReAuthMaxUsageTimeSec,
@@ -53,7 +53,7 @@ func TestGyReAuth(t *testing.T) {
 	assert.NoError(t, err)
 
 	imsi := ues[0].GetImsi()
-	setCreditOnOCS(
+	setCreditOnOCS(MockOCSRemote,
 		&fegprotos.CreditInfo{
 			Imsi:        imsi,
 			ChargingKey: 1,
@@ -96,7 +96,7 @@ func TestGyReAuth(t *testing.T) {
 	assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 
 	// Top UP extra credits (10M total)
-	err = setCreditOnOCS(
+	err = setCreditOnOCS(MockOCSRemote,
 		&fegprotos.CreditInfo{
 			Imsi:        imsi,
 			ChargingKey: ratingGroup,
@@ -107,7 +107,7 @@ func TestGyReAuth(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Send ReAuth Request to update quota
-	raa, err := sendChargingReAuthRequest(imsi, ratingGroup)
+	raa, err := sendChargingReAuthRequest(MockOCSRemote, imsi, ratingGroup)
 	tr.WaitForReAuthToProcess()
 
 	// Check ReAuth success

@@ -36,16 +36,19 @@ type RuleManager struct {
 	omniPresentRules []*lteProtos.AssignedPolicies
 	// Wrapper around redis operations for policyDB objects
 	policyDBWrapper *policyDBWrapper
+	// Instance name of the PCRF this rule manager is attached to
+	pcrfInstance string
 }
 
 // NewRuleManager initialized the struct
-func NewRuleManager() (*RuleManager, error) {
+func NewRuleManager(pcrfInstance string) (*RuleManager, error) {
 	policyDBWrapper, err := initializePolicyDBWrapper()
 	if err != nil {
 		return nil, err
 	}
 	return &RuleManager{
 		policyDBWrapper: policyDBWrapper,
+		pcrfInstance: pcrfInstance,
 	}, nil
 }
 
@@ -67,7 +70,7 @@ func (manager *RuleManager) AddStaticRuleToDB(rule *lteProtos.PolicyRule) error 
 func (manager *RuleManager) AddDynamicPassAllToPCRF(imsi, ruleID, monitoringKey string) error {
 	fmt.Printf("************************* Adding Pass-All Dynamic Rule for UE with IMSI: %s, ruleID: %s\n", imsi, ruleID)
 	dynamicPassAll := getAccountRulesWithDynamicPassAll(imsi, ruleID, monitoringKey)
-	return manager.addAccountRules(dynamicPassAll)
+	return manager.addAccountRules(manager.pcrfInstance, dynamicPassAll)
 }
 
 // AddRulesToPCRF adds the dynamic rule into PCRF
@@ -75,7 +78,7 @@ func (manager *RuleManager) AddRulesToPCRF(imsi string, ruleNames, baseNames []s
 	fmt.Printf("************************* Adding PCRF Rule for UE with IMSI: %s"+
 		" with ruleNames=%v, baseNames=%v\n", imsi, ruleNames, baseNames)
 	rules := makeAccountRules(imsi, ruleNames, baseNames)
-	return manager.addAccountRules(rules)
+	return manager.addAccountRules(manager.pcrfInstance, rules)
 }
 
 func (manager *RuleManager) AddBaseNameMappingToDB(basename string, ruleNames []string) error {
@@ -139,7 +142,7 @@ func (manager *RuleManager) RemoveInstalledRules() error {
 func (manager *RuleManager) AddUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) error {
 	fmt.Printf("************************* Adding PCRF Usage Monitor for UE with IMSI: %s\n", imsi)
 	usageMonitor := makeUsageMonitor(imsi, monitoringKey, volume, bytesPerGrant)
-	err := addPCRFUsageMonitors(usageMonitor)
+	err := addPCRFUsageMonitors(manager.pcrfInstance, usageMonitor)
 	if err != nil {
 		return err
 	}
@@ -182,8 +185,8 @@ func (manager *RuleManager) removeOmniPresentRuleIntoRedis(keyID string) error {
 	return nil
 }
 
-func (manager *RuleManager) addAccountRules(rules *fegProtos.AccountRules) error {
-	err := addPCRFRules(rules)
+func (manager *RuleManager) addAccountRules(pcrfInstance string, rules *fegProtos.AccountRules) error {
+	err := addPCRFRules(pcrfInstance, rules)
 	if err != nil {
 		return err
 	}

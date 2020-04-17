@@ -45,17 +45,17 @@ const (
 func TestGxUsageReportEnforcement(t *testing.T) {
 	fmt.Println("\nRunning TestGxUsageReportEnforcement...")
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
-	assert.NoError(t, usePCRFMockDriver())
+	assert.NoError(t, usePCRFMockDriver(MockPCRFRemote))
 	defer func() {
 		// Clear hss, ocs, and pcrf
-		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, clearPCRFMockDriver(MockPCRFRemote))
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	imsi := ues[0].GetImsi()
 
@@ -85,7 +85,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
 	// On unexpected requests, just return the default update answer
-	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, expectations, updateAnswer1))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
@@ -107,7 +107,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	}
 
 	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -121,7 +121,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	terminateAnswer := protos.NewGxCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGxCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}
-	assert.NoError(t, setPCRFExpectations(expectations, nil))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, expectations, nil))
 
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
@@ -131,7 +131,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	time.Sleep(3 * time.Second)
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getAssertExpectationsResult()
+	resultByIndex, errByIndex, err = getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult = []*protos.ExpectationResult{
@@ -152,17 +152,17 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	fmt.Println("\nRunning TestGxMidSessionRuleRemovalWithCCA_U...")
 
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
-	assert.NoError(t, usePCRFMockDriver())
+	assert.NoError(t, usePCRFMockDriver(MockPCRFRemote))
 	defer func() {
 		// Clear hss, ocs, and pcrf
-		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, clearPCRFMockDriver(MockPCRFRemote))
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	imsi := ues[0].GetImsi()
 
@@ -192,7 +192,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	defaultUpdateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation}
 	// On unexpected requests, just return some quota
-	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, expectations, defaultUpdateAnswer))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
@@ -215,7 +215,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.NotNil(t, record1, fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-1", imsi))
 
 	// Assert that a CCR-I was sent up to the PCRF
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -232,7 +232,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	updateExpectation := protos.NewGxCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
 	expectations = []*protos.GxCreditControlExpectation{updateExpectation}
 	// On unexpected requests, just return some quota
-	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, expectations, defaultUpdateAnswer))
 
 	fmt.Println("Generating traffic again to trigger a CCR/A-U so that 'static-pass-all-1' gets removed")
 	// Generate traffic to trigger the CCR-U so that the rule removal/install happens
@@ -246,7 +246,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we sent back a CCA-Update with RuleRemovals
-	resultByIndex, errByIndex, err = getAssertExpectationsResult()
+	resultByIndex, errByIndex, err = getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult = []*protos.ExpectationResult{
@@ -279,17 +279,17 @@ func testGxRuleInstallTime(t *testing.T) {
 	fmt.Println("\nRunning TestGxRuleInstallTime...")
 
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
-	assert.NoError(t, usePCRFMockDriver())
+	assert.NoError(t, usePCRFMockDriver(MockPCRFRemote))
 	defer func() {
 		// Clear hss, ocs, and pcrf
-		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, clearPCRFMockDriver(MockPCRFRemote))
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	imsi := ues[0].GetImsi()
 
@@ -332,7 +332,7 @@ func testGxRuleInstallTime(t *testing.T) {
 	defaultUpdateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfos(usageMonitorInfo)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation}
 	// On unexpected requests, just return some quota
-	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, expectations, defaultUpdateAnswer))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
@@ -360,7 +360,7 @@ func testGxRuleInstallTime(t *testing.T) {
 	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"])
 	assert.Nil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"])
 
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -383,7 +383,7 @@ func testGxRuleInstallTime(t *testing.T) {
 func TestGxAbortSessionRequest(t *testing.T) {
 	fmt.Println("\nRunning TestGxAbortSessionRequest")
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
 	defer func() {
 		// Clear hss, ocs, and pcrf
@@ -391,7 +391,7 @@ func TestGxAbortSessionRequest(t *testing.T) {
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	imsi := ues[0].GetImsi()
 	ki := rand.Intn(1000000)
@@ -410,7 +410,7 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)][ruleKey])
 
-	asa, err := sendPolicyAbortSession(
+	asa, err := sendPolicyAbortSession(MockPCRFRemote,
 		&fegProtos.PolicyAbortSessionRequest{
 			Imsi: imsi,
 		},
@@ -442,17 +442,17 @@ func testGxRevalidationTime(t *testing.T) {
 	fmt.Println("\nRunning TestGxRevalidationTime...")
 
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
-	assert.NoError(t, usePCRFMockDriver())
+	assert.NoError(t, usePCRFMockDriver(MockPCRFRemote))
 	defer func() {
 		// Clear hss, ocs, and pcrf
-		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, clearPCRFMockDriver(MockPCRFRemote))
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	imsi := ues[0].GetImsi()
 
@@ -490,7 +490,7 @@ func testGxRevalidationTime(t *testing.T) {
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
 	// On unexpected requests, just return the default update answer
-	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, expectations, updateAnswer1))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 	tr.WaitForEnforcementStatsToSync()
@@ -509,7 +509,7 @@ func testGxRevalidationTime(t *testing.T) {
 	}
 
 	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -523,14 +523,14 @@ func testGxRevalidationTime(t *testing.T) {
 	terminateAnswer := protos.NewGxCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGxCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}
-	assert.NoError(t, setPCRFExpectations(expectations, nil))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, expectations, nil))
 
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getAssertExpectationsResult()
+	resultByIndex, errByIndex, err = getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult = []*protos.ExpectationResult{

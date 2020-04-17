@@ -37,19 +37,19 @@ import (
 func TestOmnipresentRules(t *testing.T) {
 	fmt.Println("\nRunning TestOmnipresentRules...")
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
-	assert.NoError(t, usePCRFMockDriver())
+	assert.NoError(t, usePCRFMockDriver(MockPCRFRemote))
 	defer func() {
 		// Delete omni rules
 		assert.NoError(t, ruleManager.RemoveOmniPresentRulesFromDB("omni"))
 		// Clear hss, ocs, and pcrf
-		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, clearPCRFMockDriver(MockPCRFRemote))
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	imsi := ues[0].GetImsi()
 
@@ -77,7 +77,7 @@ func TestOmnipresentRules(t *testing.T) {
 		SetUsageMonitorInfos(usageMonitorInfo)
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation}
-	assert.NoError(t, setPCRFExpectations(expectations, nil)) // we don't expect any update requests
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, expectations, nil)) // we don't expect any update requests
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
@@ -104,7 +104,7 @@ func TestOmnipresentRules(t *testing.T) {
 		},
 	}
 	fmt.Printf("Sending a ReAuthRequest with target %v\n", target)
-	raa, err := sendPolicyReAuthRequest(target)
+	raa, err := sendPolicyReAuthRequest(MockPCRFRemote, target)
 
 	assert.NoError(t, err)
 	// Wait for RAR to be processed

@@ -66,17 +66,17 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	fmt.Println("\nRunning TestGxUplinkTrafficQosEnforcement")
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
-	assert.NoError(t, usePCRFMockDriver())
+	assert.NoError(t, usePCRFMockDriver(MockPCRFRemote))
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
 		assert.NoError(t, tr.CleanUp())
-		clearPCRFMockDriver()
+		clearPCRFMockDriver(MockPCRFRemote)
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	imsi := ues[0].GetImsi()
 
@@ -100,7 +100,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// On unexpected requests, just return the default update answer
-	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation},
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, []*protos.GxCreditControlExpectation{initExpectation},
 		protos.NewGxCCAnswer(diam.Success)))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
@@ -131,17 +131,17 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	fmt.Println("\nRunning TestGxDownlinkTrafficQosEnforcement")
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
-	assert.NoError(t, usePCRFMockDriver())
+	assert.NoError(t, usePCRFMockDriver(MockPCRFRemote))
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
 		assert.NoError(t, tr.CleanUp())
-		clearPCRFMockDriver()
+		clearPCRFMockDriver(MockPCRFRemote)
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	imsi := ues[0].GetImsi()
 
@@ -165,7 +165,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// On unexpected requests, just return the default update answer
-	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation},
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, []*protos.GxCreditControlExpectation{initExpectation},
 		protos.NewGxCCAnswer(diam.Success)))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
@@ -203,17 +203,17 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	fmt.Println("\nRunning TestGxQosDowngradeWithCCAUpdate")
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
-	assert.NoError(t, usePCRFMockDriver())
+	assert.NoError(t, usePCRFMockDriver(MockPCRFRemote))
 	defer func() {
 		// Clear hss, ocs, and pcrf
-		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, clearPCRFMockDriver(MockPCRFRemote))
 		assert.NoError(t, ruleManager.RemoveInstalledRules())
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 
 	imsi := ues[0].GetImsi()
@@ -260,7 +260,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
 
 	// On unexpected requests, just return the default update answer
-	assert.NoError(t, setPCRFExpectations(expectations, protos.NewGxCCAnswer(diam.Success)))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, expectations, protos.NewGxCCAnswer(diam.Success)))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
@@ -288,7 +288,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	// Assert that reasonable CCR-I and at least one CCR-U were sent up to the PCRF
-	resultByIndex, errByIndex, err := getAssertExpectationsResult()
+	resultByIndex, errByIndex, err := getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult := []*protos.ExpectationResult{
@@ -302,14 +302,14 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	terminateAnswer := protos.NewGxCCAnswer(diam.Success)
 	terminateExpectation := protos.NewGxCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
 	expectations = []*protos.GxCreditControlExpectation{terminateExpectation}
-	assert.NoError(t, setPCRFExpectations(expectations, nil))
+	assert.NoError(t, setPCRFExpectations(MockPCRFRemote, expectations, nil))
 
 	_, err = tr.Disconnect(imsi)
 	assert.NoError(t, err)
 	time.Sleep(6 * time.Second)
 
 	// Assert that we saw a Terminate request
-	resultByIndex, errByIndex, err = getAssertExpectationsResult()
+	resultByIndex, errByIndex, err = getAssertExpectationsResult(MockPCRFRemote)
 	assert.NoError(t, err)
 	assert.Empty(t, errByIndex)
 	expectedResult = []*protos.ExpectationResult{
@@ -332,7 +332,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	fmt.Println("\nRunning TestGxQosDowngradeWithReAuth")
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
 	defer func() {
 		// Clear hss, ocs, and pcrf
@@ -340,7 +340,7 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
 	imsi := ues[0].GetImsi()
 
@@ -374,7 +374,7 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 
 	// Install a static rule with lower qos
 	rarUsageMonitor := getUsageInformation(monitorKey, 50*MegaBytes)
-	raa, err := sendPolicyReAuthRequest(
+	raa, err := sendPolicyReAuthRequest(MockPCRFRemote,
 		&fegProtos.PolicyReAuthTarget{
 			Imsi:                 imsi,
 			RulesToInstall:       &fegProtos.RuleInstalls{RuleNames: []string{rule2Key}},

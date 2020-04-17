@@ -55,6 +55,8 @@ const (
 type TestRunner struct {
 	t     *testing.T
 	imsis map[string]bool
+	activePCRFs []string
+	activeOCSs []string
 }
 
 // imsi -> ruleID -> record
@@ -64,9 +66,7 @@ type RecordByIMSI map[string]map[string]*lteprotos.RuleRecord
 // and setting the next IMSI.
 func NewTestRunner(t *testing.T) *TestRunner {
 	fmt.Println("************************* TestRunner setup")
-	testRunner := &TestRunner{t: t}
 
-	testRunner.imsis = make(map[string]bool)
 	fmt.Printf("Adding Mock HSS service at %s:%d\n", CwagIP, HSSPort)
 	registry.AddService(MockHSSRemote, CwagIP, HSSPort)
 	fmt.Printf("Adding Mock PCRF service at %s:%d\n", CwagIP, PCRFPort)
@@ -78,6 +78,11 @@ func NewTestRunner(t *testing.T) *TestRunner {
 	fmt.Printf("Adding Redis service at %s:%d\n", CwagIP, RedisPort)
 	registry.AddService(RedisRemote, CwagIP, RedisPort)
 
+	testRunner := &TestRunner{t: t,
+		activePCRFs: []string{MockPCRFRemote},
+		activeOCSs:  []string{MockOCSRemote},
+	}
+	testRunner.imsis = make(map[string]bool)
 	return testRunner
 }
 
@@ -89,12 +94,17 @@ func NewTestRunnerWithTwoPCRFandOCS(t *testing.T) *TestRunner {
 	registry.AddService(MockPCRFRemote2, CwagIP, PCRFPort2)
 	fmt.Printf("Adding second OCS service at %s:%d\n", CwagIP, OCSPort2)
 	registry.AddService(MockOCSRemote2, CwagIP, OCSPort2)
+
+	// add the extra two servers for clean up
+	tr.activePCRFs = append(tr.activePCRFs, MockPCRFRemote2)
+	tr.activeOCSs  = append(tr.activeOCSs, MockOCSRemote2)
+
 	return tr
 }
 
 // ConfigUEs creates and adds the specified number of UEs and Subscribers
 // to the UE Simulator and the HSS.
-func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
+func (tr *TestRunner) ConfigUEs(numUEs int, pcrfInstance, ocsInstance string) ([]*cwfprotos.UEConfig, error) {
 	fmt.Printf("************************* Configuring %d UE(s)\n", numUEs)
 	ues := make([]*cwfprotos.UEConfig, 0)
 	for i := 0; i < numUEs; i++ {
@@ -123,11 +133,11 @@ func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to HSS")
 		}
-		err = addSubscriberToPCRF(sub.GetSid())
+		err = addSubscriberToPCRF(pcrfInstance, sub.GetSid())
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to PCRF")
 		}
-		err = addSubscriberToOCS(sub.GetSid())
+		err = addSubscriberToOCS(ocsInstance, sub.GetSid())
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to OCS")
 		}
@@ -215,15 +225,18 @@ func (tr *TestRunner) CleanUp() error {
 			return err
 		}
 	}
-	err := clearSubscribersFromPCRF()
-	if err != nil {
-		return err
+	for _, instance := range tr.activePCRFs {
+		err := clearSubscribersFromPCRF(instance)
+		if err != nil{
+			return err
+		}
 	}
-	err = clearSubscribersFromOCS()
-	if err != nil {
-		return err
+	for _, instance := range tr.activeOCSs {
+		err := clearSubscribersFromOCS(instance)
+		if err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
 

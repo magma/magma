@@ -30,12 +30,12 @@ const (
 
 func ocsCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig) {
 	tr := NewTestRunner(t)
-	ruleManager, err := NewRuleManager()
+	ruleManager, err := NewRuleManager(MockPCRFRemote)
 	assert.NoError(t, err)
 
-	ues, err := tr.ConfigUEs(1)
+	ues, err := tr.ConfigUEs(1, MockPCRFRemote, MockOCSRemote)
 	assert.NoError(t, err)
-	setNewOCSConfig(
+	setNewOCSConfig(MockOCSRemote,
 		&fegprotos.OCSConfig{
 			MaxUsageOctets: &fegprotos.Octets{TotalOctets: MaxUsageBytes},
 			MaxUsageTime:   MaxUsageTime,
@@ -44,7 +44,7 @@ func ocsCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwf
 	)
 
 	ue := ues[0]
-	setCreditOnOCS(
+	setCreditOnOCS(MockOCSRemote,
 		&fegprotos.CreditInfo{
 			Imsi:        ue.Imsi,
 			ChargingKey: 1,
@@ -81,7 +81,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	setCreditOnOCS(
+	setCreditOnOCS(MockOCSRemote,
 		&fegprotos.CreditInfo{
 			Imsi:        ue.Imsi,
 			ChargingKey: 1,
@@ -126,7 +126,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 		assert.NoError(t, tr.CleanUp())
 	}()
 
-	setCreditOnOCS(
+	setCreditOnOCS(MockOCSRemote,
 		&fegprotos.CreditInfo{
 			Imsi:        ue.Imsi,
 			ChargingKey: 1,
