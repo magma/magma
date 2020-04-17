@@ -26,18 +26,20 @@ declare module '@testing-library/react-hooks' {
     callback: () => void | ReactDOMTestUtilsThenable
   ) => ReactDOMTestUtilsThenable;
 
+  declare export type RenderResult = { 
+      result: { current: TResult  },
+      unmount:() => void,
+      waitForNextUpdate: (options?:{}) => Promise<void>,
+      rerender: (TProps) => void
+    }
+
   declare export function renderHook<TProps, TResult>(
     hookFn:(props:TProps) => TResult,
     options?: $Shape<{
       initialProps:TProps,
       wrapper:React.ComponentType<{children:React.Node}>,
     }>
-  ) : { 
-      result: { current: TResult  },
-      unmount:() => void,
-      waitForNextUpdate: (options?:{}) => Promise<void>,
-      rerender: (TProps) => void
-    }
+  ) : RenderResult
 
   declare export var act: ReactDOMTestUtilsAct
   
