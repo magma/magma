@@ -5,6 +5,7 @@ All rights reserved.
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 """
+# pylint: disable=broad-except
 import os
 import asyncio
 from collections import OrderedDict
@@ -78,6 +79,7 @@ def metrics_collection_loop(service_config, loop=None):
     ping_params = _get_ping_params(config)
 
     while True:
+        logging.debug("Running metrics collections loop")
         if len(ping_params):
             yield from _collect_ping_metrics(ping_params, loop=loop)
         yield from _collect_load_metrics()
@@ -90,7 +92,11 @@ def _collect_service_restart_stats():
     """
     Collect the success and failure restarts for services
     """
-    service_dict = ServiceStateWrapper().get_all_services_status()
+    try:
+        service_dict = ServiceStateWrapper().get_all_services_status()
+    except Exception as e:
+        logging.error("Could not fetch service status: %s", e)
+        return
     for service_name, status in service_dict.items():
         SERVICE_RESTART_STATUS.labels(service_name=service_name,
                                       status="Failure").set(
