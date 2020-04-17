@@ -53,7 +53,7 @@ int libgtpnl_init(
   int mtu,
   int *fd0,
   int *fd1u,
-  bool persist_state)
+  __attribute__((unused)) bool persist_state)
 {
   // we don't need GTP v0, but interface with kernel requires 2 file descriptors
   *fd0 = socket(AF_INET, SOCK_DGRAM, 0);
@@ -175,7 +175,8 @@ int libgtpnl_add_tunnel(
   uint32_t i_tei,
   uint32_t o_tei,
   Imsi_t imsi,
-  struct ipv4flow_dl *flow_dl)
+  __attribute__((unused)) struct ipv4flow_dl* flow_dl,
+  __attribute__((unused)) uint32_t flow_precedence_dl)
 {
   struct gtp_tunnel *t;
   int ret;
@@ -202,7 +203,7 @@ int libgtpnl_del_tunnel(
   __attribute__((unused)) struct in_addr ue,
   uint32_t i_tei,
   uint32_t o_tei,
-  struct ipv4flow_dl *flow_dl)
+  __attribute__((unused)) struct ipv4flow_dl* flow_dl)
 {
   struct gtp_tunnel *t;
   int ret;
@@ -238,6 +239,21 @@ const char *libgtpnl_get_dev_name()
   return GTP_DEVNAME;
 }
 
+int libgtpnl_discard_data_on_tunnel(
+  __attribute__((unused)) struct in_addr ue,
+  __attribute__((unused)) uint32_t i_tei,
+  __attribute__((unused)) struct ipv4flow_dl *flow_dl) {
+ return RETURNok;
+}
+
+int libgtpnl_forward_data_on_tunnel(
+  __attribute__((unused)) struct in_addr ue,
+  __attribute__((unused)) uint32_t i_tei,
+  __attribute__((unused)) struct ipv4flow_dl *flow_dl,
+  __attribute__((unused)) uint32_t flow_precedence_dl) {
+ return RETURNok;
+}
+
 static const struct gtp_tunnel_ops libgtpnl_ops = {
   .init = libgtpnl_init,
   .uninit = libgtpnl_uninit,
@@ -246,6 +262,8 @@ static const struct gtp_tunnel_ops libgtpnl_ops = {
   .del_tunnel = libgtpnl_del_tunnel,
   .send_end_marker = libgtpnl_send_end_marker,
   .get_dev_name = libgtpnl_get_dev_name,
+  .discard_data_on_tunnel = libgtpnl_discard_data_on_tunnel,
+  .forward_data_on_tunnel = libgtpnl_forward_data_on_tunnel
 };
 
 const struct gtp_tunnel_ops *gtp_tunnel_ops_init_libgtpnl(void)

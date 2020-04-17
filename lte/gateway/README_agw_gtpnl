@@ -1,0 +1,22 @@
+This readme describes the steps needed to test the AGW without OpenFlow
+
+On gateway VM,
+- Install the kernel GTP module, libgtpnl library and nating rule:
+  `sudo bash $MAGMA_ROOT/lte/gateway/deploy/roles/magma/files/setup_gw2_gtp.sh`
+
+- Once the above script succeeds, `modinfo gtp` should show
+  `/lib/modules/4.9.0-9-amd64/kernel/drivers/net/gtp.ko` as the module filename
+
+- Build the AGW without OpenFlow support,
+  cd $MAGMA_ROOT/lte/gateway
+  make FEATURES=agw_gtpnl run
+
+- (Optional) For debugging, enable debug logging for gtp kernel module
+	sudo su;
+  echo 'module gtp +p' > /sys/kernel/debug/dynamic_debug/control
+  tail -f /var/log/kern.log
+
+On test VM,
+- Remove the ovs test case from the list of tests run as part of integ_test
+  `sudo bash
+$MAGMA_ROOT/lte/gateway/deploy/roles/magma_test/files/setup_gw2_s1tests.sh`
