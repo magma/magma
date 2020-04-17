@@ -16,6 +16,7 @@
 
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.grpc.pb.h>
 
 #include "CreditKey.h"
 
@@ -45,7 +46,7 @@ struct SessionConfig {
 // Session Credit
 
 struct StoredRedirectServer {
-  RedirectAddressType redirect_address_type;
+  RedirectServer_RedirectAddressType redirect_address_type;
   std::string redirect_server_address;
 };
 

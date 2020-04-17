@@ -403,7 +403,7 @@ func standardUsageTest(
 	for _, rule := range createResponse.DynamicRules {
 		if rule.PolicyRule.Id == "dyn_rule_20" {
 			assert.Equal(t, protos.RedirectInformation_ENABLED, rule.PolicyRule.Redirect.Support)
-			assert.Equal(t, protos.RedirectAddressType_URL, rule.PolicyRule.Redirect.AddressType)
+			assert.Equal(t, protos.RedirectInformation_URL, rule.PolicyRule.Redirect.AddressType)
 			assert.Equal(t, "http://www.example.com/", rule.PolicyRule.Redirect.ServerAddress)
 			assert.Equal(t, maxReqBWUL, rule.PolicyRule.Qos.MaxReqBwUl)
 			assert.Equal(t, maxReqBWDL, rule.PolicyRule.Qos.MaxReqBwDl)

@@ -402,7 +402,7 @@ func startServer(
 
 		redirect := &protos.RedirectInformation{
 			Support:       protos.RedirectInformation_ENABLED,
-			AddressType:   protos.RedirectAddressType_URL,
+			AddressType:   protos.RedirectInformation_URL,
 			ServerAddress: "http://www.example.com/",
 		}
 

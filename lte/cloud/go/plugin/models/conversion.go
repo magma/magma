@@ -636,7 +636,7 @@ func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
 func (m *RedirectInformation) ToProto() *protos.RedirectInformation {
 	return &protos.RedirectInformation{
 		Support:       protos.RedirectInformation_Support(protos.RedirectInformation_Support_value[swag.StringValue(m.Support)]),
-		AddressType:   protos.RedirectAddressType(protos.RedirectAddressType_value[swag.StringValue(m.AddressType)]),
+		AddressType:   protos.RedirectInformation_AddressType(protos.RedirectInformation_AddressType_value[swag.StringValue(m.AddressType)]),
 		ServerAddress: swag.StringValue(m.ServerAddress),
 	}
 }

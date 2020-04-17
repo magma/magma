@@ -11,7 +11,6 @@
 
 #include <glog/logging.h>
 #include <gtest/gtest.h>
-#include <lte/protos/policydb.pb.h>
 
 #include "StoredState.h"
 #include "magma_logging.h"
@@ -50,7 +49,8 @@ protected:
 
   StoredRedirectServer get_stored_redirect_server() {
     StoredRedirectServer stored;
-    stored.redirect_address_type = IPv6;
+    stored.redirect_address_type = RedirectServer_RedirectAddressType::
+        RedirectServer_RedirectAddressType_IPV6;
     stored.redirect_server_address = "redirect_server_address";
     return stored;
   }
@@ -59,7 +59,9 @@ protected:
     FinalActionInfo stored;
     stored.final_action =
         ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT;
-    stored.redirect_server.set_redirect_address_type(IPv6);
+    stored.redirect_server.set_redirect_address_type(
+        RedirectServer_RedirectAddressType::
+            RedirectServer_RedirectAddressType_IPV6);
     stored.redirect_server.set_redirect_server_address(
         "redirect_server_address");
     return stored;
@@ -74,7 +76,9 @@ protected:
 
     stored.final_action_info.final_action =
         ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT;
-    stored.final_action_info.redirect_server.set_redirect_address_type(IPv6);
+    stored.final_action_info.redirect_server.set_redirect_address_type(
+        RedirectServer_RedirectAddressType::
+            RedirectServer_RedirectAddressType_IPV6);
     stored.final_action_info.redirect_server.set_redirect_server_address(
         "redirect_server_address");
 
@@ -177,7 +181,9 @@ TEST_F(StoredStateTest, test_stored_redirect_server) {
   auto serialized = serialize_stored_redirect_server(stored);
   auto deserialized = deserialize_stored_redirect_server(serialized);
 
-  EXPECT_EQ(deserialized.redirect_address_type, IPv6);
+  EXPECT_EQ(deserialized.redirect_address_type,
+            RedirectServer_RedirectAddressType::
+                RedirectServer_RedirectAddressType_IPV6);
   EXPECT_EQ(deserialized.redirect_server_address, "redirect_server_address");
 }
 
@@ -189,7 +195,9 @@ TEST_F(StoredStateTest, test_stored_final_action_info) {
 
   EXPECT_EQ(deserialized.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
-  EXPECT_EQ(deserialized.redirect_server.redirect_address_type(), IPv6);
+  EXPECT_EQ(deserialized.redirect_server.redirect_address_type(),
+            RedirectServer_RedirectAddressType::
+                RedirectServer_RedirectAddressType_IPV6);
   EXPECT_EQ(deserialized.redirect_server.redirect_server_address(),
             "redirect_server_address");
 }
@@ -208,7 +216,8 @@ TEST_F(StoredStateTest, test_stored_session_credit) {
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(
       deserialized.final_action_info.redirect_server.redirect_address_type(),
-      IPv6);
+      RedirectServer_RedirectAddressType::
+          RedirectServer_RedirectAddressType_IPV6);
   EXPECT_EQ(
       deserialized.final_action_info.redirect_server.redirect_server_address(),
       "redirect_server_address");
@@ -235,7 +244,9 @@ TEST_F(StoredStateTest, test_stored_monitor) {
   EXPECT_EQ(deserialized.credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(deserialized.credit.final_action_info.redirect_server
-                .redirect_address_type(), IPv6);
+                .redirect_address_type(),
+            RedirectServer_RedirectAddressType::
+                RedirectServer_RedirectAddressType_IPV6);
   EXPECT_EQ(deserialized.credit.final_action_info.redirect_server
                 .redirect_server_address(),
             "redirect_server_address");
@@ -262,7 +273,8 @@ TEST_F(StoredStateTest, test_stored_charging_credit_pool) {
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(
       stored_credit.final_action_info.redirect_server.redirect_address_type(),
-      IPv6);
+      RedirectServer_RedirectAddressType::
+          RedirectServer_RedirectAddressType_IPV6);
   EXPECT_EQ(
       stored_credit.final_action_info.redirect_server.redirect_server_address(),
       "redirect_server_address");
@@ -290,7 +302,9 @@ TEST_F(StoredStateTest, test_stored_monitor_pool) {
   EXPECT_EQ(stored_monitor.credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(stored_monitor.credit.final_action_info.redirect_server
-                .redirect_address_type(), IPv6);
+                .redirect_address_type(),
+            RedirectServer_RedirectAddressType::
+                RedirectServer_RedirectAddressType_IPV6);
   EXPECT_EQ(stored_monitor.credit.final_action_info.redirect_server
                 .redirect_server_address(),
             "redirect_server_address");
@@ -335,7 +349,8 @@ TEST_F(StoredStateTest, test_stored_session) {
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(
       stored_credit.final_action_info.redirect_server.redirect_address_type(),
-      IPv6);
+      RedirectServer_RedirectAddressType::
+          RedirectServer_RedirectAddressType_IPV6);
   EXPECT_EQ(
       stored_credit.final_action_info.redirect_server.redirect_server_address(),
       "redirect_server_address");
@@ -356,7 +371,9 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_monitor.credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(stored_monitor.credit.final_action_info.redirect_server
-                .redirect_address_type(), IPv6);
+                .redirect_address_type(),
+            RedirectServer_RedirectAddressType::
+                RedirectServer_RedirectAddressType_IPV6);
   EXPECT_EQ(stored_monitor.credit.final_action_info.redirect_server
                 .redirect_server_address(),
             "redirect_server_address");

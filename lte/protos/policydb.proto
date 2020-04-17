@@ -135,20 +135,19 @@ message FlowQos {
   QosArp arp = 6;
 }
 
-enum RedirectAddressType {
-  IPv4 = 0;
-  IPv6 = 1;
-  URL = 2;
-  SIP_URI =3;
-}
-
 message RedirectInformation {
   enum Support {
     DISABLED = 0;
     ENABLED = 1;
   }
   Support support = 1;
-  RedirectAddressType address_type = 2;
+  enum AddressType {
+    IPv4 = 0;
+    IPv6 = 1;
+    URL = 2;
+    SIP_URI =3;
+  }
+  AddressType address_type = 2;
   string server_address = 3;
 }
 
