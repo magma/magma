@@ -27,7 +27,7 @@
 
 struct in_addr;
 
-int pgw_mobilityd_release_ue_ipv4_address(
+int release_ue_ipv4_address(
     const char* imsi, const char* apn, struct in_addr* addr) {
   increment_counter(
     "ue_pdn_connection",

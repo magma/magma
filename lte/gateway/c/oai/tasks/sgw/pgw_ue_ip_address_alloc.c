@@ -26,11 +26,15 @@
  * \email:
  */
 
+#include <stdlib.h>
 #include "spgw_state.h"
 #include "log.h"
 #include "sgw.h"
+#include "dynamic_memory_check.h"
 #include "pgw_ue_ip_address_alloc.h"
+#include "common_defs.h"
 
+#if (!SGW_ENABLE_SESSIOND_AND_MOBILITYD)
 // Allocate UE address pool
 void pgw_ip_address_pool_init(spgw_state_t* spgw_state) {
   struct conf_ipv4_list_elm_s* conf_ipv4_p = NULL;
@@ -43,9 +47,6 @@ void pgw_ip_address_pool_init(spgw_state_t* spgw_state) {
     ipv4_p              = calloc(1, sizeof(struct ipv4_list_elm_s));
     ipv4_p->addr.s_addr = conf_ipv4_p->addr.s_addr;
     STAILQ_INSERT_TAIL(&spgw_state->ipv4_list_free, ipv4_p, ipv4_entries);
-    OAILOG_INFO(
-        LOG_SPGW_APP, "Loaded IPv4 UE address in pool: %s\n",
-        inet_ntoa(conf_ipv4_p->addr));
   }
 
   while ((conf_ipv4_p = STAILQ_FIRST(&spgw_config.pgw_config.ipv4_pool_list))) {
@@ -56,8 +57,7 @@ void pgw_ip_address_pool_init(spgw_state_t* spgw_state) {
 }
 
 // Allocate UE IP address from configured pool of UE IP address
-int pgw_allocate_ue_ipv4_address(
-    spgw_state_t* spgw_state, struct in_addr* addr_p) {
+int pgw_get_ue_ipv4_address(spgw_state_t* spgw_state, struct in_addr* addr_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   struct ipv4_list_elm_s* ipv4_p = NULL;
 
@@ -75,7 +75,7 @@ int pgw_allocate_ue_ipv4_address(
 }
 
 // Release the allocated UE IP address
-int pgw_locally_release_ue_ipv4_address(
+int pgw_free_ue_ipv4_address(
     spgw_state_t* spgw_state, const struct in_addr* const addr_pP) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   struct ipv4_list_elm_s* ipv4_p = NULL;
@@ -85,10 +85,11 @@ int pgw_locally_release_ue_ipv4_address(
       STAILQ_REMOVE(
           &spgw_state->ipv4_list_allocated, ipv4_p, ipv4_list_elm_s,
           ipv4_entries);
-      STAILQ_INSERT_HEAD(&spgw_state->ipv4_list_free, ipv4_p, ipv4_entries);
+      STAILQ_INSERT_TAIL(&spgw_state->ipv4_list_free, ipv4_p, ipv4_entries);
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
     }
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
 }
 
+#endif
