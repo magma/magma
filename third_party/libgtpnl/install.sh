@@ -8,7 +8,7 @@ sudo apt-get install -y  autoconf automake build-essential libmnl-dev
 rm -rf $HOME_DIR/libgtpnl
 pushd $HOME_DIR
 
-git clone git://git.osmocom.org/libgtpnl
+git clone https://git.osmocom.org/libgtpnl
 cd libgtpnl
 autoreconf -fi
 ./configure

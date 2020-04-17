@@ -72,7 +72,6 @@ void pgw_config_init(pgw_config_t *config_pP)
 //------------------------------------------------------------------------------
 int pgw_config_process(pgw_config_t *config_pP)
 {
-  struct in_addr addr_cur;
   conf_ipv4_list_elm_t* ip4_ref = NULL;
 #if (!EMBEDDED_SGW)
   async_system_command(
@@ -132,6 +131,8 @@ int pgw_config_process(pgw_config_t *config_pP)
       LOG_SPGW_APP, "Found SGI interface MTU=%d\n", config_pP->ipv4.mtu_SGI);
     close(fd);
   }
+#if (!SGW_ENABLE_SESSIOND_AND_MOBILITYD)
+  struct in_addr each_ip_addr;
   for (int i = 0; i < config_pP->num_ue_pool; i++) {
     uint32_t range_low_hbo  = ntohl(config_pP->ue_pool_range_low[i].s_addr);
     uint32_t range_high_hbo = ntohl(config_pP->ue_pool_range_high[i].s_addr);
@@ -147,16 +148,17 @@ int pgw_config_process(pgw_config_t *config_pP)
     config_pP->ue_pool_netmask[i].s_addr = htonl(netmask_hbo);
 
     // Any math should be applied onto host byte order i.e. ntohl()
-    addr_cur.s_addr = config_pP->ue_pool_range_low[i].s_addr;
-    while (htonl(addr_cur.s_addr) <=
+    each_ip_addr.s_addr = config_pP->ue_pool_range_low[i].s_addr;
+    while (htonl(each_ip_addr.s_addr) <=
            htonl(config_pP->ue_pool_range_high[i].s_addr)) {
       ip4_ref              = calloc(1, sizeof(conf_ipv4_list_elm_t));
-      ip4_ref->addr.s_addr = addr_cur.s_addr;
+      ip4_ref->addr.s_addr = each_ip_addr.s_addr;
       STAILQ_INSERT_TAIL(&config_pP->ipv4_pool_list, ip4_ref, ipv4_entries);
 
-      addr_cur.s_addr = htonl(ntohl(addr_cur.s_addr) + 1);
+      each_ip_addr.s_addr = htonl(ntohl(each_ip_addr.s_addr) + 1);
     }
   }
+#endif
   // GET S5_S8 informations
   {
     struct ifreq ifr;
@@ -380,8 +382,8 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
             }
             struct bstrList* list =
               bsplit(range, PGW_CONFIG_STRING_IPV4_ADDRESS_RANGE_DELIMITER);
-            if (2 == list->qty) {
-              bstring address_low = list->entry[0];
+            if (list->qty == 2) {
+              bstring address_low  = list->entry[0];
               bstring address_high = list->entry[1];
 
               btrimws(address_low);
@@ -389,38 +391,35 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
 
               if (inet_pton(AF_INET, bdata(address_low), buf_in_addr) == 1) {
                 memcpy(
-                  &config_pP->ue_pool_range_low[config_pP->num_ue_pool],
-                  buf_in_addr,
-                  sizeof(struct in_addr));
+                    &config_pP->ue_pool_range_low[config_pP->num_ue_pool],
+                    buf_in_addr, sizeof(struct in_addr));
               } else {
                 OAI_FPRINTF_ERR(
-                  "CONFIG POOL ADDR IPV4: BAD ADRESS: %s\n",
-                  bdata(address_low));
+                    "CONFIG POOL ADDR IPV4: BAD ADRESS: %s\n",
+                    bdata(address_low));
                 return RETURNerror;
               }
               if (inet_pton(AF_INET, bdata(address_high), buf_in_addr) == 1) {
                 memcpy(
-                  &config_pP->ue_pool_range_high[config_pP->num_ue_pool],
-                  buf_in_addr,
-                  sizeof(struct in_addr));
+                    &config_pP->ue_pool_range_high[config_pP->num_ue_pool],
+                    buf_in_addr, sizeof(struct in_addr));
               } else {
                 OAI_FPRINTF_ERR(
-                  "CONFIG POOL ADDR IPV4: BAD ADRESS: %s\n",
-                  bdata(address_high));
+                    "CONFIG POOL ADDR IPV4: BAD ADRESS: %s\n",
+                    bdata(address_high));
                 return RETURNerror;
               }
-              if (
-                htonl(config_pP->ue_pool_range_low[config_pP->num_ue_pool]
-                        .s_addr) >=
-                htonl(config_pP->ue_pool_range_high[config_pP->num_ue_pool]
-                        .s_addr)) {
-                OAI_FPRINTF_ERR(
-                  "CONFIG POOL ADDR IPV4: BAD RANGE: %s (%d %d)\n",
-                  bdata(range),
-                  htonl(config_pP->ue_pool_range_low[config_pP->num_ue_pool]
-                          .s_addr),
+              if (htonl(config_pP->ue_pool_range_low[config_pP->num_ue_pool]
+                            .s_addr) >=
                   htonl(config_pP->ue_pool_range_high[config_pP->num_ue_pool]
-                          .s_addr));
+                            .s_addr)) {
+                OAI_FPRINTF_ERR(
+                    "CONFIG POOL ADDR IPV4: BAD RANGE: %s (%d %d)\n",
+                    bdata(range),
+                    htonl(config_pP->ue_pool_range_low[config_pP->num_ue_pool]
+                              .s_addr),
+                    htonl(config_pP->ue_pool_range_high[config_pP->num_ue_pool]
+                              .s_addr));
                 return RETURNerror;
               }
               config_pP->num_ue_pool += 1;

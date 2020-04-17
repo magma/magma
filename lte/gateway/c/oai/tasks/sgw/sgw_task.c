@@ -231,8 +231,9 @@ int sgw_init(spgw_config_t* spgw_config_pP, bool persist_state)
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
     return RETURNerror;
   }
+#if (!SPGW_ENABLE_SESSIOND_AND_MOBILITYD)
   pgw_ip_address_pool_init(spgw_state_p);
-
+#endif
   if (
     RETURNerror ==
     pgw_pcef_emulation_init(spgw_state_p, &spgw_config_pP->pgw_config)) {

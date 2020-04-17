@@ -98,7 +98,7 @@ static void _spgw_handle_s5_response_with_error(
     s5_create_session_response_t* s5_response);
 
 #if (!SPGW_ENABLE_SESSIOND_AND_MOBILITYD)
-static void _pgw_handle_locally_allocate_ipv4_address(
+static void _pgw_locally_allocate_ipv4_address(
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
@@ -200,11 +200,11 @@ void handle_s5_create_session_request(
       // to implement different logic between the PDN types.
       if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
 #if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
-        pgw_handle_mobilityd_allocate_ipv4_address(
+        pgw_handle_allocate_ipv4_address(
             imsi, apn, &inaddr, sgi_create_endpoint_resp, "ipv4", context_teid,
             eps_bearer_id, spgw_state, new_bearer_ctxt_info_p, s5_response);
 #else
-        _pgw_handle_locally_allocate_ipv4_address(
+        _pgw_locally_allocate_ipv4_address(
             spgw_state, new_bearer_ctxt_info_p, sgi_create_endpoint_resp);
 #endif
       }
@@ -222,11 +222,11 @@ void handle_s5_create_session_request(
 
     case IPv4_AND_v6:
 #if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
-      pgw_handle_mobilityd_allocate_ipv4_address(
+      pgw_handle_allocate_ipv4_address(
           imsi, apn, &inaddr, sgi_create_endpoint_resp, "ipv4v6", context_teid,
           eps_bearer_id, spgw_state, new_bearer_ctxt_info_p, s5_response);
 #else
-      _pgw_handle_locally_allocate_ipv4_address(
+      _pgw_locally_allocate_ipv4_address(
           spgw_state, new_bearer_ctxt_info_p, sgi_create_endpoint_resp);
 #endif
       break;
@@ -792,7 +792,7 @@ static void _delete_temporary_dedicated_bearer_context(
 }
 
 #if (!SPGW_ENABLE_SESSIOND_AND_MOBILITYD)
-static void _pgw_handle_locally_allocate_ipv4_address(
+static void _pgw_locally_allocate_ipv4_address(
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp) {
@@ -800,7 +800,8 @@ static void _pgw_handle_locally_allocate_ipv4_address(
   struct in_addr inaddr;
   s5_create_session_response_t s5_response = {0};
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  rc = pgw_allocate_ue_ipv4_address(spgw_state, &inaddr);
+
+  rc = pgw_get_ue_ipv4_address(spgw_state, &inaddr);
   if (rc == RETURNok) {
     sgi_create_endpoint_resp.status       = SGI_STATUS_OK;
     sgi_create_endpoint_resp.paa.pdn_type = sgi_create_endpoint_resp.pdn_type;

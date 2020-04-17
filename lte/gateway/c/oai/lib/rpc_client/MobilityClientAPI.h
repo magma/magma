@@ -82,7 +82,7 @@ int get_assigned_ipv4_block(
  * @param s5_response itti message for s5_create_session response
  * @return status of gRPC call
  */
-int pgw_handle_mobilityd_allocate_ipv4_address(
+int pgw_handle_allocate_ipv4_address(
     const char* subscriber_id, const char* apn, struct in_addr* addr,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
     const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id,

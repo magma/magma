@@ -30,25 +30,22 @@
 #define PGW_UE_IP_ADDRESS_ALLOC_SEEN
 
 #include <arpa/inet.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include "dynamic_memory_check.h"
-#include "common_defs.h"
 
 #include "spgw_state.h"
 #include "ip_forward_messages_types.h"
 
-int pgw_mobilityd_release_ue_ipv4_address(
+int release_ue_ipv4_address(
     const char* imsi, const char* apn, struct in_addr* addr);
 
 int get_ip_block(struct in_addr *netaddr, uint32_t *netmask);
 
+#if (!SGW_ENABLE_SESSIOND_AND_MOBILITYD)
 void pgw_ip_address_pool_init(spgw_state_t* spgw_state);
 
-int pgw_allocate_ue_ipv4_address(
-    spgw_state_t* spgw_state, struct in_addr* addr_p);
+int pgw_get_ue_ipv4_address(spgw_state_t* spgw_state, struct in_addr* addr_p);
 
-int pgw_locally_release_ue_ipv4_address(
+int pgw_free_ue_ipv4_address(
     spgw_state_t* spgw_state, const struct in_addr* const addr_pP);
+#endif /* SGW_ENABLE_SESSIOND_AND_MOBILITYD */
 
 #endif /*PGW_UE_IP_ADDRESS_ALLOC_SEEN */

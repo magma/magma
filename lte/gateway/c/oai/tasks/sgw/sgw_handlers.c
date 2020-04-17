@@ -970,9 +970,9 @@ int sgw_handle_sgi_endpoint_deleted(
         case IPv4:
           inaddr = resp_pP->paa.ipv4_address;
 #if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
-          rv = pgw_mobilityd_release_ue_ipv4_address(imsi, apn, &inaddr);
+          rv = release_ue_ipv4_address(imsi, apn, &inaddr);
 #else
-          rv = pgw_locally_release_ue_ipv4_address(spgw_state, &inaddr);
+          rv = pgw_free_ue_ipv4_address(spgw_state, &inaddr);
 #endif
           if (rv == RETURNok) {
             OAILOG_DEBUG_UE(
@@ -991,9 +991,9 @@ int sgw_handle_sgi_endpoint_deleted(
         case IPv4_AND_v6:
           inaddr = resp_pP->paa.ipv4_address;
 #if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
-          rv = pgw_mobilityd_release_ue_ipv4_address(imsi, apn, &inaddr);
+          rv = release_ue_ipv4_address(imsi, apn, &inaddr);
 #else
-          rv = pgw_locally_release_ue_ipv4_address(spgw_state, &inaddr);
+          rv = pgw_free_ue_ipv4_address(spgw_state, &inaddr);
 #endif
           if (rv == RETURNok) {
             OAILOG_DEBUG_UE(

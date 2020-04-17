@@ -110,15 +110,15 @@ typedef struct pgw_config_s {
   bool masquerade_SGI;
 
   int num_ue_pool;
-#define PGW_NUM_UE_POOL_MAX 96
+#define PGW_NUM_UE_POOL_MAX 2
   struct in_addr ue_pool_range_low[PGW_NUM_UE_POOL_MAX];
   struct in_addr ue_pool_range_high[PGW_NUM_UE_POOL_MAX];
 
   struct in_addr ue_pool_network[PGW_NUM_UE_POOL_MAX]; // computed from config
   struct in_addr ue_pool_netmask[PGW_NUM_UE_POOL_MAX]; // computed from config
-  //computed from config, UE IP adresses that matches ue_pool_network[]/ue_pool_netmask[] but do not match ue_pool_range_low[] - ue_pool_range_high[]
-  // The problem here is that OpenFlow do not deal with ip ranges but with netmasks
-
+  // computed from config, UE IP adresses that matches
+  // ue_pool_network[]/ue_pool_netmask[] but do not match ue_pool_range_low[] -
+  // ue_pool_range_high[]
   bool force_push_pco;
   uint16_t ue_mtu;
   bool relay_enabled;
