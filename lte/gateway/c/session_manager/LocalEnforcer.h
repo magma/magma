@@ -186,11 +186,11 @@ class LocalEnforcer {
       SessionMap& session_map, const std::string& imsi,
       const std::string& core_session_id) const;
 
-  bool has_active_session(
+  bool get_core_sid_of_active_session(
       SessionMap& session_map, const std::string& imsi,
       std::string* core_session_id) const;
 
-  bool session_with_same_config_exists(
+  bool get_core_sid_of_session_with_same_config(
       SessionMap& session_map, const std::string& imsi,
       const magma::SessionConfig& config, std::string* core_session_id) const;
 

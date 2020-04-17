@@ -283,9 +283,10 @@ void LocalSessionManagerHandlerImpl::CreateSession(
       bool is_active   = false;
       bool is_wifi     = request_cpy.rat_type() == RATType::TGPP_WLAN;
       if (is_wifi) {
-        is_active = enforcer_->has_active_session(session_map, imsi, &core_sid);
+        is_active = enforcer_->get_core_sid_of_active_session(
+            session_map, imsi, &core_sid);
       } else {
-        same_config = enforcer_->session_with_same_config_exists(
+        same_config = enforcer_->get_core_sid_of_session_with_same_config(
             session_map, imsi, cfg, &core_sid);
         is_active = enforcer_->is_session_active(session_map, imsi, core_sid);
       }
