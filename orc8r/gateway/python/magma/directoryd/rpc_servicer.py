@@ -9,6 +9,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 
 import grpc
+import logging
+from redis.exceptions import RedisError
 from typing import Dict, List
 
 from orc8r.protos.directoryd_pb2 import DirectoryField, AllDirectoryRecords
@@ -63,22 +65,29 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                                 "UpdateRecordRequest")
             return
 
-        # Lock Redis for requested key until update is complete
-        with self._redis_dict.lock(request.id):
-            hwid = get_gateway_hwid()
-            record = self._redis_dict.get(request.id) or \
-                     DirectoryRecord(location_history=[hwid], identifiers={})
+        try:
+            # Lock Redis for requested key until update is complete
+            with self._redis_dict.lock(request.id):
+                hwid = get_gateway_hwid()
+                record = self._redis_dict.get(request.id) or \
+                         DirectoryRecord(location_history=[hwid],
+                                         identifiers={})
 
-            if record.location_history[0] != hwid:
-                record.location_history = [hwid] + record.location_history
+                if record.location_history[0] != hwid:
+                    record.location_history = [hwid] + record.location_history
 
-            for field_key in request.fields:
-                record.identifiers[field_key] = request.fields[field_key]
+                for field_key in request.fields:
+                    record.identifiers[field_key] = request.fields[field_key]
 
-            # Truncate location history to the five most recent hwid's
-            record.location_history = \
-                record.location_history[:LOCATION_MAX_LEN]
-            self._redis_dict[request.id] = record
+                # Truncate location history to the five most recent hwid's
+                record.location_history = \
+                    record.location_history[:LOCATION_MAX_LEN]
+                self._redis_dict[request.id] = record
+        except RedisError as e:
+            logging.error(e)
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details("Could not connect to redis: %s" % e)
+
 
     @return_void
     def DeleteRecord(self, request, context):
@@ -94,13 +103,18 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             return
 
         # Lock Redis for requested key until delete is complete
-        with self._redis_dict.lock(request.id):
-            if request.id not in self._redis_dict:
-                context.set_code(grpc.StatusCode.NOT_FOUND)
-                context.set_details("Record for ID %s was not found." %
-                                    request.id)
-                return
-            self._redis_dict.mark_as_garbage(request.id)
+        try:
+            with self._redis_dict.lock(request.id):
+                if request.id not in self._redis_dict:
+                    context.set_code(grpc.StatusCode.NOT_FOUND)
+                    context.set_details("Record for ID %s was not found." %
+                                        request.id)
+                    return
+                self._redis_dict.mark_as_garbage(request.id)
+        except RedisError as e:
+            logging.error(e)
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details("Could not connect to redis: %s" % e)
 
     def GetDirectoryField(self, request, context):
         """ Get the directory record field for an ID and key
@@ -117,23 +131,31 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details("Field key argument cannot be empty in "
                                 "GetDirectoryFieldRequest")
-            return
+            return DirectoryField()
 
         # Lock Redis for requested key until get is complete
-        with self._redis_dict.lock(request.id):
-            if request.id not in self._redis_dict:
-                context.set_code(grpc.StatusCode.NOT_FOUND)
-                context.set_details("Record for ID %s was not found." %
-                                    request.id)
-                return
-            record = self._redis_dict[request.id]
-            if request.field_key not in record.identifiers:
-                context.set_code(grpc.StatusCode.NOT_FOUND)
-                context.set_details("Field %s was not found in record for "
-                                    "ID %s" % (request.field_key, request.id))
-                return
-            return DirectoryField(key=request.field_key,
-                                  value=record.identifiers[request.field_key])
+        try:
+            with self._redis_dict.lock(request.id):
+                if request.id not in self._redis_dict:
+                    context.set_code(grpc.StatusCode.NOT_FOUND)
+                    context.set_details("Record for ID %s was not found." %
+                                        request.id)
+                    return DirectoryField()
+                record = self._redis_dict[request.id]
+        except RedisError as e:
+            logging.error(e)
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details("Could not connect to redis: %s" % e)
+            return DirectoryField()
+
+        if request.field_key not in record.identifiers:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details("Field %s was not found in record for "
+                                "ID %s" % (request.field_key, request.id))
+            return DirectoryField()
+
+        return DirectoryField(key=request.field_key,
+                              value=record.identifiers[request.field_key])
 
     def GetAllDirectoryRecords(self, request, context):
         """ Get all directory records
@@ -142,20 +164,34 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
              request (Void): void
         """
         response = AllDirectoryRecords()
-        for key in self._redis_dict.keys():
-            with self._redis_dict.lock(key):
-                # Lookup may produce an exception if the key has been deleted
-                # between the call to __iter__ and lock
-                try:
+        try:
+            redis_keys = self._redis_dict.keys()
+        except RedisError as e:
+            logging.error(e)
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details("Could not connect to redis: %s" % e)
+            return response
+
+        for key in redis_keys:
+            try:
+                with self._redis_dict.lock(key):
+                    # Lookup may produce an exception if the key has been
+                    # deleted between the call to __iter__ and lock
                     stored_record = self._redis_dict[key]
-                except KeyError:
-                    continue
-                directory_record = response.records.add()
-                directory_record.id = key
-                directory_record.location_history[:] = \
-                    stored_record.location_history
-                for identifier_key in stored_record.identifiers:
-                    directory_record.fields[identifier_key] = \
-                        stored_record.identifiers[identifier_key]
+            except RedisError as e:
+                logging.error(e)
+                context.set_code(grpc.StatusCode.UNAVAILABLE)
+                context.set_details("Could not connect to redis: %s" % e)
+                return response
+            except KeyError:
+                continue
+
+            directory_record = response.records.add()
+            directory_record.id = key
+            directory_record.location_history[:] = \
+                stored_record.location_history
+            for identifier_key in stored_record.identifiers:
+                directory_record.fields[identifier_key] = \
+                    stored_record.identifiers[identifier_key]
 
         return response
