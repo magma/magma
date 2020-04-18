@@ -55,13 +55,21 @@ const handleReact = tab =>
       ssoSelectedType,
       csvCharset: organization?.csvCharset,
     };
-    res.render('index', {
-      staticDist,
-      configJson: JSON.stringify({
-        appData,
-        MAPBOX_ACCESS_TOKEN: req.user && MAPBOX_ACCESS_TOKEN,
-      }),
-    });
+    const tabs = organization?.tabs;
+    res.render(
+      // if an org has 'inventory' or 'workorders' tabs, show inventory UI
+      // otherwise magmalte
+      tabs?.indexOf('inventory') != -1 || tabs?.indexOf('workorders') != -1
+        ? 'index'
+        : 'magma',
+      {
+        staticDist,
+        configJson: JSON.stringify({
+          appData,
+          MAPBOX_ACCESS_TOKEN: req.user && MAPBOX_ACCESS_TOKEN,
+        }),
+      },
+    );
   };
 
 router.use('/healthz', (req: FBCNMSRequest, res) => res.send('OK'));

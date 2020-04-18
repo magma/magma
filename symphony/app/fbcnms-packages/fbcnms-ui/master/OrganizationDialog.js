@@ -81,7 +81,7 @@ export default function(props: Props) {
     <Dialog open={true} onClose={props.onClose}>
       <DialogTitle>Add Organization</DialogTitle>
       <DialogContent>
-        {error && <FormLabel error>{error}</FormLabel>}
+        {error && <FormLabel error>{error.message}</FormLabel>}
         <TextField
           name="name"
           label="Name"
