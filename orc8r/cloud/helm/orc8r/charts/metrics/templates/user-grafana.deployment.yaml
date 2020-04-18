@@ -73,10 +73,13 @@ spec:
 
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/health
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 30
+
+          resources:
+{{ toYaml .Values.userGrafana.resources | indent 12 }}
 
       volumes:
         - name: "config"
@@ -90,9 +93,6 @@ spec:
 {{ toYaml .Values.userGrafana.volumes.dashboards | indent 10 }}
         - name: "grafana-data"
 {{ toYaml .Values.userGrafana.volumes.grafanaData | indent 10 }}
-
-          resources:
-{{ toYaml .Values.grafana.resources | indent 12 }}
 
 
 ---
