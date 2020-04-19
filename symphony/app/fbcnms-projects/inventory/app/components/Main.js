@@ -22,6 +22,7 @@ import SymphonyFilesUploadSnackbar from './SymphonyFilesUploadSnackbar';
 import WorkOrdersMain from './work_orders/WorkOrdersMain';
 
 import LoadingIndicator from '../common/LoadingIndicator';
+import Settings from './settings/Settings';
 import {Route, Switch} from 'react-router-dom';
 
 export default () => (
@@ -38,6 +39,7 @@ export default () => (
               <Route path="/hub" component={Hub} />
               <Route path="/inventory" component={Inventory} />
               <Route path="/workorders" component={WorkOrdersMain} />
+              <Route path="/admin/settings" component={Settings} />
               {mainContext.me?.permissions.adminPolicy.canRead ? (
                 <Route path="/admin" component={Admin} />
               ) : null}
