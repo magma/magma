@@ -14,11 +14,14 @@ import type {UserManagementContext_UserQuery} from '../admin/userManagement/__ge
 import * as React from 'react';
 import LoadingIndicator from '../../common/LoadingIndicator';
 import UserAccountPane from '../admin/userManagement/users/UserAccountPane';
+import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {FormContextProvider} from '../../common/FormContext';
 import {Suspense} from 'react';
 import {UserManagementContextProvider} from '../admin/userManagement/UserManagementContext';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
+import {makeStyles} from '@material-ui/styles';
 import {useMainContext} from '../MainContext';
 
 const userQuery = graphql`
@@ -46,7 +49,19 @@ const userQuery = graphql`
   }
 `;
 
+const useStyles = makeStyles(() => ({
+  settingsPage: {
+    borderRadius: '4px',
+    boxShadow: symphony.shadows.DP1,
+    background: symphony.palette.white,
+    flexGrow: 1,
+    padding: '32px',
+    maxWidth: '1024px',
+  },
+}));
+
 function UserAccountWrapper() {
+  const classes = useStyles();
   const mainContext = useMainContext();
 
   const loggedInUserID = mainContext.me?.user.id;
@@ -63,9 +78,20 @@ function UserAccountWrapper() {
   }
 
   return (
-    <FormContextProvider ignorePermissions={true}>
-      <UserAccountPane user={loggedInUser} isForCurrentUserSettings={true} />
-    </FormContextProvider>
+    <ViewContainer
+      header={{
+        title: <fbt desc="">User Settings</fbt>,
+        subtitle: <fbt desc="">Manage your own private settings.</fbt>,
+      }}>
+      <FormContextProvider ignorePermissions={true}>
+        <div className={classes.settingsPage}>
+          <UserAccountPane
+            user={loggedInUser}
+            isForCurrentUserSettings={true}
+          />
+        </div>
+      </FormContextProvider>
+    </ViewContainer>
   );
 }
 

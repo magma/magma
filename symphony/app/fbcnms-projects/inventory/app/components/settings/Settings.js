@@ -13,7 +13,7 @@ import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import React, {useContext} from 'react';
-import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {useMainContext} from '../../components/MainContext';
@@ -21,6 +21,7 @@ import {useMainContext} from '../../components/MainContext';
 const useStyles = makeStyles(() => ({
   root: {
     display: 'flex',
+    background: symphony.palette.background,
   },
 }));
 
@@ -37,9 +38,7 @@ function SettingsApp() {
         projects={getProjectLinks(tabs, integrationUserDefinition)}
         mainItems={[]}
       />
-      <ViewContainer>
-        <AccountSettings />
-      </ViewContainer>
+      <AccountSettings />
     </div>
   );
 }
