@@ -256,7 +256,11 @@ class PropertyTypeTable extends React.Component<Props> {
   };
 
   _handleTypeChange = index => value => {
-    const [type, nodeType] = value.split('_');
+    const lastIndex = value.lastIndexOf('_');
+    const [type, nodeType] = [
+      value.substring(0, lastIndex),
+      value.substring(lastIndex + 1),
+    ];
     const newPropertyTypes = updateItem<PropertyType, 'type'>(
       this.props.propertyTypes,
       index,
