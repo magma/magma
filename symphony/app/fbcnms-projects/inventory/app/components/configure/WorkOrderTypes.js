@@ -15,8 +15,8 @@ import type {WithStyles} from '@material-ui/core';
 
 import AddEditWorkOrderTypeCard from './AddEditWorkOrderTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
-import InventoryConfigureHeader from '../InventoryConfigureHeader';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
+import InventoryView from '../InventoryViewContainer';
 import React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
@@ -27,25 +27,10 @@ import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
-const styles = theme => ({
-  root: {
-    width: '100%',
-  },
+const styles = () => ({
   paper: {
     flexGrow: 1,
     overflowY: 'hidden',
-  },
-  typesList: {
-    flexGrow: 1,
-    padding: '24px',
-  },
-  content: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-  },
-  listItem: {
-    marginBottom: theme.spacing(),
   },
 });
 
@@ -102,48 +87,46 @@ class WorkOrderTypes extends React.Component<Props, State> {
             );
           }
           return (
-            <div className={classes.typesList}>
-              <InventoryConfigureHeader
-                title="Work Order Templates"
-                subtitle="Create and manage reusable work orders."
-                actionButtons={[
+            <InventoryView
+              header={{
+                title: <fbt desc="">Work Order Templates</fbt>,
+                subtitle: (
+                  <fbt desc="">Create and manage reusable work orders.</fbt>
+                ),
+                actionButtons: [
                   {
                     title: `${fbt('Create Work Order Template', '')}`,
                     action: () => this.showAddEditWorkOrderTypeCard(null),
                   },
+                ],
+              }}>
+              <Table
+                className={classes.table}
+                data={workOrderTypes.edges
+                  .map(edge => edge.node)
+                  .sort((woTypeA, woTypeB) =>
+                    sortLexicographically(woTypeA.name, woTypeB.name),
+                  )}
+                columns={[
+                  {
+                    key: 'name',
+                    title: 'Work order template',
+                    render: row => (
+                      <Button
+                        variant="text"
+                        onClick={() => this.showAddEditWorkOrderTypeCard(row)}>
+                        {row.name}
+                      </Button>
+                    ),
+                  },
+                  {
+                    key: 'description',
+                    title: 'Description',
+                    render: row => row.description,
+                  },
                 ]}
               />
-              <div className={classes.root}>
-                <Table
-                  className={classes.table}
-                  data={workOrderTypes.edges
-                    .map(edge => edge.node)
-                    .sort((woTypeA, woTypeB) =>
-                      sortLexicographically(woTypeA.name, woTypeB.name),
-                    )}
-                  columns={[
-                    {
-                      key: 'name',
-                      title: 'Work order template',
-                      render: row => (
-                        <Button
-                          variant="text"
-                          onClick={() =>
-                            this.showAddEditWorkOrderTypeCard(row)
-                          }>
-                          {row.name}
-                        </Button>
-                      ),
-                    },
-                    {
-                      key: 'description',
-                      title: 'Description',
-                      render: row => row.description,
-                    },
-                  ]}
-                />
-              </div>
-            </div>
+            </InventoryView>
           );
         }}
       />
