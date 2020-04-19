@@ -31,6 +31,7 @@ import type {ServicePanel_service} from './__generated__/ServicePanel_service.gr
 
 import AddServiceEndpointMutation from '../../mutations/AddServiceEndpointMutation';
 import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import EditServiceMutation from '../../mutations/EditServiceMutation';
@@ -52,6 +53,7 @@ import {
   serviceStatusToColor,
   serviceStatusToVisibleNames,
 } from '../../common/Service';
+import {useContext} from 'react';
 
 type Props = {
   service: ServicePanel_service,
@@ -137,6 +139,10 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   const {service, onOpenDetailsPanel} = props;
   const [endpointsExpanded, setEndpointsExpanded] = useState(false);
   const [linksExpanded, setLinksExpanded] = useState(false);
+
+  const autoServiceEndpoints = useContext(AppContext).isFeatureEnabled(
+    'service_endpoints',
+  );
 
   const onAddEndpoint = (port: EquipmentPort, role: string) => {
     const variables: AddServiceEndpointMutationVariables = {
@@ -278,10 +284,12 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
           expanded={endpointsExpanded}
           onChange={expanded => setEndpointsExpanded(expanded)}
           rightContent={
-            <ServiceEndpointsMenu
-              service={{id: service.id, name: service.name}}
-              onAddEndpoint={onAddEndpoint}
-            />
+            autoServiceEndpoints ? null : (
+              <ServiceEndpointsMenu
+                service={{id: service.id, name: service.name}}
+                onAddEndpoint={onAddEndpoint}
+              />
+            )
           }>
           <ServiceEndpointsView
             endpoints={service.endpoints}
@@ -300,10 +308,12 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
         expanded={linksExpanded}
         onChange={expanded => setLinksExpanded(expanded)}
         rightContent={
-          <ServiceLinksSubservicesMenu
-            service={{id: service.id, name: service.name}}
-            onAddLink={onAddLink}
-          />
+          autoServiceEndpoints ? null : (
+            <ServiceLinksSubservicesMenu
+              service={{id: service.id, name: service.name}}
+              onAddLink={onAddLink}
+            />
+          )
         }>
         <ServiceLinksView links={service.links} onDeleteLink={onDeleteLink} />
       </ExpandingPanel>
