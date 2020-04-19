@@ -40,11 +40,11 @@ const useStyles = makeStyles(_theme => ({
   },
   rightIcon: {
     alignSelf: 'flex-end',
-    marginLeft: '6px',
+    marginLeft: '8px',
   },
   leftIcon: {
     alignSelf: 'flex-start',
-    marginRight: '6px',
+    marginRight: '8px',
   },
   hasRightIcon: {
     '& $buttonText': {
@@ -66,7 +66,7 @@ const useStyles = makeStyles(_theme => ({
   containedVariant: {
     height: '32px',
     minWidth: '88px',
-    padding: '4px 18px',
+    padding: '4px 12px',
     borderRadius: '4px',
     '&$hasRightIcon': {
       padding: '4px 6px 4px 12px',
