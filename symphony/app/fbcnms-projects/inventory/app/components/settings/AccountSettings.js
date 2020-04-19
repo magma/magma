@@ -15,6 +15,7 @@ import * as React from 'react';
 import LoadingIndicator from '../../common/LoadingIndicator';
 import UserAccountPane from '../admin/userManagement/users/UserAccountPane';
 import fbt from 'fbt';
+import {FormContextProvider} from '../../common/FormContext';
 import {Suspense} from 'react';
 import {UserManagementContextProvider} from '../admin/userManagement/UserManagementContext';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
@@ -62,7 +63,9 @@ function UserAccountWrapper() {
   }
 
   return (
-    <UserAccountPane user={loggedInUser} isForCurrentUserSettings={true} />
+    <FormContextProvider ignorePermissions={true}>
+      <UserAccountPane user={loggedInUser} isForCurrentUserSettings={true} />
+    </FormContextProvider>
   );
 }
 
