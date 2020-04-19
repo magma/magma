@@ -12,6 +12,7 @@ import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
 import Strings from '@fbcnms/strings/Strings';
@@ -199,25 +200,29 @@ const UserAccountDetailsPane = (props: Props) => {
             <div className={classes.actionButtons}>
               {isEditable ? (
                 <>
-                  <Button skin="gray" onClick={exitEditMode}>
-                    {Strings.common.cancelButton}
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      if (onChange) {
-                        onChange(user, password);
-                      }
-                      exitEditMode();
-                    }}
-                    disabled={form.alerts.error.detected}
-                    title={form.alerts.error.message}>
-                    <fbt desc="">Save Changes</fbt>
-                  </Button>
+                  <FormAction>
+                    <Button skin="gray" onClick={exitEditMode}>
+                      {Strings.common.cancelButton}
+                    </Button>
+                  </FormAction>
+                  <FormAction disableOnFromError={true}>
+                    <Button
+                      onClick={() => {
+                        if (onChange) {
+                          onChange(user, password);
+                        }
+                        exitEditMode();
+                      }}>
+                      <fbt desc="">Save Changes</fbt>
+                    </Button>
+                  </FormAction>
                 </>
               ) : (
-                <Button onClick={() => setIsEditable(true)}>
-                  <fbt desc="">Change Password</fbt>
-                </Button>
+                <FormAction>
+                  <Button onClick={() => setIsEditable(true)}>
+                    <fbt desc="">Change Password</fbt>
+                  </Button>
+                </FormAction>
               )}
             </div>
           </>

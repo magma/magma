@@ -125,6 +125,7 @@ export default function PermissionsGroupCard({
             .then(onClose)
             .catch(handleError);
         },
+        disableOnFromError: true,
       },
     ];
     return {

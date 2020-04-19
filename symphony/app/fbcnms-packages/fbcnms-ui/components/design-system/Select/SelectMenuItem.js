@@ -56,15 +56,13 @@ const SelectMenuItem = <TValue>({
   value,
   onClick,
   isSelected = false,
-  hideWhenDisabled = false,
+  hideOnEditLock = false,
   className,
   ...permissionHandlingProps
 }: Props<TValue>) => {
   const classes = useStyles();
   return (
-    <FormAction
-      {...permissionHandlingProps}
-      hideWhenDisabled={hideWhenDisabled}>
+    <FormAction {...permissionHandlingProps} hideOnEditLock={hideOnEditLock}>
       <FormElementContext.Consumer>
         {context => {
           const disabled = context.disabled;

@@ -26,13 +26,13 @@ import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
 import FormAction from '../../../../../fbcnms-packages/fbcnms-ui/components/design-system/Form/FormAction';
 import React, {useCallback} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import Strings from '../../../../../fbcnms-packages/fbcnms-strings/Strings';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {getGraphError} from '../../common/EntUtils';
 import {isTempId} from '../../common/EntUtils';
 import {toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useFormContext} from '../../common/FormContext';
 
 type Props = {
   workOrder: WorkOrderDetails_workOrder,
@@ -148,13 +148,9 @@ const WorkOrderSaveButton = (props: Props) => {
     match.url,
   ]);
 
-  const form = useFormContext();
-
   return (
-    <FormAction disabled={form.alerts.error.detected}>
-      <Button tooltip={form.alerts.error.message} onClick={saveWorkOrder}>
-        Save
-      </Button>
+    <FormAction disableOnFromError={true}>
+      <Button onClick={saveWorkOrder}>{Strings.common.saveButton}</Button>
     </FormAction>
   );
 };

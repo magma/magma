@@ -14,6 +14,7 @@ import * as React from 'react';
 import Text from './Text';
 import classNames from 'classnames';
 import symphony from '../../theme/symphony';
+import {joinNullableStrings} from '@fbcnms/util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useFormElementContext} from './Form/FormElementContext';
 import {useMemo} from 'react';
@@ -303,16 +304,24 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     leftIconClass = null,
     rightIcon: RightIcon = null,
     rightIconClass = null,
-    tooltip,
+    tooltip: tooltipProp,
   } = props;
   const classes = useStyles();
 
-  const {disabled: contextDisabled} = useFormElementContext();
+  const {
+    disabled: contextDisabled,
+    tooltip: contextTooltip,
+  } = useFormElementContext();
 
   const disabled = useMemo(() => disabledProp || contextDisabled, [
     disabledProp,
     contextDisabled,
   ]);
+
+  const tooltip = useMemo(
+    () => joinNullableStrings([tooltipProp, contextTooltip]),
+    [contextTooltip, tooltipProp],
+  );
 
   return (
     <button

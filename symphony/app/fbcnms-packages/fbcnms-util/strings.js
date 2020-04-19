@@ -37,3 +37,12 @@ export function isValidHex(hexString: string): boolean {
 export function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+
+export function joinNullableStrings(
+  strings: Array<?string>,
+  separator?: ?string,
+): string {
+  return strings
+    .filter(str => str != null && str != '')
+    .join(separator ?? undefined);
+}
