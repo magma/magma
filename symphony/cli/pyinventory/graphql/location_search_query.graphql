@@ -1,0 +1,8 @@
+query LocationSearchQuery($filters: [LocationFilterInput!]!, $limit: Int) {
+  locationSearch(filters: $filters, limit: $limit) {
+    locations {
+      ...LocationFragment
+    }
+    count
+  }
+}
