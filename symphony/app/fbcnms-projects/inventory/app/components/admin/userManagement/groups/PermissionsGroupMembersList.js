@@ -110,11 +110,7 @@ export default function PermissionsGroupMembersList(props: Props) {
 
   return (
     <MembersList
-      members={
-        // eslint-disable-next-line no-warning-comments
-        // $FlowFixMe
-        userSearch.isEmptySearchTerm ? groupMembers : userSearch.results
-      }
+      members={userSearch.isEmptySearchTerm ? groupMembers : userSearch.results}
       group={group}
       assigmentButton={
         userSearch.isEmptySearchTerm

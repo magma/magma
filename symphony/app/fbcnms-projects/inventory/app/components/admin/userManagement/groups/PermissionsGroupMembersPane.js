@@ -149,6 +149,7 @@ export default function PermissionsGroupMembersPane(props: Props) {
     <div className={classNames(classes.root, className)}>
       <UserSearchContextProvider
         queryMetadata={
+          // See Flow problem explained in SearchContext.js
           // eslint-disable-next-line no-warning-comments
           // $FlowFixMe
           group

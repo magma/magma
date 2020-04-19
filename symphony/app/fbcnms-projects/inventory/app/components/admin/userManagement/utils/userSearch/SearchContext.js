@@ -84,40 +84,37 @@ function useSearchManagerBuilder<M, R>(
   };
 }
 
-type ContextProviderProps<T> = $ReadOnly<{|
+// eslint-disable-next-line
+// $FlowFixMe
+type ContextProviderProps<T> /* eslint-disable-line */ = $ReadOnly<{|
   children: React.Node,
   queryMetadata: ?T,
 |}>;
 
-export default function createSearchContext<
-  QUERY_METADATA_TYPE,
-  RESULT_VALUE_TYPE,
->(
-  searchCallback: (
-    string,
-    ?QUERY_METADATA_TYPE,
-  ) => Promise<Array<RESULT_VALUE_TYPE>>,
+/*
+  The Flow issue here is that the function doesn't
+  cascade parameterized generics.
+  In https://flow.org/en/docs/types/generics/#toc-parameterized-generics:
+  '...Functions and function types do not have parameterized generics.'
+*/
+// eslint-disable-next-line
+// $FlowFixMe
+export default function createSearchContext<M, R: Object>( // eslint-disable-line
+  searchCallback: (string, ?M) => Promise<Array<R>>,
 ) {
-  const SearchContext = createContext<
-    $Exact<SearchContextValueType<RESULT_VALUE_TYPE>>,
-  >({
+  const SearchContext = createContext<SearchContextValueType<R>>({
     searchTerm: NO_SEARCH_VALUE,
-    results: getEmptyResults<RESULT_VALUE_TYPE>(),
+    results: getEmptyResults<R>(),
     setSearchTerm: emptyFunction,
     clearSearch: emptyFunction,
     isSearchInProgress: false,
     isEmptySearchTerm: false,
   });
 
-  const useSearch = (queryMetadata?: ?QUERY_METADATA_TYPE) =>
-    useSearchManagerBuilder<QUERY_METADATA_TYPE, RESULT_VALUE_TYPE>(
-      queryMetadata,
-      searchCallback,
-    );
+  const useSearch = (queryMetadata?: ?M) =>
+    useSearchManagerBuilder<M, R>(queryMetadata, searchCallback);
 
-  const SearchContextProvider = (
-    props: ContextProviderProps<QUERY_METADATA_TYPE>,
-  ) => {
+  const SearchContextProvider = (props: ContextProviderProps<M>) => {
     const {children, queryMetadata} = props;
 
     return (

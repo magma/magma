@@ -41,11 +41,7 @@ const UserTypeahead = (props: Props) => {
       <Typeahead
         margin={margin}
         required={!!required}
-        // eslint-disable-next-line no-warning-comments
-        // $FlowFixMe
         suggestions={userSearch.results.map(result => {
-          // eslint-disable-next-line no-warning-comments
-          // $FlowFixMe
           const member: GroupMember = result;
           return {
             entityId: member.user.id,
