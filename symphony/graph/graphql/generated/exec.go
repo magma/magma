@@ -8008,6 +8008,7 @@ what filters should we apply on locations
 """
 enum LocationFilterType {
   LOCATION_INST
+  LOCATION_INST_NAME
   LOCATION_TYPE
   LOCATION_INST_HAS_EQUIPMENT
   PROPERTY

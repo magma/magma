@@ -6,7 +6,7 @@ title: Python API Release Notes
 <!--
 ***
 This is template for release notes
-#3 new version number
+# new version number
  Features
  Changes
  Deprecated
@@ -33,7 +33,7 @@ This is template for release notes
 ### Changes
 - Equipment functionality:
     - `external_id` variable added to functions
-        - 'add_equipment`
+        - `add_equipment`
         - `add_equipment_to_position`
         - `copy_equipment_in_position`
         - `copy_equipment`
@@ -41,7 +41,7 @@ This is template for release notes
         - `get_or_create_equipment_in_position`
 ### Bug fixes
 ***
--->
+
 
 ***
 ## 2.5.0 - release date 23.03.2020

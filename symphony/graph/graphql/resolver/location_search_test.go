@@ -129,6 +129,36 @@ func TestSearchLocationAncestors(t *testing.T) {
 	require.Equal(t, res.Count, 1)
 }
 
+func TestSearchLocationByName(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+
+	data := prepareLocationData(ctx, r)
+	/*
+		helper: data now is of type:
+		 loc1 (loc_type1):
+			eq_inst (eq_type)
+			loc2 (loc_type2)
+	*/
+	qr := r.Query()
+
+	f1 := models.LocationFilterInput{
+		FilterType:  models.LocationFilterTypeLocationInstName,
+		Operator:    models.FilterOperatorIs,
+		StringValue: &data.loc2.Name,
+	}
+	resAll, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{}, pointer.ToInt(100))
+	require.NoError(t, err)
+	require.Len(t, resAll.Locations, 2)
+	require.Equal(t, resAll.Count, 2)
+
+	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, pointer.ToInt(100))
+	require.NoError(t, err)
+	require.Len(t, res.Locations, 1)
+	require.Equal(t, res.Count, 1)
+}
+
 func TestSearchLocationByType(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.drv.Close()
