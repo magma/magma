@@ -35,6 +35,8 @@ import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   detailsPane: {
+    display: 'flex',
+    flexDirection: 'column',
     borderRadius: '4px',
     boxShadow: symphony.shadows.DP1,
     '&:not(:first-child)': {

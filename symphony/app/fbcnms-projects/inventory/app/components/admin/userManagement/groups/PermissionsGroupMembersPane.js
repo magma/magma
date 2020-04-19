@@ -8,58 +8,23 @@
  * @format
  */
 
-import type {GroupMember} from '../utils/GroupMemberViewer';
-import type {PermissionsGroupMembersPaneUserSearchQuery} from './__generated__/PermissionsGroupMembersPaneUserSearchQuery.graphql';
 import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import Button from '@fbcnms/ui/components/design-system/Button';
-import InputAffix from '@fbcnms/ui/components/design-system/Input/InputAffix';
-import MembersList from '../utils/MembersList';
-import RelayEnvironment from '../../../../common/RelayEnvironment';
+import PermissionsGroupMembersList from './PermissionsGroupMembersList';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import UserSearchBox from '../utils/userSearch/UserSearchBox';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {ASSIGNMENT_BUTTON_VIEWS} from '../utils/GroupMemberViewer';
+import {ProfileIcon} from '@fbcnms/ui/components/design-system/Icons/';
 import {
-  CloseIcon,
-  ProfileIcon,
-} from '@fbcnms/ui/components/design-system/Icons/';
-import {debounce} from 'lodash';
-import {fetchQuery, graphql} from 'relay-runtime';
+  UserSearchContextProvider,
+  useUserSearch,
+} from '../utils/userSearch/UserSearchContext';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useMemo, useState} from 'react';
-import {userResponse2User} from '../utils/UserManagementUtils';
-
-const userSearchQuery = graphql`
-  query PermissionsGroupMembersPaneUserSearchQuery(
-    $filters: [UserFilterInput!]!
-  ) {
-    userSearch(filters: $filters) {
-      users {
-        id
-        authID
-        firstName
-        lastName
-        email
-        status
-        role
-        groups {
-          id
-          name
-        }
-        profilePhoto {
-          id
-          fileName
-          storeKey
-        }
-      }
-    }
-  }
-`;
+import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -80,7 +45,6 @@ const useStyles = makeStyles(() => ({
   userSearch: {
     marginTop: '8px',
   },
-  clearSearchIcon: {},
   usersListHeader: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -110,74 +74,40 @@ type Props = $ReadOnly<{|
   className?: ?string,
 |}>;
 
-const NO_SEARCH_VALUE = '';
+function SearchBar(
+  props: $ReadOnly<{|
+    group: UserPermissionsGroup,
+  |}>,
+) {
+  const {group} = props;
+  const classes = useStyles();
+  const userSearch = useUserSearch();
+
+  return (
+    <>
+      <div className={classes.userSearch}>
+        <UserSearchBox />
+      </div>
+      {!userSearch.isEmptySearchTerm ? null : (
+        <div className={classes.usersListHeader}>
+          {group.members.length > 0 ? (
+            <Text variant="subtitle2" useEllipsis={true}>
+              <fbt desc="">
+                <fbt:plural count={group.members.length} showCount="yes">
+                  Member
+                </fbt:plural>
+              </fbt>
+            </Text>
+          ) : null}
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function PermissionsGroupMembersPane(props: Props) {
   const {group, className} = props;
   const classes = useStyles();
-  const [searchIsInProgress, setSearchIsInProgress] = useState(false);
-  const [userSearchValue, setUserSearchValue] = useState(NO_SEARCH_VALUE);
-  const [usersSearchResult, setUsersSearchResult] = useState<
-    Array<GroupMember>,
-  >([]);
-
-  const debouncedQueryUsers = useCallback(
-    debounce((searchTerm: string) => {
-      fetchQuery<PermissionsGroupMembersPaneUserSearchQuery>(
-        RelayEnvironment,
-        userSearchQuery,
-        {
-          filters: [
-            {
-              filterType: 'USER_NAME',
-              operator: 'CONTAINS',
-              stringValue: searchTerm,
-            },
-          ],
-        },
-      )
-        .then(response => {
-          if (!response?.userSearch) {
-            return;
-          }
-          setUsersSearchResult(
-            response.userSearch.users.filter(Boolean).map(userNode => {
-              const userData = userResponse2User(userNode);
-              return {
-                user: userData,
-                isMember:
-                  userData.groups.find(
-                    userGroup => userGroup?.id == group.id,
-                  ) != null,
-              };
-            }),
-          );
-        })
-        .finally(() => setSearchIsInProgress(false));
-    }, 200),
-    [group],
-  );
-
-  const queryUsers = useCallback(
-    (searchTerm: string) => {
-      debouncedQueryUsers(searchTerm);
-      setSearchIsInProgress(true);
-    },
-    [debouncedQueryUsers],
-  );
-
-  const updateSearch = useCallback(
-    newSearchValue => {
-      setUserSearchValue(newSearchValue);
-      if (newSearchValue.trim() == NO_SEARCH_VALUE) {
-        setUsersSearchResult([]);
-        setSearchIsInProgress(false);
-      } else {
-        queryUsers(newSearchValue);
-      }
-    },
-    [queryUsers],
-  );
 
   const title = useMemo(
     () => (
@@ -188,8 +118,6 @@ export default function PermissionsGroupMembersPane(props: Props) {
     ),
     [classes.title, classes.titleIcon],
   );
-
-  const isOnSearchMode = userSearchValue.trim() != NO_SEARCH_VALUE;
 
   const subtitle = useMemo(
     () => (
@@ -205,53 +133,7 @@ export default function PermissionsGroupMembersPane(props: Props) {
     [],
   );
 
-  const searchBar = useMemo(
-    () => (
-      <>
-        <div className={classes.userSearch}>
-          <TextInput
-            type="string"
-            variant="outlined"
-            placeholder={`${fbt('Search users...', '')}`}
-            isProcessing={searchIsInProgress}
-            fullWidth={true}
-            value={userSearchValue}
-            onChange={e => updateSearch(e.target.value)}
-            suffix={
-              isOnSearchMode ? (
-                <InputAffix onClick={() => updateSearch(NO_SEARCH_VALUE)}>
-                  <CloseIcon className={classes.clearSearchIcon} color="gray" />
-                </InputAffix>
-              ) : null
-            }
-          />
-        </div>
-        {isOnSearchMode ? null : (
-          <div className={classes.usersListHeader}>
-            {group.members.length > 0 ? (
-              <Text variant="subtitle2" useEllipsis={true}>
-                <fbt desc="">
-                  <fbt:plural count={group.members.length} showCount="yes">
-                    Member
-                  </fbt:plural>
-                </fbt>
-              </Text>
-            ) : null}
-          </div>
-        )}
-      </>
-    ),
-    [
-      classes.clearSearchIcon,
-      classes.userSearch,
-      classes.usersListHeader,
-      group.members.length,
-      isOnSearchMode,
-      searchIsInProgress,
-      updateSearch,
-      userSearchValue,
-    ],
-  );
+  const searchBar = useMemo(() => <SearchBar group={group} />, [group]);
 
   const header = useMemo(
     () => ({
@@ -263,60 +145,18 @@ export default function PermissionsGroupMembersPane(props: Props) {
     [classes.header, searchBar, subtitle, title],
   );
 
-  const memberUsers: $ReadOnlyArray<GroupMember> = useMemo(
-    () =>
-      isOnSearchMode
-        ? usersSearchResult
-        : group.memberUsers.map(user => ({
-            user: user,
-            isMember: true,
-          })),
-    [isOnSearchMode, usersSearchResult, group.memberUsers],
-  );
-
   return (
     <div className={classNames(classes.root, className)}>
-      <ViewContainer header={header}>
-        <MembersList
-          members={memberUsers}
-          group={group}
-          assigmentButton={
-            isOnSearchMode
-              ? ASSIGNMENT_BUTTON_VIEWS.always
-              : ASSIGNMENT_BUTTON_VIEWS.onHover
-          }
-          emptyState={
-            isOnSearchMode ? (
-              searchIsInProgress ? null : (
-                <div className={classes.noSearchResults}>
-                  <Text variant="h6" color="gray">
-                    <fbt desc="">
-                      No users found for '<fbt:param name="given search term">
-                        {userSearchValue}
-                      </fbt:param>'
-                    </fbt>
-                  </Text>
-                  <div className={classes.clearSearchWrapper}>
-                    <Button
-                      variant="text"
-                      skin="gray"
-                      onClick={() => updateSearch(NO_SEARCH_VALUE)}>
-                      <span className={classes.clearSearch}>
-                        <fbt desc="">Clear Search</fbt>
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-              )
-            ) : (
-              <img
-                className={classes.noMembers}
-                src={'/inventory/static/images/noMembers.png'}
-              />
-            )
-          }
-        />
-      </ViewContainer>
+      <UserSearchContextProvider
+        queryMetadata={
+          // eslint-disable-next-line no-warning-comments
+          // $FlowFixMe
+          group
+        }>
+        <ViewContainer header={header}>
+          <PermissionsGroupMembersList group={group} />
+        </ViewContainer>
+      </UserSearchContextProvider>
     </div>
   );
 }
