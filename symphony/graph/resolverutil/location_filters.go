@@ -23,8 +23,17 @@ func handleLocationFilter(q *ent.LocationQuery, filter *models.LocationFilterInp
 		return locationHasEquipmentFilter(q, filter)
 	case models.LocationFilterTypeLocationInstName:
 		return locationNameFilter(q, filter)
+	case models.LocationFilterTypeLocationInstExternalID:
+		return locationExternalIDFilter(q, filter)
 	}
 	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
+}
+
+func locationExternalIDFilter(q *ent.LocationQuery, filter *models.LocationFilterInput) (*ent.LocationQuery, error) {
+	if filter.Operator == models.FilterOperatorIs {
+		return q.Where(location.ExternalID(*filter.StringValue)), nil
+	}
+	return nil, errors.Errorf("operation %s is not supported", filter.Operator)
 }
 
 func locationNameFilter(q *ent.LocationQuery, filter *models.LocationFilterInput) (*ent.LocationQuery, error) {

@@ -1361,6 +1361,7 @@ type LocationFilterType string
 const (
 	LocationFilterTypeLocationInst             LocationFilterType = "LOCATION_INST"
 	LocationFilterTypeLocationInstName         LocationFilterType = "LOCATION_INST_NAME"
+	LocationFilterTypeLocationInstExternalID   LocationFilterType = "LOCATION_INST_EXTERNAL_ID"
 	LocationFilterTypeLocationType             LocationFilterType = "LOCATION_TYPE"
 	LocationFilterTypeLocationInstHasEquipment LocationFilterType = "LOCATION_INST_HAS_EQUIPMENT"
 	LocationFilterTypeProperty                 LocationFilterType = "PROPERTY"
@@ -1369,6 +1370,7 @@ const (
 var AllLocationFilterType = []LocationFilterType{
 	LocationFilterTypeLocationInst,
 	LocationFilterTypeLocationInstName,
+	LocationFilterTypeLocationInstExternalID,
 	LocationFilterTypeLocationType,
 	LocationFilterTypeLocationInstHasEquipment,
 	LocationFilterTypeProperty,
@@ -1376,7 +1378,7 @@ var AllLocationFilterType = []LocationFilterType{
 
 func (e LocationFilterType) IsValid() bool {
 	switch e {
-	case LocationFilterTypeLocationInst, LocationFilterTypeLocationInstName, LocationFilterTypeLocationType, LocationFilterTypeLocationInstHasEquipment, LocationFilterTypeProperty:
+	case LocationFilterTypeLocationInst, LocationFilterTypeLocationInstName, LocationFilterTypeLocationInstExternalID, LocationFilterTypeLocationType, LocationFilterTypeLocationInstHasEquipment, LocationFilterTypeProperty:
 		return true
 	}
 	return false

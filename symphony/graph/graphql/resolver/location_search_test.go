@@ -45,8 +45,9 @@ func prepareLocationData(ctx context.Context, r *TestResolver) locationSearchDat
 	strPropDef := locType1.QueryPropertyTypes().Where(propertytype.Name("stringProp")).OnlyX(ctx)
 
 	loc1, _ := mr.AddLocation(ctx, models.AddLocationInput{
-		Name: "loc_inst1",
-		Type: locType1.ID,
+		Name:       "loc_inst1",
+		Type:       locType1.ID,
+		ExternalID: pointer.ToString("12345"),
 		Properties: []*models.PropertyInput{
 			{
 				PropertyTypeID: datePropDef.ID,
@@ -124,6 +125,36 @@ func TestSearchLocationAncestors(t *testing.T) {
 		MaxDepth:   &maxDepth,
 	}
 	res, err = qr.LocationSearch(ctx, []*models.LocationFilterInput{&f2}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res.Locations, 1)
+	require.Equal(t, res.Count, 1)
+}
+
+func TestSearchLocationByExternalID(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+
+	data := prepareLocationData(ctx, r)
+	/*
+		helper: data now is of type:
+		 loc1 (loc_type1):
+			eq_inst (eq_type)
+			loc2 (loc_type2)
+	*/
+	qr := r.Query()
+
+	f1 := models.LocationFilterInput{
+		FilterType:  models.LocationFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorIs,
+		StringValue: &data.loc1.ExternalID,
+	}
+	resAll, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{}, pointer.ToInt(100))
+	require.NoError(t, err)
+	require.Len(t, resAll.Locations, 2)
+	require.Equal(t, resAll.Count, 2)
+
+	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, pointer.ToInt(100))
 	require.NoError(t, err)
 	require.Len(t, res.Locations, 1)
 	require.Equal(t, res.Count, 1)

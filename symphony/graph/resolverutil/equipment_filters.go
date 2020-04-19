@@ -29,7 +29,7 @@ func handleEquipmentFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilter
 
 func equipmentExternalID(q *ent.EquipmentQuery, filter *models.EquipmentFilterInput) (*ent.EquipmentQuery, error) {
 	if filter.Operator == models.FilterOperatorIs {
-		return q.Where(equipment.ExternalIDEqualFold(*filter.StringValue)), nil
+		return q.Where(equipment.ExternalID(*filter.StringValue)), nil
 	}
 	return nil, errors.Errorf("operation %q not supported", filter.Operator)
 }
