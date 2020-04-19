@@ -15,6 +15,7 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 type PropertyTypeFormField_propertyType$ref = any;
+type ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions$ref = any;
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServiceTypeItem_serviceType$ref: FragmentReference;
 declare export opaque type ServiceTypeItem_serviceType$fragmentType: ServiceTypeItem_serviceType$ref;
@@ -23,6 +24,9 @@ export type ServiceTypeItem_serviceType = {|
   +name: string,
   +propertyTypes: $ReadOnlyArray<?{|
     +$fragmentRefs: PropertyTypeFormField_propertyType$ref
+  |}>,
+  +endpointDefinitions: $ReadOnlyArray<?{|
+    +$fragmentRefs: ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions$ref
   |}>,
   +numberOfServices: number,
   +$refType: ServiceTypeItem_serviceType$ref,
@@ -74,6 +78,22 @@ const node/*: ReaderFragment*/ = {
       ]
     },
     {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "endpointDefinitions",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ServiceEndpointDefinition",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "FragmentSpread",
+          "name": "ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions",
+          "args": null
+        }
+      ]
+    },
+    {
       "kind": "ScalarField",
       "alias": null,
       "name": "numberOfServices",
@@ -83,5 +103,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = '64aa4c97eaf3183bfa12c3cd93b03c4b';
+(node/*: any*/).hash = '1e60a484ed66bed55f3de99645b11d03';
 module.exports = node;

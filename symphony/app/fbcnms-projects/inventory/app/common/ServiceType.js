@@ -7,11 +7,26 @@
  * @flow strict-local
  * @format
  */
+
 import type {PropertyType} from './PropertyType';
+
+type ServiceEquipmentType = {
+  id: string,
+  name: string,
+};
 
 export type ServiceType = {
   id: string,
   name: string,
   propertyTypes: Array<PropertyType>,
   numberOfServices: number,
+  endpointDefinitions: Array<ServiceEndpointDefinition>,
+};
+
+export type ServiceEndpointDefinition = {
+  id: string,
+  name: string,
+  role: ?string,
+  index: number,
+  equipmentType: ?ServiceEquipmentType,
 };

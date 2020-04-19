@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ecc0fd565d670eb5bb331d3df32fc357
+ * @relayHash 7638522b52d448b3cdfaf373b05d85d4
  */
 
 /* eslint-disable */
@@ -77,6 +77,16 @@ export type AddServiceTypeMutationResponse = {|
       +category: ?string,
       +isDeleted: ?boolean,
     |}>,
+    +endpointDefinitions: $ReadOnlyArray<?{|
+      +id: string,
+      +index: number,
+      +role: ?string,
+      +name: string,
+      +equipmentType: {|
+        +id: string,
+        +name: string,
+      |},
+    |}>,
     +numberOfServices: number,
   |}
 |};
@@ -114,6 +124,16 @@ mutation AddServiceTypeMutation(
       category
       isDeleted
     }
+    endpointDefinitions {
+      id
+      index
+      role
+      name
+      equipmentType {
+        id
+        name
+      }
+    }
     numberOfServices
   }
 }
@@ -142,7 +162,14 @@ v2 = {
   "args": null,
   "storageKey": null
 },
-v3 = [
+v3 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
+},
+v4 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -185,13 +212,7 @@ v3 = [
             "args": null,
             "storageKey": null
           },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "index",
-            "args": null,
-            "storageKey": null
-          },
+          (v3/*: any*/),
           {
             "kind": "ScalarField",
             "alias": null,
@@ -286,6 +307,40 @@ v3 = [
         ]
       },
       {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "endpointDefinitions",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "ServiceEndpointDefinition",
+        "plural": true,
+        "selections": [
+          (v1/*: any*/),
+          (v3/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "role",
+            "args": null,
+            "storageKey": null
+          },
+          (v2/*: any*/),
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "equipmentType",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "EquipmentType",
+            "plural": false,
+            "selections": [
+              (v1/*: any*/),
+              (v2/*: any*/)
+            ]
+          }
+        ]
+      },
+      {
         "kind": "ScalarField",
         "alias": null,
         "name": "numberOfServices",
@@ -303,23 +358,23 @@ return {
     "type": "Mutation",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v3/*: any*/)
+    "selections": (v4/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "AddServiceTypeMutation",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v3/*: any*/)
+    "selections": (v4/*: any*/)
   },
   "params": {
     "operationKind": "mutation",
     "name": "AddServiceTypeMutation",
     "id": null,
-    "text": "mutation AddServiceTypeMutation(\n  $data: ServiceTypeCreateData!\n) {\n  addServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      nodeType\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n      category\n      isDeleted\n    }\n    numberOfServices\n  }\n}\n",
+    "text": "mutation AddServiceTypeMutation(\n  $data: ServiceTypeCreateData!\n) {\n  addServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      nodeType\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n      category\n      isDeleted\n    }\n    endpointDefinitions {\n      id\n      index\n      role\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n    numberOfServices\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'e64cda3fab3a4676ea12bf4d4a8d41d0';
+(node/*: any*/).hash = 'cad07ae57a38c052c2e033f2035dc138';
 module.exports = node;

@@ -40,6 +40,16 @@ export type AddEditServiceTypeCard_editingServiceType = {|
     +isMandatory: ?boolean,
     +isInstanceProperty: ?boolean,
   |}>,
+  +endpointDefinitions: $ReadOnlyArray<?{|
+    +id: string,
+    +index: number,
+    +role: ?string,
+    +name: string,
+    +equipmentType: {|
+      +name: string,
+      +id: string,
+    |},
+  |}>,
   +$refType: AddEditServiceTypeCard_editingServiceType$ref,
 |};
 export type AddEditServiceTypeCard_editingServiceType$data = AddEditServiceTypeCard_editingServiceType;
@@ -63,6 +73,13 @@ v1 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "name",
+  "args": null,
+  "storageKey": null
+},
+v2 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
   "args": null,
   "storageKey": null
 };
@@ -107,13 +124,7 @@ return {
           "args": null,
           "storageKey": null
         },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "index",
-          "args": null,
-          "storageKey": null
-        },
+        (v2/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -192,10 +203,44 @@ return {
           "storageKey": null
         }
       ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "endpointDefinitions",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ServiceEndpointDefinition",
+      "plural": true,
+      "selections": [
+        (v0/*: any*/),
+        (v2/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "role",
+          "args": null,
+          "storageKey": null
+        },
+        (v1/*: any*/),
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "equipmentType",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "EquipmentType",
+          "plural": false,
+          "selections": [
+            (v1/*: any*/),
+            (v0/*: any*/)
+          ]
+        }
+      ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'd2f303e2dea3ef799fa0d57289b25f49';
+(node/*: any*/).hash = '2d9cebd23a2c9e9c3623ed1e2035c69b';
 module.exports = node;

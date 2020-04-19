@@ -14,6 +14,7 @@ import type {
   AddServiceTypeMutationVariables,
   ServiceTypeCreateData,
 } from '../../mutations/__generated__/AddServiceTypeMutation.graphql';
+import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {
   EditServiceTypeMutationResponse,
   EditServiceTypeMutationVariables,
@@ -21,12 +22,16 @@ import type {
 } from '../../mutations/__generated__/EditServiceTypeMutation.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {PropertyType} from '../../common/PropertyType';
-import type {ServiceType} from '../../common/ServiceType';
+import type {
+  ServiceEndpointDefinition,
+  ServiceType,
+} from '../../common/ServiceType';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
 import AddServiceTypeMutation from '../../mutations/AddServiceTypeMutation';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CardSection from '../CardSection';
 import EditServiceTypeMutation from '../../mutations/EditServiceTypeMutation';
@@ -36,13 +41,16 @@ import PageFooter from '@fbcnms/ui/components/PageFooter';
 import PropertyTypeTable from '../form/PropertyTypeTable';
 import React from 'react';
 import SectionedCard from '@fbcnms/ui/components/SectionedCard';
+import ServiceEndpointDefinitionTable from './ServiceEndpointDefinitionTable';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
+import nullthrows from 'nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {generateTempId, removeTempIDs} from '../../common/EntUtils';
 import {getGraphError} from '../../common/EntUtils';
 import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
@@ -69,6 +77,9 @@ const styles = _ => ({
     padding: '8px 24px',
     overflowY: 'auto',
   },
+  section: {
+    marginBottom: '28px',
+  },
 });
 
 type Props = {
@@ -91,12 +102,23 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
     editingServiceType: this.getEditingServiceType(),
   };
 
+  static contextType = AppContext;
+  context: AppContextType;
+
   render() {
     const {classes, onClose} = this.props;
     const {editingServiceType} = this.state;
+    const serviceEndpointsEnabled = this.context.isFeatureEnabled(
+      'service_endpoints',
+    );
+
     const propertyTypes = editingServiceType.propertyTypes
       .slice()
       .sort(sortByIndex);
+    const endpointDefinitions = editingServiceType.endpointDefinitions
+      .slice()
+      .sort(sortByIndex);
+
     return (
       <>
         <div className={classes.cards}>
@@ -123,6 +145,24 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
               </Grid>
             </Grid>
           </SectionedCard>
+          {serviceEndpointsEnabled ? (
+            <SectionedCard>
+              <Grid container direction="column" spacing={3}>
+                <Grid item xs={12} xl={7}>
+                  <CardSection
+                    className={classes.section}
+                    title="Service Endpoints">
+                    <ServiceEndpointDefinitionTable
+                      serviceEndpointDefinitions={endpointDefinitions}
+                      onServiceEndpointDefinitionsChanged={
+                        this._endpointChangedHandler
+                      }
+                    />
+                  </CardSection>
+                </Grid>
+              </Grid>
+            </SectionedCard>
+          ) : null}
           <SectionedCard>
             <Grid container direction="column" spacing={3}>
               <Grid item xs={12} xl={7}>
@@ -152,13 +192,21 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
   }
 
   isSaveDisabled() {
+    const serviceType = this.state.editingServiceType;
+    const endpointWithNames = serviceType.endpointDefinitions.filter(
+      obj => obj.name,
+    );
     return (
-      !this.state.editingServiceType.name ||
-      !this.state.editingServiceType.propertyTypes.every(propType => {
+      !serviceType.name ||
+      !serviceType.propertyTypes.every(propType => {
         return (
           propType.isInstanceProperty || !!getPropertyDefaultValue(propType)
         );
-      })
+      }) ||
+      !endpointWithNames.every(
+        endpointType => endpointType.equipmentType && endpointType.name,
+      ) ||
+      endpointWithNames.length == 1
     );
   }
 
@@ -186,8 +234,22 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
     return {...propType};
   };
 
+  handleEquipmentOnEndpoint = (endpointType: ServiceEndpointDefinition) => {
+    const obj = {
+      ...endpointType,
+      equipmentTypeID: nullthrows(endpointType.equipmentType?.id),
+    };
+    const {equipmentType: _, ...relevant} = obj;
+    return relevant;
+  };
+
   editServiceType = () => {
-    const {id, name, propertyTypes} = this.state.editingServiceType;
+    const {
+      id,
+      name,
+      propertyTypes,
+      endpointDefinitions,
+    } = this.state.editingServiceType;
 
     const data: ServiceTypeEditData = {
       id,
@@ -197,6 +259,11 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       properties: propertyTypes
         .filter(propType => !!propType.name)
         .map(this.deleteTempId),
+      endpoints: removeTempIDs(
+        endpointDefinitions
+          .filter(endpoint => !!endpoint.name)
+          .map(this.handleEquipmentOnEndpoint),
+      ),
     };
 
     const variables: EditServiceTypeMutationVariables = {
@@ -228,7 +295,11 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
   };
 
   addNewServiceType = () => {
-    const {name, propertyTypes} = this.state.editingServiceType;
+    const {
+      name,
+      propertyTypes,
+      endpointDefinitions,
+    } = this.state.editingServiceType;
     const data: ServiceTypeCreateData = {
       name,
       hasCustomer: false,
@@ -236,6 +307,11 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       properties: propertyTypes
         .filter(propType => !!propType.name)
         .map(this.deleteTempId),
+      endpoints: removeTempIDs(
+        endpointDefinitions
+          .filter(endpoint => !!endpoint.name)
+          .map(this.handleEquipmentOnEndpoint),
+      ),
     };
 
     const variables: AddServiceTypeMutationVariables = {
@@ -309,6 +385,17 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
       };
     });
 
+  _endpointChangedHandler = newEndpointDefinitions =>
+    this.setState(prevState => {
+      return {
+        error: '',
+        editingServiceType: {
+          ...prevState.editingServiceType,
+          endpointDefinitions: newEndpointDefinitions,
+        },
+      };
+    });
+
   getEditingServiceType(): ServiceType {
     const {editingServiceType} = this.props;
     const propertyTypes = (editingServiceType?.propertyTypes ?? [])
@@ -329,6 +416,19 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
         isMandatory: p.isMandatory,
         isInstanceProperty: p.isInstanceProperty,
       }));
+    const endpointDefinitions = (editingServiceType?.endpointDefinitions ?? [])
+      .filter(Boolean)
+      .map(ep => ({
+        id: ep.id,
+        name: ep.name,
+        index: ep.index,
+        role: ep.role,
+        equipmentType: {
+          id: ep.equipmentType?.id,
+          name: ep.equipmentType?.name,
+        },
+      }));
+
     return {
       id: editingServiceType?.id ?? 'ServiceType@tmp0',
       name: editingServiceType?.name ?? '',
@@ -351,6 +451,18 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
                 longitudeValue: null,
                 isEditable: true,
                 isInstanceProperty: true,
+              },
+            ],
+      endpointDefinitions:
+        endpointDefinitions.length > 0
+          ? endpointDefinitions
+          : [
+              {
+                id: generateTempId(),
+                name: '',
+                index: editingServiceType?.endpointDefinitions?.length ?? 0,
+                role: null,
+                equipmentType: null,
               },
             ],
     };
@@ -383,6 +495,10 @@ export default withStyles(styles)(
               isEditable
               isMandatory
               isInstanceProperty
+            }
+            endpointDefinitions {
+              ...ServiceEndpointDefinitionTable_serviceEndpointDefinitions
+                @relay(mask: false)
             }
           }
         `,

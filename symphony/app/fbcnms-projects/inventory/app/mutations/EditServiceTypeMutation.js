@@ -26,6 +26,10 @@ const mutation = graphql`
       propertyTypes {
         ...PropertyTypeFormField_propertyType @relay(mask: false)
       }
+      endpointDefinitions {
+        ...ServiceEndpointDefinitionStaticTable_serviceEndpointDefinitions
+          @relay(mask: false)
+      }
     }
   }
 `;

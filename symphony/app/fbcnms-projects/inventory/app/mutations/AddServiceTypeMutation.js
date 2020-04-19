@@ -26,6 +26,16 @@ const mutation = graphql`
       propertyTypes {
         ...PropertyTypeFormField_propertyType @relay(mask: false)
       }
+      endpointDefinitions {
+        id
+        index
+        role
+        name
+        equipmentType {
+          id
+          name
+        }
+      }
       numberOfServices
     }
   }

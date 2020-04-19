@@ -144,7 +144,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
         id: service.id,
         portId: port.id,
         equipmentID: port.parentEquipment.id,
-        definition: '0' + role, //TODO - AddServiceEndpointType Flow
+        definition: '0' + role, //TODO - AddServiceEndpointDefinition Flow
       },
     };
     const callbacks: MutationCallbacks<AddServiceEndpointMutationResponse> = {

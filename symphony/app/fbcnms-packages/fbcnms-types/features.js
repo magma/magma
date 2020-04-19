@@ -39,4 +39,5 @@ export type FeatureID =
   | 'saved_searches'
   | 'read_only_users'
   | 'user_management'
+  | 'service_endpoints'
   | 'user_management_dev';
