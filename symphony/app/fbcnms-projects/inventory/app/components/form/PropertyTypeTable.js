@@ -155,12 +155,12 @@ class PropertyTypeTable extends React.Component<Props> {
                           .map(type => ({
                             key: type,
                             value: PropertyTypeLabels[type].isNode
-                              ? 'node_' + type
-                              : type + '_',
+                              ? 'node-' + type
+                              : type + '-',
                             label: PropertyTypeLabels[type].label,
                           }))}
                         selectedValue={
-                          property.type + '_' + (property.nodeType ?? '')
+                          property.type + '-' + (property.nodeType ?? '')
                         }
                         onChange={this._handleTypeChange(i)}
                       />
@@ -256,11 +256,7 @@ class PropertyTypeTable extends React.Component<Props> {
   };
 
   _handleTypeChange = index => value => {
-    const lastIndex = value.lastIndexOf('_');
-    const [type, nodeType] = [
-      value.substring(0, lastIndex),
-      value.substring(lastIndex + 1),
-    ];
+    const [type, nodeType] = value.split('-');
     const newPropertyTypes = updateItem<PropertyType, 'type'>(
       this.props.propertyTypes,
       index,
