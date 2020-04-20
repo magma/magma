@@ -63,6 +63,7 @@ export default function PermissionsGroupsView() {
           Group Name
         </fbt>
       ),
+      getSortingValue: groupRow => groupRow.name,
       render: groupRow => groupRow.name,
     },
     {
@@ -72,6 +73,7 @@ export default function PermissionsGroupsView() {
           Description
         </fbt>
       ),
+      getSortingValue: groupRow => groupRow.description,
       render: groupRow => groupRow.description,
       titleClassName: classes.wideColumn,
       className: classes.wideColumn,
@@ -83,6 +85,7 @@ export default function PermissionsGroupsView() {
           Members
         </fbt>
       ),
+      getSortingValue: groupRow => groupRow.members.length,
       render: groupRow => groupRow.members.length,
       titleClassName: classes.narrowColumn,
       className: classes.narrowColumn,
@@ -92,6 +95,7 @@ export default function PermissionsGroupsView() {
       title: (
         <fbt desc="Status column header in permission groups table">Status</fbt>
       ),
+      getSortingValue: groupRow => GROUP_STATUSES[groupRow.status].value,
       render: groupRow => GROUP_STATUSES[groupRow.status].value,
       titleClassName: classes.narrowColumn,
       className: classes.narrowColumn,
