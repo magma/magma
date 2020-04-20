@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,7 +52,7 @@ Description Defines the EPS Mobility Management procedures executed at
  */
 typedef enum {
   EMM_STATE_MIN = 0,
-  EMM_INVALID = EMM_STATE_MIN,
+  EMM_INVALID   = EMM_STATE_MIN,
   EMM_DEREGISTERED,
   EMM_REGISTERED,
   EMM_DEREGISTERED_INITIATED,
@@ -83,13 +79,12 @@ struct emm_context_s;
 struct emm_reg_s;
 
 int emm_fsm_set_state(
-  const mme_ue_s1ap_id_t ueid,
-  struct emm_context_s *const emm_context,
-  const emm_fsm_state_t status);
+    const mme_ue_s1ap_id_t ueid, struct emm_context_s* const emm_context,
+    const emm_fsm_state_t status);
 emm_fsm_state_t emm_fsm_get_state(
-  const struct emm_context_s *const emm_context);
-const char *emm_fsm_get_state_str(
-  const struct emm_context_s *const emm_context);
-int emm_fsm_process(struct emm_reg_s *const evt);
+    const struct emm_context_s* const emm_context);
+const char* emm_fsm_get_state_str(
+    const struct emm_context_s* const emm_context);
+int emm_fsm_process(struct emm_reg_s* const evt);
 
 #endif /* FILE_EMM_FSM_SEEN*/

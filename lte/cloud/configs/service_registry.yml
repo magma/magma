@@ -1,17 +1,45 @@
 ---
-# Copyright (c) 2019-present, Facebook, Inc.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 services:
+  lte:
+    host: "localhost"
+    port: 9113
+    echo_port: 10113
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/stream_provider: "true"
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/lte,/magma/v1/lte/:network_id"
+      orc8r.io/stream_provider_streams: "base_names,network_wide_rules,policydb,rule_mappings,subscriberdb,rating_groups"
+
   subscriberdb:
     host: "localhost"
     port: 9083
+    echo_port: 10083
     proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/lte/:network_id/subscribers"
 
   policydb:
     host: "localhost"
     port: 9085
+    echo_port: 10085
     proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/policies,
+        /magma/v1/networks/:network_id/rating_groups

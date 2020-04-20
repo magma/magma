@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,25 +56,23 @@ struct pcef_create_session_data {
  * This is a long process, so it needs to by asynchronous
  */
 void pcef_create_session(
-  spgw_state_t* state,
-  const char* imsi,
-  const char* ip,
-  const struct pcef_create_session_data* session_data,
-  itti_sgi_create_end_point_response_t sgi_response,
-  s5_create_session_request_t bearer_request,
-  s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
+    spgw_state_t* state, const char* imsi, const char* ip,
+    const struct pcef_create_session_data* session_data,
+    itti_sgi_create_end_point_response_t sgi_response,
+    s5_create_session_request_t bearer_request,
+    s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
 
 /**
  * pcef_end_session is a *synchronous* call that ends the UE session in the
  * PCEF and returns true if successful.
  * This may turn asynchronous in the future if it's too long
  */
-bool pcef_end_session(char *imsi, char *apn);
+bool pcef_end_session(char* imsi, char* apn);
 
 void get_session_req_data(
-  spgw_state_t* spgw_state,
-  const itti_s11_create_session_request_t* saved_req,
-  struct pcef_create_session_data* data);
+    spgw_state_t* spgw_state,
+    const itti_s11_create_session_request_t* saved_req,
+    struct pcef_create_session_data* data);
 
 #ifdef __cplusplus
 }

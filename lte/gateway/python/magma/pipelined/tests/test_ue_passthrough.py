@@ -1,10 +1,14 @@
 """
-Copyright (c) 2019-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 import unittest
 import warnings
@@ -43,6 +47,8 @@ class UEMacAddressTest(unittest.TestCase):
     UE_MAC_1 = '5e:cc:cc:b1:49:4b'
     UE_MAC_2 = '5e:cc:cc:aa:aa:fe'
     BRIDGE_IP = '192.168.130.1'
+    DPI_PORT = 'mon1'
+    DPI_IP = '1.1.1.1'
 
     @classmethod
     @unittest.mock.patch('netifaces.ifaddresses',
@@ -90,11 +96,18 @@ class UEMacAddressTest(unittest.TestCase):
                 'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
+                'internal_ip_subnet': '192.168.0.0/16',
                 'ovs_gtp_port_number': 32768,
                 'virtual_interface': 'testing_br',
                 'local_ue_eth_addr': False,
                 'quota_check_ip': '1.2.3.4',
                 'clean_restart': True,
+                'dpi': {
+                    'enabled': False,
+                    'mon_port': 'mon1',
+                    'mon_port_number': 32769,
+                    'idle_timeout': 42,
+                },
             },
             mconfig=PipelineD(
                 ue_ip_block="192.168.128.0/24",
@@ -105,6 +118,8 @@ class UEMacAddressTest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+        BridgeTools.create_internal_iface(cls.BRIDGE, cls.DPI_PORT,
+                                          cls.DPI_IP)
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.ue_mac_controller = ue_mac_controller_reference.result()
@@ -160,18 +175,18 @@ class UEMacAddressTest(unittest.TestCase):
         ]
 
         # =========================== Verification ===========================
-        # Verify 11 flows installed for ue_mac table (3 pkts matched)
+        # Verify 3 flows installed for ue_mac table (3 pkts matched)
         #        4 flows installed for inout (3 pkts matched)
         #        2 flows installed (2 pkts matches)
         flow_verifier = FlowVerifier(
             [
                 FlowTest(FlowQuery(self._tbl_num,
-                                   self.testing_controller), 4, 11),
+                                   self.testing_controller), 4, 3),
                 FlowTest(FlowQuery(self._ingress_tbl_num,
                                    self.testing_controller), 4, 2),
                 FlowTest(FlowQuery(self._egress_tbl_num,
                                    self.testing_controller), 3, 2),
-                FlowTest(flow_queries[0], 4, 5),
+                FlowTest(flow_queries[0], 4, 1),
             ], lambda: wait_after_send(self.testing_controller))
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,

@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2016-present, Facebook, Inc.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 #pragma once
 
@@ -65,10 +69,15 @@ class PolicyRuleBiMap {
 
   virtual void insert_rule(const PolicyRule& rule);
 
-  virtual bool get_rule(const std::string& rule_id, PolicyRule* rule);
+  // Get the rule definition associated with the given rule_id
+  // If the rule is found, copy the rule into the output parameter and return
+  // true. Otherwise, return false.
+  // If the output rule param is NULL, the rule object is not copied.
+  virtual bool get_rule(const std::string& rule_id, PolicyRule* rule_out);
 
   // Remove a rule from the store by ID. Returns true if the rule ID was found.
-  // The removed rule will be copied into rule_out
+  // The removed rule will be copied into rule_out.
+  // If the output rule param is NULL, the rule object is not copied.
   virtual bool remove_rule(const std::string& rule_id, PolicyRule* rule_out);
 
   /**

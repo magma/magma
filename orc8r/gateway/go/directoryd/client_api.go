@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package directoryd provides a client API for interacting with the
@@ -14,23 +19,36 @@ import (
 	"fmt"
 	"strings"
 
-	platformregistry "magma/orc8r/lib/go/registry"
+	"github.com/golang/glog"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
+	platformregistry "magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/util"
 )
 
 const (
 	ServiceName = "DIRECTORYD"
 	ImsiPrefix  = "IMSI"
+
+	UseCloudDirectordEnv = "USE_CLOUD_DIRECTORYD"
 )
+
+var useCloudDirectoryd = util.GetEnvBool(UseCloudDirectordEnv)
 
 // Get a thin RPC client to the gateway directory service.
 func GetGatewayDirectorydClient() (protos.GatewayDirectoryServiceClient, error) {
-	conn, err := platformregistry.GetConnection(ServiceName)
+	var (
+		conn *grpc.ClientConn
+		err  error
+	)
+	if useCloudDirectoryd {
+		conn, err = platformregistry.Get().GetSharedCloudConnection(strings.ToLower(ServiceName))
+	} else {
+		conn, err = platformregistry.Get().GetConnection(ServiceName)
+	}
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)

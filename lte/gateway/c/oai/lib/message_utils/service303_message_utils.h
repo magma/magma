@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +23,7 @@
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 
-int send_app_health_to_service303(task_id_t origin_id, bool healthy);
+int send_app_health_to_service303(
+    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id, bool healthy);
 
 #endif /* FILE_SERVICE303_MESSAGE_UTILS */

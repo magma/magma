@@ -1,2 +1,5 @@
 [feg]
-magma ansible_ssh_host=192.168.90.10 ansible_ssh_port=22 ansible_user=vagrant
+magma-feg-dev  ansible_ssh_host=192.168.110.10 ansible_ssh_port=22 ansible_user=vagrant
+
+[feg_bare]
+magma-feg-dev-bare ansible_ssh_host=192.168.90.10 ansible_ssh_port=22 ansible_user=vagrant

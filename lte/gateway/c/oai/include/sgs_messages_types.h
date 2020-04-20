@@ -5,26 +5,27 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 #ifndef FILE_SGS_MESSAGES_TYPES_SEEN
 #define FILE_SGS_MESSAGES_TYPES_SEEN
@@ -87,50 +88,50 @@ typedef enum SgsCause_e {
 
 typedef enum SgsRejectCause_e {
   SGS_INVALID_CAUSE,
-  SGS_IMSI_UNKNOWN_IN_HLR = 2,
-  SGS_ILLEGAL_MS = 3,
-  SGS_IMSI_UNKNOWN_IN_VLR = 4,
-  SGS_IMEI_NOT_ACCEPTED = 5,
-  SGS_ILLEGAL_UE = 6,
-  SGS_PLMN_NOT_ALLOWED = 11,
-  SGS_LOCATION_AREA_NOT_ALLOWED = 12,
-  SGS_ROAMING_NOT_ALLOWED_IN_THIS_LOCATION_AREA = 13,
-  SGS_NO_SUITABLE_CELLS_IN_LOCATION_AREA = 15,
-  SGS_MSC_NOT_REACHABLE = 16,
-  SGS_NETWORK_FAILURE = 17,
-  SGS_MAC_FAILURE = 20,
-  SGS_SYNCH_FAILURE = 21,
-  SGS_CONGESTION = 22,
-  SGS_GSM_AUTHENTICATION_UNACCEPTABLE = 23,
-  SGS_NOT_AUTHORIZED_FOR_THIS_CSG = 25,
-  SGS_SERVICE_OPTION_NOT_SUPPORTED = 32,
-  SGS_REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED = 33,
-  SGS_SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER = 34,
-  SGS_CALL_CANNOT_BE_IDENTIFIED = 38,
-  SGS_RETRY_UPON_ENTRY_INTO_NEW_CELL = 48,
-  SGS_SEMANTICALLY_INCORRECT_MESSAGE = 95,
-  SGS_INVALID_MANDATORY_INFORMATION = 96,
-  SGS_MSG_TYPE_NON_EXISTENT_NOT_IMPLEMENTED = 97,
-  SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE = 98,
+  SGS_IMSI_UNKNOWN_IN_HLR                              = 2,
+  SGS_ILLEGAL_MS                                       = 3,
+  SGS_IMSI_UNKNOWN_IN_VLR                              = 4,
+  SGS_IMEI_NOT_ACCEPTED                                = 5,
+  SGS_ILLEGAL_UE                                       = 6,
+  SGS_PLMN_NOT_ALLOWED                                 = 11,
+  SGS_LOCATION_AREA_NOT_ALLOWED                        = 12,
+  SGS_ROAMING_NOT_ALLOWED_IN_THIS_LOCATION_AREA        = 13,
+  SGS_NO_SUITABLE_CELLS_IN_LOCATION_AREA               = 15,
+  SGS_MSC_NOT_REACHABLE                                = 16,
+  SGS_NETWORK_FAILURE                                  = 17,
+  SGS_MAC_FAILURE                                      = 20,
+  SGS_SYNCH_FAILURE                                    = 21,
+  SGS_CONGESTION                                       = 22,
+  SGS_GSM_AUTHENTICATION_UNACCEPTABLE                  = 23,
+  SGS_NOT_AUTHORIZED_FOR_THIS_CSG                      = 25,
+  SGS_SERVICE_OPTION_NOT_SUPPORTED                     = 32,
+  SGS_REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED          = 33,
+  SGS_SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER          = 34,
+  SGS_CALL_CANNOT_BE_IDENTIFIED                        = 38,
+  SGS_RETRY_UPON_ENTRY_INTO_NEW_CELL                   = 48,
+  SGS_SEMANTICALLY_INCORRECT_MESSAGE                   = 95,
+  SGS_INVALID_MANDATORY_INFORMATION                    = 96,
+  SGS_MSG_TYPE_NON_EXISTENT_NOT_IMPLEMENTED            = 97,
+  SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE      = 98,
   SGS_INFORMATION_ELEMENT_NON_EXISTENT_NOT_IMPLEMENTED = 99,
-  SGS_CONDITIONAL_IE_ERROR = 100,
-  SGS_MSG_NOT_COMPATIBLE_WITH_PROTOCOL_STATE = 101,
-  SGS_PROTOCOL_ERROR_UNSPECIFIED = 111
+  SGS_CONDITIONAL_IE_ERROR                             = 100,
+  SGS_MSG_NOT_COMPATIBLE_WITH_PROTOCOL_STATE           = 101,
+  SGS_PROTOCOL_ERROR_UNSPECIFIED                       = 111
 } SgsRejectCause_t;
 
 typedef enum LocationUpdateType_e {
-  IMSI_ATTACH = 1,
+  IMSI_ATTACH            = 1,
   NORMAL_LOCATION_UPDATE = 2
 } LocationUpdateType_t;
 
 /*
-  * As per specification 29.118 Section 9.4.7,
-  * IMSI detach from EPS service type is as below:
-  * 0 0 0 0 0 0 0 0 Interpreted as reserved in this version of the protocol
-  * 0 0 0 0 0 0 0 1 Network initiated IMSI detach from EPS services
-  * 0 0 0 0 0 0 1 0 UE initiated IMSI detach from EPS services
-  * 0 0 0 0 0 0 1 1 EPS services not allowed
-*/
+ * As per specification 29.118 Section 9.4.7,
+ * IMSI detach from EPS service type is as below:
+ * 0 0 0 0 0 0 0 0 Interpreted as reserved in this version of the protocol
+ * 0 0 0 0 0 0 0 1 Network initiated IMSI detach from EPS services
+ * 0 0 0 0 0 0 1 0 UE initiated IMSI detach from EPS services
+ * 0 0 0 0 0 0 1 1 EPS services not allowed
+ */
 typedef enum {
   SGS_EPS_DETACH_TYPE_RESERVED = 0,
   SGS_NW_INITIATED_IMSI_DETACH_FROM_EPS,
@@ -140,13 +141,14 @@ typedef enum {
 } SgsEpsDetachType_t;
 
 /*
-  * As per specification 29.118 Section 9.4.8,
-  * IMSI detach from non-EPS service type is as below:
-  * 0 0 0 0 0 0 0 0 Interpreted as reserved in this version of the protocol
-  * 0 0 0 0 0 0 0 1 Explicit UE initiated IMSI detach from non-EPS services
-  * 0 0 0 0 0 0 1 0 Combined UE initiated IMSI detach from EPS and non-EPS services
-  * 0 0 0 0 0 0 1 1 Implicit network initiated IMSI detach from EPS and non-EPS services
-*/
+ * As per specification 29.118 Section 9.4.8,
+ * IMSI detach from non-EPS service type is as below:
+ * 0 0 0 0 0 0 0 0 Interpreted as reserved in this version of the protocol
+ * 0 0 0 0 0 0 0 1 Explicit UE initiated IMSI detach from non-EPS services
+ * 0 0 0 0 0 0 1 0 Combined UE initiated IMSI detach from EPS and non-EPS
+ * services 0 0 0 0 0 0 1 1 Implicit network initiated IMSI detach from EPS and
+ * non-EPS services
+ */
 typedef enum {
   SGS_NONEPS_DETACH_TYPE_RESERVED = 0,
   SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS,
@@ -177,8 +179,8 @@ typedef struct itti_sgsap_location_update_req_s {
   uint8_t imsi_length;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   LocationUpdateType_t locationupdatetype;
-  lai_t newlaicsfb; // New LAI
-  lai_t oldlaicsfb; // Old LAI
+  lai_t newlaicsfb;  // New LAI
+  lai_t oldlaicsfb;  // Old LAI
   bool tmsistatus;
   char imeisv[MAX_IMEISV_SIZE + 1];
   uint8_t imsisv_length;
@@ -213,8 +215,8 @@ typedef struct itti_sgsap_paging_request_s {
   uint8_t service_indicator; /* Indicates SMS or CS call */
 
   /* If an optional value is present and should be encoded, the corresponding
- * Bit mask should be set to 1.
- */
+   * Bit mask should be set to 1.
+   */
 
 #define PAGING_REQUEST_TMSI_PARAMETER_PRESENT (1 << 0)
 #define PAGING_REQUEST_CLI_PARAMETER_PRESENT (1 << 1)
@@ -231,8 +233,8 @@ typedef struct itti_sgsap_service_request_s {
   uint8_t service_indicator; /* Indicates SMS or CS call */
 
   /* If an optional value is present and should be encoded, the corresponding
- * Bit mask should be set to 1.
- */
+   * Bit mask should be set to 1.
+   */
 
 #define SERVICE_REQUEST_IMEISV_PARAMETER_PRESENT (1 << 0)
 #define SERVICE_REQUEST_UE_TIMEZONE_PARAMETER_PRESENT (1 << 1)
@@ -321,8 +323,9 @@ typedef itti_sgsap_paging_reject_t itti_sgsap_alert_reject_t;
 typedef struct itti_sgsap_mm_information_req_s {
   uint8_t imsi_length;
   char imsi[IMSI_BCD8_SIZE + 1];
-/* As per spec,No upper length limit is specified except for that given by the maximum number of octets in a L3 message
-   max length of L3 message is 251, setting to 255 */
+/* As per spec,No upper length limit is specified except for that given by the
+   maximum number of octets in a L3 message max length of L3 message is 251,
+   setting to 255 */
 #define MAX_NETWORK_NAME_LEN 255
 #define MAX_LSA_IDENTIFIER_LEN 5
 #define MM_INFORMATION_REQUEST_FULL_NW_NAME_PRESENT (1 << 0)
@@ -384,7 +387,8 @@ typedef struct itti_sgsap_release_req_s {
 typedef struct itti_sgsap_ue_activity_ind_s {
   uint8_t imsi_length;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
-  /*TBD: Do we required the optional parameter 'Maximum UE Available Time'? since it is based on deployment scenario*/
+  /*TBD: Do we required the optional parameter 'Maximum UE Available Time'?
+   * since it is based on deployment scenario*/
 } itti_sgsap_ue_activity_ind_t;
 
 typedef struct itti_sgsap_vlr_reset_indication_s {

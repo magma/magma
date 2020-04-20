@@ -1,17 +1,23 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package main implements WiFi AAA server
 package main
 
 import (
-	"log"
+	"flag"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 
 	fegprotos "magma/feg/cloud/go/protos"
@@ -31,18 +37,20 @@ const (
 )
 
 func main() {
+	flag.Parse() // for glog
+
 	// Create a shared Session Table
 	sessions := store.NewMemorySessionTable()
 
 	// Create the EAP AKA Provider service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.AAA_SERVER)
 	if err != nil {
-		log.Fatalf("Error creating AAA service: %s", err)
+		glog.Fatalf("Error creating AAA service: %s", err)
 	}
 	aaaConfigs := &mconfig.AAAConfig{}
 	err = managed_configs.GetServiceConfigs(AAAServiceName, aaaConfigs)
 	if err != nil {
-		log.Printf("Error getting AAA Server service configs: %s", err)
+		glog.Warningf("Error getting AAA Server service configs: %s", err)
 		aaaConfigs = nil
 	}
 	acct, _ := servicers.NewAccountingService(sessions, proto.Clone(aaaConfigs).(*mconfig.AAAConfig))
@@ -53,9 +61,12 @@ func main() {
 	auth, _ := servicers.NewEapAuthenticator(sessions, aaaConfigs, acct)
 	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)
 
-	log.Printf("Starting AAA Service v%s.", Version)
+	// Starts built in radius server if built with this option
+	startBuiltInRadius(aaaConfigs, auth, acct)
+
+	glog.Infof("Starting AAA Service v%s.", Version)
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running AAA service: %s", err)
+		glog.Fatalf("Error running AAA service: %s", err)
 	}
 }

@@ -1,9 +1,14 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
 S-GW :
@@ -12,7 +17,7 @@ S-GW :
     {
         # S-GW binded interface for S11 communication (GTPV2-C), if none selected the ITTI message interface is used
         SGW_INTERFACE_NAME_FOR_S11              = "{{ s11_iface_name }}";
-        SGW_IPV4_ADDRESS_FOR_S11                = "{{ s11_ip }}";
+        SGW_IPV4_ADDRESS_FOR_S11                = "{{ sgw_s11_ip }}";
 
         # S-GW binded interface for S1-U communication (GTPV1-U) can be ethernet interface, virtual ethernet interface, we don't advise wireless interfaces
         SGW_INTERFACE_NAME_FOR_S1U_S12_S4_UP    = "{{ s1u_iface_name }}";
@@ -68,9 +73,12 @@ P-GW =
     # DNS address communicated to UEs
     DEFAULT_DNS_IPV4_ADDRESS     = "{{ ipv4_dns }}";
     DEFAULT_DNS_SEC_IPV4_ADDRESS = "{{ ipv4_sec_dns }}";
+    P_CSCF_IPV4_ADDRESS = "172.27.23.150";
+    P_CSCF_IPV6_ADDRESS = "2a12:577:9941:f99c:0002:0001:c731:f114";
 
     # Non standard feature, normally should be set to "no", but you may need to set to yes for UE that do not explicitly request a PDN address through NAS signalling
     FORCE_PUSH_PROTOCOL_CONFIGURATION_OPTIONS = "no";                           # STRING, {"yes", "no"}.
     UE_MTU                                    = 1400         # MTU - (extended GTPv1 hdr(16 Bytes) + UDP hdr(8) -IPv4(20) hdr + additonal bytes(56)) INTEGER
     RELAY_ENABLED                             = "{{ relay_enabled }}";
+    ENABLE_NAT                                = "{{ enable_nat }}"
 };

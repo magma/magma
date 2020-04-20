@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,28 +71,29 @@
 
 typedef enum tracking_area_update_accept_iei_tag {
   TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_IEI = GPRS_C_TIMER_3412_VALUE_IEI,
-  TRACKING_AREA_UPDATE_ACCEPT_GUTI_IEI = 0x50,     /* 0x50 = 80 */
-  TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_IEI = 0x54, /* 0x54 = 84 */
+  TRACKING_AREA_UPDATE_ACCEPT_GUTI_IEI        = 0x50, /* 0x50 = 80 */
+  TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_IEI    = 0x54, /* 0x54 = 84 */
   TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_IEI =
-    0x57, /* 0x57 = 87 */
+      0x57, /* 0x57 = 87 */
   TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI = C_MOBILE_IDENTITY_IEI,
-  TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI = 0x53, /* 0x53 = 83 */
+  TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI   = 0x53, /* 0x53 = 83 */
   TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_IEI = GPRS_C_TIMER_3402_VALUE_IEI,
   TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_IEI = GPRS_C_TIMER_3423_VALUE_IEI,
   TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI = C_PLMN_LIST_IEI,
   TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_IEI =
-    MM_EMERGENCY_NUMBER_LIST_IEI,
+      MM_EMERGENCY_NUMBER_LIST_IEI,
   TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI =
-    0x64, /* 0x64 = 100 */
+      0x64, /* 0x64 = 100 */
   TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI =
-    0xF0, /* 0xF0 = 240 */
+      0xF0, /* 0xF0 = 240 */
 } tracking_area_update_accept_iei;
 
 /*
  * Message name: Tracking area update accept
- * Description: This message is sent by the network to the UE to provide the UE with EPS mobility management related data in response to a tracking area update request message. See table 8.2.26.1.
- * Significance: dual
- * Direction: network to UE
+ * Description: This message is sent by the network to the UE to provide the UE
+ * with EPS mobility management related data in response to a tracking area
+ * update request message. See table 8.2.26.1. Significance: dual Direction:
+ * network to UE
  */
 
 typedef struct tracking_area_update_accept_msg_tag {
@@ -123,13 +120,11 @@ typedef struct tracking_area_update_accept_msg_tag {
 } tracking_area_update_accept_msg;
 
 int decode_tracking_area_update_accept(
-  tracking_area_update_accept_msg *trackingareaupdateaccept,
-  uint8_t *buffer,
-  uint32_t len);
+    tracking_area_update_accept_msg* trackingareaupdateaccept, uint8_t* buffer,
+    uint32_t len);
 
 int encode_tracking_area_update_accept(
-  tracking_area_update_accept_msg *trackingareaupdateaccept,
-  uint8_t *buffer,
-  uint32_t len);
+    tracking_area_update_accept_msg* trackingareaupdateaccept, uint8_t* buffer,
+    uint32_t len);
 
 #endif /* ! defined(FILE_TRACKING_AREA_UPDATE_ACCEPT_SEEN) */

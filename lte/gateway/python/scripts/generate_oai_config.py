@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
 
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+"""
 Pre-run script for services to generate a nghttpx config from a jinja template
 and the config/mconfig for the service.
 """
@@ -14,6 +20,7 @@ and the config/mconfig for the service.
 import logging
 import os
 import socket
+
 from create_oai_certs import generate_mme_certs
 from generate_service_config import generate_template_config
 from lte.protos.mconfig.mconfigs_pb2 import MME
@@ -22,6 +29,8 @@ from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import get_service_config_value
 
 CONFIG_OVERRIDE_DIR = "/var/opt/magma/tmp"
+DEFAULT_DNS_IP_PRIMARY_ADDR = "8.8.8.8"
+DEFAULT_DNS_IP_SECONDARY_ADDR = "8.8.4.4"
 
 
 def _get_iface_ip(service, iface_config):
@@ -32,16 +41,26 @@ def _get_iface_ip(service, iface_config):
     return get_ip_from_if_cidr(iface_name)
 
 
-def _get_dns_ip(iface_config):
+def _get_primary_dns_ip(iface_config):
     """
     Get dnsd interface IP without netmask.
     If caching is enabled, use the ip of interface that dnsd listens over.
-    Otherwise, just use dns server in yml.
+    Otherwise, use dns server from service mconfig.
     """
-    if load_service_mconfig("mme", MME()).enable_dns_caching:
+    service_config = load_service_mconfig("mme", MME())
+    if service_config.enable_dns_caching:
         iface_name = get_service_config_value("dnsd", iface_config, "")
         return get_ip_from_if(iface_name)
-    return get_service_config_value("spgw", "ipv4_dns", "")
+    else:
+        return service_config.dns_primary or DEFAULT_DNS_IP_PRIMARY_ADDR
+
+
+def _get_secondary_dns_ip():
+    """
+    Get the secondary dns ip from the service mconfig.
+    """
+    service_config = load_service_mconfig("mme", MME())
+    return service_config.dns_secondary or DEFAULT_DNS_IP_SECONDARY_ADDR
 
 
 def _get_oai_log_level():
@@ -104,6 +123,18 @@ def _get_identity():
     return "{}.{}".format(socket.gethostname(), realm)
 
 
+def _get_enable_nat():
+    nat_enabled = get_service_config_value("mme", "enable_nat", None)
+
+    if nat_enabled is None:
+        nat_enabled = load_service_mconfig("mme", MME()).nat_enabled
+
+    if nat_enabled is not None:
+        return nat_enabled
+
+    return True
+
+
 def _get_attached_enodeb_tacs():
     mme_config = load_service_mconfig("mme", MME())
     # attachedEnodebTacs overrides 'tac', which is being deprecated, but for
@@ -120,11 +151,14 @@ def _get_context():
     Create the context which has the interface IP and the OAI log level to use.
     """
     context = {}
-    context["s11_ip"] = _get_iface_ip("spgw", "s11_iface_name")
+    context["mme_s11_ip"] = _get_iface_ip("mme", "s11_iface_name")
+    context["sgw_s11_ip"] = _get_iface_ip("spgw", "s11_iface_name")
+    context["remote_sgw_ip"] = get_service_config_value("mme", "remote_sgw_ip", "")
     context["s1ap_ip"] = _get_iface_ip("mme", "s1ap_iface_name")
     context["s1u_ip"] = _get_iface_ip("spgw", "s1u_iface_name")
     context["oai_log_level"] = _get_oai_log_level()
-    context["ipv4_dns"] = _get_dns_ip("dns_iface_name")
+    context['ipv4_dns'] = _get_primary_dns_ip('dns_iface_name')
+    context['ipv4_sec_dns'] = _get_secondary_dns_ip()
     context["identity"] = _get_identity()
     context["relay_enabled"] = _get_relay_enabled()
     context["non_eps_service_control"] = _get_non_eps_service_control()
@@ -133,6 +167,7 @@ def _get_context():
     context["lac"] = _get_lac()
     context["use_stateless"] = get_service_config_value("mme", "use_stateless", "")
     context["attached_enodeb_tacs"] = _get_attached_enodeb_tacs()
+    context["enable_nat"] = _get_enable_nat()
     # set ovs params
     for key in (
         "ovs_bridge_name",

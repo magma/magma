@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 from distutils.util import strtobool
@@ -91,10 +95,12 @@ def package(vcs='hg', all_deps="False",
         # Generate magma dependency packages
         run('mkdir -p ~/magma-deps')
         print("Generating lte/setup.py magma dependency packages")
-        run('./release/pydep finddep -b --build-output ~/magma-deps python/setup.py')
+        run(
+            './release/pydep finddep -b --build-output ~/magma-deps python/setup.py')
 
         print("Generating orc8r/setup.py magma dependency packages")
-        run('./release/pydep finddep -b --build-output ~/magma-deps %s/setup.py' % ORC8R_AGW_PYTHON_ROOT)
+        run(
+            './release/pydep finddep -b --build-output ~/magma-deps %s/setup.py' % ORC8R_AGW_PYTHON_ROOT)
 
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')
@@ -233,10 +239,14 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_oai_coverage)
 
 
-def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
+def get_test_logs(gateway_host=None,
+                  test_host=None,
+                  trf_host=None,
+                  dst_path="/tmp/build_logs.tar.gz"):
     '''
     Downloads the relevant magma logs from the given gateway and test machines.
-    Places the logs in /tmp/build_logs.zip
+    Places the logs in a path specified in 'dst_path' or
+    "/tmp/build_logs.tar.gz" by default
 
     gateway_host: The ssh address string of the gateway machine formatted as
         "host:port". If not specified, defaults to the `magma` vagrant box.
@@ -249,6 +259,8 @@ def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
         on. Formatted as "host:port". If not specified, defaults to the
         `magma_trfserver` vagrant box.
 
+    dst_path: The path where the tarred logs will be placed on the host
+
     '''
     # Grab the build logs from the machines and bring them to the host
     local('rm -rf /tmp/build_logs')
@@ -256,7 +268,9 @@ def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
     local('mkdir /tmp/build_logs/dev')
     local('mkdir /tmp/build_logs/test')
     local('mkdir /tmp/build_logs/trfserver')
-    dev_files = ['/var/log/mme.log', '/var/log/syslog']
+    dev_files = ['/var/log/mme.log',
+                 '/var/log/syslog',
+                 '/var/log/openvswitch/ovs*.log']
     test_files = ['/var/log/syslog', '/tmp/fw/']
     trf_files = ['/home/admin/nohup.out']
 
@@ -304,8 +318,8 @@ def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
             get(remote_path=p, local_path='/tmp/build_logs/test/',
                 use_sudo=True)
 
-    local('rm -rf /tmp/build_logs.zip')
-    local('zip -r /tmp/build_logs.zip /tmp/build_logs')
+    local("tar -czvf /tmp/build_logs.tar.gz /tmp/build_logs/*")
+    local(f'mv /tmp/build_logs.tar.gz {dst_path}')
     local('rm -rf /tmp/build_logs')
 
 
@@ -363,14 +377,16 @@ def _set_service_config_var(service, var_name, value):
 def _start_trfserver():
     """ Starts the traffic gen server"""
     # disable-tcp-checksumming
-    # trfgen-server daemon
+    # trfgen-server non daemon
     host = env.hosts[0].split(':')[0]
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
-    local('ssh -i %s -o UserKnownHostsFile=/dev/null'
+    # set tty on cbreak mode as background ssh process breaks indentation
+    local('ssh -f -i %s -o UserKnownHostsFile=/dev/null'
           ' -o StrictHostKeyChecking=no -tt %s -p %s'
-          ' \'sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
-          ' nohup sudo /usr/local/bin/traffic_server.py -d 192.168.60.144 62462\''
+          ' sh -c "sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off; '
+          'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
+          'stty cbreak'
           % (key, host, port))
 
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"magma/gateway/config"
+	"magma/gateway/services/bootstrapper/service"
 	"magma/orc8r/lib/go/security/key"
 
 	"github.com/emakeev/snowflake"
@@ -19,17 +20,15 @@ func Get() (hwId string, pubKey interface{}, err error) {
 	if err != nil {
 		return
 	}
-	challengeKeyFile := config.GetMagmadConfigs().BootstrapConfig.ChallengeKey
-	ck, err := key.ReadKey(challengeKeyFile)
+	ck, err := service.GetChallengeKey()
 	if err != nil {
-		err = fmt.Errorf("Failed to load Challenge Key from %s: %v", challengeKeyFile, err)
 		return
 	}
 	pubKey = key.PublicKey(ck)
 	return
 }
 
-// GetFormatted returns formatted string with GW infornation
+// GetFormatted returns formatted string with GW information
 func GetFormatted() (string, error) {
 	hwId, pubKey, err := Get()
 	if err != nil {

@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2016-present, Facebook, Inc.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 #pragma once
 
@@ -15,6 +19,7 @@
 
 #include "SessionState.h"
 #include "MemoryStoreClient.h"
+#include "MeteringReporter.h"
 #include "StoredState.h"
 #include "RedisStoreClient.h"
 #include "RuleStore.h"
@@ -30,7 +35,6 @@ typedef std::set<std::string> SessionRead;
 typedef std::unordered_map<
     std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>
     SessionUpdate;
-
 /**
  * SessionStore acts as a broker to storage of sessiond state.
  *
@@ -72,17 +76,15 @@ class SessionStore {
   SessionMap read_all_sessions();
 
   /**
-   * Read the last written values for the requested sessions through the
-   * storage interface. This also modifies the request_numbers stored before
-   * returning the SessionMap to the caller.
-   * NOTE: It is assumed that the correct number of request_numbers are
-   *       reserved on each read_sessions call. If more requests are made to
-   *       the OCS/PCRF than are requested, this can cause undefined behavior.
-   * @param req
-   * @return Last written values for requested sessions. Returns an empty vector
-   *         for subscribers that do not have active sessions.
+   * Modify the SessionMap in SessionStore to match the current state in
+   * the callback.
+   * NOTE: Call this method before reporting to other services.
+   * NOTE: To avoid race conditions, call this method immediately after
+   *       incrementing request numbers and returning control back to the
+   *       event loop.
+   * @param update_criteria
    */
-  SessionMap read_sessions_for_reporting(const SessionRead& req);
+  void sync_request_numbers(const SessionUpdate& update_criteria);
 
   /**
    * Read the last written values for the requested sessions through the
@@ -114,6 +116,7 @@ class SessionStore {
    * Attempt to update sessions with update criteria. If any update to any of
    * the sessions is invalid, the whole update request is assumed to be invalid,
    * and nothing in storage will be overwritten.
+   * NOTE: Will not update request_number. Use sync_request_numbers.
    * @param update_criteria
    * @return true if successful, otherwise the update to storage is discarded.
    */
@@ -122,11 +125,12 @@ class SessionStore {
  private:
   static bool merge_into_session(
       std::unique_ptr<SessionState>& session,
-      const SessionStateUpdateCriteria& update_criteria);
+      SessionStateUpdateCriteria& update_criteria);
 
  private:
-  std::shared_ptr<StoreClient> store_client_;
   std::shared_ptr<StaticRuleStore> rule_store_;
+  std::shared_ptr<StoreClient> store_client_;
+  std::shared_ptr<MeteringReporter> metering_reporter_;
 };
 
 }  // namespace lte

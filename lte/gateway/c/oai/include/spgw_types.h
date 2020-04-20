@@ -23,9 +23,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 #ifndef FILE_SPGW_TYPES_SEEN
 #define FILE_SPGW_TYPES_SEEN
@@ -36,14 +36,14 @@
 #include "gtpv1u_types.h"
 
 typedef struct s5_create_session_request_s {
-  teid_t context_teid; ///< local SGW S11 Tunnel Endpoint Identifier
+  teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier
   ebi_t eps_bearer_id;
 } s5_create_session_request_t;
 
 enum s5_failure_cause { S5_OK = 0, PCEF_FAILURE };
 
 typedef struct s5_create_session_response_s {
-  teid_t context_teid; ///< local SGW S11 Tunnel Endpoint Identifier
+  teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier
   ebi_t eps_bearer_id;
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp;
   enum s5_failure_cause failure_cause;
@@ -53,10 +53,10 @@ typedef struct s5_nw_init_actv_bearer_request_s {
   ebi_t lbi;
   teid_t mme_teid_S11;
   teid_t s_gw_teid_S11_S4;
-  bearer_qos_t eps_bearer_qos;          ///< Bearer QoS
-  traffic_flow_template_t ul_tft;       ///< UL TFT will be sent to UE
-  traffic_flow_template_t dl_tft;       ///< DL TFT will be stored at SPGW
-  protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
+  bearer_qos_t eps_bearer_qos;           ///< Bearer QoS
+  traffic_flow_template_t ul_tft;        ///< UL TFT will be sent to UE
+  traffic_flow_template_t dl_tft;        ///< DL TFT will be stored at SPGW
+  protocol_configuration_options_t pco;  ///< PCO protocol_configuration_options
 } s5_nw_init_actv_bearer_request_t;
 
 // Data entry for SGW UE context
@@ -67,8 +67,8 @@ typedef struct s_plus_p_gw_eps_bearer_context_information_s {
 
 // Data entry for s11teid2mme
 typedef struct mme_sgw_tunnel_s {
-  uint32_t local_teid;  ///< Local tunnel endpoint Identifier
-  uint32_t remote_teid; ///< Remote tunnel endpoint Identifier
+  uint32_t local_teid;   ///< Local tunnel endpoint Identifier
+  uint32_t remote_teid;  ///< Remote tunnel endpoint Identifier
 } mme_sgw_tunnel_t;
 
 // AGW-wide state for SPGW task
@@ -84,17 +84,12 @@ typedef struct spgw_state_s {
 } spgw_state_t;
 
 void handle_s5_create_session_response(
-  spgw_state_t* state,
-  s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p,
-  s5_create_session_response_t session_resp);
+    spgw_state_t* state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    s5_create_session_response_t session_resp);
 
 int sgw_handle_sgi_endpoint_created(
-  spgw_state_t* state,
-  itti_sgi_create_end_point_response_t *const resp_p,
-  imsi64_t imsi64);
+    spgw_state_t* state, itti_sgi_create_end_point_response_t* const resp_p,
+    imsi64_t imsi64);
 
-int sgw_send_s11_create_session_response(
-  const s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  const gtpv2c_cause_value_t cause,
-  imsi64_t imsi64);
 #endif /* FILE_SPGW_TYPES_SEEN */

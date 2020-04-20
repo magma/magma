@@ -1,0 +1,64 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.orc8r.metricsd;
+
+import "metrics.proto";
+
+option go_package = "protos";
+
+// MetricsExporter supports custom metric datasinks.
+service MetricsExporter {
+  // Submit metrics to datasinks.
+  rpc Submit(SubmitMetricsRequest) returns (SubmitMetricsResponse) {}
+}
+
+message SubmitMetricsRequest {
+  repeated ContextualizedMetric metrics = 1;
+}
+
+message SubmitMetricsResponse {}
+
+message ContextualizedMetric {
+  io.prometheus.client.MetricFamily family = 1;
+  Context context = 2;
+}
+
+// Context provides information to the exporter about a metric's origin.
+message Context {
+  string metric_name = 1;
+  oneof OriginContext {
+    CloudContext cloud_metric = 2;
+    GatewayContext gateway_metric = 3;
+    PushedContext pushed_metric = 4;
+  }
+}
+
+// CloudContext contains context for metrics scraped from cloud services.
+message CloudContext {
+  string cloud_host = 1;
+}
+
+// GatewayContext contains context for metrics submitted from gateways.
+message GatewayContext {
+  string network_id = 1;
+  string gateway_id = 2;
+}
+
+// PushedContext contains context for metrics pushed via the REST API.
+message PushedContext {
+  string network_id = 1;
+}
+

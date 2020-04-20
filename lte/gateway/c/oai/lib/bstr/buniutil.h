@@ -23,21 +23,13 @@ extern "C" {
 #endif
 
 extern int buIsUTF8Content(const_bstring bu);
-extern int buAppendBlkUcs4(bstring b, const cpUcs4 *bu, int len, cpUcs4 errCh);
+extern int buAppendBlkUcs4(bstring b, const cpUcs4* bu, int len, cpUcs4 errCh);
 
 /* For those unfortunate enough to be stuck supporting UTF16. */
 extern int buGetBlkUTF16(
-  /* @out */ cpUcs2 *ucs2,
-  int len,
-  cpUcs4 errCh,
-  const_bstring bu,
-  int pos);
+    /* @out */ cpUcs2* ucs2, int len, cpUcs4 errCh, const_bstring bu, int pos);
 extern int buAppendBlkUTF16(
-  bstring bu,
-  const cpUcs2 *utf16,
-  int len,
-  cpUcs2 *bom,
-  cpUcs4 errCh);
+    bstring bu, const cpUcs2* utf16, int len, cpUcs2* bom, cpUcs4 errCh);
 
 #ifdef __cplusplus
 }

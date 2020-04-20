@@ -1,9 +1,14 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
 variable "region" {
@@ -37,7 +42,7 @@ variable "global_tags" {
 ##############################################################################
 
 variable "orc8r_domain_name" {
-  description = "Base domain name for AWS Route 53 hosted zone"
+  description = "Base domain name for AWS Route 53 hosted zone."
   type        = string
 }
 
@@ -46,7 +51,7 @@ variable "orc8r_domain_name" {
 ##############################################################################
 
 variable "cluster_name" {
-  description = "Name for the orc8r EKS cluster."
+  description = "Name for the Orchestrator EKS cluster."
   type        = string
   default     = "orc8r"
 }
@@ -63,18 +68,17 @@ variable "eks_worker_additional_sg_ids" {
   default     = []
 }
 
+variable "eks_worker_additional_policy_arns" {
+  description = "Additional IAM policy ARNs to attach to EKS worker nodes."
+  type        = list(string)
+  default     = []
+}
+
 variable "eks_worker_groups" {
-  description = "Worker group configuration for EKS. Default value is 1 worker group consisting of 3 t3.small instances."
-  type = list(
-    object({
-      name                 = string,
-      instance_type        = string,
-      asg_desired_capacity = number,
-      asg_min_size         = number,
-      asg_max_size         = number,
-      autoscaling_enabled  = bool,
-    })
-  )
+  # Check the docs at https://github.com/terraform-aws-modules/terraform-aws-eks
+  # for the complete set of valid properties for these objects.
+  description = "Worker group configuration for EKS. Default value is 1 worker group consisting of 3 t3.large instances."
+  type        = any
   default = [
     {
       name                 = "wg-1"
@@ -100,7 +104,7 @@ variable "eks_map_roles" {
 }
 
 variable "eks_map_users" {
-  description = "Additional IAM users to add to the aws-auth configmap."
+  description = "Additional IAM users to add to the aws-auth ConfigMap."
   type = list(object({
     userarn  = string
     username = string
@@ -195,7 +199,7 @@ variable "orc8r_db_username" {
 }
 
 variable "orc8r_db_password" {
-  description = "Password for the Orchestrator DB."
+  description = "Password for the Orchestrator DB. Must be at least 8 characters."
   type        = string
 }
 
@@ -240,7 +244,7 @@ variable "nms_db_username" {
 }
 
 variable "nms_db_password" {
-  description = "Password for the NMS DB."
+  description = "Password for the NMS DB. Must be at least 8 characters."
   type        = string
 }
 
@@ -255,7 +259,7 @@ variable "nms_db_engine_version" {
 ##############################################################################
 
 variable "secretsmanager_orc8r_secret" {
-  description = "AWS Secretmanager secret to store Orchestrator secrets."
+  description = "AWS Secret Manager secret to store Orchestrator secrets."
   type        = string
 }
 
@@ -264,13 +268,13 @@ variable "secretsmanager_orc8r_secret" {
 ##############################################################################
 
 variable "elasticsearch_domain_name" {
-  description = "Name for the AWS Elasticsearch domain."
+  description = "Name for the ES domain."
   type        = string
   default     = null
 }
 
 variable "elasticsearch_version" {
-  description = "ES version for Elasticsearch domain."
+  description = "ES version for ES domain."
   default     = "7.1"
 }
 

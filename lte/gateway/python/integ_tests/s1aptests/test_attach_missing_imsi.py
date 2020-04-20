@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import time
@@ -24,9 +28,9 @@ class TestAttachMissingImsi(unittest.TestCase):
 
     def test_attach_missing_imsi(self):
         """ Attaching with IMSI missing from subscriberd """
-        ue_id = 1
-
         self._s1ap_wrapper.configUEDevice(1)
+        req = self._s1ap_wrapper.ue_req
+        ue_id = req.ue_id
         print("************************* Running End to End attach for ",
               "UE id ", ue_id)
         self._s1ap_wrapper._sub_util.cleanup()
@@ -40,10 +44,11 @@ class TestAttachMissingImsi(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
 
+        ue_id = 2
         print("************************* Adding IMSI entry for UE id ", ue_id)
         # Adding IMSI to subscriberdb
         self._s1ap_wrapper.configUEDevice_without_checking_gw_health(1)
-        ue_id = 2
+
         time.sleep(5)
 
         print("************************* Rerunning End to End attach for ",

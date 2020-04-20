@@ -41,29 +41,27 @@ add_definitions(-DCMAKER)
 # Generate *.gcno rather than *.c.gcno files for gcov
 set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
 
-if (NOT FUZZ)
-  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -fstack-protector-all -g -DMALLOC_CHECK_=3 -DDEBUG_IS_ON=1 -DTRACE_IS_ON=1 -O0 -fsanitize=address -fno-omit-frame-pointer")
-  set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS} -g -DMALLOC_CHECK_=3  -DDEBUG_IS_ON -O1")
-  set(CMAKE_EXE_LINKER_FLAGS_DEBUG  "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -fstack-protector-all -g -DMALLOC_CHECK_=3 -DDEBUG_IS_ON=1 -DTRACE_IS_ON=1 -O0 -fsanitize=address -fno-omit-frame-pointer")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS} -g -DMALLOC_CHECK_=3  -DDEBUG_IS_ON -O1")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG  "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
 
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_IS_ON=1")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_IS_ON=1")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_IS_ON=1")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_IS_ON=1")
 
-  # Add Gcov flags
-  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
-  # Add gcov linker flags
-  set(CMAKE_EXE_LINKER_FLAGS_DEBUG  "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
+# Add Gcov flags
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
+# Add gcov linker flags
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG  "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 
-  # Add LeakSanitizer (lsan) support to the release build of MME so that we can
-  # find memory leaks in production.
-  set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
-  set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO  "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
-endif (NOT FUZZ)
+# Add LeakSanitizer (lsan) support to the release build of MME so that we can
+# find memory leaks in production.
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
+set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO  "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
 
 ################################################################
 # Set proto directory for state proto definitions
 ################################################################
-set(STATE_PROTO_DIR ${PROJECT_SOURCE_DIR}/protos)
+set(STATE_PROTO_DIR $ENV{MAGMA_ROOT}/lte/protos/oai)
 
 ################################################################
 # S1AP LAYER OPTIONS
@@ -76,11 +74,13 @@ add_boolean_option(S1AP_DEBUG_LIST                 False    "Traces, option to b
 add_boolean_option(SCTP_DUMP_LIST                  False    "Traces, option to be removed soon")
 add_boolean_option(TRACE_HASHTABLE                 False    "Trace hashtables operations ")
 add_boolean_option(TRACE_3GPP_SPEC                 True     "Log hits of 3GPP specifications requirements")
-add_boolean_option(ENABLE_OPENFLOW                 False    "Openflow based dataplane")
-add_boolean_option(EMBEDDED_SGW                    False    "Add the SPGW task to the MME binary")
 add_boolean_option(LINK_GCOV                       False    "Whether to link gcov")
 
-add_boolean_option(S6A_OVER_GRPC                   True     "S6a messages sent over gRPC")
+if (EMBEDDED_SGW)
+include(CMakeAgwOptions.txt)
+else (EMBEDDED_SGW)
+include(CMakeMmeOptions.txt)
+endif (EMBEDDED_SGW)
 
 ################################################################
 # Include CMake modules to find other library
@@ -102,6 +102,7 @@ find_library(ASYNC_GRPC ASYNC_GRPC ${MAGMA_LIB_DIR}/async_grpc)
 find_library(SERVICE303_LIB SERVICE303_LIB ${MAGMA_LIB_DIR}/service303)
 find_library(CONFIG CONFIG ${MAGMA_LIB_DIR}/config)
 find_library(SERVICE_REGISTRY SERVICE_REGISTRY ${MAGMA_LIB_DIR}/service_registry)
+find_library(EVENTD EVENTD ${MAGMA_LIB_DIR}/eventd)
 
 ################################################################
 # Add sub modules
@@ -116,7 +117,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 add_subdirectory(common)
 add_subdirectory(lib)
 add_subdirectory(oai_mme)
-add_subdirectory(oai_fuzz)
 add_subdirectory(tasks)
 
 if (BUILD_TESTS)

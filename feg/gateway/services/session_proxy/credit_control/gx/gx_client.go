@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package gx
@@ -14,15 +19,15 @@ import (
 	"os"
 	"time"
 
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/fiorix/go-diameter/v4/diam/avp"
-	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/golang/glog"
-
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/gateway/service_registry"
 	"magma/orc8r/lib/go/util"
+
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/golang/glog"
 )
 
 const (
@@ -184,7 +189,7 @@ func createReAuthAnswerMessage(
 			avp.SessionID,
 			avp.Mbit,
 			0,
-			datatype.UTF8String(diameter.EncodeSessionID(diamClient.OriginRealm(), answer.SessionID))))
+			datatype.UTF8String(diameter.EncodeSessionID(diamClient.OriginHost(), answer.SessionID))))
 	return ret
 }
 
@@ -264,7 +269,7 @@ func (gxClient *GxClient) createCreditControlMessage(
 		avp.SessionID,
 		avp.Mbit,
 		0,
-		datatype.UTF8String(diameter.EncodeSessionID(gxClient.diamClient.OriginRealm(), request.SessionID))))
+		datatype.UTF8String(diameter.EncodeSessionID(gxClient.diamClient.OriginHost(), request.SessionID))))
 
 	return m, nil
 }
@@ -362,19 +367,22 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 // getAdditionalAvps retrieves any extra AVPs based on the type of request.
 // For update and terminate, it returns the used credit AVPs
 func (gxClient *GxClient) getAdditionalAvps(request *CreditControlRequest) ([]*diam.AVP, error) {
-	if request.Type == credit_control.CRTInit || len(request.UsageReports) == 0 {
+	if request.Type == credit_control.CRTInit {
 		return []*diam.AVP{}, nil
 	}
-	avpList := make([]*diam.AVP, 0, len(request.UsageReports)+2)
-	if len(request.TgppCtx.GetGxDestHost()) > 0 {
-		avpList = append(avpList,
-			diam.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity(request.TgppCtx.GetGxDestHost())))
-	}
-	for _, usage := range request.UsageReports {
-		avpList = append(avpList, getUsageMonitoringAVP(usage))
+	avpList := []*diam.AVP{}
+	if len(request.UsageReports) > 0 {
+		avpList = make([]*diam.AVP, 0, len(request.UsageReports)+2)
+		if len(request.TgppCtx.GetGxDestHost()) > 0 {
+			avpList = append(avpList,
+				diam.NewAVP(avp.DestinationHost, avp.Mbit, 0, datatype.DiameterIdentity(request.TgppCtx.GetGxDestHost())))
+		}
+		for _, usage := range request.UsageReports {
+			avpList = append(avpList, getUsageMonitoringAVP(usage))
+		}
 	}
 	if request.Type == credit_control.CRTUpdate {
-		avpList = append(avpList, gxClient.getUsageReportEventTrigger())
+		avpList = append(avpList, gxClient.getEventTriggerAVP(request.EventTrigger))
 	}
 
 	return avpList, nil
@@ -396,12 +404,13 @@ func getUsageMonitoringAVP(usage *UsageReport) *diam.AVP {
 	})
 }
 
-func (gxClient *GxClient) getUsageReportEventTrigger() *diam.AVP {
-	var urt = UsageReportTrigger
-	if gxClient.pcrf91Compliant {
-		urt = PCRF91UsageReportTrigger
+func (gxClient *GxClient) getEventTriggerAVP(eventTrigger EventTrigger) *diam.AVP {
+	if eventTrigger == UsageReportTrigger {
+		if gxClient.pcrf91Compliant {
+			eventTrigger = PCRF91UsageReportTrigger
+		}
 	}
-	return diam.NewAVP(avp.EventTrigger, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(urt))
+	return diam.NewAVP(avp.EventTrigger, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(eventTrigger))
 }
 
 // Is p all zeros?

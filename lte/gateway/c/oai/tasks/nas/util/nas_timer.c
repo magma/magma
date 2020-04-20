@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,8 +32,8 @@
 
 *****************************************************************************/
 
-#include <string.h>   // memset
-#include <stdlib.h>   // malloc, free
+#include <string.h>  // memset
+#include <stdlib.h>  // malloc, free
 
 #include "timer.h"
 #include "nas_timer.h"
@@ -48,8 +44,7 @@
 #include "log.h"
 
 //------------------------------------------------------------------------------
-int nas_timer_init(void)
-{
+int nas_timer_init(void) {
   return (RETURNok);
 }
 
@@ -58,11 +53,8 @@ void nas_timer_cleanup(void) {}
 
 //------------------------------------------------------------------------------
 long int nas_timer_start(
-  long sec,
-  long usec,
-  nas_timer_callback_t nas_timer_callback,
-  void *nas_timer_callback_args)
-{
+    long sec, long usec, nas_timer_callback_t nas_timer_callback,
+    void* nas_timer_callback_args) {
   long timer_id;
   nas_itti_timer_arg_t cb;
 
@@ -72,19 +64,12 @@ long int nas_timer_start(
   }
 
   memset(&cb, 0, sizeof(cb));
-  cb.nas_timer_callback = nas_timer_callback;
+  cb.nas_timer_callback     = nas_timer_callback;
   cb.nas_timer_callback_arg = nas_timer_callback_args;
 
-  if (
-    timer_setup(
-      sec,
-      usec,
-      TASK_MME_APP,
-      INSTANCE_DEFAULT,
-      TIMER_ONE_SHOT,
-      &cb,
-      sizeof(cb),
-      &timer_id) == -1) {
+  if (timer_setup(
+          sec, usec, TASK_MME_APP, INSTANCE_DEFAULT, TIMER_ONE_SHOT, &cb,
+          sizeof(cb), &timer_id) == -1) {
     return NAS_TIMER_INACTIVE_ID;
   }
 
@@ -92,13 +77,12 @@ long int nas_timer_start(
 }
 
 //------------------------------------------------------------------------------
-long int nas_timer_stop(long int timer_id, void **nas_timer_callback_arg)
-{
-  nas_itti_timer_arg_t *nas_itti_timer_arg = NULL;
-  timer_remove(timer_id, (void **) &nas_itti_timer_arg);
+long int nas_timer_stop(long int timer_id, void** nas_timer_callback_arg) {
+  nas_itti_timer_arg_t* nas_itti_timer_arg = NULL;
+  timer_remove(timer_id, (void**) &nas_itti_timer_arg);
   if (nas_itti_timer_arg) {
     *nas_timer_callback_arg = nas_itti_timer_arg->nas_timer_callback_arg;
-    free_wrapper((void **) &nas_itti_timer_arg);
+    free_wrapper((void**) &nas_itti_timer_arg);
   } else {
     *nas_timer_callback_arg = NULL;
   }
@@ -107,13 +91,10 @@ long int nas_timer_stop(long int timer_id, void **nas_timer_callback_arg)
 
 //------------------------------------------------------------------------------
 void mme_app_nas_timer_handle_signal_expiry(
-  long timer_id,
-  nas_itti_timer_arg_t *cb)
-{
+    long timer_id, nas_itti_timer_arg_t* cb) {
   OAILOG_FUNC_IN(LOG_NAS);
   if ((!timer_exists(timer_id)) || (cb->nas_timer_callback == NULL)) {
-    OAILOG_ERROR(
-      LOG_NAS, "Invalid timer id %ld \n", timer_id);
+    OAILOG_ERROR(LOG_NAS, "Invalid timer id %ld \n", timer_id);
     OAILOG_FUNC_OUT(LOG_NAS);
   }
   cb->nas_timer_callback(cb->nas_timer_callback_arg);

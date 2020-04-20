@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2016-present, Facebook, Inc.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 #pragma once
 
@@ -71,7 +75,8 @@ class PipelinedClient {
   virtual bool deactivate_flows_for_rules(
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules) = 0;
+    const std::vector<PolicyRule>& dynamic_rules,
+    const RequestOriginType_OriginType origin_type) = 0;
 
   /**
    * Activate all rules for the specified rules, using a normal vector
@@ -80,7 +85,8 @@ class PipelinedClient {
     const std::string& imsi,
     const std::string& ip_addr,
     const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules) = 0;
+    const std::vector<PolicyRule>& dynamic_rules,
+    std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
 
   /**
    * Send the MAC address of UE and the subscriberID
@@ -91,7 +97,8 @@ class PipelinedClient {
     const std::string &ue_mac_addr,
     const std::string &msisdn,
     const std::string &ap_mac_addr,
-    const std::string &ap_name) = 0;
+    const std::string &ap_name,
+    std::function<void(Status status, FlowResponse)> callback) = 0;
 
   /**
    * Update the IPFIX export rule in pipeliend
@@ -116,6 +123,15 @@ class PipelinedClient {
    */
   virtual bool update_subscriber_quota_state(
     const std::vector<SubscriberQuotaUpdate>& updates) = 0;
+
+  /**
+   * Activate the GY final action policy
+   */
+  virtual bool add_gy_final_action_flow(
+    const std::string &imsi,
+    const std::string &ip_addr,
+    const std::vector<std::string> &static_rules,
+    const std::vector<PolicyRule> &dynamic_rules) = 0;
 };
 
 /**
@@ -169,7 +185,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool deactivate_flows_for_rules(
     const std::string& imsi,
     const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules);
+    const std::vector<PolicyRule>& dynamic_rules,
+    const RequestOriginType_OriginType origin_type);
 
   /**
    * Activate all rules for the specified rules, using a normal vector
@@ -178,7 +195,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string& imsi,
     const std::string& ip_addr,
     const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules);
+    const std::vector<PolicyRule>& dynamic_rules,
+    std::function<void(Status status, ActivateFlowsResult)> callback);
 
   /**
    * Send the MAC address of UE and the subscriberID
@@ -189,7 +207,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string& ue_mac_addr,
     const std::string& msisdn,
     const std::string& ap_mac_addr,
-    const std::string& ap_name);
+    const std::string& ap_name,
+    std::function<void(Status status, FlowResponse)> callback);
 
   /**
    * Update the IPFIX export rule in pipeliend
@@ -210,6 +229,18 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool delete_ue_mac_flow(
     const SubscriberID &sid,
     const std::string &ue_mac_addr);
+
+  bool add_gy_final_action_flow(
+    const std::string &imsi,
+    const std::string &ip_addr,
+    const std::vector<std::string> &static_rules,
+    const std::vector<PolicyRule> &dynamic_rules);
+
+  void handle_add_ue_mac_callback(
+      const magma::UEMacFlowRequest req,
+      const int retries,
+      Status status,
+      FlowResponse resp);
 
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds

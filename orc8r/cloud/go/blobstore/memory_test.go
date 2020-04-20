@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree.
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package blobstore_test
@@ -83,7 +88,7 @@ func TestMemoryBlobStorage_Rollback(t *testing.T) {
 
 	store, err = factory.StartTransaction(nil)
 	assert.NoError(t, err)
-	_, err = store.Get(network1, storage.TypeAndKey{type1, key1})
+	_, err = store.Get(network1, storage.TypeAndKey{Type: type1, Key: key1})
 	assert.Equal(t, errors.ErrNotFound, err)
 }
 
@@ -93,7 +98,7 @@ func TestMemoryBlobStorage_Commit(t *testing.T) {
 	key1 := "key1"
 	blob1 := blobstore.Blob{Type: type1, Key: key1, Value: []byte("value1")}
 	network1 := "network1"
-	id1 := storage.TypeAndKey{type1, key1}
+	id1 := storage.TypeAndKey{Type: type1, Key: key1}
 
 	store, err := factory.StartTransaction(nil)
 	assert.NoError(t, err)
@@ -104,7 +109,7 @@ func TestMemoryBlobStorage_Commit(t *testing.T) {
 	_, err = store.Get(network1, id1)
 	assert.Equal(t, err, nil)
 
-	store.Commit()
+	assert.NoError(t, store.Commit())
 
 	store, err = factory.StartTransaction(nil)
 	assert.NoError(t, err)
@@ -113,10 +118,12 @@ func TestMemoryBlobStorage_Commit(t *testing.T) {
 	assert.True(t, blobEqual(blob, blob1))
 	blob1.Value = []byte("value2")
 	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob1}))
-	store.Commit()
+	assert.NoError(t, store.Commit())
 
 	store, err = factory.StartTransaction(nil)
+	assert.NoError(t, err)
 	blob, err = store.Get(network1, id1)
+	assert.NoError(t, err)
 	assert.Equal(t, []byte("value2"), blob.Value)
 }
 
@@ -173,8 +180,9 @@ func TestMemoryBlobStorage_Delete(t *testing.T) {
 	blob1.Value = []byte("value1_updated")
 	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob1}))
 	assert.NoError(t, store.Delete(network1, ids))
-	store.Commit()
+	assert.NoError(t, store.Commit())
 	store, err = factory.StartTransaction(nil)
+	assert.NoError(t, err)
 	blobs, _ := store.GetMany(network1, ids)
 	assert.Equal(t, 0, len(blobs))
 
@@ -184,8 +192,9 @@ func TestMemoryBlobStorage_Delete(t *testing.T) {
 	blob1.Value = []byte("value1_updated")
 	assert.NoError(t, store.Delete(network1, ids))
 	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob1}))
-	store.Commit()
+	assert.NoError(t, store.Commit())
 	store, err = factory.StartTransaction(nil)
+	assert.NoError(t, err)
 	blobs, _ = store.GetMany(network1, ids)
 	assert.Equal(t, 1, len(blobs))
 }
@@ -203,19 +212,20 @@ func TestMemoryBlobStorage_ListKeys(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Test local changes
-	store.CreateOrUpdate(network1, []blobstore.Blob{blob1, blob2})
+	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob1, blob2}))
 	keys, err := store.ListKeys(network1, type1)
 	assert.Equal(t, []string{key1, key2}, keys)
 
-	store.Commit()
+	assert.NoError(t, store.Commit())
 	store, err = factory.StartTransaction(nil)
+	assert.NoError(t, err)
 
 	// Test committed changes
 	keys, err = store.ListKeys(network1, type1)
 	assert.Equal(t, []string{key1, key2}, keys)
 
 	// Test locally deleted changes
-	store.Delete(network1, []storage.TypeAndKey{{type1, key1}})
+	assert.NoError(t, store.Delete(network1, []storage.TypeAndKey{{type1, key1}}))
 	keys, err = store.ListKeys(network1, type1)
 	assert.Equal(t, []string{key2}, keys)
 }

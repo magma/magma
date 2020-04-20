@@ -1,0 +1,77 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- name: Set up Carrier WiFi Access Gateway for development
+  hosts: cwag_centos7
+  become: yes
+  vars:
+    - magma_root: /home/{{ ansible_user }}/magma
+    - user: "{{ ansible_user }}"
+    - full_provision: true
+    - ansible_python_interpreter: /usr/bin/python
+  roles:
+    - role: gomod_cache
+    - role: resolv_conf
+      vars:
+        override_nameserver: 8.8.8.8
+    - role: pkgrepo
+      vars:
+        distribution: "centos"
+        repo: "cwf-prod-redhat"
+    - role: test_certs
+    - role: ovs
+    - role: golang
+#    - role: cwag
+
+  tasks:
+    - name: Set build environment variables
+      lineinfile:
+        dest: /etc/environment
+        state: present
+        line: "{{ item }}"
+      with_items:
+        - MAGMA_ROOT={{ magma_root }}
+      when: full_provision
+    # Only run installation for docker
+    - include_role:
+        name: docker
+        tasks_from: install
+
+    - name: Create snowflake file
+      copy:
+        content: ""
+        dest: /etc/snowflake
+
+    # Required by some go libraries
+    - name: Install bzr dependency
+      yum:
+        name: bzr
+        state: present
+
+    - name: Fix .profile loading for centos7
+      lineinfile:
+        path: /home/{{ user }}/.bash_profile
+        line: . ~/.profile
+
+    - name: Fix sudo secure_path
+      copy:
+        dest: /etc/sudoers.d/secure_path
+        content: "Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin:/usr/local/go/bin\n"
+        
+    - name: Install basic build tools
+      yum:
+        name:
+          - gcc
+          - automake
+          - autoconf
+        state: present

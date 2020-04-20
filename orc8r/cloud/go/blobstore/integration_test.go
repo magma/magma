@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package blobstore_test
@@ -73,6 +78,25 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
+	byNetworkActual, err := blobstore.ListKeysByNetwork(store)
+	assert.NoError(t, err)
+	for _, v := range byNetworkActual {
+		sort.Slice(v, getTKsComparator(v))
+	}
+	byNetworkExpected := map[string][]storage.TypeAndKey{
+		"network1": {
+			{Type: "t1", Key: "k1"},
+			{Type: "t1", Key: "k2"},
+			{Type: "t2", Key: "k1"},
+			{Type: "t2", Key: "k2"},
+		},
+		"network2": {
+			{Type: "t3", Key: "k3"},
+			{Type: "t3", Key: "k4"},
+		},
+	}
+	assert.Equal(t, byNetworkExpected, byNetworkActual)
+
 	listActual, err = store.ListKeys("network1", "t1")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"k1", "k2"}, listActual)
@@ -84,7 +108,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 		{Type: "t2", Key: "k2"},
 	})
 	assert.NoError(t, err)
-	sort.Slice(getManyActual, getBlobsliceComparator(getManyActual))
+	sort.Slice(getManyActual, getBlobsComparator(getManyActual))
 	assert.Equal(
 		t,
 		[]blobstore.Blob{
@@ -101,7 +125,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 		{Type: "t3", Key: "k4"},
 	})
 	assert.NoError(t, err)
-	sort.Slice(getManyActual, getBlobsliceComparator(getManyActual))
+	sort.Slice(getManyActual, getBlobsComparator(getManyActual))
 	assert.Equal(
 		t,
 		[]blobstore.Blob{
@@ -135,9 +159,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 		{Type: "t9", Key: "k9"},
 	})
 	assert.NoError(t, err)
-	sort.Slice(getManyActual, func(i, j int) bool {
-		return getManyActual[i].Type+getManyActual[i].Key < getManyActual[j].Type+getManyActual[j].Key
-	})
+	sort.Slice(getManyActual, getBlobsComparator(getManyActual))
 	assert.Equal(
 		t,
 		[]blobstore.Blob{
@@ -241,9 +263,11 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 }
 
 type searchTestCase struct {
-	nid   *string
-	types []string
-	keys  []string
+	nid       *string
+	types     []string
+	keys      []string
+	keyPrefix *string
+	criteria  *blobstore.LoadCriteria
 
 	expected map[string][]blobstore.Blob
 }
@@ -254,6 +278,21 @@ func runSearchTestCases(t *testing.T, fact blobstore.BlobStorageFactory) {
 
 	allNetworkSearchTestCases := []searchTestCase{
 		{
+			// emtpy search filter
+			expected: map[string][]blobstore.Blob{
+				"network1": {
+					{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 0},
+					{Type: "t1", Key: "k2", Value: []byte("v2"), Version: 0},
+					{Type: "t2", Key: "k1", Value: []byte("v3"), Version: 2},
+					{Type: "t2", Key: "k2", Value: []byte("v4"), Version: 1},
+				},
+				"network2": {
+					{Type: "t3", Key: "k3", Value: []byte("v5"), Version: 0},
+					{Type: "t3", Key: "k4", Value: []byte("v6"), Version: 0},
+				},
+			},
+		},
+		{
 			types: []string{"t1", "t3"},
 			expected: map[string][]blobstore.Blob{
 				"network1": {
@@ -263,6 +302,21 @@ func runSearchTestCases(t *testing.T, fact blobstore.BlobStorageFactory) {
 				"network2": {
 					{Type: "t3", Key: "k3", Value: []byte("v5"), Version: 0},
 					{Type: "t3", Key: "k4", Value: []byte("v6"), Version: 0},
+				},
+			},
+		},
+		{
+			// with load criteria
+			criteria: &blobstore.LoadCriteria{LoadValue: false},
+			types:    []string{"t1", "t3"},
+			expected: map[string][]blobstore.Blob{
+				"network1": {
+					{Type: "t1", Key: "k1", Value: nil, Version: 0},
+					{Type: "t1", Key: "k2", Value: nil, Version: 0},
+				},
+				"network2": {
+					{Type: "t3", Key: "k3", Value: nil, Version: 0},
+					{Type: "t3", Key: "k4", Value: nil, Version: 0},
 				},
 			},
 		},
@@ -301,6 +355,33 @@ func runSearchTestCases(t *testing.T, fact blobstore.BlobStorageFactory) {
 			expected: map[string][]blobstore.Blob{
 				"network1": {
 					{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 0},
+				},
+			},
+		},
+		// with key prefix
+		{
+			keyPrefix: strPtr("k1"),
+			expected: map[string][]blobstore.Blob{
+				"network1": {
+					{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 0},
+					{Type: "t2", Key: "k1", Value: []byte("v3"), Version: 2},
+				},
+			},
+		},
+		// with keys and key prefix set, key prefix should take precedence
+		{
+			keys:      []string{"k1", "k2"},
+			keyPrefix: strPtr("k"),
+			expected: map[string][]blobstore.Blob{
+				"network1": {
+					{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 0},
+					{Type: "t1", Key: "k2", Value: []byte("v2"), Version: 0},
+					{Type: "t2", Key: "k1", Value: []byte("v3"), Version: 2},
+					{Type: "t2", Key: "k2", Value: []byte("v4"), Version: 1},
+				},
+				"network2": {
+					{Type: "t3", Key: "k3", Value: []byte("v5"), Version: 0},
+					{Type: "t3", Key: "k4", Value: []byte("v6"), Version: 0},
 				},
 			},
 		},
@@ -392,13 +473,26 @@ func runSearchTestCases(t *testing.T, fact blobstore.BlobStorageFactory) {
 }
 
 func runSearchTestCase(t *testing.T, store blobstore.TransactionalBlobStorage, tc searchTestCase) {
-	searchActual, err := store.Search(blobstore.CreateSearchFilter(tc.nid, tc.types, tc.keys))
+	var criteria blobstore.LoadCriteria
+	if tc.criteria != nil {
+		criteria = *tc.criteria
+	} else {
+		criteria = blobstore.GetDefaultLoadCriteria()
+	}
+
+	searchActual, err := store.Search(blobstore.CreateSearchFilter(tc.nid, tc.types, tc.keys, tc.keyPrefix), criteria)
 	assert.NoError(t, err)
 	sortSearchOutput(searchActual)
 	assert.Equal(t, tc.expected, searchActual)
 }
 
-func getBlobsliceComparator(blobs []blobstore.Blob) func(i, j int) bool {
+func getTKsComparator(tks []storage.TypeAndKey) func(i, j int) bool {
+	return func(i, j int) bool {
+		return tks[i].Type+tks[i].Key < tks[j].Type+tks[j].Key
+	}
+}
+
+func getBlobsComparator(blobs []blobstore.Blob) func(i, j int) bool {
 	return func(i, j int) bool {
 		return blobs[i].Type+blobs[i].Key < blobs[j].Type+blobs[j].Key
 	}
@@ -406,7 +500,7 @@ func getBlobsliceComparator(blobs []blobstore.Blob) func(i, j int) bool {
 
 func sortSearchOutput(searchActual map[string][]blobstore.Blob) {
 	for _, blobs := range searchActual {
-		sort.Slice(blobs, getBlobsliceComparator(blobs))
+		sort.Slice(blobs, getBlobsComparator(blobs))
 	}
 }
 

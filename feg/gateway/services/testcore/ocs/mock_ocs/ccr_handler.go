@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package mock_ocs
@@ -48,26 +53,28 @@ type subscriptionID struct {
 }
 
 type usedServiceUnit struct {
-	InputOctets  uint64 `avp:"CC-Input-Octets"`
-	OutputOctets uint64 `avp:"CC-Output-Octets"`
-	TotalOctets  uint64 `avp:"CC-Total-Octets"`
+	InputOctets     uint64 `avp:"CC-Input-Octets"`
+	OutputOctets    uint64 `avp:"CC-Output-Octets"`
+	TotalOctets     uint64 `avp:"CC-Total-Octets"`
+	ReportingReason uint32 `avp:"Reporting-Reason"`
 }
 
 type ccrCredit struct {
 	RatingGroup     uint32           `avp:"Rating-Group"`
 	UsedServiceUnit *usedServiceUnit `avp:"Used-Service-Unit"`
+	ReportingReason uint32           `avp:"Reporting-Reason"`
 }
 
 // getCCRHandler returns a handler to be called when the server receives a CCR
 func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
 		glog.V(2).Infof("Received CCR from %s\n", c.RemoteAddr())
+		srv.lastDiamMessageReceived = m
 		var ccr ccrMessage
 		if err := m.Unmarshal(&ccr); err != nil {
 			glog.Errorf("Failed to unmarshal CCR %s", err)
 			return
 		}
-		srv.LastMessageReceived = &ccr
 		imsi := ccr.GetIMSI()
 		if len(imsi) == 0 {
 			glog.Errorf("Could not find IMSI in CCR")
@@ -76,6 +83,7 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 		}
 		account, found := srv.accounts[imsi]
 		if !found {
+			glog.Errorf("Account not found!")
 			sendAnswer(ccr, c, m, diam.AuthenticationRejected)
 			return
 		}
@@ -83,13 +91,15 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 			Connection: c,
 			SessionID:  string(ccr.SessionID),
 		}
-
 		if srv.ocsConfig.UseMockDriver {
 			srv.mockDriver.Lock()
 			iAnswer := srv.mockDriver.GetAnswerFromExpectations(ccr)
 			srv.mockDriver.Unlock()
 			if iAnswer == nil {
 				sendAnswer(ccr, c, m, diam.UnableToComply)
+				return
+			}
+			if iAnswer.(GyAnswer).GetLinkFailure() {
 				return
 			}
 			avps, resultCode := iAnswer.(GyAnswer).toAVPs()
@@ -105,20 +115,40 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 		creditAnswers := make([]*diam.AVP, 0, len(ccr.MSCC))
 		for _, mscc := range ccr.MSCC {
 			if mscc.UsedServiceUnit != nil {
+				glog.V(2).Infof("Received credit usage from %s:%d, balance will be decremented by Total:%d Tx:%d Rx:%d",
+					imsi, mscc.RatingGroup,
+					mscc.UsedServiceUnit.TotalOctets,
+					mscc.UsedServiceUnit.OutputOctets,
+					mscc.UsedServiceUnit.InputOctets,
+				)
 				decrementUsedCredit(
 					account.ChargingCredit[mscc.RatingGroup],
 					mscc.UsedServiceUnit,
 				)
+				glog.V(2).Infof("Current balance for %s:%d is Total:%d Tx:%d Rx:%d",
+					imsi, mscc.RatingGroup,
+					account.ChargingCredit[mscc.RatingGroup].Volume.TotalOctets,
+					account.ChargingCredit[mscc.RatingGroup].Volume.OutputOctets,
+					account.ChargingCredit[mscc.RatingGroup].Volume.InputOctets)
 			}
+
 			returnOctets, final := getQuotaGrant(srv, account.ChargingCredit[mscc.RatingGroup])
 			if returnOctets.GetTotalOctets() <= 0 {
 				sendAnswer(ccr, c, m, DiameterCreditLimitReached)
 				return
 			}
-			//TODO support other FinalUnitActions
-			creditAnswers = append(creditAnswers, toGrantedUnitsAVP(diam.Success, srv.ocsConfig.ValidityTime, returnOctets, final, protos.FinalUnitAction_Terminate, mscc.RatingGroup))
+			creditAnswers = append(
+				creditAnswers,
+				toGrantedUnitsAVP(
+					diam.Success,
+					srv.ocsConfig.ValidityTime,
+					returnOctets,
+					final,
+					mscc.RatingGroup,
+					srv.ocsConfig.FinalUnitAction,
+					srv.ocsConfig.RedirectAddress,
+				))
 		}
-
 		sendAnswer(ccr, c, m, diam.Success, creditAnswers...)
 	}
 }
@@ -178,16 +208,17 @@ func (message ccrMessage) GetIMSI() string {
 	return ""
 }
 
+// TODO: Remove this when not needed anymore (use findAVP from diam library)
 // Searches on ccr message for an specific AVP message based on the avp tag on ccr type (ie "Session-Id")
 // It returns on the first match it finds.
 func GetAVP(message *ccrMessage, AVPToFind string) (interface{}, error) {
 	elem := reflect.ValueOf(message)
-	calledStationID, err := findAVP(elem, "avp", AVPToFind)
+	avpFound, err := findAVP(elem, "avp", AVPToFind)
 	if err != nil {
 		glog.Errorf("Failed to find  %s: %s\n", AVPToFind, err)
 		return "", err
 	}
-	return calledStationID, nil
+	return avpFound, nil
 }
 
 // Depth Search First of a specific tag:value on a element (accepts structs, pointers, slices)
@@ -252,7 +283,25 @@ func getMin(first, second uint64) uint64 {
 	return first
 }
 
-func toGrantedUnitsAVP(resultCode uint32, validityTime uint32, quotaGrant *protos.Octets, isFinalUnit bool, finalUnitAction protos.FinalUnitAction, ratingGroup uint32) *diam.AVP {
+func toFinalUnitActionAVP(finalUnitAction protos.FinalUnitAction, redirectAddress string) []*diam.AVP {
+	fuaAVPs := []*diam.AVP{
+		diam.NewAVP(avp.FinalUnitAction, avp.Mbit, 0, datatype.Enumerated(finalUnitAction)),
+	}
+	if finalUnitAction == protos.FinalUnitAction_Redirect {
+		fuaAVPs = append(
+			fuaAVPs,
+			diam.NewAVP(avp.RedirectServer, avp.Mbit, 0, &diam.GroupedAVP{
+				AVP: []*diam.AVP{
+					diam.NewAVP(avp.RedirectServerAddress, avp.Mbit, 0, datatype.UTF8String(redirectAddress)),
+					diam.NewAVP(avp.RedirectAddressType, avp.Mbit, 0, datatype.Unsigned32(0)),
+				},
+			}),
+		)
+	}
+	return fuaAVPs
+}
+
+func toGrantedUnitsAVP(resultCode uint32, validityTime uint32, quotaGrant *protos.Octets, isFinalUnit bool, ratingGroup uint32, fuAction protos.FinalUnitAction, redirectAddr string) *diam.AVP {
 	creditGroup := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.GrantedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{
@@ -269,12 +318,7 @@ func toGrantedUnitsAVP(resultCode uint32, validityTime uint32, quotaGrant *proto
 	}
 	if isFinalUnit {
 		creditGroup.AddAVP(
-			diam.NewAVP(avp.FinalUnitIndication, avp.Mbit, 0, &diam.GroupedAVP{
-				AVP: []*diam.AVP{
-					// TODO support other final unit actions
-					diam.NewAVP(avp.FinalUnitAction, avp.Mbit, 0, datatype.Enumerated(finalUnitAction)),
-				},
-			}),
+			diam.NewAVP(avp.FinalUnitIndication, avp.Mbit, 0, &diam.GroupedAVP{AVP: toFinalUnitActionAVP(fuAction, redirectAddr)}),
 		)
 	}
 	return diam.NewAVP(avp.MultipleServicesCreditControl, avp.Mbit, 0, creditGroup)

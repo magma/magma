@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package blobstore
@@ -25,6 +30,13 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+// NewEntStorage returns an ent-based implementation of blobstore.
+//
+// Note: due to constraints on how we use the ent-generated code across
+// multiple tables, only one ent storage object can exist per process.
+// As a result:
+//	- DO NOT use more than one ent storage (table name) per service
+//	- DO NOT use ent as the backing store for test services
 func NewEntStorage(tableName string, db *sql.DB, builder sqorc.StatementBuilder) BlobStorageFactory {
 	dialect, ok := os.LookupEnv("SQL_DRIVER")
 	if !ok {
@@ -93,30 +105,42 @@ func (e *entStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob
 	return blobs, nil
 }
 
-func (e *entStorage) Search(filter SearchFilter) (map[string][]Blob, error) {
+func (e *entStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string][]Blob, error) {
 	ctx := context.Background()
 
-	preds := []predicate.Blob{}
+	// Get fields from load criteria
+	selectField := blob.FieldNetworkID
+	selectFields := []string{blob.FieldType, blob.FieldKey, blob.FieldVersion}
+	if criteria.LoadValue {
+		selectFields = append(selectFields, blob.FieldValue)
+	}
+
+	// Get predicates from search filter
+	var preds []predicate.Blob
 	if filter.NetworkID != nil {
 		preds = append(preds, blob.NetworkID(*filter.NetworkID))
 	}
 	if !funk.IsEmpty(filter.Types) {
 		preds = append(preds, blob.TypeIn(filter.GetTypes()...))
 	}
-	if !funk.IsEmpty(filter.Keys) {
-		preds = append(preds, blob.KeyIn(filter.GetKeys()...))
-	}
-
-	var blobs []blobWithNetworkID
-	err := e.Blob.Query().
-		Where(blob.And(preds...)).
-		Select(blob.FieldNetworkID, blob.FieldType, blob.FieldKey, blob.FieldValue, blob.FieldVersion).
-		Scan(ctx, &blobs)
-	if err != nil {
-		return map[string][]Blob{}, err
+	if !funk.IsEmpty(filter.KeyPrefix) {
+		preds = append(preds, blob.KeyHasPrefix(*filter.KeyPrefix))
+	} else {
+		if !funk.IsEmpty(filter.Keys) {
+			preds = append(preds, blob.KeyIn(filter.GetKeys()...))
+		}
 	}
 
 	ret := map[string][]Blob{}
+	var blobs []blobWithNetworkID
+	err := e.Blob.Query().
+		Where(blob.And(preds...)).
+		Select(selectField, selectFields...). // handle ent select's at-least-once variadic method signature
+		Scan(ctx, &blobs)
+	if err != nil {
+		return ret, err
+	}
+
 	for _, b := range blobs {
 		nidCol := ret[b.NetworkID]
 		nidCol = append(nidCol, b.toBlob())

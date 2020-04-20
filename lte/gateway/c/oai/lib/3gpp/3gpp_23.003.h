@@ -5,26 +5,27 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 
 /*! \file 3gpp_23.003.h
@@ -37,13 +38,15 @@
 #define FILE_3GPP_23_003_SEEN
 
 //==============================================================================
-// 12  Identification of PLMN, RNC, Service Area, CN domain and Shared Network Area
+// 12  Identification of PLMN, RNC, Service Area, CN domain and Shared Network
+// Area
 //==============================================================================
 //------------------------------------------------------------------------------
 // 12.1  PLMN Identifier
 //------------------------------------------------------------------------------
 /*
- * A Public Land Mobile Network is uniquely identified by its PLMN identifier. PLMN-Id consists of Mobile Country Code (MCC) and Mobile Network Code (MNC).
+ * A Public Land Mobile Network is uniquely identified by its PLMN identifier.
+ * PLMN-Id consists of Mobile Country Code (MCC) and Mobile Network Code (MNC).
  */
 /*
  * Public Land Mobile Network identifier
@@ -79,8 +82,8 @@ typedef struct plmn_s {
 //------------------------------------------------------------------------------
 
 /*! \struct  imsi_t
-* \brief Structure containing an IMSI, BCD structure.
-*/
+ * \brief Structure containing an IMSI, BCD structure.
+ */
 typedef struct imsi_s {
   union {
     struct {
@@ -102,18 +105,21 @@ typedef struct imsi_s {
 #define ODD_PARITY 1
       uint8_t parity : 4;
       uint8_t digit15 : 4;
-    } num; /*!< \brief  IMSI shall consist of decimal digits (0 through 9) only.*/
+    } num; /*!< \brief  IMSI shall consist of decimal digits (0 through 9)
+              only.*/
 #define IMSI_BCD8_SIZE                                                         \
   8 /*!< \brief  The number of digits in IMSI shall not exceed 15.       */
     uint8_t value[IMSI_BCD8_SIZE];
   } u;
   uint8_t length;
 } imsi_t;
+
 #define IMSI_BCD_DIGITS_MAX 15
 typedef struct {
-  uint8_t digit
-    [IMSI_BCD_DIGITS_MAX + 1]; // +1 for '\0` macro sprintf changed in snprintf
+  uint8_t digit[IMSI_BCD_DIGITS_MAX + 1];  // +1 for '\0` macro sprintf changed
+                                           // in snprintf
   uint8_t length;
+
 } Imsi_t;
 //------------------------------------------------------------------------------
 // 2.4 Structure of TMSI
@@ -121,15 +127,22 @@ typedef struct {
 
 #define TMSI_SIZE 4
 typedef uint32_t
-  tmsi_t; /*!< \brief  Since the TMSI has only local significance (i.e. within a VLR and the area controlled by a VLR,
-                                                                        or within an SGSN and the area controlled by an SGSN, or within an MME and the area controlled by an MME),
-                                                                        the structure and coding of it can be chosen by agreement between operator and manufacturer in order to meet local needs.
-                                                                        The TMSI consists of 4 octets. It can be coded using a full hexadecimal representation. */
+    tmsi_t; /*!< \brief  Since the TMSI has only local significance (i.e. within
+               a VLR and the area controlled by a VLR, or within an SGSN and the
+               area controlled by an SGSN, or within an MME and the area
+               controlled by an MME), the structure and coding of it can be
+               chosen by agreement between operator and manufacturer in order to
+               meet local needs.
+                                                                          The
+               TMSI consists of 4 octets. It can be coded using a full
+               hexadecimal representation. */
 
 #define INVALID_TMSI                                                           \
-  UINT32_MAX /*!< \brief  The network shall not allocate a TMSI with all 32 bits equal to 1
-                                                                        (this is because the TMSI must be stored in the SIM, and the SIM uses 4 octets with all bits
-                                                                        equal to 1 to indicate that no valid TMSI is available).  */
+  UINT32_MAX /*!< \brief  The network shall not allocate a TMSI with all 32    \
+                bits equal to 1 (this is because the TMSI must be stored in    \
+                the SIM, and the SIM uses 4 octets with all bits               \
+                                                                        equal  \
+                to 1 to indicate that no valid TMSI is available).  */
 
 // 2.5 Structure of LMSI
 // 2.6  Structure of TLLI
@@ -140,14 +153,16 @@ typedef uint32_t
 //------------------------------------------------------------------------------
 
 #define INVALID_M_TMSI                                                         \
-  UINT32_MAX /*!< \brief  The network shall not allocate a TMSI with all 32 bits equal to 1
-                                                                        (this is because the TMSI must be stored in the SIM, and the SIM uses 4 octets with all bits
-                                                                        equal to 1 to indicate that no valid TMSI is available).  */
+  UINT32_MAX /*!< \brief  The network shall not allocate a TMSI with all 32    \
+                bits equal to 1 (this is because the TMSI must be stored in    \
+                the SIM, and the SIM uses 4 octets with all bits               \
+                                                                        equal  \
+                to 1 to indicate that no valid TMSI is available).  */
 
 typedef uint16_t
-  mme_gid_t; /*!< \brief  MME Group ID shall be of 16 bits length. */
+    mme_gid_t; /*!< \brief  MME Group ID shall be of 16 bits length. */
 typedef uint8_t
-  mme_code_t; /*!< \brief  MME Code shall be of 8 bits length.      */
+    mme_code_t; /*!< \brief  MME Code shall be of 8 bits length.      */
 
 /*! \struct  gummei_t
  * \brief Structure containing the Globally Unique MME Identity.
@@ -247,7 +262,7 @@ typedef struct msisdn_s {
 // 4.7  Closed Subscriber Group
 //------------------------------------------------------------------------------
 typedef uint32_t
-  csg_id_t; /*!< \brief  The CSG‑ID shall be fix length 27 bit value. */
+    csg_id_t; /*!< \brief  The CSG‑ID shall be fix length 27 bit value. */
 
 // 4.8 HNB Name
 // 4.9 CSG Type
@@ -263,19 +278,25 @@ typedef uint32_t
 //------------------------------------------------------------------------------
 
 /*! \struct  imei_t
-* \brief Structure containing an International Mobile station Equipment Identity, BCD structure.
-*        The IMEI is composed of the following elements (each element shall consist of decimal digits only):
-*        - Type Allocation Code (TAC). Its length is 8 digits;
-*        - Serial Number (SNR) is an individual serial number uniquely identifying each equipment within the TAC. Its length is 6 digits;
-*        -  Check Digit (CD) / Spare Digit (SD): If this is the Check Digit see paragraph below; if this digit is Spare Digit it shall be
-*           set to zero, when transmitted by the MS.
-*
-*        The IMEI (14 digits) is complemented by a Check  Digit (CD). The Check Digit is not part of the digits transmitted when
-*        the IMEI is checked, as described below. The Check Digit is intended to avoid manual transmission errors, e.g. when customers
-*        register stolen MEs at the operator's customer care desk. The Check Digit is defined according to the Luhn formula, as defined in annex B.
-*
-*        NOTE: The Check Digit is not applied to the Software Version Number.
-*/
+ * \brief Structure containing an International Mobile station Equipment
+ * Identity, BCD structure. The IMEI is composed of the following elements (each
+ * element shall consist of decimal digits only):
+ *        - Type Allocation Code (TAC). Its length is 8 digits;
+ *        - Serial Number (SNR) is an individual serial number uniquely
+ * identifying each equipment within the TAC. Its length is 6 digits;
+ *        -  Check Digit (CD) / Spare Digit (SD): If this is the Check Digit see
+ * paragraph below; if this digit is Spare Digit it shall be set to zero, when
+ * transmitted by the MS.
+ *
+ *        The IMEI (14 digits) is complemented by a Check  Digit (CD). The Check
+ * Digit is not part of the digits transmitted when the IMEI is checked, as
+ * described below. The Check Digit is intended to avoid manual transmission
+ * errors, e.g. when customers register stolen MEs at the operator's customer
+ * care desk. The Check Digit is defined according to the Luhn formula, as
+ * defined in annex B.
+ *
+ *        NOTE: The Check Digit is not applied to the Software Version Number.
+ */
 typedef struct imei_s {
   uint8_t length;
   union {
@@ -309,13 +330,17 @@ typedef struct imei_s {
 //------------------------------------------------------------------------------
 
 /*! \struct  imeisv_t
-* \brief Structure containing an International Mobile station Equipment Identity, BCD structure.
-*        The IMEISV is composed of the following elements (each element shall consist of decimal digits only):
-*        - Type Allocation Code (TAC). Its length is 8 digits;
-*        - Serial Number (SNR) is an individual serial number uniquely identifying each equipment within each TAC. Its length is 6 digits;
-*        - Software Version Number (SVN) identifies the software version number of the mobile equipment. Its length is 2 digits.
-*        Regarding updates of the IMEISV: The security requirements of 3GPP TS 22.016 [32] apply only to the TAC and SNR, but not to the SVN part of the IMEISV.
-*/
+ * \brief Structure containing an International Mobile station Equipment
+ * Identity, BCD structure. The IMEISV is composed of the following elements
+ * (each element shall consist of decimal digits only):
+ *        - Type Allocation Code (TAC). Its length is 8 digits;
+ *        - Serial Number (SNR) is an individual serial number uniquely
+ * identifying each equipment within each TAC. Its length is 6 digits;
+ *        - Software Version Number (SVN) identifies the software version number
+ * of the mobile equipment. Its length is 2 digits. Regarding updates of the
+ * IMEISV: The security requirements of 3GPP TS 22.016 [32] apply only to the
+ * TAC and SNR, but not to the SVN part of the IMEISV.
+ */
 typedef struct imeisv_s {
   uint8_t length;
   union {
@@ -349,26 +374,28 @@ typedef struct imeisv_s {
 // 8 SCCP subsystem numbers
 
 //==============================================================================
-//9 Definition of Access Point Name
+// 9 Definition of Access Point Name
 //==============================================================================
 // TODO
 
 // 10  Identification of the Cordless Telephony System entities
 // 11  Identification of Localised Service Area
 // 12 -> section moved to the top of this file.
-// 13  Numbering, addressing and identification within the IP multimedia core network subsystem
-// 14  Numbering, addressing and identification for 3GPP System to WLAN Interworking
-// 15 Identification of Multimedia Broadcast/Multicast Service
-// 15.2  Structure of TMGI
+// 13  Numbering, addressing and identification within the IP multimedia core
+// network subsystem 14  Numbering, addressing and identification for 3GPP
+// System to WLAN Interworking 15 Identification of Multimedia
+// Broadcast/Multicast Service 15.2  Structure of TMGI
 // TODO NAS ?
 // 15.3  Structure of MBMS SAI
 // 15.4  Home Network Realm
 // 16  Numbering, addressing and identification within the GAA subsystem
-// 17  Numbering, addressing and identification within the Generic Access Network
-// 18  Addressing and Identification for IMS Service Continuity and Single-Radio Voice Call Continuity
+// 17  Numbering, addressing and identification within the Generic Access
+// Network 18  Addressing and Identification for IMS Service Continuity and
+// Single-Radio Voice Call Continuity
 
 //==============================================================================
-// 19  Numbering, addressing and identification for the Evolved Packet Core (EPC)
+// 19  Numbering, addressing and identification for the Evolved Packet Core
+// (EPC)
 //==============================================================================
 
 //------------------------------------------------------------------------------
@@ -386,31 +413,34 @@ typedef struct imeisv_s {
 // 19.4.2.5  Routing Area Identity (RAI) - EPC
 
 //------------------------------------------------------------------------------
-// 19.6  E-UTRAN Cell Identity (ECI) and E-UTRAN Cell Global Identification (ECGI)
+// 19.6  E-UTRAN Cell Identity (ECI) and E-UTRAN Cell Global Identification
+// (ECGI)
 //------------------------------------------------------------------------------
 /*! \struct  eci_t
  * \brief The ECI shall be of fixed length of 28 bits and shall be coded using
- *        full hexadecimal representation. The exact coding of the ECI is the responsibility
- *        of each PLMN operator. */
+ *        full hexadecimal representation. The exact coding of the ECI is the
+ * responsibility of each PLMN operator. */
 typedef struct eci_s {
   uint32_t enb_id : 20;
   /* Anoop - This is correct only when eNB type is macro. In case eNB type is
-  * Home eNB then all the 28 bits are used for eNB id . This needs
-  * correction since MME uses combination of enb_id and "eNB S1AP UEid" for the
-  * key to UE context,this may not work if MME is connected to many HeNBs -
-  * which is not critical now.*/
+   * Home eNB then all the 28 bits are used for eNB id . This needs
+   * correction since MME uses combination of enb_id and "eNB S1AP UEid" for the
+   * key to UE context,this may not work if MME is connected to many HeNBs -
+   * which is not critical now.*/
 
   uint32_t cell_id : 8;
   uint32_t empty : 4;
 } eci_t;
 
 /*! \struct  ecgi_t
- * \brief The E-UTRAN Cell Global Identification (ECGI) shall be composed of the concatenation of the PLMN Identifier (PLMN-Id) and the E-UTRAN Cell Identity (ECI) .
+ * \brief The E-UTRAN Cell Global Identification (ECGI) shall be composed of the
+ * concatenation of the PLMN Identifier (PLMN-Id) and the E-UTRAN Cell Identity
+ * (ECI) .
  */
 typedef struct ecgi_s {
   plmn_t plmn;
   eci_t
-    cell_identity; /*!< \brief  The ECI shall be of fixed length of 28 bits */
+      cell_identity; /*!< \brief  The ECI shall be of fixed length of 28 bits */
 } ecgi_t;
 
 // 20  Addressing and Identification for IMS Centralized Services
@@ -419,12 +449,12 @@ typedef struct ecgi_s {
 // 23 Numbering, addressing and identification for the Relay Node OAM System
 
 /* Clear GUTI without free it */
-void clear_guti(guti_t *const guti);
+void clear_guti(guti_t* const guti);
 /* Clear IMSI without free it */
-void clear_imsi(imsi_t *const imsi);
+void clear_imsi(imsi_t* const imsi);
 /* Clear IMEI without free it */
-void clear_imei(imei_t *const imei);
+void clear_imei(imei_t* const imei);
 /* Clear IMEISV without free it */
-void clear_imeisv(imeisv_t *const imeisv);
+void clear_imeisv(imeisv_t* const imeisv);
 
 #endif /* FILE_3GPP_23_003_SEEN */

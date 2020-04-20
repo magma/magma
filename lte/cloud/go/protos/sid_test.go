@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package protos_test
@@ -34,18 +39,26 @@ func TestSidString(t *testing.T) {
 	assert.Equal(t, out, str)
 }
 
-func TestParseImsiFromSessionId(t *testing.T) {
+func TestIMSIandSessionIdParsers(t *testing.T) {
 	randomSid := "99999"
-	IMSI := "123456789"
+	IMSI := "123456789012345"
+	IMSInumeric := uint64(123456789012345)
 	prefixedIMSI := fmt.Sprintf("IMSI%s", IMSI)
-	magmaSid := fmt.Sprintf("%s-%s", prefixedIMSI, randomSid)
+	magmaSessionId := fmt.Sprintf("%s-%s", prefixedIMSI, randomSid)
 
-	resultIMSINoprefix, err := protos.ParseIMSIfromSessionIdNoPrefix(magmaSid)
+	// test GetIMSIFromSessionId
+	resultIMSINoprefix, err := protos.GetIMSIFromSessionId(magmaSessionId)
 	assert.NoError(t, err)
 	assert.Equal(t, resultIMSINoprefix, IMSI)
 
-	resultIMSIWithprefix, err := protos.ParseIMSIfromSessionIdWithPrefix(magmaSid)
+	// test GetIMSIwithPrefixFromSessionId
+	resultIMSIWithprefix, err := protos.GetIMSIwithPrefixFromSessionId(magmaSessionId)
 	assert.NoError(t, err)
 	assert.Equal(t, resultIMSIWithprefix, prefixedIMSI)
 
+	// test StripPrefixFromIMSIandFormat
+	resultIMSIstr, resultIMSInumeric, err := protos.StripPrefixFromIMSIandFormat(prefixedIMSI)
+	assert.NoError(t, err)
+	assert.Equal(t, resultIMSIstr, IMSI)
+	assert.Equal(t, resultIMSInumeric, IMSInumeric)
 }

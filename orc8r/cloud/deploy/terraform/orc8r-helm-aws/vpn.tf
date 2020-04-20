@@ -1,10 +1,23 @@
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
 resource "helm_release" "ovpn" {
   count = var.deploy_openvpn ? 1 : 0
 
   chart      = "openvpn"
   name       = "openvpn"
-  namespace  = var.orc8r_kubernetes_namespace
-  repository = data.helm_repository.stable.id
+  namespace  = kubernetes_namespace.orc8r.metadata[0].name
+  repository = local.stable_helm_repo
 
   # TCP ovpn because ELB does not support UDP
   values = [<<EOT

@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package mock_pcrf
@@ -41,9 +46,19 @@ func (e GxExpectation) DoesMatch(message interface{}) error {
 	if expectedPK != actualPK {
 		return fmt.Errorf("Expected: %v, Received: %v", expectedPK, actualPK)
 	}
+	expectedRN := expected.GetRequestNumber()
+	if expectedRN != nil {
+		if err := mock_driver.CompareRequestNumber(actualPK, expectedRN, ccr.RequestNumber); err != nil {
+			return err
+		}
+	}
 	expectedUsageReports := expected.GetUsageMonitoringReports()
 	if !compareUsageMonitorsAgainstExpected(ccr.UsageMonitors, expectedUsageReports, expected.GetUsageReportDelta()) {
 		return fmt.Errorf("For Request=%v, Expected: %v, Received: %v", actualPK, expectedUsageReports, ccr.UsageMonitors)
+	}
+	expectedET := expected.GetEventTrigger()
+	if expectedET != nil && expectedET.GetValue() != int32(ccr.EventTrigger) {
+		return fmt.Errorf("For Request=%v, Expected EventTrigger: %v, Received: %v", actualPK, expectedET.Value, ccr.EventTrigger)
 	}
 	return nil
 }

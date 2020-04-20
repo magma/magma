@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 package main
 
@@ -11,17 +16,21 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
+	"runtime/debug"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/gateway/config"
 	"magma/gateway/services/bootstrapper/gateway_info"
 	bootstrapper "magma/gateway/services/bootstrapper/service"
 	configurator "magma/gateway/services/configurator/service"
+	"magma/gateway/services/magmad/service"
 	"magma/gateway/services/magmad/service_manager"
 	"magma/gateway/services/magmad/status"
 	sync_rpc "magma/gateway/services/sync_rpc/service"
+	"magma/orc8r/lib/go/profile"
 )
 
 const (
@@ -48,7 +57,11 @@ Examples:
 
 `
 
-var showGwInfo = flag.Bool("show", false, "Print out gateway information needed for GW registration")
+var (
+	showGwInfo      = flag.Bool("show", false, "Print out gateway information needed for GW registration")
+	gcPercent       = flag.Int("gc_percent", 20, "GC Percent")
+	freeMemInterval = flag.Duration("memory_purge_interval", time.Hour*6, "Force GC & unused memory purge interval")
+)
 
 func main() {
 	oldUsage := flag.Usage
@@ -63,45 +76,48 @@ func main() {
 	if *showGwInfo {
 		info, err := gateway_info.GetFormatted()
 		if err != nil {
-			log.Print(err)
+			glog.Error(err)
 			os.Exit(1)
 		}
 		fmt.Print(info)
 		os.Exit(0)
 	}
 
+	if _, isset := os.LookupEnv("GOGC"); !isset {
+		debug.SetGCPercent(*gcPercent)
+	}
 	eventChan := make(chan interface{}, 2)
 
 	// Start event loop in a dedicated routine
-	go mainEventLoop(eventChan)
+	go mainEventLoop(eventChan, time.Tick(*freeMemInterval))
 
 	// Create bootstrapper
 	b := bootstrapper.NewBootstrapper(eventChan)
 	if err := b.Initialize(); err != nil {
 		controlProxyConfigJson, _ := json.MarshalIndent(config.GetControlProxyConfigs(), "", "  ")
 		magmadProxyConfigJson, _ := json.MarshalIndent(config.GetMagmadConfigs(), "", "  ")
-		log.Fatalf(
+		glog.Fatalf(
 			"gateway '%s' bootstrap initialization error: %v, for configuration:\ncontrol_proxy: %s\nmagmad: %s",
 			b.HardwareId, err, string(controlProxyConfigJson), string(magmadProxyConfigJson))
 	}
 	// Start bootstrapper
-	log.Print("Starting Bootstrapper")
+	glog.Info("Starting Bootstrapper")
 	go func() {
 		for {
 			err := b.Start() // Start will only return on error
 			if err != nil {
-				log.Print(err)
+				glog.Error(err)
 				time.Sleep(BOOTSTRAP_RESTART_INTERVAL)
 				b.RefreshConfigs()
 			} else {
-				log.Fatal("unexpected Bootstrapper state")
+				glog.Fatal("unexpected Bootstrapper state")
 			}
 		}
 	}()
 
 	// Start SyncRPC service if it's enabled
 	if config.GetMagmadConfigs().EnableSyncRpc {
-		log.Printf("Starting SynRPC service")
+		glog.Info("Starting SynRPC service")
 		syncRpcService := sync_rpc.NewClient(nil)
 		go syncRpcService.Run()
 	}
@@ -111,50 +127,73 @@ func main() {
 
 	// Start configurator & block on main()
 	cfg := configurator.NewConfigurator(eventChan)
-	log.Printf("Starting Configurator")
-	if err := cfg.Start(); err != nil {
-		log.Fatalf("configurator start error: %v", err)
+	glog.Info("Starting Configurator")
+	go func() {
+		if err := cfg.Start(); err != nil {
+			glog.Fatalf("configurator start error: %v", err)
+		}
+	}()
+	if err := service.StartMagmadServer(); err != nil {
+		glog.Fatalf("magmad start error: %v", err)
 	}
 }
 
-func mainEventLoop(eventChan chan interface{}) {
-	for i := range eventChan {
-		switch e := i.(type) {
-		case bootstrapper.BootstrapCompletion:
-			if e.Result != nil {
-				log.Printf("bootstrap failure: %v for Gateway ID: %s", e.Result, e.HardwareId)
-			} else {
-				log.Printf("bootstrapped GW %s", e.HardwareId)
-				if config.GetControlProxyConfigs().ProxyCloudConnection {
-					// TODO: restart control proxy only
+func mainEventLoop(eventChan <-chan interface{}, freeMemChan <-chan time.Time) {
+	for {
+		select {
+		case evnt := <-eventChan:
+			switch e := evnt.(type) {
+			case bootstrapper.BootstrapCompletion:
+				if e.Result != nil {
+					glog.Errorf("bootstrap failure: %v for Gateway ID: %s", e.Result, e.HardwareId)
 				} else {
-					// Restart all magma services
-					go func() {
-						controller := service_manager.Get()
-						for _, service := range config.GetMagmadConfigs().MagmaServices {
-							controller.Restart(service)
+					glog.Infof("bootstrapped GW %s", e.HardwareId)
+					controller := service_manager.Get()
+					if config.GetControlProxyConfigs().ProxyCloudConnection {
+						glog.Info("restarting control_proxy")
+						if err := controller.Restart("control_proxy"); err != nil {
+							glog.Errorf("failed to restart control_proxy: %v", err)
 						}
-					}()
-				}
-			}
-		case configurator.UpdateCompletion:
-			log.Printf("mconfigs updated successfully for services: %v", e)
-			// Restart all services with updated configs
-			go func() {
-				magmaServiceTable := map[string]struct{}{}
-				for _, service := range config.GetMagmadConfigs().MagmaServices {
-					magmaServiceTable[service] = struct{}{}
-				}
-				controller := service_manager.Get()
-				for _, service := range e {
-					// restart only if it's this GW's service
-					if _, ok := magmaServiceTable[service]; ok {
-						controller.Restart(service)
+					} else {
+						// Restart all magma services
+						go func() {
+							for _, service := range config.GetMagmadConfigs().MagmaServices {
+								controller.Restart(service)
+							}
+						}()
 					}
 				}
-			}()
-		default:
-			log.Printf("unknown completion type: %T", e)
-		}
+			case configurator.UpdateCompletion:
+				glog.Verbose(len(e) > 0).Infof("mconfigs updated successfully for services: %v", e)
+				// Restart all services with updated configs
+				go func() {
+					magmaServiceTable := map[string]struct{}{}
+					for _, service := range config.GetMagmadConfigs().MagmaServices {
+						magmaServiceTable[service] = struct{}{}
+					}
+					controller := service_manager.Get()
+					for _, service := range e {
+						// restart only if it's this GW's service
+						if _, ok := magmaServiceTable[service]; ok {
+							controller.Restart(service)
+						}
+					}
+				}()
+			default:
+				glog.Errorf("unknown completion type: %T", e)
+			} // switch
+		case _, ok := <-freeMemChan:
+			if ok {
+				glog.Info("purging unused memory")
+				debug.FreeOSMemory()
+				if glog.V(2) {
+					profile.LogMemStats()
+				}
+				// write out heap profile if built with -tags with_profiler, noop otherwise
+				// to use:
+				//    go tool pprof -http=127.0.0.1:9999 <path/to/magmad> <profiles_dir/memory_MMDD_HH.mm.SS.pprof>
+				profile.MemWrite()
+			}
+		} // select
 	}
 }

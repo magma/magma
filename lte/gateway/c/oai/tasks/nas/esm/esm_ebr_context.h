@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,28 +60,17 @@ Description Defines functions used to handle EPS bearer contexts.
 #define IS_DEFAULT_BEARER_YES true
 #define IS_DEFAULT_BEARER_NO false
 ebi_t esm_ebr_context_create(
-  emm_context_t *emm_context,
-  const proc_tid_t pti,
-  pdn_cid_t pid,
-  ebi_t ebi,
-  bool is_default,
-  const qci_t qci,
-  const bitrate_t gbr_dl,
-  const bitrate_t gbr_ul,
-  const bitrate_t mbr_dl,
-  const bitrate_t mbr_ul,
-  traffic_flow_template_t *tft,
-  protocol_configuration_options_t *pco,
-  fteid_t *sgw_fteid);
+    emm_context_t* emm_context, const proc_tid_t pti, pdn_cid_t pid, ebi_t ebi,
+    bool is_default, const qci_t qci, const bitrate_t gbr_dl,
+    const bitrate_t gbr_ul, const bitrate_t mbr_dl, const bitrate_t mbr_ul,
+    traffic_flow_template_t* tft, protocol_configuration_options_t* pco,
+    fteid_t* sgw_fteid);
 
-void esm_ebr_context_init(esm_ebr_context_t *esm_ebr_context);
+void esm_ebr_context_init(esm_ebr_context_t* esm_ebr_context);
 
 ebi_t esm_ebr_context_release(
-  emm_context_t *emm_context,
-  ebi_t ebi,
-  pdn_cid_t *pid,
-  int *bid);
+    emm_context_t* emm_context, ebi_t ebi, pdn_cid_t* pid, int* bid);
 
-void free_esm_ebr_context(esm_ebr_context_t *ctx);
+void free_esm_ebr_context(esm_ebr_context_t* ctx);
 
 #endif /* ESM_EBR_CONTEXT_SEEN */

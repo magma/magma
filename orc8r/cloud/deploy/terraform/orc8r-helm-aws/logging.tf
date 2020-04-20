@@ -1,9 +1,14 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
 locals {
@@ -14,8 +19,8 @@ resource "helm_release" "fluentd" {
   count = var.elasticsearch_endpoint == null ? 0 : 1
 
   name       = "fluentd"
-  namespace  = var.orc8r_kubernetes_namespace
-  repository = data.helm_repository.stable.id
+  namespace  = kubernetes_namespace.orc8r.metadata[0].name
+  repository = local.stable_helm_repo
   chart      = "fluentd"
   version    = "2.3.2"
   keyring    = ""
@@ -91,14 +96,14 @@ resource "helm_release" "fluentd" {
   ]
 }
 
-# helm chart for cleanning old indices.
+# helm chart for cleaning old indices.
 resource "helm_release" "elasticsearch_curator" {
   count = var.elasticsearch_endpoint == null ? 0 : 1
 
   name       = "elasticsearch-curator"
-  repository = data.helm_repository.stable.id
+  repository = local.stable_helm_repo
   chart      = "elasticsearch-curator"
-  namespace  = "monitoring"
+  namespace  = kubernetes_namespace.monitoring.metadata[0].name
   version    = "2.1.3"
   keyring    = ""
 

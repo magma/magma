@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package main implements Magma EAP AKA Service
@@ -11,7 +16,8 @@ package main
 
 import (
 	"flag"
-	"log"
+
+	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
@@ -31,18 +37,18 @@ func main() {
 	// Create the EAP AKA Provider service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.EAP_AKA)
 	if err != nil {
-		log.Fatalf("Error creating EAP AKA service: %s", err)
+		glog.Fatalf("Error creating EAP AKA service: %s", err)
 	}
 
 	akaConfigs := &mconfig.EapAkaConfig{}
 	err = managed_configs.GetServiceConfigs(aka.EapAkaServiceName, akaConfigs)
 	if err != nil {
-		log.Printf("Error getting EAP AKA service configs: %s", err)
+		glog.Errorf("Error getting EAP AKA service configs: %s", err)
 		akaConfigs = nil
 	}
 	servicer, err := servicers.NewEapAkaService(akaConfigs)
 	if err != nil {
-		log.Fatalf("failed to create EAP AKA Service: %v", err)
+		glog.Fatalf("failed to create EAP AKA Service: %v", err)
 		return
 	}
 	protos.RegisterEapServiceServer(srv.GrpcServer, servicer)
@@ -50,6 +56,6 @@ func main() {
 	// Run the service
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running EAP AKA service: %s", err)
+		glog.Fatalf("Error running EAP AKA service: %s", err)
 	}
 }

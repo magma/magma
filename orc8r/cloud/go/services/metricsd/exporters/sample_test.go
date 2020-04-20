@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package exporters
@@ -12,6 +17,7 @@ import (
 	"fmt"
 	"testing"
 
+	"magma/orc8r/cloud/go/services/metricsd/protos"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
 	"magma/orc8r/lib/go/metrics"
 
@@ -26,14 +32,13 @@ func TestGetSamplesForMetrics(t *testing.T) {
 }
 
 type getSamplesTestCase struct {
-	name            string
-	family          dto.MetricFamily
-	context         MetricsContext
-	expectedSamples []Sample
+	name             string
+	metricAndContext protos.ContextualizedMetric
+	expectedSamples  []Sample
 }
 
 func (c *getSamplesTestCase) RunTest(t *testing.T) {
-	samples := GetSamplesForMetrics(MetricAndContext{Family: &c.family, Context: c.context}, c.family.Metric[0])
+	samples := GetSamplesForMetrics(&c.metricAndContext, c.metricAndContext.Family.Metric[0])
 	assert.Equal(t, c.expectedSamples, samples)
 }
 
@@ -42,16 +47,20 @@ var (
 	testNetwork    = "nw1"
 	testMetricName = "metric1"
 	testCloudHost  = "hostA"
-	simpleLabels   = []*dto.LabelPair{{Name: tests.MakeStringPointer("testLabel"), Value: tests.MakeStringPointer("testValue")}}
+	simpleLabels   = []*dto.LabelPair{{Name: tests.MakeStrPtr("testLabel"), Value: tests.MakeStrPtr("testValue")}}
 
 	cases = []getSamplesTestCase{
 		{
-			name:   "Pushed Metric with GatewayID",
-			family: *tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{{Name: tests.MakeStringPointer(metrics.GatewayLabelName), Value: &testGateway}}),
-			context: MetricsContext{
-				MetricName: testMetricName,
-				AdditionalContext: &PushedMetricContext{
-					NetworkID: testNetwork,
+			name: "Pushed Metric with GatewayID",
+			metricAndContext: protos.ContextualizedMetric{
+				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{{Name: tests.MakeStrPtr(metrics.GatewayLabelName), Value: &testGateway}}),
+				Context: &protos.Context{
+					MetricName: testMetricName,
+					OriginContext: &protos.Context_PushedMetric{
+						PushedMetric: &protos.PushedContext{
+							NetworkId: testNetwork,
+						},
+					},
 				},
 			},
 			expectedSamples: []Sample{{
@@ -63,12 +72,16 @@ var (
 			}},
 		},
 		{
-			name:   "Pushed Metric with no GatewayID",
-			family: *tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{}),
-			context: MetricsContext{
-				MetricName: testMetricName,
-				AdditionalContext: &PushedMetricContext{
-					NetworkID: testNetwork,
+			name: "Pushed Metric with no GatewayID",
+			metricAndContext: protos.ContextualizedMetric{
+				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{}),
+				Context: &protos.Context{
+					MetricName: testMetricName,
+					OriginContext: &protos.Context_PushedMetric{
+						PushedMetric: &protos.PushedContext{
+							NetworkId: testNetwork,
+						},
+					},
 				},
 			},
 			expectedSamples: []Sample{{
@@ -80,13 +93,17 @@ var (
 			}},
 		},
 		{
-			name:   "Gateway Metric",
-			family: *tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, simpleLabels),
-			context: MetricsContext{
-				MetricName: testMetricName,
-				AdditionalContext: &GatewayMetricContext{
-					NetworkID: testNetwork,
-					GatewayID: testGateway,
+			name: "Gateway Metric",
+			metricAndContext: protos.ContextualizedMetric{
+				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, simpleLabels),
+				Context: &protos.Context{
+					MetricName: testMetricName,
+					OriginContext: &protos.Context_GatewayMetric{
+						GatewayMetric: &protos.GatewayContext{
+							NetworkId: testNetwork,
+							GatewayId: testGateway,
+						},
+					},
 				},
 			},
 			expectedSamples: []Sample{{
@@ -98,12 +115,16 @@ var (
 			}},
 		},
 		{
-			name:   "Cloud Metric",
-			family: *tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, simpleLabels),
-			context: MetricsContext{
-				MetricName: testMetricName,
-				AdditionalContext: &CloudMetricContext{
-					CloudHost: testCloudHost,
+			name: "Cloud Metric",
+			metricAndContext: protos.ContextualizedMetric{
+				Family: tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, simpleLabels),
+				Context: &protos.Context{
+					MetricName: testMetricName,
+					OriginContext: &protos.Context_CloudMetric{
+						CloudMetric: &protos.CloudContext{
+							CloudHost: testCloudHost,
+						},
+					},
 				},
 			},
 			expectedSamples: []Sample{{

@@ -1,11 +1,10 @@
 version: "3.7"
 
 services:
-  proxy:
+  nginx:
     build:
-      # Use the temporary context created by the build.py script
       context: /tmp/magma_orc8r_build
-      dockerfile: $PWD/proxy/Dockerfile
+      dockerfile: $PWD/nginx/Dockerfile
 
   controller:
     build:

@@ -40,7 +40,7 @@
 /**
  * @file NwTypes.h
  * @brief This header file contains basic type definitions.
-*/
+ */
 
 #ifdef __cplusplus
 extern "C" {

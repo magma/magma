@@ -1,9 +1,14 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
 data "aws_iam_policy_document" "es-management" {
@@ -40,6 +45,10 @@ resource "aws_iam_service_linked_role" "es" {
   aws_service_name = "es.amazonaws.com"
 }
 
+locals {
+  elasticsearch_available_subnets = length(module.vpc.private_subnets) > 0 ? module.vpc.private_subnets : module.vpc.public_subnets
+}
+
 resource "aws_elasticsearch_domain" "es" {
   count = var.deploy_elasticsearch ? 1 : 0
 
@@ -65,7 +74,7 @@ resource "aws_elasticsearch_domain" "es" {
   }
 
   vpc_options {
-    subnet_ids         = slice(module.vpc.private_subnets, 0, min(var.elasticsearch_az_count, 3))
+    subnet_ids         = slice(local.elasticsearch_available_subnets, 0, min(var.elasticsearch_az_count, 3))
     security_group_ids = [aws_security_group.default.id]
   }
 

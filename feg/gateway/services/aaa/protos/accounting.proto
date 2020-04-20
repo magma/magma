@@ -1,9 +1,15 @@
-// Copyright (c) 2019-present, Facebook, Inc.
-// All rights reserved.
-//
-// This source code is licensed under the BSD-style license found in the
-// LICENSE file in the root directory of this source tree. An additional grant
-// of patent rights can be found in the PATENTS file in the same directory.
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 
 syntax = "proto3";
 
@@ -62,6 +68,10 @@ message terminate_session_request {
     string imsi = 2;
 }
 
+message add_sessions_request {
+    repeated context sessions = 1;
+}
+
 // accounting service, provides support for corresponding Radius accounting Acct-Status-Types in Accounting-Requests
 // see: https://tools.ietf.org/html/rfc2866#section-5.1
 service accounting {
@@ -80,4 +90,6 @@ service accounting {
     rpc create_session(context) returns (create_session_resp) {}
     // terminate_session is an "inbound" RPC from session manager to notify accounting of a client session termination
     rpc terminate_session(terminate_session_request) returns (acct_resp) {}
+    // add_sessions is an "inbound" RPC from session manager to bulk add existing sessions
+    rpc add_sessions(add_sessions_request) returns (acct_resp) {}
 }

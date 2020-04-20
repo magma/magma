@@ -1,9 +1,14 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
 # null resource with local-exec provisioner to seed Secretsmanager with all
@@ -35,6 +40,7 @@ locals {
     "certifier.key",
     "certifier.pem",
     "bootstrapper.key",
+    "admin_operator.pem",
   ]
 
   fluentd_cert_names = [
@@ -54,7 +60,7 @@ locals {
 resource "kubernetes_secret" "orc8r_certs" {
   metadata {
     name      = "orc8r-certs"
-    namespace = var.orc8r_kubernetes_namespace
+    namespace = kubernetes_namespace.orc8r.metadata[0].name
   }
 
   data = {
@@ -69,7 +75,7 @@ resource "kubernetes_secret" "nms_certs" {
 
   metadata {
     name      = "nms-certs"
-    namespace = var.orc8r_kubernetes_namespace
+    namespace = kubernetes_namespace.orc8r.metadata[0].name
   }
 
   data = {
@@ -80,18 +86,20 @@ resource "kubernetes_secret" "nms_certs" {
 resource "kubernetes_secret" "orc8r_configs" {
   metadata {
     name      = "orc8r-configs"
-    namespace = var.orc8r_kubernetes_namespace
+    namespace = kubernetes_namespace.orc8r.metadata[0].name
   }
 
   data = {
     "metricsd.yml" = yamlencode({
       "profile" : "prometheus",
-      "prometheusQueryAddress" : "http://orc8r-prometheus:9090",
-      "prometheusPushAddresses" : ["http://orc8r-prometheus-cache:9091/metrics", ],
+      "prometheusQueryAddress" : format("http://%s-prometheus:9090", var.helm_deployment_name),
+      "prometheusPushAddresses" : [
+        format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
+      ],
 
-      "alertmanagerApiURL" : "http://orc8r-alertmanager:9093/api/v2/alerts",
-      "prometheusConfigServiceURL" : "http://orc8r-prometheus-configurer:9100",
-      "alertmanagerConfigServiceURL" : "http://orc8r-alertmanager-configurer:9101",
+      "alertmanagerApiURL" : format("http://%s-alertmanager:9093/api/v2", var.helm_deployment_name),
+      "prometheusConfigServiceURL" : format("http://%s-prometheus-configurer:9100", var.helm_deployment_name),
+      "alertmanagerConfigServiceURL" : format("http://%s-alertmanager-configurer:9101", var.helm_deployment_name),
     })
 
     "elastic.yml" = yamlencode({
@@ -104,7 +112,7 @@ resource "kubernetes_secret" "orc8r_configs" {
 resource "kubernetes_secret" "orc8r_envdir" {
   metadata {
     name      = "orc8r-envdir"
-    namespace = var.orc8r_kubernetes_namespace
+    namespace = kubernetes_namespace.orc8r.metadata[0].name
   }
 
   data = {
@@ -115,7 +123,7 @@ resource "kubernetes_secret" "orc8r_envdir" {
 resource "kubernetes_secret" "fluentd_certs" {
   metadata {
     name      = "fluentd-certs"
-    namespace = var.orc8r_kubernetes_namespace
+    namespace = kubernetes_namespace.orc8r.metadata[0].name
   }
 
   data = {

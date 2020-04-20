@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package configurator
@@ -37,7 +42,8 @@ type Network struct {
 	Version uint64
 }
 
-func (n Network) toStorageProto() (*storage.Network, error) {
+// ToStorageProto converts a Network struct to its proto representation.
+func (n Network) ToStorageProto() (*storage.Network, error) {
 	ret := &storage.Network{
 		ID:          n.ID,
 		Type:        n.Type,
@@ -52,7 +58,8 @@ func (n Network) toStorageProto() (*storage.Network, error) {
 	return ret, nil
 }
 
-func (n Network) fromStorageProto(protoNet *storage.Network) (Network, error) {
+// FromStorageProto converts a Network proto to it's internal go struct format.
+func (n Network) FromStorageProto(protoNet *storage.Network) (Network, error) {
 	iConfigs, err := unmarshalConfigs(protoNet.Configs, NetworkConfigSerdeDomain)
 	if err != nil {
 		return n, errors.Wrapf(err, "error deserializing network %s", protoNet.ID)
@@ -227,7 +234,8 @@ type EntityGraph struct {
 	reverseEdgesByTK map[storage2.TypeAndKey][]storage2.TypeAndKey
 }
 
-func (eg EntityGraph) fromStorageProto(protoGraph *storage.EntityGraph) (EntityGraph, error) {
+// FromStorageProto converts a proto EntityGraph to it's go struct format.
+func (eg EntityGraph) FromStorageProto(protoGraph *storage.EntityGraph) (EntityGraph, error) {
 	eg.Entities = make([]NetworkEntity, 0, len(protoGraph.Entities))
 	for _, protoEnt := range protoGraph.Entities {
 		ent, err := (NetworkEntity{}).fromStorageProto(protoEnt)
@@ -246,6 +254,24 @@ func (eg EntityGraph) fromStorageProto(protoGraph *storage.EntityGraph) (EntityG
 	return eg, nil
 }
 
+// ToStorageProto converts an EntityGraph struct to it's proto representation.
+func (eg EntityGraph) ToStorageProto() (*storage.EntityGraph, error) {
+	protoGraph := &storage.EntityGraph{}
+	for _, ent := range eg.Entities {
+		protoEnt, err := ent.toStorageProto()
+		if err != nil {
+			return protoGraph, errors.Wrapf(err, "failed to convert entity %s to storage proto", ent.GetTypeAndKey())
+		}
+		protoGraph.Entities = append(protoGraph.Entities, protoEnt)
+	}
+	protoGraph.RootEntities = tksToEntIDs(eg.RootEntities)
+
+	for _, edge := range eg.Edges {
+		protoGraph.Edges = append(protoGraph.Edges, edge.toStorageProto())
+	}
+	return protoGraph, nil
+}
+
 type GraphEdge struct {
 	From storage2.TypeAndKey
 	To   storage2.TypeAndKey
@@ -255,6 +281,15 @@ func (ge GraphEdge) fromStorageProto(protoEdge *storage.GraphEdge) GraphEdge {
 	ge.From = protoEdge.From.ToTypeAndKey()
 	ge.To = protoEdge.To.ToTypeAndKey()
 	return ge
+}
+
+func (ge GraphEdge) toStorageProto() *storage.GraphEdge {
+	protoTo := (&storage.EntityID{}).FromTypeAndKey(ge.To)
+	protoFrom := (&storage.EntityID{}).FromTypeAndKey(ge.From)
+	return &storage.GraphEdge{
+		To:   protoTo,
+		From: protoFrom,
+	}
 }
 
 // EntityLoadFilter specifies which entities to load from storage
@@ -392,6 +427,10 @@ func (euc EntityUpdateCriteria) isEntityWriteOperation() {}
 func marshalConfigs(configs map[string]interface{}, domain string) (map[string][]byte, error) {
 	ret := map[string][]byte{}
 	for configType, iConfig := range configs {
+		if iConfig == nil {
+			continue
+		}
+
 		sConfig, err := serde.Serialize(domain, configType, iConfig)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to serialize config %s", configType)

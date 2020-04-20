@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package access
@@ -32,6 +37,7 @@ func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if c == nil || c.Request() == nil {
 			return handleError(c, http.StatusBadRequest, "Invalid Request")
 		}
+		glog.V(1).Infof("Received request in the access middleware. Req: %v", c.Request())
 		// find out request's access type (READ|WRITE|READ & WRITE)
 		perm := requestPermissions(c)
 
@@ -75,6 +81,7 @@ func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		// all good, call next handler
 		if next != nil {
+			glog.V(1).Info("Access middleware successfully verified permissions. Sending request to the next middleware.")
 			return next(c)
 		}
 		return nil

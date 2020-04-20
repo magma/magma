@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Server's main package, run with obsidian -h to see all available options
@@ -18,6 +23,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
+	"magma/orc8r/cloud/go/obsidian/reverse_proxy"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -25,11 +31,13 @@ import (
 
 func Start() {
 	e := echo.New()
+	e.HideBanner = true
 
 	obsidian.AttachAll(e)
 	// metrics middleware is used before all other middlewares
 	e.Use(CollectStats)
 	e.Use(middleware.Recover())
+
 	// Serve static pages for the API docs
 	e.Static(obsidian.StaticURLPrefix, obsidian.StaticFolder+"/apidocs")
 	e.Static(obsidian.StaticURLPrefix+"/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")
@@ -94,9 +102,18 @@ func Start() {
 		if !e.DisableHTTP2 {
 			s.TLSConfig.NextProtos = append(s.TLSConfig.NextProtos, "h2")
 		}
-		err = e.StartServer(e.TLSServer)
 	} else {
 		e.Use(access.Middleware)
+	}
+
+	e, err = reverse_proxy.AddReverseProxyPaths(e)
+	if err != nil {
+		log.Fatalf("Error adding reverse proxy paths: %s", err)
+	}
+
+	if obsidian.TLS {
+		err = e.StartServer(e.TLSServer)
+	} else {
 		err = e.Start(portStr)
 	}
 	if err != nil {

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,7 +43,7 @@
  \param mme_config The global MME configuration structure
  @returns -1 on error, 0 otherwise.
  **/
-int sctp_init(const mme_config_t *mme_config_p);
+int sctp_init(const mme_config_t* mme_config_p);
 
 #endif /* FILE_SCTP_PRIMITIVES_SERVER_SEEN */
 

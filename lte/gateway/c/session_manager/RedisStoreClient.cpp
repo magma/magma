@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2016-present, Facebook, Inc.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "SessionState.h"
@@ -46,6 +50,13 @@ SessionMap RedisStoreClient::read_sessions(
   // call being processed at a time, and that the writes it makes are done
   // atomically. Based on that, reads can be done without using Redis
   // transactions, or EVAL.
+  if (!client_->is_connected()) {
+    auto connected = try_redis_connect();
+    if (!connected) {
+      throw RedisReadFailed();
+    }
+  }
+
   std::unordered_map<std::string, std::future<cpp_redis::reply>> futures;
   for (const std::string& key : subscriber_ids) {
     futures[key] = client_->hget(redis_table_, key);
@@ -72,6 +83,12 @@ SessionMap RedisStoreClient::read_sessions(
 }
 
 SessionMap RedisStoreClient::read_all_sessions() {
+  if (!client_->is_connected()) {
+    auto connected = try_redis_connect();
+    if (!connected) {
+      throw RedisReadFailed();
+    }
+  }
   SessionMap session_map;
   auto hgetall_future = client_->hgetall(redis_table_);
   client_->sync_commit();
@@ -82,7 +99,7 @@ SessionMap RedisStoreClient::read_all_sessions() {
     return session_map;
   }
   auto array = reply.as_array();
-  for (int i = 0; i < array.size(); i += 2) {
+  for (size_t i = 0; i < array.size(); i += 2) {
     auto key_reply = array[i];
     if (!key_reply.is_string()) {
       MLOG(MERROR) << "Non string key found in sessions from redis";
@@ -108,6 +125,12 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
 
   // First we need to watch the keys that we intend to write to.
   // If we don't, then one HSET might succeed but another will fail.
+  if (!client_->is_connected()) {
+    auto connected = try_redis_connect();
+    if (!connected) {
+      throw RedisWriteFailed();
+    }
+  }
   std::vector<std::string> keys;
   for (auto& it : session_map) {
     keys.push_back(it.first);
@@ -134,6 +157,7 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
     MLOG(MERROR) << "Failed to write sessions to Redis.";
     return false;
   }
+  return true;
 }
 
 std::string RedisStoreClient::serialize_session_vec(

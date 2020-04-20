@@ -1,9 +1,0 @@
-*.pyc
-*.pyo
-__pycache__
-*.egg-info
-*~
-.coverage
-.tox/
-build/
-dist/

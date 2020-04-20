@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -90,10 +86,10 @@ typedef enum esm_primitive_s {
 typedef enum {
   ESM_SAP_SUCCESS = 1, /* ESM-SAP primitive succeed           */
   ESM_SAP_DISCARDED,   /* ESM-SAP primitive failed, the caller should
-              * ignore the error                */
+                        * ignore the error                */
   ESM_SAP_FAILED       /* ESM-SAP primitive failed, the caller should
-              * take specific action and state transition may
-              * occurs                  */
+                        * take specific action and state transition may
+                        * occurs                  */
 } esm_sap_error_t;
 
 /*
@@ -110,12 +106,12 @@ typedef struct esm_activate_eps_default_bearer_context_s {
 typedef struct esm_pdn_connectivity_s {
   pdn_cid_t cid;     /* PDN connection local identifier      */
   int is_defined;    /* Indicates whether a PDN context has been defined
-             * for the specified APN            */
+                      * for the specified APN            */
   int pdn_type;      /* PDN address type (IPv4, IPv6, IPv4v6)    */
-  const char *apn;   /* PDN's Access Point Name          */
+  const char* apn;   /* PDN's Access Point Name          */
   bool is_emergency; /* Indicates whether the PDN context has been
-             * defined to establish connection for emergency
-             * bearer services              */
+                      * defined to establish connection for emergency
+                      * bearer services              */
 } esm_pdn_connectivity_t;
 
 /*
@@ -134,7 +130,7 @@ typedef struct esm_eps_bearer_context_deactivate_s {
 #define ESM_SAP_ALL_EBI 0xff
   uint32_t no_of_bearers;
   ebi_t ebi[BEARERS_PER_UE]; /* EPS bearer identity of the EPS bearer context
-             * to be deactivated                */
+                              * to be deactivated                */
   bool is_pcrf_initiated;
 } esm_eps_bearer_context_deactivate_t;
 
@@ -144,16 +140,15 @@ typedef struct esm_eps_bearer_context_deactivate_s {
  */
 typedef struct esm_eps_dedicated_bearer_context_activate_s {
   pdn_cid_t cid; /* PDN connection local identifier      */
-  ebi_t
-    ebi; /* EPS bearer identity of the EPS bearer context to be activated                */
+  ebi_t ebi; /* EPS bearer identity of the EPS bearer context to be activated */
   ebi_t linked_ebi;
   qci_t qci;
   bitrate_t gbr_ul;
   bitrate_t gbr_dl;
   bitrate_t mbr_ul;
   bitrate_t mbr_dl;
-  traffic_flow_template_t *tft;
-  protocol_configuration_options_t *pco;
+  traffic_flow_template_t* tft;
+  protocol_configuration_options_t* pco;
   fteid_t sgw_fteid;
 } esm_eps_dedicated_bearer_context_activate_t;
 
@@ -167,7 +162,7 @@ typedef union {
   esm_pdn_disconnect_t pdn_disconnect;
   esm_eps_bearer_context_deactivate_t eps_bearer_context_deactivate;
   esm_eps_dedicated_bearer_context_activate_t
-    eps_dedicated_bearer_context_activate;
+      eps_dedicated_bearer_context_activate;
 } esm_sap_data_t;
 
 struct emm_context_s;
@@ -175,10 +170,10 @@ struct emm_context_s;
 typedef struct esm_sap_s {
   esm_primitive_t primitive; /* ESM-SAP primitive to process     */
   bool is_standalone;        /* Indicates whether the ESM message handled
-                 * within this primitive has to be sent/received
-                 * standalone or together within an EMM related
-                 * message              */
-  struct emm_context_s *ctx; /* UE MM context                   */
+                              * within this primitive has to be sent/received
+                              * standalone or together within an EMM related
+                              * message              */
+  struct emm_context_s* ctx; /* UE MM context                   */
   unsigned int ue_id;        /* Local UE identifier             */
   esm_sap_error_t err;       /* ESM-SAP error code               */
   const_bstring recv;        /* Encoded ESM message received     */

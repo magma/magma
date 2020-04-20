@@ -1,16 +1,20 @@
 """
-Copyright (c) 2019-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 from typing import Optional
 
 from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
     is_valid_direction, Direction, RULE_VERSION_REG, PASSTHROUGH_REG, \
-    VLAN_TAG_REG
+    VLAN_TAG_REG, DPI_REG
 
 
 class MagmaMatch(object):
@@ -22,12 +26,13 @@ class MagmaMatch(object):
 
     def __init__(self, imsi: int = None, direction: Optional[Direction] = None,
                  rule_version: int = None, passthrough: int = None,
-                 vlan_tag: int = None, **kwargs):
+                 vlan_tag: int = None, app_id: int = None, **kwargs):
         self.imsi = imsi
         self.direction = direction
         self.rule_version = rule_version
         self.passthrough = passthrough
         self.vlan_tag = vlan_tag
+        self.app_id = app_id
         self._match_kwargs = kwargs
         self._check_args()
 
@@ -51,6 +56,8 @@ class MagmaMatch(object):
             ryu_match[PASSTHROUGH_REG] = self.passthrough
         if self.vlan_tag is not None:
             ryu_match[VLAN_TAG_REG] = self.vlan_tag
+        if self.app_id is not None:
+            ryu_match[DPI_REG] = self.app_id
         return ryu_match
 
     def _check_args(self):

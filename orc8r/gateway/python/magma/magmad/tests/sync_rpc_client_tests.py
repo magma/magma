@@ -1,15 +1,19 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 # pylint: disable=protected-access
 
 import asyncio
-import unittest.mock
+from unittest import TestCase, main, mock
 
 from orc8r.protos.sync_rpc_service_pb2 import GatewayRequest, GatewayResponse, \
     SyncRPCResponse, SyncRPCRequest
@@ -18,7 +22,7 @@ from magma.common.service_registry import ServiceRegistry
 from magma.magmad.sync_rpc_client import SyncRPCClient
 
 
-class SyncRPCClientTests(unittest.TestCase):
+class SyncRPCClientTests(TestCase):
     """
     Tests for the SyncRPCClient
     """
@@ -76,6 +80,13 @@ class SyncRPCClientTests(unittest.TestCase):
             else:
                 self.assertEqual(2 ** i, self._sync_rpc_client._current_delay)
 
+    def test_disconnect_sync_rpc_event(self):
+        disconnect_sync_rpc_event_mock = mock.patch(
+            'magma.magmad.events.disconnected_sync_rpc_stream')
+        with disconnect_sync_rpc_event_mock as disconnect_sync_rpc_streams:
+            self._sync_rpc_client._cleanup_and_reconnect()
+            disconnect_sync_rpc_streams.assert_called_once_with()
+
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

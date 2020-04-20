@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import json
@@ -12,7 +16,7 @@ from unittest import TestCase
 
 from jsonschema import ValidationError
 
-from ..rpc_servicer import EventDRpcServicer
+from magma.eventd.rpc_servicer import EventDRpcServicer
 from magma.common.service import MagmaService
 
 
@@ -29,7 +33,8 @@ class EventValidationTests(TestCase):
             'tcp_timeout': '',
             'event_registry': {
                 'simple_event': test_events_location,
-                'array_and_object_event': test_events_location
+                'array_and_object_event': test_events_location,
+                'null_event': test_events_location,
             },
         }
         servicer = EventDRpcServicer(config)
@@ -67,6 +72,9 @@ class EventValidationTests(TestCase):
         # Does not error when the fields are equivalent
         self.validate_event(json.dumps({'foo': 'asdf', 'bar': 123}),
                             'simple_event')
+
+        # Does not error when event has no fields
+        self.validate_event(json.dumps({}), 'null_event')
 
     def test_type_checking(self):
         # Does not error when the types match

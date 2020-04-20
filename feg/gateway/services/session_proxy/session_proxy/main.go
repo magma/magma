@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Central Session Controller is a service which proxies calls to the OCS and
@@ -13,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,10 +39,6 @@ import (
 	"github.com/golang/glog"
 )
 
-const (
-	TestOCSIP = ":4444"
-)
-
 func init() {
 	flag.Parse()
 }
@@ -49,107 +51,25 @@ func main() {
 			"Session Proxy Base Service name: %s does not match its managed configs key: %s",
 			serviceBaseName, credit_control.SessionProxyServiceName)
 	}
+
 	// Create the service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.SESSION_PROXY)
 	if err != nil {
 		glog.Fatalf("Error creating service: %s", err)
 	}
 
-	initMethod := gy.GetInitMethod()
-
-	// Global config is shared by all the controllers
-	gyGlobalConfig := gy.GetGyGlobalConfig()
-	gxGlobalConfig := gx.GetGxGlobalConfig()
-
-	// Each controller will take one entry
-	OCSConfigurations := gy.GetOCSConfiguration()
-	PCRFConfgurations := gx.GetPCRFConfiguration()
-	gxCliConfigurations := gx.GetGxClientConfiguration()
-	gyCLiConfigurations := gy.GetGyClientConfiguration()
-
-	// TODO: To Deal with different OCSs and PCRF (will require CentralSessionControllers to support
-	// a controller created per each request
-	totalLen := maxLen(OCSConfigurations, PCRFConfgurations)
-
-	gyClnts := []gy.CreditClient{}
-	gxClnts := []gx.PolicyClient{}
-	controllerCfgs := []*servicers.SessionControllerConfig{}
-
-	cloudReg := registry.Get()
-	policyDBClient, err := policydb.NewRedisPolicyDBClient(cloudReg)
+	// Create configs for each server and start diam connections
+	controllerParms, policyDBClient, err := generateClientsConfsAndDiameterConnection()
 	if err != nil {
-		glog.Fatalf("Error connecting to redis store: %s", err)
-	}
-
-	for i := 0; i < totalLen; i++ {
-
-		controllerCfg := &servicers.SessionControllerConfig{
-			OCSConfig:        OCSConfigurations[i],
-			PCRFConfig:       PCRFConfgurations[i],
-			RequestTimeout:   3 * time.Second,
-			InitMethod:       initMethod,
-			UseGyForAuthOnly: util.IsTruthyEnv(gy.UseGyForAuthOnlyEnv),
-		}
-		controllerCfgs = append(controllerCfgs, controllerCfg)
-
-		// new copy of the configuration needed
-		ocsDiamCfg := gy.GetOCSConfiguration()[i]
-		pcrfDiamCfg := gx.GetPCRFConfiguration()[i]
-
-		var gxClnt *gx.GxClient
-		var gyClnt *gy.GyClient
-
-		gxClntCfg := gxCliConfigurations[i]
-		gyClntCfg := gyCLiConfigurations[i]
-
-		if ocsDiamCfg.DiameterServerConnConfig == pcrfDiamCfg.DiameterServerConnConfig &&
-			ocsDiamCfg != pcrfDiamCfg {
-			glog.Infof("Using single Gy/Gx connection for server: %+v",
-				ocsDiamCfg.DiameterServerConnConfig)
-			var clientCfg = *gxClntCfg
-			clientCfg.AuthAppID = gyClntCfg.AppID
-			diamClient := diameter.NewClient(&clientCfg)
-			diamClient.BeginConnection(ocsDiamCfg)
-
-			gyClnt = gy.NewConnectedGyClient(
-				diamClient,
-				ocsDiamCfg,
-				gy.GetGyReAuthHandler(cloudReg),
-				cloudReg,
-				gyGlobalConfig)
-			gxClnt = gx.NewConnectedGxClient(
-				diamClient,
-				ocsDiamCfg,
-				gx.GetGxReAuthHandler(cloudReg, policyDBClient),
-				cloudReg,
-				gxGlobalConfig)
-		} else {
-			glog.Infof("Using distinct Gy: %+v & Gx: %+v connection",
-				ocsDiamCfg.DiameterServerConnConfig, pcrfDiamCfg.DiameterServerConnConfig)
-
-			gyClnt = gy.NewGyClient(
-				gy.GetGyClientConfiguration()[i],
-				ocsDiamCfg,
-				gy.GetGyReAuthHandler(cloudReg),
-				cloudReg,
-				gyGlobalConfig)
-			gxClnt = gx.NewGxClient(
-				gx.GetGxClientConfiguration()[i],
-				pcrfDiamCfg,
-				gx.GetGxReAuthHandler(cloudReg, policyDBClient),
-				cloudReg,
-				gxGlobalConfig)
-		}
-		gyClnts = append(gyClnts, gyClnt)
-		gxClnts = append(gxClnts, gxClnt)
-
+		glog.Fatal(err)
+		return
 	}
 
 	// Add servicers to the service
-	sessionManager := servicers.NewCentralSessionControllers(gyClnts, gxClnts, policyDBClient, controllerCfgs)
-	//sessionManager := servicers.NewCentralSessionController(gyClnt, gxClnt, policyDBClient, controllerCfg)
-	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessionManager)
-	protos.RegisterServiceHealthServer(srv.GrpcServer, sessionManager)
+	sessionManagerAndHealthServer, err := servicers.
+		NewCentralSessionControllerDefaultMultiplexWithHealth(controllerParms, policyDBClient)
+	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessionManagerAndHealthServer)
+	protos.RegisterServiceHealthServer(srv.GrpcServer, sessionManagerAndHealthServer)
 
 	// Run the service
 	err = srv.Run()
@@ -158,9 +78,93 @@ func main() {
 	}
 }
 
-func maxLen(a []*diameter.DiameterServerConfig, b []*diameter.DiameterServerConfig) int {
-	if len(a) > len(b) {
-		return len(a)
+// TODO: move this to servicers and add testing
+// generateClientsConfsAndDiameterConnection reads configurations for all GXs and GYs connections configured
+// at gateway.mconfig and creates a slice containing all the requiered parameters to start CentralSessionControllers
+func generateClientsConfsAndDiameterConnection() (
+	[]*servicers.ControllerParam, *policydb.RedisPolicyDBClient, error) {
+	cloudReg := registry.Get()
+	policyDBClient, err := policydb.NewRedisPolicyDBClient(cloudReg)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Error connecting to redis store: %s", err)
 	}
-	return len(b)
+
+	// ---- Read configus from gateway.mconfig  ----
+	glog.Info("------ Reading Gx and Gy configuration ------")
+	// Global config, init Method and policyDb (static routes) are shared by all the controllers
+	gyGlobalConf := gy.GetGyGlobalConfig()
+	gxGlobalConf := gx.GetGxGlobalConfig()
+
+	// Each controller will take one entry of PCRF, OCS, and gx/gy clients confs
+	gxCliConfs := gx.GetGxClientConfiguration()
+	gyCLiConfs := gy.GetGyClientConfiguration()
+	OCSConfs := gy.GetOCSConfiguration()
+	PCRFConfs := gx.GetPCRFConfiguration()
+
+	// this is a new copy needed to fill in the controllerParms
+	OCSConfsCopy := gy.GetOCSConfiguration()
+	PCRFConfsCopy := gx.GetPCRFConfiguration()
+
+	// Exit if the number of GX and GY configurations are different
+	if len(OCSConfs) != len(PCRFConfs) {
+		return nil, nil, fmt.Errorf(
+			"Number of Gx and Gy servers configured must be equal Gx:%d Gx:%d",
+			len(OCSConfs), len(PCRFConfs))
+	}
+	glog.Info("------ Done reading configuration ------")
+
+	// ---- Create diammeter connections and build parameters for CentralSessionControllersn ----
+	glog.Info("------ Create diameter connexions ------")
+	totalLen := len(OCSConfs)
+	controllerParms := make([]*servicers.ControllerParam, 0, totalLen)
+	for i := 0; i < totalLen; i++ {
+		controlParam := &servicers.ControllerParam{}
+		// Fill in general parameters for controler i
+		controlParam.Config = &servicers.SessionControllerConfig{
+			OCSConfig:        OCSConfs[i],
+			PCRFConfig:       PCRFConfs[i],
+			RequestTimeout:   3 * time.Second,
+			UseGyForAuthOnly: util.IsTruthyEnv(gy.UseGyForAuthOnlyEnv),
+		}
+		// Fill in gx and gy config for controller i
+		if OCSConfsCopy[i].DiameterServerConnConfig == PCRFConfsCopy[i].DiameterServerConnConfig &&
+			OCSConfsCopy[i] != PCRFConfsCopy[i] {
+			glog.Infof("Using single Gy/Gx connection for server: %+v",
+				OCSConfsCopy[i].DiameterServerConnConfig)
+			var clientCfg = *gxCliConfs[i]
+			clientCfg.AuthAppID = gyCLiConfs[i].AppID
+			diamClient := diameter.NewClient(&clientCfg)
+			diamClient.BeginConnection(OCSConfsCopy[i])
+			controlParam.CreditClient = gy.NewConnectedGyClient(
+				diamClient,
+				OCSConfsCopy[i],
+				gy.GetGyReAuthHandler(cloudReg),
+				cloudReg,
+				gyGlobalConf)
+			controlParam.PolicyClient = gx.NewConnectedGxClient(
+				diamClient,
+				OCSConfsCopy[i],
+				gx.GetGxReAuthHandler(cloudReg, policyDBClient),
+				cloudReg,
+				gxGlobalConf)
+		} else {
+			glog.Infof("Using distinct Gy: %+v & Gx: %+v connection",
+				OCSConfsCopy[i].DiameterServerConnConfig, PCRFConfsCopy[i].DiameterServerConnConfig)
+			controlParam.CreditClient = gy.NewGyClient(
+				gy.GetGyClientConfiguration()[i],
+				OCSConfsCopy[i],
+				gy.GetGyReAuthHandler(cloudReg),
+				cloudReg,
+				gyGlobalConf)
+			controlParam.PolicyClient = gx.NewGxClient(
+				gx.GetGxClientConfiguration()[i],
+				PCRFConfsCopy[i],
+				gx.GetGxReAuthHandler(cloudReg, policyDBClient),
+				cloudReg,
+				gxGlobalConf)
+		}
+		controllerParms = append(controllerParms, controlParam)
+	}
+	glog.Infof("------ Done creating %d diameter connexions ------", totalLen)
+	return controllerParms, policyDBClient, nil
 }

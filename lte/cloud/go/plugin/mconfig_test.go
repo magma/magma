@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package plugin_test
@@ -13,11 +18,13 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin"
-	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
+	models2 "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl/models"
+	orc8rplugin "magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
@@ -27,6 +34,8 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
+	_ = orc8rplugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = orc8rplugin.RegisterPluginForTests(t, &plugin.LteOrchestratorPlugin{})
 	builder := &plugin.Builder{}
 
 	nw := configurator.Network{
@@ -57,24 +66,8 @@ func TestBuilder_Build(t *testing.T) {
 		Config:             newDefaultEnodebConfig(),
 		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
 	}
-	rating1 := configurator.NetworkEntity{
-		Type: lte.RatingGroupEntityType,
-		Key:  "1",
-		Config: &models2.RatingGroup{
-			ID:        models2.RatingGroupID(uint32(1)),
-			LimitType: swag.String("INFINITE_UNMETERED"),
-		},
-	}
-	rating2 := configurator.NetworkEntity{
-		Type: lte.RatingGroupEntityType,
-		Key:  "2",
-		Config: &models2.RatingGroup{
-			ID:        models2.RatingGroupID(uint32(2)),
-			LimitType: swag.String("INFINITE_METERED"),
-		},
-	}
 	graph := configurator.EntityGraph{
-		Entities: []configurator.NetworkEntity{enb, lteGW, gw, rating1, rating2},
+		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
 		Edges: []configurator.GraphEdge{
 			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
 			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
@@ -96,7 +89,7 @@ func TestBuilder_Build(t *testing.T) {
 			Tac:                 1,
 			PlmnidList:          "00101",
 			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
-			Arfcn_2G:            []int32{},
+			Arfcn_2G:            nil,
 			EnbConfigsBySerial: map[string]*mconfig.EnodebD_EnodebConfig{
 				"enb1": {
 					Earfcndl:               39150,
@@ -130,6 +123,7 @@ func TestBuilder_Build(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			EnableDnsCaching:         true,
 			AttachedEnodebTacs:       []int32{15000},
+			NatEnabled:               true,
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -144,17 +138,18 @@ func TestBuilder_Build(t *testing.T) {
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
-			SubProfiles:  map[string]*mconfig.SubscriberDB_SubscriptionProfile{},
+			SubProfiles:  nil,
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
-			LogLevel:                      protos.LogLevel_INFO,
-			InfiniteMeteredChargingKeys:   []uint32{uint32(2)},
-			InfiniteUnmeteredChargingKeys: []uint32{uint32(1)},
+			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
+			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
 		},
 	}
 
@@ -180,6 +175,104 @@ func TestBuilder_Build(t *testing.T) {
 		},
 	}
 	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestBuilder_Build_NonNat(t *testing.T) {
+	builder := &plugin.Builder{}
+
+	// no dnsd config, no enodebs
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkType: models2.NewDefaultTDDNetworkConfig(),
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayType, Key: "gw1"},
+		},
+	}
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayType, Key: "gw1",
+		Config:             newGatewayConfigNonNat(),
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+
+	actual := map[string]proto.Message{}
+	expected := map[string]proto.Message{
+		"enodebd": &mconfig.EnodebD{
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
+			TddConfig: &mconfig.EnodebD_TDDConfig{
+				Earfcndl:               44590,
+				SubframeAssignment:     2,
+				SpecialSubframePattern: 7,
+			},
+			BandwidthMhz:        20,
+			AllowEnodebTransmit: true,
+			Tac:                 1,
+			PlmnidList:          "00101",
+			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
+			Arfcn_2G:            nil,
+			EnbConfigsBySerial:  nil,
+		},
+		"mobilityd": &mconfig.MobilityD{
+			LogLevel: protos.LogLevel_INFO,
+			IpBlock:  "192.168.128.0/24",
+		},
+		"mme": &mconfig.MME{
+			LogLevel:                 protos.LogLevel_INFO,
+			Mcc:                      "001",
+			Mnc:                      "01",
+			Tac:                      1,
+			MmeCode:                  1,
+			MmeGid:                   1,
+			NonEpsServiceControl:     mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			CsfbMcc:                  "001",
+			CsfbMnc:                  "01",
+			Lac:                      1,
+			RelayEnabled:             false,
+			CloudSubscriberdbEnabled: false,
+			AttachedEnodebTacs:       nil,
+			NatEnabled:               false,
+		},
+		"pipelined": &mconfig.PipelineD{
+			LogLevel:      protos.LogLevel_INFO,
+			UeIpBlock:     "192.168.128.0/24",
+			NatEnabled:    false,
+			DefaultRuleId: "",
+			Services: []mconfig.PipelineD_NetworkServices{
+				mconfig.PipelineD_ENFORCEMENT,
+			},
+		},
+		"subscriberdb": &mconfig.SubscriberDB{
+			LogLevel:     protos.LogLevel_INFO,
+			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:   []byte("\x80\x00"),
+			SubProfiles:  nil,
+			RelayEnabled: false,
+		},
+		"policydb": &mconfig.PolicyDB{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sessiond": &mconfig.SessionD{
+			LogLevel:     protos.LogLevel_INFO,
+			RelayEnabled: false,
+			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
+		},
+	}
+	err := builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -227,8 +320,8 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			Tac:                 1,
 			PlmnidList:          "00101",
 			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
-			Arfcn_2G:            []int32{},
-			EnbConfigsBySerial:  map[string]*mconfig.EnodebD_EnodebConfig{},
+			Arfcn_2G:            nil,
+			EnbConfigsBySerial:  nil,
 		},
 		"mobilityd": &mconfig.MobilityD{
 			LogLevel: protos.LogLevel_INFO,
@@ -247,7 +340,8 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			Lac:                      1,
 			RelayEnabled:             false,
 			CloudSubscriberdbEnabled: false,
-			AttachedEnodebTacs:       []int32{},
+			AttachedEnodebTacs:       nil,
+			NatEnabled:               true,
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -262,17 +356,18 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
-			SubProfiles:  map[string]*mconfig.SubscriberDB_SubscriptionProfile{},
+			SubProfiles:  nil,
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
-			LogLevel:                      protos.LogLevel_INFO,
-			InfiniteMeteredChargingKeys:   []uint32{},
-			InfiniteUnmeteredChargingKeys: []uint32{},
+			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
+			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
 		},
 	}
 	err := builder.Build("n1", "gw1", graph, nw, actual)
@@ -339,7 +434,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			Tac:                 1,
 			PlmnidList:          "00101",
 			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
-			Arfcn_2G:            []int32{},
+			Arfcn_2G:            nil,
 			EnbConfigsBySerial: map[string]*mconfig.EnodebD_EnodebConfig{
 				"enb1": {
 					Earfcndl:               44590,
@@ -373,6 +468,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			EnableDnsCaching:         true,
 			AttachedEnodebTacs:       []int32{1},
+			NatEnabled:               true,
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -387,17 +483,18 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
-			SubProfiles:  map[string]*mconfig.SubscriberDB_SubscriptionProfile{},
+			SubProfiles:  nil,
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
-			LogLevel:                      protos.LogLevel_INFO,
-			InfiniteMeteredChargingKeys:   []uint32{},
-			InfiniteUnmeteredChargingKeys: []uint32{},
+			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
+			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
 		},
 	}
 	err := builder.Build("n1", "gw1", graph, nw, actual)
@@ -420,12 +517,32 @@ func newDefaultGatewayConfig() *models2.GatewayCellularConfigs {
 			CsfbMnc:              "01",
 			Lac:                  swag.Uint32(1),
 			CsfbRat:              swag.Uint32(0),
-			Arfcn2g:              []uint32{},
+			Arfcn2g:              nil,
 			NonEpsServiceControl: swag.Uint32(0),
 		},
 	}
 }
 
+func newGatewayConfigNonNat() *models2.GatewayCellularConfigs {
+	return &models2.GatewayCellularConfigs{
+		Ran: &models2.GatewayRanConfigs{
+			Pci:             260,
+			TransmitEnabled: swag.Bool(true),
+		},
+		Epc: &models2.GatewayEpcConfigs{
+			NatEnabled: swag.Bool(false),
+			IPBlock:    "192.168.128.0/24",
+		},
+		NonEpsService: &models2.GatewayNonEpsConfigs{
+			CsfbMcc:              "001",
+			CsfbMnc:              "01",
+			Lac:                  swag.Uint32(1),
+			CsfbRat:              swag.Uint32(0),
+			Arfcn2g:              nil,
+			NonEpsServiceControl: swag.Uint32(0),
+		},
+	}
+}
 func newDefaultEnodebConfig() *models2.EnodebConfiguration {
 	return &models2.EnodebConfiguration{
 		Earfcndl:               39150,

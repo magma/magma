@@ -11,12 +11,14 @@ Before beginning to configure your Magma Access Gateway, you will need to make
 sure that it is running all services without crashing. You will also need a
 working Orchestrator setup. Please follow the instructions in
 "[Deploying Orchestrator](
-https://facebookincubator.github.io/magma/docs/orc8r/deploying)" for a
+https://magma.github.io/magma/docs/orc8r/deploying)" for a
 successful Orchestrator installation.
 
-You also should have completed all the steps in "[Access Gateway Setup (On Bare Metal)](https://facebookincubator.github.io/magma/docs/lte/setup_deb)".
+You also should have completed all the steps in "[Access Gateway Setup (On Bare Metal)](https://magma.github.io/magma/docs/lte/setup_deb)".
 For this part, we strongly recommend that you SSH into the AGW box from a host
 machine instead of using the AGW directly.
+
+In this latest version, Magma Access Gateway no longer has a hardwired default Access Point Name (APN). Therefore, each UE must have a subscription profile that includes at least one APN to be able to attach to the network. Please follow the instructions in "[APN Configuration](config_apn.md)".
 
 ## Access Gateway Configuration
 

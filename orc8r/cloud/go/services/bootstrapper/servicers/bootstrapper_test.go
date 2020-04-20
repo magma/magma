@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package servicers_test
@@ -22,29 +27,29 @@ import (
 	"testing"
 	"time"
 
+	"magma/gateway/config"
+	bootstrap_client "magma/gateway/services/bootstrapper/service"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/bootstrapper"
+	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
+	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
+	"magma/orc8r/cloud/go/services/configurator"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	"magma/orc8r/cloud/go/services/device"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/security/csr"
+	"magma/orc8r/lib/go/security/key"
+
 	"github.com/emakeev/snowflake"
 	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
-
-	"magma/gateway/config"
-	bootstrap_client "magma/gateway/services/bootstrapper/service"
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/bootstrapper"
-	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
-	certifierTestInit "magma/orc8r/cloud/go/services/certifier/test_init"
-	"magma/orc8r/cloud/go/services/configurator"
-	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
-	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
-	"magma/orc8r/cloud/go/services/device"
-	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/test_utils"
-	"magma/orc8r/lib/go/protos"
-	"magma/orc8r/lib/go/security/csr"
-	"magma/orc8r/lib/go/security/key"
 )
 
 const (
@@ -58,7 +63,7 @@ func testWithECHO(
 
 	testAgHwId := "test_ag_echo"
 
-	configuratorTestUtils.RegisterGateway(
+	configurator_test_utils.RegisterGateway(
 		t,
 		networkId,
 		testAgHwId,
@@ -77,13 +82,13 @@ func testWithECHO(
 	response := &protos.Response_EchoResponse{
 		EchoResponse: &protos.Response_Echo{Response: challenge.Challenge},
 	}
-	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	c, err := csr.CreateCSR(time.Hour*24*10, "cn", "cn")
 	assert.NoError(t, err)
 	resp := protos.Response{
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
 		Challenge: challenge.Challenge,
 		Response:  response,
-		Csr:       csr,
+		Csr:       c,
 	}
 	cert, err := srv.RequestSign(ctx, &resp)
 	assert.NoError(t, err)
@@ -100,7 +105,7 @@ func testWithRSA(
 	assert.NoError(t, err)
 
 	pubKey := strfmt.Base64(marshaledPubKey)
-	configuratorTestUtils.RegisterGateway(
+	configurator_test_utils.RegisterGateway(
 		t,
 		networkId,
 		testAgHwId,
@@ -126,13 +131,13 @@ func testWithRSA(
 	response := &protos.Response_RsaResponse{
 		RsaResponse: &protos.Response_RSA{Signature: signature},
 	}
-	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	c, err := csr.CreateCSR(time.Hour*24*10, "cn", "cn")
 	assert.NoError(t, err)
 	resp := protos.Response{
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
 		Challenge: challenge.Challenge,
 		Response:  response,
-		Csr:       csr,
+		Csr:       c,
 	}
 	cert, err := srv.RequestSign(ctx, &resp)
 	assert.NoError(t, err)
@@ -149,7 +154,7 @@ func testWithECDSA(
 	assert.NoError(t, err)
 
 	pubKey := strfmt.Base64(marshaledPubKey)
-	configuratorTestUtils.RegisterGateway(
+	configurator_test_utils.RegisterGateway(
 		t,
 		networkId,
 		testAgHwId,
@@ -174,13 +179,13 @@ func testWithECDSA(
 	response := &protos.Response_EcdsaResponse{
 		EcdsaResponse: &protos.Response_ECDSA{R: r.Bytes(), S: s.Bytes()},
 	}
-	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	c, err := csr.CreateCSR(time.Hour*24*10, "cn", "cn")
 	assert.NoError(t, err)
 	resp := protos.Response{
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
 		Challenge: challenge.Challenge,
 		Response:  response,
-		Csr:       csr,
+		Csr:       c,
 	}
 	cert, err := srv.RequestSign(ctx, &resp)
 	assert.NoError(t, err)
@@ -196,11 +201,9 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	privateKey, err := key.GenerateKey("", 2048)
 	assert.NoError(t, err)
 
-	bootstrServer, err := servicers.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
+	bootstrapperSrv, err := servicers.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
 	assert.NoError(t, err)
-
-	protos.RegisterBootstrapperServer(srv.GrpcServer, bootstrServer)
-	srv.GrpcServer.RegisterService(protos.GetLegacyBootstrapperDesc(), bootstrServer)
+	protos.RegisterBootstrapperServer(srv.GrpcServer, bootstrapperSrv)
 
 	go srv.RunTest(lis)
 
@@ -242,7 +245,7 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	mdc.BootstrapConfig.ChallengeKey = dir + "/gw_challenge.key"
 	config.OverwriteMagmadConfigs(mdc)
 
-	b := bootstrap_client.NewBootstrapper(completeChan)
+	b := bootstrap_client.NewLocalBootstrapper(completeChan)
 	err = b.Initialize()
 	assert.NoError(t, err)
 
@@ -256,7 +259,7 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	assert.NoError(t, err)
 	encodedPubKey := strfmt.Base64(pubKey)
 
-	configuratorTestUtils.RegisterGateway(
+	configurator_test_utils.RegisterGateway(
 		t,
 		networkId,
 		gwHwId,
@@ -289,7 +292,7 @@ func testNegative(
 	assert.NoError(t, err)
 
 	pubKey := strfmt.Base64(marshaledPubKey)
-	configuratorTestUtils.RegisterGateway(
+	configurator_test_utils.RegisterGateway(
 		t,
 		networkId,
 		testAgHwId,
@@ -306,9 +309,9 @@ func testNegative(
 	_, err = srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.Error(t, err)
 
-	configuratorTestUtils.RemoveGateway(t, networkId, testAgHwId)
+	configurator_test_utils.RemoveGateway(t, networkId, testAgHwId)
 
-	configuratorTestUtils.RegisterGateway(
+	configurator_test_utils.RegisterGateway(
 		t,
 		networkId,
 		testAgHwId,
@@ -329,7 +332,7 @@ func testNegative(
 	r, s, err := ecdsa.Sign(rand.Reader, privateKey.(*ecdsa.PrivateKey), hashed[:])
 	assert.NoError(t, err)
 
-	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	c, err := csr.CreateCSR(time.Hour*24*10, "cn", "cn")
 	assert.NoError(t, err)
 
 	// create response
@@ -342,7 +345,7 @@ func testNegative(
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
 		Challenge: []byte("mess up challenge"),
 		Response:  response,
-		Csr:       csr,
+		Csr:       c,
 	}
 	_, err = srv.RequestSign(ctx, &resp)
 	assert.Error(t, err)
@@ -365,7 +368,7 @@ func testNegative(
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
 		Challenge: challenge.Challenge,
 		Response:  response,
-		Csr:       csr,
+		Csr:       c,
 	}
 	_, err = srv.RequestSign(ctx, &resp)
 	assert.Error(t, err)
@@ -375,15 +378,15 @@ func testNegative(
 		HwId:      &protos.AccessGatewayID{Id: "mess up hw_id"},
 		Challenge: challenge.Challenge,
 		Response:  response,
-		Csr:       csr,
+		Csr:       c,
 	}
 	_, err = srv.RequestSign(ctx, &resp)
 	assert.Error(t, err)
 }
 
 func TestBootstrapperServer(t *testing.T) {
-	configuratorTestInit.StartTestService(t)
-	deviceTestInit.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	testNetworkID := "bootstrapper_test_network"
@@ -409,7 +412,7 @@ func TestBootstrapperServer(t *testing.T) {
 	srv, err := servicers.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
 
 	// for signing csr
-	certifierTestInit.StartTestService(t)
+	certifier_test_init.StartTestService(t)
 
 	testWithECHO(t, testNetworkID, srv, ctx)
 	ctx = metadata.NewOutgoingContext(

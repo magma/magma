@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import argparse
@@ -19,18 +23,21 @@ from lte.protos.pipelined_pb2 import (
     SubscriberQuotaUpdate,
     UpdateSubscriberQuotaStateRequest,
 )
+from lte.protos.policydb_pb2 import RedirectInformation
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.subscriberdb.sid import SIDUtils
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import Tables
+from magma.pipelined.qos.common import QosManager
 from orc8r.protos.common_pb2 import Void
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
     DeactivateFlowsRequest,
     RuleModResult,
     UEMacFlowRequest,
+    RequestOriginType,
 )
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
@@ -44,7 +51,8 @@ from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
 def activate_flows(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
-        rule_ids=args.rule_ids.split(','))
+        rule_ids=args.rule_ids.split(','),
+        request_origin=RequestOriginType(type=RequestOriginType.GX))
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.static_rule_results)
 
@@ -53,7 +61,8 @@ def activate_flows(client, args):
 def deactivate_flows(client, args):
     request = DeactivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
-        rule_ids=args.rule_ids.split(',') if args.rule_ids else [])
+        rule_ids=args.rule_ids.split(',') if args.rule_ids else [],
+        request_origin=RequestOriginType(type=RequestOriginType.GX))
     client.DeactivateFlows(request)
 
 
@@ -71,9 +80,39 @@ def activate_dynamic_rule(client, args):
                 FlowDescription(match=FlowMatch(
                     ipv4_src=args.ipv4_dst, direction=FlowMatch.DOWNLINK)),
             ],
-        )])
+        )],
+        request_origin=RequestOriginType(type=RequestOriginType.GX))
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.dynamic_rule_results)
+
+
+@grpc_wrapper
+def activate_gy_redirect(client, args):
+    request = ActivateFlowsRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        ip_addr=args.ipv4,
+        dynamic_rules=[PolicyRule(
+            id=args.rule_id,
+            priority=999,
+            flow_list=[],
+            redirect=RedirectInformation(
+                support=1,
+                address_type=2,
+                server_address=args.redirect_addr
+            )
+        )],
+        request_origin=RequestOriginType(type=RequestOriginType.GY))
+    response = client.ActivateFlows(request)
+    _print_rule_mod_results(response.dynamic_rule_results)
+
+
+@grpc_wrapper
+def deactivate_gy_flows(client, args):
+    request = DeactivateFlowsRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        rule_ids=args.rule_ids.split(',') if args.rule_ids else [],
+        request_origin=RequestOriginType(type=RequestOriginType.GY))
+    client.DeactivateFlows(request)
 
 
 def _print_rule_mod_results(results):
@@ -125,6 +164,21 @@ def create_enforcement_parser(apps):
     subcmd.add_argument('--hard_timeout', help='hard timeout for rule',
                         type=int, default=0)
     subcmd.set_defaults(func=activate_dynamic_rule)
+
+    subcmd = subparsers.add_parser('activate_gy_redirect',
+                                   help='Activate gy final action redirect')
+    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--rule_id', help='rule id to add', default='redirect')
+    subcmd.add_argument('--ipv4', help='Subscriber IP', default='172.16.22.53')
+    subcmd.add_argument('--redirect_addr', help='Webpage to redirect to',
+                        default='http://about.sha.ddih.org/')
+    subcmd.set_defaults(func=activate_gy_redirect)
+
+    subcmd = subparsers.add_parser('deactivate_gy_flows',
+                                   help='Deactivate gy flows')
+    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--rule_ids', help='Comma separated rule ids')
+    subcmd.set_defaults(func=deactivate_gy_flows)
 
     subcmd = subparsers.add_parser('display_flows',
                                    help='Display flows related to policy '
@@ -318,6 +372,8 @@ def create_debug_parser(apps):
                              'flows. If not set, all flows will be printed.')
     subcmd.set_defaults(func=display_flows)
 
+    subcmd = subparsers.add_parser('qos', help='Debug Qos')
+    subcmd.set_defaults(func=QosManager.debug)
 
 # --------------------------
 # Pipelined base CLI

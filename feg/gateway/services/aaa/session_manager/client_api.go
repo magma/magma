@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // session_manager package defines local session manager client API
@@ -12,8 +17,8 @@ package session_manager
 import (
 	"errors"
 	"fmt"
-	"log"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
@@ -30,7 +35,7 @@ func getSessionManagerClient() (*sessionManagerClient, error) {
 	conn, err := registry.GetConnection(registry.SESSION_MANAGER)
 	if err != nil {
 		errMsg := fmt.Sprintf("Local SessionManager client initialization error: %s", err)
-		log.Printf(errMsg)
+		glog.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
 	return &sessionManagerClient{protos.NewLocalSessionManagerClient(conn)}, err

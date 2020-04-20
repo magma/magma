@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import unittest
@@ -27,7 +31,7 @@ class TestEsmInformation(unittest.TestCase):
         """ Testing of sending Esm Information procedure """
         num_ues = 1
 
-        self._s1ap_wrapper.configUEDevice_ues_same_imsi(num_ues)
+        self._s1ap_wrapper.configUEDevice(num_ues)
         print("************************* sending Attach Request for ue-id : 1")
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = 1
@@ -95,7 +99,7 @@ class TestEsmInformation(unittest.TestCase):
         esm_info_response.ue_Id = 1
         esm_info_response.tId = esm_info_req.tId
         esm_info_response.pdnAPN_pr.pres = 1
-        s = "oai.ipv4"
+        s = "magma.ipv4"
         esm_info_response.pdnAPN_pr.len = len(s)
         esm_info_response.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(
             *[ctypes.c_ubyte(ord(c)) for c in s[:100]]

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,43 +24,34 @@
 #include "pgw_config.h"
 #include "sgw_config.h"
 
-char *USAGE_TEXT =
-  "==== EURECOM %s version: %s ====\n" // PACKAGE_NAME, PACKAGE_VERSION
-  "Please report any bug to: %s\n"     // PACKAGE_BUGREPORT
-  "Usage: %s [options]\n"              // exe_path
-  "Available options:\n"
-  "-h      Print this help and return\n"
-  "-c <path>\n"
-  "        Set the configuration file for mme\n"
-  "        See template in UTILS/CONF\n"
-  "-s <path>\n"
-  "        Set the configuration file for S/P-GW\n"
-  "        See template in ETC\n"
-  "-K <file>\n"
-  "        Output intertask messages to provided file\n"
-  "-V      Print %s version and return\n" // PACKAGE_NAME
-  "-v[1-2] Debug level:\n"
-  "        1 -> ASN1 XER printf on and ASN1 debug off\n"
-  "        2 -> ASN1 XER printf on and ASN1 debug on\n";
+char* USAGE_TEXT =
+    "==== EURECOM %s version: %s ====\n"  // PACKAGE_NAME, PACKAGE_VERSION
+    "Please report any bug to: %s\n"      // PACKAGE_BUGREPORT
+    "Usage: %s [options]\n"               // exe_path
+    "Available options:\n"
+    "-h      Print this help and return\n"
+    "-c <path>\n"
+    "        Set the configuration file for mme\n"
+    "        See template in UTILS/CONF\n"
+    "-s <path>\n"
+    "        Set the configuration file for S/P-GW\n"
+    "        See template in ETC\n"
+    "-K <file>\n"
+    "        Output intertask messages to provided file\n"
+    "-V      Print %s version and return\n"  // PACKAGE_NAME
+    "-v[1-2] Debug level:\n"
+    "        1 -> ASN1 XER printf on and ASN1 debug off\n"
+    "        2 -> ASN1 XER printf on and ASN1 debug on\n";
 
-static void usage(char *exe_path)
-{
+static void usage(char* exe_path) {
   OAILOG_INFO(
-    LOG_CONFIG,
-    USAGE_TEXT,
-    PACKAGE_NAME,
-    PACKAGE_VERSION,
-    PACKAGE_BUGREPORT,
-    exe_path,
-    PACKAGE_NAME);
+      LOG_CONFIG, USAGE_TEXT, PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT,
+      exe_path, PACKAGE_NAME);
 }
 
 int mme_config_embedded_spgw_parse_opt_line(
-  int argc,
-  char *argv[],
-  mme_config_t *mme_config_p,
-  spgw_config_t *spgw_config_p)
-{
+    int argc, char* argv[], mme_config_t* mme_config_p,
+    spgw_config_t* spgw_config_p) {
   int c;
 
   mme_config_init(mme_config_p);
@@ -76,9 +63,8 @@ int mme_config_embedded_spgw_parse_opt_line(
         mme_config_p->config_file = bfromcstr(optarg);
 
         OAILOG_DEBUG(
-          LOG_CONFIG,
-          "mme_config.config_file %s",
-          bdata(mme_config_p->config_file));
+            LOG_CONFIG, "mme_config.config_file %s",
+            bdata(mme_config_p->config_file));
 
         break;
 
@@ -88,39 +74,34 @@ int mme_config_embedded_spgw_parse_opt_line(
 
       case 'V':
         OAILOG_DEBUG(
-          LOG_CONFIG,
-          "==== EURECOM %s v%s ===="
-          "Please report any bug to: %s",
-          PACKAGE_NAME,
-          PACKAGE_VERSION,
-          PACKAGE_BUGREPORT);
+            LOG_CONFIG,
+            "==== EURECOM %s v%s ===="
+            "Please report any bug to: %s",
+            PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
 
         break;
 
       case 'K':
-        mme_config_p->itti_config.log_file = bfromcstr(optarg);
+        mme_config_p->itti_config.log_file             = bfromcstr(optarg);
         spgw_config_p->sgw_config.itti_config.log_file = bfromcstr(optarg);
 
         OAILOG_DEBUG(
-          LOG_CONFIG,
-          "mme_config.itti_config.log_file %s",
-          bdata(mme_config_p->itti_config.log_file));
+            LOG_CONFIG, "mme_config.itti_config.log_file %s",
+            bdata(mme_config_p->itti_config.log_file));
         OAILOG_DEBUG(
-          LOG_CONFIG,
-          "spgw_config.sgw_config.itti_config.log_file %s",
-          bdata(spgw_config_p->sgw_config.itti_config.log_file));
+            LOG_CONFIG, "spgw_config.sgw_config.itti_config.log_file %s",
+            bdata(spgw_config_p->sgw_config.itti_config.log_file));
 
         break;
 
       case 's':
-        spgw_config_p->config_file = bfromcstr(optarg);
+        spgw_config_p->config_file            = bfromcstr(optarg);
         spgw_config_p->pgw_config.config_file = bfromcstr(optarg);
         spgw_config_p->sgw_config.config_file = bfromcstr(optarg);
 
         OAILOG_DEBUG(
-          LOG_CONFIG,
-          "spgw_config.config_file %s\n",
-          bdata(spgw_config_p->config_file));
+            LOG_CONFIG, "spgw_config.config_file %s\n",
+            bdata(spgw_config_p->config_file));
 
         break;
 
@@ -139,9 +120,9 @@ int mme_config_embedded_spgw_parse_opt_line(
   if (!spgw_config_p->config_file) {
     spgw_config_p->config_file = bfromcstr("/usr/local/etc/oai/spgw.conf");
     spgw_config_p->pgw_config.config_file =
-      bfromcstr("/usr/local/etc/oai/spgw.conf");
+        bfromcstr("/usr/local/etc/oai/spgw.conf");
     spgw_config_p->sgw_config.config_file =
-      bfromcstr("/usr/local/etc/oai/spgw.conf");
+        bfromcstr("/usr/local/etc/oai/spgw.conf");
   }
 
   if (mme_config_parse_file(mme_config_p) != 0) {

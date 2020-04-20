@@ -1,13 +1,21 @@
-// Copyright (c) 2018-present, Facebook, Inc.
-// All rights reserved.
-//
-// This source code is licensed under the BSD-style license found in the
-// LICENSE file in the root directory of this source tree. An additional grant
-// of patent rights can be found in the PATENTS file in the same directory.
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 syntax = "proto3";
 
+import "google/protobuf/any.proto";
 import "magma/orc8r/protos/mconfig.proto";
 import "magma/orc8r/protos/common.proto";
+import "magma/orc8r/cloud/go/services/configurator/storage/storage.proto";
 
 package magma.orc8r.configurator;
 option go_package = "protos";
@@ -29,3 +37,19 @@ service SouthboundConfigurator {
     // from streamer to this southbound configurator servicer.
     rpc GetMconfigInternal(GetMconfigRequest) returns (GetMconfigResponse) {}
 }
+
+service MconfigBuilder {
+    rpc Build(BuildMconfigRequest) returns (BuildMconfigResponse) {}
+}
+
+message BuildMconfigRequest {
+    string network_id = 1;
+    string gateway_id = 2;
+    storage.EntityGraph entity_graph = 3;
+    storage.Network network = 4;
+}
+
+message BuildMconfigResponse {
+    map<string, google.protobuf.Any> configs_by_key = 1;
+}
+

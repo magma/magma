@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package test_common
@@ -48,8 +53,8 @@ func MakeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.La
 		metrics = append(metrics, &testMetric)
 	}
 	return &dto.MetricFamily{
-		Name:   MakeStringPointer(familyName),
-		Help:   MakeStringPointer("testFamilyHelp"),
+		Name:   MakeStrPtr(familyName),
+		Help:   MakeStrPtr("testFamilyHelp"),
 		Type:   MakeMetricTypePointer(metricType),
 		Metric: metrics,
 	}
@@ -59,7 +64,7 @@ func MakePromoGauge(value float64) dto.Metric {
 	var metric dto.Metric
 	gauge := prometheus.NewGauge(prometheus.GaugeOpts{Name: GaugeMetricName, Help: "testGaugeHelp"})
 	gauge.Set(value)
-	gauge.Write(&metric)
+	_ = gauge.Write(&metric)
 	return metric
 }
 
@@ -67,7 +72,7 @@ func MakePromoCounter(value float64) dto.Metric {
 	var metric dto.Metric
 	counter := prometheus.NewCounter(prometheus.CounterOpts{Name: CounterMetricName, Help: "testCounterHelp"})
 	counter.Add(value)
-	counter.Write(&metric)
+	_ = counter.Write(&metric)
 	return metric
 }
 
@@ -83,7 +88,7 @@ func MakePromoSummary(objectives map[float64]float64, observations []float64) dt
 	for _, obs := range observations {
 		summary.Observe(obs)
 	}
-	summary.Write(&metric)
+	_ = summary.Write(&metric)
 	return metric
 }
 
@@ -99,18 +104,18 @@ func MakePromoHistogram(buckets []float64, observations []float64) dto.Metric {
 	for _, obs := range observations {
 		histogram.Observe(obs)
 	}
-	histogram.Write(&metric)
+	_ = histogram.Write(&metric)
 	return metric
 }
 
 func MakePromoUntyped(value float64) dto.Metric {
 	var metric dto.Metric
 	untyped := prometheus.NewUntypedFunc(prometheus.UntypedOpts{Name: UntypedMetricName, Help: "testUntypedHelp"}, func() float64 { return value })
-	untyped.Write(&metric)
+	_ = untyped.Write(&metric)
 	return metric
 }
 
-func MakeStringPointer(s string) *string {
+func MakeStrPtr(s string) *string {
 	return &s
 }
 

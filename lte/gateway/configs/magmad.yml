@@ -1,13 +1,18 @@
 ---
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
-log_level: INFO
+# log_level is set in mconfig. it can be overridden here
 
 # List of services for magmad to control
 magma_services:
@@ -23,6 +28,7 @@ magma_services:
   - dnsd
   - policydb
   - state
+  - eventd
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -36,6 +42,7 @@ registered_dynamic_services:
   - redirectd
   - td-agent-bit
   - monitord
+  - dpid
 
 # A list of group of services which are linked together in systemd
 linked_services:
@@ -129,4 +136,16 @@ generic_command_config:
       allow_params: True
     - name: reboot_all_enodeb
       command: "enodebd_cli.py reboot_all_enodeb"
+      allow_params: False
+    - name: health
+      command: "health_cli.py {}"
+      allow_params: True
+    - name: agw_health
+      command: "agw_health_cli.py {}"
+      allow_params: True
+    - name: get_flows
+      command: "sudo pipelined_cli.py debug display_flows"
+      allow_params: False
+    - name: get_subscriber_table
+      command: "mobility_cli.py get_subscriber_table"
       allow_params: False

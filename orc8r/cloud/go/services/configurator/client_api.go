@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package configurator
@@ -84,7 +89,7 @@ func CreateNetworks(networks []Network) ([]Network, error) {
 
 	req := &protos.CreateNetworksRequest{Networks: make([]*storage.Network, 0, len(networks))}
 	for _, n := range networks {
-		pNet, err := n.toStorageProto()
+		pNet, err := n.ToStorageProto()
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +102,7 @@ func CreateNetworks(networks []Network) ([]Network, error) {
 
 	ret := make([]Network, len(result.CreatedNetworks))
 	for i, protoNet := range result.CreatedNetworks {
-		ent, err := ret[i].fromStorageProto(protoNet)
+		ent, err := ret[i].FromStorageProto(protoNet)
 		if err != nil {
 			return nil, err
 		}
@@ -183,7 +188,7 @@ func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) ([]Net
 
 	ret := make([]Network, len(result.Networks))
 	for i, n := range result.Networks {
-		retNet, err := ret[i].fromStorageProto(n)
+		retNet, err := ret[i].FromStorageProto(n)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -213,7 +218,7 @@ func LoadNetworksByType(typeVal string, loadMetadata bool, loadConfigs bool) ([]
 
 	ret := make([]Network, len(result.Networks))
 	for i, n := range result.Networks {
-		retNet, err := ret[i].fromStorageProto(n)
+		retNet, err := ret[i].FromStorageProto(n)
 		if err != nil {
 			return nil, err
 		}

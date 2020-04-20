@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package Commands provides common definitions & functionality for a CLI tool
@@ -157,6 +162,48 @@ func (cmds *Map) Get(cmdName string) *Command {
 		}
 	}
 	return nil
+}
+
+// GetIdx finds & returns a command with cmdName and it's index in the command line. Returns (nil, idx) if not found
+func (cmds *Map) GetIdx(cmdName string) (cmd *Command, idx int) {
+	cmd = cmds.Get(cmdName)
+	for i, arg := range os.Args {
+		if arg == cmdName {
+			idx = i
+			return
+		}
+	}
+	return
+}
+
+// GetCommand returns first command line command (non-flag argument) if any & its list of arguments
+func (cmds *Map) GetCommand() (cmd *Command, cmdArgs []string) {
+	var idx int
+	cmd, idx = cmds.GetIdx(flag.Arg(0))
+	if cmd == nil {
+		return
+	}
+	return cmd, os.Args[idx+1:]
+}
+
+// HandleCommand parses command line & handles first found command with its arguments
+// it returns command exit code with nil error if successful or error if command is not registered/invalid
+// HandleCommand also prints help/usage into stdout if command is missing or is help/h
+func (cmds *Map) HandleCommand() (exitCode int, err error) {
+	cmd, args := cmds.GetCommand()
+	if cmd == nil {
+		cmdName := strings.ToLower(flag.Arg(0))
+		if cmdName != "" && cmdName != "help" && cmdName != "h" {
+			return 1, fmt.Errorf("invalid command: %s in %v", cmdName, flag.Args())
+		}
+		flag.Usage()
+		return 1, nil
+	}
+	err = cmd.Flags().Parse(args)
+	if err != nil {
+		return 2, err
+	}
+	return cmd.Handle(args), nil
 }
 
 func normalizeCmdStr(cs string) string {

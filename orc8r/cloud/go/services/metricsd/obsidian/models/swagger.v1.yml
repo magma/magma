@@ -2,7 +2,7 @@
 swagger: '2.0'
 
 magma-gen-meta:
-  go-package: magma/orc8r/cloud/go/pluginimpl/models
+  go-package: magma/orc8r/cloud/go/services/orchestrator/obsidian/models
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
   temp-gen-filename: orc8r-metrics-swagger.yml
@@ -651,6 +651,16 @@ paths:
           type: string
           description: Label name to get values of
           required: true
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: true
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
       responses:
         '200':
           description: List of label values

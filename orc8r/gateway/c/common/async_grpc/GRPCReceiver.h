@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2016-present, Facebook, Inc.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 #pragma once
 
@@ -67,6 +71,7 @@ public:
     context_.set_deadline(
       std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec));
   }
+  virtual ~AsyncGRPCResponse() = default;
 
   virtual void handle_response() {}
 
@@ -76,8 +81,8 @@ public:
    */
   void set_response_reader(
       std::unique_ptr<grpc::ClientAsyncResponseReader<ResponseType>> reader) {
-    reader->Finish(&response_, &status_, this);
     response_reader_ = std::move(reader);
+    response_reader_->Finish(&response_, &status_, this);
   }
 
   /**

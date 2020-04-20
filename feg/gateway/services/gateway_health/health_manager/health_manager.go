@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package health_manager provides the main functionality for the gateway_health
@@ -16,6 +21,8 @@ import (
 	"fmt"
 	"strings"
 	"sync/atomic"
+
+	"magma/feg/gateway/services/gateway_health/events"
 
 	"github.com/golang/glog"
 
@@ -100,12 +107,22 @@ func (hm *HealthManager) SendHealthUpdate() error {
 	case protos.HealthResponse_NONE:
 	case protos.HealthResponse_SYSTEM_UP:
 		err = hm.takeSystemUp()
+		if err != nil {
+			events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error(), hm.prevAction)
+		} else {
+			events.LogGatewayHealthSuccessEvent(events.GatewayPromotionSucceededEvent, hm.prevAction)
+		}
 	case protos.HealthResponse_SYSTEM_DOWN:
 		disablePeriod := hm.config.GetCloudDisconnectPeriodSecs()
 		if hm.prevAction == protos.HealthResponse_SYSTEM_DOWN {
 			disablePeriod = 0
 		}
 		err = hm.takeSystemDown(disablePeriod, healthRequest.HealthStats.ServiceStatus)
+		if err != nil {
+			events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error(), hm.prevAction)
+		} else {
+			events.LogGatewayHealthSuccessEvent(events.GatewayDemotionSucceededEvent, hm.prevAction)
+		}
 	default:
 		err = fmt.Errorf("Invalid requested action: %s returned to FeG Health Manager", healthResponse.Action)
 	}

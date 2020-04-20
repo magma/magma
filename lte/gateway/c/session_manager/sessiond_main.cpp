@@ -1,10 +1,14 @@
 /**
- * Copyright (c) 2016-present, Facebook, Inc.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include <iostream>
@@ -23,6 +27,7 @@
 #include "magma_logging.h"
 #include "SessionCredit.h"
 #include "SessionStore.h"
+#include "GrpcMagmaUtils.h"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -31,23 +36,22 @@
 #define MIN_USAGE_REPORTING_THRESHOLD 0.4
 #define MAX_USAGE_REPORTING_THRESHOLD 1.1
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
-#define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000 // 30sec
-#define DEFAULT_EXTRA_QUOTA_MARGIN 1024
+#define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000  // 30sec
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
 #endif
 
-static magma::mconfig::SessionD get_default_mconfig()
-{
+static magma::mconfig::SessionD get_default_mconfig() {
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
   mconfig.set_relay_enabled(false);
+  auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
+  wallet_config->set_terminate_on_exhaust(false);
   return mconfig;
 }
 
-static magma::mconfig::SessionD load_mconfig()
-{
+static magma::mconfig::SessionD load_mconfig() {
   magma::mconfig::SessionD mconfig;
   magma::MConfigLoader loader;
   if (!loader.load_service_mconfig(SESSIOND_SERVICE, &mconfig)) {
@@ -58,23 +62,25 @@ static magma::mconfig::SessionD load_mconfig()
 }
 
 static const std::shared_ptr<grpc::Channel> get_controller_channel(
-  const YAML::Node &config, const bool relay_enabled)
-{
+    const YAML::Node& config, const bool relay_enabled) {
   if (relay_enabled) {
     MLOG(MINFO) << "Using proxied sessiond controller";
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-      SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
+        SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
   } else {
     MLOG(MINFO) << "Using policydb controller";
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-      POLICYDB_SERVICE, magma::ServiceRegistrySingleton::LOCAL);
+        POLICYDB_SERVICE, magma::ServiceRegistrySingleton::LOCAL);
   }
 }
 
-static uint32_t get_log_verbosity(const YAML::Node &config)
-{
+static uint32_t get_log_verbosity(
+    const YAML::Node& config, magma::mconfig::SessionD mconfig) {
   if (!config["log_level"].IsDefined()) {
-    return MINFO;
+    if (mconfig.log_level() < 0 || mconfig.log_level() > 4) {
+      return MINFO;
+    }
+    return mconfig.log_level();
   }
   std::string log_level = config["log_level"].as<std::string>();
   if (log_level == "DEBUG") {
@@ -94,31 +100,29 @@ static uint32_t get_log_verbosity(const YAML::Node &config)
   }
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
 #ifdef DEBUG
   __gcov_flush();
 #endif
 
-  MLOG(MINFO) << "Starting Session Manager";
   magma::init_logging(argv[0]);
+
   auto mconfig = load_mconfig();
   auto config =
-    magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
-  magma::set_verbosity(get_log_verbosity(config));
-
-  folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
-
+      magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
+  magma::set_verbosity(get_log_verbosity(config, mconfig));
+  MLOG(MINFO) << "Starting Session Manager";
+  folly::EventBase* evb = folly::EventBaseManager::get()->getEventBase();
 
   // prep rule manager and rule update loop
   auto rule_store = std::make_shared<magma::StaticRuleStore>();
   magma::PolicyLoader policy_loader;
   std::thread policy_loader_thread([&]() {
     policy_loader.start_loop(
-      [&](std::vector<magma::PolicyRule> rules) {
-        rule_store->sync_rules(rules);
-      },
-      config["rule_update_inteval_sec"].as<uint32_t>());
+        [&](std::vector<magma::PolicyRule> rules) {
+          rule_store->sync_rules(rules);
+        },
+        config["rule_update_inteval_sec"].as<uint32_t>());
     policy_loader.stop();
   });
 
@@ -134,10 +138,12 @@ int main(int argc, char *argv[])
     directoryd_client->rpc_response_loop();
   });
 
-  auto eventd_client = std::make_shared<magma::AsyncEventdClient>();
+  auto& eventd_client = magma::AsyncEventdClient::getInstance();
+  auto events_reporter =
+      std::make_shared<magma::lte::EventsReporterImpl>(eventd_client);
   std::thread eventd_thread([&]() {
     MLOG(MINFO) << "Started eventd response thread";
-    eventd_client->rpc_response_loop();
+    eventd_client.rpc_response_loop();
   });
 
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
@@ -145,7 +151,7 @@ int main(int argc, char *argv[])
 
   std::thread optional_client_thread;
   if (config["support_carrier_wifi"].as<bool>()) {
-    aaa_client = std::make_shared<aaa::AsyncAAAClient>();
+    aaa_client             = std::make_shared<aaa::AsyncAAAClient>();
     optional_client_thread = std::thread([&]() {
       MLOG(MINFO) << "Started AAA Client response thread";
       aaa_client->rpc_response_loop();
@@ -155,7 +161,7 @@ int main(int argc, char *argv[])
   } else {
     aaa_client = nullptr;
 
-    spgw_client = std::make_shared<magma::AsyncSpgwServiceClient>();
+    spgw_client            = std::make_shared<magma::AsyncSpgwServiceClient>();
     optional_client_thread = std::thread([&]() {
       MLOG(MINFO) << "Started SPGW response thread";
       spgw_client->rpc_response_loop();
@@ -173,31 +179,13 @@ int main(int argc, char *argv[])
   }
   magma::SessionCredit::USAGE_REPORTING_THRESHOLD = reporting_threshold;
 
-  uint64_t margin = DEFAULT_EXTRA_QUOTA_MARGIN;
-  if (config["extra_quota_margin"].IsDefined()) {
-    auto margin_from_config = config["extra_quota_margin"].as<uint64_t>();
-    // This value specifies the amount the usage can exceed the quota before
-    // terminating the session entirely. This is for the case where pipelined
-    // reports usage faster than sessiond can report it. This value should be
-    // reasonably big, as the usage will be eventually reported properly.
-    // So use the default value if it seems small.
-    if (margin_from_config > DEFAULT_EXTRA_QUOTA_MARGIN) {
-      margin = margin_from_config;
-    } else {
-      MLOG(MWARNING) << "The extra_quota_margin from the config "
-                     << margin_from_config << " is smaller than the default "
-                     << DEFAULT_EXTRA_QUOTA_MARGIN
-                     << ", using the default value instead.";
-    }
-  }
-  magma::SessionCredit::EXTRA_QUOTA_MARGIN = margin;
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
-   config["terminate_service_when_quota_exhausted"].as<bool>();
+      config["terminate_service_when_quota_exhausted"].as<bool>();
 
-  auto controller_channel = get_controller_channel(config,
-    mconfig.relay_enabled());
-  auto reporter = std::make_shared<magma::SessionReporterImpl>(
-    evb, controller_channel);
+  auto controller_channel =
+      get_controller_channel(config, mconfig.relay_enabled());
+  auto reporter =
+      std::make_shared<magma::SessionReporterImpl>(evb, controller_channel);
   std::thread reporter_thread([&]() {
     MLOG(MINFO) << "Started reporter thread";
     reporter->rpc_response_loop();
@@ -207,20 +195,19 @@ int main(int argc, char *argv[])
   long quota_exhaust_termination_on_init_ms;
   if (config["cwf_quota_exhaustion_termination_on_init_ms"].IsDefined()) {
     quota_exhaust_termination_on_init_ms =
-      config["cwf_quota_exhaustion_termination_on_init_ms"].as<long>();
+        config["cwf_quota_exhaustion_termination_on_init_ms"].as<long>();
   } else {
     quota_exhaust_termination_on_init_ms =
-      DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS;
+        DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS;
   }
 
   magma::SessionStore* session_store;
-  bool is_stateless = config["support_stateless"].IsDefined()
-      && config["support_stateless"].as<bool>();
+  bool is_stateless = config["support_stateless"].IsDefined() &&
+                      config["support_stateless"].as<bool>();
   if (is_stateless) {
     auto store_client = std::make_shared<magma::lte::RedisStoreClient>(
         std::make_shared<cpp_redis::client>(),
-        config["sessions_table"].as<std::string>(),
-        rule_store);
+        config["sessions_table"].as<std::string>(), rule_store);
     bool connected;
     do {
       MLOG(MINFO) << "Attempting to connect to Redis";
@@ -230,6 +217,7 @@ int main(int argc, char *argv[])
     session_store = new magma::SessionStore(rule_store, store_client);
     MLOG(MINFO) << "Successfully connected to Redis";
   } else {
+    MLOG(MINFO) << "Session store in memory";
     session_store = new magma::SessionStore(rule_store);
   }
   auto monitor = std::make_shared<magma::LocalEnforcer>(
@@ -238,51 +226,53 @@ int main(int argc, char *argv[])
     *session_store,
     pipelined_client,
     directoryd_client,
-    eventd_client,
+    events_reporter,
     spgw_client,
     aaa_client,
     config["session_force_termination_timeout_ms"].as<long>(),
-    quota_exhaust_termination_on_init_ms);
+    quota_exhaust_termination_on_init_ms,
+    mconfig);
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-    monitor, reporter.get(), directoryd_client, *session_store);
+      monitor, reporter.get(), directoryd_client, events_reporter,
+      *session_store);
   auto proxy_handler =std::make_unique<magma::SessionProxyResponderHandlerImpl>(
     monitor, *session_store);
 
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
-      directoryd_client, monitor, reporter.get());
+      directoryd_client, aaa_client, monitor, reporter.get(), *session_store);
   std::thread restart_handler_thread([&]() {
-    // TODO: Add AAA server re-init logic when stateless
-    // If running as stateless, session flows will be re-initialized in the
-    // LocalSessionManagerHandler. Otherwise, cleanup all previous sessions.
     MLOG(MINFO) << "Started sessiond restart handler thread";
     if (!is_stateless) {
       restart_handler->cleanup_previous_sessions();
+    } else if (config["support_carrier_wifi"].as<bool>()) {
+      restart_handler->setup_aaa_sessions();
     }
   });
 
   magma::LocalSessionManagerAsyncService local_service(
-    server.GetNewCompletionQueue(), std::move(local_handler));
+      server.GetNewCompletionQueue(), std::move(local_handler));
   magma::SessionProxyResponderAsyncService proxy_service(
-    server.GetNewCompletionQueue(), std::move(proxy_handler));
+      server.GetNewCompletionQueue(), std::move(proxy_handler));
   server.AddServiceToServer(&local_service);
   server.AddServiceToServer(&proxy_service);
   server.Start();
 
   std::thread local_thread([&]() {
     MLOG(MINFO) << "Started local service thread";
-    local_service.wait_for_requests(); // block here instead of on server
-    local_service.stop();              // stop queue after server shuts down
+    local_service.wait_for_requests();  // block here instead of on server
+    local_service.stop();               // stop queue after server shuts down
   });
   std::thread proxy_thread([&]() {
     MLOG(MINFO) << "Started proxy service thread";
-    proxy_service.wait_for_requests(); // block here instead of on server
-    proxy_service.stop();              // stop queue after server shuts down
+    proxy_service.wait_for_requests();  // block here instead of on server
+    proxy_service.stop();               // stop queue after server shuts down
   });
 
   // Block on main monitor (to keep evb in this thread)
   monitor->attachEventBase(evb);
+  monitor->sync_sessions_on_restart(time(NULL));
   monitor->start();
   server.Stop();
 

@@ -1,9 +1,14 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
 module orc8r {
@@ -11,8 +16,8 @@ module orc8r {
 
   region = "us-west-2"
 
-  nms_db_password             = "mypassword"
-  orc8r_db_password           = "mypassword"
+  nms_db_password             = "mypassword" # must be at least 8 characters
+  orc8r_db_password           = "mypassword" # must be at least 8 characters
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
 
@@ -40,7 +45,7 @@ module orc8r-app {
   external_dns_role_arn = module.orc8r.external_dns_role_arn
 
   secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
-  seed_certs_dir            = "~/orc8r.test.secrets/certs"
+  seed_certs_dir            = "~/secrets/certs"
 
   orc8r_db_host = module.orc8r.orc8r_db_host
   orc8r_db_name = module.orc8r.orc8r_db_name
@@ -52,12 +57,18 @@ module orc8r-app {
   nms_db_user = module.orc8r.nms_db_user
   nms_db_pass = module.orc8r.nms_db_pass
 
-  docker_registry = "registry.hub.docker.com/foobar"
-  docker_user     = "foobar"
+  # Note that this can be any container registry provider -- the example below
+  # provides the URL format for Docker Hub, where the user and pass are your
+  # Docker Hub username and access token, respectively
+  docker_registry = "registry.hub.docker.com/myusername"
+  docker_user     = "myusername"
   docker_pass     = "mypassword"
 
-  helm_repo = "example.jfrog.io"
-  helm_user = "foobar"
+  # Note that this can be any Helm chart repo provider -- the example below
+  # provides the URL format for using a raw GitHub repo, where the user and
+  # pass are your GitHub username and access token, respectively
+  helm_repo = "https://raw.githubusercontent.com/myusername/myreponame/master/"
+  helm_user = "myusername"
   helm_pass = "mypassword"
 
   eks_cluster_id = module.orc8r.eks_cluster_id
@@ -69,7 +80,6 @@ module orc8r-app {
 
   orc8r_chart_version = "1.4.7"
   orc8r_tag           = "1.0.1"
-  deploy_nms          = true
 }
 
 output "nameservers" {

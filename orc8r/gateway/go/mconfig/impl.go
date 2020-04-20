@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package mconfig provides gateway Go support for cloud managed configuration (mconfig)
@@ -12,7 +17,6 @@ package mconfig
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -20,6 +24,10 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/golang/glog"
+
+	"magma/gateway/config"
+	_ "magma/orc8r/lib/go/initflag"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -40,9 +48,9 @@ func init() {
 			<-refreshTicker.C
 			cfgPath, err := RefreshConfigs()
 			if err == nil {
-				log.Print("Mconfig refresh succeeded from: ", cfgPath)
+				glog.V(1).Info("Mconfig refresh succeeded from: ", cfgPath)
 			} else {
-				log.Printf("Mconfig refresh error: %v", err)
+				glog.Errorf("Mconfig refresh error: %v", err)
 			}
 		}
 	}()
@@ -57,7 +65,7 @@ func RefreshConfigs() (string, error) {
 	configPath := ConfigFilePath()
 	err := RefreshConfigsFrom(configPath)
 	if err != nil {
-		log.Printf("Cannot load configs from %s: %v", configPath, err)
+		glog.Errorf("Cannot load configs from %s: %v", configPath, err)
 		configPath = DefaultConfigFilePath()
 		err = RefreshConfigsFrom(configPath)
 	}
@@ -71,7 +79,7 @@ func ConfigFilePath() string {
 
 // DefaultConfigFilePath returns default GW mconfig file path
 func DefaultConfigFilePath() string {
-	return filepath.Join(DefaultConfigFileDir, MconfigFileName)
+	return filepath.Join(staticConfigFileDir(), MconfigFileName)
 }
 
 // RefreshConfigsFrom checks if Managed Config File mcpath has changed
@@ -87,6 +95,7 @@ func RefreshConfigsFrom(mcpath string) error {
 		return fmt.Errorf("Managed Config File '%s' stat error: %v", mcpath, err)
 	}
 	if sameFile(lastFileInfo, fi) {
+		glog.V(1).Infof("mconfig '%s' is unchanged from %s", mcpath, lastFileInfo.ModTime().Format(time.RFC822))
 		return nil
 	}
 	err = loadFromFile(mcpath)
@@ -108,7 +117,18 @@ func sameFile(oldInfo, newInfo os.FileInfo) bool {
 func configFileDir() string {
 	mcdir := os.Getenv(ConfigFileDirEnv)
 	if len(mcdir) == 0 {
-		mcdir = DefaultDynamicConfigFileDir
+		mcdir = config.GetMagmadConfigs().DynamicMconfigDir
+		if len(mcdir) == 0 {
+			mcdir = DefaultDynamicConfigFileDir
+		}
+	}
+	return mcdir
+}
+
+func staticConfigFileDir() string {
+	mcdir := config.GetMagmadConfigs().StaticMconfigDir
+	if len(mcdir) == 0 {
+		mcdir = DefaultConfigFileDir
 	}
 	return mcdir
 }

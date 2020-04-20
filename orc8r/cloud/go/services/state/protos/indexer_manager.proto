@@ -1,0 +1,59 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+package magma.orc8r.state;
+
+option go_package = "protos";
+
+// IndexerManager provides methods for manually viewing and managing state indexers.
+service IndexerManager {
+  // GetIndexers returns indexer info for all tracked indexers.
+  rpc GetIndexers (GetIndexersRequest) returns (GetIndexersResponse) {}
+
+  // StartReindex kicks off any required reindex jobs for some or all indexers.
+  // Blocks till reindex job returns, streaming loggable updates.
+  rpc StartReindex (StartReindexRequest) returns (stream StartReindexResponse) {}
+}
+
+message GetIndexersRequest {}
+
+message GetIndexersResponse {
+    // indexers_by_id contains all tracked indexers, keyed by their ID.
+    map<string, IndexerInfo> indexers_by_id = 1;
+}
+
+message StartReindexRequest {
+    // indexer_id is the ID of the indexer to reindex.
+    // If indexer_id is empty, will reindex all necessary indexers.
+    string indexer_id = 1;
+    // force the reindex to occur.
+    // By default, start reindex will fail if automatic reindexing is enabled.
+    // Set force=true to overrule this default.
+    bool force = 2;
+}
+
+message StartReindexResponse {
+    // update contains a human-readable update on reindex progress
+    string update = 1;
+}
+
+// IndexerInfo provides info about a state indexer.
+message IndexerInfo {
+  // indexer_id is the indexer's ID.
+  string indexer_id = 1;
+  // actual_version is the indexer's current version.
+  uint32 actual_version = 2;
+  // desired_version is the version to which the indexer will be reindexed.
+  uint32 desired_version = 3;
+}

@@ -1,8 +1,14 @@
 /**
- * Copyright (c) 2017-present, Facebook, Inc.
+ * Copyright 2020 The Magma Authors.
  *
- * This source code is licensed under the MIT license found in the
+ * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 const React = require('react');
@@ -43,14 +49,14 @@ function Versions(props) {
                   </a>
                 </td>
                 <td>
-                  <a href={`${repoUrl}/releases/tag/v1.0.1`}>Release Notes</a>
+                  <a href={`${repoUrl}/releases/tag/v1.1.0`}>Release Notes</a>
                 </td>
               </tr>
             </tbody>
           </table>
           <p>
-            1.0.1 is a hotfix release for the 1.0.0 stable release. See the
-            linked release notes for the issues addressed in this release.
+            1.1.0 is a new feature release. See the linked release notes for
+            the new features introduced in this release.
           </p>
           <h3 id="rc">Pre-release versions</h3>
           <table className="versions">
@@ -93,7 +99,7 @@ function Versions(props) {
                         <a
                           href={`${siteConfig.baseUrl}${siteConfig.docsUrl}/${
                             props.language ? props.language + '/' : ''
-                          }${version}/doc1`}>
+                          }${version}/basics/introduction.html`}>
                           Documentation
                         </a>
                       </td>

@@ -1,10 +1,14 @@
 """
-Copyright (c) 2018-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 import contextlib
 import json
@@ -12,6 +16,8 @@ from typing import Any, Generic, TypeVar
 
 import abc
 import os
+
+import magma.configuration.events as magma_configuration_events
 from google.protobuf import json_format
 from magma.common import serialization_utils
 from magma.configuration.exceptions import LoadConfigError
@@ -203,11 +209,13 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
     def delete_stored_mconfig(self):
         with contextlib.suppress(FileNotFoundError):
             os.remove(self.MCONFIG_PATH)
+        magma_configuration_events.deleted_stored_mconfig()
 
     def update_stored_mconfig(self, updated_value: str) -> GatewayConfigs:
         serialization_utils.write_to_file_atomically(
             self.MCONFIG_PATH, updated_value,
         )
+        magma_configuration_events.updated_stored_mconfig()
 
     def _get_mconfig_file_path(self):
         if os.path.isfile(self.MCONFIG_PATH):

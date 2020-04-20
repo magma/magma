@@ -1,15 +1,21 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"magma/feg/cloud/go/protos"
@@ -21,39 +27,57 @@ import (
 	"github.com/golang/glog"
 )
 
+var (
+	serverNumber int
+)
+
 func init() {
-	flag.Parse()
+	flag.IntVar(&serverNumber, "servernumber", 1, "Number of the server. Will use Gx[servernumber-1] configuration")
 }
 
 func main() {
-	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.MOCK_PCRF)
-	if err != nil {
-		log.Fatalf("Error creating mock PCRF service: %s", err)
+	flag.Parse()
+
+	serverIdx := serverNumber - 1
+	log.Print("------ Reading Gx configuration a couple of times ------")
+	// Get the server N from the list of configured servers. This is normally 0, unless multiple GX connections are configured
+	gxConfigs := gx.GetGxClientConfiguration()
+	if serverIdx >= len(gxConfigs) {
+		log.Fatalf("ServerIndex value (%d) is bigger than the amount Gx servers configured (%d)", serverIdx, len(gxConfigs))
+		return
+	}
+	gxCliConf := gxConfigs[serverIdx]
+	gxServConf := gx.GetPCRFConfiguration()[serverIdx]
+	log.Print("------ Done reading Gy configuration  ------")
+	log.Printf("Mock PCRF using Gx server configured at index %d with adderess %s", serverIdx, gxServConf.Addr)
+
+	serviceName := registry.MOCK_PCRF
+	if serverIdx > 0 {
+		serviceName = fmt.Sprintf("%s%d", serviceName, serverNumber)
+		log.Printf("PCRF serviceName renamed to: %s", serviceName)
 	}
 
-	// TODO: support multiple connections
-	gxCliConf := gx.GetGxClientConfiguration()[0]
-	gxServConf := gx.GetPCRFConfiguration()[0]
+	pcrfServer := mock_pcrf.NewPCRFServer(gxCliConf, gxServConf)
 
-	pcrfServer := mock_pcrf.NewPCRFDiamServer(
-		gxCliConf,
-		&mock_pcrf.PCRFConfig{ServerConfig: gxServConf},
-	)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, serviceName)
+	if err != nil {
+		log.Fatalf("Error creating mock %s service: %s", serviceName, err)
+	}
 
 	lis, err := pcrfServer.StartListener()
 	if err != nil {
-		log.Fatalf("Unable to start listener for mock PCRF: %s", err)
+		log.Fatalf("Unable to start listener for mock %s: %s", serviceName, err)
 	}
 
 	protos.RegisterMockPCRFServer(srv.GrpcServer, pcrfServer)
 
 	go func() {
-		glog.V(2).Infof("Starting mock PCRF server at %s", lis.Addr().String())
+		glog.V(2).Infof("Starting mock %s server at %s", serviceName, lis.Addr().String())
 		glog.Errorf(pcrfServer.Start(lis).Error()) // blocks
 	}()
 
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running mock PCRF service: %s", err)
+		log.Fatalf("Error running mock %s service: %s", serviceName, err)
 	}
 }

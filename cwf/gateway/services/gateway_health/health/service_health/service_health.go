@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package service_health
@@ -15,13 +20,9 @@ type ServiceHealth interface {
 	// unhealthy state.
 	GetUnhealthyServices() ([]string, error)
 
-	// Enable allows the enabling of service level functionality for the
-	// provided service. It is up to implementors to determine
-	// the specific functionality.
-	Enable(service string) error
+	// Restart restarts the provided service.
+	Restart(service string) error
 
-	// Disable allows the disabling of service level functionality for the
-	// provided service. It is up to implementors to determine
-	// the specific functionality.
-	Disable(service string) error
+	// Stop stops the provided service.
+	Stop(service string) error
 }

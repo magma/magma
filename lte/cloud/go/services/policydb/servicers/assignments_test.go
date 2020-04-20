@@ -1,16 +1,22 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package servicers_test
 
 import (
 	plugin2 "magma/lte/cloud/go/plugin"
-	"magma/lte/cloud/go/plugin/models"
+	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"testing"
@@ -62,6 +68,7 @@ func TestAssignmentsServicer(t *testing.T) {
 					Priority:            swag.Uint32(5),
 					RatingGroup:         *swag.Uint32(2),
 					TrackingType:        "ONLY_OCS",
+					AppName:             "INSTAGRAM",
 					AssignedSubscribers: []models.SubscriberID{},
 				},
 			},
@@ -169,17 +176,17 @@ func TestAssignmentsServicer(t *testing.T) {
 	assert.Equal(t, 0, len(baseName.AssignedSubscribers))
 }
 
-func newDefaultGatewayConfig() *models.GatewayCellularConfigs {
-	return &models.GatewayCellularConfigs{
-		Ran: &models.GatewayRanConfigs{
+func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
+	return &lteModels.GatewayCellularConfigs{
+		Ran: &lteModels.GatewayRanConfigs{
 			Pci:             260,
 			TransmitEnabled: swag.Bool(true),
 		},
-		Epc: &models.GatewayEpcConfigs{
+		Epc: &lteModels.GatewayEpcConfigs{
 			NatEnabled: swag.Bool(true),
 			IPBlock:    "192.168.128.0/24",
 		},
-		NonEpsService: &models.GatewayNonEpsConfigs{
+		NonEpsService: &lteModels.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
 			CsfbMnc:              "01",
 			Lac:                  swag.Uint32(1),

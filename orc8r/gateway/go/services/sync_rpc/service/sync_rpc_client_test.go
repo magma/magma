@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package service
@@ -11,18 +16,18 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
-	"magma/gateway/service_registry"
-	"magma/orc8r/lib/go/protos"
-	"magma/orc8r/lib/go/registry"
-
 	"net"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+
+	"magma/gateway/service_registry"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 )
 
 type testSyncRpcService struct {
@@ -52,7 +57,7 @@ func (svc *testSyncRpcService) SyncRPC(stream protos.SyncRPCService_SyncRPCServe
 func runTestSyncRpcService(server *testSyncRpcService, grpcPortCh chan string) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":0"))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		glog.Fatalf("failed to listen: %v", err)
 	}
 
 	v := strings.Split(lis.Addr().String(), ":")
@@ -79,8 +84,7 @@ func TestSyncRpcClient(t *testing.T) {
 	client := SyncRpcClient{
 		serviceRegistry: reg,
 		respCh:          make(chan *protos.SyncRPCResponse),
-		terminatedReqs:  make(map[uint32]bool),
-		outstandingReqs: make(map[uint32]context.CancelFunc),
+		outstandingReqs: make(map[uint32]*Request),
 		cfg:             cfg,
 		broker:          testBrokerImpl,
 	}
@@ -107,6 +111,10 @@ func TestSyncRpcClient(t *testing.T) {
 		grpcClient := protos.NewSyncRPCServiceClient(conn)
 		client.runSyncRpcClient(ctx, grpcClient)
 	}()
+	// consume first heartbeat
+	resp := <-svcSyncRpcRespCh
+	assert.Equal(t, resp.HeartBeat, true)
+
 	// send a syncRpcRequest and verify if we receive a proper syncRpcResponse
 	reg.AddService(registry.ServiceLocation{
 		Name: "testService",
@@ -115,7 +123,6 @@ func TestSyncRpcClient(t *testing.T) {
 	})
 	svcSyncRpcReqCh <- &protos.SyncRPCRequest{ReqId: 1, ReqBody: &protos.GatewayRequest{Authority: "testService"}}
 	BrokerRespCh <- &protos.SyncRPCResponse{ReqId: 1}
-
 	select {
 	case resp := <-svcSyncRpcRespCh:
 		assert.Equal(t, resp.ReqId, uint32(1))
@@ -126,15 +133,10 @@ func TestSyncRpcClient(t *testing.T) {
 	// send a SyncRpcRequest terminating a request
 	svcSyncRpcReqCh <- &protos.SyncRPCRequest{ReqId: 2, ReqBody: &protos.GatewayRequest{Authority: "testService"}}
 	svcSyncRpcReqCh <- &protos.SyncRPCRequest{ReqId: 2, ConnClosed: true}
-	BrokerRespCh <- &protos.SyncRPCResponse{ReqId: 2}
-	timer := time.NewTimer(time.Second)
-
-	select {
-	case resp := <-svcSyncRpcRespCh:
-		t.Fatalf("no response was expected. recd %v", resp)
-	case <-timer.C:
-		break
+	termCheckFn := func() bool {
+		return client.isReqTerminated(2)
 	}
+	assert.Eventually(t, termCheckFn, 30*time.Second, time.Second, "request not terminated as expected")
 
 	// send a syncRpcRequest which is already being handled
 	svcSyncRpcReqCh <- &protos.SyncRPCRequest{ReqId: 3, ReqBody: &protos.GatewayRequest{Authority: "testService"}}
@@ -163,6 +165,10 @@ func TestSyncRpcClient(t *testing.T) {
 		grpcClient := protos.NewSyncRPCServiceClient(conn)
 		client2.runSyncRpcClient(ctx, grpcClient)
 	}()
+	// consume first heartbeat
+	resp = <-svcSyncRpcRespCh
+	assert.Equal(t, resp.HeartBeat, true)
+
 	select {
 	case resp := <-svcSyncRpcRespCh:
 		assert.Equal(t, resp.HeartBeat, true)

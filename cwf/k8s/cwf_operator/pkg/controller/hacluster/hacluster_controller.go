@@ -16,12 +16,17 @@
 
 /*
  Modifications:
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
-*/
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package hacluster
 
@@ -66,9 +71,11 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+	hc := health_client.NewHealthClient()
 	return &ReconcileHACluster{
 		client:               mgr.GetClient(),
 		scheme:               mgr.GetScheme(),
+		healthClient:         hc,
 		gatewayHealthService: gatewayHealthService,
 		reconcilePeriod:      reconcilePeriod,
 	}
@@ -95,6 +102,7 @@ type ReconcileHACluster struct {
 	// that reads objects from the cache and writes to the apiserver
 	client               client.Client
 	scheme               *runtime.Scheme
+	healthClient         *health_client.HealthClient
 	gatewayHealthService string
 	reconcilePeriod      time.Duration
 }
@@ -167,7 +175,7 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	if initErr != nil {
-		reqLogger.Error(err, "failover occurred", strconv.FormatBool(failover))
+		reqLogger.Error(initErr, "failover occurred", strconv.FormatBool(failover))
 	}
 	hacluster.Status = updatedStatus
 	updateErr := r.client.Status().Update(context.TODO(), hacluster)
@@ -193,14 +201,14 @@ func (r ReconcileHACluster) getGatewayHealthStatus(gateway string, namespace str
 			HealthMessage: fmt.Sprintf("could not find pod for gw: %s", gateway),
 		}, err
 	}
-	svc, err := r.getHealthServiceAddressForResource(gateway, namespace)
+	svc, port, err := r.getHealthServiceAddressForResource(gateway, namespace)
 	if err != nil {
 		return &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
 			HealthMessage: fmt.Sprintf("could not find svc endpoint for local health on gateway: %s", gateway),
 		}, err
 	}
-	health, err := health_client.GetHealthStatus(svc)
+	health, err := r.healthClient.GetHealthStatus(svc, port)
 	if err != nil {
 		// GRPC doesn't return the proto if an error is returned.
 		// To make the health logic simpler, create the proto
@@ -235,14 +243,14 @@ func (r ReconcileHACluster) initGatewayWithRole(gateway string, namespace string
 	if err != nil {
 		return magmav1alpha1.Uninitialized, err
 	}
-	svc, err := r.getHealthServiceAddressForResource(gateway, namespace)
+	svc, port, err := r.getHealthServiceAddressForResource(gateway, namespace)
 	if err != nil {
 		return magmav1alpha1.Uninitialized, err
 	}
 	if active {
-		err = health_client.Enable(svc)
+		err = r.healthClient.Enable(svc, port)
 	} else {
-		err = health_client.Disable(svc)
+		err = r.healthClient.Disable(svc, port)
 	}
 	if err != nil {
 		return magmav1alpha1.Uninitialized, err
@@ -270,7 +278,7 @@ func (r ReconcileHACluster) getPodNamespacedNameForGateway(gateway string, names
 	}, nil
 }
 
-func (r ReconcileHACluster) getHealthServiceAddressForResource(gateway string, namespace string) (string, error) {
+func (r ReconcileHACluster) getHealthServiceAddressForResource(gateway string, namespace string) (string, int, error) {
 	healthService := &corev1.Service{}
 	serviceName := types.NamespacedName{
 		Name:      fmt.Sprintf("%s-%s", gateway, r.gatewayHealthService),
@@ -278,13 +286,13 @@ func (r ReconcileHACluster) getHealthServiceAddressForResource(gateway string, n
 	}
 	err := r.client.Get(context.TODO(), serviceName, healthService)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 	// Sanity check to ensure the operator only connects to a ClusterIP service
 	if healthService.Spec.Type != corev1.ServiceTypeClusterIP {
-		return "", fmt.Errorf("%s is not a ClusterIP service", healthService.Name)
+		return "", 0, fmt.Errorf("%s is not a ClusterIP service", healthService.Name)
 	}
-	return fmt.Sprintf("%s:%d", healthService.Spec.ClusterIP, healthService.Spec.Ports[0].Port), nil
+	return serviceName.Name, int(healthService.Spec.Ports[0].Port), nil
 }
 
 func (r ReconcileHACluster) getStandbyGatewayName(active string, gateways []string) string {

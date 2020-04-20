@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // package service implements the core of bootstrapper
@@ -15,12 +20,7 @@ import (
 	"crypto/tls"
 	"encoding/binary"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"log"
-	"magma/gateway/service_registry"
-	"magma/orc8r/lib/go/definitions"
-	"magma/orc8r/lib/go/protos"
 	"net"
 	"net/http"
 	"net/url"
@@ -29,7 +29,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/http2"
+
+	"magma/gateway/service_registry"
+	"magma/orc8r/lib/go/definitions"
+	_ "magma/orc8r/lib/go/initflag"
+	"magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -42,6 +48,7 @@ const (
 	MinRetryInterval      = time.Millisecond * 500
 	MaxRetryInterval      = time.Second * 30
 	RetryBackoffIncrement = MinRetryInterval
+	SuccessStartInterval  = time.Second * 5
 
 	DefaultSyncRpcHeartbeatInterval = time.Second * 30
 	DefaultGatewayKeepaliveInterval = time.Second * 10
@@ -64,24 +71,23 @@ type Config struct {
 	GatewayResponseTimeout time.Duration `yaml:"gateway_response_timeout"`
 }
 
+// Request - outstanding request
+type Request struct {
+	CancelFunc context.CancelFunc
+	terminated bool
+}
+
 // SyncRpcClient opens a bidirectional connection with the cloud
 type SyncRpcClient struct {
+	sync.RWMutex
 	// service registry to coonect to the cloud
 	serviceRegistry service_registry.GatewayRegistry
 
 	// responseTimeout in seconds
 	cfg Config
 
-	// requests which have been terminated
-	terminatedReqs map[uint32]bool
-
-	// terminatedReqsMux
-	terminatedReqsMux sync.RWMutex
-
 	// requests which are still being processed
-	outstandingReqs map[uint32]context.CancelFunc
-
-	outstandingReqsMux sync.RWMutex
+	outstandingReqs map[uint32]*Request
 
 	// channel receiving broker responses
 	respCh chan *protos.SyncRPCResponse
@@ -108,38 +114,40 @@ func NewClient(reg service_registry.GatewayRegistry) *SyncRpcClient {
 	client := &SyncRpcClient{
 		serviceRegistry: reg,
 		cfg:             *cfg, // copy configs
-		terminatedReqs:  make(map[uint32]bool),
-		outstandingReqs: make(map[uint32]context.CancelFunc),
+		outstandingReqs: make(map[uint32]*Request),
 		respCh:          make(chan *protos.SyncRPCResponse),
 		broker:          newbrokerImpl(cfg),
 	}
 	return client
 }
 
-// Run starts SyncRPC worker loop and blocks forever
+// Run starts SyncRPC worker loop and block forever
 func (c *SyncRpcClient) Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	for currentBackoffInterval := MinRetryInterval; ; currentBackoffInterval = (currentBackoffInterval + RetryBackoffIncrement) % MaxRetryInterval {
-
 		conn, err := c.serviceRegistry.GetCloudConnection(definitions.DispatcherServiceName)
 		if err != nil {
 			// TODO
 			// Continue for retryable grpc errors
 			// Add a delay/jitter for retrying cloud connection for non retryable grpc errors
-			log.Printf("[SyncRpc] error creating cloud connection: %v", err)
+			glog.Errorf("[SyncRpc] error creating cloud connection: %v", err)
 			time.Sleep(currentBackoffInterval)
 			continue
 		} else {
-			currentBackoffInterval = MinRetryInterval // reset backoff interval
-			log.Printf("[SyncRpc] successfully connected to cloud '%s' service", definitions.DispatcherServiceName)
+			glog.Infof("[SyncRpc] successfully connected to cloud '%s' service", definitions.DispatcherServiceName)
 		}
 
 		// this should simply wait here for requests and process responses
 		// in case we see any error we will retry connecting to the dispatcher
+		resetBackoffTime := time.Now().Add(SuccessStartInterval) // make sure, run lasts at least SuccessStartInterval
 		c.runSyncRpcClient(ctx, protos.NewSyncRPCServiceClient(conn))
+		if time.Now().After(resetBackoffTime) {
+			currentBackoffInterval = MinRetryInterval // reset backoff interval
+		}
 		conn.Close()
+		time.Sleep(currentBackoffInterval)
 		// exit loop if context is done
 		select {
 		case <-ctx.Done():
@@ -154,13 +162,13 @@ func (c *SyncRpcClient) runSyncRpcClient(ctx context.Context, client protos.Sync
 	c.client = client
 	stream, err := c.client.EstablishSyncRPCStream(ctx)
 	if err != nil {
-		log.Printf("[SyncRPC] Failed establishing SyncRpc stream; error: %v", err)
+		glog.Errorf("[SyncRPC] Failed establishing SyncRpc stream; error: %v", err)
 		return err
 	}
-
 	// close connection if error
 	errChan := make(chan error)
 	go func() {
+		stream.Send(&protos.SyncRPCResponse{HeartBeat: true}) // send first heartbeat to establish orc8r queue
 		errChan <- c.processStream(ctx, stream)
 	}()
 
@@ -172,129 +180,136 @@ func (c *SyncRpcClient) runSyncRpcClient(ctx context.Context, client protos.Sync
 			if !c.isReqTerminated(resp.ReqId) {
 				err := stream.Send(resp)
 				if err != nil {
-					log.Printf("[SyncRpc] send to dispatcher failed: %v", err)
+					glog.Errorf("[SyncRpc] send to dispatcher failed: %v", err)
 					return err
 				}
 				timer.Reset(c.cfg.SyncRpcHeartbeatInterval)
+				glog.V(3).Infof("[SyncRpc] sent resp: %s", resp)
+			} else {
+				glog.Errorf("[SyncRpc] request canceled for Id: %d", resp.ReqId)
 			}
-
 		case err := <-errChan:
 			// error recd handling processStream
 			return err
-
 		case <-timer.C:
 			err := stream.Send(&protos.SyncRPCResponse{HeartBeat: true})
 			if err != nil {
-				log.Printf("[SyncRpc] heartbeat to dispatcher failed")
+				glog.Error("[SyncRpc] heartbeat to dispatcher failed")
 				return err
 			}
+			glog.V(2).Info("[SyncRpc] heartbeat success")
 			timer.Reset(c.cfg.SyncRpcHeartbeatInterval)
-
 		case <-ctx.Done():
-			log.Printf("[SyncRPC] Stopping SyncRpcClient")
+			glog.Info("[SyncRPC] Stopping SyncRpcClient")
 			return nil
 		}
 	}
 }
 
-func (c *SyncRpcClient) updateTerminatedReqs(reqID uint32) {
-	c.terminatedReqsMux.Lock()
-	defer c.terminatedReqsMux.Unlock()
-	c.terminatedReqs[reqID] = true
+func (c *SyncRpcClient) updateTerminatedReqs(reqID uint32) context.CancelFunc {
+	c.Lock()
+	defer c.Unlock()
+	if r, ok := c.outstandingReqs[reqID]; ok {
+		r.terminated = true
+		return r.CancelFunc
+	}
+	return nil
 }
 
 func (c *SyncRpcClient) isReqTerminated(reqID uint32) bool {
-	c.terminatedReqsMux.RLock()
-	defer c.terminatedReqsMux.RUnlock()
-	_, ok := c.terminatedReqs[reqID]
-	return ok
-}
-
-func (c *SyncRpcClient) removeTerminatedReqs(reqID uint32) {
-	c.terminatedReqsMux.Lock()
-	defer c.terminatedReqsMux.Unlock()
-	delete(c.terminatedReqs, reqID)
+	c.RLock()
+	defer c.RUnlock()
+	if r, ok := c.outstandingReqs[reqID]; ok {
+		return r.terminated
+	}
+	return false
 }
 
 func (c *SyncRpcClient) updateOutstandingdReqs(reqID uint32, cancelFn context.CancelFunc) {
-	c.outstandingReqsMux.Lock()
-	defer c.outstandingReqsMux.Unlock()
-	c.outstandingReqs[reqID] = cancelFn
+	c.Lock()
+	c.outstandingReqs[reqID] = &Request{CancelFunc: cancelFn}
+	c.Unlock()
 }
 
 func (c *SyncRpcClient) getOutstandingReqCancelFn(reqID uint32) context.CancelFunc {
-	c.outstandingReqsMux.RLock()
-	defer c.outstandingReqsMux.RUnlock()
-	cancelFn, ok := c.outstandingReqs[reqID]
-	if !ok {
-		return nil
+	c.RLock()
+	defer c.RUnlock()
+	if r, ok := c.outstandingReqs[reqID]; ok {
+		return r.CancelFunc
 	}
-	return cancelFn
+	return nil
 }
 
-func (c *SyncRpcClient) removeOutstandingReqs(reqID uint32) {
-	c.outstandingReqsMux.Lock()
-	defer c.outstandingReqsMux.Unlock()
+func (c *SyncRpcClient) removeOutstandingReq(reqID uint32) {
+	c.Lock()
 	delete(c.outstandingReqs, reqID)
+	c.Unlock()
 }
 
 // handleSyncRpcRequest forwards the incoming request to the appropriate destination
 func (c *SyncRpcClient) handleSyncRpcRequest(inCtx context.Context, req *protos.SyncRPCRequest) {
 	if req == nil {
-		log.Printf("[SyncRpc] error empty request received")
+		glog.Error("[SyncRpc] error empty request received")
 		return
 	}
-
 	if req.HeartBeat {
+		glog.V(3).Info("[SyncRpc] received heartbeat")
 		return
 	}
+	gatewayReq := req.GetReqBody()
 
-	// get the cancellation fn of the request if present
-	cancelFn := c.getOutstandingReqCancelFn(req.ReqId)
-	if req.ConnClosed {
-		c.updateTerminatedReqs(req.ReqId)
+	if req.GetConnClosed() {
+		glog.V(1).Infof("[SyncRpc] connection closed handling ReqId: %d", req.ReqId)
+		cancelFn := c.updateTerminatedReqs(req.ReqId)
 		if cancelFn != nil {
 			cancelFn()
+		} else {
+			glog.V(1).Infof("[SyncRpc] closed ReqId: %d is not found", req.ReqId)
 		}
 		return
 	}
-
+	if glog.V(2) {
+		glog.Infof("[SyncRpc] request ID %d from GW %s, for service: %s, path: %s",
+			req.ReqId, gatewayReq.GetGwId(), gatewayReq.GetAuthority(), gatewayReq.GetPath())
+	}
+	// get the cancellation fn of the request if present
 	// return early if request is outstanding
-	if cancelFn != nil {
-		c.respCh <- buildSyncRpcErrorResponse(req.ReqId, fmt.Sprintf("request ID %d is already being handled", req.ReqId))
+	if cancelFn := c.getOutstandingReqCancelFn(req.ReqId); cancelFn != nil {
+		glog.Warningf("[SyncRpc] duplicate request to %s, %s with Id: %d",
+			gatewayReq.GetAuthority(), gatewayReq.GetPath(), req.ReqId)
+		c.respCh <- buildSyncRpcErrorResponse(
+			req.ReqId, fmt.Sprintf("request ID %d is already being handled", req.ReqId))
 		return
 	}
-
-	ctx, cancelFn := context.WithCancel(inCtx)
-	c.removeTerminatedReqs(req.ReqId)
-	c.updateOutstandingdReqs(req.ReqId, cancelFn)
-	gatewayReq := req.GetReqBody()
-	serviceAddr, err := c.serviceRegistry.GetServiceAddress(gatewayReq.Authority)
+	serviceAddr, err := c.serviceRegistry.GetServiceAddress(gatewayReq.GetAuthority())
 	if err != nil {
-		log.Printf("[SyncRpc] error getting service address: %v", err)
+		glog.Errorf("[SyncRpc] error getting service address: %v", err)
 		return
 	}
+	ctx, cancelFn := context.WithCancel(inCtx)
+	c.updateOutstandingdReqs(req.ReqId, cancelFn)
 
 	go func() {
 		c.broker.send(ctx, serviceAddr, req, c.respCh)
-		c.removeOutstandingReqs(req.ReqId)
+		c.removeOutstandingReq(req.ReqId)
 	}()
 }
 
 // processStream handles the incoming gateway requests
-func (c *SyncRpcClient) processStream(ctx context.Context,
-	stream protos.SyncRPCService_EstablishSyncRPCStreamClient) error {
+func (c *SyncRpcClient) processStream(
+	ctx context.Context, stream protos.SyncRPCService_EstablishSyncRPCStreamClient) error {
+
 	for {
 		req, err := stream.Recv()
 		if err != nil {
-			log.Printf("[SyncRPC] error: %v, failed handling sync request", err)
+			glog.Errorf("[SyncRPC] error: %v, failed handling sync request", err)
 			return err
 		}
 
 		c.handleSyncRpcRequest(ctx, req)
 		select {
 		case <-ctx.Done():
-			log.Printf("[SyncRPC] exiting processing stream")
+			glog.Info("[SyncRPC] exiting processing stream")
 			return nil
 		default:
 			break
@@ -319,7 +334,7 @@ func newbrokerImpl(cfg *Config) *brokerImpl {
 
 func getRequestHeaders(hdr http.Header, trailer http.Header) map[string]string {
 	// following block reads the response
-	respHeaders := make(map[string]string, len(hdr))
+	respHeaders := make(map[string]string, len(hdr)+len(trailer))
 	for k, v := range hdr {
 		respHeaders[k] = strings.Join(v, ",")
 	}
@@ -349,42 +364,42 @@ func buildHeaders(hdrMap map[string]string) http.Header {
 	return hdr
 }
 
-func (p *brokerImpl) sendInternal(ctx context.Context, serviceAddr string, req *protos.SyncRPCRequest, respCh chan *protos.SyncRPCResponse) {
-	defer close(respCh)
+func sendInternal(address string, req *protos.SyncRPCRequest, respCh chan *protos.SyncRPCResponse, tout time.Duration) {
 	var respErr error
 	defer func() {
 		// handle and send error
 		if respErr != nil {
 			respErr = fmt.Errorf("ReqID %d failed: %v", req.ReqId, respErr)
-			log.Printf("[SyncRPC] error: %v", respErr)
+			glog.Errorf("[SyncRPC] %v", respErr)
 			respCh <- buildSyncRpcErrorResponse(req.ReqId, respErr.Error())
 		}
 	}()
-
 	// populate headers
 	gatewayReq := req.ReqBody
 
 	// http2 client to connect to the grpc port
 	// override DialTLS to create a vannilla tcp connection
-	client := &http.Client{Transport: &http2.Transport{
-		AllowHTTP: true,
-		DialTLS: func(netw, addr string, cfg *tls.Config) (net.Conn, error) {
-			return net.Dial(netw, addr)
-		}}}
-
+	client := &http.Client{
+		Transport: &http2.Transport{
+			AllowHTTP: true,
+			DialTLS: func(netw, addr string, cfg *tls.Config) (net.Conn, error) {
+				return net.Dial(netw, addr)
+			},
+		},
+		Timeout: tout,
+	}
 	brokerReq := &http.Request{
 		RequestURI: "",
 		Method:     "POST",
 		URL: &url.URL{
 			Scheme: "http",
 			Path:   gatewayReq.Path,
-			Host:   serviceAddr,
+			Host:   address,
 		},
 		Body:   ioutil.NopCloser(bytes.NewReader(gatewayReq.Payload)),
 		Header: buildHeaders(gatewayReq.Headers),
 		Host:   gatewayReq.Authority,
 	}
-
 	resp, err := client.Do(brokerReq)
 	if err != nil {
 		respErr = fmt.Errorf("grpc request failed: %v", err)
@@ -395,95 +410,70 @@ func (p *brokerImpl) sendInternal(ctx context.Context, serviceAddr string, req *
 			"http response error, status %s statuscode %d, err: %v", resp.Status, resp.StatusCode, err)
 		return
 	}
-
-	defer resp.Body.Close()
-	reader := io.Reader(resp.Body)
-
-	// grpc messages are sent as length prefixed messages, first byte is
-	// for indicating compression next 4 bytes is length, followed by payload
-	// read the first 5 bytes and using the length read the rest of the message
-	buf := make([]byte, GRPC_MSGLEN_SZ)
-	for {
-		_, err := io.ReadFull(reader, buf)
-		if err != nil {
-			if err == io.EOF {
-				respCh <- &protos.SyncRPCResponse{
-					ReqId: req.ReqId,
-					RespBody: &protos.GatewayResponse{
-						Status:  strconv.Itoa(resp.StatusCode),
-						Headers: getRequestHeaders(resp.Header, resp.Trailer),
-					},
-				}
-			} else {
-				respErr = fmt.Errorf("failed reading length prefix of grpc message: %v", err)
-			}
-			return
-		}
-		msgLen := binary.BigEndian.Uint32(buf[GRPC_LEN_OFFSET:])
-		msgBuf := make([]byte, msgLen)
-		_, err = io.ReadFull(reader, msgBuf)
-		if err != nil {
-			if err == io.EOF {
-				respCh <- &protos.SyncRPCResponse{
-					ReqId: req.ReqId,
-					RespBody: &protos.GatewayResponse{
-						Status:  strconv.Itoa(resp.StatusCode),
-						Headers: getRequestHeaders(resp.Header, resp.Trailer),
-					},
-				}
-			} else {
-				respErr = fmt.Errorf("failed reading data of %d size: %v", msgLen, err)
-			}
-			return
-		}
+	b, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		respErr = fmt.Errorf("failed reading grpc message: %v", err)
+	}
+	lb := len(b)
+	if lb < GRPC_MSGLEN_SZ {
+		glog.V(2).Infof("[SyncRPC] resp body for ReqId %d is too short: %d", req.ReqId, lb)
 		respCh <- &protos.SyncRPCResponse{
 			ReqId: req.ReqId,
 			RespBody: &protos.GatewayResponse{
 				Status:  strconv.Itoa(resp.StatusCode),
 				Headers: getRequestHeaders(resp.Header, resp.Trailer),
-				Payload: append(buf, msgBuf...),
 			},
 		}
-		// check if context is being terminated
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			// do nothing
-		}
+		return
 	}
+	// grpc messages are sent as length prefixed messages, first byte is
+	// for indicating compression next 4 bytes is length, followed by payload
+	// read the first 5 bytes and using the length read the rest of the message
+	msgLen := binary.BigEndian.Uint32(b[GRPC_LEN_OFFSET:])
+	respMsg := &protos.SyncRPCResponse{
+		ReqId: req.ReqId,
+		RespBody: &protos.GatewayResponse{
+			Status:  strconv.Itoa(resp.StatusCode),
+			Headers: getRequestHeaders(resp.Header, resp.Trailer),
+			Payload: b,
+		},
+	}
+	respCh <- respMsg
+	glog.V(3).Infof("[SyncRPC] sending resp: %s (payload: %v; msg len: %d; body len: %d)", respMsg, b, msgLen, lb)
 }
 
 func (p *brokerImpl) send(
 	ctx context.Context, serviceAddr string, req *protos.SyncRPCRequest, respCh chan *protos.SyncRPCResponse) {
 
 	clientRespCh := make(chan *protos.SyncRPCResponse)
-	go p.sendInternal(ctx, serviceAddr, req, clientRespCh)
+	go sendInternal(serviceAddr, req, clientRespCh, p.cfg.GatewayResponseTimeout)
 
 	timer := time.NewTimer(p.cfg.GatewayKeepaliveInterval)
 	defer timer.Stop()
 
-	lastMsgReadTime := time.Now()
+	timeoutTime := time.Now().Add(p.cfg.GatewayResponseTimeout)
 	for {
 		select {
 		case resp, ok := <-clientRespCh:
 			if !ok {
-				return
+				glog.Errorf("[SyncRPC] channel closed for ReqId %d", req.ReqId)
+			} else {
+				respCh <- resp
 			}
-			respCh <- resp
-			timer.Reset(p.cfg.GatewayKeepaliveInterval)
+			return
 		case <-timer.C:
-			if time.Now().Sub(lastMsgReadTime) > p.cfg.GatewayResponseTimeout {
+			if time.Now().After(timeoutTime) {
 				// max request timeout exceeded send error back to the caller
 				respCh <- buildSyncRpcErrorResponse(req.ReqId, "grpc request timed out on read")
 				return
-			} else {
-				// construct SyncRpcResponse and keep connection active
-				respCh <- &protos.SyncRPCResponse{
-					ReqId:    req.ReqId,
-					RespBody: &protos.GatewayResponse{KeepConnActive: true}}
-				timer.Reset(p.cfg.GatewayKeepaliveInterval)
 			}
+			// construct SyncRpcResponse and keep connection active
+			respCh <- &protos.SyncRPCResponse{
+				ReqId:    req.ReqId,
+				RespBody: &protos.GatewayResponse{KeepConnActive: true}}
+			timer.Reset(p.cfg.GatewayKeepaliveInterval)
+			glog.V(2).Infof("[SyncRPC] sending keepalive while on ReqId %d", req.ReqId)
 		case <-ctx.Done():
 			return
 		}

@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package hacluster
@@ -12,13 +17,14 @@ import (
 	"context"
 	"fmt"
 
-	//"fmt"
 	"math/rand"
 	"net"
 	"strconv"
 	"testing"
 
 	magmav1alpha1 "magma/cwf/k8s/cwf_operator/pkg/apis/magma/v1alpha1"
+	"magma/cwf/k8s/cwf_operator/pkg/health_client"
+	"magma/cwf/k8s/cwf_operator/pkg/registry"
 	"magma/feg/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 
@@ -50,7 +56,7 @@ func TestHAClusterControllerSingleGateway(t *testing.T) {
 		gw        = "test-gw"
 	)
 	gateways := []string{gw}
-	r := initTestReconciler(gateways, name, namespace)
+	r := initTestReconciler(gateways, name, namespace, map[string]string{})
 	// Mock request to simulate Reconcile() being called on an event for a
 	// watched resource .
 	req := reconcile.Request{
@@ -86,9 +92,19 @@ func TestHAClusterControllerTwoGateways(t *testing.T) {
 	gateways := []string{gw, gw2}
 	mockServicer := &mockHealthServicer{}
 	mockServicer2 := &mockHealthServicer{}
-	r := initTestReconciler(gateways, name, namespace)
 	addr := runMockService(t, mockServicer)
 	addr2 := runMockService(t, mockServicer2)
+
+	// Create arbitrary pod and svc representing gatways
+	gwPod := createPod(gw, namespace)
+	gwSvc := createSvc(gw, namespace, int32(addr.Port))
+	gwPod2 := createPod(gw2, namespace)
+	gwSvc2 := createSvc(gw2, namespace, int32(addr2.Port))
+	svcsToAddrs := map[string]string{
+		gwSvc.Name:  addr.IP.String(),
+		gwSvc2.Name: addr2.IP.String(),
+	}
+	r := initTestReconciler(gateways, name, namespace, svcsToAddrs)
 	// Mock request to simulate Reconcile() being called on an event for a
 	// watched resource .
 	req := reconcile.Request{
@@ -107,12 +123,6 @@ func TestHAClusterControllerTwoGateways(t *testing.T) {
 		HealthMessage: "Unhealthy",
 	}
 	void := &orcprotos.Void{}
-
-	// Create arbitrary pod and svc representing gatways
-	gwPod := createPod(gw, namespace)
-	gwSvc := createSvc(gw, namespace, int32(addr.Port))
-	gwPod2 := createPod(gw2, namespace)
-	gwSvc2 := createSvc(gw2, namespace, int32(addr2.Port))
 
 	// Create gw1 resources
 	err := r.client.Create(context.Background(), gwPod.DeepCopy())
@@ -206,7 +216,7 @@ func TestHAClusterControllerTwoGateways(t *testing.T) {
 	assert.Equal(t, magmav1alpha1.Initialized, mockCluster.Status.StandbyInitState)
 }
 
-func initTestReconciler(gateways []string, name string, namespace string) *ReconcileHACluster {
+func initTestReconciler(gateways []string, name string, namespace string, svcsToAddrs map[string]string) *ReconcileHACluster {
 	// An haCluster resource with metadata and spec.
 	haCluster := &magmav1alpha1.HACluster{
 		ObjectMeta: metav1.ObjectMeta{
@@ -231,8 +241,14 @@ func initTestReconciler(gateways []string, name string, namespace string) *Recon
 	// Create a ReconcileHaCluster object with the scheme, fake client, and
 	// fake v1 client.
 	return &ReconcileHACluster{
-		client:               fakeClient,
-		scheme:               s,
+		client: fakeClient,
+		scheme: s,
+		healthClient: &health_client.HealthClient{
+			ConnectionRegistry: &mockConnectionRegistry{
+				svcsToAddrs:        svcsToAddrs,
+				ConnectionRegistry: registry.NewK8sConnectionRegistry(),
+			},
+		},
 		gatewayHealthService: healthSvcName,
 	}
 }
@@ -264,6 +280,21 @@ func createSvc(instanceName string, namespace string, port int32) *corev1.Servic
 			ClusterIP: "127.0.0.1",
 		},
 	}
+}
+
+type mockConnectionRegistry struct {
+	svcsToAddrs map[string]string
+	registry.ConnectionRegistry
+}
+
+func (m *mockConnectionRegistry) GetConnection(addr string, port int) (*grpc.ClientConn, error) {
+	// In order to get the connection to dial correctly in unit tests
+	// translate svc name to IP addr of test service
+	ipAddr, ok := m.svcsToAddrs[addr]
+	if !ok {
+		return nil, fmt.Errorf("Addr %s not found", addr)
+	}
+	return m.ConnectionRegistry.GetConnection(ipAddr, port)
 }
 
 type mockHealthServicer struct {

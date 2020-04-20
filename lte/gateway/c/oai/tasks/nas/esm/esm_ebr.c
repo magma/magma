@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,11 +42,9 @@
 
 /* String representation of EPS bearer context status */
 static const char* _esm_ebr_state_str[ESM_EBR_STATE_MAX] = {
-  "BEARER CONTEXT INACTIVE",
-  "BEARER CONTEXT ACTIVE",
-  "BEARER CONTEXT INACTIVE PENDING",
-  "BEARER CONTEXT MODIFY PENDING",
-  "BEARER CONTEXT ACTIVE PENDING"};
+    "BEARER CONTEXT INACTIVE", "BEARER CONTEXT ACTIVE",
+    "BEARER CONTEXT INACTIVE PENDING", "BEARER CONTEXT MODIFY PENDING",
+    "BEARER CONTEXT ACTIVE PENDING"};
 
 /*
    ----------------------
@@ -67,15 +61,20 @@ static int _esm_ebr_get_available_entry(emm_context_t* emm_context);
 /****************************************************************************/
 
 //------------------------------------------------------------------------------
-const char* esm_ebr_state2string(esm_ebr_state esm_ebr_state)
-{
+const char* esm_ebr_state2string(esm_ebr_state esm_ebr_state) {
   switch (esm_ebr_state) {
-    case ESM_EBR_INACTIVE: return "ESM_EBR_INACTIVE";
-    case ESM_EBR_ACTIVE: return "ESM_EBR_ACTIVE";
-    case ESM_EBR_INACTIVE_PENDING: return "ESM_EBR_INACTIVE_PENDING";
-    case ESM_EBR_MODIFY_PENDING: return "ESM_EBR_MODIFY_PENDING";
-    case ESM_EBR_ACTIVE_PENDING: return "ESM_EBR_ACTIVE_PENDING";
-    default: return "UNKNOWN";
+    case ESM_EBR_INACTIVE:
+      return "ESM_EBR_INACTIVE";
+    case ESM_EBR_ACTIVE:
+      return "ESM_EBR_ACTIVE";
+    case ESM_EBR_INACTIVE_PENDING:
+      return "ESM_EBR_INACTIVE_PENDING";
+    case ESM_EBR_MODIFY_PENDING:
+      return "ESM_EBR_MODIFY_PENDING";
+    case ESM_EBR_ACTIVE_PENDING:
+      return "ESM_EBR_ACTIVE_PENDING";
+    default:
+      return "UNKNOWN";
   }
 }
 /****************************************************************************
@@ -92,8 +91,7 @@ const char* esm_ebr_state2string(esm_ebr_state esm_ebr_state)
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-void esm_ebr_initialize(void)
-{
+void esm_ebr_initialize(void) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   OAILOG_FUNC_OUT(LOG_NAS_ESM);
 }
@@ -113,11 +111,10 @@ void esm_ebr_initialize(void)
  **      Others:    _esm_ebr_data                                          **
  **                                                                        **
  ***************************************************************************/
-int esm_ebr_assign(emm_context_t* emm_context)
-{
+int esm_ebr_assign(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   ue_mm_context_t* ue_context_p =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
   int i = _esm_ebr_get_available_entry(emm_context);
   if (i < 0) {
@@ -125,11 +122,10 @@ int esm_ebr_assign(emm_context_t* emm_context)
   }
 
   OAILOG_DEBUG(
-    LOG_NAS_ESM,
-    "ESM-FSM - EPS bearer identity = %u assigned for ue_id:" MME_UE_S1AP_ID_FMT
-    "\n",
-    INDEX_TO_EBI(i),
-    ue_context_p->mme_ue_s1ap_id);
+      LOG_NAS_ESM,
+      "ESM-FSM - EPS bearer identity = %u assigned for "
+      "ue_id:" MME_UE_S1AP_ID_FMT "\n",
+      INDEX_TO_EBI(i), ue_context_p->mme_ue_s1ap_id);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, INDEX_TO_EBI(i));
 }
 
@@ -151,17 +147,16 @@ int esm_ebr_assign(emm_context_t* emm_context)
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi)
-{
+int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  esm_ebr_context_t* ebr_ctx = NULL;
+  esm_ebr_context_t* ebr_ctx       = NULL;
   bearer_context_t* bearer_context = NULL;
 
   if ((ebi < ESM_EBI_MIN) || (ebi > ESM_EBI_MAX)) {
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
   ue_mm_context_t* ue_mm_context =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   /*
    * Get EPS bearer context data
    */
@@ -180,7 +175,7 @@ int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi)
    */
   if (ebr_ctx->status != ESM_EBR_INACTIVE) {
     OAILOG_ERROR(
-      LOG_NAS_ESM, "ESM-FSM   - EPS bearer context is not INACTIVE\n");
+        LOG_NAS_ESM, "ESM-FSM   - EPS bearer context is not INACTIVE\n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
@@ -189,12 +184,11 @@ int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi)
    */
   if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
     OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-FSM   - Stop retransmission timer %ld\n",
-      ebr_ctx->timer.id);
+        LOG_NAS_ESM, "ESM-FSM   - Stop retransmission timer %ld\n",
+        ebr_ctx->timer.id);
     esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
     ebr_ctx->timer.id =
-      nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
+        nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
     /*
      * Release the retransmisison timer parameters
      */
@@ -237,24 +231,20 @@ int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi)
  **                                                                        **
  ***************************************************************************/
 int esm_ebr_start_timer(
-  emm_context_t* emm_context,
-  ebi_t ebi,
-  CLONE_REF const_bstring msg,
-  long sec,
-  nas_timer_callback_t cb)
-{
+    emm_context_t* emm_context, ebi_t ebi, CLONE_REF const_bstring msg,
+    long sec, nas_timer_callback_t cb) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  esm_ebr_context_t* ebr_ctx = NULL;
+  esm_ebr_context_t* ebr_ctx       = NULL;
   bearer_context_t* bearer_context = NULL;
 
   if ((ebi < ESM_EBI_MIN) || (ebi > ESM_EBI_MAX)) {
     OAILOG_ERROR(
-      LOG_NAS_ESM, "ESM-FSM   - Retransmission timer bad ebi %d\n", ebi);
+        LOG_NAS_ESM, "ESM-FSM   - Retransmission timer bad ebi %d\n", ebi);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
   ue_mm_context_t* ue_mm_context =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(LOG_NAS_ESM, "ESM-FSM   - ue mme context null..\n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
@@ -279,22 +269,22 @@ int esm_ebr_start_timer(
      * Re-start the retransmission timer
      */
     ebr_ctx->timer.id =
-      nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
+        nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
     ebr_ctx->timer.id =
-      nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
+        nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
   } else {
     /*
      * Setup the retransmission timer parameters
      */
     esm_ebr_timer_data =
-      (esm_ebr_timer_data_t*) calloc(1, sizeof(esm_ebr_timer_data_t));
+        (esm_ebr_timer_data_t*) calloc(1, sizeof(esm_ebr_timer_data_t));
 
     if (esm_ebr_timer_data) {
       /*
        * Set the UE identifier
        */
       esm_ebr_timer_data->ue_id = ue_mm_context->mme_ue_s1ap_id;
-      esm_ebr_timer_data->ctx = emm_context;
+      esm_ebr_timer_data->ctx   = emm_context;
       /*
        * Set the EPS bearer identity
        */
@@ -313,26 +303,24 @@ int esm_ebr_start_timer(
        * * * * time interval
        */
       ebr_ctx->timer.id =
-        nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
+          nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
       ebr_ctx->timer.sec = sec;
     }
   }
 
   if ((esm_ebr_timer_data) && (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID)) {
     OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-FSM   - Retransmission timer %ld expires in "
-      "%ld seconds\n",
-      ebr_ctx->timer.id,
-      ebr_ctx->timer.sec);
+        LOG_NAS_ESM,
+        "ESM-FSM   - Retransmission timer %ld expires in "
+        "%ld seconds\n",
+        ebr_ctx->timer.id, ebr_ctx->timer.sec);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   } else {
     OAILOG_ERROR(
-      LOG_NAS_ESM,
-      "ESM-FSM   - esm_ebr_timer_data == NULL(%p) or ebr_ctx->timer.id == "
-      "NAS_TIMER_INACTIVE_ID == -1 (%ld)\n",
-      esm_ebr_timer_data,
-      ebr_ctx->timer.id);
+        LOG_NAS_ESM,
+        "ESM-FSM   - esm_ebr_timer_data == NULL(%p) or ebr_ctx->timer.id == "
+        "NAS_TIMER_INACTIVE_ID == -1 (%ld)\n",
+        esm_ebr_timer_data, ebr_ctx->timer.id);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
@@ -354,9 +342,8 @@ int esm_ebr_start_timer(
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-int esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi)
-{
-  esm_ebr_context_t* ebr_ctx = NULL;
+int esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
+  esm_ebr_context_t* ebr_ctx       = NULL;
   bearer_context_t* bearer_context = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -366,7 +353,7 @@ int esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi)
   }
 
   ue_mm_context_t* ue_mm_context =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   /*
    * Get EPS bearer context data
    */
@@ -385,12 +372,11 @@ int esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi)
    */
   if (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID) {
     OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-FSM   - Stop retransmission timer %ld\n",
-      ebr_ctx->timer.id);
+        LOG_NAS_ESM, "ESM-FSM   - Stop retransmission timer %ld\n",
+        ebr_ctx->timer.id);
     esm_ebr_timer_data_t* esm_ebr_timer_data = NULL;
     ebr_ctx->timer.id =
-      nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
+        nas_timer_stop(ebr_ctx->timer.id, (void**) &esm_ebr_timer_data);
     /*
      * Release the retransmisison timer parameters
      */
@@ -423,14 +409,14 @@ int esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-ebi_t esm_ebr_get_pending_ebi(emm_context_t* emm_context, esm_ebr_state status)
-{
+ebi_t esm_ebr_get_pending_ebi(
+    emm_context_t* emm_context, esm_ebr_state status) {
   int i;
 
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   ue_mm_context_t* ue_mm_context =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   for (i = 0; i < BEARERS_PER_UE; i++) {
     if (ue_mm_context->bearer_contexts[i] == NULL) {
       continue;
@@ -477,14 +463,11 @@ ebi_t esm_ebr_get_pending_ebi(emm_context_t* emm_context, esm_ebr_state status)
  **                                                                        **
  ***************************************************************************/
 int esm_ebr_set_status(
-  emm_context_t* emm_context,
-  ebi_t ebi,
-  esm_ebr_state status,
-  bool ue_requested)
-{
+    emm_context_t* emm_context, ebi_t ebi, esm_ebr_state status,
+    bool ue_requested) {
   bearer_context_t* bearer_context = NULL;
-  esm_ebr_context_t* ebr_ctx = 0;
-  esm_ebr_state old_status = ESM_EBR_INACTIVE;
+  esm_ebr_context_t* ebr_ctx       = 0;
+  esm_ebr_state old_status         = ESM_EBR_INACTIVE;
 
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
@@ -495,14 +478,13 @@ int esm_ebr_set_status(
 
   if ((ebi < ESM_EBI_MIN) || (ebi > ESM_EBI_MAX)) {
     OAILOG_ERROR(
-      LOG_NAS_ESM,
-      "ESM-FSM   - Invalid EPS bearer identity range ebi= (%d) \n",
-      ebi);
+        LOG_NAS_ESM,
+        "ESM-FSM   - Invalid EPS bearer identity range ebi= (%d) \n", ebi);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
   ue_mm_context_t* ue_mm_context =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(LOG_NAS_ESM, "ESM-FSM   - ue mme context null... \n");
   }
@@ -516,34 +498,31 @@ int esm_ebr_set_status(
      * EPS bearer context not assigned
      */
     OAILOG_ERROR(
-      LOG_NAS_ESM,
-      "ESM-FSM   - EPS bearer context not assigned \n"
-      "(ebi=%d)",
-      ebi);
+        LOG_NAS_ESM,
+        "ESM-FSM   - EPS bearer context not assigned \n"
+        "(ebi=%d)",
+        ebi);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
-  ebr_ctx = &bearer_context->esm_ebr_context;
+  ebr_ctx    = &bearer_context->esm_ebr_context;
   old_status = ebr_ctx->status;
 
   if (status < ESM_EBR_STATE_MAX) {
     if (status != old_status) {
       OAILOG_INFO(
-        LOG_NAS_ESM,
-        "ESM-FSM   - Status of EPS bearer context %d changed:"
-        " %s ===> %s\n",
-        ebi,
-        _esm_ebr_state_str[old_status],
-        _esm_ebr_state_str[status]);
+          LOG_NAS_ESM,
+          "ESM-FSM   - Status of EPS bearer context %d changed:"
+          " %s ===> %s\n",
+          ebi, _esm_ebr_state_str[old_status], _esm_ebr_state_str[status]);
       ebr_ctx->status = status;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
     } else {
       OAILOG_INFO(
-        LOG_NAS_ESM,
-        "ESM-FSM   - Status of EPS bearer context %d unchanged:"
-        " %s \n",
-        ebi,
-        _esm_ebr_state_str[status]);
+          LOG_NAS_ESM,
+          "ESM-FSM   - Status of EPS bearer context %d unchanged:"
+          " %s \n",
+          ebi, _esm_ebr_state_str[status]);
     }
   }
 
@@ -567,13 +546,12 @@ int esm_ebr_set_status(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-esm_ebr_state esm_ebr_get_status(emm_context_t* emm_context, ebi_t ebi)
-{
+esm_ebr_state esm_ebr_get_status(emm_context_t* emm_context, ebi_t ebi) {
   if ((ebi < ESM_EBI_MIN) || (ebi > ESM_EBI_MAX)) {
     return (ESM_EBR_INACTIVE);
   }
   ue_mm_context_t* ue_mm_context =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   bearer_context_t* bearer_context = NULL;
 
   bearer_context = ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)];
@@ -610,8 +588,7 @@ esm_ebr_state esm_ebr_get_status(emm_context_t* emm_context, ebi_t ebi)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-bool esm_ebr_is_reserved(ebi_t ebi)
-{
+bool esm_ebr_is_reserved(ebi_t ebi) {
   return ((ebi != ESM_EBI_UNASSIGNED) && (ebi < ESM_EBI_MIN));
 }
 
@@ -631,14 +608,13 @@ bool esm_ebr_is_reserved(ebi_t ebi)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi)
-{
+bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi) {
   ue_mm_context_t* ue_mm_context =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   return (
-    (ebi == ESM_EBI_UNASSIGNED) ||
-    (ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)] == NULL) ||
-    (ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->ebi) != ebi);
+      (ebi == ESM_EBI_UNASSIGNED) ||
+      (ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)] == NULL) ||
+      (ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->ebi) != ebi);
 }
 
 /****************************************************************************/
@@ -662,10 +638,9 @@ bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _esm_ebr_get_available_entry(emm_context_t* emm_context)
-{
+static int _esm_ebr_get_available_entry(emm_context_t* emm_context) {
   ue_mm_context_t* ue_mm_context =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   int i;
 
   for (i = 0; i < BEARERS_PER_UE; i++) {

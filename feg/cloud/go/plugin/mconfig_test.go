@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package plugin_test
@@ -13,9 +18,10 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/plugin"
-	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
+	orc8rplugin "magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
@@ -24,6 +30,7 @@ import (
 )
 
 func TestBuilder_Build(t *testing.T) {
+	orc8rplugin.RegisterPluginForTests(t, &plugin.FegOrchestratorPlugin{})
 	builder := &plugin.Builder{}
 
 	// empty case: no feg associated to magmad gateway
@@ -84,7 +91,7 @@ func TestBuilder_Build(t *testing.T) {
 				MaxUlBitRate: 100000000, // 100 Mbps
 				MaxDlBitRate: 200000000, // 200 Mbps
 			},
-			SubProfiles:       make(map[string]*mconfig.HSSConfig_SubscriptionProfile),
+			SubProfiles:       nil,
 			StreamSubscribers: false,
 		},
 		"session_proxy": &mconfig.SessionProxyConfig{
@@ -100,7 +107,7 @@ func TestBuilder_Build(t *testing.T) {
 					Realm:            "magma.com",
 					Host:             "magma-fedgw.magma.com",
 				},
-				// Expect 2, one comming from server and one from serverS
+				// Expect 2, one coming from server and one from serverS
 				Servers: []*mconfig.DiamClientConfig{
 					&mconfig.DiamClientConfig{
 						Protocol:         "tcp",
@@ -136,7 +143,7 @@ func TestBuilder_Build(t *testing.T) {
 					Realm:            "magma.com",
 					Host:             "magma-fedgw.magma.com",
 				},
-				// Expect 2, one comming from server and one from serverS
+				// Expect 2, one coming from server and one from serverS
 				Servers: []*mconfig.DiamClientConfig{
 					&mconfig.DiamClientConfig{
 						Protocol:         "tcp",
@@ -177,6 +184,29 @@ func TestBuilder_Build(t *testing.T) {
 				Realm:            "magma.com",
 				Host:             "magma-fedgw.magma.com",
 			},
+			// Expect 2, one coming from server and one from serverS
+			Servers: []*mconfig.DiamClientConfig{
+				&mconfig.DiamClientConfig{
+					Protocol:         "sctp",
+					Address:          "",
+					Retransmits:      0x3,
+					WatchdogInterval: 0x1,
+					RetryCount:       0x5,
+					ProductName:      "magma",
+					Realm:            "magma.com",
+					Host:             "magma-fedgw.magma.com",
+				},
+				&mconfig.DiamClientConfig{
+					Protocol:         "sctp",
+					Address:          "",
+					Retransmits:      0x3,
+					WatchdogInterval: 0x1,
+					RetryCount:       0x5,
+					ProductName:      "swx1.magma",
+					Realm:            "swx1.magma.com",
+					Host:             "magma-fedgw.magma.com",
+				},
+			},
 			VerifyAuthorization: false,
 			CacheTTLSeconds:     10800,
 		},
@@ -187,7 +217,7 @@ func TestBuilder_Build(t *testing.T) {
 				SessionMs:              43200000,
 				SessionAuthenticatedMs: 5000,
 			},
-			PlmnIds: []string{},
+			PlmnIds: nil,
 		},
 		"aaa_server": &mconfig.AAAConfig{LogLevel: 1,
 			IdleSessionTimeoutMs: 21600000,
@@ -295,7 +325,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			MaxUlBitRate: 100000000, // 100 Mbps
 			MaxDlBitRate: 200000000, // 200 Mbps
 		},
-		SubProfiles:       make(map[string]models.SubscriptionProfile),
+		SubProfiles:       nil,
 		StreamSubscribers: false,
 	},
 	Swx: &models.Swx{
@@ -307,6 +337,17 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			ProductName:      "magma",
 			Host:             "magma-fedgw.magma.com",
 			Realm:            "magma.com",
+		},
+		Servers: []*models.DiameterClientConfigs{
+			&models.DiameterClientConfigs{
+				Protocol:         "sctp",
+				Retransmits:      3,
+				WatchdogInterval: 1,
+				RetryCount:       5,
+				ProductName:      "swx1.magma",
+				Host:             "magma-fedgw.magma.com",
+				Realm:            "swx1.magma.com",
+			},
 		},
 		VerifyAuthorization: false,
 		CacheTTLSeconds:     10800,

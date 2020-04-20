@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
-This source code is licensed under the BSDstyle license found in the
+This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // package servcers implements WiFi AAA GRPC services
@@ -11,14 +16,14 @@ package servicers
 
 import (
 	"fmt"
-	"log"
 	"time"
+
+	"github.com/golang/glog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/aaa"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // GetIdleSessionTimeout returns Idle Session Timeout Duration if set in mconfigs or DefaultSessionTimeout otherwise
@@ -33,7 +38,7 @@ func GetIdleSessionTimeout(cfg *mconfig.AAAConfig) time.Duration {
 
 func Errorf(code codes.Code, format string, a ...interface{}) error {
 	msg := fmt.Sprintf(format, a...)
-	log.Printf("%s; [RPC: %s]", msg, code.String())
+	glog.Errorf("%s; [RPC: %s]", msg, code.String())
 	return status.Errorf(code, msg)
 }
 
@@ -42,7 +47,7 @@ func Error(code codes.Code, err error) error {
 		if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
 			code = se.GRPCStatus().Code()
 		}
-		log.Printf("%v; [RPC: %s]", err, code.String())
+		glog.Errorf("%v; [RPC: %s]", err, code.String())
 		return status.Error(code, err.Error())
 	}
 	return nil

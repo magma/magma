@@ -1,0 +1,1015 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/services/orchestrator/obsidian/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+    - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
+  temp-gen-filename: wifi-swagger.yml
+  output-dir: /wifi/cloud/go/services/wifi/obsidian
+  types:
+    - go-struct-name: WifiNetwork
+      filename: wifi_network_swaggergen.go
+    - go-struct-name: NetworkWifiConfigs
+      filename: network_wifi_configs_swaggergen.go
+    - go-struct-name: WifiGateway
+      filename: wifi_gateway_swaggergen.go
+    - go-struct-name: MutableWifiGateway
+      filename: mutable_wifi_gateway_swaggergen.go
+    - go-struct-name: GatewayWifiConfigs
+      filename: gateway_wifi_configs_swaggergen.go
+    - go-struct-name: WifiMesh
+      filename: wifi_mesh_swaggergen.go
+    - go-struct-name: MeshID
+      filename: mesh_id_swaggergen.go
+    - go-struct-name: MeshWifiConfigs
+      filename: mesh_wifi_configs_swaggergen.go
+
+info:
+  title: Wifi Model Definitions and Paths
+  description: Wifi REST APIs
+  version: 1.1.2
+
+basePath: /magma/v1
+
+tags:
+- name: Wifi Networks
+  description: Wifi networks
+- name: Wifi Gateways
+  description: Wifi gateways
+- name: Wifi Meshes
+  description: Wifi meshes
+
+paths:
+  /wifi:
+    get:
+      summary: List all Wifi network IDs
+      tags:
+        - Wifi Networks
+      responses:
+        '200':
+          description: List of Wifi network IDs
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+              - wifi_network_1
+              - wifi_network_1
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create a new Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - name: wifi_network
+          in: body
+          description: Configuration of the Wifi network to create
+          required: true
+          schema:
+            $ref: '#/definitions/wifi_network'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}:
+    get:
+      summary: Describe a Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Full description of a Wifi network
+          schema:
+            $ref: '#/definitions/wifi_network'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an entire Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: wifi_network
+          in: body
+          description: Full desired configuration of the network
+          required: true
+          schema:
+            $ref: '#/definitions/wifi_network'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/name:
+    get:
+      summary: Get the name of a Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Name of the network
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the name of a Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: name
+          in: body
+          description: New name for the network
+          required: true
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/description:
+    get:
+      summary: Get description of a Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Description of the network
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the description of a Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: description
+          in: body
+          description: New name for the network
+          required: true
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/features:
+    get:
+      summary: Get feature flags for a Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Feature flags of the network
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/network_features'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update feature flags for a Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: config
+          in: body
+          description: New feature flags for the network
+          required: true
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/network_features'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/wifi:
+    get:
+      summary: Get wifi configuration of a Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Wifi configuration of the network
+          schema:
+            $ref: '#/definitions/network_wifi_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the wifi configuration of a Wifi network
+      tags:
+        - Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: config
+          in: body
+          description: New wifi configuration for the network
+          required: true
+          schema:
+            $ref: '#/definitions/network_wifi_configs'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/gateways:
+    get:
+      summary: List all gateways for a Wifi network
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Map of all Wifi gateways inside the network by gatewayID
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/wifi_gateway'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Register a new Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: gateway
+          in: body
+          description: Full desired configuration of the gateway
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_wifi_gateway'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/gateways/{gateway_id}:
+    get:
+      summary: Get a specific Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The requested Wifi gateway
+          schema:
+            $ref: '#/definitions/wifi_gateway'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an entire Wifi gateway record
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: gateway
+          in: body
+          description: Full desired configuration of the gateway
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_wifi_gateway'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/gateways/{gateway_id}/name:
+    get:
+      summary: Get the name of a Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The name of the gateway
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the name of a Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: name
+          in: body
+          required: true
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/gateways/{gateway_id}/description:
+    get:
+      summary: Get the description of a Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The description of the gateway
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the description of a Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: description
+          in: body
+          required: true
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/gateways/{gateway_id}/device:
+    get:
+      summary: Get the physical device for a Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The physical device for the gateway
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the physical device for a Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: device
+          in: body
+          description: New device for the Wifi gateway
+          required: true
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/gateways/{gateway_id}/magmad:
+    get:
+      summary: Get the magmad agent configuration for a Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Magmad agent configuration
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Reconfigure the magmad agent of a Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: magmad
+          in: body
+          description: New magmad configuration
+          required: true
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/gateways/{gateway_id}/wifi:
+    get:
+      summary: Get the gateway wifi configuration
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '204':
+          description: Wifi configuration
+          schema:
+            $ref: '#/definitions/gateway_wifi_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the gateway wifi configuration
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: config
+          in: body
+          description: New wifi configuration
+          required: true
+          schema:
+            $ref: '#/definitions/gateway_wifi_configs'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/gateways/{gateway_id}/tier:
+    get:
+      summary: Get the ID of the upgrade tier a Wifi gateway belongs to
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The ID of the upgrade tier
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/tier_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the ID of the upgrade tier a Wifi gateway belongs to
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: tier_id
+          in: body
+          required: true
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/tier_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/gateways/{gateway_id}/status:
+    get:
+      summary: Get the status of a Wifi gateway
+      tags:
+        - Wifi Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The status of the gateway
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/meshes:
+    get:
+      summary: List meshes in the network
+      tags:
+        - Wifi Meshes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of meshes in the network
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/mesh_id'
+            example:
+              - mesh_1
+              - mesh_2
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new mesh to the network
+      tags:
+        - Wifi Meshes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: wifi_mesh
+          in: body
+          description: Mesh to add to the network
+          required: true
+          schema:
+            $ref: '#/definitions/wifi_mesh'
+      responses:
+        '201':
+          description: New mesh ID
+          schema:
+            $ref: '#/definitions/mesh_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/meshes/{mesh_id}:
+    get:
+      summary: Get a specific Wifi mesh
+      tags:
+        - Wifi Meshes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/mesh_id'
+      responses:
+        '200':
+          description: List of meshes in the network
+          schema:
+            $ref: '#/definitions/wifi_mesh'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a mesh in the network
+      tags:
+        - Wifi Meshes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/mesh_id'
+        - name: wifi_mesh
+          in: body
+          description: Mesh to add to the network
+          required: true
+          schema:
+            $ref: '#/definitions/wifi_mesh'
+      responses:
+        '201':
+          description: New mesh ID
+          schema:
+            $ref: '#/definitions/mesh_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a Wifi mesh
+      tags:
+        - Wifi Meshes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/mesh_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/meshes/{mesh_id}/name:
+    get:
+      summary: Get the name of a specific Wifi mesh
+      tags:
+        - Wifi Meshes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/mesh_id'
+      responses:
+        '200':
+          description: The name of the mesh
+          schema:
+            $ref: '#/definitions/mesh_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the name of a mesh in the network
+      tags:
+        - Wifi Meshes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/mesh_id'
+        - name: mesh_name
+          in: body
+          description: The updated name of the mesh
+          required: true
+          schema:
+            $ref: '#/definitions/mesh_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /wifi/{network_id}/meshes/{mesh_id}/config:
+    get:
+      summary: Get the config of a specific Wifi mesh
+      tags:
+        - Wifi Meshes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/mesh_id'
+      responses:
+        '200':
+          description: List of meshes in the network
+          schema:
+            $ref: '#/definitions/mesh_wifi_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the wifi config of a mesh in the network
+      tags:
+        - Wifi Meshes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/mesh_id'
+        - name: mesh_wifi_configs
+          in: body
+          description: The updated wifi configs of the mesh
+          required: true
+          schema:
+            $ref: '#/definitions/mesh_wifi_configs'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+parameters:
+  mesh_id:
+    in: path
+    name: mesh_id
+    description: Mesh ID
+    required: true
+    type: string
+
+definitions:
+  wifi_network:
+    type: object
+    description: Wifi Network spec
+    required:
+      - id
+      - name
+      - description
+      - wifi
+    properties:
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+      features:
+        $ref: './orc8r-swagger.yml#/definitions/network_features'
+      wifi:
+        $ref: '#/definitions/network_wifi_configs'
+
+  network_wifi_configs:
+    description: Wifi configuration for a network
+    type: object
+    minLength: 1
+    properties:
+      vl_auth_server_addr:
+        type: string
+        example: 192.168.1.1
+      vl_auth_server_port:
+        type: integer
+        format: int32
+        example: 1234
+      vl_auth_server_shared_secret:
+        type: string
+        example: ssssh
+      ping_host_list:
+        type: array
+        items:
+          type: string
+          minLength: 1
+          x-nullable: false
+          example: www.facebook.com
+        uniqueItems: true
+      ping_num_packets:
+        type: integer
+        format: int32
+        example: 5
+      ping_timeout_secs:
+        type: integer
+        format: int32
+        example: 6
+      xwf_radius_server:
+        type: string
+        example: gradius.example.com
+      xwf_config:
+        type: string
+        example: xwf config
+      xwf_dhcp_dns1:
+        type: string
+        example: 8.8.8.8
+      xwf_dhcp_dns2:
+        type: string
+        example: 8.8.4.4
+      xwf_radius_shared_secret:
+        type: string
+        example: xwfisgood
+      xwf_radius_auth_port:
+        type: integer
+        format: int32
+        example: 1812
+      xwf_radius_acct_port:
+        type: integer
+        format: int32
+        example: 1813
+      xwf_uam_secret:
+        type: string
+        example: theuamsecret
+      xwf_partner_name:
+        type: string
+        example: xwfcfull
+      mgmt_vpn_enabled:
+        type: boolean
+        example: false
+      mgmt_vpn_proto:
+        type: string
+        example: impossible
+      mgmt_vpn_remote:
+        type: string
+        example: server
+      openr_enabled:
+        type: boolean
+        example: false
+      additional_props:
+        type: object
+        additionalProperties:
+          type: string
+        example:
+          netprop1: netvalue1
+          netprop2: netvalue2
+
+  wifi_gateway:
+    type: object
+    description: Full description of a Wifi gateway
+    required:
+      - device
+      - id
+      - name
+      - description
+      - magmad
+      - tier
+      - wifi
+    properties:
+      device:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      magmad:
+        $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      tier:
+        $ref: './orc8r-swagger.yml#/definitions/tier_id'
+      wifi:
+        $ref: '#/definitions/gateway_wifi_configs'
+      status:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_status'
+
+  mutable_wifi_gateway:
+    type: object
+    description: Wifi gateway object with read-only fields omitted
+    required:
+      - device
+      - id
+      - name
+      - description
+      - magmad
+      - tier
+      - wifi
+    properties:
+      device:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      magmad:
+        $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      tier:
+        $ref: './orc8r-swagger.yml#/definitions/tier_id'
+      wifi:
+        $ref: '#/definitions/gateway_wifi_configs'
+
+  gateway_wifi_configs:
+    description: Wifi configuration for a gateway
+    type: object
+    minLength: 1
+    properties:
+      info:
+        type: string
+        example: GatewayInfo
+      mesh_id:
+        $ref: '#/definitions/mesh_id'
+      latitude:
+        type: number
+        format: double
+        example: 37.484970
+      longitude:
+        type: number
+        format: double
+        example: -122.148284
+      wifi_disabled:
+        type: boolean
+        example: false
+      mesh_rssi_threshold:
+        type: integer
+        format: int32
+        example: -80
+      client_channel:
+        type: string
+        example: '11'
+      use_override_xwf:
+        type: boolean
+        example: false
+      override_xwf_enabled:
+        type: boolean
+        example: false
+      override_xwf_radius_server:
+        type: string
+        example: gradius.example.com
+      override_xwf_config:
+        type: string
+        example: xwf config
+      override_xwf_dhcp_dns1:
+        type: string
+        example: 8.8.8.8
+      override_xwf_dhcp_dns2:
+        type: string
+        example: 8.8.4.4
+      override_xwf_radius_shared_secret:
+        type: string
+        example: xwfisgood
+      override_xwf_radius_auth_port:
+        type: integer
+        format: int32
+        example: 1812
+      override_xwf_radius_acct_port:
+        type: integer
+        format: int32
+        example: 1813
+      override_xwf_uam_secret:
+        type: string
+        example: theuamsecret
+      override_xwf_partner_name:
+        type: string
+        example: xwfcfull
+      use_override_ssid:
+        type: boolean
+        example: false
+      override_ssid:
+        type: string
+        example: SuperFastWifiNetwork
+      override_password:
+        type: string
+        example: password
+      is_production:
+        type: boolean
+        example: false
+      additional_props:
+        type: object
+        additionalProperties:
+          type: string
+        example:
+          gwprop1: gwvalue1
+          gwprop2: gwvalue2
+
+  wifi_mesh:
+    type: object
+    description: Nodes in a mesh network
+    required:
+      - id
+      - name
+      - gateway_ids
+      - config
+    properties:
+      id:
+        $ref: '#/definitions/mesh_id'
+      name:
+        $ref: '#/definitions/mesh_name'
+      gateway_ids:
+        type: array
+        items:
+          $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      config:
+        $ref: '#/definitions/mesh_wifi_configs'
+
+  mesh_id:
+    type: string
+    minLength: 1
+    pattern: '^[a-zA-Z_][\da-zA-Z_]+$'
+    example: default
+
+  mesh_name:
+    description: The name of a mesh
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: SuperAwesomeMesh
+
+  mesh_wifi_configs:
+    description: Wifi configurations for a mesh network
+    type: object
+    properties:
+      ssid:
+        type: string
+        example: SuperFastWifiNetwork
+      password:
+        type: string
+        example: password
+      vl_ssid:
+        type: string
+        example: VirtualLighthouseNetwork
+      xwf_enabled:
+        type: boolean
+        example: false
+      mesh_ssid:
+        type: string
+        example: bazooka
+      mesh_frequency:
+        type: integer
+        format: int32
+        example: 5825
+      mesh_channel_type:
+        type: string
+        example: HT20
+      additional_props:
+        type: object
+        additionalProperties:
+          type: string
+        example:
+          meshprop1: meshvalue1
+          meshprop2: meshvalue2

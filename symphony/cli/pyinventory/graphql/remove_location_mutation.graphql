@@ -1,3 +1,0 @@
-mutation RemoveLocationMutation($id: ID!) {
-  removeLocation(id: $id)
-}

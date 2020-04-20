@@ -1,9 +1,15 @@
-// Copyright (c) 2016-present, Facebook, Inc.
-// All rights reserved.
-//
-// This source code is licensed under the BSD-style license found in the
-// LICENSE file in the root directory of this source tree. An additional grant
-// of patent rights can be found in the PATENTS file in the same directory.
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 
 syntax = "proto3";
 
@@ -93,6 +99,9 @@ message SwxConfig {
     bool derive_unregister_realm = 8;
     // PLMN IDs served by HLR
     repeated string hlr_plmn_ids = 9;
+    // Server where SWx points to (can be one or more than one)
+    repeated DiamClientConfig servers = 10;
+
 }
 
 message EapAkaConfig {
@@ -115,6 +124,20 @@ message AAAConfig {
     bool AccountingEnabled = 3;
     // Postpone Auth success until successful accounting CreateSession completion
     bool CreateSessionOnAuth = 4;
+    // enable event logging for aaa events
+    bool EventLoggingEnabled = 5;
+    RadiusConfig RadiusConfig = 6;
+}
+
+message RadiusConfig {
+    // Radius server secret
+    bytes Secret = 1;
+    // Radius server network (udp/tcp/etc.
+    string Network = 2;
+    // Authentication Radius server address
+    string AuthAddr = 3;
+    // Accounting Radius server address
+    string AcctAddr = 4;
 }
 
 message GatewayHealthConfig {

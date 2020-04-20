@@ -1,9 +1,14 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
 
 provider "aws" {
@@ -48,12 +53,6 @@ provider "helm" {
     load_config_file       = false
   }
 
-  service_account = kubernetes_service_account.tiller.metadata.0.name
-  namespace       = kubernetes_service_account.tiller.metadata.0.namespace
-  tiller_image    = "gcr.io/kubernetes-helm/tiller:v2.16.3"
-  install_tiller  = var.install_tiller
-  max_history     = 100
-
-  version = "~> 0.10"
+  version = "~> 1.0"
 }
 

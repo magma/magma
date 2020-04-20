@@ -1,11 +1,15 @@
 #!/bin/bash
 #
-# Copyright (c) 2016-present, Facebook, Inc.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 # This script builds Magma based on the current state of your repo. It needs to
 # be run inside the VM.
@@ -15,7 +19,7 @@ shopt -s extglob
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.0.2 # magma version number
+VERSION=1.1.0 # magma version number
 SCTPD_MIN_VERSION=1.0.2 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
@@ -121,6 +125,7 @@ OAI_DEPS=(
     "prometheus-cpp-dev >= 1.0.2"
     "liblfds710"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
+    "libczmq-dev >= 4.0.2-7"
     )
 
 # OVS runtime dependencies
@@ -231,6 +236,7 @@ ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
 
 cd ${PY_LTE}
 make protos
+make swagger
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
 ${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py

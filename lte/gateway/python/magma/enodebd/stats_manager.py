@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import asyncio
@@ -13,7 +17,6 @@ from xml.etree import ElementTree
 from aiohttp import web
 from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.service_configs import load_service_config
-from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.enodeb_status import get_enb_status, \
     update_status_metrics
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
@@ -112,17 +115,28 @@ class StatsManager:
             self._check_rf_tx_for_handler(handler)
 
     def _check_rf_tx_for_handler(self, handler: EnodebAcsStateMachine) -> None:
-        if handler.device_cfg.has_parameter(ParameterName.RF_TX_STATUS):
-            rf_tx = handler \
-                .device_cfg \
-                .get_parameter(ParameterName.RF_TX_STATUS)
-            if self._prev_rf_tx is True and rf_tx is False:
-                self._clear_stats()
-            self._prev_rf_tx = rf_tx
+        status = get_enb_status(handler)
+        if self._prev_rf_tx and not status.rf_tx_on:
+            self._clear_stats()
+        self._prev_rf_tx = status.rf_tx_on
 
         # Update status metrics
-        status = get_enb_status(handler)
         update_status_metrics(status)
+
+    def _get_enb_label_from_request(self, request) -> str:
+        label = 'default'
+        ip = request.headers.get('X-Forwarded-For')
+        if ip is None:
+            ip = request.remote_addr
+
+        if ip is None:
+            return label
+
+        try:
+            label = self.enb_manager.get_serial(ip)
+        except KeyError:
+            logger.error("Couldn't find serial for ip", ip)
+        return label
 
     @asyncio.coroutine
     def _post_handler(self, request) -> web.Response:
@@ -131,12 +145,12 @@ class StatsManager:
         body = yield from request.read()
 
         root = ElementTree.fromstring(body)
-        self._parse_pm_xml(root)
+        self._parse_pm_xml(self._get_enb_label_from_request(request), root)
 
         # Return success response
         return web.Response()
 
-    def _parse_pm_xml(self, xml_root) -> None:
+    def _parse_pm_xml(self, enb_label, xml_root) -> None:
         """
         Parse performance management XML from eNodeB and populate metrics.
         The schema for this XML document, along with an example, is shown in
@@ -147,7 +161,7 @@ class StatsManager:
             names = measurement.find('PmName')
             data = measurement.find('PmData')
             if object_type == 'EutranCellTdd':
-                self._parse_tdd_counters(names, data)
+                self._parse_tdd_counters(enb_label, names, data)
             elif object_type == 'ManagedElement':
                 # Currently no counters to parse
                 pass
@@ -155,7 +169,7 @@ class StatsManager:
                 # Currently no counters to parse
                 pass
 
-    def _parse_tdd_counters(self, names, data):
+    def _parse_tdd_counters(self, enb_label, names, data):
         """
         Parse eNodeB performance management counters from TDD structure.
         Most of the logic is just to extract the correct counter based on the
@@ -189,17 +203,17 @@ class StatsManager:
 
             index = name_index_map.get(counter)
             if index is None:
-                logger.info('PM counter %s not found in PmNames', counter)
+                logger.warning('PM counter %s not found in PmNames', counter)
                 continue
 
             data_el = index_data_map.get(index)
             if data_el is None:
-                logger.info('PM counter %s not found in PmData', counter)
+                logger.warning('PM counter %s not found in PmData', counter)
                 continue
 
             if data_el.tag == 'V':
                 if subcounter is not None:
-                    logger.info('No subcounter in PM counter %s', counter)
+                    logger.warning('No subcounter in PM counter %s', counter)
                     continue
 
                 # Data is singular value
@@ -207,7 +221,7 @@ class StatsManager:
                     value = int(data_el.text)
                 except ValueError:
                     logger.info('PM value (%s) of counter %s not integer',
-                                 data_el.text, counter)
+                                data_el.text, counter)
                     continue
             elif data_el.tag == 'CV':
                 # Check whether we want just one subcounter, or sum them all
@@ -220,7 +234,7 @@ class StatsManager:
                         index = index + 1
 
                 if subcounter is not None and subcounter_index is None:
-                    logger.info('PM subcounter (%s) not found', subcounter)
+                    logger.warning('PM subcounter (%s) not found', subcounter)
                     continue
 
                 # Data is multiple sub-elements. Sum them, or select the one
@@ -234,16 +248,19 @@ class StatsManager:
                             value = value + int(sub_data_el.text)
                         index = index + 1
                 except ValueError:
-                    logger.info('PM value (%s) of counter %s not integer',
+                    logger.error('PM value (%s) of counter %s not integer',
                                  sub_data_el.text, pm_name)
                     continue
             else:
-                logger.info('Unknown PM data type (%s) of counter %s',
-                             data_el.tag, pm_name)
+                logger.warning('Unknown PM data type (%s) of counter %s',
+                               data_el.tag, pm_name)
                 continue
 
             # Apply new value to metric
-            metric.set(value)
+            if pm_name == 'PDCP.UpOctUl' or pm_name == 'PDCP.UpOctDl':
+                metric.labels(enb_label).set(value)
+            else:
+                metric.set(value)
 
     def _build_index_to_data_map(self, data_etree):
         """
@@ -339,7 +356,7 @@ class StatsManager:
         """
         Clear statistics. Called when eNodeB management plane disconnects
         """
-        logger.info('Clearing statistics')
+        logger.info('Clearing performance counter statistics')
         # Set all metrics to 0 if eNodeB not connected
         for metric in self.PM_FILE_TO_METRIC_MAP.values():
             metric.set(0)

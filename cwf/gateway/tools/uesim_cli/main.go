@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package main
@@ -92,7 +97,8 @@ func handleAuthCmd(cmd *commands.Command, args []string) int {
 	}
 	imsi := strings.TrimSpace(f.Arg(0))
 	req := &protos.AuthenticateRequest{
-		Imsi: imsi,
+		Imsi:            imsi,
+		CalledStationID: "76-02-DE-AD-BE-FF",
 	}
 	res, err := uesim.Authenticate(req)
 	if err != nil || res == nil {
@@ -252,7 +258,7 @@ func getConfiguredSubscribers() ([]*protos.UEConfig, error) {
 		configMap := &config.ConfigMap{RawMap: rawMap}
 
 		// If auth_key is incorrect, skip subscriber
-		authKey, err := configMap.GetStringParam("auth_key")
+		authKey, err := configMap.GetString("auth_key")
 		if err != nil {
 			glog.Errorf("Could not add subscriber due to missing auth_key: %s", err)
 			continue
@@ -282,7 +288,7 @@ func createUeConfig(imsi string, auth_key []byte, seq_num uint64) (*protos.UECon
 	if err != nil {
 		op = DefaultOp
 	}
-	op, err = uecfg.GetStringParam("op")
+	op, err = uecfg.GetString("op")
 	if err != nil {
 		op = DefaultOp
 	}
@@ -303,7 +309,7 @@ func getRadiusSecret() string {
 	if err != nil {
 		return DefaultRadiusSecret
 	}
-	radiusSecret, err := uecfg.GetStringParam("radius_secret")
+	radiusSecret, err := uecfg.GetString("radius_secret")
 	if err != nil {
 		return DefaultRadiusSecret
 	}

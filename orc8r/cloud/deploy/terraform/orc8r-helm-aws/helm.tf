@@ -1,28 +1,23 @@
 ################################################################################
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 ################################################################################
-
-# stable helm repository
-data "helm_repository" "stable" {
-  name = "stable"
-  url  = "https://kubernetes-charts.storage.googleapis.com"
-}
-
-# incubator helm repository
-data "helm_repository" "incubator" {
-  name = "incubator"
-  url  = "http://storage.googleapis.com/kubernetes-charts-incubator"
-}
 
 # helm tiller service account
 resource "kubernetes_service_account" "tiller" {
+  count = var.existing_tiller_service_account_name == null ? 1 : 0
+
   metadata {
     name      = "tiller"
-    namespace = "kube-system"
+    namespace = var.tiller_namespace
   }
 
   automount_service_account_token = true
@@ -30,6 +25,8 @@ resource "kubernetes_service_account" "tiller" {
 
 # helm tiller cluster role
 resource "kubernetes_cluster_role_binding" "tiller" {
+  count = var.existing_tiller_service_account_name == null ? 1 : 0
+
   metadata {
     name = "tiller"
   }
@@ -44,6 +41,6 @@ resource "kubernetes_cluster_role_binding" "tiller" {
     kind      = "ServiceAccount"
     name      = "tiller"
     api_group = ""
-    namespace = "kube-system"
+    namespace = var.tiller_namespace
   }
 }

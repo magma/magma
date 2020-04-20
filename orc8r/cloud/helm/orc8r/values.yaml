@@ -1,30 +1,24 @@
-# Copyright (c) 2018-present, Facebook, Inc.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 ## Global values for NMS sub-chart
 nms:
   enabled: true
-
   magmalte:
-    manifests:
-      secrets: false
-      deployment: false
-      service: false
-      rbac: false
+    create: true
     image:
       repository: <registry>/magmalte
       tag: latest
   nginx:
-    manifests:
-      configmap: false
-      secrets: false
-      deployment: false
-      service: false
-      rbac: false
+    create: true
 
 # Reference to one or more secrets to be used when pulling images
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -56,8 +50,10 @@ secret:
     orc8r: orc8r-secrets-configs-orc8r
   envdir: orc8r-secrets-envdir
 
-proxy:
-  # Configure pod disruption budgets for proxy
+nginx:
+  create: true
+
+  # Configure pod disruption budgets for nginx
   # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
   podDisruptionBudget:
     enabled: false
@@ -68,7 +64,7 @@ proxy:
   service:
     enabled: true
     legacyEnabled: true
-    name: bootstrapper-orc8r-proxy
+    name: bootstrapper-orc8r-nginx
     annotations: {}
     extraAnnotations:
       bootstrapLagacy: {}
@@ -78,32 +74,39 @@ proxy:
     type: ClusterIP
     port:
       clientcert:
-        port: 9443
-        targetPort: 9443
+        port: 8443
+        targetPort: 8443
         nodePort: ""
       open:
-        port: 9444
-        targetPort: 9444
+        port: 8444
+        targetPort: 8444
+        nodePort: ""
+      api:
+        port: 443
+        targetPort: 9443
+        nodePort: ""
+      health:
+        port: 80
+        targetPort: 80
         nodePort: ""
     loadBalancerIP: ""
     loadBalancerSourceRanges: []
 
-  # proxy image
+  # nginx image
   image:
     repository:
     tag: latest
     pullPolicy: IfNotPresent
 
-  # Settings affecting proxy application
+  # Settings affecting nginx application
   spec:
     # magma controller domain name
     hostname: ""
-    http_proxy_hostname: ""
-    http_proxy_backend: ""
-    http_proxy_docker_hostname: ""
-    http_proxy_github_hostname: ""
+    # when nginx sees a variable in a server_name it needs a resolver
+    # by default we'll use kube-dns
+    resolver: "kube-dns.kube-system.svc.cluster.local valid=10s"
 
-  # Number of proxy replicas desired
+  # Number of nginx replicas desired
   replicas: 1
 
   # Resource limits & requests
@@ -123,7 +126,7 @@ proxy:
   # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
-  # Assign proxy to run on specific nodes
+  # Assign nginx to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 

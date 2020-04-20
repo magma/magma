@@ -1,11 +1,15 @@
 #!/bin/bash
 #
-# Copyright (c) 2016-present, Facebook, Inc.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 # This script is intended to install a docker-based gateway deployment
 
@@ -89,7 +93,7 @@ if [ "$GW_TYPE" == "$CWAG" ] || [ "$GW_TYPE" == "$XWF" ]; then
   apt-add-repository -y ppa:ansible/ansible
   apt-get update -y
   apt-get -y install ansible
-  ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v
+  ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v -e ingress_port="eth1" -e uplink_ports="eth2 eth3" -e li_port="eth4"
 fi
 
 if [ "$GW_TYPE" == "$XWF" ]; then
@@ -107,10 +111,6 @@ if [ "$GW_TYPE" == "$FEG" ]; then
 fi
 
 cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose.yml .
-if [ "$GW_TYPE" == "$CWAG" ]; then
-  cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose-dpi.override.yml .
-fi
-
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services.sh .
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services_cron .
 
@@ -169,11 +169,27 @@ cp .env /var/opt/magma/docker/
 cp recreate_services.sh /var/opt/magma/docker/
 cp recreate_services_cron /etc/cron.d/
 
+# Copy DPI docker files
+if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
+  MODULE_DIR="cwf"
+  mkdir -p "$SECRETS_VOLUME"
+  cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose-dpi.override.yml /var/opt/magma/docker/
+  cp "$DPI_LICENSE_NAME" "$SECRETS_VOLUME"
+fi
+
 cd /var/opt/magma/docker
 
-echo "Logging into docker registry at $DOCKER_REGISTRY"
-docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" "$DOCKER_REGISTRY"
+if [ ! -z "$DOCKER_USERNAME" ] && [ ! -z "$DOCKER_PASSWORD" ] && [ ! -z "$DOCKER_REGISTRY" ]; then
+ echo "Logging into docker registry at $DOCKER_REGISTRY"
+ docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" "$DOCKER_REGISTRY"
+fi
 docker-compose pull
 docker-compose -f docker-compose.yml up -d
+
+# Pull and Run DPI container
+if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
+  docker-compose -f docker-compose-dpi.override.yml pull
+  docker-compose -f docker-compose-dpi.override.yml up -d
+fi
 
 echo "Installed successfully!!"

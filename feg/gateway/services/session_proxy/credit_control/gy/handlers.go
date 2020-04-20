@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package gy
@@ -25,7 +30,7 @@ import (
 func GetGyReAuthHandler(cloudRegistry service_registry.GatewayRegistry) ChargingReAuthHandler {
 	return ChargingReAuthHandler(func(request *ChargingReAuthRequest) *ChargingReAuthAnswer {
 		sid := diameter.DecodeSessionID(request.SessionID)
-		imsi, err := protos.ParseIMSIfromSessionIdWithPrefix(sid)
+		imsi, err := protos.GetIMSIwithPrefixFromSessionId(sid)
 		if err != nil {
 			glog.Errorf("Error retreiving IMSI from Session ID %s: %s", request.SessionID, err)
 			return &ChargingReAuthAnswer{
@@ -67,18 +72,21 @@ func getGyReAuthRequestProto(diamReq *ChargingReAuthRequest, imsi, sid string) *
 	return protoReq
 }
 
-func getGyReAuthAnswerDiamMsg(
-	sessionID string,
-	protoAns *protos.ChargingReAuthAnswer,
-) *ChargingReAuthAnswer {
+func getGyReAuthAnswerDiamMsg(sessionID string, protoAns *protos.ChargingReAuthAnswer) *ChargingReAuthAnswer {
 	var resultCode uint32
-	if protoAns.Result == protos.ChargingReAuthAnswer_UPDATE_INITIATED {
+	reauthResult := protos.ReAuthResult_OTHER_FAILURE
+	if protoAns != nil {
+		reauthResult = protoAns.Result
+	}
+	switch reauthResult {
+	case protos.ReAuthResult_UPDATE_INITIATED:
 		resultCode = diam.LimitedSuccess
-	} else if protoAns.Result == protos.ChargingReAuthAnswer_UPDATE_NOT_NEEDED {
+	case protos.ReAuthResult_UPDATE_NOT_NEEDED:
 		resultCode = diam.Success
-	} else if protoAns.Result == protos.ChargingReAuthAnswer_SESSION_NOT_FOUND {
+	case protos.ReAuthResult_SESSION_NOT_FOUND:
 		resultCode = diam.UnknownSessionID
-	} else {
+	// ReAuthResult_OTHER_FAILURE & undefined
+	default:
 		resultCode = diam.UnableToComply
 	}
 	return &ChargingReAuthAnswer{

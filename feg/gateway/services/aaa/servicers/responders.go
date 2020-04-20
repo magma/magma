@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
-This source code is licensed under the BSDstyle license found in the
+This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // package servcers implements WiFi AAA GRPC services
@@ -11,19 +16,19 @@ package servicers
 
 import (
 	"fmt"
-	"log"
 
-	"magma/feg/gateway/services/aaa/metrics"
-	"magma/gateway/directoryd"
-
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/aaa/events"
+	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
+	"magma/gateway/directoryd"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
@@ -42,25 +47,39 @@ func (srv *accountingService) AbortSession(
 		return res, Errorf(codes.InvalidArgument, "Nil Request")
 	}
 	imsi := req.GetUserName()
+	sctx := &protos.Context{
+		Imsi:      req.GetUserName(),
+		SessionId: req.GetSessionId(),
+	}
 	if len(imsi) < MinIMSILen || len(imsi) > MaxIMSILen {
-		return res, Errorf(codes.InvalidArgument, "Invalid IMSI: %s", imsi)
+		errMsg := fmt.Sprintf("Invalid IMSI: %s", imsi)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.AbortSession, errMsg)
+		}
+		return res, Errorf(codes.InvalidArgument, errMsg)
 	}
 	sid := srv.sessions.FindSession(imsi)
 	if len(sid) == 0 {
 		res.Code = lteprotos.AbortSessionResult_USER_NOT_FOUND
 		res.ErrorMessage = fmt.Sprintf("Session for IMSI: %s is not found", imsi)
-		log.Print(res.ErrorMessage)
+		glog.Error(res.ErrorMessage)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.AbortSession, res.ErrorMessage)
+		}
 		return res, nil
 	}
 	s := srv.sessions.GetSession(sid)
 	if s == nil {
 		res.Code = lteprotos.AbortSessionResult_SESSION_NOT_FOUND
 		res.ErrorMessage = fmt.Sprintf("Session for Radius Session ID: %s and IMSI: %s is not found", sid, imsi)
-		log.Print(res.ErrorMessage)
+		glog.Error(res.ErrorMessage)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.AbortSession, res.ErrorMessage)
+		}
 		return res, nil
 	}
 	s.Lock()
-	sctx := proto.Clone(s.GetCtx()).(*protos.Context)
+	sctx = proto.Clone(s.GetCtx()).(*protos.Context)
 	asid := sctx.AcctSessionId
 	s.Unlock()
 	if len(req.GetSessionId()) > 0 &&
@@ -71,7 +90,10 @@ func (srv *accountingService) AbortSession(
 		res.ErrorMessage = fmt.Sprintf(
 			"Accounting Session ID Mismatch for RadSID %s and IMSI: %s. Requested: %s, recorded: %s",
 			sid, imsi, req.GetSessionId(), asid)
-		log.Print(res.ErrorMessage)
+		glog.Error(res.ErrorMessage)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.AbortSession, res.ErrorMessage)
+		}
 		return res, nil
 	}
 	if srv.config.GetAccountingEnabled() {
@@ -91,7 +113,11 @@ func (srv *accountingService) AbortSession(
 	srv.sessions.RemoveSession(sid)
 	conn, err := registry.GetConnection(registry.RADIUS)
 	if err != nil {
-		return res, Errorf(codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
+		errMsg := fmt.Sprintf("Error getting Radius RPC Connection: %v", err)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.AbortSession, errMsg)
+		}
+		return res, Errorf(codes.Unavailable, errMsg)
 	}
 	radcli := protos.NewAuthorizationClient(conn)
 	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: sctx})
@@ -99,8 +125,13 @@ func (srv *accountingService) AbortSession(
 		res.Code = lteprotos.AbortSessionResult_RADIUS_SERVER_ERROR
 		res.ErrorMessage = fmt.Sprintf(
 			"Radius Disconnect Error: %v for IMSI: %s, Acct SID: %s, Radius SID: %s", err, imsi, asid, sid)
-		log.Print(res.ErrorMessage)
+		glog.Error(res.ErrorMessage)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.AbortSession, res.ErrorMessage)
+		}
 		return res, nil
+	} else if srv.config.GetEventLoggingEnabled() {
+		events.LogSessionTerminationSucceededEvent(sctx, events.AbortSession)
 	}
 	return res, err
 }
@@ -113,29 +144,48 @@ func (srv *accountingService) TerminateRegistration(
 	if req == nil {
 		return res, Errorf(codes.InvalidArgument, "Nil Request")
 	}
+	sctx := &protos.Context{
+		Imsi:      req.GetUserName(),
+		SessionId: req.GetSessionId()}
 	imsi := req.GetUserName()
 	if len(imsi) < MinIMSILen {
-		return res, Errorf(codes.InvalidArgument, "Invalid IMSI: %s", imsi)
+		errMsg := fmt.Sprintf("Invalid IMSI: %s", imsi)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.RegistrationTermination, errMsg)
+		}
+		return res, Errorf(codes.InvalidArgument, errMsg)
 	}
 	sid := srv.sessions.FindSession(imsi)
 	if len(sid) == 0 {
-		return res, Errorf(codes.NotFound, "Session for IMSI: %s is not found", imsi)
+		errMsg := fmt.Sprintf("Session for IMSI: %s is not found", imsi)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.RegistrationTermination, errMsg)
+		}
+		return res, Errorf(codes.NotFound, errMsg)
 	}
 	s := srv.sessions.GetSession(sid)
 	if s == nil {
-		return res, Errorf(codes.Internal, "Session for RadSID: %s and IMSI: %s is not found", sid, imsi)
+		errMsg := fmt.Sprintf("Session for RadSID: %s and IMSI: %s is not found", sid, imsi)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.RegistrationTermination, errMsg)
+		}
+		return res, Errorf(codes.Internal, errMsg)
 	}
 	s.Lock()
-	sctx := proto.Clone(s.GetCtx()).(*protos.Context)
+	sctx = proto.Clone(s.GetCtx()).(*protos.Context)
 	authSid := sctx.AuthSessionId
 	acctSid := sctx.AcctSessionId
 	s.Unlock()
 	if len(req.GetSessionId()) > 0 &&
 		(len(authSid) > 0 || len(acctSid) > 0) &&
 		(authSid != req.GetSessionId() && acctSid != req.GetSessionId()) {
-		return res, Errorf(codes.FailedPrecondition,
-			"Accounting Session ID Mismatch for RadSID %s and IMSI: %s. Requested: %s, recorded: auth: %s | acct: %s",
+		errMsg := fmt.Sprintf("Accounting Session ID Mismatch for RadSID %s and IMSI: %s. Requested: %s, recorded: auth: %s | acct: %s",
 			sid, imsi, req.GetSessionId(), authSid, acctSid)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.RegistrationTermination, errMsg)
+		}
+		return res, Errorf(codes.FailedPrecondition, errMsg)
+
 	}
 	deleteRequest := &orcprotos.DeleteRecordRequest{
 		Id: imsi,
@@ -156,12 +206,21 @@ func (srv *accountingService) TerminateRegistration(
 	srv.sessions.RemoveSession(sid)
 	conn, err := registry.GetConnection(registry.RADIUS)
 	if err != nil {
-		return res, Errorf(codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
+		errMsg := fmt.Sprintf("Error getting Radius RPC Connection: %v", err)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.RegistrationTermination, errMsg)
+		}
+		return res, Errorf(codes.Unavailable, errMsg)
 	}
 	radcli := protos.NewAuthorizationClient(conn)
 	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: sctx})
 	if err != nil {
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(sctx, events.RegistrationTermination, err.Error())
+		}
 		err = Error(codes.Internal, err)
+	} else if srv.config.GetEventLoggingEnabled() {
+		events.LogSessionTerminationSucceededEvent(sctx, events.RegistrationTermination)
 	}
 	return res, err
 }

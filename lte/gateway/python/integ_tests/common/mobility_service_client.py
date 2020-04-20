@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import ipaddress
@@ -17,7 +21,7 @@ from orc8r.protos.common_pb2 import Void
 from lte.protos.mobilityd_pb2 import IPAddress, IPBlock, RemoveIPBlockRequest
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 
-#from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
+# from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
 from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 
 
@@ -122,6 +126,8 @@ class MobilityServiceGrpc(MobilityServiceClient):
                 address = ipaddress.ip_address(address_int)
                 ip_block_list.append(ipaddress.ip_network(
                     "%s/%d" % (address, block.prefix_len)))
+            if ip_block_list is not None:
+                ip_block_list.sort()
             return ip_block_list
         except grpc.RpcError as error:
             err_code = error.exception().code()
@@ -175,7 +181,7 @@ class MobilityServiceGrpc(MobilityServiceClient):
         return
 
 
-#class MobilityServiceRest(MobilityServiceClient):
+# class MobilityServiceRest(MobilityServiceClient):
 #    """
 #    Handle mobility actions by making REST calls to the cloud.
 #

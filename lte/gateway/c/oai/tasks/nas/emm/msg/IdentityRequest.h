@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,8 +34,8 @@
 
 /*
  * Message name: Identity request
- * Description: This message is sent by the network to the UE to request the UE to provide the specified identity. See table 8.2.18.1.
- * Significance: dual
+ * Description: This message is sent by the network to the UE to request the UE
+ * to provide the specified identity. See table 8.2.18.1. Significance: dual
  * Direction: network to UE
  */
 
@@ -52,13 +48,9 @@ typedef struct identity_request_msg_tag {
 } identity_request_msg;
 
 int decode_identity_request(
-  identity_request_msg *identityrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    identity_request_msg* identityrequest, uint8_t* buffer, uint32_t len);
 
 int encode_identity_request(
-  identity_request_msg *identityrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    identity_request_msg* identityrequest, uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_IDENTITY_REQUEST_SEEN) */

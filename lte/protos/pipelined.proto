@@ -1,9 +1,15 @@
-// Copyright (c) 2016-present, Facebook, Inc.
-// All rights reserved.
-//
-// This source code is licensed under the BSD-style license found in the
-// LICENSE file in the root directory of this source tree. An additional grant
-// of patent rights can be found in the PATENTS file in the same directory.
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 
 syntax = "proto3";
 
@@ -56,6 +62,14 @@ message SetupFlowsResult {
   Result result = 1;
 }
 
+message RequestOriginType {
+  enum OriginType {
+    GX = 0;
+    GY = 1;
+  }
+  OriginType type = 1;
+}
+
 message ActivateFlowsRequest {
   SubscriberID sid = 1;
 
@@ -67,6 +81,9 @@ message ActivateFlowsRequest {
 
   // List of dynamic rules obtained from PCRF
   repeated PolicyRule dynamic_rules = 4;
+
+  // Activate flow source (GX/GY)
+  RequestOriginType request_origin = 5;
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
@@ -77,6 +94,7 @@ message ActivateFlowsRequest {
 message DeactivateFlowsRequest {
   SubscriberID sid = 1;
   repeated string rule_ids = 2;
+  RequestOriginType request_origin = 3;
 }
 
 message RuleModResult {
@@ -95,6 +113,12 @@ message ActivateFlowsResult {
 }
 
 message DeactivateFlowsResult {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
 }
 
 message FlowRequest {
@@ -102,9 +126,24 @@ message FlowRequest {
   string app_name = 2;
   uint64 bytes_rx = 3;
   string service_type = 4;
+  string src_mac = 5;
+  string dst_mac = 6;
+  enum FlowState {
+    FLOW_CREATED = 0;
+    FLOW_PARTIAL_CLASSIFICATION = 1;
+    FLOW_FINAL_CLASSIFICATION = 2;
+    FLOW_EXPIRED = 3;
+  }
+  FlowState state = 7;
 }
 
 message FlowResponse {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
 }
 
 // UEMacFlowRequest is used to link a subscriber ID to a MAC address.

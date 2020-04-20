@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,14 +31,11 @@
 #include "mme_app_apn_selection.h"
 #include "emm_data.h"
 
-
 //------------------------------------------------------------------------------
-struct apn_configuration_s *mme_app_select_apn(
-  ue_mm_context_t *const ue_context,
-  const_bstring const ue_selected_apn)
-{
+struct apn_configuration_s* mme_app_select_apn(
+    ue_mm_context_t* const ue_context, const_bstring const ue_selected_apn) {
   context_identifier_t default_context_identifier =
-    ue_context->apn_config_profile.context_identifier;
+      ue_context->apn_config_profile.context_identifier;
   int index;
 
   for (index = 0; index < ue_context->apn_config_profile.nb_apns; index++) {
@@ -50,34 +43,30 @@ struct apn_configuration_s *mme_app_select_apn(
       /*
        * OK we got our default APN
        */
-      if (
-        ue_context->apn_config_profile.apn_configuration[index]
-          .context_identifier == default_context_identifier) {
+      if (ue_context->apn_config_profile.apn_configuration[index]
+              .context_identifier == default_context_identifier) {
         OAILOG_DEBUG(
-          LOG_MME_APP,
-          "Selected APN %s for UE " IMSI_64_FMT "\n",
-          ue_context->apn_config_profile.apn_configuration[index]
-            .service_selection,
-          ue_context->emm_context._imsi64);
+            LOG_MME_APP, "Selected APN %s for UE " IMSI_64_FMT "\n",
+            ue_context->apn_config_profile.apn_configuration[index]
+                .service_selection,
+            ue_context->emm_context._imsi64);
         return &ue_context->apn_config_profile.apn_configuration[index];
       }
     } else {
       /*
        * OK we got the UE selected APN
        */
-      if (
-        biseqcaselessblk(
-          ue_selected_apn,
-          ue_context->apn_config_profile.apn_configuration[index]
-            .service_selection,
-          strlen(ue_context->apn_config_profile.apn_configuration[index]
-                   .service_selection)) == 1) {
+      if (biseqcaselessblk(
+              ue_selected_apn,
+              ue_context->apn_config_profile.apn_configuration[index]
+                  .service_selection,
+              strlen(ue_context->apn_config_profile.apn_configuration[index]
+                         .service_selection)) == 1) {
         OAILOG_DEBUG(
-          LOG_MME_APP,
-          "Selected APN %s for UE " IMSI_64_FMT "\n",
-          ue_context->apn_config_profile.apn_configuration[index]
-            .service_selection,
-          ue_context->emm_context._imsi64);
+            LOG_MME_APP, "Selected APN %s for UE " IMSI_64_FMT "\n",
+            ue_context->apn_config_profile.apn_configuration[index]
+                .service_selection,
+            ue_context->emm_context._imsi64);
         return &ue_context->apn_config_profile.apn_configuration[index];
       }
     }
@@ -87,16 +76,14 @@ struct apn_configuration_s *mme_app_select_apn(
 }
 
 //------------------------------------------------------------------------------
-struct apn_configuration_s *mme_app_get_apn_config(
-  ue_mm_context_t *const ue_context,
-  const context_identifier_t context_identifier)
-{
+struct apn_configuration_s* mme_app_get_apn_config(
+    ue_mm_context_t* const ue_context,
+    const context_identifier_t context_identifier) {
   int index;
 
   for (index = 0; index < ue_context->apn_config_profile.nb_apns; index++) {
-    if (
-      ue_context->apn_config_profile.apn_configuration[index]
-        .context_identifier == context_identifier) {
+    if (ue_context->apn_config_profile.apn_configuration[index]
+            .context_identifier == context_identifier) {
       return &ue_context->apn_config_profile.apn_configuration[index];
     }
   }

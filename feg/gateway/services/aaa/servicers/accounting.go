@@ -1,22 +1,26 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
-This source code is licensed under the BSDstyle license found in the
+This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // package servcers implements WiFi AAA GRPC services
 package servicers
 
 import (
-	"log"
+	"fmt"
 	"net"
 	"strings"
 	"time"
 
-	"magma/gateway/directoryd"
-
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,9 +28,12 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa"
+	"magma/feg/gateway/services/aaa/events"
 	"magma/feg/gateway/services/aaa/metrics"
+	"magma/feg/gateway/services/aaa/pipelined"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
+	"magma/gateway/directoryd"
 	lte_protos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
@@ -107,7 +114,7 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	s := srv.sessions.RemoveSession(sid)
 	if s == nil {
 		// Log error and return OK, no need to stop accounting for already removed session
-		log.Printf("Accounting Stop: Session %s is not found", sid)
+		glog.Warningf("Accounting Stop: Session %s is not found", sid)
 		return &protos.AcctResp{}, nil
 	}
 
@@ -136,12 +143,17 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	}
 	metrics.AcctStop.WithLabelValues(apn, imsi)
 
+	if err != nil && srv.config.GetEventLoggingEnabled() {
+		events.LogSessionTerminationFailedEvent(req.GetCtx(), events.AccountingStop, err.Error())
+	} else if srv.config.GetEventLoggingEnabled() {
+		events.LogSessionTerminationSucceededEvent(req.GetCtx(), events.AccountingStop)
+	}
 	return &protos.AcctResp{}, err
 }
 
 // CreateSession is an "outbound" RPC for session manager which can be called from start()
 func (srv *accountingService) CreateSession(
-	grpcCtx context.Context, aaaCtx *protos.Context) (*protos.CreateSessionResp, error) {
+	_ context.Context, aaaCtx *protos.Context) (CSR *protos.CreateSessionResp, err error) {
 
 	startime := time.Now()
 
@@ -149,20 +161,18 @@ func (srv *accountingService) CreateSession(
 	if err != nil {
 		return &protos.CreateSessionResp{}, Errorf(codes.InvalidArgument, "Invalid MAC Address: %v", err)
 	}
-	req := &lte_protos.LocalCreateSessionRequest{
-		Sid:             makeSID(aaaCtx.GetImsi()),
-		UeIpv4:          aaaCtx.GetIpAddr(),
-		Apn:             aaaCtx.GetApn(),
-		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
-		RatType:         lte_protos.RATType_TGPP_WLAN,
-		HardwareAddr:    mac,
-		RadiusSessionId: aaaCtx.GetSessionId(),
+	subscriberId := makeSID(aaaCtx.GetImsi())
+	err = installMacFlowOrRecycleSession(subscriberId, aaaCtx, srv.sessions)
+	if err != nil {
+		return nil, Errorf(codes.Internal, "Error on install mac flow: %v", err)
 	}
-	csResp, err := session_manager.CreateSession(req)
+
+	csResp, err := createSessionOnSessionManager(mac, subscriberId, aaaCtx)
 	if err == nil {
 		metrics.CreateSessionLatency.Observe(time.Since(startime).Seconds())
 	} else {
-		err = Errorf(codes.Internal, "Create Session Error: %v", err)
+		// TODO: do we really need to remove the flow?
+		pipelined.DeleteUeMacFlow(subscriberId, aaaCtx)
 	}
 
 	return &protos.CreateSessionResp{SessionId: csResp.GetSessionId()}, err
@@ -211,7 +221,11 @@ func (srv *accountingService) TerminateSession(
 // session. It should be called for a timed out and recently removed from the sessions table session.
 func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 	if aaaCtx == nil {
-		return status.Errorf(codes.InvalidArgument, "Nil AAA Context")
+		errMsg := fmt.Sprintf("Nil AAA Context")
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(aaaCtx, "Session Timeout Notification", errMsg)
+		}
+		return status.Errorf(codes.InvalidArgument, errMsg)
 	}
 	var err, radErr error
 
@@ -244,7 +258,88 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 			err = Error(codes.Unavailable, radErr)
 		}
 	}
+	if err != nil && srv.config.GetEventLoggingEnabled() {
+		events.LogSessionTerminationFailedEvent(aaaCtx, events.SessionTimeout, err.Error())
+	} else if srv.config.GetEventLoggingEnabled() {
+		events.LogSessionTerminationSucceededEvent(aaaCtx, events.SessionTimeout)
+	}
 	return err
+}
+
+// AddSessions is an "inbound" RPC from session manager to bulk add existing sessions
+func (srv *accountingService) AddSessions(ctx context.Context, sessions *protos.AddSessionsRequest) (*protos.AcctResp, error) {
+	failed := []string{}
+	for _, session := range sessions.GetSessions() {
+		if strings.HasPrefix(session.GetImsi(), imsiPrefix) {
+			session.Imsi = strings.TrimPrefix(session.GetImsi(), imsiPrefix)
+		}
+		_, err := srv.sessions.AddSession(session, srv.sessionTout, srv.timeoutSessionNotifier, true)
+		if err != nil {
+			failed = append(failed, session.GetImsi())
+		}
+	}
+	if len(failed) > 0 {
+		return &protos.AcctResp{}, fmt.Errorf("Unable to add the session for the following IMSIs: %v", failed)
+	}
+	return &protos.AcctResp{}, nil
+}
+
+// installMacFlowOrIPFIXflow installs a new mac flow if it is a brand new session or
+// reinstalls IPFIX flows in case the CORE session already existed (recycle session)
+// Note that the existence of a core session will trigger a recylce process on sessiond too
+func installMacFlowOrRecycleSession(sid *lte_protos.SubscriberID, aaaCtx *protos.Context, sessions aaa.SessionTable) error {
+	if isSessionAlreadyStored(aaaCtx.GetImsi(), sessions) == false {
+		// (new session) install MAC flows for new session
+		glog.V(2).Infof("Install new  mac flows for %s", aaaCtx.GetImsi())
+		return pipelined.AddUeMacFlow(sid, aaaCtx)
+	} else {
+		// (recycle session) reinstall IPFIX flows for an existing session
+		// the session will be modified by store in memory it self
+		glog.V(2).Infof("Update IPFix flows (recycle Session) for %s", aaaCtx.GetImsi())
+		return pipelined.UpdateIPFIXFlow(sid, aaaCtx)
+	}
+}
+
+func isSessionAlreadyStored(imsi string, sessions aaa.SessionTable) bool {
+	oldSession := sessions.GetSessionByImsi(imsi)
+	if oldSession != nil {
+		oldSession.Lock()
+		defer oldSession.Unlock()
+		return len(oldSession.GetCtx().GetAcctSessionId()) > 0
+	}
+	return false
+}
+
+func createSessionOnSessionManager(mac net.HardwareAddr, subscriberId *lte_protos.SubscriberID,
+	aaaCtx *protos.Context) (*lte_protos.LocalCreateSessionResponse, error) {
+	req := &lte_protos.LocalCreateSessionRequest{
+		// TODO deprecate the fields below
+		Sid:             subscriberId,
+		UeIpv4:          aaaCtx.GetIpAddr(),
+		Apn:             aaaCtx.GetApn(),
+		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
+		RatType:         lte_protos.RATType_TGPP_WLAN,
+		HardwareAddr:    mac,
+		RadiusSessionId: aaaCtx.GetSessionId(),
+		// TODO the fields above will be replaced by CommonContext and
+		// RatSpecificContext below.
+		CommonContext: &lte_protos.CommonSessionContext{
+			Sid:     subscriberId,
+			UeIpv4:  aaaCtx.GetIpAddr(),
+			Apn:     aaaCtx.GetApn(),
+			Msisdn:  ([]byte)(aaaCtx.GetMsisdn()),
+			RatType: lte_protos.RATType_TGPP_WLAN,
+		},
+		RatSpecificContext: &lte_protos.RatSpecificContext{
+			Context: &lte_protos.RatSpecificContext_WlanContext{
+				WlanContext: &lte_protos.WLANSessionContext{
+					HardwareAddr:    mac,
+					RadiusSessionId: aaaCtx.GetSessionId(),
+				},
+			},
+		},
+	}
+	return session_manager.CreateSession(req)
 }
 
 func (srv *accountingService) timeoutSessionNotifier(s aaa.Session) error {

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,18 +56,18 @@ typedef enum emmcn_primitive_s {
   _EMMCN_CS_DOMAIN_LOCATION_UPDT_ACC,
   _EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL,
   _EMMCN_CS_DOMAIN_MM_INFORMATION_REQ,
-  _EMMCN_DEACTIVATE_BEARER_REQ, // LG
+  _EMMCN_DEACTIVATE_BEARER_REQ,  // LG
   _EMMCN_PDN_DISCONNECT_RES,
   _EMMCN_END
 } emm_cn_primitive_t;
 
 typedef enum pdn_conn_rsp_cause_e {
-  CAUSE_OK = 16,
-  CAUSE_CONTEXT_NOT_FOUND = 64,
-  CAUSE_INVALID_MESSAGE_FORMAT = 65,
-  CAUSE_SERVICE_NOT_SUPPORTED = 68,
-  CAUSE_SYSTEM_FAILURE = 72,
-  CAUSE_NO_RESOURCES_AVAILABLE = 73,
+  CAUSE_OK                             = 16,
+  CAUSE_CONTEXT_NOT_FOUND              = 64,
+  CAUSE_INVALID_MESSAGE_FORMAT         = 65,
+  CAUSE_SERVICE_NOT_SUPPORTED          = 68,
+  CAUSE_SYSTEM_FAILURE                 = 72,
+  CAUSE_NO_RESOURCES_AVAILABLE         = 73,
   CAUSE_ALL_DYNAMIC_ADDRESSES_OCCUPIED = 84
 } pdn_conn_rsp_cause_t;
 
@@ -95,7 +91,7 @@ typedef struct emm_cn_auth_fail_s {
 } emm_cn_auth_fail_t;
 
 typedef struct emm_cn_ula_success_s {
-  mme_ue_s1ap_id_t ue_id; // nas ref
+  mme_ue_s1ap_id_t ue_id;  // nas ref
 } emm_cn_ula_success_t;
 
 /* emm_cn_ula_or_csrsp_fail_s is used for handling failed
@@ -145,14 +141,14 @@ typedef struct emm_cn_activate_dedicated_bearer_req_s {
 
 typedef struct emm_cn_deactivate_dedicated_bearer_req_s {
   uint32_t no_of_bearers;
-  ebi_t ebi[BEARERS_PER_UE]; //EPS Bearer ID
+  ebi_t ebi[BEARERS_PER_UE];  // EPS Bearer ID
   mme_ue_s1ap_id_t ue_id;
 } emm_cn_deactivate_dedicated_bearer_req_t;
 
 typedef struct emm_cn_pdn_disconnect_rsp_s {
   /* UE identifier */
   mme_ue_s1ap_id_t ue_id;
-  ebi_t lbi; //Default EPS Bearer ID
+  ebi_t lbi;  // Default EPS Bearer ID
 } emm_cn_pdn_disconnect_rsp_t;
 
 typedef struct emm_cn_deregister_ue_s {

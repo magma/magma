@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package servicers
@@ -13,6 +18,7 @@ import (
 	"fmt"
 
 	"magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/gateway/services/gateway_health/events"
 	"magma/cwf/gateway/services/gateway_health/health/gre_probe"
 	"magma/cwf/gateway/services/gateway_health/health/service_health"
 	"magma/cwf/gateway/services/gateway_health/health/system_health"
@@ -25,13 +31,20 @@ import (
 const (
 	sessiondServiceName = "sessiond"
 	radiusServiceName   = "radius"
+	aaaServiceName      = "aaa_server"
+
+	disabled gatewayState = "disabled"
+	enabled  gatewayState = "enabled"
 )
+
+type gatewayState string
 
 type GatewayHealthServicer struct {
 	config        *mconfig.CwfGatewayHealthConfig
 	greProbe      gre_probe.GREProbe
 	serviceHealth service_health.ServiceHealth
 	systemHealth  system_health.SystemHealth
+	currentState  gatewayState
 }
 
 // NewGatewayHealthServicer constructs a GatewayHealthServicer.
@@ -46,6 +59,7 @@ func NewGatewayHealthServicer(
 		greProbe:      greProbe,
 		systemHealth:  systemHealth,
 		serviceHealth: serviceHealth,
+		currentState:  "",
 	}
 }
 
@@ -58,10 +72,25 @@ func (s *GatewayHealthServicer) Disable(ctx context.Context, req *protos.Disable
 	ret := &orcprotos.Void{}
 	err := s.systemHealth.Disable()
 	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error())
 		return ret, err
 	}
 	// Stop the RADIUS server so that the WLC perceives it as down.
-	return ret, s.serviceHealth.Disable(radiusServiceName)
+	err = s.serviceHealth.Stop(radiusServiceName)
+	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error())
+		return ret, err
+	}
+	// Restart the AAA server to clear in-memory sessions
+	err = s.serviceHealth.Restart(aaaServiceName)
+	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error())
+		return ret, err
+	}
+	s.greProbe.Stop()
+	events.LogGatewayHealthSuccessEvent(events.GatewayDemotionSucceededEvent)
+	s.currentState = disabled
+	return ret, nil
 }
 
 // Enable ensures ICMP is enabled on eth1, then restarts radius and sessiond
@@ -70,16 +99,26 @@ func (s *GatewayHealthServicer) Enable(ctx context.Context, req *orcprotos.Void)
 	ret := &orcprotos.Void{}
 	err := s.systemHealth.Enable()
 	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
 		return ret, err
 	}
-	err = s.serviceHealth.Enable(sessiondServiceName)
+	err = s.serviceHealth.Restart(sessiondServiceName)
 	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
 		return ret, err
 	}
-	err = s.serviceHealth.Enable(radiusServiceName)
+	err = s.serviceHealth.Restart(radiusServiceName)
 	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
 		return ret, err
 	}
+	err = s.greProbe.Start()
+	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
+		return ret, err
+	}
+	events.LogGatewayHealthSuccessEvent(events.GatewayPromotionSucceededEvent)
+	s.currentState = enabled
 	return ret, nil
 }
 
@@ -147,11 +186,18 @@ func (s *GatewayHealthServicer) getServiceHealth() *protos.HealthStatus {
 		}
 	}
 	glog.V(1).Infof("unhealthy services: %v", unhealthyServices)
-	if len(unhealthyServices) > 0 {
-		return &protos.HealthStatus{
-			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: fmt.Sprintf("The following services were unhealthy: %v", unhealthyServices),
-		}
+
+	// TODO: Remove radius logic once transport failover is introduced
+	unhealthyStatus := &protos.HealthStatus{
+		Health:        protos.HealthStatus_UNHEALTHY,
+		HealthMessage: fmt.Sprintf("The following services were unhealthy: %v", unhealthyServices),
+	}
+	if len(unhealthyServices) > 0 && s.currentState == enabled {
+		return unhealthyStatus
+	} else if len(unhealthyServices) > 1 && s.currentState == disabled {
+		return unhealthyStatus
+	} else if len(unhealthyServices) == 1 && s.currentState == disabled && unhealthyServices[0] != radiusServiceName {
+		return unhealthyStatus
 	}
 	return &protos.HealthStatus{
 		Health:        protos.HealthStatus_HEALTHY,

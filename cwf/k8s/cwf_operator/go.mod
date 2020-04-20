@@ -13,19 +13,29 @@
 // limitations under the License.
 
 // Modifications:
-// Copyright (c) Facebook, Inc. and its affiliates.
-// All rights reserved.
+// Copyright 2020 The Magma Authors.
 //
 // This source code is licensed under the BSD-style license found in the
 // LICENSE file in the root directory of this source tree.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 module magma/cwf/k8s/cwf_operator
 
 go 1.13
 
 require (
+	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/go-logr/glogr v0.1.0
 	github.com/gorilla/mux v1.7.4 // indirect
+	github.com/hashicorp/go-msgpack v0.5.4 // indirect
+	github.com/hashicorp/go-uuid v1.0.1 // indirect
+	github.com/miekg/dns v1.1.10 // indirect
+	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
@@ -38,6 +48,7 @@ require (
 
 	magma/feg/cloud/go/protos v0.0.0
 	magma/lte/cloud/go v0.0.0 // indirect
+	magma/orc8r/lib/go v0.0.0
 	magma/orc8r/lib/go/protos v0.0.0
 	sigs.k8s.io/controller-runtime v0.5.1
 )

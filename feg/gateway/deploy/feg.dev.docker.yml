@@ -1,0 +1,38 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+- name: Set up Magma Federated Gateway build environment on a local machine
+  hosts: feg
+  become: yes
+  vars:
+    - magma_root: /home/{{ ansible_user }}/magma
+    - user: "{{ ansible_user }}"
+    - preburn: false
+    - full_provision: true
+
+  roles:
+    - role: gomod_cache
+    - role: distro_snapshot
+      vars:
+        distro: bionic
+        distro_root: "{{ lookup('env', 'FEG_DISTRO_ARCHIVE') | regex_replace('(^.*/+|)([^/]+)\\.tar\\.gz$', '\\2') }}"
+        distro_archive: "{{ lookup('env', 'FEG_DISTRO_ARCHIVE') }}"
+        distro_sha256: "{{ lookup('env', 'FEG_DISTRO_SHA256') }}"
+    - role: test_certs
+    - role: golang
+
+  tasks:
+    - include_role:
+        name: docker
+        tasks_from: install

@@ -5,6 +5,7 @@ set (  SCTP_DUMP_LIST                  False )
 set (  TRACE_HASHTABLE                 False )
 set (  TRACE_3GPP_SPEC                 False )
 
+
 # Dependencies
 pkg_search_module(LIBXML2 libxml-2.0 REQUIRED)
 include_directories(${LIBXML2_INCLUDE_DIRS})
@@ -28,9 +29,7 @@ if ("${LFDS}" STREQUAL "LFDS-NOTFOUND")
   message(FATAL_ERROR "LIB LFDS not found, please install it" )
 endif()
 
-
 add_executable(mme
-    ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme_log.c
     ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme.c
     ${PROJECT_SOURCE_DIR}/common/common_types.c
     ${PROJECT_SOURCE_DIR}/common/itti_free_defined_msg.c
@@ -49,12 +48,17 @@ target_link_libraries(mme
         ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
-    ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls fdproto fdcore ${SERVICE303_LIB}
+    ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls ${SERVICE303_LIB}
     prometheus-cpp grpc grpc++
 )
 
 if ( NOT EMBEDDED_SGW )
-    target_link_libraries(mme GTPV2C S11_MME)
-elseif ( EMBEDDED_SGW )
-    target_link_libraries(mme TASK_SGW)
+ target_link_libraries(mme
+  LIB_GTPV2C TASK_UDP)
+else ( EMBEDDED_SGW )
+target_link_libraries(mme TASK_SGW)
 endif ( NOT EMBEDDED_SGW )
+
+if ( NOT S6A_OVER_GRPC )
+    target_link_libraries(mme fdproto fdcore)
+endif ( NOT S6A_OVER_GRPC )
