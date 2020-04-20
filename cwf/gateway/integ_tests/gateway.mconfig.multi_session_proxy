@@ -136,6 +136,20 @@
        "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
        "destHost": "pcrf.epc.mnc001.mcc001.3gppnetwork.org",
        "disableDestHost": false
+      },
+      {
+       "protocol": "tcp",
+       "address": "127.0.0.1:50013",
+       "retransmits": 0,
+       "watchdogInterval": 0,
+       "retryCount": 0,
+       "localAddress": "127.0.0.1:50014",
+       "productName": "magma",
+       "realm": "magma.svc.cluster.local",
+       "host": "feg.magma.svc.cluster.local",
+       "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
+       "destHost": "pcrf.epc.mnc001.mcc001.3gppnetwork.org",
+       "disableDestHost": false
       }
     ]
    },
@@ -148,6 +162,20 @@
        "watchdogInterval": 0,
        "retryCount": 0,
        "localAddress": "127.0.0.1:50002",
+       "productName": "magma",
+       "realm": "magma.svc.cluster.local",
+       "host": "feg.magma.svc.cluster.local",
+       "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
+       "destHost": "sdp1c.epc.mnc001.mcc001.3gppnetwork.org",
+       "disableDestHost": false
+      },
+      {
+       "protocol": "tcp",
+       "address": "127.0.0.1:50011",
+       "retransmits": 0,
+       "watchdogInterval": 0,
+       "retryCount": 0,
+       "localAddress": "127.0.0.1:50012",
        "productName": "magma",
        "realm": "magma.svc.cluster.local",
        "host": "feg.magma.svc.cluster.local",
