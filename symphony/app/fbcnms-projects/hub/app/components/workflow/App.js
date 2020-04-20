@@ -9,6 +9,9 @@ import buildReducer from "./store/reducers/builder";
 import bulkReducer from "./store/reducers/bulk";
 import mountedDeviceReducer from "./store/reducers/mountedDevices";
 import searchReducer from "./store/reducers/searchExecs";
+import './css/bootstrap.min.css';
+import './css/mono-blue.min.css';
+import './css/neat.css';
 
 const rootReducer = combineReducers({
   bulkReducer,
