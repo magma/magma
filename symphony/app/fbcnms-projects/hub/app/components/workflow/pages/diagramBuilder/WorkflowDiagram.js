@@ -132,7 +132,7 @@ export class WorkflowDiagram {
 
       this.registerEventHandlers(eventHandlers).then(() => {
         axios
-          .put("/api/conductor/metadata", [definition])
+          .put("/workflows/metadata", [definition])
           .then(() => {
             resolve(definition);
           })
@@ -153,7 +153,7 @@ export class WorkflowDiagram {
       }
       eventHandlers.forEach(eventHandler => {
         axios
-          .post("/api/conductor/event", eventHandler)
+          .post("/workflows/event", eventHandler)
           .then(res => {
             resolve(res);
           })
@@ -875,7 +875,7 @@ export class WorkflowDiagram {
       });
 
       axios
-        .get("/api/conductor/metadata/workflow/" + name + "/" + version)
+        .get("/workflows/metadata/workflow/" + name + "/" + version)
         .then(res => {
           const subworkflowDiagram = new WorkflowDiagram(
             new Application(),

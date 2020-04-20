@@ -41,7 +41,7 @@ export const fetchNewData = (viewedPage, defaultPages) => {
     let page = (viewedPage - 1) * defaultPages;
     axios
       .get(
-        "/api/conductor/executions/?q=&h=&freeText=" +
+        "/workflows/executions/?q=&h=&freeText=" +
           q +
           "&start=" +
           page +
@@ -74,7 +74,7 @@ export const fetchParentWorkflows = (viewedPage, defaultPages) => {
     let q = createQuery(getState().searchReducer);
     axios
       .get(
-        "/api/conductor/hierarchical/?freeText=" +
+        "/workflows/hierarchical/?freeText=" +
           q +
           "&start=" +
           checkedWfs[page] +

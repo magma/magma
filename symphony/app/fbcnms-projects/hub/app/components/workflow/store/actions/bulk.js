@@ -63,7 +63,7 @@ export const checkDeleted = (deletedWfs, workflows, defaultPages) => {
 };
 
 export const performBulkOperation = (operation, workflows, defaultPages) => {
-  const url = `/api/conductor/bulk/${operation}`;
+  const url = `/workflows/bulk/${operation}`;
   let deletedWfs = [];
 
   return dispatch => {
@@ -116,7 +116,7 @@ export const performBulkOperation = (operation, workflows, defaultPages) => {
           break;
         case "delete":
           workflows.map(wf => {
-            axios.delete("/api/conductor/workflow/" + wf).then(() => {
+            axios.delete("/workflows/workflow/" + wf).then(() => {
               deletedWfs.push(wf);
               dispatch(
                 updateLoadingBar(

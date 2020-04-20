@@ -33,7 +33,7 @@ function NodeModal(props) {
       setVersion(version);
 
       axios
-        .get("/api/conductor/metadata/workflow/" + name + "/" + version)
+        .get("/workflows/metadata/workflow/" + name + "/" + version)
         .then(res => {
           setInputParameters(res.result.inputParameters);
         });

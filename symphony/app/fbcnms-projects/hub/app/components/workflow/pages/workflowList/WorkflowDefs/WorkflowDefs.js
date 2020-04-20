@@ -46,7 +46,7 @@ class WorkflowDefs extends Component {
   }
 
   componentDidMount() {
-    axios.get("/api/conductor/metadata/workflow").then(res => {
+    axios.get("/workflows/metadata/workflow").then(res => {
       if (res.result) {
         let size = ~~(res.result.length / this.state.defaultPages);
         let dataset =
@@ -220,8 +220,8 @@ class WorkflowDefs extends Component {
     } else {
       data.description = "- FAVOURITE";
     }
-    axios.put("/api/conductor/metadata/", [data]).then(() => {
-      axios.get("/api/conductor/metadata/workflow").then(res => {
+    axios.put("/workflows/metadata/", [data]).then(() => {
+      axios.get("/workflows/metadata/workflow").then(res => {
         let dataset =
           res.result.sort((a, b) =>
             a.name > b.name ? 1 : b.name > a.name ? -1 : 0
@@ -286,7 +286,7 @@ class WorkflowDefs extends Component {
     const name = this.state.activeWf.split(" / ")[0];
     const version = this.state.activeWf.split(" / ")[1];
     axios
-      .delete("/api/conductor/metadata/workflow/" + name + "/" + version)
+      .delete("/workflows/metadata/workflow/" + name + "/" + version)
       .then(() => {
         this.componentDidMount();
         let table = this.state.table;

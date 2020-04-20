@@ -57,7 +57,7 @@ const WorkflowList = (props) => {
         let definition = JSON.parse(e.target.result);
         fileList.push(definition);
         if (!--files.length) {
-          axios.put("/api/conductor/metadata", fileList).then(() => {
+          axios.put("/workflows/metadata", fileList).then(() => {
             window.location.reload();
           });
         }
@@ -67,7 +67,7 @@ const WorkflowList = (props) => {
   };
 
   const exportFile = () => {
-    axios.get("/api/conductor/metadata/workflow").then((res) => {
+    axios.get("/workflows/metadata/workflow").then((res) => {
       const zip = new JSZip();
       let workflows = res.result || [];
 

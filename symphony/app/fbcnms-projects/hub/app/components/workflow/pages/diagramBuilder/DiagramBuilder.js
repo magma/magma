@@ -72,13 +72,13 @@ class DiagramBuilder extends Component {
     console.log(this.props);
     this.props.hideHeader();
 
-    axios.get("/api/conductor/metadata/workflow").then((res) => {
+    axios.get("/workflows/metadata/workflow").then((res) => {
       this.props.storeWorkflows(
         res.result?.sort((a, b) => a.name.localeCompare(b.name)) || []
       );
     });
 
-    axios.get("/api/conductor/metadata/taskdefs").then((res) => {
+    axios.get("/workflows/metadata/taskdefs").then((res) => {
       this.props.storeTasks(
         res.result?.sort((a, b) => a.name.localeCompare(b.name)) || []
       );
@@ -108,7 +108,7 @@ class DiagramBuilder extends Component {
   createExistingWorkflow() {
     const { name, version } = this.props.match.params;
     axios
-      .get("/api/conductor/metadata/workflow/" + name + "/" + version)
+      .get("/workflows/metadata/workflow/" + name + "/" + version)
       .then((res) => {
         this.createDiagramByDefinition(res.result);
       })

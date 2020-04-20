@@ -73,7 +73,7 @@ function InputModal(props) {
     setVersion(Number(props.wf.split(" / ")[1]));
 
     axios
-      .get("/api/conductor/metadata/workflow/" + name + "/" + version)
+      .get("/workflows/metadata/workflow/" + name + "/" + version)
       .then(res => {
         let definition = JSON.stringify(res.result, null, 2);
         let description = res.result?.description?.split("-")[0] || "";
@@ -105,7 +105,7 @@ function InputModal(props) {
       let q = 'status:"RUNNING"';
       axios
         .get(
-          "/api/conductor/executions/?q=&h=&freeText=" +
+          "/workflows/executions/?q=&h=&freeText=" +
             q +
             "&start=" +
             0 +
@@ -114,7 +114,7 @@ function InputModal(props) {
         .then(res => {
           let runningWfs = res.result?.hits || [];
           let promises = runningWfs.map(wf => {
-            return axios.get("/api/conductor/id/" + wf.workflowId);
+            return axios.get("/workflows/id/" + wf.workflowId);
           });
 
           Promise.all(promises).then(results => {
@@ -185,7 +185,7 @@ function InputModal(props) {
       }
     }
     setStatus("Executing...");
-    axios.post("/api/conductor/workflow", JSON.stringify(payload)).then(res => {
+    axios.post("/workflows/workflow", JSON.stringify(payload)).then(res => {
       setStatus(res.statusText);
       setWfId(res.body.text);
 

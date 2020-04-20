@@ -10,7 +10,7 @@ const DefinitionModal = props => {
     const name = props.wf.split(" / ")[0];
     const version = props.wf.split(" / ")[1];
     axios
-      .get("/api/conductor/metadata/workflow/" + name + "/" + version)
+      .get("/workflows/metadata/workflow/" + name + "/" + version)
       .then(res => {
         setDefinition(JSON.stringify(res.result, null, 2));
       });
