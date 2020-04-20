@@ -149,31 +149,30 @@ export default function NavigatableViews(props: Props) {
     }
   }, [views, activeViewIndex, routingBasePath, location.pathname]);
 
-  const menuItems = useMemo(() => {
-    const arr: Array<MenuItem> = [];
-    views.forEach(view => {
-      if (view.menuItem == null) {
-        return;
-      }
-      arr.push(view.menuItem);
-      // Why with 'forEach' and not filter&map - good question!
-      // Flow doesn't allow this :
-      //  views
-      //    .filter(view => view.menuItem != null)
-      //    .map(view => view.menuItem);
-    });
-    return arr;
-  }, [views]);
-  const routableViews = useMemo(() => {
-    const arr: Array<{path: string, component: ViewContainerProps}> = [];
-    views.forEach(view => {
-      if (view.routingPath == null || view.component == null) {
-        return;
-      }
-      arr.push({path: view.routingPath, component: view.component});
-    });
-    return arr;
-  }, [views]);
+  const menuItemViews = useMemo(
+    () =>
+      views
+        .map((view, ind) => {
+          if (view.menuItem != null) {
+            return {menuItem: view.menuItem, viewIndex: ind};
+          }
+          return null;
+        })
+        .filter(Boolean),
+    [views],
+  );
+  const routableViews = useMemo(
+    () =>
+      views
+        .map(view => {
+          if (view.routingPath != null && view.component != null) {
+            return {path: view.routingPath, component: view.component};
+          }
+          return null;
+        })
+        .filter(Boolean),
+    [views],
+  );
 
   if (views.length === 0) {
     return null;
@@ -182,16 +181,18 @@ export default function NavigatableViews(props: Props) {
   const activeView = views[activeViewIndex];
   return (
     <div className={classes.root}>
-      {menuItems.length > 0 && variant === NAVIGATION_VARIANTS.side && (
+      {menuItemViews.length > 0 && variant === NAVIGATION_VARIANTS.side && (
         <SideMenu
           header={header}
-          items={menuItems}
+          items={menuItemViews.map(item => item.menuItem)}
           activeItemIndex={
             activeView.relatedMenuItemIndex != null
               ? activeView.relatedMenuItemIndex
               : activeViewIndex
           }
-          onActiveItemChanged={(_item, index) => onNavigation(index)}
+          onActiveItemChanged={(_item, index) =>
+            onNavigation(menuItemViews[index].viewIndex)
+          }
         />
       )}
       {activeView.component != null &&
