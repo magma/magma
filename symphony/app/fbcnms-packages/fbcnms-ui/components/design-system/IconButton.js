@@ -14,14 +14,21 @@ import type {SvgIconStyleProps} from './Icons/SvgIcon';
 import * as React from 'react';
 import Button from './Button';
 
-type Props = $ReadOnly<{|
+export type IconComponent = React.ComponentType<SvgIconStyleProps>;
+
+export type IconButtonProps = $ReadOnly<{|
   className?: string,
-  icon: React.ComponentType<SvgIconStyleProps>,
+  icon: IconComponent,
+  skin?: ButtonSkin,
+  disabled?: boolean,
+  tooltip?: string,
+|}>;
+
+type Props = $ReadOnly<{|
   onClick?:
     | void
     | (void | ((SyntheticMouseEvent<HTMLElement>) => void | Promise<void>)),
-  skin?: ButtonSkin,
-  disabled?: boolean,
+  ...IconButtonProps,
 |}>;
 
 const IconButton = ({icon: Icon, ...buttonProps}: Props) => {
