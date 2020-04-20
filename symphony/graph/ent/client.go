@@ -5698,7 +5698,8 @@ func (c *UserClient) QueryGroups(u *User) *UsersGroupQuery {
 
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
-	return c.hooks.User
+	hooks := c.hooks.User
+	return append(hooks[:len(hooks):len(hooks)], user.Hooks[:]...)
 }
 
 // UsersGroupClient is a client for the UsersGroup schema.
