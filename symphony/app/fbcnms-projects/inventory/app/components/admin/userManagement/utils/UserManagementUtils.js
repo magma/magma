@@ -160,6 +160,9 @@ export type UsersMap = Map<string, User>;
 export const users2UsersMap: (Array<User>) => UsersMap = users =>
   new Map<string, User>(users.map(user => [user.id, user]));
 
+export const userFullName = (user: User) =>
+  `${user.firstName} ${user.lastName}`.trim() || '_';
+
 export const groupResponse2Group: (
   GroupReponseFieldsPart,
   UsersMap,
